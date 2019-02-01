@@ -1,4 +1,8 @@
 
+ Modification: prefixed version, suitable for use when dynamically linked to another package that may
+ have a separate version already linked in, and where it is infeasible to make use of this version. All
+ public API functions have a unique prefix added to allow the two versions to be distinguished.
+ 
  OpenSSL 3.0.0-dev
 
  Copyright (c) 1998-2018 The OpenSSL Project
