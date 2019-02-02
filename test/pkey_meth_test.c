@@ -24,9 +24,9 @@ static int test_asn1_meths(void)
     int pkey_id;
     const EVP_PKEY_ASN1_METHOD *ameth;
 
-    for (i = 0; i < EVP_PKEY_asn1_get_count(); i++) {
-        ameth = EVP_PKEY_asn1_get0(i);
-        EVP_PKEY_asn1_get0_info(&pkey_id, NULL, NULL, NULL, NULL, ameth);
+    for (i = 0; i < VR_EVP_PKEY_asn1_get_count(); i++) {
+        ameth = VR_EVP_PKEY_asn1_get0(i);
+        VR_EVP_PKEY_asn1_get0_info(&pkey_id, NULL, NULL, NULL, NULL, ameth);
         if (pkey_id < prev)
             good = 0;
         prev = pkey_id;
@@ -34,14 +34,14 @@ static int test_asn1_meths(void)
     }
     if (!good) {
         TEST_error("EVP_PKEY_ASN1_METHOD table out of order");
-        for (i = 0; i < EVP_PKEY_asn1_get_count(); i++) {
+        for (i = 0; i < VR_EVP_PKEY_asn1_get_count(); i++) {
             const char *info;
 
-            ameth = EVP_PKEY_asn1_get0(i);
-            EVP_PKEY_asn1_get0_info(&pkey_id, NULL, NULL, &info, NULL, ameth);
+            ameth = VR_EVP_PKEY_asn1_get0(i);
+            VR_EVP_PKEY_asn1_get0_info(&pkey_id, NULL, NULL, &info, NULL, ameth);
             if (info == NULL)
                 info = "<NO NAME>";
-            TEST_note("%d : %s : %s", pkey_id, OBJ_nid2ln(pkey_id), info);
+            TEST_note("%d : %s : %s", pkey_id, VR_OBJ_nid2ln(pkey_id), info);
         }
     }
     return good;
@@ -56,9 +56,9 @@ static int test_pkey_meths(void)
     int pkey_id;
     const EVP_PKEY_METHOD *pmeth;
 
-    for (i = 0; i < EVP_PKEY_meth_get_count(); i++) {
-        pmeth = EVP_PKEY_meth_get0(i);
-        EVP_PKEY_meth_get0_info(&pkey_id, NULL, pmeth);
+    for (i = 0; i < VR_EVP_PKEY_meth_get_count(); i++) {
+        pmeth = VR_EVP_PKEY_meth_get0(i);
+        VR_EVP_PKEY_meth_get0_info(&pkey_id, NULL, pmeth);
         if (pkey_id < prev)
             good = 0;
         prev = pkey_id;
@@ -66,10 +66,10 @@ static int test_pkey_meths(void)
     }
     if (!good) {
         TEST_error("EVP_PKEY_METHOD table out of order");
-        for (i = 0; i < EVP_PKEY_meth_get_count(); i++) {
-            pmeth = EVP_PKEY_meth_get0(i);
-            EVP_PKEY_meth_get0_info(&pkey_id, NULL, pmeth);
-            TEST_note("%d : %s", pkey_id, OBJ_nid2ln(pkey_id));
+        for (i = 0; i < VR_EVP_PKEY_meth_get_count(); i++) {
+            pmeth = VR_EVP_PKEY_meth_get0(i);
+            VR_EVP_PKEY_meth_get0_info(&pkey_id, NULL, pmeth);
+            TEST_note("%d : %s", pkey_id, VR_OBJ_nid2ln(pkey_id));
         }
     }
     return good;

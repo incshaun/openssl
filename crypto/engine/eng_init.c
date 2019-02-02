@@ -14,7 +14,7 @@
  * Initialise a engine type for use (or up its functional reference count if
  * it's already in use). This version is only used internally.
  */
-int engine_unlocked_init(ENGINE *e)
+int VR_engine_unlocked_init(ENGINE *e)
 {
     int to_return = 1;
 
@@ -41,7 +41,7 @@ int engine_unlocked_init(ENGINE *e)
  * Free a functional reference to a engine type. This version is only used
  * internally.
  */
-int engine_unlocked_finish(ENGINE *e, int unlock_for_handlers)
+int VR_engine_unlocked_finish(ENGINE *e, int unlock_for_handlers)
 {
     int to_return = 1;
 
@@ -57,16 +57,16 @@ int engine_unlocked_finish(ENGINE *e, int unlock_for_handlers)
     engine_ref_debug(e, 1, -1);
     if ((e->funct_ref == 0) && e->finish) {
         if (unlock_for_handlers)
-            CRYPTO_THREAD_unlock(global_engine_lock);
+            VR_CRYPTO_THREAD_unlock(global_engine_lock);
         to_return = e->finish(e);
         if (unlock_for_handlers)
-            CRYPTO_THREAD_write_lock(global_engine_lock);
+            VR_CRYPTO_THREAD_write_lock(global_engine_lock);
         if (!to_return)
             return 0;
     }
     REF_ASSERT_ISNT(e->funct_ref < 0);
     /* Release the structural reference too */
-    if (!engine_free_util(e, 0)) {
+    if (!VR_engine_free_util(e, 0)) {
         ENGINEerr(ENGINE_F_ENGINE_UNLOCKED_FINISH, ENGINE_R_FINISH_FAILED);
         return 0;
     }
@@ -74,33 +74,33 @@ int engine_unlocked_finish(ENGINE *e, int unlock_for_handlers)
 }
 
 /* The API (locked) version of "init" */
-int ENGINE_init(ENGINE *e)
+int VR_ENGINE_init(ENGINE *e)
 {
     int ret;
     if (e == NULL) {
         ENGINEerr(ENGINE_F_ENGINE_INIT, ERR_R_PASSED_NULL_PARAMETER);
         return 0;
     }
-    if (!RUN_ONCE(&engine_lock_init, do_engine_lock_init)) {
+    if (!RUN_ONCE(&engine_lock_init, VR_do_engine_lock_init)) {
         ENGINEerr(ENGINE_F_ENGINE_INIT, ERR_R_MALLOC_FAILURE);
         return 0;
     }
-    CRYPTO_THREAD_write_lock(global_engine_lock);
-    ret = engine_unlocked_init(e);
-    CRYPTO_THREAD_unlock(global_engine_lock);
+    VR_CRYPTO_THREAD_write_lock(global_engine_lock);
+    ret = VR_engine_unlocked_init(e);
+    VR_CRYPTO_THREAD_unlock(global_engine_lock);
     return ret;
 }
 
 /* The API (locked) version of "finish" */
-int ENGINE_finish(ENGINE *e)
+int VR_ENGINE_finish(ENGINE *e)
 {
     int to_return = 1;
 
     if (e == NULL)
         return 1;
-    CRYPTO_THREAD_write_lock(global_engine_lock);
-    to_return = engine_unlocked_finish(e, 1);
-    CRYPTO_THREAD_unlock(global_engine_lock);
+    VR_CRYPTO_THREAD_write_lock(global_engine_lock);
+    to_return = VR_engine_unlocked_finish(e, 1);
+    VR_CRYPTO_THREAD_unlock(global_engine_lock);
     if (!to_return) {
         ENGINEerr(ENGINE_F_ENGINE_FINISH, ENGINE_R_FINISH_FAILED);
         return 0;

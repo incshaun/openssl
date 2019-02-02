@@ -38,7 +38,7 @@ static int write_record(BIO *b, size_t len, int rectype, int recversion)
     header[3] = (len >> 8) & 0xff;
     header[4] = len & 0xff;
 
-    if (!BIO_write_ex(b, header, SSL3_RT_HEADER_LENGTH, &written)
+    if (!VR_BIO_write_ex(b, header, SSL3_RT_HEADER_LENGTH, &written)
             || written != SSL3_RT_HEADER_LENGTH)
         return 0;
 
@@ -50,7 +50,7 @@ static int write_record(BIO *b, size_t len, int rectype, int recversion)
         else
             outlen = len;
 
-        if (!BIO_write_ex(b, buf, outlen, &written)
+        if (!VR_BIO_write_ex(b, buf, outlen, &written)
                 || written != outlen)
             return 0;
 
@@ -62,7 +62,7 @@ static int write_record(BIO *b, size_t len, int rectype, int recversion)
 
 static int fail_due_to_record_overflow(int enc)
 {
-    long err = ERR_peek_error();
+    long err = VR_ERR_peek_error();
     int reason;
 
     if (enc)
@@ -100,9 +100,9 @@ static int test_record_overflow(int idx)
         return 1;
 #endif
 
-    ERR_clear_error();
+    VR_ERR_clear_error();
 
-    if (!TEST_true(create_ssl_ctx_pair(TLS_server_method(), TLS_client_method(),
+    if (!TEST_true(create_ssl_ctx_pair(VR_TLS_server_method(), VR_TLS_client_method(),
                                        TLS1_VERSION, 0,
                                        &sctx, &cctx, cert, privkey)))
         goto end;
@@ -123,7 +123,7 @@ static int test_record_overflow(int idx)
                                       NULL, NULL)))
         goto end;
 
-    serverbio = SSL_get_rbio(serverssl);
+    serverbio = VR_SSL_get_rbio(serverssl);
 
     if (idx == TEST_PLAINTEXT_OVERFLOW_OK
             || idx == TEST_PLAINTEXT_OVERFLOW_NOT_OK) {
@@ -136,7 +136,7 @@ static int test_record_overflow(int idx)
                                     SSL3_RT_HANDSHAKE, TLS1_VERSION)))
             goto end;
 
-        if (!TEST_int_le(SSL_accept(serverssl), 0))
+        if (!TEST_int_le(VR_SSL_accept(serverssl), 0))
             goto end;
 
         overf_expected = (idx == TEST_PLAINTEXT_OVERFLOW_OK) ? 0 : 1;
@@ -164,7 +164,7 @@ static int test_record_overflow(int idx)
                                 recversion)))
         goto end;
 
-    if (!TEST_false(SSL_read_ex(serverssl, &buf, sizeof(buf), &written)))
+    if (!TEST_false(VR_SSL_read_ex(serverssl, &buf, sizeof(buf), &written)))
         goto end;
 
     if (!TEST_int_eq(fail_due_to_record_overflow(1), overf_expected))
@@ -174,10 +174,10 @@ static int test_record_overflow(int idx)
     testresult = 1;
 
  end:
-    SSL_free(serverssl);
-    SSL_free(clientssl);
-    SSL_CTX_free(sctx);
-    SSL_CTX_free(cctx);
+    VR_SSL_free(serverssl);
+    VR_SSL_free(clientssl);
+    VR_SSL_CTX_free(sctx);
+    VR_SSL_CTX_free(cctx);
     return testresult;
 }
 

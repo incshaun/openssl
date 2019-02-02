@@ -408,10 +408,10 @@ ___
 { my ($A_flat,$inp,$len,$bsz) = ("%rdi","%rsi","%rdx","%rcx");
      ($A_flat,$inp) = ("%r8","%r9");
 $code.=<<___;
-.globl	SHA3_absorb
-.type	SHA3_absorb,\@function,4
+.globl	VR_SHA3_absorb
+.type	VR_SHA3_absorb,\@function,4
 .align	32
-SHA3_absorb:
+VR_SHA3_absorb:
 .cfi_startproc
 	push	%rbx
 .cfi_push	%rbx
@@ -496,17 +496,17 @@ SHA3_absorb:
 .cfi_pop	%rbx
 	ret
 .cfi_endproc
-.size	SHA3_absorb,.-SHA3_absorb
+.size	VR_SHA3_absorb,.-VR_SHA3_absorb
 ___
 }
 { my ($A_flat,$out,$len,$bsz) = ("%rdi","%rsi","%rdx","%rcx");
      ($out,$len,$bsz) = ("%r12","%r13","%r14");
 
 $code.=<<___;
-.globl	SHA3_squeeze
-.type	SHA3_squeeze,\@function,4
+.globl	VR_SHA3_squeeze
+.type	VR_SHA3_squeeze,\@function,4
 .align	32
-SHA3_squeeze:
+VR_SHA3_squeeze:
 .cfi_startproc
 	push	%r12
 .cfi_push	%r12
@@ -557,7 +557,7 @@ SHA3_squeeze:
 .cfi_pop	%r13
 	ret
 .cfi_endproc
-.size	SHA3_squeeze,.-SHA3_squeeze
+.size	VR_SHA3_squeeze,.-VR_SHA3_squeeze
 ___
 }
 $code.=<<___;

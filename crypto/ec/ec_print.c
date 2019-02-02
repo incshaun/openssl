@@ -11,7 +11,7 @@
 #include <openssl/err.h>
 #include "ec_lcl.h"
 
-BIGNUM *EC_POINT_point2bn(const EC_GROUP *group,
+BIGNUM *VR_EC_POINT_point2bn(const EC_GROUP *group,
                           const EC_POINT *point,
                           point_conversion_form_t form,
                           BIGNUM *ret, BN_CTX *ctx)
@@ -19,19 +19,19 @@ BIGNUM *EC_POINT_point2bn(const EC_GROUP *group,
     size_t buf_len = 0;
     unsigned char *buf;
 
-    buf_len = EC_POINT_point2buf(group, point, form, &buf, ctx);
+    buf_len = VR_EC_POINT_point2buf(group, point, form, &buf, ctx);
 
     if (buf_len == 0)
         return NULL;
 
-    ret = BN_bin2bn(buf, buf_len, ret);
+    ret = VR_BN_bin2bn(buf, buf_len, ret);
 
-    OPENSSL_free(buf);
+    OPENVR_SSL_free(buf);
 
     return ret;
 }
 
-EC_POINT *EC_POINT_bn2point(const EC_GROUP *group,
+EC_POINT *VR_EC_POINT_bn2point(const EC_GROUP *group,
                             const BIGNUM *bn, EC_POINT *point, BN_CTX *ctx)
 {
     size_t buf_len = 0;
@@ -45,34 +45,34 @@ EC_POINT *EC_POINT_bn2point(const EC_GROUP *group,
         return NULL;
     }
 
-    if (!BN_bn2bin(bn, buf)) {
-        OPENSSL_free(buf);
+    if (!VR_BN_bn2bin(bn, buf)) {
+        OPENVR_SSL_free(buf);
         return NULL;
     }
 
     if (point == NULL) {
-        if ((ret = EC_POINT_new(group)) == NULL) {
-            OPENSSL_free(buf);
+        if ((ret = VR_EC_POINT_new(group)) == NULL) {
+            OPENVR_SSL_free(buf);
             return NULL;
         }
     } else
         ret = point;
 
-    if (!EC_POINT_oct2point(group, ret, buf, buf_len, ctx)) {
+    if (!VR_EC_POINT_oct2point(group, ret, buf, buf_len, ctx)) {
         if (ret != point)
-            EC_POINT_clear_free(ret);
-        OPENSSL_free(buf);
+            VR_EC_POINT_clear_free(ret);
+        OPENVR_SSL_free(buf);
         return NULL;
     }
 
-    OPENSSL_free(buf);
+    OPENVR_SSL_free(buf);
     return ret;
 }
 
 static const char *HEX_DIGITS = "0123456789ABCDEF";
 
-/* the return value must be freed (using OPENSSL_free()) */
-char *EC_POINT_point2hex(const EC_GROUP *group,
+/* the return value must be freed (using OPENVR_SSL_free()) */
+char *VR_EC_POINT_point2hex(const EC_GROUP *group,
                          const EC_POINT *point,
                          point_conversion_form_t form, BN_CTX *ctx)
 {
@@ -80,14 +80,14 @@ char *EC_POINT_point2hex(const EC_GROUP *group,
     size_t buf_len = 0, i;
     unsigned char *buf = NULL, *pbuf;
 
-    buf_len = EC_POINT_point2buf(group, point, form, &buf, ctx);
+    buf_len = VR_EC_POINT_point2buf(group, point, form, &buf, ctx);
 
     if (buf_len == 0)
         return NULL;
 
     ret = OPENSSL_malloc(buf_len * 2 + 2);
     if (ret == NULL) {
-        OPENSSL_free(buf);
+        OPENVR_SSL_free(buf);
         return NULL;
     }
     p = ret;
@@ -99,23 +99,23 @@ char *EC_POINT_point2hex(const EC_GROUP *group,
     }
     *p = '\0';
 
-    OPENSSL_free(buf);
+    OPENVR_SSL_free(buf);
 
     return ret;
 }
 
-EC_POINT *EC_POINT_hex2point(const EC_GROUP *group,
+EC_POINT *VR_EC_POINT_hex2point(const EC_GROUP *group,
                              const char *buf, EC_POINT *point, BN_CTX *ctx)
 {
     EC_POINT *ret = NULL;
     BIGNUM *tmp_bn = NULL;
 
-    if (!BN_hex2bn(&tmp_bn, buf))
+    if (!VR_BN_hex2bn(&tmp_bn, buf))
         return NULL;
 
-    ret = EC_POINT_bn2point(group, tmp_bn, point, ctx);
+    ret = VR_EC_POINT_bn2point(group, tmp_bn, point, ctx);
 
-    BN_clear_free(tmp_bn);
+    VR_BN_clear_free(tmp_bn);
 
     return ret;
 }

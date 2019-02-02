@@ -117,7 +117,7 @@ $stitched_decrypt=0;
 open OUT,"| \"$^X\" \"$xlate\" $flavour \"$output\"";
 *STDOUT=*OUT;
 
-# void aesni_cbc_sha1_enc(const void *inp,
+# void VR_aesni_cbc_sha1_enc(const void *inp,
 #			void *out,
 #			size_t length,
 #			const AES_KEY *key,
@@ -129,29 +129,29 @@ $code.=<<___;
 .text
 .extern	OPENSSL_ia32cap_P
 
-.globl	aesni_cbc_sha1_enc
-.type	aesni_cbc_sha1_enc,\@abi-omnipotent
+.globl	VR_aesni_cbc_sha1_enc
+.type	VR_aesni_cbc_sha1_enc,\@abi-omnipotent
 .align	32
-aesni_cbc_sha1_enc:
+VR_aesni_cbc_sha1_enc:
 	# caller should check for SSSE3 and AES-NI bits
 	mov	OPENSSL_ia32cap_P+0(%rip),%r10d
 	mov	OPENSSL_ia32cap_P+4(%rip),%r11
 ___
 $code.=<<___ if ($shaext);
 	bt	\$61,%r11		# check SHA bit
-	jc	aesni_cbc_sha1_enc_shaext
+	jc	VR_aesni_cbc_sha1_enc_shaext
 ___
 $code.=<<___ if ($avx);
 	and	\$`1<<28`,%r11d		# mask AVX bit
 	and	\$`1<<30`,%r10d		# mask "Intel CPU" bit
 	or	%r11d,%r10d
 	cmp	\$`1<<28|1<<30`,%r10d
-	je	aesni_cbc_sha1_enc_avx
+	je	VR_aesni_cbc_sha1_enc_avx
 ___
 $code.=<<___;
-	jmp	aesni_cbc_sha1_enc_ssse3
+	jmp	VR_aesni_cbc_sha1_enc_ssse3
 	ret
-.size	aesni_cbc_sha1_enc,.-aesni_cbc_sha1_enc
+.size	VR_aesni_cbc_sha1_enc,.-VR_aesni_cbc_sha1_enc
 ___
 
 my ($in0,$out,$len,$key,$ivp,$ctx,$inp)=("%rdi","%rsi","%rdx","%rcx","%r8","%r9","%r10");
@@ -188,9 +188,9 @@ my $_rol=sub { &rol(@_) };
 my $_ror=sub { &ror(@_) };
 
 $code.=<<___;
-.type	aesni_cbc_sha1_enc_ssse3,\@function,6
+.type	VR_aesni_cbc_sha1_enc_ssse3,\@function,6
 .align	32
-aesni_cbc_sha1_enc_ssse3:
+VR_aesni_cbc_sha1_enc_ssse3:
 .cfi_startproc
 	mov	`($win64?56:8)`(%rsp),$inp	# load 7th argument
 	#shr	\$6,$len			# debugging artefact
@@ -752,7 +752,7 @@ $code.=<<___;
 .Lepilogue_ssse3:
 	ret
 .cfi_endproc
-.size	aesni_cbc_sha1_enc_ssse3,.-aesni_cbc_sha1_enc_ssse3
+.size	VR_aesni_cbc_sha1_enc_ssse3,.-VR_aesni_cbc_sha1_enc_ssse3
 ___
 
 						if ($stitched_decrypt) {{{
@@ -1062,9 +1062,9 @@ my $_rol=sub { &shld(@_[0],@_) };
 my $_ror=sub { &shrd(@_[0],@_) };
 
 $code.=<<___;
-.type	aesni_cbc_sha1_enc_avx,\@function,6
+.type	VR_aesni_cbc_sha1_enc_avx,\@function,6
 .align	32
-aesni_cbc_sha1_enc_avx:
+VR_aesni_cbc_sha1_enc_avx:
 .cfi_startproc
 	mov	`($win64?56:8)`(%rsp),$inp	# load 7th argument
 	#shr	\$6,$len			# debugging artefact
@@ -1499,7 +1499,7 @@ $code.=<<___;
 .Lepilogue_avx:
 	ret
 .cfi_endproc
-.size	aesni_cbc_sha1_enc_avx,.-aesni_cbc_sha1_enc_avx
+.size	VR_aesni_cbc_sha1_enc_avx,.-VR_aesni_cbc_sha1_enc_avx
 ___
 
 						if ($stitched_decrypt) {{{
@@ -1757,9 +1757,9 @@ my ($BSWAP,$ABCD,$E,$E_,$ABCD_SAVE,$E_SAVE)=map("%xmm$_",(7..12));
 my @MSG=map("%xmm$_",(3..6));
 
 $code.=<<___;
-.type	aesni_cbc_sha1_enc_shaext,\@function,6
+.type	VR_aesni_cbc_sha1_enc_shaext,\@function,6
 .align	32
-aesni_cbc_sha1_enc_shaext:
+VR_aesni_cbc_sha1_enc_shaext:
 	mov	`($win64?56:8)`(%rsp),$inp	# load 7th argument
 ___
 $code.=<<___ if ($win64);
@@ -1911,7 +1911,7 @@ $code.=<<___ if ($win64);
 ___
 $code.=<<___;
 	ret
-.size	aesni_cbc_sha1_enc_shaext,.-aesni_cbc_sha1_enc_shaext
+.size	VR_aesni_cbc_sha1_enc_shaext,.-VR_aesni_cbc_sha1_enc_shaext
 ___
 						}}}
 # EXCEPTION_DISPOSITION handler (EXCEPTION_RECORD *rec,ULONG64 frame,
@@ -1957,7 +1957,7 @@ ssse3_handler:
 	jae	.Lcommon_seh_tail
 ___
 $code.=<<___ if ($shaext);
-	lea	aesni_cbc_sha1_enc_shaext(%rip),%r10
+	lea	VR_aesni_cbc_sha1_enc_shaext(%rip),%r10
 	cmp	%r10,%rbx
 	jb	.Lseh_no_shaext
 
@@ -2032,36 +2032,36 @@ $code.=<<___;
 
 .section	.pdata
 .align	4
-	.rva	.LSEH_begin_aesni_cbc_sha1_enc_ssse3
-	.rva	.LSEH_end_aesni_cbc_sha1_enc_ssse3
-	.rva	.LSEH_info_aesni_cbc_sha1_enc_ssse3
+	.rva	.LSEH_begin_VR_aesni_cbc_sha1_enc_ssse3
+	.rva	.LSEH_end_VR_aesni_cbc_sha1_enc_ssse3
+	.rva	.LSEH_info_VR_aesni_cbc_sha1_enc_ssse3
 ___
 $code.=<<___ if ($avx);
-	.rva	.LSEH_begin_aesni_cbc_sha1_enc_avx
-	.rva	.LSEH_end_aesni_cbc_sha1_enc_avx
-	.rva	.LSEH_info_aesni_cbc_sha1_enc_avx
+	.rva	.LSEH_begin_VR_aesni_cbc_sha1_enc_avx
+	.rva	.LSEH_end_VR_aesni_cbc_sha1_enc_avx
+	.rva	.LSEH_info_VR_aesni_cbc_sha1_enc_avx
 ___
 $code.=<<___ if ($shaext);
-	.rva	.LSEH_begin_aesni_cbc_sha1_enc_shaext
-	.rva	.LSEH_end_aesni_cbc_sha1_enc_shaext
-	.rva	.LSEH_info_aesni_cbc_sha1_enc_shaext
+	.rva	.LSEH_begin_VR_aesni_cbc_sha1_enc_shaext
+	.rva	.LSEH_end_VR_aesni_cbc_sha1_enc_shaext
+	.rva	.LSEH_info_VR_aesni_cbc_sha1_enc_shaext
 ___
 $code.=<<___;
 .section	.xdata
 .align	8
-.LSEH_info_aesni_cbc_sha1_enc_ssse3:
+.LSEH_info_VR_aesni_cbc_sha1_enc_ssse3:
 	.byte	9,0,0,0
 	.rva	ssse3_handler
 	.rva	.Lprologue_ssse3,.Lepilogue_ssse3	# HandlerData[]
 ___
 $code.=<<___ if ($avx);
-.LSEH_info_aesni_cbc_sha1_enc_avx:
+.LSEH_info_VR_aesni_cbc_sha1_enc_avx:
 	.byte	9,0,0,0
 	.rva	ssse3_handler
 	.rva	.Lprologue_avx,.Lepilogue_avx		# HandlerData[]
 ___
 $code.=<<___ if ($shaext);
-.LSEH_info_aesni_cbc_sha1_enc_shaext:
+.LSEH_info_VR_aesni_cbc_sha1_enc_shaext:
 	.byte	9,0,0,0
 	.rva	ssse3_handler
 	.rva	.Lprologue_shaext,.Lepilogue_shaext	# HandlerData[]

@@ -23,11 +23,11 @@ static int preserves_system_error(void)
 {
 #if defined(OPENSSL_SYS_WINDOWS)
     SetLastError(ERROR_INVALID_FUNCTION);
-    ERR_get_error();
+    VR_ERR_get_error();
     return TEST_int_eq(GetLastError(), ERROR_INVALID_FUNCTION);
 #else
     errno = EINVAL;
-    ERR_get_error();
+    VR_ERR_get_error();
     return TEST_int_eq(errno, EINVAL);
 #endif
 }

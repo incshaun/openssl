@@ -20,7 +20,7 @@
 static int dh_builtin_genparams(DH *ret, int prime_len, int generator,
                                 BN_GENCB *cb);
 
-int DH_generate_parameters_ex(DH *ret, int prime_len, int generator,
+int VR_DH_generate_parameters_ex(DH *ret, int prime_len, int generator,
                               BN_GENCB *cb)
 {
     if (ret->meth->generate_params)
@@ -62,19 +62,19 @@ static int dh_builtin_genparams(DH *ret, int prime_len, int generator,
     int g, ok = -1;
     BN_CTX *ctx = NULL;
 
-    ctx = BN_CTX_new();
+    ctx = VR_BN_CTX_new();
     if (ctx == NULL)
         goto err;
-    BN_CTX_start(ctx);
-    t1 = BN_CTX_get(ctx);
-    t2 = BN_CTX_get(ctx);
+    VR_BN_CTX_start(ctx);
+    t1 = VR_BN_CTX_get(ctx);
+    t2 = VR_BN_CTX_get(ctx);
     if (t2 == NULL)
         goto err;
 
     /* Make sure 'ret' has the necessary elements */
-    if (!ret->p && ((ret->p = BN_new()) == NULL))
+    if (!ret->p && ((ret->p = VR_BN_new()) == NULL))
         goto err;
-    if (!ret->g && ((ret->g = BN_new()) == NULL))
+    if (!ret->g && ((ret->g = VR_BN_new()) == NULL))
         goto err;
 
     if (generator <= 1) {
@@ -82,18 +82,18 @@ static int dh_builtin_genparams(DH *ret, int prime_len, int generator,
         goto err;
     }
     if (generator == DH_GENERATOR_2) {
-        if (!BN_set_word(t1, 24))
+        if (!VR_BN_set_word(t1, 24))
             goto err;
-        if (!BN_set_word(t2, 11))
+        if (!VR_BN_set_word(t2, 11))
             goto err;
         g = 2;
     } else if (generator == DH_GENERATOR_5) {
-        if (!BN_set_word(t1, 10))
+        if (!VR_BN_set_word(t1, 10))
             goto err;
-        if (!BN_set_word(t2, 3))
+        if (!VR_BN_set_word(t2, 3))
             goto err;
         /*
-         * BN_set_word(t3,7); just have to miss out on these ones :-(
+         * VR_BN_set_word(t3,7); just have to miss out on these ones :-(
          */
         g = 5;
     } else {
@@ -102,18 +102,18 @@ static int dh_builtin_genparams(DH *ret, int prime_len, int generator,
          * not: since we are using safe primes, it will generate either an
          * order-q or an order-2q group, which both is OK
          */
-        if (!BN_set_word(t1, 2))
+        if (!VR_BN_set_word(t1, 2))
             goto err;
-        if (!BN_set_word(t2, 1))
+        if (!VR_BN_set_word(t2, 1))
             goto err;
         g = generator;
     }
 
-    if (!BN_generate_prime_ex(ret->p, prime_len, 1, t1, t2, cb))
+    if (!VR_BN_generate_prime_ex(ret->p, prime_len, 1, t1, t2, cb))
         goto err;
-    if (!BN_GENCB_call(cb, 3, 0))
+    if (!VR_BN_GENCB_call(cb, 3, 0))
         goto err;
-    if (!BN_set_word(ret->g, g))
+    if (!VR_BN_set_word(ret->g, g))
         goto err;
     ok = 1;
  err:
@@ -123,8 +123,8 @@ static int dh_builtin_genparams(DH *ret, int prime_len, int generator,
     }
 
     if (ctx != NULL) {
-        BN_CTX_end(ctx);
-        BN_CTX_free(ctx);
+        VR_BN_CTX_end(ctx);
+        VR_BN_CTX_free(ctx);
     }
     return ok;
 }

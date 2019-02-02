@@ -18,38 +18,38 @@ CRYPTO_ONCE engine_lock_init = CRYPTO_ONCE_STATIC_INIT;
 
 /* The "new"/"free" stuff first */
 
-DEFINE_RUN_ONCE(do_engine_lock_init)
+DEFINE_RUN_ONCE(VR_do_engine_lock_init)
 {
-    if (!OPENSSL_init_crypto(0, NULL))
+    if (!VR_OPENSSL_init_crypto(0, NULL))
         return 0;
-    global_engine_lock = CRYPTO_THREAD_lock_new();
+    global_engine_lock = VR_CRYPTO_THREAD_lock_new();
     return global_engine_lock != NULL;
 }
 
-ENGINE *ENGINE_new(void)
+ENGINE *VR_ENGINE_new(void)
 {
     ENGINE *ret;
 
-    if (!RUN_ONCE(&engine_lock_init, do_engine_lock_init)
+    if (!RUN_ONCE(&engine_lock_init, VR_do_engine_lock_init)
         || (ret = OPENSSL_zalloc(sizeof(*ret))) == NULL) {
         ENGINEerr(ENGINE_F_ENGINE_NEW, ERR_R_MALLOC_FAILURE);
         return NULL;
     }
     ret->struct_ref = 1;
     engine_ref_debug(ret, 0, 1);
-    if (!CRYPTO_new_ex_data(CRYPTO_EX_INDEX_ENGINE, ret, &ret->ex_data)) {
-        OPENSSL_free(ret);
+    if (!VR_CRYPTO_new_ex_data(CRYPTO_EX_INDEX_ENGINE, ret, &ret->ex_data)) {
+        OPENVR_SSL_free(ret);
         return NULL;
     }
     return ret;
 }
 
 /*
- * Placed here (close proximity to ENGINE_new) so that modifications to the
+ * Placed here (close proximity to VR_ENGINE_new) so that modifications to the
  * elements of the ENGINE structure are more likely to be caught and changed
  * here.
  */
-void engine_set_all_null(ENGINE *e)
+void VR_engine_set_all_null(ENGINE *e)
 {
     e->id = NULL;
     e->name = NULL;
@@ -69,7 +69,7 @@ void engine_set_all_null(ENGINE *e)
     e->flags = 0;
 }
 
-int engine_free_util(ENGINE *e, int not_locked)
+int VR_engine_free_util(ENGINE *e, int not_locked)
 {
     int i;
 
@@ -84,28 +84,28 @@ int engine_free_util(ENGINE *e, int not_locked)
         return 1;
     REF_ASSERT_ISNT(i < 0);
     /* Free up any dynamically allocated public key methods */
-    engine_pkey_meths_free(e);
-    engine_pkey_asn1_meths_free(e);
+    VR_engine_pkey_meths_free(e);
+    VR_engine_pkey_asn1_meths_free(e);
     /*
      * Give the ENGINE a chance to do any structural cleanup corresponding to
      * allocation it did in its constructor (eg. unload error strings)
      */
     if (e->destroy)
         e->destroy(e);
-    CRYPTO_free_ex_data(CRYPTO_EX_INDEX_ENGINE, e, &e->ex_data);
-    OPENSSL_free(e);
+    VR_CRYPTO_free_ex_data(CRYPTO_EX_INDEX_ENGINE, e, &e->ex_data);
+    OPENVR_SSL_free(e);
     return 1;
 }
 
-int ENGINE_free(ENGINE *e)
+int VR_ENGINE_free(ENGINE *e)
 {
-    return engine_free_util(e, 1);
+    return VR_engine_free_util(e, 1);
 }
 
 /* Cleanup stuff */
 
 /*
- * engine_cleanup_int() is coded such that anything that does work that will
+ * VR_engine_cleanup_int() is coded such that anything that does work that will
  * need cleanup can register a "cleanup" callback here. That way we don't get
  * linker bloat by referring to all *possible* cleanups, but any linker bloat
  * into code "X" will cause X's cleanup function to end up here.
@@ -117,7 +117,7 @@ static int int_cleanup_check(int create)
         return 1;
     if (!create)
         return 0;
-    cleanup_stack = sk_ENGINE_CLEANUP_ITEM_new_null();
+    cleanup_stack = sk_VR_ENGINE_CLEANUP_ITEM_new_null();
     return (cleanup_stack ? 1 : 0);
 }
 
@@ -133,7 +133,7 @@ static ENGINE_CLEANUP_ITEM *int_cleanup_item(ENGINE_CLEANUP_CB *cb)
     return item;
 }
 
-void engine_cleanup_add_first(ENGINE_CLEANUP_CB *cb)
+void VR_engine_cleanup_add_first(ENGINE_CLEANUP_CB *cb)
 {
     ENGINE_CLEANUP_ITEM *item;
 
@@ -141,18 +141,18 @@ void engine_cleanup_add_first(ENGINE_CLEANUP_CB *cb)
         return;
     item = int_cleanup_item(cb);
     if (item)
-        sk_ENGINE_CLEANUP_ITEM_insert(cleanup_stack, item, 0);
+        sk_VR_ENGINE_CLEANUP_ITEM_insert(cleanup_stack, item, 0);
 }
 
-void engine_cleanup_add_last(ENGINE_CLEANUP_CB *cb)
+void VR_engine_cleanup_add_last(ENGINE_CLEANUP_CB *cb)
 {
     ENGINE_CLEANUP_ITEM *item;
     if (!int_cleanup_check(1))
         return;
     item = int_cleanup_item(cb);
     if (item != NULL) {
-        if (sk_ENGINE_CLEANUP_ITEM_push(cleanup_stack, item) <= 0)
-            OPENSSL_free(item);
+        if (sk_VR_ENGINE_CLEANUP_ITEM_push(cleanup_stack, item) <= 0)
+            OPENVR_SSL_free(item);
     }
 }
 
@@ -160,29 +160,29 @@ void engine_cleanup_add_last(ENGINE_CLEANUP_CB *cb)
 static void engine_cleanup_cb_free(ENGINE_CLEANUP_ITEM *item)
 {
     (*(item->cb)) ();
-    OPENSSL_free(item);
+    OPENVR_SSL_free(item);
 }
 
-void engine_cleanup_int(void)
+void VR_engine_cleanup_int(void)
 {
     if (int_cleanup_check(0)) {
-        sk_ENGINE_CLEANUP_ITEM_pop_free(cleanup_stack,
+        sk_VR_ENGINE_CLEANUP_ITEM_pop_free(cleanup_stack,
                                         engine_cleanup_cb_free);
         cleanup_stack = NULL;
     }
-    CRYPTO_THREAD_lock_free(global_engine_lock);
+    VR_CRYPTO_THREAD_lock_free(global_engine_lock);
 }
 
 /* Now the "ex_data" support */
 
-int ENGINE_set_ex_data(ENGINE *e, int idx, void *arg)
+int VR_ENGINE_set_ex_data(ENGINE *e, int idx, void *arg)
 {
-    return CRYPTO_set_ex_data(&e->ex_data, idx, arg);
+    return VR_CRYPTO_set_ex_data(&e->ex_data, idx, arg);
 }
 
-void *ENGINE_get_ex_data(const ENGINE *e, int idx)
+void *VR_ENGINE_get_ex_data(const ENGINE *e, int idx)
 {
-    return CRYPTO_get_ex_data(&e->ex_data, idx);
+    return VR_CRYPTO_get_ex_data(&e->ex_data, idx);
 }
 
 /*
@@ -190,7 +190,7 @@ void *ENGINE_get_ex_data(const ENGINE *e, int idx)
  * ENGINE structure itself.
  */
 
-int ENGINE_set_id(ENGINE *e, const char *id)
+int VR_ENGINE_set_id(ENGINE *e, const char *id)
 {
     if (id == NULL) {
         ENGINEerr(ENGINE_F_ENGINE_SET_ID, ERR_R_PASSED_NULL_PARAMETER);
@@ -200,7 +200,7 @@ int ENGINE_set_id(ENGINE *e, const char *id)
     return 1;
 }
 
-int ENGINE_set_name(ENGINE *e, const char *name)
+int VR_ENGINE_set_name(ENGINE *e, const char *name)
 {
     if (name == NULL) {
         ENGINEerr(ENGINE_F_ENGINE_SET_NAME, ERR_R_PASSED_NULL_PARAMETER);
@@ -210,78 +210,78 @@ int ENGINE_set_name(ENGINE *e, const char *name)
     return 1;
 }
 
-int ENGINE_set_destroy_function(ENGINE *e, ENGINE_GEN_INT_FUNC_PTR destroy_f)
+int VR_ENGINE_set_destroy_function(ENGINE *e, ENGINE_GEN_INT_FUNC_PTR destroy_f)
 {
     e->destroy = destroy_f;
     return 1;
 }
 
-int ENGINE_set_init_function(ENGINE *e, ENGINE_GEN_INT_FUNC_PTR init_f)
+int VR_ENGINE_set_init_function(ENGINE *e, ENGINE_GEN_INT_FUNC_PTR init_f)
 {
     e->init = init_f;
     return 1;
 }
 
-int ENGINE_set_finish_function(ENGINE *e, ENGINE_GEN_INT_FUNC_PTR finish_f)
+int VR_ENGINE_set_finish_function(ENGINE *e, ENGINE_GEN_INT_FUNC_PTR finish_f)
 {
     e->finish = finish_f;
     return 1;
 }
 
-int ENGINE_set_ctrl_function(ENGINE *e, ENGINE_CTRL_FUNC_PTR ctrl_f)
+int VR_ENGINE_set_ctrl_function(ENGINE *e, ENGINE_CTRL_FUNC_PTR ctrl_f)
 {
     e->ctrl = ctrl_f;
     return 1;
 }
 
-int ENGINE_set_flags(ENGINE *e, int flags)
+int VR_ENGINE_set_flags(ENGINE *e, int flags)
 {
     e->flags = flags;
     return 1;
 }
 
-int ENGINE_set_cmd_defns(ENGINE *e, const ENGINE_CMD_DEFN *defns)
+int VR_ENGINE_set_cmd_defns(ENGINE *e, const ENGINE_CMD_DEFN *defns)
 {
     e->cmd_defns = defns;
     return 1;
 }
 
-const char *ENGINE_get_id(const ENGINE *e)
+const char *VR_ENGINE_get_id(const ENGINE *e)
 {
     return e->id;
 }
 
-const char *ENGINE_get_name(const ENGINE *e)
+const char *VR_ENGINE_get_name(const ENGINE *e)
 {
     return e->name;
 }
 
-ENGINE_GEN_INT_FUNC_PTR ENGINE_get_destroy_function(const ENGINE *e)
+ENGINE_GEN_INT_FUNC_PTR VR_ENGINE_get_destroy_function(const ENGINE *e)
 {
     return e->destroy;
 }
 
-ENGINE_GEN_INT_FUNC_PTR ENGINE_get_init_function(const ENGINE *e)
+ENGINE_GEN_INT_FUNC_PTR VR_ENGINE_get_init_function(const ENGINE *e)
 {
     return e->init;
 }
 
-ENGINE_GEN_INT_FUNC_PTR ENGINE_get_finish_function(const ENGINE *e)
+ENGINE_GEN_INT_FUNC_PTR VR_ENGINE_get_finish_function(const ENGINE *e)
 {
     return e->finish;
 }
 
-ENGINE_CTRL_FUNC_PTR ENGINE_get_ctrl_function(const ENGINE *e)
+ENGINE_CTRL_FUNC_PTR VR_ENGINE_get_ctrl_function(const ENGINE *e)
 {
     return e->ctrl;
 }
 
-int ENGINE_get_flags(const ENGINE *e)
+int VR_ENGINE_get_flags(const ENGINE *e)
 {
     return e->flags;
 }
 
-const ENGINE_CMD_DEFN *ENGINE_get_cmd_defns(const ENGINE *e)
+const ENGINE_CMD_DEFN *VR_ENGINE_get_cmd_defns(const ENGINE *e)
 {
     return e->cmd_defns;
 }
@@ -293,7 +293,7 @@ const ENGINE_CMD_DEFN *ENGINE_get_cmd_defns(const ENGINE *e)
 
 static int internal_static_hack = 0;
 
-void *ENGINE_get_static_state(void)
+void *VR_ENGINE_get_static_state(void)
 {
     return &internal_static_hack;
 }

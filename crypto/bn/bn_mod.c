@@ -10,7 +10,7 @@
 #include "internal/cryptlib.h"
 #include "bn_lcl.h"
 
-int BN_nnmod(BIGNUM *r, const BIGNUM *m, const BIGNUM *d, BN_CTX *ctx)
+int VR_BN_nnmod(BIGNUM *r, const BIGNUM *m, const BIGNUM *d, BN_CTX *ctx)
 {
     /*
      * like BN_mod, but returns non-negative remainder (i.e., 0 <= r < |d|
@@ -22,30 +22,30 @@ int BN_nnmod(BIGNUM *r, const BIGNUM *m, const BIGNUM *d, BN_CTX *ctx)
     if (!r->neg)
         return 1;
     /* now   -|d| < r < 0,  so we have to set  r := r + |d| */
-    return (d->neg ? BN_sub : BN_add) (r, r, d);
+    return (d->neg ? VR_BN_sub : VR_BN_add) (r, r, d);
 }
 
-int BN_mod_add(BIGNUM *r, const BIGNUM *a, const BIGNUM *b, const BIGNUM *m,
+int VR_BN_mod_add(BIGNUM *r, const BIGNUM *a, const BIGNUM *b, const BIGNUM *m,
                BN_CTX *ctx)
 {
-    if (!BN_add(r, a, b))
+    if (!VR_BN_add(r, a, b))
         return 0;
-    return BN_nnmod(r, r, m, ctx);
+    return VR_BN_nnmod(r, r, m, ctx);
 }
 
 /*
- * BN_mod_add variant that may be used if both a and b are non-negative and
+ * VR_BN_mod_add variant that may be used if both a and b are non-negative and
  * less than m. The original algorithm was
  *
- *    if (!BN_uadd(r, a, b))
+ *    if (!VR_BN_uadd(r, a, b))
  *       return 0;
- *    if (BN_ucmp(r, m) >= 0)
- *       return BN_usub(r, r, m);
+ *    if (VR_BN_ucmp(r, m) >= 0)
+ *       return VR_BN_usub(r, r, m);
  *
  * which is replaced with addition, subtracting modulus, and conditional
  * move depending on whether or not subtraction borrowed.
  */
-int bn_mod_add_fixed_top(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+int VR_bn_mod_add_fixed_top(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
                          const BIGNUM *m)
 {
     size_t i, ai, bi, mtop = m->top;
@@ -53,7 +53,7 @@ int bn_mod_add_fixed_top(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
     BN_ULONG carry, temp, mask, *rp, *tp = storage;
     const BN_ULONG *ap, *bp;
 
-    if (bn_wexpand(r, mtop) == NULL)
+    if (VR_bn_wexpand(r, mtop) == NULL)
         return 0;
 
     if (mtop > sizeof(storage) / sizeof(storage[0])
@@ -77,7 +77,7 @@ int bn_mod_add_fixed_top(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
         bi += (i - b->dmax) >> (8 * sizeof(i) - 1);
     }
     rp = r->d;
-    carry -= bn_sub_words(rp, tp, m->d, mtop);
+    carry -= VR_bn_sub_words(rp, tp, m->d, mtop);
     for (i = 0; i < mtop; i++) {
         rp[i] = (carry & tp[i]) | (~carry & rp[i]);
         ((volatile BN_ULONG *)tp)[i] = 0;
@@ -87,32 +87,32 @@ int bn_mod_add_fixed_top(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
     r->neg = 0;
 
     if (tp != storage)
-        OPENSSL_free(tp);
+        OPENVR_SSL_free(tp);
 
     return 1;
 }
 
-int BN_mod_add_quick(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+int VR_BN_mod_add_quick(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
                      const BIGNUM *m)
 {
-    int ret = bn_mod_add_fixed_top(r, a, b, m);
+    int ret = VR_bn_mod_add_fixed_top(r, a, b, m);
 
     if (ret)
-        bn_correct_top(r);
+        VR_bn_correct_top(r);
 
     return ret;
 }
 
-int BN_mod_sub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b, const BIGNUM *m,
+int VR_BN_mod_sub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b, const BIGNUM *m,
                BN_CTX *ctx)
 {
-    if (!BN_sub(r, a, b))
+    if (!VR_BN_sub(r, a, b))
         return 0;
-    return BN_nnmod(r, r, m, ctx);
+    return VR_BN_nnmod(r, r, m, ctx);
 }
 
 /*
- * BN_mod_sub variant that may be used if both a and b are non-negative,
+ * VR_BN_mod_sub variant that may be used if both a and b are non-negative,
  * a is less than m, while b is of same bit width as m. It's implemented
  * as subtraction followed by two conditional additions.
  *
@@ -125,14 +125,14 @@ int BN_mod_sub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b, const BIGNUM *m,
  *
  * Thus it takes up to two conditional additions to make |r| positive.
  */
-int bn_mod_sub_fixed_top(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+int VR_bn_mod_sub_fixed_top(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
                          const BIGNUM *m)
 {
     size_t i, ai, bi, mtop = m->top;
     BN_ULONG borrow, carry, ta, tb, mask, *rp;
     const BN_ULONG *ap, *bp;
 
-    if (bn_wexpand(r, mtop) == NULL)
+    if (VR_bn_wexpand(r, mtop) == NULL)
         return 0;
 
     rp = r->d;
@@ -176,21 +176,21 @@ int bn_mod_sub_fixed_top(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
 }
 
 /*
- * BN_mod_sub variant that may be used if both a and b are non-negative and
+ * VR_BN_mod_sub variant that may be used if both a and b are non-negative and
  * less than m
  */
-int BN_mod_sub_quick(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+int VR_BN_mod_sub_quick(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
                      const BIGNUM *m)
 {
-    if (!BN_sub(r, a, b))
+    if (!VR_BN_sub(r, a, b))
         return 0;
     if (r->neg)
-        return BN_add(r, r, m);
+        return VR_BN_add(r, r, m);
     return 1;
 }
 
 /* slow but works */
-int BN_mod_mul(BIGNUM *r, const BIGNUM *a, const BIGNUM *b, const BIGNUM *m,
+int VR_BN_mod_mul(BIGNUM *r, const BIGNUM *a, const BIGNUM *b, const BIGNUM *m,
                BN_CTX *ctx)
 {
     BIGNUM *t;
@@ -200,86 +200,86 @@ int BN_mod_mul(BIGNUM *r, const BIGNUM *a, const BIGNUM *b, const BIGNUM *m,
     bn_check_top(b);
     bn_check_top(m);
 
-    BN_CTX_start(ctx);
-    if ((t = BN_CTX_get(ctx)) == NULL)
+    VR_BN_CTX_start(ctx);
+    if ((t = VR_BN_CTX_get(ctx)) == NULL)
         goto err;
     if (a == b) {
-        if (!BN_sqr(t, a, ctx))
+        if (!VR_BN_sqr(t, a, ctx))
             goto err;
     } else {
-        if (!BN_mul(t, a, b, ctx))
+        if (!VR_BN_mul(t, a, b, ctx))
             goto err;
     }
-    if (!BN_nnmod(r, t, m, ctx))
+    if (!VR_BN_nnmod(r, t, m, ctx))
         goto err;
     bn_check_top(r);
     ret = 1;
  err:
-    BN_CTX_end(ctx);
+    VR_BN_CTX_end(ctx);
     return ret;
 }
 
-int BN_mod_sqr(BIGNUM *r, const BIGNUM *a, const BIGNUM *m, BN_CTX *ctx)
+int VR_BN_mod_sqr(BIGNUM *r, const BIGNUM *a, const BIGNUM *m, BN_CTX *ctx)
 {
-    if (!BN_sqr(r, a, ctx))
+    if (!VR_BN_sqr(r, a, ctx))
         return 0;
-    /* r->neg == 0,  thus we don't need BN_nnmod */
+    /* r->neg == 0,  thus we don't need VR_BN_nnmod */
     return BN_mod(r, r, m, ctx);
 }
 
-int BN_mod_lshift1(BIGNUM *r, const BIGNUM *a, const BIGNUM *m, BN_CTX *ctx)
+int VR_BN_mod_lshift1(BIGNUM *r, const BIGNUM *a, const BIGNUM *m, BN_CTX *ctx)
 {
-    if (!BN_lshift1(r, a))
+    if (!VR_BN_lshift1(r, a))
         return 0;
     bn_check_top(r);
-    return BN_nnmod(r, r, m, ctx);
+    return VR_BN_nnmod(r, r, m, ctx);
 }
 
 /*
- * BN_mod_lshift1 variant that may be used if a is non-negative and less than
+ * VR_BN_mod_lshift1 variant that may be used if a is non-negative and less than
  * m
  */
-int BN_mod_lshift1_quick(BIGNUM *r, const BIGNUM *a, const BIGNUM *m)
+int VR_BN_mod_lshift1_quick(BIGNUM *r, const BIGNUM *a, const BIGNUM *m)
 {
-    if (!BN_lshift1(r, a))
+    if (!VR_BN_lshift1(r, a))
         return 0;
     bn_check_top(r);
-    if (BN_cmp(r, m) >= 0)
-        return BN_sub(r, r, m);
+    if (VR_BN_cmp(r, m) >= 0)
+        return VR_BN_sub(r, r, m);
     return 1;
 }
 
-int BN_mod_lshift(BIGNUM *r, const BIGNUM *a, int n, const BIGNUM *m,
+int VR_BN_mod_lshift(BIGNUM *r, const BIGNUM *a, int n, const BIGNUM *m,
                   BN_CTX *ctx)
 {
     BIGNUM *abs_m = NULL;
     int ret;
 
-    if (!BN_nnmod(r, a, m, ctx))
+    if (!VR_BN_nnmod(r, a, m, ctx))
         return 0;
 
     if (m->neg) {
-        abs_m = BN_dup(m);
+        abs_m = VR_BN_dup(m);
         if (abs_m == NULL)
             return 0;
         abs_m->neg = 0;
     }
 
-    ret = BN_mod_lshift_quick(r, r, n, (abs_m ? abs_m : m));
+    ret = VR_BN_mod_lshift_quick(r, r, n, (abs_m ? abs_m : m));
     bn_check_top(r);
 
-    BN_free(abs_m);
+    VR_BN_free(abs_m);
     return ret;
 }
 
 /*
- * BN_mod_lshift variant that may be used if a is non-negative and less than
+ * VR_BN_mod_lshift variant that may be used if a is non-negative and less than
  * m
  */
-int BN_mod_lshift_quick(BIGNUM *r, const BIGNUM *a, int n, const BIGNUM *m)
+int VR_BN_mod_lshift_quick(BIGNUM *r, const BIGNUM *a, int n, const BIGNUM *m)
 {
     if (r != a) {
-        if (BN_copy(r, a) == NULL)
+        if (VR_BN_copy(r, a) == NULL)
             return 0;
     }
 
@@ -287,7 +287,7 @@ int BN_mod_lshift_quick(BIGNUM *r, const BIGNUM *a, int n, const BIGNUM *m)
         int max_shift;
 
         /* 0 < r < m */
-        max_shift = BN_num_bits(m) - BN_num_bits(r);
+        max_shift = VR_BN_num_bits(m) - VR_BN_num_bits(r);
         /* max_shift >= 0 */
 
         if (max_shift < 0) {
@@ -299,19 +299,19 @@ int BN_mod_lshift_quick(BIGNUM *r, const BIGNUM *a, int n, const BIGNUM *m)
             max_shift = n;
 
         if (max_shift) {
-            if (!BN_lshift(r, r, max_shift))
+            if (!VR_BN_lshift(r, r, max_shift))
                 return 0;
             n -= max_shift;
         } else {
-            if (!BN_lshift1(r, r))
+            if (!VR_BN_lshift1(r, r))
                 return 0;
             --n;
         }
 
-        /* BN_num_bits(r) <= BN_num_bits(m) */
+        /* VR_BN_num_bits(r) <= VR_BN_num_bits(m) */
 
-        if (BN_cmp(r, m) >= 0) {
-            if (!BN_sub(r, r, m))
+        if (VR_BN_cmp(r, m) >= 0) {
+            if (!VR_BN_sub(r, r, m))
                 return 0;
         }
     }

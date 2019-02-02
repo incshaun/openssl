@@ -61,14 +61,14 @@ static int pkey_ec_copy(EVP_PKEY_CTX *dst, EVP_PKEY_CTX *src)
     sctx = src->data;
     dctx = dst->data;
     if (sctx->gen_group) {
-        dctx->gen_group = EC_GROUP_dup(sctx->gen_group);
+        dctx->gen_group = VR_EC_GROUP_dup(sctx->gen_group);
         if (!dctx->gen_group)
             return 0;
     }
     dctx->md = sctx->md;
 
     if (sctx->co_key) {
-        dctx->co_key = EC_KEY_dup(sctx->co_key);
+        dctx->co_key = VR_EC_KEY_dup(sctx->co_key);
         if (!dctx->co_key)
             return 0;
     }
@@ -89,10 +89,10 @@ static void pkey_ec_cleanup(EVP_PKEY_CTX *ctx)
 {
     EC_PKEY_CTX *dctx = ctx->data;
     if (dctx != NULL) {
-        EC_GROUP_free(dctx->gen_group);
-        EC_KEY_free(dctx->co_key);
-        OPENSSL_free(dctx->kdf_ukm);
-        OPENSSL_free(dctx);
+        VR_EC_GROUP_free(dctx->gen_group);
+        VR_EC_KEY_free(dctx->co_key);
+        OPENVR_SSL_free(dctx->kdf_ukm);
+        OPENVR_SSL_free(dctx);
         ctx->data = NULL;
     }
 }
@@ -104,7 +104,7 @@ static int pkey_ec_sign(EVP_PKEY_CTX *ctx, unsigned char *sig, size_t *siglen,
     unsigned int sltmp;
     EC_PKEY_CTX *dctx = ctx->data;
     EC_KEY *ec = ctx->pkey->pkey.ec;
-    const int sig_sz = ECDSA_size(ec);
+    const int sig_sz = VR_ECDSA_size(ec);
 
     /* ensure cast to size_t is safe */
     if (!ossl_assert(sig_sz > 0))
@@ -120,9 +120,9 @@ static int pkey_ec_sign(EVP_PKEY_CTX *ctx, unsigned char *sig, size_t *siglen,
         return 0;
     }
 
-    type = (dctx->md != NULL) ? EVP_MD_type(dctx->md) : NID_sha1;
+    type = (dctx->md != NULL) ? VR_EVP_MD_type(dctx->md) : NID_sha1;
 
-    ret = ECDSA_sign(type, tbs, tbslen, sig, &sltmp, ec);
+    ret = VR_ECDSA_sign(type, tbs, tbslen, sig, &sltmp, ec);
 
     if (ret <= 0)
         return ret;
@@ -139,11 +139,11 @@ static int pkey_ec_verify(EVP_PKEY_CTX *ctx,
     EC_KEY *ec = ctx->pkey->pkey.ec;
 
     if (dctx->md)
-        type = EVP_MD_type(dctx->md);
+        type = VR_EVP_MD_type(dctx->md);
     else
         type = NID_sha1;
 
-    ret = ECDSA_verify(type, tbs, tbslen, sig, siglen, ec);
+    ret = VR_ECDSA_verify(type, tbs, tbslen, sig, siglen, ec);
 
     return ret;
 }
@@ -165,11 +165,11 @@ static int pkey_ec_derive(EVP_PKEY_CTX *ctx, unsigned char *key, size_t *keylen)
 
     if (!key) {
         const EC_GROUP *group;
-        group = EC_KEY_get0_group(eckey);
-        *keylen = (EC_GROUP_get_degree(group) + 7) / 8;
+        group = VR_EC_KEY_get0_group(eckey);
+        *keylen = (VR_EC_GROUP_get_degree(group) + 7) / 8;
         return 1;
     }
-    pubkey = EC_KEY_get0_public_key(ctx->peerkey->pkey.ec);
+    pubkey = VR_EC_KEY_get0_public_key(ctx->peerkey->pkey.ec);
 
     /*
      * NB: unlike PKCS#3 DH, if *outlen is less than maximum size this is not
@@ -178,7 +178,7 @@ static int pkey_ec_derive(EVP_PKEY_CTX *ctx, unsigned char *key, size_t *keylen)
 
     outlen = *keylen;
 
-    ret = ECDH_compute_key(key, outlen, pubkey, eckey, 0);
+    ret = VR_ECDH_compute_key(key, outlen, pubkey, eckey, 0);
     if (ret <= 0)
         return 0;
     *keylen = ret;
@@ -209,13 +209,13 @@ static int pkey_ec_kdf_derive(EVP_PKEY_CTX *ctx,
     if (!pkey_ec_derive(ctx, ktmp, &ktmplen))
         goto err;
     /* Do KDF stuff */
-    if (!ecdh_KDF_X9_63(key, *keylen, ktmp, ktmplen,
+    if (!VR_ecdh_KDF_X9_63(key, *keylen, ktmp, ktmplen,
                         dctx->kdf_ukm, dctx->kdf_ukmlen, dctx->kdf_md))
         goto err;
     rv = 1;
 
  err:
-    OPENSSL_clear_free(ktmp, ktmplen);
+    OPENVR_SSL_clear_free(ktmp, ktmplen);
     return rv;
 }
 #endif
@@ -226,12 +226,12 @@ static int pkey_ec_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2)
     EC_GROUP *group;
     switch (type) {
     case EVP_PKEY_CTRL_EC_PARAMGEN_CURVE_NID:
-        group = EC_GROUP_new_by_curve_name(p1);
+        group = VR_EC_GROUP_new_by_curve_name(p1);
         if (group == NULL) {
             ECerr(EC_F_PKEY_EC_CTRL, EC_R_INVALID_CURVE);
             return 0;
         }
-        EC_GROUP_free(dctx->gen_group);
+        VR_EC_GROUP_free(dctx->gen_group);
         dctx->gen_group = group;
         return 1;
 
@@ -240,7 +240,7 @@ static int pkey_ec_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2)
             ECerr(EC_F_PKEY_EC_CTRL, EC_R_NO_PARAMETERS_SET);
             return 0;
         }
-        EC_GROUP_set_asn1_flag(dctx->gen_group, p1);
+        VR_EC_GROUP_set_asn1_flag(dctx->gen_group, p1);
         return 1;
 
 #ifndef OPENSSL_NO_EC
@@ -250,7 +250,7 @@ static int pkey_ec_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2)
                 return dctx->cofactor_mode;
             else {
                 EC_KEY *ec_key = ctx->pkey->pkey.ec;
-                return EC_KEY_get_flags(ec_key) & EC_FLAG_COFACTOR_ECDH ? 1 : 0;
+                return VR_EC_KEY_get_flags(ec_key) & EC_FLAG_COFACTOR_ECDH ? 1 : 0;
             }
         } else if (p1 < -1 || p1 > 1)
             return -2;
@@ -260,19 +260,19 @@ static int pkey_ec_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2)
             if (!ec_key->group)
                 return -2;
             /* If cofactor is 1 cofactor mode does nothing */
-            if (BN_is_one(ec_key->group->cofactor))
+            if (VR_BN_is_one(ec_key->group->cofactor))
                 return 1;
             if (!dctx->co_key) {
-                dctx->co_key = EC_KEY_dup(ec_key);
+                dctx->co_key = VR_EC_KEY_dup(ec_key);
                 if (!dctx->co_key)
                     return 0;
             }
             if (p1)
-                EC_KEY_set_flags(dctx->co_key, EC_FLAG_COFACTOR_ECDH);
+                VR_EC_KEY_set_flags(dctx->co_key, EC_FLAG_COFACTOR_ECDH);
             else
-                EC_KEY_clear_flags(dctx->co_key, EC_FLAG_COFACTOR_ECDH);
+                VR_EC_KEY_clear_flags(dctx->co_key, EC_FLAG_COFACTOR_ECDH);
         } else {
-            EC_KEY_free(dctx->co_key);
+            VR_EC_KEY_free(dctx->co_key);
             dctx->co_key = NULL;
         }
         return 1;
@@ -305,7 +305,7 @@ static int pkey_ec_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2)
         return 1;
 
     case EVP_PKEY_CTRL_EC_KDF_UKM:
-        OPENSSL_free(dctx->kdf_ukm);
+        OPENVR_SSL_free(dctx->kdf_ukm);
         dctx->kdf_ukm = p2;
         if (p2)
             dctx->kdf_ukmlen = p1;
@@ -318,12 +318,12 @@ static int pkey_ec_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2)
         return dctx->kdf_ukmlen;
 
     case EVP_PKEY_CTRL_MD:
-        if (EVP_MD_type((const EVP_MD *)p2) != NID_sha1 &&
-            EVP_MD_type((const EVP_MD *)p2) != NID_ecdsa_with_SHA1 &&
-            EVP_MD_type((const EVP_MD *)p2) != NID_sha224 &&
-            EVP_MD_type((const EVP_MD *)p2) != NID_sha256 &&
-            EVP_MD_type((const EVP_MD *)p2) != NID_sha384 &&
-            EVP_MD_type((const EVP_MD *)p2) != NID_sha512) {
+        if (VR_EVP_MD_type((const EVP_MD *)p2) != NID_sha1 &&
+            VR_EVP_MD_type((const EVP_MD *)p2) != NID_ecdsa_with_VR_SHA1 &&
+            VR_EVP_MD_type((const EVP_MD *)p2) != NID_sha224 &&
+            VR_EVP_MD_type((const EVP_MD *)p2) != NID_sha256 &&
+            VR_EVP_MD_type((const EVP_MD *)p2) != NID_sha384 &&
+            VR_EVP_MD_type((const EVP_MD *)p2) != NID_sha512) {
             ECerr(EC_F_PKEY_EC_CTRL, EC_R_INVALID_DIGEST_TYPE);
             return 0;
         }
@@ -352,11 +352,11 @@ static int pkey_ec_ctrl_str(EVP_PKEY_CTX *ctx,
 {
     if (strcmp(type, "ec_paramgen_curve") == 0) {
         int nid;
-        nid = EC_curve_nist2nid(value);
+        nid = VR_EC_curve_nist2nid(value);
         if (nid == NID_undef)
-            nid = OBJ_sn2nid(value);
+            nid = VR_OBJ_sn2nid(value);
         if (nid == NID_undef)
-            nid = OBJ_ln2nid(value);
+            nid = VR_OBJ_ln2nid(value);
         if (nid == NID_undef) {
             ECerr(EC_F_PKEY_EC_CTRL_STR, EC_R_INVALID_CURVE);
             return 0;
@@ -373,7 +373,7 @@ static int pkey_ec_ctrl_str(EVP_PKEY_CTX *ctx,
         return EVP_PKEY_CTX_set_ec_param_enc(ctx, param_enc);
     } else if (strcmp(type, "ecdh_kdf_md") == 0) {
         const EVP_MD *md;
-        if ((md = EVP_get_digestbyname(value)) == NULL) {
+        if ((md = VR_EVP_get_digestbyname(value)) == NULL) {
             ECerr(EC_F_PKEY_EC_CTRL_STR, EC_R_INVALID_DIGEST);
             return 0;
         }
@@ -397,12 +397,12 @@ static int pkey_ec_paramgen(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey)
         ECerr(EC_F_PKEY_EC_PARAMGEN, EC_R_NO_PARAMETERS_SET);
         return 0;
     }
-    ec = EC_KEY_new();
+    ec = VR_EC_KEY_new();
     if (ec == NULL)
         return 0;
-    if (!(ret = EC_KEY_set_group(ec, dctx->gen_group))
-        || !ossl_assert(ret = EVP_PKEY_assign_EC_KEY(pkey, ec)))
-        EC_KEY_free(ec);
+    if (!(ret = VR_EC_KEY_set_group(ec, dctx->gen_group))
+        || !ossl_assert(ret = VR_EVP_PKEY_assign_EC_KEY(pkey, ec)))
+        VR_EC_KEY_free(ec);
     return ret;
 }
 
@@ -416,20 +416,20 @@ static int pkey_ec_keygen(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey)
         ECerr(EC_F_PKEY_EC_KEYGEN, EC_R_NO_PARAMETERS_SET);
         return 0;
     }
-    ec = EC_KEY_new();
+    ec = VR_EC_KEY_new();
     if (ec == NULL)
         return 0;
-    if (!ossl_assert(EVP_PKEY_assign_EC_KEY(pkey, ec))) {
-        EC_KEY_free(ec);
+    if (!ossl_assert(VR_EVP_PKEY_assign_EC_KEY(pkey, ec))) {
+        VR_EC_KEY_free(ec);
         return 0;
     }
     /* Note: if error is returned, we count on caller to free pkey->pkey.ec */
     if (ctx->pkey != NULL)
-        ret = EVP_PKEY_copy_parameters(pkey, ctx->pkey);
+        ret = VR_EVP_PKEY_copy_parameters(pkey, ctx->pkey);
     else
-        ret = EC_KEY_set_group(ec, dctx->gen_group);
+        ret = VR_EC_KEY_set_group(ec, dctx->gen_group);
 
-    return ret ? EC_KEY_generate_key(ec) : 0;
+    return ret ? VR_EC_KEY_generate_key(ec) : 0;
 }
 
 const EVP_PKEY_METHOD ec_pkey_meth = {

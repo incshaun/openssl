@@ -295,7 +295,7 @@ static const size_t rem_4bit[16] = {
     PACK(0x9180), PACK(0x8DA0), PACK(0xA9C0), PACK(0xB5E0)
 };
 
-static void gcm_gmult_4bit(u64 Xi[2], const u128 Htable[16])
+static void VR_gcm_gmult_4bit(u64 Xi[2], const u128 Htable[16])
 {
     u128 Z;
     int cnt = 15;
@@ -373,7 +373,7 @@ static void gcm_gmult_4bit(u64 Xi[2], const u128 Htable[16])
  * mostly as reference and a placeholder for possible future
  * non-trivial optimization[s]...
  */
-static void gcm_ghash_4bit(u64 Xi[2], const u128 Htable[16],
+static void VR_gcm_ghash_4bit(u64 Xi[2], const u128 Htable[16],
                            const u8 *inp, size_t len)
 {
     u128 Z;
@@ -545,14 +545,14 @@ static void gcm_ghash_4bit(u64 Xi[2], const u128 Htable[16],
 }
 #  endif
 # else
-void gcm_gmult_4bit(u64 Xi[2], const u128 Htable[16]);
-void gcm_ghash_4bit(u64 Xi[2], const u128 Htable[16], const u8 *inp,
+void VR_gcm_gmult_4bit(u64 Xi[2], const u128 Htable[16]);
+void VR_gcm_ghash_4bit(u64 Xi[2], const u128 Htable[16], const u8 *inp,
                     size_t len);
 # endif
 
-# define GCM_MUL(ctx)      gcm_gmult_4bit(ctx->Xi.u,ctx->Htable)
+# define GCM_MUL(ctx)      VR_gcm_gmult_4bit(ctx->Xi.u,ctx->Htable)
 # if defined(GHASH_ASM) || !defined(OPENSSL_SMALL_FOOTPRINT)
-#  define GHASH(ctx,in,len) gcm_ghash_4bit((ctx)->Xi.u,(ctx)->Htable,in,len)
+#  define GHASH(ctx,in,len) VR_gcm_ghash_4bit((ctx)->Xi.u,(ctx)->Htable,in,len)
 /*
  * GHASH_CHUNK is "stride parameter" missioned to mitigate cache trashing
  * effect. In other words idea is to hash data while it's still in L1 cache
@@ -637,30 +637,30 @@ static void gcm_gmult_1bit(u64 Xi[2], const u64 H[2])
 #  define GCM_FUNCREF_4BIT
 extern unsigned int OPENSSL_ia32cap_P[];
 
-void gcm_init_clmul(u128 Htable[16], const u64 Xi[2]);
-void gcm_gmult_clmul(u64 Xi[2], const u128 Htable[16]);
-void gcm_ghash_clmul(u64 Xi[2], const u128 Htable[16], const u8 *inp,
+void VR_gcm_init_clmul(u128 Htable[16], const u64 Xi[2]);
+void VR_gcm_gmult_clmul(u64 Xi[2], const u128 Htable[16]);
+void VR_gcm_ghash_clmul(u64 Xi[2], const u128 Htable[16], const u8 *inp,
                      size_t len);
 
 #  if defined(__i386) || defined(__i386__) || defined(_M_IX86)
-#   define gcm_init_avx   gcm_init_clmul
-#   define gcm_gmult_avx  gcm_gmult_clmul
-#   define gcm_ghash_avx  gcm_ghash_clmul
+#   define VR_gcm_init_avx   VR_gcm_init_clmul
+#   define VR_gcm_gmult_avx  VR_gcm_gmult_clmul
+#   define VR_gcm_ghash_avx  VR_gcm_ghash_clmul
 #  else
-void gcm_init_avx(u128 Htable[16], const u64 Xi[2]);
-void gcm_gmult_avx(u64 Xi[2], const u128 Htable[16]);
-void gcm_ghash_avx(u64 Xi[2], const u128 Htable[16], const u8 *inp,
+void VR_gcm_init_avx(u128 Htable[16], const u64 Xi[2]);
+void VR_gcm_gmult_avx(u64 Xi[2], const u128 Htable[16]);
+void VR_gcm_ghash_avx(u64 Xi[2], const u128 Htable[16], const u8 *inp,
                    size_t len);
 #  endif
 
 #  if   defined(__i386) || defined(__i386__) || defined(_M_IX86)
 #   define GHASH_ASM_X86
-void gcm_gmult_4bit_mmx(u64 Xi[2], const u128 Htable[16]);
-void gcm_ghash_4bit_mmx(u64 Xi[2], const u128 Htable[16], const u8 *inp,
+void VR_gcm_gmult_4bit_mmx(u64 Xi[2], const u128 Htable[16]);
+void VR_gcm_ghash_4bit_mmx(u64 Xi[2], const u128 Htable[16], const u8 *inp,
                         size_t len);
 
-void gcm_gmult_4bit_x86(u64 Xi[2], const u128 Htable[16]);
-void gcm_ghash_4bit_x86(u64 Xi[2], const u128 Htable[16], const u8 *inp,
+void VR_gcm_gmult_4bit_x86(u64 Xi[2], const u128 Htable[16]);
+void VR_gcm_ghash_4bit_x86(u64 Xi[2], const u128 Htable[16], const u8 *inp,
                         size_t len);
 #  endif
 # elif defined(__arm__) || defined(__arm) || defined(__aarch64__)
@@ -710,7 +710,7 @@ void gcm_ghash_p8(u64 Xi[2], const u128 Htable[16], const u8 *inp,
 # endif
 #endif
 
-void CRYPTO_gcm128_init(GCM128_CONTEXT *ctx, void *key, block128_f block)
+void VR_CRYPTO_gcm128_init(GCM128_CONTEXT *ctx, void *key, block128_f block)
 {
     const union {
         long one;
@@ -749,13 +749,13 @@ void CRYPTO_gcm128_init(GCM128_CONTEXT *ctx, void *key, block128_f block)
 #  if   !defined(GHASH_ASM_X86) || defined(OPENSSL_IA32_SSE2)
     if (OPENSSL_ia32cap_P[1] & (1 << 1)) { /* check PCLMULQDQ bit */
         if (((OPENSSL_ia32cap_P[1] >> 22) & 0x41) == 0x41) { /* AVX+MOVBE */
-            gcm_init_avx(ctx->Htable, ctx->H.u);
-            ctx->gmult = gcm_gmult_avx;
-            CTX__GHASH(gcm_ghash_avx);
+            VR_gcm_init_avx(ctx->Htable, ctx->H.u);
+            ctx->gmult = VR_gcm_gmult_avx;
+            CTX__GHASH(VR_gcm_ghash_avx);
         } else {
-            gcm_init_clmul(ctx->Htable, ctx->H.u);
-            ctx->gmult = gcm_gmult_clmul;
-            CTX__GHASH(gcm_ghash_clmul);
+            VR_gcm_init_clmul(ctx->Htable, ctx->H.u);
+            ctx->gmult = VR_gcm_gmult_clmul;
+            CTX__GHASH(VR_gcm_ghash_clmul);
         }
         return;
     }
@@ -767,15 +767,15 @@ void CRYPTO_gcm128_init(GCM128_CONTEXT *ctx, void *key, block128_f block)
 #   else
     if (OPENSSL_ia32cap_P[0] & (1 << 23)) { /* check MMX bit */
 #   endif
-        ctx->gmult = gcm_gmult_4bit_mmx;
-        CTX__GHASH(gcm_ghash_4bit_mmx);
+        ctx->gmult = VR_gcm_gmult_4bit_mmx;
+        CTX__GHASH(VR_gcm_ghash_4bit_mmx);
     } else {
-        ctx->gmult = gcm_gmult_4bit_x86;
-        CTX__GHASH(gcm_ghash_4bit_x86);
+        ctx->gmult = VR_gcm_gmult_4bit_x86;
+        CTX__GHASH(VR_gcm_ghash_4bit_x86);
     }
 #  else
-    ctx->gmult = gcm_gmult_4bit;
-    CTX__GHASH(gcm_ghash_4bit);
+    ctx->gmult = VR_gcm_gmult_4bit;
+    CTX__GHASH(VR_gcm_ghash_4bit);
 #  endif
 # elif  defined(GHASH_ASM_ARM)
 #  ifdef PMULL_CAPABLE
@@ -794,8 +794,8 @@ void CRYPTO_gcm128_init(GCM128_CONTEXT *ctx, void *key, block128_f block)
 #  endif
     {
         gcm_init_4bit(ctx->Htable, ctx->H.u);
-        ctx->gmult = gcm_gmult_4bit;
-        CTX__GHASH(gcm_ghash_4bit);
+        ctx->gmult = VR_gcm_gmult_4bit;
+        CTX__GHASH(VR_gcm_ghash_4bit);
     }
 # elif  defined(GHASH_ASM_SPARC)
     if (OPENSSL_sparcv9cap_P[0] & SPARCV9_VIS3) {
@@ -804,8 +804,8 @@ void CRYPTO_gcm128_init(GCM128_CONTEXT *ctx, void *key, block128_f block)
         CTX__GHASH(gcm_ghash_vis3);
     } else {
         gcm_init_4bit(ctx->Htable, ctx->H.u);
-        ctx->gmult = gcm_gmult_4bit;
-        CTX__GHASH(gcm_ghash_4bit);
+        ctx->gmult = VR_gcm_gmult_4bit;
+        CTX__GHASH(VR_gcm_ghash_4bit);
     }
 # elif  defined(GHASH_ASM_PPC)
     if (OPENSSL_ppccap_P & PPC_CRYPTO207) {
@@ -814,8 +814,8 @@ void CRYPTO_gcm128_init(GCM128_CONTEXT *ctx, void *key, block128_f block)
         CTX__GHASH(gcm_ghash_p8);
     } else {
         gcm_init_4bit(ctx->Htable, ctx->H.u);
-        ctx->gmult = gcm_gmult_4bit;
-        CTX__GHASH(gcm_ghash_4bit);
+        ctx->gmult = VR_gcm_gmult_4bit;
+        CTX__GHASH(VR_gcm_ghash_4bit);
     }
 # else
     gcm_init_4bit(ctx->Htable, ctx->H.u);
@@ -824,7 +824,7 @@ void CRYPTO_gcm128_init(GCM128_CONTEXT *ctx, void *key, block128_f block)
 #endif
 }
 
-void CRYPTO_gcm128_setiv(GCM128_CONTEXT *ctx, const unsigned char *iv,
+void VR_CRYPTO_gcm128_setiv(GCM128_CONTEXT *ctx, const unsigned char *iv,
                          size_t len)
 {
     const union {
@@ -917,7 +917,7 @@ void CRYPTO_gcm128_setiv(GCM128_CONTEXT *ctx, const unsigned char *iv,
         ctx->Yi.d[3] = ctr;
 }
 
-int CRYPTO_gcm128_aad(GCM128_CONTEXT *ctx, const unsigned char *aad,
+int VR_CRYPTO_gcm128_aad(GCM128_CONTEXT *ctx, const unsigned char *aad,
                       size_t len)
 {
     size_t i;
@@ -978,7 +978,7 @@ int CRYPTO_gcm128_aad(GCM128_CONTEXT *ctx, const unsigned char *aad,
     return 0;
 }
 
-int CRYPTO_gcm128_encrypt(GCM128_CONTEXT *ctx,
+int VR_CRYPTO_gcm128_encrypt(GCM128_CONTEXT *ctx,
                           const unsigned char *in, unsigned char *out,
                           size_t len)
 {
@@ -1213,7 +1213,7 @@ int CRYPTO_gcm128_encrypt(GCM128_CONTEXT *ctx,
     return 0;
 }
 
-int CRYPTO_gcm128_decrypt(GCM128_CONTEXT *ctx,
+int VR_CRYPTO_gcm128_decrypt(GCM128_CONTEXT *ctx,
                           const unsigned char *in, unsigned char *out,
                           size_t len)
 {
@@ -1456,12 +1456,12 @@ int CRYPTO_gcm128_decrypt(GCM128_CONTEXT *ctx,
     return 0;
 }
 
-int CRYPTO_gcm128_encrypt_ctr32(GCM128_CONTEXT *ctx,
+int VR_CRYPTO_gcm128_encrypt_ctr32(GCM128_CONTEXT *ctx,
                                 const unsigned char *in, unsigned char *out,
                                 size_t len, ctr128_f stream)
 {
 #if defined(OPENSSL_SMALL_FOOTPRINT)
-    return CRYPTO_gcm128_encrypt(ctx, in, out, len);
+    return VR_CRYPTO_gcm128_encrypt(ctx, in, out, len);
 #else
     const union {
         long one;
@@ -1620,12 +1620,12 @@ int CRYPTO_gcm128_encrypt_ctr32(GCM128_CONTEXT *ctx,
 #endif
 }
 
-int CRYPTO_gcm128_decrypt_ctr32(GCM128_CONTEXT *ctx,
+int VR_CRYPTO_gcm128_decrypt_ctr32(GCM128_CONTEXT *ctx,
                                 const unsigned char *in, unsigned char *out,
                                 size_t len, ctr128_f stream)
 {
 #if defined(OPENSSL_SMALL_FOOTPRINT)
-    return CRYPTO_gcm128_decrypt(ctx, in, out, len);
+    return VR_CRYPTO_gcm128_decrypt(ctx, in, out, len);
 #else
     const union {
         long one;
@@ -1791,7 +1791,7 @@ int CRYPTO_gcm128_decrypt_ctr32(GCM128_CONTEXT *ctx,
 #endif
 }
 
-int CRYPTO_gcm128_finish(GCM128_CONTEXT *ctx, const unsigned char *tag,
+int VR_CRYPTO_gcm128_finish(GCM128_CONTEXT *ctx, const unsigned char *tag,
                          size_t len)
 {
     const union {
@@ -1860,29 +1860,29 @@ int CRYPTO_gcm128_finish(GCM128_CONTEXT *ctx, const unsigned char *tag,
     ctx->Xi.u[1] ^= ctx->EK0.u[1];
 
     if (tag && len <= sizeof(ctx->Xi))
-        return CRYPTO_memcmp(ctx->Xi.c, tag, len);
+        return VR_CRYPTO_memcmp(ctx->Xi.c, tag, len);
     else
         return -1;
 }
 
-void CRYPTO_gcm128_tag(GCM128_CONTEXT *ctx, unsigned char *tag, size_t len)
+void VR_CRYPTO_gcm128_tag(GCM128_CONTEXT *ctx, unsigned char *tag, size_t len)
 {
-    CRYPTO_gcm128_finish(ctx, NULL, 0);
+    VR_CRYPTO_gcm128_finish(ctx, NULL, 0);
     memcpy(tag, ctx->Xi.c,
            len <= sizeof(ctx->Xi.c) ? len : sizeof(ctx->Xi.c));
 }
 
-GCM128_CONTEXT *CRYPTO_gcm128_new(void *key, block128_f block)
+GCM128_CONTEXT *VR_CRYPTO_gcm128_new(void *key, block128_f block)
 {
     GCM128_CONTEXT *ret;
 
     if ((ret = OPENSSL_malloc(sizeof(*ret))) != NULL)
-        CRYPTO_gcm128_init(ret, key, block);
+        VR_CRYPTO_gcm128_init(ret, key, block);
 
     return ret;
 }
 
-void CRYPTO_gcm128_release(GCM128_CONTEXT *ctx)
+void VR_CRYPTO_gcm128_release(GCM128_CONTEXT *ctx)
 {
-    OPENSSL_clear_free(ctx, sizeof(*ctx));
+    OPENVR_SSL_clear_free(ctx, sizeof(*ctx));
 }

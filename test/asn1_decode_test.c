@@ -46,12 +46,12 @@ static int test_long(void)
 {
     const unsigned char *p = t_invalid_zero;
     ASN1_LONG_DATA *dectst =
-        d2i_ASN1_LONG_DATA(NULL, &p, sizeof(t_invalid_zero));
+        VR_d2i_ASN1_LONG_DATA(NULL, &p, sizeof(t_invalid_zero));
 
     if (dectst == NULL)
         return 0;                /* Fail */
 
-    ASN1_LONG_DATA_free(dectst);
+    VR_ASN1_LONG_DATA_free(dectst);
     return 1;
 }
 #endif
@@ -73,12 +73,12 @@ static int test_int32(void)
 {
     const unsigned char *p = t_invalid_zero;
     ASN1_INT32_DATA *dectst =
-        d2i_ASN1_INT32_DATA(NULL, &p, sizeof(t_invalid_zero));
+        VR_d2i_ASN1_INT32_DATA(NULL, &p, sizeof(t_invalid_zero));
 
     if (dectst == NULL)
         return 0;                /* Fail */
 
-    ASN1_INT32_DATA_free(dectst);
+    VR_ASN1_INT32_DATA_free(dectst);
     return 1;
 }
 
@@ -99,12 +99,12 @@ static int test_uint32(void)
 {
     const unsigned char *p = t_invalid_zero;
     ASN1_UINT32_DATA *dectst =
-        d2i_ASN1_UINT32_DATA(NULL, &p, sizeof(t_invalid_zero));
+        VR_d2i_ASN1_UINT32_DATA(NULL, &p, sizeof(t_invalid_zero));
 
     if (dectst == NULL)
         return 0;                /* Fail */
 
-    ASN1_UINT32_DATA_free(dectst);
+    VR_ASN1_UINT32_DATA_free(dectst);
     return 1;
 }
 
@@ -125,12 +125,12 @@ static int test_int64(void)
 {
     const unsigned char *p = t_invalid_zero;
     ASN1_INT64_DATA *dectst =
-        d2i_ASN1_INT64_DATA(NULL, &p, sizeof(t_invalid_zero));
+        VR_d2i_ASN1_INT64_DATA(NULL, &p, sizeof(t_invalid_zero));
 
     if (dectst == NULL)
         return 0;                /* Fail */
 
-    ASN1_INT64_DATA_free(dectst);
+    VR_ASN1_INT64_DATA_free(dectst);
     return 1;
 }
 
@@ -151,12 +151,12 @@ static int test_uint64(void)
 {
     const unsigned char *p = t_invalid_zero;
     ASN1_UINT64_DATA *dectst =
-        d2i_ASN1_UINT64_DATA(NULL, &p, sizeof(t_invalid_zero));
+        VR_d2i_ASN1_UINT64_DATA(NULL, &p, sizeof(t_invalid_zero));
 
     if (dectst == NULL)
         return 0;                /* Fail */
 
-    ASN1_UINT64_DATA_free(dectst);
+    VR_ASN1_UINT64_DATA_free(dectst);
     return 1;
 }
 

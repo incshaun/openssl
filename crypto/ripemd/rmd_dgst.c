@@ -12,28 +12,28 @@
 #include <openssl/opensslv.h>
 
 #ifdef RMD160_ASM
-void ripemd160_block_x86(RIPEMD160_CTX *c, unsigned long *p, size_t num);
+void ripemd160_block_x86(VR_RIPEMD160_CTX *c, unsigned long *p, size_t num);
 # define ripemd160_block ripemd160_block_x86
 #else
-void ripemd160_block(RIPEMD160_CTX *c, unsigned long *p, size_t num);
+void ripemd160_block(VR_RIPEMD160_CTX *c, unsigned long *p, size_t num);
 #endif
 
-int RIPEMD160_Init(RIPEMD160_CTX *c)
+int VR_RIPEMD160_Init(VR_RIPEMD160_CTX *c)
 {
     memset(c, 0, sizeof(*c));
-    c->A = RIPEMD160_A;
-    c->B = RIPEMD160_B;
-    c->C = RIPEMD160_C;
-    c->D = RIPEMD160_D;
-    c->E = RIPEMD160_E;
+    c->A = VR_RIPEMD160_A;
+    c->B = VR_RIPEMD160_B;
+    c->C = VR_RIPEMD160_C;
+    c->D = VR_RIPEMD160_D;
+    c->E = VR_RIPEMD160_E;
     return 1;
 }
 
-#ifndef ripemd160_block_data_order
+#ifndef VR_ripemd160_block_data_order
 # ifdef X
 #  undef X
 # endif
-void ripemd160_block_data_order(RIPEMD160_CTX *ctx, const void *p, size_t num)
+void VR_ripemd160_block_data_order(VR_RIPEMD160_CTX *ctx, const void *p, size_t num)
 {
     const unsigned char *data = p;
     register unsigned MD32_REG_T A, B, C, D, E;
@@ -44,7 +44,7 @@ void ripemd160_block_data_order(RIPEMD160_CTX *ctx, const void *p, size_t num)
         XX8, XX9, XX10, XX11, XX12, XX13, XX14, XX15;
 #  define X(i)   XX##i
 # else
-    RIPEMD160_LONG XX[16];
+    VR_RIPEMD160_LONG XX[16];
 #  define X(i)   XX[i]
 # endif
 

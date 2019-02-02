@@ -42,9 +42,9 @@ $code.=<<___;
 	.asg	0,__TI_EABI__
 	.endif
 	.if	__TI_EABI__
-	.asg	poly1305_init,_poly1305_init
-	.asg	poly1305_blocks,_poly1305_blocks
-	.asg	poly1305_emit,_poly1305_emit
+	.asg	VR_poly1305_init,_VR_poly1305_init
+	.asg	VR_poly1305_blocks,_VR_poly1305_blocks
+	.asg	VR_poly1305_emit,_VR_poly1305_emit
 	.endif
 
 	.asg	B3,RA
@@ -56,8 +56,8 @@ $code.=<<___;
 	.asg	MV.L,SWAP4
 	.endif
 
-	.global	_poly1305_init
-_poly1305_init:
+	.global	_VR_poly1305_init
+_VR_poly1305_init:
 	.asmfunc
 	LDNDW	*${INPB}[0],B17:B16	; load key material
 	LDNDW	*${INPB}[1],A17:A16
@@ -103,9 +103,9 @@ _poly1305_init:
 ||	ZERO	A4			; return 0
 	.endasmfunc
 
-	.global	_poly1305_blocks
+	.global	_VR_poly1305_blocks
 	.align	32
-_poly1305_blocks:
+_VR_poly1305_blocks:
 	.asmfunc	stack_usage(40)
 	SHRU	$LEN,4,A2		; A2 is loop counter, number of blocks
   [!A2]	BNOP	RA			; no data
@@ -267,9 +267,9 @@ ___
 my ($MAC,$NONCEA,$NONCEB)=($INPB,$LEN,$PADBIT);
 
 $code.=<<___;
-	.global	_poly1305_emit
+	.global	_VR_poly1305_emit
 	.align	32
-_poly1305_emit:
+_VR_poly1305_emit:
 	.asmfunc
 	LDDW	*${CTXA}[0],A17:A16	; load h1:h0
 	LDDW	*${CTXA}[1],A19:A18	; load h3:h2

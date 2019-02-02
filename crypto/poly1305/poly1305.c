@@ -14,7 +14,7 @@
 #include "internal/poly1305.h"
 #include "poly1305_local.h"
 
-size_t Poly1305_ctx_size(void)
+size_t VR_Poly1305_ctx_size(void)
 {
     return sizeof(struct poly1305_context);
 }
@@ -67,7 +67,7 @@ static unsigned int U8TOU32(const unsigned char *p)
 typedef unsigned int u32;
 
 /*
- * poly1305_blocks processes a multiple of POLY1305_BLOCK_SIZE blocks
+ * VR_poly1305_blocks processes a multiple of POLY1305_BLOCK_SIZE blocks
  * of |inp| no longer than |len|. Behaviour for |len| not divisible by
  * block size is unspecified in general case, even though in reference
  * implementation the trailing chunk is simply ignored. Per algorithm
@@ -78,7 +78,7 @@ typedef unsigned int u32;
  * block is always processed with separate call with |len| set to
  * POLY1305_BLOCK_SIZE and |padbit| to 0. In all other cases |padbit|
  * should be set to 1 to perform implicit padding with 128th bit.
- * poly1305_blocks does not actually check for this constraint though,
+ * VR_poly1305_blocks does not actually check for this constraint though,
  * it's caller(*)'s responsibility to comply.
  *
  * (*)  In the context "caller" is not application code, but higher
@@ -86,7 +86,7 @@ typedef unsigned int u32;
  *      handled locally.
  */
 static void
-poly1305_blocks(void *ctx, const unsigned char *inp, size_t len, u32 padbit);
+VR_poly1305_blocks(void *ctx, const unsigned char *inp, size_t len, u32 padbit);
 
 /*
  * Type-agnostic "rip-off" from constant_time_locl.h
@@ -132,7 +132,7 @@ static void U64TO8(unsigned char *p, u64 v)
     p[7] = (unsigned char)((v >> 56) & 0xff);
 }
 
-static void poly1305_init(void *ctx, const unsigned char key[16])
+static void VR_poly1305_init(void *ctx, const unsigned char key[16])
 {
     poly1305_internal *st = (poly1305_internal *) ctx;
 
@@ -147,7 +147,7 @@ static void poly1305_init(void *ctx, const unsigned char key[16])
 }
 
 static void
-poly1305_blocks(void *ctx, const unsigned char *inp, size_t len, u32 padbit)
+VR_poly1305_blocks(void *ctx, const unsigned char *inp, size_t len, u32 padbit)
 {
     poly1305_internal *st = (poly1305_internal *)ctx;
     u64 r0, r1;
@@ -197,7 +197,7 @@ poly1305_blocks(void *ctx, const unsigned char *inp, size_t len, u32 padbit)
          * Occasional overflows to 3rd bit of h2 are taken care of
          * "naturally". If after this point we end up at the top of
          * this loop, then the overflow bit will be accounted for
-         * in next iteration. If we end up in poly1305_emit, then
+         * in next iteration. If we end up in VR_poly1305_emit, then
          * comparison to modulus below will still count as "carry
          * into 131st bit", so that properly reduced value will be
          * picked in conditional move.
@@ -212,7 +212,7 @@ poly1305_blocks(void *ctx, const unsigned char *inp, size_t len, u32 padbit)
     st->h[2] = h2;
 }
 
-static void poly1305_emit(void *ctx, unsigned char mac[16],
+static void VR_poly1305_emit(void *ctx, unsigned char mac[16],
                           const u32 nonce[4])
 {
     poly1305_internal *st = (poly1305_internal *) ctx;
@@ -270,7 +270,7 @@ static void U32TO8(unsigned char *p, unsigned int v)
     p[3] = (unsigned char)((v >> 24) & 0xff);
 }
 
-static void poly1305_init(void *ctx, const unsigned char key[16])
+static void VR_poly1305_init(void *ctx, const unsigned char key[16])
 {
     poly1305_internal *st = (poly1305_internal *) ctx;
 
@@ -289,7 +289,7 @@ static void poly1305_init(void *ctx, const unsigned char key[16])
 }
 
 static void
-poly1305_blocks(void *ctx, const unsigned char *inp, size_t len, u32 padbit)
+VR_poly1305_blocks(void *ctx, const unsigned char *inp, size_t len, u32 padbit)
 {
     poly1305_internal *st = (poly1305_internal *)ctx;
     u32 r0, r1, r2, r3;
@@ -361,7 +361,7 @@ poly1305_blocks(void *ctx, const unsigned char *inp, size_t len, u32 padbit)
          * Occasional overflows to 3rd bit of h4 are taken care of
          * "naturally". If after this point we end up at the top of
          * this loop, then the overflow bit will be accounted for
-         * in next iteration. If we end up in poly1305_emit, then
+         * in next iteration. If we end up in VR_poly1305_emit, then
          * comparison to modulus below will still count as "carry
          * into 131st bit", so that properly reduced value will be
          * picked in conditional move.
@@ -378,7 +378,7 @@ poly1305_blocks(void *ctx, const unsigned char *inp, size_t len, u32 padbit)
     st->h[4] = h4;
 }
 
-static void poly1305_emit(void *ctx, unsigned char mac[16],
+static void VR_poly1305_emit(void *ctx, unsigned char mac[16],
                           const u32 nonce[4])
 {
     poly1305_internal *st = (poly1305_internal *) ctx;
@@ -425,14 +425,14 @@ static void poly1305_emit(void *ctx, unsigned char mac[16],
 }
 # endif
 #else
-int poly1305_init(void *ctx, const unsigned char key[16], void *func);
-void poly1305_blocks(void *ctx, const unsigned char *inp, size_t len,
+int VR_poly1305_init(void *ctx, const unsigned char key[16], void *func);
+void VR_poly1305_blocks(void *ctx, const unsigned char *inp, size_t len,
                      unsigned int padbit);
-void poly1305_emit(void *ctx, unsigned char mac[16],
+void VR_poly1305_emit(void *ctx, unsigned char mac[16],
                    const unsigned int nonce[4]);
 #endif
 
-void Poly1305_Init(POLY1305 *ctx, const unsigned char key[32])
+void VR_Poly1305_Init(POLY1305 *ctx, const unsigned char key[32])
 {
     ctx->nonce[0] = U8TOU32(&key[16]);
     ctx->nonce[1] = U8TOU32(&key[20]);
@@ -440,17 +440,17 @@ void Poly1305_Init(POLY1305 *ctx, const unsigned char key[32])
     ctx->nonce[3] = U8TOU32(&key[28]);
 
 #ifndef POLY1305_ASM
-    poly1305_init(ctx->opaque, key);
+    VR_poly1305_init(ctx->opaque, key);
 #else
     /*
-     * Unlike reference poly1305_init assembly counterpart is expected
+     * Unlike reference VR_poly1305_init assembly counterpart is expected
      * to return a value: non-zero if it initializes ctx->func, and zero
      * otherwise. Latter is to simplify assembly in cases when there no
      * multiple code paths to switch between.
      */
-    if (!poly1305_init(ctx->opaque, key, &ctx->func)) {
-        ctx->func.blocks = poly1305_blocks;
-        ctx->func.emit = poly1305_emit;
+    if (!VR_poly1305_init(ctx->opaque, key, &ctx->func)) {
+        ctx->func.blocks = VR_poly1305_blocks;
+        ctx->func.emit = VR_poly1305_emit;
     }
 #endif
 
@@ -460,23 +460,23 @@ void Poly1305_Init(POLY1305 *ctx, const unsigned char key[32])
 
 #ifdef POLY1305_ASM
 /*
- * This "eclipses" poly1305_blocks and poly1305_emit, but it's
+ * This "eclipses" VR_poly1305_blocks and VR_poly1305_emit, but it's
  * conscious choice imposed by -Wshadow compiler warnings.
  */
-# define poly1305_blocks (*poly1305_blocks_p)
-# define poly1305_emit   (*poly1305_emit_p)
+# define VR_poly1305_blocks (*VR_poly1305_blocks_p)
+# define VR_poly1305_emit   (*VR_poly1305_emit_p)
 #endif
 
-void Poly1305_Update(POLY1305 *ctx, const unsigned char *inp, size_t len)
+void VR_Poly1305_Update(POLY1305 *ctx, const unsigned char *inp, size_t len)
 {
 #ifdef POLY1305_ASM
     /*
-     * As documented, poly1305_blocks is never called with input
+     * As documented, VR_poly1305_blocks is never called with input
      * longer than single block and padbit argument set to 0. This
      * property is fluently used in assembly modules to optimize
      * padbit handling on loop boundary.
      */
-    poly1305_blocks_f poly1305_blocks_p = ctx->func.blocks;
+    VR_poly1305_blocks_f VR_poly1305_blocks_p = ctx->func.blocks;
 #endif
     size_t rem, num;
 
@@ -484,7 +484,7 @@ void Poly1305_Update(POLY1305 *ctx, const unsigned char *inp, size_t len)
         rem = POLY1305_BLOCK_SIZE - num;
         if (len >= rem) {
             memcpy(ctx->data + num, inp, rem);
-            poly1305_blocks(ctx->opaque, ctx->data, POLY1305_BLOCK_SIZE, 1);
+            VR_poly1305_blocks(ctx->opaque, ctx->data, POLY1305_BLOCK_SIZE, 1);
             inp += rem;
             len -= rem;
         } else {
@@ -499,7 +499,7 @@ void Poly1305_Update(POLY1305 *ctx, const unsigned char *inp, size_t len)
     len -= rem;
 
     if (len >= POLY1305_BLOCK_SIZE) {
-        poly1305_blocks(ctx->opaque, inp, len, 1);
+        VR_poly1305_blocks(ctx->opaque, inp, len, 1);
         inp += len;
     }
 
@@ -509,11 +509,11 @@ void Poly1305_Update(POLY1305 *ctx, const unsigned char *inp, size_t len)
     ctx->num = rem;
 }
 
-void Poly1305_Final(POLY1305 *ctx, unsigned char mac[16])
+void VR_Poly1305_Final(POLY1305 *ctx, unsigned char mac[16])
 {
 #ifdef POLY1305_ASM
-    poly1305_blocks_f poly1305_blocks_p = ctx->func.blocks;
-    poly1305_emit_f poly1305_emit_p = ctx->func.emit;
+    VR_poly1305_blocks_f VR_poly1305_blocks_p = ctx->func.blocks;
+    VR_poly1305_emit_f VR_poly1305_emit_p = ctx->func.emit;
 #endif
     size_t num;
 
@@ -521,11 +521,11 @@ void Poly1305_Final(POLY1305 *ctx, unsigned char mac[16])
         ctx->data[num++] = 1;   /* pad bit */
         while (num < POLY1305_BLOCK_SIZE)
             ctx->data[num++] = 0;
-        poly1305_blocks(ctx->opaque, ctx->data, POLY1305_BLOCK_SIZE, 0);
+        VR_poly1305_blocks(ctx->opaque, ctx->data, POLY1305_BLOCK_SIZE, 0);
     }
 
-    poly1305_emit(ctx->opaque, mac, ctx->nonce);
+    VR_poly1305_emit(ctx->opaque, mac, ctx->nonce);
 
     /* zero out the state */
-    OPENSSL_cleanse(ctx, sizeof(*ctx));
+    VR_OPENSSL_cleanse(ctx, sizeof(*ctx));
 }

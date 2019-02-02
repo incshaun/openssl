@@ -27,7 +27,7 @@ struct bn_blinding_st {
     CRYPTO_RWLOCK *lock;
 };
 
-BN_BLINDING *BN_BLINDING_new(const BIGNUM *A, const BIGNUM *Ai, BIGNUM *mod)
+BN_BLINDING *VR_BN_BLINDING_new(const BIGNUM *A, const BIGNUM *Ai, BIGNUM *mod)
 {
     BN_BLINDING *ret = NULL;
 
@@ -38,31 +38,31 @@ BN_BLINDING *BN_BLINDING_new(const BIGNUM *A, const BIGNUM *Ai, BIGNUM *mod)
         return NULL;
     }
 
-    ret->lock = CRYPTO_THREAD_lock_new();
+    ret->lock = VR_CRYPTO_THREAD_lock_new();
     if (ret->lock == NULL) {
         BNerr(BN_F_BN_BLINDING_NEW, ERR_R_MALLOC_FAILURE);
-        OPENSSL_free(ret);
+        OPENVR_SSL_free(ret);
         return NULL;
     }
 
-    BN_BLINDING_set_current_thread(ret);
+    VR_BN_BLINDING_set_current_thread(ret);
 
     if (A != NULL) {
-        if ((ret->A = BN_dup(A)) == NULL)
+        if ((ret->A = VR_BN_dup(A)) == NULL)
             goto err;
     }
 
     if (Ai != NULL) {
-        if ((ret->Ai = BN_dup(Ai)) == NULL)
+        if ((ret->Ai = VR_BN_dup(Ai)) == NULL)
             goto err;
     }
 
     /* save a copy of mod in the BN_BLINDING structure */
-    if ((ret->mod = BN_dup(mod)) == NULL)
+    if ((ret->mod = VR_BN_dup(mod)) == NULL)
         goto err;
 
-    if (BN_get_flags(mod, BN_FLG_CONSTTIME) != 0)
-        BN_set_flags(ret->mod, BN_FLG_CONSTTIME);
+    if (VR_BN_get_flags(mod, BN_FLG_CONSTTIME) != 0)
+        VR_BN_set_flags(ret->mod, BN_FLG_CONSTTIME);
 
     /*
      * Set the counter to the special value -1 to indicate that this is
@@ -74,23 +74,23 @@ BN_BLINDING *BN_BLINDING_new(const BIGNUM *A, const BIGNUM *Ai, BIGNUM *mod)
     return ret;
 
  err:
-    BN_BLINDING_free(ret);
+    VR_BN_BLINDING_free(ret);
     return NULL;
 }
 
-void BN_BLINDING_free(BN_BLINDING *r)
+void VR_BN_BLINDING_free(BN_BLINDING *r)
 {
     if (r == NULL)
         return;
-    BN_free(r->A);
-    BN_free(r->Ai);
-    BN_free(r->e);
-    BN_free(r->mod);
-    CRYPTO_THREAD_lock_free(r->lock);
-    OPENSSL_free(r);
+    VR_BN_free(r->A);
+    VR_BN_free(r->Ai);
+    VR_BN_free(r->e);
+    VR_BN_free(r->mod);
+    VR_CRYPTO_THREAD_lock_free(r->lock);
+    OPENVR_SSL_free(r);
 }
 
-int BN_BLINDING_update(BN_BLINDING *b, BN_CTX *ctx)
+int VR_BN_BLINDING_update(BN_BLINDING *b, BN_CTX *ctx)
 {
     int ret = 0;
 
@@ -105,16 +105,16 @@ int BN_BLINDING_update(BN_BLINDING *b, BN_CTX *ctx)
     if (++b->counter == BN_BLINDING_COUNTER && b->e != NULL &&
         !(b->flags & BN_BLINDING_NO_RECREATE)) {
         /* re-create blinding parameters */
-        if (!BN_BLINDING_create_param(b, NULL, NULL, ctx, NULL, NULL))
+        if (!VR_BN_BLINDING_create_param(b, NULL, NULL, ctx, NULL, NULL))
             goto err;
     } else if (!(b->flags & BN_BLINDING_NO_UPDATE)) {
         if (b->m_ctx != NULL) {
-            if (!bn_mul_mont_fixed_top(b->Ai, b->Ai, b->Ai, b->m_ctx, ctx)
-                || !bn_mul_mont_fixed_top(b->A, b->A, b->A, b->m_ctx, ctx))
+            if (!VR_bn_mul_mont_fixed_top(b->Ai, b->Ai, b->Ai, b->m_ctx, ctx)
+                || !VR_bn_mul_mont_fixed_top(b->A, b->A, b->A, b->m_ctx, ctx))
                 goto err;
         } else {
-            if (!BN_mod_mul(b->Ai, b->Ai, b->Ai, b->mod, ctx)
-                || !BN_mod_mul(b->A, b->A, b->A, b->mod, ctx))
+            if (!VR_BN_mod_mul(b->Ai, b->Ai, b->Ai, b->mod, ctx)
+                || !VR_BN_mod_mul(b->A, b->A, b->A, b->mod, ctx))
                 goto err;
         }
     }
@@ -126,12 +126,12 @@ int BN_BLINDING_update(BN_BLINDING *b, BN_CTX *ctx)
     return ret;
 }
 
-int BN_BLINDING_convert(BIGNUM *n, BN_BLINDING *b, BN_CTX *ctx)
+int VR_BN_BLINDING_convert(BIGNUM *n, BN_BLINDING *b, BN_CTX *ctx)
 {
-    return BN_BLINDING_convert_ex(n, NULL, b, ctx);
+    return VR_BN_BLINDING_convert_ex(n, NULL, b, ctx);
 }
 
-int BN_BLINDING_convert_ex(BIGNUM *n, BIGNUM *r, BN_BLINDING *b, BN_CTX *ctx)
+int VR_BN_BLINDING_convert_ex(BIGNUM *n, BIGNUM *r, BN_BLINDING *b, BN_CTX *ctx)
 {
     int ret = 1;
 
@@ -145,26 +145,26 @@ int BN_BLINDING_convert_ex(BIGNUM *n, BIGNUM *r, BN_BLINDING *b, BN_CTX *ctx)
     if (b->counter == -1)
         /* Fresh blinding, doesn't need updating. */
         b->counter = 0;
-    else if (!BN_BLINDING_update(b, ctx))
+    else if (!VR_BN_BLINDING_update(b, ctx))
         return 0;
 
-    if (r != NULL && (BN_copy(r, b->Ai) == NULL))
+    if (r != NULL && (VR_BN_copy(r, b->Ai) == NULL))
         return 0;
 
     if (b->m_ctx != NULL)
-        ret = BN_mod_mul_montgomery(n, n, b->A, b->m_ctx, ctx);
+        ret = VR_BN_mod_mul_montgomery(n, n, b->A, b->m_ctx, ctx);
     else
-        ret = BN_mod_mul(n, n, b->A, b->mod, ctx);
+        ret = VR_BN_mod_mul(n, n, b->A, b->mod, ctx);
 
     return ret;
 }
 
-int BN_BLINDING_invert(BIGNUM *n, BN_BLINDING *b, BN_CTX *ctx)
+int VR_BN_BLINDING_invert(BIGNUM *n, BN_BLINDING *b, BN_CTX *ctx)
 {
-    return BN_BLINDING_invert_ex(n, NULL, b, ctx);
+    return VR_BN_BLINDING_invert_ex(n, NULL, b, ctx);
 }
 
-int BN_BLINDING_invert_ex(BIGNUM *n, const BIGNUM *r, BN_BLINDING *b,
+int VR_BN_BLINDING_invert_ex(BIGNUM *n, const BIGNUM *r, BN_BLINDING *b,
                           BN_CTX *ctx)
 {
     int ret;
@@ -177,7 +177,7 @@ int BN_BLINDING_invert_ex(BIGNUM *n, const BIGNUM *r, BN_BLINDING *b,
     }
 
     if (b->m_ctx != NULL) {
-        /* ensure that BN_mod_mul_montgomery takes pre-defined path */
+        /* ensure that VR_BN_mod_mul_montgomery takes pre-defined path */
         if (n->dmax >= r->top) {
             size_t i, rtop = r->top, ntop = n->top;
             BN_ULONG mask;
@@ -191,46 +191,46 @@ int BN_BLINDING_invert_ex(BIGNUM *n, const BIGNUM *r, BN_BLINDING *b,
             n->top = (int)(rtop & ~mask) | (ntop & mask);
             n->flags |= (BN_FLG_FIXED_TOP & ~mask);
         }
-        ret = BN_mod_mul_montgomery(n, n, r, b->m_ctx, ctx);
+        ret = VR_BN_mod_mul_montgomery(n, n, r, b->m_ctx, ctx);
     } else {
-        ret = BN_mod_mul(n, n, r, b->mod, ctx);
+        ret = VR_BN_mod_mul(n, n, r, b->mod, ctx);
     }
 
     bn_check_top(n);
     return ret;
 }
 
-int BN_BLINDING_is_current_thread(BN_BLINDING *b)
+int VR_BN_BLINDING_is_current_thread(BN_BLINDING *b)
 {
-    return CRYPTO_THREAD_compare_id(CRYPTO_THREAD_get_current_id(), b->tid);
+    return VR_CRYPTO_THREAD_compare_id(VR_CRYPTO_THREAD_get_current_id(), b->tid);
 }
 
-void BN_BLINDING_set_current_thread(BN_BLINDING *b)
+void VR_BN_BLINDING_set_current_thread(BN_BLINDING *b)
 {
-    b->tid = CRYPTO_THREAD_get_current_id();
+    b->tid = VR_CRYPTO_THREAD_get_current_id();
 }
 
-int BN_BLINDING_lock(BN_BLINDING *b)
+int VR_BN_BLINDING_lock(BN_BLINDING *b)
 {
-    return CRYPTO_THREAD_write_lock(b->lock);
+    return VR_CRYPTO_THREAD_write_lock(b->lock);
 }
 
-int BN_BLINDING_unlock(BN_BLINDING *b)
+int VR_BN_BLINDING_unlock(BN_BLINDING *b)
 {
-    return CRYPTO_THREAD_unlock(b->lock);
+    return VR_CRYPTO_THREAD_unlock(b->lock);
 }
 
-unsigned long BN_BLINDING_get_flags(const BN_BLINDING *b)
+unsigned long VR_BN_BLINDING_get_flags(const BN_BLINDING *b)
 {
     return b->flags;
 }
 
-void BN_BLINDING_set_flags(BN_BLINDING *b, unsigned long flags)
+void VR_BN_BLINDING_set_flags(BN_BLINDING *b, unsigned long flags)
 {
     b->flags = flags;
 }
 
-BN_BLINDING *BN_BLINDING_create_param(BN_BLINDING *b,
+BN_BLINDING *VR_BN_BLINDING_create_param(BN_BLINDING *b,
                                       const BIGNUM *e, BIGNUM *m, BN_CTX *ctx,
                                       int (*bn_mod_exp) (BIGNUM *r,
                                                          const BIGNUM *a,
@@ -244,21 +244,21 @@ BN_BLINDING *BN_BLINDING_create_param(BN_BLINDING *b,
     BN_BLINDING *ret = NULL;
 
     if (b == NULL)
-        ret = BN_BLINDING_new(NULL, NULL, m);
+        ret = VR_BN_BLINDING_new(NULL, NULL, m);
     else
         ret = b;
 
     if (ret == NULL)
         goto err;
 
-    if (ret->A == NULL && (ret->A = BN_new()) == NULL)
+    if (ret->A == NULL && (ret->A = VR_BN_new()) == NULL)
         goto err;
-    if (ret->Ai == NULL && (ret->Ai = BN_new()) == NULL)
+    if (ret->Ai == NULL && (ret->Ai = VR_BN_new()) == NULL)
         goto err;
 
     if (e != NULL) {
-        BN_free(ret->e);
-        ret->e = BN_dup(e);
+        VR_BN_free(ret->e);
+        ret->e = VR_BN_dup(e);
     }
     if (ret->e == NULL)
         goto err;
@@ -270,9 +270,9 @@ BN_BLINDING *BN_BLINDING_create_param(BN_BLINDING *b,
 
     do {
         int rv;
-        if (!BN_priv_rand_range(ret->A, ret->mod))
+        if (!VR_BN_priv_rand_range(ret->A, ret->mod))
             goto err;
-        if (int_bn_mod_inverse(ret->Ai, ret->A, ret->mod, ctx, &rv))
+        if (VR_int_bn_mod_inverse(ret->Ai, ret->A, ret->mod, ctx, &rv))
             break;
 
         /*
@@ -291,20 +291,20 @@ BN_BLINDING *BN_BLINDING_create_param(BN_BLINDING *b,
         if (!ret->bn_mod_exp(ret->A, ret->A, ret->e, ret->mod, ctx, ret->m_ctx))
             goto err;
     } else {
-        if (!BN_mod_exp(ret->A, ret->A, ret->e, ret->mod, ctx))
+        if (!VR_BN_mod_exp(ret->A, ret->A, ret->e, ret->mod, ctx))
             goto err;
     }
 
     if (ret->m_ctx != NULL) {
-        if (!bn_to_mont_fixed_top(ret->Ai, ret->Ai, ret->m_ctx, ctx)
-            || !bn_to_mont_fixed_top(ret->A, ret->A, ret->m_ctx, ctx))
+        if (!VR_bn_to_mont_fixed_top(ret->Ai, ret->Ai, ret->m_ctx, ctx)
+            || !VR_bn_to_mont_fixed_top(ret->A, ret->A, ret->m_ctx, ctx))
             goto err;
     }
 
     return ret;
  err:
     if (b == NULL) {
-        BN_BLINDING_free(ret);
+        VR_BN_BLINDING_free(ret);
         ret = NULL;
     }
 

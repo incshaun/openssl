@@ -20,9 +20,9 @@ static BIO *cms_get_text_bio(BIO *out, unsigned int flags)
 {
     BIO *rbio;
     if (out == NULL)
-        rbio = BIO_new(BIO_s_null());
+        rbio = VR_BIO_new(VR_BIO_s_null());
     else if (flags & CMS_TEXT) {
-        rbio = BIO_new(BIO_s_mem());
+        rbio = VR_BIO_new(VR_BIO_s_mem());
         BIO_set_mem_eof_return(rbio, 0);
     } else
         rbio = out;
@@ -44,9 +44,9 @@ static int cms_copy_content(BIO *out, BIO *in, unsigned int flags)
 
     /* Read all content through chain to process digest, decrypt etc */
     for (;;) {
-        i = BIO_read(in, buf, sizeof(buf));
+        i = VR_BIO_read(in, buf, sizeof(buf));
         if (i <= 0) {
-            if (BIO_method_type(in) == BIO_TYPE_CIPHER) {
+            if (VR_BIO_method_type(in) == BIO_TYPE_CIPHER) {
                 if (!BIO_get_cipher_status(in))
                     goto err;
             }
@@ -55,12 +55,12 @@ static int cms_copy_content(BIO *out, BIO *in, unsigned int flags)
             break;
         }
 
-        if (tmpout && (BIO_write(tmpout, buf, i) != i))
+        if (tmpout && (VR_BIO_write(tmpout, buf, i) != i))
             goto err;
     }
 
     if (flags & CMS_TEXT) {
-        if (!SMIME_text(tmpout, out)) {
+        if (!VR_SMIME_text(tmpout, out)) {
             CMSerr(CMS_F_CMS_COPY_CONTENT, CMS_R_SMIME_TEXT_ERROR);
             goto err;
         }
@@ -70,14 +70,14 @@ static int cms_copy_content(BIO *out, BIO *in, unsigned int flags)
 
  err:
     if (tmpout != out)
-        BIO_free(tmpout);
+        VR_BIO_free(tmpout);
     return r;
 
 }
 
 static int check_content(CMS_ContentInfo *cms)
 {
-    ASN1_OCTET_STRING **pos = CMS_get0_content(cms);
+    ASN1_OCTET_STRING **pos = VR_CMS_get0_content(cms);
     if (!pos || !*pos) {
         CMSerr(CMS_F_CHECK_CONTENT, CMS_R_NO_CONTENT);
         return 0;
@@ -90,52 +90,52 @@ static void do_free_upto(BIO *f, BIO *upto)
     if (upto) {
         BIO *tbio;
         do {
-            tbio = BIO_pop(f);
-            BIO_free(f);
+            tbio = VR_BIO_pop(f);
+            VR_BIO_free(f);
             f = tbio;
         }
         while (f && f != upto);
     } else
-        BIO_free_all(f);
+        VR_BIO_free_all(f);
 }
 
-int CMS_data(CMS_ContentInfo *cms, BIO *out, unsigned int flags)
+int VR_CMS_data(CMS_ContentInfo *cms, BIO *out, unsigned int flags)
 {
     BIO *cont;
     int r;
-    if (OBJ_obj2nid(CMS_get0_type(cms)) != NID_pkcs7_data) {
+    if (VR_OBJ_obj2nid(VR_CMS_get0_type(cms)) != NID_pkcs7_data) {
         CMSerr(CMS_F_CMS_DATA, CMS_R_TYPE_NOT_DATA);
         return 0;
     }
-    cont = CMS_dataInit(cms, NULL);
+    cont = VR_CMS_dataInit(cms, NULL);
     if (!cont)
         return 0;
     r = cms_copy_content(out, cont, flags);
-    BIO_free_all(cont);
+    VR_BIO_free_all(cont);
     return r;
 }
 
-CMS_ContentInfo *CMS_data_create(BIO *in, unsigned int flags)
+CMS_ContentInfo *VR_CMS_data_create(BIO *in, unsigned int flags)
 {
     CMS_ContentInfo *cms;
-    cms = cms_Data_create();
+    cms = VR_cms_Data_create();
     if (!cms)
         return NULL;
 
-    if ((flags & CMS_STREAM) || CMS_final(cms, in, NULL, flags))
+    if ((flags & CMS_STREAM) || VR_CMS_final(cms, in, NULL, flags))
         return cms;
 
-    CMS_ContentInfo_free(cms);
+    VR_CMS_ContentInfo_free(cms);
 
     return NULL;
 }
 
-int CMS_digest_verify(CMS_ContentInfo *cms, BIO *dcont, BIO *out,
+int VR_CMS_digest_verify(CMS_ContentInfo *cms, BIO *dcont, BIO *out,
                       unsigned int flags)
 {
     BIO *cont;
     int r;
-    if (OBJ_obj2nid(CMS_get0_type(cms)) != NID_pkcs7_digest) {
+    if (VR_OBJ_obj2nid(VR_CMS_get0_type(cms)) != NID_pkcs7_digest) {
         CMSerr(CMS_F_CMS_DIGEST_VERIFY, CMS_R_TYPE_NOT_DIGESTED_DATA);
         return 0;
     }
@@ -143,43 +143,43 @@ int CMS_digest_verify(CMS_ContentInfo *cms, BIO *dcont, BIO *out,
     if (!dcont && !check_content(cms))
         return 0;
 
-    cont = CMS_dataInit(cms, dcont);
+    cont = VR_CMS_dataInit(cms, dcont);
     if (!cont)
         return 0;
     r = cms_copy_content(out, cont, flags);
     if (r)
-        r = cms_DigestedData_do_final(cms, cont, 1);
+        r = VR_cms_DigestedData_do_final(cms, cont, 1);
     do_free_upto(cont, dcont);
     return r;
 }
 
-CMS_ContentInfo *CMS_digest_create(BIO *in, const EVP_MD *md,
+CMS_ContentInfo *VR_CMS_digest_create(BIO *in, const EVP_MD *md,
                                    unsigned int flags)
 {
     CMS_ContentInfo *cms;
     if (!md)
-        md = EVP_sha1();
-    cms = cms_DigestedData_create(md);
+        md = VR_EVP_sha1();
+    cms = VR_cms_DigestedData_create(md);
     if (!cms)
         return NULL;
 
     if (!(flags & CMS_DETACHED))
-        CMS_set_detached(cms, 0);
+        VR_CMS_set_detached(cms, 0);
 
-    if ((flags & CMS_STREAM) || CMS_final(cms, in, NULL, flags))
+    if ((flags & CMS_STREAM) || VR_CMS_final(cms, in, NULL, flags))
         return cms;
 
-    CMS_ContentInfo_free(cms);
+    VR_CMS_ContentInfo_free(cms);
     return NULL;
 }
 
-int CMS_EncryptedData_decrypt(CMS_ContentInfo *cms,
+int VR_CMS_EncryptedData_decrypt(CMS_ContentInfo *cms,
                               const unsigned char *key, size_t keylen,
                               BIO *dcont, BIO *out, unsigned int flags)
 {
     BIO *cont;
     int r;
-    if (OBJ_obj2nid(CMS_get0_type(cms)) != NID_pkcs7_encrypted) {
+    if (VR_OBJ_obj2nid(VR_CMS_get0_type(cms)) != NID_pkcs7_encrypted) {
         CMSerr(CMS_F_CMS_ENCRYPTEDDATA_DECRYPT,
                CMS_R_TYPE_NOT_ENCRYPTED_DATA);
         return 0;
@@ -188,9 +188,9 @@ int CMS_EncryptedData_decrypt(CMS_ContentInfo *cms,
     if (!dcont && !check_content(cms))
         return 0;
 
-    if (CMS_EncryptedData_set1_key(cms, NULL, key, keylen) <= 0)
+    if (VR_CMS_EncryptedData_set1_key(cms, NULL, key, keylen) <= 0)
         return 0;
-    cont = CMS_dataInit(cms, dcont);
+    cont = VR_CMS_dataInit(cms, dcont);
     if (!cont)
         return 0;
     r = cms_copy_content(out, cont, flags);
@@ -198,7 +198,7 @@ int CMS_EncryptedData_decrypt(CMS_ContentInfo *cms,
     return r;
 }
 
-CMS_ContentInfo *CMS_EncryptedData_encrypt(BIO *in, const EVP_CIPHER *cipher,
+CMS_ContentInfo *VR_CMS_EncryptedData_encrypt(BIO *in, const EVP_CIPHER *cipher,
                                            const unsigned char *key,
                                            size_t keylen, unsigned int flags)
 {
@@ -207,20 +207,20 @@ CMS_ContentInfo *CMS_EncryptedData_encrypt(BIO *in, const EVP_CIPHER *cipher,
         CMSerr(CMS_F_CMS_ENCRYPTEDDATA_ENCRYPT, CMS_R_NO_CIPHER);
         return NULL;
     }
-    cms = CMS_ContentInfo_new();
+    cms = VR_CMS_ContentInfo_new();
     if (cms == NULL)
         return NULL;
-    if (!CMS_EncryptedData_set1_key(cms, cipher, key, keylen))
+    if (!VR_CMS_EncryptedData_set1_key(cms, cipher, key, keylen))
         return NULL;
 
     if (!(flags & CMS_DETACHED))
-        CMS_set_detached(cms, 0);
+        VR_CMS_set_detached(cms, 0);
 
     if ((flags & (CMS_STREAM | CMS_PARTIAL))
-        || CMS_final(cms, in, NULL, flags))
+        || VR_CMS_final(cms, in, NULL, flags))
         return cms;
 
-    CMS_ContentInfo_free(cms);
+    VR_CMS_ContentInfo_free(cms);
     return NULL;
 }
 
@@ -229,7 +229,7 @@ static int cms_signerinfo_verify_cert(CMS_SignerInfo *si,
                                       STACK_OF(X509) *certs,
                                       STACK_OF(X509_CRL) *crls)
 {
-    X509_STORE_CTX *ctx = X509_STORE_CTX_new();
+    X509_STORE_CTX *ctx = VR_X509_STORE_CTX_new();
     X509 *signer;
     int i, j, r = 0;
 
@@ -237,32 +237,32 @@ static int cms_signerinfo_verify_cert(CMS_SignerInfo *si,
         CMSerr(CMS_F_CMS_SIGNERINFO_VERIFY_CERT, ERR_R_MALLOC_FAILURE);
         goto err;
     }
-    CMS_SignerInfo_get0_algs(si, NULL, &signer, NULL, NULL);
-    if (!X509_STORE_CTX_init(ctx, store, signer, certs)) {
+    VR_CMS_SignerInfo_get0_algs(si, NULL, &signer, NULL, NULL);
+    if (!VR_X509_STORE_CTX_init(ctx, store, signer, certs)) {
         CMSerr(CMS_F_CMS_SIGNERINFO_VERIFY_CERT, CMS_R_STORE_INIT_ERROR);
         goto err;
     }
-    X509_STORE_CTX_set_default(ctx, "smime_sign");
+    VR_X509_STORE_CTX_set_default(ctx, "smime_sign");
     if (crls)
-        X509_STORE_CTX_set0_crls(ctx, crls);
+        VR_X509_STORE_CTX_set0_crls(ctx, crls);
 
-    i = X509_verify_cert(ctx);
+    i = VR_X509_verify_cert(ctx);
     if (i <= 0) {
-        j = X509_STORE_CTX_get_error(ctx);
+        j = VR_X509_STORE_CTX_get_error(ctx);
         CMSerr(CMS_F_CMS_SIGNERINFO_VERIFY_CERT,
                CMS_R_CERTIFICATE_VERIFY_ERROR);
-        ERR_add_error_data(2, "Verify error:",
-                           X509_verify_cert_error_string(j));
+        VR_ERR_add_error_data(2, "Verify error:",
+                           VR_X509_verify_cert_error_string(j));
         goto err;
     }
     r = 1;
  err:
-    X509_STORE_CTX_free(ctx);
+    VR_X509_STORE_CTX_free(ctx);
     return r;
 
 }
 
-int CMS_verify(CMS_ContentInfo *cms, STACK_OF(X509) *certs,
+int VR_CMS_verify(CMS_ContentInfo *cms, STACK_OF(X509) *certs,
                X509_STORE *store, BIO *dcont, BIO *out, unsigned int flags)
 {
     CMS_SignerInfo *si;
@@ -276,14 +276,14 @@ int CMS_verify(CMS_ContentInfo *cms, STACK_OF(X509) *certs,
     if (!dcont && !check_content(cms))
         return 0;
     if (dcont && !(flags & CMS_BINARY)) {
-        const ASN1_OBJECT *coid = CMS_get0_eContentType(cms);
-        if (OBJ_obj2nid(coid) == NID_id_ct_asciiTextWithCRLF)
+        const ASN1_OBJECT *coid = VR_CMS_get0_eContentType(cms);
+        if (VR_OBJ_obj2nid(coid) == NID_id_ct_asciiTextWithCRLF)
             flags |= CMS_ASCIICRLF;
     }
 
     /* Attempt to find all signer certificates */
 
-    sinfos = CMS_get0_SignerInfos(cms);
+    sinfos = VR_CMS_get0_SignerInfos(cms);
 
     if (sk_CMS_SignerInfo_num(sinfos) <= 0) {
         CMSerr(CMS_F_CMS_VERIFY, CMS_R_NO_SIGNERS);
@@ -292,13 +292,13 @@ int CMS_verify(CMS_ContentInfo *cms, STACK_OF(X509) *certs,
 
     for (i = 0; i < sk_CMS_SignerInfo_num(sinfos); i++) {
         si = sk_CMS_SignerInfo_value(sinfos, i);
-        CMS_SignerInfo_get0_algs(si, NULL, &signer, NULL, NULL);
+        VR_CMS_SignerInfo_get0_algs(si, NULL, &signer, NULL, NULL);
         if (signer)
             scount++;
     }
 
     if (scount != sk_CMS_SignerInfo_num(sinfos))
-        scount += CMS_set1_signers_certs(cms, certs, flags);
+        scount += VR_CMS_set1_signers_certs(cms, certs, flags);
 
     if (scount != sk_CMS_SignerInfo_num(sinfos)) {
         CMSerr(CMS_F_CMS_VERIFY, CMS_R_SIGNER_CERTIFICATE_NOT_FOUND);
@@ -308,9 +308,9 @@ int CMS_verify(CMS_ContentInfo *cms, STACK_OF(X509) *certs,
     /* Attempt to verify all signers certs */
 
     if (!(flags & CMS_NO_SIGNER_CERT_VERIFY)) {
-        cms_certs = CMS_get1_certs(cms);
+        cms_certs = VR_CMS_get1_certs(cms);
         if (!(flags & CMS_NOCRL))
-            crls = CMS_get1_crls(cms);
+            crls = VR_CMS_get1_crls(cms);
         for (i = 0; i < sk_CMS_SignerInfo_num(sinfos); i++) {
             si = sk_CMS_SignerInfo_value(sinfos, i);
             if (!cms_signerinfo_verify_cert(si, store, cms_certs, crls))
@@ -323,9 +323,9 @@ int CMS_verify(CMS_ContentInfo *cms, STACK_OF(X509) *certs,
     if (!(flags & CMS_NO_ATTR_VERIFY)) {
         for (i = 0; i < sk_CMS_SignerInfo_num(sinfos); i++) {
             si = sk_CMS_SignerInfo_value(sinfos, i);
-            if (CMS_signed_get_attr_count(si) < 0)
+            if (VR_CMS_signed_get_attr_count(si) < 0)
                 continue;
-            if (CMS_SignerInfo_verify(si) <= 0)
+            if (VR_CMS_SignerInfo_verify(si) <= 0)
                 goto err;
         }
     }
@@ -337,11 +337,11 @@ int CMS_verify(CMS_ContentInfo *cms, STACK_OF(X509) *certs,
      * reading from a read write memory BIO when signatures are calculated.
      */
 
-    if (dcont && (BIO_method_type(dcont) == BIO_TYPE_MEM)) {
+    if (dcont && (VR_BIO_method_type(dcont) == BIO_TYPE_MEM)) {
         char *ptr;
         long len;
         len = BIO_get_mem_data(dcont, &ptr);
-        tmpin = BIO_new_mem_buf(ptr, len);
+        tmpin = VR_BIO_new_mem_buf(ptr, len);
         if (tmpin == NULL) {
             CMSerr(CMS_F_CMS_VERIFY, ERR_R_MALLOC_FAILURE);
             goto err2;
@@ -362,23 +362,23 @@ int CMS_verify(CMS_ContentInfo *cms, STACK_OF(X509) *certs,
             CMSerr(CMS_F_CMS_VERIFY, ERR_R_MALLOC_FAILURE);
             goto err;
         }
-        cmsbio = CMS_dataInit(cms, tmpout);
+        cmsbio = VR_CMS_dataInit(cms, tmpout);
         if (!cmsbio)
             goto err;
         /*
          * Don't use SMIME_TEXT for verify: it adds headers and we want to
          * remove them.
          */
-        SMIME_crlf_copy(dcont, cmsbio, flags & ~SMIME_TEXT);
+        VR_SMIME_crlf_copy(dcont, cmsbio, flags & ~SMIME_TEXT);
 
         if (flags & CMS_TEXT) {
-            if (!SMIME_text(tmpout, out)) {
+            if (!VR_SMIME_text(tmpout, out)) {
                 CMSerr(CMS_F_CMS_VERIFY, CMS_R_SMIME_TEXT_ERROR);
                 goto err;
             }
         }
     } else {
-        cmsbio = CMS_dataInit(cms, tmpin);
+        cmsbio = VR_CMS_dataInit(cms, tmpin);
         if (!cmsbio)
             goto err;
 
@@ -389,7 +389,7 @@ int CMS_verify(CMS_ContentInfo *cms, STACK_OF(X509) *certs,
     if (!(flags & CMS_NO_CONTENT_VERIFY)) {
         for (i = 0; i < sk_CMS_SignerInfo_num(sinfos); i++) {
             si = sk_CMS_SignerInfo_value(sinfos, i);
-            if (CMS_SignerInfo_verify_content(si, cmsbio) <= 0) {
+            if (VR_CMS_SignerInfo_verify_content(si, cmsbio) <= 0) {
                 CMSerr(CMS_F_CMS_VERIFY, CMS_R_CONTENT_VERIFY_ERROR);
                 goto err;
             }
@@ -402,67 +402,67 @@ int CMS_verify(CMS_ContentInfo *cms, STACK_OF(X509) *certs,
     if (!(flags & SMIME_BINARY) && dcont) {
         do_free_upto(cmsbio, tmpout);
         if (tmpin != dcont)
-            BIO_free(tmpin);
+            VR_BIO_free(tmpin);
     } else {
         if (dcont && (tmpin == dcont))
             do_free_upto(cmsbio, dcont);
         else
-            BIO_free_all(cmsbio);
+            VR_BIO_free_all(cmsbio);
     }
 
     if (out != tmpout)
-        BIO_free_all(tmpout);
+        VR_BIO_free_all(tmpout);
 
  err2:
-    sk_X509_pop_free(cms_certs, X509_free);
-    sk_X509_CRL_pop_free(crls, X509_CRL_free);
+    sk_VR_X509_pop_free(cms_certs, VR_X509_free);
+    sk_VR_X509_CRL_pop_free(crls, VR_X509_CRL_free);
 
     return ret;
 }
 
-int CMS_verify_receipt(CMS_ContentInfo *rcms, CMS_ContentInfo *ocms,
+int VR_CMS_verify_receipt(CMS_ContentInfo *rcms, CMS_ContentInfo *ocms,
                        STACK_OF(X509) *certs,
                        X509_STORE *store, unsigned int flags)
 {
     int r;
     flags &= ~(CMS_DETACHED | CMS_TEXT);
-    r = CMS_verify(rcms, certs, store, NULL, NULL, flags);
+    r = VR_CMS_verify(rcms, certs, store, NULL, NULL, flags);
     if (r <= 0)
         return r;
-    return cms_Receipt_verify(rcms, ocms);
+    return VR_cms_Receipt_verify(rcms, ocms);
 }
 
-CMS_ContentInfo *CMS_sign(X509 *signcert, EVP_PKEY *pkey,
+CMS_ContentInfo *VR_CMS_sign(X509 *signcert, EVP_PKEY *pkey,
                           STACK_OF(X509) *certs, BIO *data,
                           unsigned int flags)
 {
     CMS_ContentInfo *cms;
     int i;
 
-    cms = CMS_ContentInfo_new();
-    if (cms == NULL || !CMS_SignedData_init(cms))
+    cms = VR_CMS_ContentInfo_new();
+    if (cms == NULL || !VR_CMS_SignedData_init(cms))
         goto merr;
     if (flags & CMS_ASCIICRLF
-        && !CMS_set1_eContentType(cms,
-                                  OBJ_nid2obj(NID_id_ct_asciiTextWithCRLF)))
+        && !VR_CMS_set1_eContentType(cms,
+                                  VR_OBJ_nid2obj(NID_id_ct_asciiTextWithCRLF)))
         goto err;
 
-    if (pkey && !CMS_add1_signer(cms, signcert, pkey, NULL, flags)) {
+    if (pkey && !VR_CMS_add1_signer(cms, signcert, pkey, NULL, flags)) {
         CMSerr(CMS_F_CMS_SIGN, CMS_R_ADD_SIGNER_ERROR);
         goto err;
     }
 
     for (i = 0; i < sk_X509_num(certs); i++) {
         X509 *x = sk_X509_value(certs, i);
-        if (!CMS_add1_cert(cms, x))
+        if (!VR_CMS_add1_cert(cms, x))
             goto merr;
     }
 
     if (!(flags & CMS_DETACHED))
-        CMS_set_detached(cms, 0);
+        VR_CMS_set_detached(cms, 0);
 
     if ((flags & (CMS_STREAM | CMS_PARTIAL))
-        || CMS_final(cms, data, NULL, flags))
+        || VR_CMS_final(cms, data, NULL, flags))
         return cms;
     else
         goto err;
@@ -471,11 +471,11 @@ CMS_ContentInfo *CMS_sign(X509 *signcert, EVP_PKEY *pkey,
     CMSerr(CMS_F_CMS_SIGN, ERR_R_MALLOC_FAILURE);
 
  err:
-    CMS_ContentInfo_free(cms);
+    VR_CMS_ContentInfo_free(cms);
     return NULL;
 }
 
-CMS_ContentInfo *CMS_sign_receipt(CMS_SignerInfo *si,
+CMS_ContentInfo *VR_CMS_sign_receipt(CMS_SignerInfo *si,
                                   X509 *signcert, EVP_PKEY *pkey,
                                   STACK_OF(X509) *certs, unsigned int flags)
 {
@@ -495,76 +495,76 @@ CMS_ContentInfo *CMS_sign_receipt(CMS_SignerInfo *si,
 
     /* Initialize signed data */
 
-    cms = CMS_sign(NULL, NULL, certs, NULL, flags);
+    cms = VR_CMS_sign(NULL, NULL, certs, NULL, flags);
     if (!cms)
         goto err;
 
     /* Set inner content type to signed receipt */
-    if (!CMS_set1_eContentType(cms, OBJ_nid2obj(NID_id_smime_ct_receipt)))
+    if (!VR_CMS_set1_eContentType(cms, VR_OBJ_nid2obj(NID_id_smime_ct_receipt)))
         goto err;
 
-    rct_si = CMS_add1_signer(cms, signcert, pkey, NULL, flags);
+    rct_si = VR_CMS_add1_signer(cms, signcert, pkey, NULL, flags);
     if (!rct_si) {
         CMSerr(CMS_F_CMS_SIGN_RECEIPT, CMS_R_ADD_SIGNER_ERROR);
         goto err;
     }
 
-    os = cms_encode_Receipt(si);
+    os = VR_cms_encode_Receipt(si);
 
     if (!os)
         goto err;
 
     /* Set content to digest */
-    rct_cont = BIO_new_mem_buf(os->data, os->length);
+    rct_cont = VR_BIO_new_mem_buf(os->data, os->length);
     if (!rct_cont)
         goto err;
 
     /* Add msgSigDigest attribute */
 
-    if (!cms_msgSigDigest_add1(rct_si, si))
+    if (!VR_cms_msgSigDigest_add1(rct_si, si))
         goto err;
 
     /* Finalize structure */
-    if (!CMS_final(cms, rct_cont, NULL, flags))
+    if (!VR_CMS_final(cms, rct_cont, NULL, flags))
         goto err;
 
     /* Set embedded content */
-    pos = CMS_get0_content(cms);
+    pos = VR_CMS_get0_content(cms);
     *pos = os;
 
     r = 1;
 
  err:
-    BIO_free(rct_cont);
+    VR_BIO_free(rct_cont);
     if (r)
         return cms;
-    CMS_ContentInfo_free(cms);
+    VR_CMS_ContentInfo_free(cms);
     return NULL;
 
 }
 
-CMS_ContentInfo *CMS_encrypt(STACK_OF(X509) *certs, BIO *data,
+CMS_ContentInfo *VR_CMS_encrypt(STACK_OF(X509) *certs, BIO *data,
                              const EVP_CIPHER *cipher, unsigned int flags)
 {
     CMS_ContentInfo *cms;
     int i;
     X509 *recip;
-    cms = CMS_EnvelopedData_create(cipher);
+    cms = VR_CMS_EnvelopedData_create(cipher);
     if (!cms)
         goto merr;
     for (i = 0; i < sk_X509_num(certs); i++) {
         recip = sk_X509_value(certs, i);
-        if (!CMS_add1_recipient_cert(cms, recip, flags)) {
+        if (!VR_CMS_add1_recipient_cert(cms, recip, flags)) {
             CMSerr(CMS_F_CMS_ENCRYPT, CMS_R_RECIPIENT_ERROR);
             goto err;
         }
     }
 
     if (!(flags & CMS_DETACHED))
-        CMS_set_detached(cms, 0);
+        VR_CMS_set_detached(cms, 0);
 
     if ((flags & (CMS_STREAM | CMS_PARTIAL))
-        || CMS_final(cms, data, NULL, flags))
+        || VR_CMS_final(cms, data, NULL, flags))
         return cms;
     else
         goto err;
@@ -572,7 +572,7 @@ CMS_ContentInfo *CMS_encrypt(STACK_OF(X509) *certs, BIO *data,
  merr:
     CMSerr(CMS_F_CMS_ENCRYPT, ERR_R_MALLOC_FAILURE);
  err:
-    CMS_ContentInfo_free(cms);
+    VR_CMS_ContentInfo_free(cms);
     return NULL;
 }
 
@@ -582,15 +582,15 @@ static int cms_kari_set1_pkey(CMS_ContentInfo *cms, CMS_RecipientInfo *ri,
     int i;
     STACK_OF(CMS_RecipientEncryptedKey) *reks;
     CMS_RecipientEncryptedKey *rek;
-    reks = CMS_RecipientInfo_kari_get0_reks(ri);
+    reks = VR_CMS_RecipientInfo_kari_get0_reks(ri);
     for (i = 0; i < sk_CMS_RecipientEncryptedKey_num(reks); i++) {
         int rv;
         rek = sk_CMS_RecipientEncryptedKey_value(reks, i);
-        if (cert != NULL && CMS_RecipientEncryptedKey_cert_cmp(rek, cert))
+        if (cert != NULL && VR_CMS_RecipientEncryptedKey_cert_cmp(rek, cert))
             continue;
-        CMS_RecipientInfo_kari_set0_pkey(ri, pk);
-        rv = CMS_RecipientInfo_kari_decrypt(cms, ri, rek);
-        CMS_RecipientInfo_kari_set0_pkey(ri, NULL);
+        VR_CMS_RecipientInfo_kari_set0_pkey(ri, pk);
+        rv = VR_CMS_RecipientInfo_kari_decrypt(cms, ri, rek);
+        VR_CMS_RecipientInfo_kari_set0_pkey(ri, NULL);
         if (rv > 0)
             return 1;
         return cert == NULL ? 0 : -1;
@@ -598,16 +598,16 @@ static int cms_kari_set1_pkey(CMS_ContentInfo *cms, CMS_RecipientInfo *ri,
     return 0;
 }
 
-int CMS_decrypt_set1_pkey(CMS_ContentInfo *cms, EVP_PKEY *pk, X509 *cert)
+int VR_CMS_decrypt_set1_pkey(CMS_ContentInfo *cms, EVP_PKEY *pk, X509 *cert)
 {
     STACK_OF(CMS_RecipientInfo) *ris;
     CMS_RecipientInfo *ri;
     int i, r, ri_type;
     int debug = 0, match_ri = 0;
-    ris = CMS_get0_RecipientInfos(cms);
+    ris = VR_CMS_get0_RecipientInfos(cms);
     if (ris)
         debug = cms->d.envelopedData->encryptedContentInfo->debug;
-    ri_type = cms_pkey_get_ri_type(pk);
+    ri_type = VR_cms_pkey_get_ri_type(pk);
     if (ri_type == CMS_RECIPINFO_NONE) {
         CMSerr(CMS_F_CMS_DECRYPT_SET1_PKEY,
                CMS_R_NOT_SUPPORTED_FOR_THIS_KEY_TYPE);
@@ -616,7 +616,7 @@ int CMS_decrypt_set1_pkey(CMS_ContentInfo *cms, EVP_PKEY *pk, X509 *cert)
 
     for (i = 0; i < sk_CMS_RecipientInfo_num(ris); i++) {
         ri = sk_CMS_RecipientInfo_value(ris, i);
-        if (CMS_RecipientInfo_type(ri) != ri_type)
+        if (VR_CMS_RecipientInfo_type(ri) != ri_type)
             continue;
         match_ri = 1;
         if (ri_type == CMS_RECIPINFO_AGREE) {
@@ -630,18 +630,18 @@ int CMS_decrypt_set1_pkey(CMS_ContentInfo *cms, EVP_PKEY *pk, X509 *cert)
          * If we have a cert try matching RecipientInfo otherwise try them
          * all.
          */
-        else if (!cert || !CMS_RecipientInfo_ktri_cert_cmp(ri, cert)) {
-            EVP_PKEY_up_ref(pk);
-            CMS_RecipientInfo_set0_pkey(ri, pk);
-            r = CMS_RecipientInfo_decrypt(cms, ri);
-            CMS_RecipientInfo_set0_pkey(ri, NULL);
+        else if (!cert || !VR_CMS_RecipientInfo_ktri_cert_cmp(ri, cert)) {
+            VR_EVP_PKEY_up_ref(pk);
+            VR_CMS_RecipientInfo_set0_pkey(ri, pk);
+            r = VR_CMS_RecipientInfo_decrypt(cms, ri);
+            VR_CMS_RecipientInfo_set0_pkey(ri, NULL);
             if (cert) {
                 /*
                  * If not debugging clear any error and return success to
                  * avoid leaking of information useful to MMA
                  */
                 if (!debug) {
-                    ERR_clear_error();
+                    VR_ERR_clear_error();
                     return 1;
                 }
                 if (r > 0)
@@ -660,7 +660,7 @@ int CMS_decrypt_set1_pkey(CMS_ContentInfo *cms, EVP_PKEY *pk, X509 *cert)
     }
     /* If no cert, key transport and not debugging always return success */
     if (cert == NULL && ri_type == CMS_RECIPINFO_TRANS && match_ri && !debug) {
-        ERR_clear_error();
+        VR_ERR_clear_error();
         return 1;
     }
 
@@ -669,34 +669,34 @@ int CMS_decrypt_set1_pkey(CMS_ContentInfo *cms, EVP_PKEY *pk, X509 *cert)
 
 }
 
-int CMS_decrypt_set1_key(CMS_ContentInfo *cms,
+int VR_CMS_decrypt_set1_key(CMS_ContentInfo *cms,
                          unsigned char *key, size_t keylen,
                          const unsigned char *id, size_t idlen)
 {
     STACK_OF(CMS_RecipientInfo) *ris;
     CMS_RecipientInfo *ri;
     int i, r;
-    ris = CMS_get0_RecipientInfos(cms);
+    ris = VR_CMS_get0_RecipientInfos(cms);
     for (i = 0; i < sk_CMS_RecipientInfo_num(ris); i++) {
         ri = sk_CMS_RecipientInfo_value(ris, i);
-        if (CMS_RecipientInfo_type(ri) != CMS_RECIPINFO_KEK)
+        if (VR_CMS_RecipientInfo_type(ri) != CMS_RECIPINFO_KEK)
             continue;
 
         /*
          * If we have an id try matching RecipientInfo otherwise try them
          * all.
          */
-        if (!id || (CMS_RecipientInfo_kekri_id_cmp(ri, id, idlen) == 0)) {
-            CMS_RecipientInfo_set0_key(ri, key, keylen);
-            r = CMS_RecipientInfo_decrypt(cms, ri);
-            CMS_RecipientInfo_set0_key(ri, NULL, 0);
+        if (!id || (VR_CMS_RecipientInfo_kekri_id_cmp(ri, id, idlen) == 0)) {
+            VR_CMS_RecipientInfo_set0_key(ri, key, keylen);
+            r = VR_CMS_RecipientInfo_decrypt(cms, ri);
+            VR_CMS_RecipientInfo_set0_key(ri, NULL, 0);
             if (r > 0)
                 return 1;
             if (id) {
                 CMSerr(CMS_F_CMS_DECRYPT_SET1_KEY, CMS_R_DECRYPT_ERROR);
                 return 0;
             }
-            ERR_clear_error();
+            VR_ERR_clear_error();
         }
     }
 
@@ -705,20 +705,20 @@ int CMS_decrypt_set1_key(CMS_ContentInfo *cms,
 
 }
 
-int CMS_decrypt_set1_password(CMS_ContentInfo *cms,
+int VR_CMS_decrypt_set1_password(CMS_ContentInfo *cms,
                               unsigned char *pass, ossl_ssize_t passlen)
 {
     STACK_OF(CMS_RecipientInfo) *ris;
     CMS_RecipientInfo *ri;
     int i, r;
-    ris = CMS_get0_RecipientInfos(cms);
+    ris = VR_CMS_get0_RecipientInfos(cms);
     for (i = 0; i < sk_CMS_RecipientInfo_num(ris); i++) {
         ri = sk_CMS_RecipientInfo_value(ris, i);
-        if (CMS_RecipientInfo_type(ri) != CMS_RECIPINFO_PASS)
+        if (VR_CMS_RecipientInfo_type(ri) != CMS_RECIPINFO_PASS)
             continue;
-        CMS_RecipientInfo_set0_password(ri, pass, passlen);
-        r = CMS_RecipientInfo_decrypt(cms, ri);
-        CMS_RecipientInfo_set0_password(ri, NULL, 0);
+        VR_CMS_RecipientInfo_set0_password(ri, pass, passlen);
+        r = VR_CMS_RecipientInfo_decrypt(cms, ri);
+        VR_CMS_RecipientInfo_set0_password(ri, NULL, 0);
         if (r > 0)
             return 1;
     }
@@ -728,12 +728,12 @@ int CMS_decrypt_set1_password(CMS_ContentInfo *cms,
 
 }
 
-int CMS_decrypt(CMS_ContentInfo *cms, EVP_PKEY *pk, X509 *cert,
+int VR_CMS_decrypt(CMS_ContentInfo *cms, EVP_PKEY *pk, X509 *cert,
                 BIO *dcont, BIO *out, unsigned int flags)
 {
     int r;
     BIO *cont;
-    if (OBJ_obj2nid(CMS_get0_type(cms)) != NID_pkcs7_enveloped) {
+    if (VR_OBJ_obj2nid(VR_CMS_get0_type(cms)) != NID_pkcs7_enveloped) {
         CMSerr(CMS_F_CMS_DECRYPT, CMS_R_TYPE_NOT_ENVELOPED_DATA);
         return 0;
     }
@@ -745,9 +745,9 @@ int CMS_decrypt(CMS_ContentInfo *cms, EVP_PKEY *pk, X509 *cert,
         cms->d.envelopedData->encryptedContentInfo->debug = 0;
     if (!pk && !cert && !dcont && !out)
         return 1;
-    if (pk && !CMS_decrypt_set1_pkey(cms, pk, cert))
+    if (pk && !VR_CMS_decrypt_set1_pkey(cms, pk, cert))
         return 0;
-    cont = CMS_dataInit(cms, dcont);
+    cont = VR_CMS_dataInit(cms, dcont);
     if (!cont)
         return 0;
     r = cms_copy_content(out, cont, flags);
@@ -755,21 +755,21 @@ int CMS_decrypt(CMS_ContentInfo *cms, EVP_PKEY *pk, X509 *cert,
     return r;
 }
 
-int CMS_final(CMS_ContentInfo *cms, BIO *data, BIO *dcont, unsigned int flags)
+int VR_CMS_final(CMS_ContentInfo *cms, BIO *data, BIO *dcont, unsigned int flags)
 {
     BIO *cmsbio;
     int ret = 0;
 
-    if ((cmsbio = CMS_dataInit(cms, dcont)) == NULL) {
+    if ((cmsbio = VR_CMS_dataInit(cms, dcont)) == NULL) {
         CMSerr(CMS_F_CMS_FINAL, CMS_R_CMS_LIB);
         return 0;
     }
 
-    SMIME_crlf_copy(data, cmsbio, flags);
+    VR_SMIME_crlf_copy(data, cmsbio, flags);
 
     (void)BIO_flush(cmsbio);
 
-    if (!CMS_dataFinal(cms, cmsbio)) {
+    if (!VR_CMS_dataFinal(cms, cmsbio)) {
         CMSerr(CMS_F_CMS_FINAL, CMS_R_CMS_DATAFINAL_ERROR);
         goto err;
     }
@@ -785,12 +785,12 @@ int CMS_final(CMS_ContentInfo *cms, BIO *data, BIO *dcont, unsigned int flags)
 
 #ifdef ZLIB
 
-int CMS_uncompress(CMS_ContentInfo *cms, BIO *dcont, BIO *out,
+int VR_CMS_uncompress(CMS_ContentInfo *cms, BIO *dcont, BIO *out,
                    unsigned int flags)
 {
     BIO *cont;
     int r;
-    if (OBJ_obj2nid(CMS_get0_type(cms)) != NID_id_smime_ct_compressedData) {
+    if (VR_OBJ_obj2nid(VR_CMS_get0_type(cms)) != NID_id_smime_ct_compressedData) {
         CMSerr(CMS_F_CMS_UNCOMPRESS, CMS_R_TYPE_NOT_COMPRESSED_DATA);
         return 0;
     }
@@ -798,7 +798,7 @@ int CMS_uncompress(CMS_ContentInfo *cms, BIO *dcont, BIO *out,
     if (!dcont && !check_content(cms))
         return 0;
 
-    cont = CMS_dataInit(cms, dcont);
+    cont = VR_CMS_dataInit(cms, dcont);
     if (!cont)
         return 0;
     r = cms_copy_content(out, cont, flags);
@@ -806,7 +806,7 @@ int CMS_uncompress(CMS_ContentInfo *cms, BIO *dcont, BIO *out,
     return r;
 }
 
-CMS_ContentInfo *CMS_compress(BIO *in, int comp_nid, unsigned int flags)
+CMS_ContentInfo *VR_CMS_compress(BIO *in, int comp_nid, unsigned int flags)
 {
     CMS_ContentInfo *cms;
     if (comp_nid <= 0)
@@ -816,25 +816,25 @@ CMS_ContentInfo *CMS_compress(BIO *in, int comp_nid, unsigned int flags)
         return NULL;
 
     if (!(flags & CMS_DETACHED))
-        CMS_set_detached(cms, 0);
+        VR_CMS_set_detached(cms, 0);
 
-    if ((flags & CMS_STREAM) || CMS_final(cms, in, NULL, flags))
+    if ((flags & CMS_STREAM) || VR_CMS_final(cms, in, NULL, flags))
         return cms;
 
-    CMS_ContentInfo_free(cms);
+    VR_CMS_ContentInfo_free(cms);
     return NULL;
 }
 
 #else
 
-int CMS_uncompress(CMS_ContentInfo *cms, BIO *dcont, BIO *out,
+int VR_CMS_uncompress(CMS_ContentInfo *cms, BIO *dcont, BIO *out,
                    unsigned int flags)
 {
     CMSerr(CMS_F_CMS_UNCOMPRESS, CMS_R_UNSUPPORTED_COMPRESSION_ALGORITHM);
     return 0;
 }
 
-CMS_ContentInfo *CMS_compress(BIO *in, int comp_nid, unsigned int flags)
+CMS_ContentInfo *VR_CMS_compress(BIO *in, int comp_nid, unsigned int flags)
 {
     CMSerr(CMS_F_CMS_COMPRESS, CMS_R_UNSUPPORTED_COMPRESSION_ALGORITHM);
     return NULL;

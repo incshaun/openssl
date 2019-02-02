@@ -17,7 +17,7 @@ static char *type_strings[] = {
     "CRL"                        /* OSSL_STORE_INFO_CRL */
 };
 
-const char *OSSL_STORE_INFO_type_string(int type)
+const char *VR_OSSL_STORE_INFO_type_string(int type)
 {
     int types = sizeof(type_strings) / sizeof(type_strings[0]);
 

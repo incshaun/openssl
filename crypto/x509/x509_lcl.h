@@ -36,7 +36,7 @@ struct X509_VERIFY_PARAM_st {
 };
 
 /* No error callback if depth < 0 */
-int x509_check_cert_time(X509_STORE_CTX *ctx, X509 *x, int depth);
+int VR_x509_check_cert_time(X509_STORE_CTX *ctx, X509 *x, int depth);
 
 /* a sequence of these are used */
 struct x509_attributes_st {

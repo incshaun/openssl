@@ -19,26 +19,26 @@ ASN1_SEQUENCE(TS_MSG_IMPRINT) = {
 
 IMPLEMENT_ASN1_FUNCTIONS_const(TS_MSG_IMPRINT)
 IMPLEMENT_ASN1_DUP_FUNCTION(TS_MSG_IMPRINT)
-TS_MSG_IMPRINT *d2i_TS_MSG_IMPRINT_bio(BIO *bp, TS_MSG_IMPRINT **a)
+TS_MSG_IMPRINT *VR_d2i_TS_MSG_IMPRINT_bio(BIO *bp, TS_MSG_IMPRINT **a)
 {
-    return ASN1_d2i_bio_of(TS_MSG_IMPRINT, TS_MSG_IMPRINT_new,
-                           d2i_TS_MSG_IMPRINT, bp, a);
+    return VR_ASN1_d2i_bio_of(TS_MSG_IMPRINT, VR_TS_MSG_IMPRINT_new,
+                           VR_d2i_TS_MSG_IMPRINT, bp, a);
 }
 
-int i2d_TS_MSG_IMPRINT_bio(BIO *bp, TS_MSG_IMPRINT *a)
+int VR_i2d_TS_MSG_IMPRINT_bio(BIO *bp, TS_MSG_IMPRINT *a)
 {
-    return ASN1_i2d_bio_of_const(TS_MSG_IMPRINT, i2d_TS_MSG_IMPRINT, bp, a);
+    return VR_ASN1_i2d_bio_of_const(TS_MSG_IMPRINT, VR_i2d_TS_MSG_IMPRINT, bp, a);
 }
 #ifndef OPENSSL_NO_STDIO
-TS_MSG_IMPRINT *d2i_TS_MSG_IMPRINT_fp(FILE *fp, TS_MSG_IMPRINT **a)
+TS_MSG_IMPRINT *VR_d2i_TS_MSG_IMPRINT_fp(FILE *fp, TS_MSG_IMPRINT **a)
 {
-    return ASN1_d2i_fp_of(TS_MSG_IMPRINT, TS_MSG_IMPRINT_new,
-                          d2i_TS_MSG_IMPRINT, fp, a);
+    return VR_ASN1_d2i_fp_of(TS_MSG_IMPRINT, VR_TS_MSG_IMPRINT_new,
+                          VR_d2i_TS_MSG_IMPRINT, fp, a);
 }
 
-int i2d_TS_MSG_IMPRINT_fp(FILE *fp, TS_MSG_IMPRINT *a)
+int VR_i2d_TS_MSG_IMPRINT_fp(FILE *fp, TS_MSG_IMPRINT *a)
 {
-    return ASN1_i2d_fp_of_const(TS_MSG_IMPRINT, i2d_TS_MSG_IMPRINT, fp, a);
+    return VR_ASN1_i2d_fp_of_const(TS_MSG_IMPRINT, VR_i2d_TS_MSG_IMPRINT, fp, a);
 }
 #endif
 
@@ -53,24 +53,24 @@ ASN1_SEQUENCE(TS_REQ) = {
 
 IMPLEMENT_ASN1_FUNCTIONS_const(TS_REQ)
 IMPLEMENT_ASN1_DUP_FUNCTION(TS_REQ)
-TS_REQ *d2i_TS_REQ_bio(BIO *bp, TS_REQ **a)
+TS_REQ *VR_d2i_TS_REQ_bio(BIO *bp, TS_REQ **a)
 {
-    return ASN1_d2i_bio_of(TS_REQ, TS_REQ_new, d2i_TS_REQ, bp, a);
+    return VR_ASN1_d2i_bio_of(TS_REQ, VR_TS_REQ_new, VR_d2i_TS_REQ, bp, a);
 }
 
-int i2d_TS_REQ_bio(BIO *bp, TS_REQ *a)
+int VR_i2d_TS_REQ_bio(BIO *bp, TS_REQ *a)
 {
-    return ASN1_i2d_bio_of_const(TS_REQ, i2d_TS_REQ, bp, a);
+    return VR_ASN1_i2d_bio_of_const(TS_REQ, VR_i2d_TS_REQ, bp, a);
 }
 #ifndef OPENSSL_NO_STDIO
-TS_REQ *d2i_TS_REQ_fp(FILE *fp, TS_REQ **a)
+TS_REQ *VR_d2i_TS_REQ_fp(FILE *fp, TS_REQ **a)
 {
-    return ASN1_d2i_fp_of(TS_REQ, TS_REQ_new, d2i_TS_REQ, fp, a);
+    return VR_ASN1_d2i_fp_of(TS_REQ, VR_TS_REQ_new, VR_d2i_TS_REQ, fp, a);
 }
 
-int i2d_TS_REQ_fp(FILE *fp, TS_REQ *a)
+int VR_i2d_TS_REQ_fp(FILE *fp, TS_REQ *a)
 {
-    return ASN1_i2d_fp_of_const(TS_REQ, i2d_TS_REQ, fp, a);
+    return VR_ASN1_i2d_fp_of_const(TS_REQ, VR_i2d_TS_REQ, fp, a);
 }
 #endif
 
@@ -98,26 +98,26 @@ ASN1_SEQUENCE(TS_TST_INFO) = {
 
 IMPLEMENT_ASN1_FUNCTIONS_const(TS_TST_INFO)
 IMPLEMENT_ASN1_DUP_FUNCTION(TS_TST_INFO)
-TS_TST_INFO *d2i_TS_TST_INFO_bio(BIO *bp, TS_TST_INFO **a)
+TS_TST_INFO *VR_d2i_TS_TST_INFO_bio(BIO *bp, TS_TST_INFO **a)
 {
-    return ASN1_d2i_bio_of(TS_TST_INFO, TS_TST_INFO_new, d2i_TS_TST_INFO, bp,
+    return VR_ASN1_d2i_bio_of(TS_TST_INFO, VR_TS_TST_INFO_new, VR_d2i_TS_TST_INFO, bp,
                            a);
 }
 
-int i2d_TS_TST_INFO_bio(BIO *bp, TS_TST_INFO *a)
+int VR_i2d_TS_TST_INFO_bio(BIO *bp, TS_TST_INFO *a)
 {
-    return ASN1_i2d_bio_of_const(TS_TST_INFO, i2d_TS_TST_INFO, bp, a);
+    return VR_ASN1_i2d_bio_of_const(TS_TST_INFO, VR_i2d_TS_TST_INFO, bp, a);
 }
 #ifndef OPENSSL_NO_STDIO
-TS_TST_INFO *d2i_TS_TST_INFO_fp(FILE *fp, TS_TST_INFO **a)
+TS_TST_INFO *VR_d2i_TS_TST_INFO_fp(FILE *fp, TS_TST_INFO **a)
 {
-    return ASN1_d2i_fp_of(TS_TST_INFO, TS_TST_INFO_new, d2i_TS_TST_INFO, fp,
+    return VR_ASN1_d2i_fp_of(TS_TST_INFO, VR_TS_TST_INFO_new, VR_d2i_TS_TST_INFO, fp,
                           a);
 }
 
-int i2d_TS_TST_INFO_fp(FILE *fp, TS_TST_INFO *a)
+int VR_i2d_TS_TST_INFO_fp(FILE *fp, TS_TST_INFO *a)
 {
-    return ASN1_i2d_fp_of_const(TS_TST_INFO, i2d_TS_TST_INFO, fp, a);
+    return VR_ASN1_i2d_fp_of_const(TS_TST_INFO, VR_i2d_TS_TST_INFO, fp, a);
 }
 #endif
 
@@ -134,15 +134,15 @@ static int ts_resp_set_tst_info(TS_RESP *a)
 {
     long status;
 
-    status = ASN1_INTEGER_get(a->status_info->status);
+    status = VR_ASN1_INTEGER_get(a->status_info->status);
 
     if (a->token) {
         if (status != 0 && status != 1) {
             TSerr(TS_F_TS_RESP_SET_TST_INFO, TS_R_TOKEN_PRESENT);
             return 0;
         }
-        TS_TST_INFO_free(a->tst_info);
-        a->tst_info = PKCS7_to_TS_TST_INFO(a->token);
+        VR_TS_TST_INFO_free(a->tst_info);
+        a->tst_info = VR_PKCS7_to_TS_TST_INFO(a->token);
         if (!a->tst_info) {
             TSerr(TS_F_TS_RESP_SET_TST_INFO,
                   TS_R_PKCS7_TO_TS_TST_INFO_FAILED);
@@ -163,7 +163,7 @@ static int ts_resp_cb(int op, ASN1_VALUE **pval, const ASN1_ITEM *it,
     if (op == ASN1_OP_NEW_POST) {
         ts_resp->tst_info = NULL;
     } else if (op == ASN1_OP_FREE_POST) {
-        TS_TST_INFO_free(ts_resp->tst_info);
+        VR_TS_TST_INFO_free(ts_resp->tst_info);
     } else if (op == ASN1_OP_D2I_POST) {
         if (ts_resp_set_tst_info(ts_resp) == 0)
             return 0;
@@ -180,29 +180,29 @@ IMPLEMENT_ASN1_FUNCTIONS_const(TS_RESP)
 
 IMPLEMENT_ASN1_DUP_FUNCTION(TS_RESP)
 
-TS_RESP *d2i_TS_RESP_bio(BIO *bp, TS_RESP **a)
+TS_RESP *VR_d2i_TS_RESP_bio(BIO *bp, TS_RESP **a)
 {
-    return ASN1_d2i_bio_of(TS_RESP, TS_RESP_new, d2i_TS_RESP, bp, a);
+    return VR_ASN1_d2i_bio_of(TS_RESP, VR_TS_RESP_new, VR_d2i_TS_RESP, bp, a);
 }
 
-int i2d_TS_RESP_bio(BIO *bp, TS_RESP *a)
+int VR_i2d_TS_RESP_bio(BIO *bp, TS_RESP *a)
 {
-    return ASN1_i2d_bio_of_const(TS_RESP, i2d_TS_RESP, bp, a);
+    return VR_ASN1_i2d_bio_of_const(TS_RESP, VR_i2d_TS_RESP, bp, a);
 }
 #ifndef OPENSSL_NO_STDIO
-TS_RESP *d2i_TS_RESP_fp(FILE *fp, TS_RESP **a)
+TS_RESP *VR_d2i_TS_RESP_fp(FILE *fp, TS_RESP **a)
 {
-    return ASN1_d2i_fp_of(TS_RESP, TS_RESP_new, d2i_TS_RESP, fp, a);
+    return VR_ASN1_d2i_fp_of(TS_RESP, VR_TS_RESP_new, VR_d2i_TS_RESP, fp, a);
 }
 
-int i2d_TS_RESP_fp(FILE *fp, TS_RESP *a)
+int VR_i2d_TS_RESP_fp(FILE *fp, TS_RESP *a)
 {
-    return ASN1_i2d_fp_of_const(TS_RESP, i2d_TS_RESP, fp, a);
+    return VR_ASN1_i2d_fp_of_const(TS_RESP, VR_i2d_TS_RESP, fp, a);
 }
 #endif
 
 /* Getting encapsulated TS_TST_INFO object from PKCS7. */
-TS_TST_INFO *PKCS7_to_TS_TST_INFO(PKCS7 *token)
+TS_TST_INFO *VR_PKCS7_to_TS_TST_INFO(PKCS7 *token)
 {
     PKCS7_SIGNED *pkcs7_signed;
     PKCS7 *enveloped;
@@ -220,7 +220,7 @@ TS_TST_INFO *PKCS7_to_TS_TST_INFO(PKCS7 *token)
     }
     pkcs7_signed = token->d.sign;
     enveloped = pkcs7_signed->contents;
-    if (OBJ_obj2nid(enveloped->type) != NID_id_smime_ct_TSTInfo) {
+    if (VR_OBJ_obj2nid(enveloped->type) != NID_id_smime_ct_TSTInfo) {
         TSerr(TS_F_PKCS7_TO_TS_TST_INFO, TS_R_BAD_PKCS7_TYPE);
         return NULL;
     }
@@ -231,5 +231,5 @@ TS_TST_INFO *PKCS7_to_TS_TST_INFO(PKCS7 *token)
     }
     tst_info_der = tst_info_wrapper->value.octet_string;
     p = tst_info_der->data;
-    return d2i_TS_TST_INFO(NULL, &p, tst_info_der->length);
+    return VR_d2i_TS_TST_INFO(NULL, &p, tst_info_der->length);
 }

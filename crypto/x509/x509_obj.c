@@ -21,7 +21,7 @@
 
 #define NAME_ONELINE_MAX    (1024 * 1024)
 
-char *X509_NAME_oneline(const X509_NAME *a, char *buf, int len)
+char *VR_X509_NAME_oneline(const X509_NAME *a, char *buf, int len)
 {
     const X509_NAME_ENTRY *ne;
     int i;
@@ -38,9 +38,9 @@ char *X509_NAME_oneline(const X509_NAME *a, char *buf, int len)
 #endif
 
     if (buf == NULL) {
-        if ((b = BUF_MEM_new()) == NULL)
+        if ((b = VR_BUF_MEM_new()) == NULL)
             goto err;
-        if (!BUF_MEM_grow(b, 200))
+        if (!VR_BUF_MEM_grow(b, 200))
             goto err;
         b->data[0] = '\0';
         len = 200;
@@ -50,7 +50,7 @@ char *X509_NAME_oneline(const X509_NAME *a, char *buf, int len)
     if (a == NULL) {
         if (b) {
             buf = b->data;
-            OPENSSL_free(b);
+            OPENVR_SSL_free(b);
         }
         strncpy(buf, "NO X509_NAME", len);
         buf[len - 1] = '\0';
@@ -61,9 +61,9 @@ char *X509_NAME_oneline(const X509_NAME *a, char *buf, int len)
     l = 0;
     for (i = 0; i < sk_X509_NAME_ENTRY_num(a->entries); i++) {
         ne = sk_X509_NAME_ENTRY_value(a->entries, i);
-        n = OBJ_obj2nid(ne->object);
-        if ((n == NID_undef) || ((s = OBJ_nid2sn(n)) == NULL)) {
-            i2t_ASN1_OBJECT(tmp_buf, sizeof(tmp_buf), ne->object);
+        n = VR_OBJ_obj2nid(ne->object);
+        if ((n == NID_undef) || ((s = VR_OBJ_nid2sn(n)) == NULL)) {
+            VR_i2t_ASN1_OBJECT(tmp_buf, sizeof(tmp_buf), ne->object);
             s = tmp_buf;
         }
         l1 = strlen(s);
@@ -124,7 +124,7 @@ char *X509_NAME_oneline(const X509_NAME *a, char *buf, int len)
             goto end;
         }
         if (b != NULL) {
-            if (!BUF_MEM_grow(b, l + 1))
+            if (!VR_BUF_MEM_grow(b, l + 1))
                 goto err;
             p = &(b->data[lold]);
         } else if (l > len) {
@@ -167,7 +167,7 @@ char *X509_NAME_oneline(const X509_NAME *a, char *buf, int len)
     }
     if (b != NULL) {
         p = b->data;
-        OPENSSL_free(b);
+        OPENVR_SSL_free(b);
     } else
         p = buf;
     if (i == 0)
@@ -176,6 +176,6 @@ char *X509_NAME_oneline(const X509_NAME *a, char *buf, int len)
  err:
     X509err(X509_F_X509_NAME_ONELINE, ERR_R_MALLOC_FAILURE);
  end:
-    BUF_MEM_free(b);
+    VR_BUF_MEM_free(b);
     return NULL;
 }

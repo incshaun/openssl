@@ -24,54 +24,54 @@ __attribute__ ((visibility("hidden")))
 #endif
 unsigned int OPENSSL_sparcv9cap_P[2] = { SPARCV9_TICK_PRIVILEGED, 0 };
 
-int bn_mul_mont(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
+int VR_bn_mul_mont(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
                 const BN_ULONG *np, const BN_ULONG *n0, int num)
 {
-    int bn_mul_mont_vis3(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
+    int VR_bn_mul_mont_vis3(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
                          const BN_ULONG *np, const BN_ULONG *n0, int num);
-    int bn_mul_mont_fpu(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
+    int VR_bn_mul_mont_fpu(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
                         const BN_ULONG *np, const BN_ULONG *n0, int num);
-    int bn_mul_mont_int(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
+    int VR_bn_mul_mont_int(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
                         const BN_ULONG *np, const BN_ULONG *n0, int num);
 
     if (!(num & 1) && num >= 6) {
         if ((num & 15) == 0 && num <= 64 &&
             (OPENSSL_sparcv9cap_P[1] & (CFR_MONTMUL | CFR_MONTSQR)) ==
             (CFR_MONTMUL | CFR_MONTSQR)) {
-            typedef int (*bn_mul_mont_f) (BN_ULONG *rp, const BN_ULONG *ap,
+            typedef int (*VR_bn_mul_mont_f) (BN_ULONG *rp, const BN_ULONG *ap,
                                           const BN_ULONG *bp,
                                           const BN_ULONG *np,
                                           const BN_ULONG *n0);
-            int bn_mul_mont_t4_8(BN_ULONG *rp, const BN_ULONG *ap,
+            int VR_bn_mul_mont_t4_8(BN_ULONG *rp, const BN_ULONG *ap,
                                  const BN_ULONG *bp, const BN_ULONG *np,
                                  const BN_ULONG *n0);
-            int bn_mul_mont_t4_16(BN_ULONG *rp, const BN_ULONG *ap,
+            int VR_bn_mul_mont_t4_16(BN_ULONG *rp, const BN_ULONG *ap,
                                   const BN_ULONG *bp, const BN_ULONG *np,
                                   const BN_ULONG *n0);
-            int bn_mul_mont_t4_24(BN_ULONG *rp, const BN_ULONG *ap,
+            int VR_bn_mul_mont_t4_24(BN_ULONG *rp, const BN_ULONG *ap,
                                   const BN_ULONG *bp, const BN_ULONG *np,
                                   const BN_ULONG *n0);
-            int bn_mul_mont_t4_32(BN_ULONG *rp, const BN_ULONG *ap,
+            int VR_bn_mul_mont_t4_32(BN_ULONG *rp, const BN_ULONG *ap,
                                   const BN_ULONG *bp, const BN_ULONG *np,
                                   const BN_ULONG *n0);
-            static const bn_mul_mont_f funcs[4] = {
-                bn_mul_mont_t4_8, bn_mul_mont_t4_16,
-                bn_mul_mont_t4_24, bn_mul_mont_t4_32
+            static const VR_bn_mul_mont_f funcs[4] = {
+                VR_bn_mul_mont_t4_8, VR_bn_mul_mont_t4_16,
+                VR_bn_mul_mont_t4_24, VR_bn_mul_mont_t4_32
             };
-            bn_mul_mont_f worker = funcs[num / 16 - 1];
+            VR_bn_mul_mont_f worker = funcs[num / 16 - 1];
 
             if ((*worker) (rp, ap, bp, np, n0))
                 return 1;
             /* retry once and fall back */
             if ((*worker) (rp, ap, bp, np, n0))
                 return 1;
-            return bn_mul_mont_vis3(rp, ap, bp, np, n0, num);
+            return VR_bn_mul_mont_vis3(rp, ap, bp, np, n0, num);
         }
         if ((OPENSSL_sparcv9cap_P[0] & SPARCV9_VIS3))
-            return bn_mul_mont_vis3(rp, ap, bp, np, n0, num);
+            return VR_bn_mul_mont_vis3(rp, ap, bp, np, n0, num);
         else if (num >= 8 &&
                  /*
-                  * bn_mul_mont_fpu doesn't use FMADD, we just use the
+                  * VR_bn_mul_mont_fpu doesn't use FMADD, we just use the
                   * flag to detect when FPU path is preferable in cases
                   * when current heuristics is unreliable. [it works
                   * out because FMADD-capable processors where FPU
@@ -82,9 +82,9 @@ int bn_mul_mont(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
                    (OPENSSL_sparcv9cap_P[0] &
                     (SPARCV9_PREFER_FPU | SPARCV9_VIS1)) ==
                    (SPARCV9_PREFER_FPU | SPARCV9_VIS1) ))
-            return bn_mul_mont_fpu(rp, ap, bp, np, n0, num);
+            return VR_bn_mul_mont_fpu(rp, ap, bp, np, n0, num);
     }
-    return bn_mul_mont_int(rp, ap, bp, np, n0, num);
+    return VR_bn_mul_mont_int(rp, ap, bp, np, n0, num);
 }
 
 unsigned long _sparcv9_rdtick(void);
@@ -99,7 +99,7 @@ unsigned long _sparcv9_random(void);
 size_t _sparcv9_vis1_instrument_bus(unsigned int *, size_t);
 size_t _sparcv9_vis1_instrument_bus2(unsigned int *, size_t, size_t);
 
-uint32_t OPENSSL_rdtsc(void)
+uint32_t VR_OPENSSL_rdtsc(void)
 {
     if (OPENSSL_sparcv9cap_P[0] & SPARCV9_TICK_PRIVILEGED)
 #if defined(__sun) && defined(__SVR4)
@@ -111,7 +111,7 @@ uint32_t OPENSSL_rdtsc(void)
         return _sparcv9_rdtick();
 }
 
-size_t OPENSSL_instrument_bus(unsigned int *out, size_t cnt)
+size_t VR_OPENSSL_instrument_bus(unsigned int *out, size_t cnt)
 {
     if ((OPENSSL_sparcv9cap_P[0] & (SPARCV9_TICK_PRIVILEGED | SPARCV9_BLK)) ==
         SPARCV9_BLK)
@@ -120,7 +120,7 @@ size_t OPENSSL_instrument_bus(unsigned int *out, size_t cnt)
         return 0;
 }
 
-size_t OPENSSL_instrument_bus2(unsigned int *out, size_t cnt, size_t max)
+size_t VR_OPENSSL_instrument_bus2(unsigned int *out, size_t cnt, size_t max)
 {
     if ((OPENSSL_sparcv9cap_P[0] & (SPARCV9_TICK_PRIVILEGED | SPARCV9_BLK)) ==
         SPARCV9_BLK)
@@ -146,7 +146,7 @@ static unsigned int (*getisax) (unsigned int vec[], unsigned int sz) = NULL;
 # endif
 #endif
 
-void OPENSSL_cpuid_setup(void)
+void VR_OPENSSL_cpuid_setup(void)
 {
     char *e;
     struct sigaction common_act, ill_oact, bus_oact;

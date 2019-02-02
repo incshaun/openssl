@@ -45,7 +45,7 @@ int prime_main(int argc, char **argv)
         case OPT_EOF:
         case OPT_ERR:
 opthelp:
-            BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
+            VR_BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
             opt_help(prime_options);
@@ -73,11 +73,11 @@ opthelp:
 
     if (generate) {
         if (argc != 0) {
-            BIO_printf(bio_err, "Extra arguments given.\n");
+            VR_BIO_printf(bio_err, "Extra arguments given.\n");
             goto opthelp;
         }
     } else if (argc == 0) {
-        BIO_printf(bio_err, "%s: No prime specified\n", prog);
+        VR_BIO_printf(bio_err, "%s: No prime specified\n", prog);
         goto opthelp;
     }
 
@@ -85,49 +85,49 @@ opthelp:
         char *s;
 
         if (!bits) {
-            BIO_printf(bio_err, "Specify the number of bits.\n");
+            VR_BIO_printf(bio_err, "Specify the number of bits.\n");
             goto end;
         }
-        bn = BN_new();
+        bn = VR_BN_new();
         if (bn == NULL) {
-            BIO_printf(bio_err, "Out of memory.\n");
+            VR_BIO_printf(bio_err, "Out of memory.\n");
             goto end;
         }
-        if (!BN_generate_prime_ex(bn, bits, safe, NULL, NULL, NULL)) {
-            BIO_printf(bio_err, "Failed to generate prime.\n");
+        if (!VR_BN_generate_prime_ex(bn, bits, safe, NULL, NULL, NULL)) {
+            VR_BIO_printf(bio_err, "Failed to generate prime.\n");
             goto end;
         }
-        s = hex ? BN_bn2hex(bn) : BN_bn2dec(bn);
+        s = hex ? VR_BN_bn2hex(bn) : VR_BN_bn2dec(bn);
         if (s == NULL) {
-            BIO_printf(bio_err, "Out of memory.\n");
+            VR_BIO_printf(bio_err, "Out of memory.\n");
             goto end;
         }
-        BIO_printf(bio_out, "%s\n", s);
-        OPENSSL_free(s);
+        VR_BIO_printf(bio_out, "%s\n", s);
+        OPENVR_SSL_free(s);
     } else {
         for ( ; *argv; argv++) {
             int r;
 
             if (hex)
-                r = BN_hex2bn(&bn, argv[0]);
+                r = VR_BN_hex2bn(&bn, argv[0]);
             else
-                r = BN_dec2bn(&bn, argv[0]);
+                r = VR_BN_dec2bn(&bn, argv[0]);
 
             if (!r) {
-                BIO_printf(bio_err, "Failed to process value (%s)\n", argv[0]);
+                VR_BIO_printf(bio_err, "Failed to process value (%s)\n", argv[0]);
                 goto end;
             }
 
-            BN_print(bio_out, bn);
-            BIO_printf(bio_out, " (%s) %s prime\n",
+            VR_BN_print(bio_out, bn);
+            VR_BIO_printf(bio_out, " (%s) %s prime\n",
                        argv[0],
-                       BN_is_prime_ex(bn, checks, NULL, NULL)
+                       VR_BN_is_prime_ex(bn, checks, NULL, NULL)
                            ? "is" : "is not");
         }
     }
 
     ret = 0;
  end:
-    BN_free(bn);
+    VR_BN_free(bn);
     return ret;
 }

@@ -20,7 +20,7 @@ static const UI_METHOD ui_null = {
 };
 
 /* The method with all the built-in thingies */
-const UI_METHOD *UI_null(void)
+const UI_METHOD *VR_UI_null(void)
 {
     return &ui_null;
 }

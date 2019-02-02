@@ -23,7 +23,7 @@ extern unsigned int OPENSSL_ia32cap_P[4];
 /*
  * Purpose of these minimalistic and character-type-agnostic subroutines
  * is to break dependency on MSVCRT (on Windows) and locale. This makes
- * OPENSSL_cpuid_setup safe to use as "constructor". "Character-type-
+ * VR_OPENSSL_cpuid_setup safe to use as "constructor". "Character-type-
  * agnostic" means that they work with either wide or 8-bit characters,
  * exploiting the fact that first 127 characters can be simply casted
  * between the sets, while the rest would be simply rejected by ossl_is*
@@ -56,7 +56,7 @@ static int todigit(variant_char c)
     if (ossl_isdigit(c))
         return c - '0';
     else if (ossl_isxdigit(c))
-        return ossl_tolower(c) - 'a' + 10;
+        return VR_ossl_tolower(c) - 'a' + 10;
 
     /* return largest base value to make caller terminate the loop */
     return 16;
@@ -69,7 +69,7 @@ static uint64_t ossl_strtouint64(const variant_char *str)
 
     if (*str == '0') {
         base = 8, str++;
-        if (ossl_tolower(*str) == 'x')
+        if (VR_ossl_tolower(*str) == 'x')
             base = 16, str++;
     }
 
@@ -94,10 +94,10 @@ static variant_char *ossl_strchr(const variant_char *str, char srch)
 #  define OPENSSL_CPUID_SETUP
 typedef uint64_t IA32CAP;
 
-void OPENSSL_cpuid_setup(void)
+void VR_OPENSSL_cpuid_setup(void)
 {
     static int trigger = 0;
-    IA32CAP OPENSSL_ia32_cpuid(unsigned int *);
+    IA32CAP VR_OPENSSL_ia32_cpuid(unsigned int *);
     IA32CAP vec;
     const variant_char *env;
 
@@ -112,7 +112,7 @@ void OPENSSL_cpuid_setup(void)
 
         if (off) {
             IA32CAP mask = vec;
-            vec = OPENSSL_ia32_cpuid(OPENSSL_ia32cap_P) & ~mask;
+            vec = VR_OPENSSL_ia32_cpuid(OPENSSL_ia32cap_P) & ~mask;
             if (mask & (1<<24)) {
                 /*
                  * User disables FXSR bit, mask even other capabilities
@@ -125,7 +125,7 @@ void OPENSSL_cpuid_setup(void)
                 vec &= ~((IA32CAP)(1<<1|1<<11|1<<25|1<<28) << 32);
             }
         } else if (env[0] == ':') {
-            vec = OPENSSL_ia32_cpuid(OPENSSL_ia32cap_P);
+            vec = VR_OPENSSL_ia32_cpuid(OPENSSL_ia32cap_P);
         }
 
         if ((env = ossl_strchr(env, ':')) != NULL) {
@@ -146,7 +146,7 @@ void OPENSSL_cpuid_setup(void)
             OPENSSL_ia32cap_P[3] = 0;
         }
     } else {
-        vec = OPENSSL_ia32_cpuid(OPENSSL_ia32cap_P);
+        vec = VR_OPENSSL_ia32_cpuid(OPENSSL_ia32cap_P);
     }
 
     /*
@@ -162,7 +162,7 @@ unsigned int OPENSSL_ia32cap_P[4];
 # endif
 #endif
 #if !defined(OPENSSL_CPUID_SETUP) && !defined(OPENSSL_CPUID_OBJ)
-void OPENSSL_cpuid_setup(void)
+void VR_OPENSSL_cpuid_setup(void)
 {
 }
 #endif
@@ -184,13 +184,13 @@ void OPENSSL_cpuid_setup(void)
 # if defined(_WIN32_WINNT) && _WIN32_WINNT>=0x0333
 #  ifdef OPENSSL_SYS_WIN_CORE
 
-int OPENSSL_isservice(void)
+int VR_OPENSSL_isservice(void)
 {
     /* OneCore API cannot interact with GUI */
     return 1;
 }
 #  else
-int OPENSSL_isservice(void)
+int VR_OPENSSL_isservice(void)
 {
     HWINSTA h;
     DWORD len;
@@ -198,24 +198,24 @@ int OPENSSL_isservice(void)
     static union {
         void *p;
         FARPROC f;
-    } _OPENSSL_isservice = {
+    } _VR_OPENSSL_isservice = {
         NULL
     };
 
-    if (_OPENSSL_isservice.p == NULL) {
+    if (_VR_OPENSSL_isservice.p == NULL) {
         HANDLE mod = GetModuleHandle(NULL);
         FARPROC f = NULL;
 
         if (mod != NULL)
-            f = GetProcAddress(mod, "_OPENSSL_isservice");
+            f = GetProcAddress(mod, "_VR_OPENSSL_isservice");
         if (f == NULL)
-            _OPENSSL_isservice.p = (void *)-1;
+            _VR_OPENSSL_isservice.p = (void *)-1;
         else
-            _OPENSSL_isservice.f = f;
+            _VR_OPENSSL_isservice.f = f;
     }
 
-    if (_OPENSSL_isservice.p != (void *)-1)
-        return (*_OPENSSL_isservice.f) ();
+    if (_VR_OPENSSL_isservice.p != (void *)-1)
+        return (*_VR_OPENSSL_isservice.f) ();
 
     h = GetProcessWindowStation();
     if (h == NULL)
@@ -252,13 +252,13 @@ int OPENSSL_isservice(void)
 }
 #  endif
 # else
-int OPENSSL_isservice(void)
+int VR_OPENSSL_isservice(void)
 {
     return 0;
 }
 # endif
 
-void OPENSSL_showfatal(const char *fmta, ...)
+void VR_OPENSSL_showfatal(const char *fmta, ...)
 {
     va_list ap;
     TCHAR buf[256];
@@ -366,7 +366,7 @@ void OPENSSL_showfatal(const char *fmta, ...)
 #   endif
 #  else
     /* this -------------v--- guards NT-specific calls */
-    if (check_winnt() && OPENSSL_isservice() > 0) {
+    if (check_winnt() && VR_OPENSSL_isservice() > 0) {
         HANDLE hEventLog = RegisterEventSource(NULL, _T("OpenSSL"));
 
         if (hEventLog != NULL) {
@@ -396,7 +396,7 @@ void OPENSSL_showfatal(const char *fmta, ...)
 # endif     
 }
 #else
-void OPENSSL_showfatal(const char *fmta, ...)
+void VR_OPENSSL_showfatal(const char *fmta, ...)
 {
 #ifndef OPENSSL_NO_STDIO
     va_list ap;
@@ -407,15 +407,15 @@ void OPENSSL_showfatal(const char *fmta, ...)
 #endif
 }
 
-int OPENSSL_isservice(void)
+int VR_OPENSSL_isservice(void)
 {
     return 0;
 }
 #endif
 
-void OPENSSL_die(const char *message, const char *file, int line)
+void VR_OPENSSL_die(const char *message, const char *file, int line)
 {
-    OPENSSL_showfatal("%s:%d: OpenSSL internal error: %s\n",
+    VR_OPENSSL_showfatal("%s:%d: OpenSSL internal error: %s\n",
                       file, line, message);
 #if !defined(_WIN32)
     abort();
@@ -439,8 +439,8 @@ void OPENSSL_die(const char *message, const char *file, int line)
  *
  * There are also assembler versions of this function.
  */
-# undef CRYPTO_memcmp
-int CRYPTO_memcmp(const void * in_a, const void * in_b, size_t len)
+# undef VR_CRYPTO_memcmp
+int VR_CRYPTO_memcmp(const void * in_a, const void * in_b, size_t len)
 {
     size_t i;
     const volatile unsigned char *a = in_a;
@@ -456,17 +456,17 @@ int CRYPTO_memcmp(const void * in_a, const void * in_b, size_t len)
 /*
  * For systems that don't provide an instruction counter register or equivalent.
  */
-uint32_t OPENSSL_rdtsc(void)
+uint32_t VR_OPENSSL_rdtsc(void)
 {
     return 0;
 }
 
-size_t OPENSSL_instrument_bus(unsigned int *out, size_t cnt)
+size_t VR_OPENSSL_instrument_bus(unsigned int *out, size_t cnt)
 {
     return 0;
 }
 
-size_t OPENSSL_instrument_bus2(unsigned int *out, size_t cnt, size_t max)
+size_t VR_OPENSSL_instrument_bus2(unsigned int *out, size_t cnt, size_t max)
 {
     return 0;
 }

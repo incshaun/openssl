@@ -33,16 +33,16 @@ static int sock_puts(BIO *h, const char *str);
 static long sock_ctrl(BIO *h, int cmd, long arg1, void *arg2);
 static int sock_new(BIO *h);
 static int sock_free(BIO *data);
-int BIO_sock_should_retry(int s);
+int VR_BIO_sock_should_retry(int s);
 
 static const BIO_METHOD methods_sockp = {
     BIO_TYPE_SOCKET,
     "socket",
     /* TODO: Convert to new style write function */
-    bwrite_conv,
+    VR_bwrite_conv,
     sock_write,
     /* TODO: Convert to new style read function */
-    bread_conv,
+    VR_bread_conv,
     sock_read,
     sock_puts,
     NULL,                       /* sock_gets,         */
@@ -52,16 +52,16 @@ static const BIO_METHOD methods_sockp = {
     NULL,                       /* sock_callback_ctrl */
 };
 
-const BIO_METHOD *BIO_s_socket(void)
+const BIO_METHOD *VR_BIO_s_socket(void)
 {
     return &methods_sockp;
 }
 
-BIO *BIO_new_socket(int fd, int close_flag)
+BIO *VR_BIO_new_socket(int fd, int close_flag)
 {
     BIO *ret;
 
-    ret = BIO_new(BIO_s_socket());
+    ret = VR_BIO_new(VR_BIO_s_socket());
     if (ret == NULL)
         return NULL;
     BIO_set_fd(ret, fd, close_flag);
@@ -94,7 +94,7 @@ static int sock_free(BIO *a)
         return 0;
     if (a->shutdown) {
         if (a->init) {
-            BIO_closesocket(a->num);
+            VR_BIO_closesocket(a->num);
         }
         a->init = 0;
         a->flags = 0;
@@ -111,7 +111,7 @@ static int sock_read(BIO *b, char *out, int outl)
         ret = readsocket(b->num, out, outl);
         BIO_clear_retry_flags(b);
         if (ret <= 0) {
-            if (BIO_sock_should_retry(ret))
+            if (VR_BIO_sock_should_retry(ret))
                 BIO_set_retry_read(b);
         }
     }
@@ -136,7 +136,7 @@ static int sock_write(BIO *b, const char *in, int inl)
         ret = writesocket(b->num, in, inl);
     BIO_clear_retry_flags(b);
     if (ret <= 0) {
-        if (BIO_sock_should_retry(ret))
+        if (VR_BIO_sock_should_retry(ret))
             BIO_set_retry_write(b);
     }
     return ret;
@@ -211,19 +211,19 @@ static int sock_puts(BIO *bp, const char *str)
     return ret;
 }
 
-int BIO_sock_should_retry(int i)
+int VR_BIO_sock_should_retry(int i)
 {
     int err;
 
     if ((i == 0) || (i == -1)) {
         err = get_last_socket_error();
 
-        return BIO_sock_non_fatal_error(err);
+        return VR_BIO_sock_non_fatal_error(err);
     }
     return 0;
 }
 
-int BIO_sock_non_fatal_error(int err)
+int VR_BIO_sock_non_fatal_error(int err)
 {
     switch (err) {
 # if defined(OPENSSL_SYS_WINDOWS)

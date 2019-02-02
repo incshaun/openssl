@@ -15,7 +15,7 @@
  * First you setup M and L parameters and pass the key schedule. This is
  * called once per session setup...
  */
-void CRYPTO_ccm128_init(CCM128_CONTEXT *ctx,
+void VR_CRYPTO_ccm128_init(CCM128_CONTEXT *ctx,
                         unsigned int M, unsigned int L, void *key,
                         block128_f block)
 {
@@ -29,7 +29,7 @@ void CRYPTO_ccm128_init(CCM128_CONTEXT *ctx,
 /* !!! Following interfaces are to be called *once* per packet !!! */
 
 /* Then you setup per-message nonce and pass the length of the message */
-int CRYPTO_ccm128_setiv(CCM128_CONTEXT *ctx,
+int VR_CRYPTO_ccm128_setiv(CCM128_CONTEXT *ctx,
                         const unsigned char *nonce, size_t nlen, size_t mlen)
 {
     unsigned int L = ctx->nonce.c[0] & 7; /* the L parameter */
@@ -57,7 +57,7 @@ int CRYPTO_ccm128_setiv(CCM128_CONTEXT *ctx,
 }
 
 /* Then you pass additional authentication data, this is optional */
-void CRYPTO_ccm128_aad(CCM128_CONTEXT *ctx,
+void VR_CRYPTO_ccm128_aad(CCM128_CONTEXT *ctx,
                        const unsigned char *aad, size_t alen)
 {
     unsigned int i;
@@ -126,7 +126,7 @@ static void ctr64_inc(unsigned char *counter)
     } while (n);
 }
 
-int CRYPTO_ccm128_encrypt(CCM128_CONTEXT *ctx,
+int VR_CRYPTO_ccm128_encrypt(CCM128_CONTEXT *ctx,
                           const unsigned char *inp, unsigned char *out,
                           size_t len)
 {
@@ -210,7 +210,7 @@ int CRYPTO_ccm128_encrypt(CCM128_CONTEXT *ctx,
     return 0;
 }
 
-int CRYPTO_ccm128_decrypt(CCM128_CONTEXT *ctx,
+int VR_CRYPTO_ccm128_decrypt(CCM128_CONTEXT *ctx,
                           const unsigned char *inp, unsigned char *out,
                           size_t len)
 {
@@ -297,7 +297,7 @@ static void ctr64_add(unsigned char *counter, size_t inc)
     } while (n && (inc || val));
 }
 
-int CRYPTO_ccm128_encrypt_ccm64(CCM128_CONTEXT *ctx,
+int VR_CRYPTO_ccm128_encrypt_ccm64(CCM128_CONTEXT *ctx,
                                 const unsigned char *inp, unsigned char *out,
                                 size_t len, ccm128_f stream)
 {
@@ -361,7 +361,7 @@ int CRYPTO_ccm128_encrypt_ccm64(CCM128_CONTEXT *ctx,
     return 0;
 }
 
-int CRYPTO_ccm128_decrypt_ccm64(CCM128_CONTEXT *ctx,
+int VR_CRYPTO_ccm128_decrypt_ccm64(CCM128_CONTEXT *ctx,
                                 const unsigned char *inp, unsigned char *out,
                                 size_t len, ccm128_f stream)
 {
@@ -419,7 +419,7 @@ int CRYPTO_ccm128_decrypt_ccm64(CCM128_CONTEXT *ctx,
     return 0;
 }
 
-size_t CRYPTO_ccm128_tag(CCM128_CONTEXT *ctx, unsigned char *tag, size_t len)
+size_t VR_CRYPTO_ccm128_tag(CCM128_CONTEXT *ctx, unsigned char *tag, size_t len)
 {
     unsigned int M = (ctx->nonce.c[0] >> 3) & 7; /* the M parameter */
 

@@ -19,24 +19,24 @@
 extern "C" {
 # endif
 
-# define RIPEMD160_LONG unsigned int
+# define VR_RIPEMD160_LONG unsigned int
 
-# define RIPEMD160_CBLOCK        64
-# define RIPEMD160_LBLOCK        (RIPEMD160_CBLOCK/4)
-# define RIPEMD160_DIGEST_LENGTH 20
+# define VR_RIPEMD160_CBLOCK        64
+# define VR_RIPEMD160_LBLOCK        (VR_RIPEMD160_CBLOCK/4)
+# define VR_RIPEMD160_DIGEST_LENGTH 20
 
-typedef struct RIPEMD160state_st {
-    RIPEMD160_LONG A, B, C, D, E;
-    RIPEMD160_LONG Nl, Nh;
-    RIPEMD160_LONG data[RIPEMD160_LBLOCK];
+typedef struct VR_RIPEMD160state_st {
+    VR_RIPEMD160_LONG A, B, C, D, E;
+    VR_RIPEMD160_LONG Nl, Nh;
+    VR_RIPEMD160_LONG data[VR_RIPEMD160_LBLOCK];
     unsigned int num;
-} RIPEMD160_CTX;
+} VR_RIPEMD160_CTX;
 
-int RIPEMD160_Init(RIPEMD160_CTX *c);
-int RIPEMD160_Update(RIPEMD160_CTX *c, const void *data, size_t len);
-int RIPEMD160_Final(unsigned char *md, RIPEMD160_CTX *c);
-unsigned char *RIPEMD160(const unsigned char *d, size_t n, unsigned char *md);
-void RIPEMD160_Transform(RIPEMD160_CTX *c, const unsigned char *b);
+int VR_RIPEMD160_Init(VR_RIPEMD160_CTX *c);
+int VR_RIPEMD160_Update(VR_RIPEMD160_CTX *c, const void *data, size_t len);
+int VR_RIPEMD160_Final(unsigned char *md, VR_RIPEMD160_CTX *c);
+unsigned char *VR_RIPEMD160(const unsigned char *d, size_t n, unsigned char *md);
+void VR_RIPEMD160_Transform(VR_RIPEMD160_CTX *c, const unsigned char *b);
 
 # ifdef  __cplusplus
 }

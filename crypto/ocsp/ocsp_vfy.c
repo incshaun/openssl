@@ -27,7 +27,7 @@ static int ocsp_req_find_signer(X509 **psigner, OCSP_REQUEST *req,
 
 /* Verify a basic response message */
 
-int OCSP_basic_verify(OCSP_BASICRESP *bs, STACK_OF(X509) *certs,
+int VR_OCSP_basic_verify(OCSP_BASICRESP *bs, STACK_OF(X509) *certs,
                       X509_STORE *st, unsigned long flags)
 {
     X509 *signer, *x;
@@ -41,7 +41,7 @@ int OCSP_basic_verify(OCSP_BASICRESP *bs, STACK_OF(X509) *certs,
                 OCSP_R_SIGNER_CERTIFICATE_NOT_FOUND);
         goto end;
     }
-    ctx = X509_STORE_CTX_new();
+    ctx = VR_X509_STORE_CTX_new();
     if (ctx == NULL) {
         OCSPerr(OCSP_F_OCSP_BASIC_VERIFY, ERR_R_MALLOC_FAILURE);
         goto f_err;
@@ -50,7 +50,7 @@ int OCSP_basic_verify(OCSP_BASICRESP *bs, STACK_OF(X509) *certs,
         flags |= OCSP_NOVERIFY;
     if (!(flags & OCSP_NOSIGS)) {
         EVP_PKEY *skey;
-        skey = X509_get0_pubkey(signer);
+        skey = VR_X509_get0_pubkey(signer);
         if (skey == NULL) {
             OCSPerr(OCSP_F_OCSP_BASIC_VERIFY, OCSP_R_NO_SIGNER_KEY);
             goto err;
@@ -66,9 +66,9 @@ int OCSP_basic_verify(OCSP_BASICRESP *bs, STACK_OF(X509) *certs,
         if (flags & OCSP_NOCHAIN) {
             untrusted = NULL;
         } else if (bs->certs && certs) {
-            untrusted = sk_X509_dup(bs->certs);
+            untrusted = sk_VR_X509_dup(bs->certs);
             for (i = 0; i < sk_X509_num(certs); i++) {
-                if (!sk_X509_push(untrusted, sk_X509_value(certs, i))) {
+                if (!sk_VR_X509_push(untrusted, sk_X509_value(certs, i))) {
                     OCSPerr(OCSP_F_OCSP_BASIC_VERIFY, ERR_R_MALLOC_FAILURE);
                     goto f_err;
                 }
@@ -78,21 +78,21 @@ int OCSP_basic_verify(OCSP_BASICRESP *bs, STACK_OF(X509) *certs,
         } else {
             untrusted = bs->certs;
         }
-        init_res = X509_STORE_CTX_init(ctx, st, signer, untrusted);
+        init_res = VR_X509_STORE_CTX_init(ctx, st, signer, untrusted);
         if (!init_res) {
             OCSPerr(OCSP_F_OCSP_BASIC_VERIFY, ERR_R_X509_LIB);
             goto f_err;
         }
 
-        X509_STORE_CTX_set_purpose(ctx, X509_PURPOSE_OCSP_HELPER);
-        ret = X509_verify_cert(ctx);
-        chain = X509_STORE_CTX_get1_chain(ctx);
+        VR_X509_STORE_CTX_set_purpose(ctx, X509_PURPOSE_OCSP_HELPER);
+        ret = VR_X509_verify_cert(ctx);
+        chain = VR_X509_STORE_CTX_get1_chain(ctx);
         if (ret <= 0) {
-            i = X509_STORE_CTX_get_error(ctx);
+            i = VR_X509_STORE_CTX_get_error(ctx);
             OCSPerr(OCSP_F_OCSP_BASIC_VERIFY,
                     OCSP_R_CERTIFICATE_VERIFY_ERROR);
-            ERR_add_error_data(2, "Verify error:",
-                               X509_verify_cert_error_string(i));
+            VR_ERR_add_error_data(2, "Verify error:",
+                               VR_X509_verify_cert_error_string(i));
             goto end;
         }
         if (flags & OCSP_NOCHECKS) {
@@ -117,17 +117,17 @@ int OCSP_basic_verify(OCSP_BASICRESP *bs, STACK_OF(X509) *certs,
             goto end;
 
         x = sk_X509_value(chain, sk_X509_num(chain) - 1);
-        if (X509_check_trust(x, NID_OCSP_sign, 0) != X509_TRUST_TRUSTED) {
+        if (VR_X509_check_trust(x, NID_OCSP_sign, 0) != X509_TRUST_TRUSTED) {
             OCSPerr(OCSP_F_OCSP_BASIC_VERIFY, OCSP_R_ROOT_CA_NOT_TRUSTED);
             goto err;
         }
         ret = 1;
     }
  end:
-    X509_STORE_CTX_free(ctx);
-    sk_X509_pop_free(chain, X509_free);
+    VR_X509_STORE_CTX_free(ctx);
+    sk_VR_X509_pop_free(chain, VR_X509_free);
     if (bs->certs && certs)
-        sk_X509_free(untrusted);
+        sk_VR_X509_free(untrusted);
     return ret;
 
  err:
@@ -138,7 +138,7 @@ int OCSP_basic_verify(OCSP_BASICRESP *bs, STACK_OF(X509) *certs,
     goto end;
 }
 
-int OCSP_resp_get0_signer(OCSP_BASICRESP *bs, X509 **signer,
+int VR_OCSP_resp_get0_signer(OCSP_BASICRESP *bs, X509 **signer,
                           STACK_OF(X509) *extra_certs)
 {
     int ret;
@@ -175,18 +175,18 @@ static X509 *ocsp_find_signer_sk(STACK_OF(X509) *certs, OCSP_RESPID *id)
 
     /* Easy if lookup by name */
     if (id->type == V_OCSP_RESPID_NAME)
-        return X509_find_by_subject(certs, id->value.byName);
+        return VR_X509_find_by_subject(certs, id->value.byName);
 
     /* Lookup by key hash */
 
-    /* If key hash isn't SHA1 length then forget it */
+    /* If key hash isn't VR_SHA1 length then forget it */
     if (id->value.byKey->length != SHA_DIGEST_LENGTH)
         return NULL;
     keyhash = id->value.byKey->data;
     /* Calculate hash of each key and compare */
     for (i = 0; i < sk_X509_num(certs); i++) {
         x = sk_X509_value(certs, i);
-        X509_pubkey_digest(x, EVP_sha1(), tmphash, NULL);
+        VR_X509_pubkey_digest(x, VR_EVP_sha1(), tmphash, NULL);
         if (!memcmp(keyhash, tmphash, SHA_DIGEST_LENGTH))
             return x;
     }
@@ -258,9 +258,9 @@ static int ocsp_check_ids(STACK_OF(OCSP_SINGLERESP) *sresp, OCSP_CERTID **ret)
     for (i = 1; i < idcount; i++) {
         tmpid = sk_OCSP_SINGLERESP_value(sresp, i)->certId;
         /* Check to see if IDs match */
-        if (OCSP_id_issuer_cmp(cid, tmpid)) {
+        if (VR_OCSP_id_issuer_cmp(cid, tmpid)) {
             /* If algorithm mismatch let caller deal with it */
-            if (OBJ_cmp(tmpid->hashAlgorithm.algorithm,
+            if (VR_OBJ_cmp(tmpid->hashAlgorithm.algorithm,
                         cid->hashAlgorithm.algorithm))
                 return 2;
             /* Else mismatch */
@@ -289,18 +289,18 @@ static int ocsp_match_issuerid(X509 *cert, OCSP_CERTID *cid,
             return -1;
         }
 
-        mdlen = EVP_MD_size(dgst);
+        mdlen = VR_EVP_MD_size(dgst);
         if (mdlen < 0)
             return -1;
         if ((cid->issuerNameHash.length != mdlen) ||
             (cid->issuerKeyHash.length != mdlen))
             return 0;
-        iname = X509_get_subject_name(cert);
-        if (!X509_NAME_digest(iname, dgst, md, NULL))
+        iname = VR_X509_get_subject_name(cert);
+        if (!VR_X509_NAME_digest(iname, dgst, md, NULL))
             return -1;
         if (memcmp(md, cid->issuerNameHash.data, mdlen))
             return 0;
-        X509_pubkey_digest(cert, dgst, md, NULL);
+        VR_X509_pubkey_digest(cert, dgst, md, NULL);
         if (memcmp(md, cid->issuerKeyHash.data, mdlen))
             return 0;
 
@@ -323,8 +323,8 @@ static int ocsp_match_issuerid(X509 *cert, OCSP_CERTID *cid,
 
 static int ocsp_check_delegated(X509 *x)
 {
-    if ((X509_get_extension_flags(x) & EXFLAG_XKUSAGE)
-        && (X509_get_extended_key_usage(x) & XKU_OCSP_SIGN))
+    if ((VR_X509_get_extension_flags(x) & EXFLAG_XKUSAGE)
+        && (VR_X509_get_extended_key_usage(x) & XKU_OCSP_SIGN))
         return 1;
     OCSPerr(OCSP_F_OCSP_CHECK_DELEGATED, OCSP_R_MISSING_OCSPSIGNING_USAGE);
     return 0;
@@ -336,14 +336,14 @@ static int ocsp_check_delegated(X509 *x)
  * trust value.
  */
 
-int OCSP_request_verify(OCSP_REQUEST *req, STACK_OF(X509) *certs,
+int VR_OCSP_request_verify(OCSP_REQUEST *req, STACK_OF(X509) *certs,
                         X509_STORE *store, unsigned long flags)
 {
     X509 *signer;
     X509_NAME *nm;
     GENERAL_NAME *gen;
     int ret = 0;
-    X509_STORE_CTX *ctx = X509_STORE_CTX_new();
+    X509_STORE_CTX *ctx = VR_X509_STORE_CTX_new();
 
     if (ctx == NULL) {
         OCSPerr(OCSP_F_OCSP_REQUEST_VERIFY, ERR_R_MALLOC_FAILURE);
@@ -371,7 +371,7 @@ int OCSP_request_verify(OCSP_REQUEST *req, STACK_OF(X509) *certs,
         flags |= OCSP_NOVERIFY;
     if (!(flags & OCSP_NOSIGS)) {
         EVP_PKEY *skey;
-        skey = X509_get0_pubkey(signer);
+        skey = VR_X509_get0_pubkey(signer);
         ret = OCSP_REQUEST_verify(req, skey);
         if (ret <= 0) {
             OCSPerr(OCSP_F_OCSP_REQUEST_VERIFY, OCSP_R_SIGNATURE_FAILURE);
@@ -381,24 +381,24 @@ int OCSP_request_verify(OCSP_REQUEST *req, STACK_OF(X509) *certs,
     if (!(flags & OCSP_NOVERIFY)) {
         int init_res;
         if (flags & OCSP_NOCHAIN)
-            init_res = X509_STORE_CTX_init(ctx, store, signer, NULL);
+            init_res = VR_X509_STORE_CTX_init(ctx, store, signer, NULL);
         else
-            init_res = X509_STORE_CTX_init(ctx, store, signer,
+            init_res = VR_X509_STORE_CTX_init(ctx, store, signer,
                                            req->optionalSignature->certs);
         if (!init_res) {
             OCSPerr(OCSP_F_OCSP_REQUEST_VERIFY, ERR_R_X509_LIB);
             goto err;
         }
 
-        X509_STORE_CTX_set_purpose(ctx, X509_PURPOSE_OCSP_HELPER);
-        X509_STORE_CTX_set_trust(ctx, X509_TRUST_OCSP_REQUEST);
-        ret = X509_verify_cert(ctx);
+        VR_X509_STORE_CTX_set_purpose(ctx, X509_PURPOSE_OCSP_HELPER);
+        VR_X509_STORE_CTX_set_trust(ctx, X509_TRUST_OCSP_REQUEST);
+        ret = VR_X509_verify_cert(ctx);
         if (ret <= 0) {
-            ret = X509_STORE_CTX_get_error(ctx);
+            ret = VR_X509_STORE_CTX_get_error(ctx);
             OCSPerr(OCSP_F_OCSP_REQUEST_VERIFY,
                     OCSP_R_CERTIFICATE_VERIFY_ERROR);
-            ERR_add_error_data(2, "Verify error:",
-                               X509_verify_cert_error_string(ret));
+            VR_ERR_add_error_data(2, "Verify error:",
+                               VR_X509_verify_cert_error_string(ret));
             goto err;
         }
     }
@@ -408,7 +408,7 @@ int OCSP_request_verify(OCSP_REQUEST *req, STACK_OF(X509) *certs,
 err:
     ret = 0;
 end:
-    X509_STORE_CTX_free(ctx);
+    VR_X509_STORE_CTX_free(ctx);
     return ret;
 
 }
@@ -419,14 +419,14 @@ static int ocsp_req_find_signer(X509 **psigner, OCSP_REQUEST *req,
 {
     X509 *signer;
     if (!(flags & OCSP_NOINTERN)) {
-        signer = X509_find_by_subject(req->optionalSignature->certs, nm);
+        signer = VR_X509_find_by_subject(req->optionalSignature->certs, nm);
         if (signer) {
             *psigner = signer;
             return 1;
         }
     }
 
-    signer = X509_find_by_subject(certs, nm);
+    signer = VR_X509_find_by_subject(certs, nm);
     if (signer) {
         *psigner = signer;
         return 2;

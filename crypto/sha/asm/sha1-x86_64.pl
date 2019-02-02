@@ -255,10 +255,10 @@ $code.=<<___;
 .text
 .extern	OPENSSL_ia32cap_P
 
-.globl	sha1_block_data_order
-.type	sha1_block_data_order,\@function,3
+.globl	VR_sha1_block_data_order
+.type	VR_sha1_block_data_order,\@function,3
 .align	16
-sha1_block_data_order:
+VR_sha1_block_data_order:
 .cfi_startproc
 	mov	OPENSSL_ia32cap_P+0(%rip),%r9d
 	mov	OPENSSL_ia32cap_P+4(%rip),%r8d
@@ -355,7 +355,7 @@ $code.=<<___;
 .Lepilogue:
 	ret
 .cfi_endproc
-.size	sha1_block_data_order,.-sha1_block_data_order
+.size	VR_sha1_block_data_order,.-VR_sha1_block_data_order
 ___
 if ($shaext) {{{
 ######################################################################
@@ -366,9 +366,9 @@ my ($ABCD,$E,$E_,$BSWAP,$ABCD_SAVE,$E_SAVE)=map("%xmm$_",(0..3,8,9));
 my @MSG=map("%xmm$_",(4..7));
 
 $code.=<<___;
-.type	sha1_block_data_order_shaext,\@function,3
+.type	VR_sha1_block_data_order_shaext,\@function,3
 .align	32
-sha1_block_data_order_shaext:
+VR_sha1_block_data_order_shaext:
 _shaext_shortcut:
 .cfi_startproc
 ___
@@ -470,7 +470,7 @@ ___
 $code.=<<___;
 .cfi_endproc
 	ret
-.size	sha1_block_data_order_shaext,.-sha1_block_data_order_shaext
+.size	VR_sha1_block_data_order_shaext,.-VR_sha1_block_data_order_shaext
 ___
 }}}
 {{{
@@ -500,9 +500,9 @@ ___
 }
 
 $code.=<<___;
-.type	sha1_block_data_order_ssse3,\@function,3
+.type	VR_sha1_block_data_order_ssse3,\@function,3
 .align	16
-sha1_block_data_order_ssse3:
+VR_sha1_block_data_order_ssse3:
 _ssse3_shortcut:
 .cfi_startproc
 	mov	%rsp,$fp	# frame pointer
@@ -958,7 +958,7 @@ $code.=<<___;
 .Lepilogue_ssse3:
 	ret
 .cfi_endproc
-.size	sha1_block_data_order_ssse3,.-sha1_block_data_order_ssse3
+.size	VR_sha1_block_data_order_ssse3,.-VR_sha1_block_data_order_ssse3
 ___
 
 if ($avx) {
@@ -974,9 +974,9 @@ my $_rol=sub { &shld(@_[0],@_) };
 my $_ror=sub { &shrd(@_[0],@_) };
 
 $code.=<<___;
-.type	sha1_block_data_order_avx,\@function,3
+.type	VR_sha1_block_data_order_avx,\@function,3
 .align	16
-sha1_block_data_order_avx:
+VR_sha1_block_data_order_avx:
 _avx_shortcut:
 .cfi_startproc
 	mov	%rsp,$fp
@@ -1334,7 +1334,7 @@ $code.=<<___;
 .Lepilogue_avx:
 	ret
 .cfi_endproc
-.size	sha1_block_data_order_avx,.-sha1_block_data_order_avx
+.size	VR_sha1_block_data_order_avx,.-VR_sha1_block_data_order_avx
 ___
 
 if ($avx>1) {
@@ -1353,9 +1353,9 @@ my $rx=0;
 my $frame="%r13";
 
 $code.=<<___;
-.type	sha1_block_data_order_avx2,\@function,3
+.type	VR_sha1_block_data_order_avx2,\@function,3
 .align	16
-sha1_block_data_order_avx2:
+VR_sha1_block_data_order_avx2:
 _avx2_shortcut:
 .cfi_startproc
 	mov	%rsp,$fp
@@ -1825,7 +1825,7 @@ $code.=<<___;
 .Lepilogue_avx2:
 	ret
 .cfi_endproc
-.size	sha1_block_data_order_avx2,.-sha1_block_data_order_avx2
+.size	VR_sha1_block_data_order_avx2,.-VR_sha1_block_data_order_avx2
 ___
 }
 }
@@ -2030,56 +2030,56 @@ ssse3_handler:
 
 .section	.pdata
 .align	4
-	.rva	.LSEH_begin_sha1_block_data_order
-	.rva	.LSEH_end_sha1_block_data_order
-	.rva	.LSEH_info_sha1_block_data_order
+	.rva	.LSEH_begin_VR_sha1_block_data_order
+	.rva	.LSEH_end_VR_sha1_block_data_order
+	.rva	.LSEH_info_VR_sha1_block_data_order
 ___
 $code.=<<___ if ($shaext);
-	.rva	.LSEH_begin_sha1_block_data_order_shaext
-	.rva	.LSEH_end_sha1_block_data_order_shaext
-	.rva	.LSEH_info_sha1_block_data_order_shaext
+	.rva	.LSEH_begin_VR_sha1_block_data_order_shaext
+	.rva	.LSEH_end_VR_sha1_block_data_order_shaext
+	.rva	.LSEH_info_VR_sha1_block_data_order_shaext
 ___
 $code.=<<___;
-	.rva	.LSEH_begin_sha1_block_data_order_ssse3
-	.rva	.LSEH_end_sha1_block_data_order_ssse3
-	.rva	.LSEH_info_sha1_block_data_order_ssse3
+	.rva	.LSEH_begin_VR_sha1_block_data_order_ssse3
+	.rva	.LSEH_end_VR_sha1_block_data_order_ssse3
+	.rva	.LSEH_info_VR_sha1_block_data_order_ssse3
 ___
 $code.=<<___ if ($avx);
-	.rva	.LSEH_begin_sha1_block_data_order_avx
-	.rva	.LSEH_end_sha1_block_data_order_avx
-	.rva	.LSEH_info_sha1_block_data_order_avx
+	.rva	.LSEH_begin_VR_sha1_block_data_order_avx
+	.rva	.LSEH_end_VR_sha1_block_data_order_avx
+	.rva	.LSEH_info_VR_sha1_block_data_order_avx
 ___
 $code.=<<___ if ($avx>1);
-	.rva	.LSEH_begin_sha1_block_data_order_avx2
-	.rva	.LSEH_end_sha1_block_data_order_avx2
-	.rva	.LSEH_info_sha1_block_data_order_avx2
+	.rva	.LSEH_begin_VR_sha1_block_data_order_avx2
+	.rva	.LSEH_end_VR_sha1_block_data_order_avx2
+	.rva	.LSEH_info_VR_sha1_block_data_order_avx2
 ___
 $code.=<<___;
 .section	.xdata
 .align	8
-.LSEH_info_sha1_block_data_order:
+.LSEH_info_VR_sha1_block_data_order:
 	.byte	9,0,0,0
 	.rva	se_handler
 ___
 $code.=<<___ if ($shaext);
-.LSEH_info_sha1_block_data_order_shaext:
+.LSEH_info_VR_sha1_block_data_order_shaext:
 	.byte	9,0,0,0
 	.rva	shaext_handler
 ___
 $code.=<<___;
-.LSEH_info_sha1_block_data_order_ssse3:
+.LSEH_info_VR_sha1_block_data_order_ssse3:
 	.byte	9,0,0,0
 	.rva	ssse3_handler
 	.rva	.Lprologue_ssse3,.Lepilogue_ssse3	# HandlerData[]
 ___
 $code.=<<___ if ($avx);
-.LSEH_info_sha1_block_data_order_avx:
+.LSEH_info_VR_sha1_block_data_order_avx:
 	.byte	9,0,0,0
 	.rva	ssse3_handler
 	.rva	.Lprologue_avx,.Lepilogue_avx		# HandlerData[]
 ___
 $code.=<<___ if ($avx>1);
-.LSEH_info_sha1_block_data_order_avx2:
+.LSEH_info_VR_sha1_block_data_order_avx2:
 	.byte	9,0,0,0
 	.rva	ssse3_handler
 	.rva	.Lprologue_avx2,.Lepilogue_avx2		# HandlerData[]

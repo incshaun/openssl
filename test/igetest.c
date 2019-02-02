@@ -153,11 +153,11 @@ static int test_ige_vectors(int n)
         return 0;
 
     if (v->encrypt == AES_ENCRYPT)
-        AES_set_encrypt_key(v->key, 8 * sizeof(v->key), &key);
+        VR_AES_set_encrypt_key(v->key, 8 * sizeof(v->key), &key);
     else
-        AES_set_decrypt_key(v->key, 8 * sizeof(v->key), &key);
+        VR_AES_set_decrypt_key(v->key, 8 * sizeof(v->key), &key);
     memcpy(iv, v->iv, sizeof(iv));
-    AES_ige_encrypt(v->in, buf, v->length, &key, iv, v->encrypt);
+    VR_AES_ige_encrypt(v->in, buf, v->length, &key, iv, v->encrypt);
 
     if (!TEST_mem_eq(v->out, v->length, buf, v->length)) {
         TEST_info("IGE test vector %d failed", n);
@@ -170,7 +170,7 @@ static int test_ige_vectors(int n)
     /* try with in == out */
     memcpy(iv, v->iv, sizeof(iv));
     memcpy(buf, v->in, v->length);
-    AES_ige_encrypt(buf, buf, v->length, &key, iv, v->encrypt);
+    VR_AES_ige_encrypt(buf, buf, v->length, &key, iv, v->encrypt);
 
     if (!TEST_mem_eq(v->out, v->length, buf, v->length)) {
         TEST_info("IGE test vector %d failed (with in == out)", n);
@@ -194,14 +194,14 @@ static int test_bi_ige_vectors(int n)
             return 0;
 
     if (v->encrypt == AES_ENCRYPT) {
-        AES_set_encrypt_key(v->key1, 8 * v->keysize, &key1);
-        AES_set_encrypt_key(v->key2, 8 * v->keysize, &key2);
+        VR_AES_set_encrypt_key(v->key1, 8 * v->keysize, &key1);
+        VR_AES_set_encrypt_key(v->key2, 8 * v->keysize, &key2);
     } else {
-        AES_set_decrypt_key(v->key1, 8 * v->keysize, &key1);
-        AES_set_decrypt_key(v->key2, 8 * v->keysize, &key2);
+        VR_AES_set_decrypt_key(v->key1, 8 * v->keysize, &key1);
+        VR_AES_set_decrypt_key(v->key2, 8 * v->keysize, &key2);
     }
 
-    AES_bi_ige_encrypt(v->in, buf, v->length, &key1, &key2, v->iv,
+    VR_AES_bi_ige_encrypt(v->in, buf, v->length, &key1, &key2, v->iv,
                        v->encrypt);
 
     if (!TEST_mem_eq(v->out, v->length, buf, v->length)) {
@@ -223,12 +223,12 @@ static int test_ige_enc_dec(void)
     unsigned char checktext[BIG_TEST_SIZE];
 
     memcpy(iv, saved_iv, sizeof(iv));
-    AES_set_encrypt_key(rkey, 8 * sizeof(rkey), &key);
-    AES_ige_encrypt(plaintext, ciphertext, TEST_SIZE, &key, iv, AES_ENCRYPT);
+    VR_AES_set_encrypt_key(rkey, 8 * sizeof(rkey), &key);
+    VR_AES_ige_encrypt(plaintext, ciphertext, TEST_SIZE, &key, iv, AES_ENCRYPT);
 
-    AES_set_decrypt_key(rkey, 8 * sizeof(rkey), &key);
+    VR_AES_set_decrypt_key(rkey, 8 * sizeof(rkey), &key);
     memcpy(iv, saved_iv, sizeof(iv));
-    AES_ige_encrypt(ciphertext, checktext, TEST_SIZE, &key, iv, AES_DECRYPT);
+    VR_AES_ige_encrypt(ciphertext, checktext, TEST_SIZE, &key, iv, AES_DECRYPT);
 
     return TEST_mem_eq(checktext, TEST_SIZE, plaintext, TEST_SIZE);
 }
@@ -240,17 +240,17 @@ static int test_ige_enc_chaining(void)
     unsigned char ciphertext[BIG_TEST_SIZE];
     unsigned char checktext[BIG_TEST_SIZE];
 
-    AES_set_encrypt_key(rkey, 8 * sizeof(rkey), &key);
+    VR_AES_set_encrypt_key(rkey, 8 * sizeof(rkey), &key);
     memcpy(iv, saved_iv, sizeof(iv));
-    AES_ige_encrypt(plaintext, ciphertext, TEST_SIZE / 2, &key, iv,
+    VR_AES_ige_encrypt(plaintext, ciphertext, TEST_SIZE / 2, &key, iv,
                     AES_ENCRYPT);
-    AES_ige_encrypt(plaintext + TEST_SIZE / 2,
+    VR_AES_ige_encrypt(plaintext + TEST_SIZE / 2,
                     ciphertext + TEST_SIZE / 2, TEST_SIZE / 2,
                     &key, iv, AES_ENCRYPT);
 
-    AES_set_decrypt_key(rkey, 8 * sizeof(rkey), &key);
+    VR_AES_set_decrypt_key(rkey, 8 * sizeof(rkey), &key);
     memcpy(iv, saved_iv, sizeof(iv));
-    AES_ige_encrypt(ciphertext, checktext, TEST_SIZE, &key, iv, AES_DECRYPT);
+    VR_AES_ige_encrypt(ciphertext, checktext, TEST_SIZE, &key, iv, AES_DECRYPT);
 
     return TEST_mem_eq(checktext, TEST_SIZE, plaintext, TEST_SIZE);
 }
@@ -262,19 +262,19 @@ static int test_ige_dec_chaining(void)
     unsigned char ciphertext[BIG_TEST_SIZE];
     unsigned char checktext[BIG_TEST_SIZE];
 
-    AES_set_encrypt_key(rkey, 8 * sizeof(rkey), &key);
+    VR_AES_set_encrypt_key(rkey, 8 * sizeof(rkey), &key);
     memcpy(iv, saved_iv, sizeof(iv));
-    AES_ige_encrypt(plaintext, ciphertext, TEST_SIZE / 2, &key, iv,
+    VR_AES_ige_encrypt(plaintext, ciphertext, TEST_SIZE / 2, &key, iv,
                     AES_ENCRYPT);
-    AES_ige_encrypt(plaintext + TEST_SIZE / 2,
+    VR_AES_ige_encrypt(plaintext + TEST_SIZE / 2,
                     ciphertext + TEST_SIZE / 2, TEST_SIZE / 2,
                     &key, iv, AES_ENCRYPT);
 
-    AES_set_decrypt_key(rkey, 8 * sizeof(rkey), &key);
+    VR_AES_set_decrypt_key(rkey, 8 * sizeof(rkey), &key);
     memcpy(iv, saved_iv, sizeof(iv));
-    AES_ige_encrypt(ciphertext, checktext, TEST_SIZE / 2, &key, iv,
+    VR_AES_ige_encrypt(ciphertext, checktext, TEST_SIZE / 2, &key, iv,
                     AES_DECRYPT);
-    AES_ige_encrypt(ciphertext + TEST_SIZE / 2,
+    VR_AES_ige_encrypt(ciphertext + TEST_SIZE / 2,
                     checktext + TEST_SIZE / 2, TEST_SIZE / 2, &key, iv,
                     AES_DECRYPT);
 
@@ -292,16 +292,16 @@ static int test_ige_garble_forwards(void)
     const size_t ctsize = sizeof(checktext);
     size_t matches;
 
-    AES_set_encrypt_key(rkey, 8 * sizeof(rkey), &key);
+    VR_AES_set_encrypt_key(rkey, 8 * sizeof(rkey), &key);
     memcpy(iv, saved_iv, sizeof(iv));
-    AES_ige_encrypt(plaintext, ciphertext, sizeof(plaintext), &key, iv,
+    VR_AES_ige_encrypt(plaintext, ciphertext, sizeof(plaintext), &key, iv,
                     AES_ENCRYPT);
 
     /* corrupt halfway through */
     ++ciphertext[sizeof(ciphertext) / 2];
-    AES_set_decrypt_key(rkey, 8 * sizeof(rkey), &key);
+    VR_AES_set_decrypt_key(rkey, 8 * sizeof(rkey), &key);
     memcpy(iv, saved_iv, sizeof(iv));
-    AES_ige_encrypt(ciphertext, checktext, sizeof(checktext), &key, iv,
+    VR_AES_ige_encrypt(ciphertext, checktext, sizeof(checktext), &key, iv,
                     AES_DECRYPT);
 
     matches = 0;
@@ -327,14 +327,14 @@ static int test_bi_ige_enc_dec(void)
     unsigned char checktext[BIG_TEST_SIZE];
 
     memcpy(iv, saved_iv, sizeof(iv));
-    AES_set_encrypt_key(rkey, 8 * sizeof(rkey), &key);
-    AES_set_encrypt_key(rkey2, 8 * sizeof(rkey2), &key2);
-    AES_bi_ige_encrypt(plaintext, ciphertext, TEST_SIZE, &key, &key2, iv,
+    VR_AES_set_encrypt_key(rkey, 8 * sizeof(rkey), &key);
+    VR_AES_set_encrypt_key(rkey2, 8 * sizeof(rkey2), &key2);
+    VR_AES_bi_ige_encrypt(plaintext, ciphertext, TEST_SIZE, &key, &key2, iv,
                        AES_ENCRYPT);
 
-    AES_set_decrypt_key(rkey, 8 * sizeof(rkey), &key);
-    AES_set_decrypt_key(rkey2, 8 * sizeof(rkey2), &key2);
-    AES_bi_ige_encrypt(ciphertext, checktext, TEST_SIZE, &key, &key2, iv,
+    VR_AES_set_decrypt_key(rkey, 8 * sizeof(rkey), &key);
+    VR_AES_set_decrypt_key(rkey2, 8 * sizeof(rkey2), &key2);
+    VR_AES_bi_ige_encrypt(ciphertext, checktext, TEST_SIZE, &key, &key2, iv,
                        AES_DECRYPT);
 
     return TEST_mem_eq(checktext, TEST_SIZE, plaintext, TEST_SIZE);
@@ -350,16 +350,16 @@ static int test_bi_ige_garble1(void)
     size_t matches;
 
     memcpy(iv, saved_iv, sizeof(iv));
-    AES_set_encrypt_key(rkey, 8 * sizeof(rkey), &key);
-    AES_set_encrypt_key(rkey2, 8 * sizeof(rkey2), &key2);
-    AES_ige_encrypt(plaintext, ciphertext, sizeof(plaintext), &key, iv,
+    VR_AES_set_encrypt_key(rkey, 8 * sizeof(rkey), &key);
+    VR_AES_set_encrypt_key(rkey2, 8 * sizeof(rkey2), &key2);
+    VR_AES_ige_encrypt(plaintext, ciphertext, sizeof(plaintext), &key, iv,
                     AES_ENCRYPT);
 
     /* corrupt halfway through */
     ++ciphertext[sizeof(ciphertext) / 2];
-    AES_set_decrypt_key(rkey, 8 * sizeof(rkey), &key);
-    AES_set_decrypt_key(rkey2, 8 * sizeof(rkey2), &key2);
-    AES_ige_encrypt(ciphertext, checktext, sizeof(checktext), &key, iv,
+    VR_AES_set_decrypt_key(rkey, 8 * sizeof(rkey), &key);
+    VR_AES_set_decrypt_key(rkey2, 8 * sizeof(rkey2), &key2);
+    VR_AES_ige_encrypt(ciphertext, checktext, sizeof(checktext), &key, iv,
                     AES_DECRYPT);
 
     matches = 0;
@@ -381,16 +381,16 @@ static int test_bi_ige_garble2(void)
     size_t matches;
 
     memcpy(iv, saved_iv, sizeof(iv));
-    AES_set_encrypt_key(rkey, 8 * sizeof(rkey), &key);
-    AES_set_encrypt_key(rkey2, 8 * sizeof(rkey2), &key2);
-    AES_ige_encrypt(plaintext, ciphertext, sizeof(plaintext), &key, iv,
+    VR_AES_set_encrypt_key(rkey, 8 * sizeof(rkey), &key);
+    VR_AES_set_encrypt_key(rkey2, 8 * sizeof(rkey2), &key2);
+    VR_AES_ige_encrypt(plaintext, ciphertext, sizeof(plaintext), &key, iv,
                     AES_ENCRYPT);
 
     /* corrupt right at the end */
     ++ciphertext[sizeof(ciphertext) - 1];
-    AES_set_decrypt_key(rkey, 8 * sizeof(rkey), &key);
-    AES_set_decrypt_key(rkey2, 8 * sizeof(rkey2), &key2);
-    AES_ige_encrypt(ciphertext, checktext, sizeof(checktext), &key, iv,
+    VR_AES_set_decrypt_key(rkey, 8 * sizeof(rkey), &key);
+    VR_AES_set_decrypt_key(rkey2, 8 * sizeof(rkey2), &key2);
+    VR_AES_ige_encrypt(ciphertext, checktext, sizeof(checktext), &key, iv,
                     AES_DECRYPT);
 
     matches = 0;
@@ -412,16 +412,16 @@ static int test_bi_ige_garble3(void)
     size_t matches;
 
     memcpy(iv, saved_iv, sizeof(iv));
-    AES_set_encrypt_key(rkey, 8 * sizeof(rkey), &key);
-    AES_set_encrypt_key(rkey2, 8 * sizeof(rkey2), &key2);
-    AES_ige_encrypt(plaintext, ciphertext, sizeof(plaintext), &key, iv,
+    VR_AES_set_encrypt_key(rkey, 8 * sizeof(rkey), &key);
+    VR_AES_set_encrypt_key(rkey2, 8 * sizeof(rkey2), &key2);
+    VR_AES_ige_encrypt(plaintext, ciphertext, sizeof(plaintext), &key, iv,
                     AES_ENCRYPT);
 
     /* corrupt right at the start */
     ++ciphertext[0];
-    AES_set_decrypt_key(rkey, 8 * sizeof(rkey), &key);
-    AES_set_decrypt_key(rkey2, 8 * sizeof(rkey2), &key2);
-    AES_ige_encrypt(ciphertext, checktext, sizeof(checktext), &key, iv,
+    VR_AES_set_decrypt_key(rkey, 8 * sizeof(rkey), &key);
+    VR_AES_set_decrypt_key(rkey2, 8 * sizeof(rkey2), &key2);
+    VR_AES_ige_encrypt(ciphertext, checktext, sizeof(checktext), &key, iv,
                     AES_DECRYPT);
 
     matches = 0;
@@ -435,10 +435,10 @@ static int test_bi_ige_garble3(void)
 
 int setup_tests(void)
 {
-    RAND_bytes(rkey, sizeof(rkey));
-    RAND_bytes(rkey2, sizeof(rkey2));
-    RAND_bytes(plaintext, sizeof(plaintext));
-    RAND_bytes(saved_iv, sizeof(saved_iv));
+    VR_RAND_bytes(rkey, sizeof(rkey));
+    VR_RAND_bytes(rkey2, sizeof(rkey2));
+    VR_RAND_bytes(plaintext, sizeof(plaintext));
+    VR_RAND_bytes(saved_iv, sizeof(saved_iv));
 
     ADD_TEST(test_ige_enc_dec);
     ADD_TEST(test_ige_enc_chaining);

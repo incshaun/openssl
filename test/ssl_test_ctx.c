@@ -47,7 +47,7 @@ static int parse_boolean(const char *value, int *result)
 #define IMPLEMENT_SSL_TEST_STRING_OPTION(struct_type, name, field)      \
     static int parse_##name##_##field(struct_type *ctx, const char *value) \
     {                                                                   \
-        OPENSSL_free(ctx->field);                                       \
+        OPENVR_SSL_free(ctx->field);                                       \
         ctx->field = OPENSSL_strdup(value);                             \
         return TEST_ptr(ctx->field);                                    \
     }
@@ -522,16 +522,16 @@ __owur static int parse_expected_key_type(int *ptype, const char *value)
 
     if (value == NULL)
         return 0;
-    ameth = EVP_PKEY_asn1_find_str(NULL, value, -1);
+    ameth = VR_EVP_PKEY_asn1_find_str(NULL, value, -1);
     if (ameth != NULL)
-        EVP_PKEY_asn1_get0_info(&nid, NULL, NULL, NULL, NULL, ameth);
+        VR_EVP_PKEY_asn1_get0_info(&nid, NULL, NULL, NULL, NULL, ameth);
     else
-        nid = OBJ_sn2nid(value);
+        nid = VR_OBJ_sn2nid(value);
     if (nid == NID_undef)
-        nid = OBJ_ln2nid(value);
+        nid = VR_OBJ_ln2nid(value);
 #ifndef OPENSSL_NO_EC
     if (nid == NID_undef)
-        nid = EC_curve_nist2nid(value);
+        nid = VR_EC_curve_nist2nid(value);
 #endif
     if (nid == NID_undef)
         return 0;
@@ -582,9 +582,9 @@ __owur static int parse_expected_sign_hash(int *ptype, const char *value)
 
     if (value == NULL)
         return 0;
-    nid = OBJ_sn2nid(value);
+    nid = VR_OBJ_sn2nid(value);
     if (nid == NID_undef)
-        nid = OBJ_ln2nid(value);
+        nid = VR_OBJ_ln2nid(value);
     if (nid == NID_undef)
         return 0;
     *ptype = nid;
@@ -611,9 +611,9 @@ __owur static int parse_expected_ca_names(STACK_OF(X509_NAME) **pnames,
     if (value == NULL)
         return 0;
     if (!strcmp(value, "empty"))
-        *pnames = sk_X509_NAME_new_null();
+        *pnames = sk_VR_X509_NAME_new_null();
     else
-        *pnames = SSL_load_client_CA_file(value);
+        *pnames = VR_SSL_load_client_CA_file(value);
     return *pnames != NULL;
 }
 __owur static int parse_expected_server_ca_names(SSL_TEST_CTX *test_ctx,
@@ -728,21 +728,21 @@ SSL_TEST_CTX *SSL_TEST_CTX_new(void)
 
 static void ssl_test_extra_conf_free_data(SSL_TEST_EXTRA_CONF *conf)
 {
-    OPENSSL_free(conf->client.npn_protocols);
-    OPENSSL_free(conf->server.npn_protocols);
-    OPENSSL_free(conf->server2.npn_protocols);
-    OPENSSL_free(conf->client.alpn_protocols);
-    OPENSSL_free(conf->server.alpn_protocols);
-    OPENSSL_free(conf->server2.alpn_protocols);
-    OPENSSL_free(conf->client.reneg_ciphers);
-    OPENSSL_free(conf->server.srp_user);
-    OPENSSL_free(conf->server.srp_password);
-    OPENSSL_free(conf->server2.srp_user);
-    OPENSSL_free(conf->server2.srp_password);
-    OPENSSL_free(conf->client.srp_user);
-    OPENSSL_free(conf->client.srp_password);
-    OPENSSL_free(conf->server.session_ticket_app_data);
-    OPENSSL_free(conf->server2.session_ticket_app_data);
+    OPENVR_SSL_free(conf->client.npn_protocols);
+    OPENVR_SSL_free(conf->server.npn_protocols);
+    OPENVR_SSL_free(conf->server2.npn_protocols);
+    OPENVR_SSL_free(conf->client.alpn_protocols);
+    OPENVR_SSL_free(conf->server.alpn_protocols);
+    OPENVR_SSL_free(conf->server2.alpn_protocols);
+    OPENVR_SSL_free(conf->client.reneg_ciphers);
+    OPENVR_SSL_free(conf->server.srp_user);
+    OPENVR_SSL_free(conf->server.srp_password);
+    OPENVR_SSL_free(conf->server2.srp_user);
+    OPENVR_SSL_free(conf->server2.srp_password);
+    OPENVR_SSL_free(conf->client.srp_user);
+    OPENVR_SSL_free(conf->client.srp_password);
+    OPENVR_SSL_free(conf->server.session_ticket_app_data);
+    OPENVR_SSL_free(conf->server2.session_ticket_app_data);
 }
 
 static void ssl_test_ctx_free_extra_data(SSL_TEST_CTX *ctx)
@@ -754,13 +754,13 @@ static void ssl_test_ctx_free_extra_data(SSL_TEST_CTX *ctx)
 void SSL_TEST_CTX_free(SSL_TEST_CTX *ctx)
 {
     ssl_test_ctx_free_extra_data(ctx);
-    OPENSSL_free(ctx->expected_npn_protocol);
-    OPENSSL_free(ctx->expected_alpn_protocol);
-    OPENSSL_free(ctx->expected_session_ticket_app_data);
-    sk_X509_NAME_pop_free(ctx->expected_server_ca_names, X509_NAME_free);
-    sk_X509_NAME_pop_free(ctx->expected_client_ca_names, X509_NAME_free);
-    OPENSSL_free(ctx->expected_cipher);
-    OPENSSL_free(ctx);
+    OPENVR_SSL_free(ctx->expected_npn_protocol);
+    OPENVR_SSL_free(ctx->expected_alpn_protocol);
+    OPENVR_SSL_free(ctx->expected_session_ticket_app_data);
+    sk_VR_X509_NAME_pop_free(ctx->expected_server_ca_names, VR_X509_NAME_free);
+    sk_VR_X509_NAME_pop_free(ctx->expected_client_ca_names, VR_X509_NAME_free);
+    OPENVR_SSL_free(ctx->expected_cipher);
+    OPENVR_SSL_free(ctx);
 }
 
 static int parse_client_options(SSL_TEST_CLIENT_CONF *client, const CONF *conf,
@@ -770,7 +770,7 @@ static int parse_client_options(SSL_TEST_CLIENT_CONF *client, const CONF *conf,
     int i;
     size_t j;
 
-    if (!TEST_ptr(sk_conf = NCONF_get_section(conf, client_section)))
+    if (!TEST_ptr(sk_conf = VR_NCONF_get_section(conf, client_section)))
         return 0;
 
     for (i = 0; i < sk_CONF_VALUE_num(sk_conf); i++) {
@@ -803,7 +803,7 @@ static int parse_server_options(SSL_TEST_SERVER_CONF *server, const CONF *conf,
     int i;
     size_t j;
 
-    if (!TEST_ptr(sk_conf = NCONF_get_section(conf, server_section)))
+    if (!TEST_ptr(sk_conf = VR_NCONF_get_section(conf, server_section)))
         return 0;
 
     for (i = 0; i < sk_CONF_VALUE_num(sk_conf); i++) {
@@ -836,7 +836,7 @@ SSL_TEST_CTX *SSL_TEST_CTX_create(const CONF *conf, const char *test_section)
     int i;
     size_t j;
 
-    if (!TEST_ptr(sk_conf = NCONF_get_section(conf, test_section))
+    if (!TEST_ptr(sk_conf = VR_NCONF_get_section(conf, test_section))
             || !TEST_ptr(ctx = SSL_TEST_CTX_new()))
         goto err;
 

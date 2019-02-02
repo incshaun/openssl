@@ -134,7 +134,7 @@ int smime_main(int argc, char **argv)
     ENGINE *e = NULL;
     const char *mime_eol = "\n";
 
-    if ((vpm = X509_VERIFY_PARAM_new()) == NULL)
+    if ((vpm = VR_X509_VERIFY_PARAM_new()) == NULL)
         return 1;
 
     prog = opt_init(argc, argv, smime_options);
@@ -143,7 +143,7 @@ int smime_main(int argc, char **argv)
         case OPT_EOF:
         case OPT_ERR:
  opthelp:
-            BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
+            VR_BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
             opt_help(smime_options);
@@ -245,15 +245,15 @@ int smime_main(int argc, char **argv)
             /* If previous -signer argument add signer to list */
             if (signerfile != NULL) {
                 if (sksigners == NULL
-                    && (sksigners = sk_OPENSSL_STRING_new_null()) == NULL)
+                    && (sksigners = sk_VR_OPENSSL_STRING_new_null()) == NULL)
                     goto end;
-                sk_OPENSSL_STRING_push(sksigners, signerfile);
+                sk_VR_OPENSSL_STRING_push(sksigners, signerfile);
                 if (keyfile == NULL)
                     keyfile = signerfile;
                 if (skkeys == NULL
-                    && (skkeys = sk_OPENSSL_STRING_new_null()) == NULL)
+                    && (skkeys = sk_VR_OPENSSL_STRING_new_null()) == NULL)
                     goto end;
-                sk_OPENSSL_STRING_push(skkeys, keyfile);
+                sk_VR_OPENSSL_STRING_push(skkeys, keyfile);
                 keyfile = NULL;
             }
             signerfile = opt_arg();
@@ -273,19 +273,19 @@ int smime_main(int argc, char **argv)
             /* If previous -inkey argument add signer to list */
             if (keyfile != NULL) {
                 if (signerfile == NULL) {
-                    BIO_printf(bio_err,
+                    VR_BIO_printf(bio_err,
                                "%s: Must have -signer before -inkey\n", prog);
                     goto opthelp;
                 }
                 if (sksigners == NULL
-                    && (sksigners = sk_OPENSSL_STRING_new_null()) == NULL)
+                    && (sksigners = sk_VR_OPENSSL_STRING_new_null()) == NULL)
                     goto end;
-                sk_OPENSSL_STRING_push(sksigners, signerfile);
+                sk_VR_OPENSSL_STRING_push(sksigners, signerfile);
                 signerfile = NULL;
                 if (skkeys == NULL
-                    && (skkeys = sk_OPENSSL_STRING_new_null()) == NULL)
+                    && (skkeys = sk_VR_OPENSSL_STRING_new_null()) == NULL)
                     goto end;
-                sk_OPENSSL_STRING_push(skkeys, keyfile);
+                sk_VR_OPENSSL_STRING_push(skkeys, keyfile);
             }
             keyfile = opt_arg();
             break;
@@ -322,42 +322,42 @@ int smime_main(int argc, char **argv)
     argv = opt_rest();
 
     if (!(operation & SMIME_SIGNERS) && (skkeys != NULL || sksigners != NULL)) {
-        BIO_puts(bio_err, "Multiple signers or keys not allowed\n");
+        VR_BIO_puts(bio_err, "Multiple signers or keys not allowed\n");
         goto opthelp;
     }
 
     if (operation & SMIME_SIGNERS) {
         /* Check to see if any final signer needs to be appended */
         if (keyfile && !signerfile) {
-            BIO_puts(bio_err, "Illegal -inkey without -signer\n");
+            VR_BIO_puts(bio_err, "Illegal -inkey without -signer\n");
             goto opthelp;
         }
         if (signerfile != NULL) {
             if (sksigners == NULL
-                && (sksigners = sk_OPENSSL_STRING_new_null()) == NULL)
+                && (sksigners = sk_VR_OPENSSL_STRING_new_null()) == NULL)
                 goto end;
-            sk_OPENSSL_STRING_push(sksigners, signerfile);
-            if (!skkeys && (skkeys = sk_OPENSSL_STRING_new_null()) == NULL)
+            sk_VR_OPENSSL_STRING_push(sksigners, signerfile);
+            if (!skkeys && (skkeys = sk_VR_OPENSSL_STRING_new_null()) == NULL)
                 goto end;
             if (!keyfile)
                 keyfile = signerfile;
-            sk_OPENSSL_STRING_push(skkeys, keyfile);
+            sk_VR_OPENSSL_STRING_push(skkeys, keyfile);
         }
         if (sksigners == NULL) {
-            BIO_printf(bio_err, "No signer certificate specified\n");
+            VR_BIO_printf(bio_err, "No signer certificate specified\n");
             goto opthelp;
         }
         signerfile = NULL;
         keyfile = NULL;
     } else if (operation == SMIME_DECRYPT) {
         if (recipfile == NULL && keyfile == NULL) {
-            BIO_printf(bio_err,
+            VR_BIO_printf(bio_err,
                        "No recipient certificate or key specified\n");
             goto opthelp;
         }
     } else if (operation == SMIME_ENCRYPT) {
         if (argc == 0) {
-            BIO_printf(bio_err, "No recipient(s) certificate(s) specified\n");
+            VR_BIO_printf(bio_err, "No recipient(s) certificate(s) specified\n");
             goto opthelp;
         }
     } else if (!operation) {
@@ -365,7 +365,7 @@ int smime_main(int argc, char **argv)
     }
 
     if (!app_passwd(passinarg, NULL, &passin, NULL)) {
-        BIO_printf(bio_err, "Error getting password\n");
+        VR_BIO_printf(bio_err, "Error getting password\n");
         goto end;
     }
 
@@ -387,13 +387,13 @@ int smime_main(int argc, char **argv)
     if (operation == SMIME_ENCRYPT) {
         if (cipher == NULL) {
 #ifndef OPENSSL_NO_DES
-            cipher = EVP_des_ede3_cbc();
+            cipher = VR_EVP_des_ede3_cbc();
 #else
-            BIO_printf(bio_err, "No cipher selected\n");
+            VR_BIO_printf(bio_err, "No cipher selected\n");
             goto end;
 #endif
         }
-        encerts = sk_X509_new_null();
+        encerts = sk_VR_X509_new_null();
         if (encerts == NULL)
             goto end;
         while (*argv != NULL) {
@@ -401,7 +401,7 @@ int smime_main(int argc, char **argv)
                              "recipient certificate file");
             if (cert == NULL)
                 goto end;
-            sk_X509_push(encerts, cert);
+            sk_VR_X509_push(encerts, cert);
             cert = NULL;
             argv++;
         }
@@ -410,7 +410,7 @@ int smime_main(int argc, char **argv)
     if (certfile != NULL) {
         if (!load_certs(certfile, &other, FORMAT_PEM, NULL,
                         "certificate file")) {
-            ERR_print_errors(bio_err);
+            VR_ERR_print_errors(bio_err);
             goto end;
         }
     }
@@ -418,7 +418,7 @@ int smime_main(int argc, char **argv)
     if (recipfile != NULL && (operation == SMIME_DECRYPT)) {
         if ((recip = load_cert(recipfile, FORMAT_PEM,
                                "recipient certificate file")) == NULL) {
-            ERR_print_errors(bio_err);
+            VR_ERR_print_errors(bio_err);
             goto end;
         }
     }
@@ -445,24 +445,24 @@ int smime_main(int argc, char **argv)
 
     if (operation & SMIME_IP) {
         if (informat == FORMAT_SMIME) {
-            p7 = SMIME_read_PKCS7(in, &indata);
+            p7 = VR_SMIME_read_PKCS7(in, &indata);
         } else if (informat == FORMAT_PEM) {
-            p7 = PEM_read_bio_PKCS7(in, NULL, NULL, NULL);
+            p7 = VR_PEM_read_bio_PKCS7(in, NULL, NULL, NULL);
         } else if (informat == FORMAT_ASN1) {
-            p7 = d2i_PKCS7_bio(in, NULL);
+            p7 = VR_d2i_PKCS7_bio(in, NULL);
         } else {
-            BIO_printf(bio_err, "Bad input format for PKCS#7 file\n");
+            VR_BIO_printf(bio_err, "Bad input format for PKCS#7 file\n");
             goto end;
         }
 
         if (p7 == NULL) {
-            BIO_printf(bio_err, "Error reading S/MIME message\n");
+            VR_BIO_printf(bio_err, "Error reading S/MIME message\n");
             goto end;
         }
         if (contfile != NULL) {
-            BIO_free(indata);
-            if ((indata = BIO_new_file(contfile, "rb")) == NULL) {
-                BIO_printf(bio_err, "Can't read content file %s\n", contfile);
+            VR_BIO_free(indata);
+            if ((indata = VR_BIO_new_file(contfile, "rb")) == NULL) {
+                VR_BIO_printf(bio_err, "Can't read content file %s\n", contfile);
                 goto end;
             }
         }
@@ -475,9 +475,9 @@ int smime_main(int argc, char **argv)
     if (operation == SMIME_VERIFY) {
         if ((store = setup_verify(CAfile, CApath, noCAfile, noCApath)) == NULL)
             goto end;
-        X509_STORE_set_verify_cb(store, smime_cb);
+        VR_X509_STORE_set_verify_cb(store, smime_cb);
         if (vpmtouched)
-            X509_STORE_set1_param(store, vpm);
+            VR_X509_STORE_set1_param(store, vpm);
     }
 
     ret = 3;
@@ -485,7 +485,7 @@ int smime_main(int argc, char **argv)
     if (operation == SMIME_ENCRYPT) {
         if (indef)
             flags |= PKCS7_STREAM;
-        p7 = PKCS7_encrypt(encerts, in, cipher, flags);
+        p7 = VR_PKCS7_encrypt(encerts, in, cipher, flags);
     } else if (operation & SMIME_SIGNERS) {
         int i;
         /*
@@ -500,13 +500,13 @@ int smime_main(int argc, char **argv)
                 flags |= PKCS7_STREAM;
             }
             flags |= PKCS7_PARTIAL;
-            p7 = PKCS7_sign(NULL, NULL, other, in, flags);
+            p7 = VR_PKCS7_sign(NULL, NULL, other, in, flags);
             if (p7 == NULL)
                 goto end;
             if (flags & PKCS7_NOCERTS) {
                 for (i = 0; i < sk_X509_num(other); i++) {
                     X509 *x = sk_X509_value(other, i);
-                    PKCS7_add_certificate(p7, x);
+                    VR_PKCS7_add_certificate(p7, x);
                 }
             }
         } else {
@@ -522,70 +522,70 @@ int smime_main(int argc, char **argv)
             key = load_key(keyfile, keyform, 0, passin, e, "signing key file");
             if (key == NULL)
                 goto end;
-            if (!PKCS7_sign_add_signer(p7, signer, key, sign_md, flags))
+            if (!VR_PKCS7_sign_add_signer(p7, signer, key, sign_md, flags))
                 goto end;
-            X509_free(signer);
+            VR_X509_free(signer);
             signer = NULL;
-            EVP_PKEY_free(key);
+            VR_EVP_PKEY_free(key);
             key = NULL;
         }
         /* If not streaming or resigning finalize structure */
         if ((operation == SMIME_SIGN) && !(flags & PKCS7_STREAM)) {
-            if (!PKCS7_final(p7, in, flags))
+            if (!VR_PKCS7_final(p7, in, flags))
                 goto end;
         }
     }
 
     if (p7 == NULL) {
-        BIO_printf(bio_err, "Error creating PKCS#7 structure\n");
+        VR_BIO_printf(bio_err, "Error creating PKCS#7 structure\n");
         goto end;
     }
 
     ret = 4;
     if (operation == SMIME_DECRYPT) {
-        if (!PKCS7_decrypt(p7, key, recip, out, flags)) {
-            BIO_printf(bio_err, "Error decrypting PKCS#7 structure\n");
+        if (!VR_PKCS7_decrypt(p7, key, recip, out, flags)) {
+            VR_BIO_printf(bio_err, "Error decrypting PKCS#7 structure\n");
             goto end;
         }
     } else if (operation == SMIME_VERIFY) {
         STACK_OF(X509) *signers;
-        if (PKCS7_verify(p7, other, store, indata, out, flags))
-            BIO_printf(bio_err, "Verification successful\n");
+        if (VR_PKCS7_verify(p7, other, store, indata, out, flags))
+            VR_BIO_printf(bio_err, "Verification successful\n");
         else {
-            BIO_printf(bio_err, "Verification failure\n");
+            VR_BIO_printf(bio_err, "Verification failure\n");
             goto end;
         }
-        signers = PKCS7_get0_signers(p7, other, flags);
+        signers = VR_PKCS7_get0_signers(p7, other, flags);
         if (!save_certs(signerfile, signers)) {
-            BIO_printf(bio_err, "Error writing signers to %s\n", signerfile);
+            VR_BIO_printf(bio_err, "Error writing signers to %s\n", signerfile);
             ret = 5;
             goto end;
         }
-        sk_X509_free(signers);
+        sk_VR_X509_free(signers);
     } else if (operation == SMIME_PK7OUT) {
-        PEM_write_bio_PKCS7(out, p7);
+        VR_PEM_write_bio_PKCS7(out, p7);
     } else {
         if (to)
-            BIO_printf(out, "To: %s%s", to, mime_eol);
+            VR_BIO_printf(out, "To: %s%s", to, mime_eol);
         if (from)
-            BIO_printf(out, "From: %s%s", from, mime_eol);
+            VR_BIO_printf(out, "From: %s%s", from, mime_eol);
         if (subject)
-            BIO_printf(out, "Subject: %s%s", subject, mime_eol);
+            VR_BIO_printf(out, "Subject: %s%s", subject, mime_eol);
         if (outformat == FORMAT_SMIME) {
             if (operation == SMIME_RESIGN)
-                rv = SMIME_write_PKCS7(out, p7, indata, flags);
+                rv = VR_SMIME_write_PKCS7(out, p7, indata, flags);
             else
-                rv = SMIME_write_PKCS7(out, p7, in, flags);
+                rv = VR_SMIME_write_PKCS7(out, p7, in, flags);
         } else if (outformat == FORMAT_PEM) {
-            rv = PEM_write_bio_PKCS7_stream(out, p7, in, flags);
+            rv = VR_PEM_write_bio_PKCS7_stream(out, p7, in, flags);
         } else if (outformat == FORMAT_ASN1) {
-            rv = i2d_PKCS7_bio_stream(out, p7, in, flags);
+            rv = VR_i2d_PKCS7_bio_stream(out, p7, in, flags);
         } else {
-            BIO_printf(bio_err, "Bad output format for PKCS#7 file\n");
+            VR_BIO_printf(bio_err, "Bad output format for PKCS#7 file\n");
             goto end;
         }
         if (rv == 0) {
-            BIO_printf(bio_err, "Error writing output\n");
+            VR_BIO_printf(bio_err, "Error writing output\n");
             ret = 3;
             goto end;
         }
@@ -593,23 +593,23 @@ int smime_main(int argc, char **argv)
     ret = 0;
  end:
     if (ret)
-        ERR_print_errors(bio_err);
-    sk_X509_pop_free(encerts, X509_free);
-    sk_X509_pop_free(other, X509_free);
-    X509_VERIFY_PARAM_free(vpm);
-    sk_OPENSSL_STRING_free(sksigners);
-    sk_OPENSSL_STRING_free(skkeys);
-    X509_STORE_free(store);
-    X509_free(cert);
-    X509_free(recip);
-    X509_free(signer);
-    EVP_PKEY_free(key);
-    PKCS7_free(p7);
+        VR_ERR_print_errors(bio_err);
+    sk_VR_X509_pop_free(encerts, VR_X509_free);
+    sk_VR_X509_pop_free(other, VR_X509_free);
+    VR_X509_VERIFY_PARAM_free(vpm);
+    sk_VR_OPENSSL_STRING_free(sksigners);
+    sk_VR_OPENSSL_STRING_free(skkeys);
+    VR_X509_STORE_free(store);
+    VR_X509_free(cert);
+    VR_X509_free(recip);
+    VR_X509_free(signer);
+    VR_EVP_PKEY_free(key);
+    VR_PKCS7_free(p7);
     release_engine(e);
-    BIO_free(in);
-    BIO_free(indata);
-    BIO_free_all(out);
-    OPENSSL_free(passin);
+    VR_BIO_free(in);
+    VR_BIO_free(indata);
+    VR_BIO_free_all(out);
+    OPENVR_SSL_free(passin);
     return ret;
 }
 
@@ -620,12 +620,12 @@ static int save_certs(char *signerfile, STACK_OF(X509) *signers)
 
     if (signerfile == NULL)
         return 1;
-    tmp = BIO_new_file(signerfile, "w");
+    tmp = VR_BIO_new_file(signerfile, "w");
     if (tmp == NULL)
         return 0;
     for (i = 0; i < sk_X509_num(signers); i++)
-        PEM_write_bio_X509(tmp, sk_X509_value(signers, i));
-    BIO_free(tmp);
+        VR_PEM_write_bio_X509(tmp, sk_X509_value(signers, i));
+    VR_BIO_free(tmp);
     return 1;
 }
 
@@ -635,7 +635,7 @@ static int smime_cb(int ok, X509_STORE_CTX *ctx)
 {
     int error;
 
-    error = X509_STORE_CTX_get_error(ctx);
+    error = VR_X509_STORE_CTX_get_error(ctx);
 
     if ((error != X509_V_ERR_NO_EXPLICIT_POLICY)
         && ((error != X509_V_OK) || (ok != 2)))

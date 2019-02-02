@@ -21,7 +21,7 @@
 # September 2011.
 #
 # Port vpaes-x86_64.pl as 32-bit "almost" drop-in replacement for
-# aes-586.pl. "Almost" refers to the fact that AES_cbc_encrypt
+# aes-586.pl. "Almost" refers to the fact that VR_AES_cbc_encrypt
 # doesn't handle partial vectors (doesn't have to if called from
 # EVP only). "Drop-in" implies that this module doesn't share key
 # schedule structure with the original nor does it make assumption
@@ -189,7 +189,7 @@ $k_dsbo=0x2c0;		# decryption sbox final output
 ##  Clobbers  %xmm1-%xmm5, %eax, %ebx, %ecx, %edx
 ##
 ##
-&function_begin_B("_vpaes_encrypt_core");
+&function_begin_B("_VR_vpaes_encrypt_core");
 	&mov	($magic,16);
 	&mov	($round,&DWP(240,$key));
 	&movdqa	("xmm1","xmm6")
@@ -269,14 +269,14 @@ $k_dsbo=0x2c0;		# decryption sbox final output
 	&pxor	("xmm0","xmm4");		# 0 = A
 	&pshufb	("xmm0","xmm1");
 	&ret	();
-&function_end_B("_vpaes_encrypt_core");
+&function_end_B("_VR_vpaes_encrypt_core");
 
 ##
 ##  Decryption core
 ##
 ##  Same API as encryption core.
 ##
-&function_begin_B("_vpaes_decrypt_core");
+&function_begin_B("_VR_vpaes_decrypt_core");
 	&lea	($base,&DWP($k_dsbd,$const));
 	&mov	($round,&DWP(240,$key));
 	&movdqa	("xmm1","xmm6");
@@ -371,7 +371,7 @@ $k_dsbo=0x2c0;		# decryption sbox final output
 	&pxor	("xmm0","xmm4");		# 0 = A
 	&pshufb	("xmm0","xmm2");
 	&ret	();
-&function_end_B("_vpaes_decrypt_core");
+&function_end_B("_VR_vpaes_decrypt_core");
 
 ########################################################
 ##                                                    ##
@@ -824,7 +824,7 @@ $k_dsbo=0x2c0;		# decryption sbox final output
 	&mov	(&DWP(48,"esp"),$base);
 
 	&movdqu	("xmm0",&QWP(0,$inp));
-	&call	("_vpaes_encrypt_core");
+	&call	("_VR_vpaes_encrypt_core");
 	&movdqu	(&QWP(0,$out),"xmm0");
 
 	&mov	("esp",&DWP(48,"esp"));
@@ -843,7 +843,7 @@ $k_dsbo=0x2c0;		# decryption sbox final output
 	&mov	(&DWP(48,"esp"),$base);
 
 	&movdqu	("xmm0",&QWP(0,$inp));
-	&call	("_vpaes_decrypt_core");
+	&call	("_VR_vpaes_decrypt_core");
 	&movdqu	(&QWP(0,$out),"xmm0");
 
 	&mov	("esp",&DWP(48,"esp"));
@@ -880,7 +880,7 @@ $k_dsbo=0x2c0;		# decryption sbox final output
 &set_label("cbc_enc_loop",16);
 	&movdqu	("xmm0",&QWP(0,$inp));		# load input
 	&pxor	("xmm0","xmm1");		# inp^=iv
-	&call	("_vpaes_encrypt_core");
+	&call	("_VR_vpaes_encrypt_core");
 	&mov	($base,&DWP(0,"esp"));		# restore out
 	&mov	($key,&DWP(4,"esp"));		# restore key
 	&movdqa	("xmm1","xmm0");
@@ -894,7 +894,7 @@ $k_dsbo=0x2c0;		# decryption sbox final output
 	&movdqu	("xmm0",&QWP(0,$inp));		# load input
 	&movdqa	(&QWP(16,"esp"),"xmm1");	# save IV
 	&movdqa	(&QWP(32,"esp"),"xmm0");	# save future IV
-	&call	("_vpaes_decrypt_core");
+	&call	("_VR_vpaes_decrypt_core");
 	&mov	($base,&DWP(0,"esp"));		# restore out
 	&mov	($key,&DWP(4,"esp"));		# restore key
 	&pxor	("xmm0",&QWP(16,"esp"));	# out^=iv

@@ -15,7 +15,7 @@
 
 #if defined(OPENSSL_THREADS) && !defined(CRYPTO_TDEBUG) && defined(OPENSSL_SYS_WINDOWS)
 
-CRYPTO_RWLOCK *CRYPTO_THREAD_lock_new(void)
+CRYPTO_RWLOCK *VR_CRYPTO_THREAD_lock_new(void)
 {
     CRYPTO_RWLOCK *lock;
 
@@ -26,38 +26,38 @@ CRYPTO_RWLOCK *CRYPTO_THREAD_lock_new(void)
 
     /* 0x400 is the spin count value suggested in the documentation */
     if (!InitializeCriticalSectionAndSpinCount(lock, 0x400)) {
-        OPENSSL_free(lock);
+        OPENVR_SSL_free(lock);
         return NULL;
     }
 
     return lock;
 }
 
-int CRYPTO_THREAD_read_lock(CRYPTO_RWLOCK *lock)
+int VR_CRYPTO_THREAD_read_lock(CRYPTO_RWLOCK *lock)
 {
     EnterCriticalSection(lock);
     return 1;
 }
 
-int CRYPTO_THREAD_write_lock(CRYPTO_RWLOCK *lock)
+int VR_CRYPTO_THREAD_write_lock(CRYPTO_RWLOCK *lock)
 {
     EnterCriticalSection(lock);
     return 1;
 }
 
-int CRYPTO_THREAD_unlock(CRYPTO_RWLOCK *lock)
+int VR_CRYPTO_THREAD_unlock(CRYPTO_RWLOCK *lock)
 {
     LeaveCriticalSection(lock);
     return 1;
 }
 
-void CRYPTO_THREAD_lock_free(CRYPTO_RWLOCK *lock)
+void VR_CRYPTO_THREAD_lock_free(CRYPTO_RWLOCK *lock)
 {
     if (lock == NULL)
         return;
 
     DeleteCriticalSection(lock);
-    OPENSSL_free(lock);
+    OPENVR_SSL_free(lock);
 
     return;
 }
@@ -70,7 +70,7 @@ void CRYPTO_THREAD_lock_free(CRYPTO_RWLOCK *lock)
  * We don't use InitOnceExecuteOnce because that isn't available in WinXP which
  * we still have to support.
  */
-int CRYPTO_THREAD_run_once(CRYPTO_ONCE *once, void (*init)(void))
+int VR_CRYPTO_THREAD_run_once(CRYPTO_ONCE *once, void (*init)(void))
 {
     LONG volatile *lock = (LONG *)once;
     LONG result;
@@ -90,7 +90,7 @@ int CRYPTO_THREAD_run_once(CRYPTO_ONCE *once, void (*init)(void))
     return (*lock == ONCE_DONE);
 }
 
-int CRYPTO_THREAD_init_local(CRYPTO_THREAD_LOCAL *key, void (*cleanup)(void *))
+int VR_CRYPTO_THREAD_init_local(CRYPTO_THREAD_LOCAL *key, void (*cleanup)(void *))
 {
     *key = TlsAlloc();
     if (*key == TLS_OUT_OF_INDEXES)
@@ -99,7 +99,7 @@ int CRYPTO_THREAD_init_local(CRYPTO_THREAD_LOCAL *key, void (*cleanup)(void *))
     return 1;
 }
 
-void *CRYPTO_THREAD_get_local(CRYPTO_THREAD_LOCAL *key)
+void *VR_CRYPTO_THREAD_get_local(CRYPTO_THREAD_LOCAL *key)
 {
     DWORD last_error;
     void *ret;
@@ -111,7 +111,7 @@ void *CRYPTO_THREAD_get_local(CRYPTO_THREAD_LOCAL *key)
      * not need to handle this.
      *
      * However, this error-mangling behavior interferes with the caller's use of
-     * GetLastError. In particular SSL_get_error queries the error queue to
+     * GetLastError. In particular VR_SSL_get_error queries the error queue to
      * determine whether the caller should look at the OS's errors. To avoid
      * destroying state, save and restore the Windows error.
      *
@@ -123,7 +123,7 @@ void *CRYPTO_THREAD_get_local(CRYPTO_THREAD_LOCAL *key)
     return ret;
 }
 
-int CRYPTO_THREAD_set_local(CRYPTO_THREAD_LOCAL *key, void *val)
+int VR_CRYPTO_THREAD_set_local(CRYPTO_THREAD_LOCAL *key, void *val)
 {
     if (TlsSetValue(*key, val) == 0)
         return 0;
@@ -131,7 +131,7 @@ int CRYPTO_THREAD_set_local(CRYPTO_THREAD_LOCAL *key, void *val)
     return 1;
 }
 
-int CRYPTO_THREAD_cleanup_local(CRYPTO_THREAD_LOCAL *key)
+int VR_CRYPTO_THREAD_cleanup_local(CRYPTO_THREAD_LOCAL *key)
 {
     if (TlsFree(*key) == 0)
         return 0;
@@ -139,23 +139,23 @@ int CRYPTO_THREAD_cleanup_local(CRYPTO_THREAD_LOCAL *key)
     return 1;
 }
 
-CRYPTO_THREAD_ID CRYPTO_THREAD_get_current_id(void)
+CRYPTO_THREAD_ID VR_CRYPTO_THREAD_get_current_id(void)
 {
     return GetCurrentThreadId();
 }
 
-int CRYPTO_THREAD_compare_id(CRYPTO_THREAD_ID a, CRYPTO_THREAD_ID b)
+int VR_CRYPTO_THREAD_compare_id(CRYPTO_THREAD_ID a, CRYPTO_THREAD_ID b)
 {
     return (a == b);
 }
 
-int CRYPTO_atomic_add(int *val, int amount, int *ret, CRYPTO_RWLOCK *lock)
+int VR_CRYPTO_atomic_add(int *val, int amount, int *ret, CRYPTO_RWLOCK *lock)
 {
     *ret = InterlockedExchangeAdd(val, amount) + amount;
     return 1;
 }
 
-int openssl_init_fork_handlers(void)
+int VR_openssl_init_fork_handlers(void)
 {
     return 0;
 }

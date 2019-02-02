@@ -13,7 +13,7 @@
 #include "internal/asn1_int.h"
 
 /*
- * If this symbol is defined then ENGINE_get_pkey_asn1_meth_engine(), the
+ * If this symbol is defined then VR_ENGINE_get_pkey_asn1_meth_engine(), the
  * function that is used by EVP to hook in pkey_asn1_meth code and cache
  * defaults (etc), will display brief debugging summaries to stderr with the
  * 'nid'.
@@ -22,44 +22,44 @@
 
 static ENGINE_TABLE *pkey_asn1_meth_table = NULL;
 
-void ENGINE_unregister_pkey_asn1_meths(ENGINE *e)
+void VR_ENGINE_unregister_pkey_asn1_meths(ENGINE *e)
 {
-    engine_table_unregister(&pkey_asn1_meth_table, e);
+    VR_engine_table_unregister(&pkey_asn1_meth_table, e);
 }
 
 static void engine_unregister_all_pkey_asn1_meths(void)
 {
-    engine_table_cleanup(&pkey_asn1_meth_table);
+    VR_engine_table_cleanup(&pkey_asn1_meth_table);
 }
 
-int ENGINE_register_pkey_asn1_meths(ENGINE *e)
+int VR_ENGINE_register_pkey_asn1_meths(ENGINE *e)
 {
     if (e->pkey_asn1_meths) {
         const int *nids;
         int num_nids = e->pkey_asn1_meths(e, NULL, &nids, 0);
         if (num_nids > 0)
-            return engine_table_register(&pkey_asn1_meth_table,
+            return VR_engine_table_register(&pkey_asn1_meth_table,
                                          engine_unregister_all_pkey_asn1_meths,
                                          e, nids, num_nids, 0);
     }
     return 1;
 }
 
-void ENGINE_register_all_pkey_asn1_meths(void)
+void VR_ENGINE_register_all_pkey_asn1_meths(void)
 {
     ENGINE *e;
 
-    for (e = ENGINE_get_first(); e; e = ENGINE_get_next(e))
-        ENGINE_register_pkey_asn1_meths(e);
+    for (e = VR_ENGINE_get_first(); e; e = VR_ENGINE_get_next(e))
+        VR_ENGINE_register_pkey_asn1_meths(e);
 }
 
-int ENGINE_set_default_pkey_asn1_meths(ENGINE *e)
+int VR_ENGINE_set_default_pkey_asn1_meths(ENGINE *e)
 {
     if (e->pkey_asn1_meths) {
         const int *nids;
         int num_nids = e->pkey_asn1_meths(e, NULL, &nids, 0);
         if (num_nids > 0)
-            return engine_table_register(&pkey_asn1_meth_table,
+            return VR_engine_table_register(&pkey_asn1_meth_table,
                                          engine_unregister_all_pkey_asn1_meths,
                                          e, nids, num_nids, 1);
     }
@@ -71,19 +71,19 @@ int ENGINE_set_default_pkey_asn1_meths(ENGINE *e)
  * table (ie. try to get a functional reference from the tabled structural
  * references) for a given pkey_asn1_meth 'nid'
  */
-ENGINE *ENGINE_get_pkey_asn1_meth_engine(int nid)
+ENGINE *VR_ENGINE_get_pkey_asn1_meth_engine(int nid)
 {
-    return engine_table_select(&pkey_asn1_meth_table, nid);
+    return VR_engine_table_select(&pkey_asn1_meth_table, nid);
 }
 
 /*
  * Obtains a pkey_asn1_meth implementation from an ENGINE functional
  * reference
  */
-const EVP_PKEY_ASN1_METHOD *ENGINE_get_pkey_asn1_meth(ENGINE *e, int nid)
+const EVP_PKEY_ASN1_METHOD *VR_ENGINE_get_pkey_asn1_meth(ENGINE *e, int nid)
 {
     EVP_PKEY_ASN1_METHOD *ret;
-    ENGINE_PKEY_ASN1_METHS_PTR fn = ENGINE_get_pkey_asn1_meths(e);
+    ENGINE_PKEY_ASN1_METHS_PTR fn = VR_ENGINE_get_pkey_asn1_meths(e);
     if (!fn || !fn(e, &ret, NULL, nid)) {
         ENGINEerr(ENGINE_F_ENGINE_GET_PKEY_ASN1_METH,
                   ENGINE_R_UNIMPLEMENTED_PUBLIC_KEY_METHOD);
@@ -93,13 +93,13 @@ const EVP_PKEY_ASN1_METHOD *ENGINE_get_pkey_asn1_meth(ENGINE *e, int nid)
 }
 
 /* Gets the pkey_asn1_meth callback from an ENGINE structure */
-ENGINE_PKEY_ASN1_METHS_PTR ENGINE_get_pkey_asn1_meths(const ENGINE *e)
+ENGINE_PKEY_ASN1_METHS_PTR VR_ENGINE_get_pkey_asn1_meths(const ENGINE *e)
 {
     return e->pkey_asn1_meths;
 }
 
 /* Sets the pkey_asn1_meth callback in an ENGINE structure */
-int ENGINE_set_pkey_asn1_meths(ENGINE *e, ENGINE_PKEY_ASN1_METHS_PTR f)
+int VR_ENGINE_set_pkey_asn1_meths(ENGINE *e, ENGINE_PKEY_ASN1_METHS_PTR f)
 {
     e->pkey_asn1_meths = f;
     return 1;
@@ -110,7 +110,7 @@ int ENGINE_set_pkey_asn1_meths(ENGINE *e, ENGINE_PKEY_ASN1_METHS_PTR f)
  * ENGINE is destroyed
  */
 
-void engine_pkey_asn1_meths_free(ENGINE *e)
+void VR_engine_pkey_asn1_meths_free(ENGINE *e)
 {
     int i;
     EVP_PKEY_ASN1_METHOD *pkm;
@@ -120,7 +120,7 @@ void engine_pkey_asn1_meths_free(ENGINE *e)
         npknids = e->pkey_asn1_meths(e, NULL, &pknids, 0);
         for (i = 0; i < npknids; i++) {
             if (e->pkey_asn1_meths(e, &pkm, NULL, pknids[i])) {
-                EVP_PKEY_asn1_free(pkm);
+                VR_EVP_PKEY_asn1_free(pkm);
             }
         }
     }
@@ -133,7 +133,7 @@ void engine_pkey_asn1_meths_free(ENGINE *e)
  * for speed critical operations.
  */
 
-const EVP_PKEY_ASN1_METHOD *ENGINE_get_pkey_asn1_meth_str(ENGINE *e,
+const EVP_PKEY_ASN1_METHOD *VR_ENGINE_get_pkey_asn1_meth_str(ENGINE *e,
                                                           const char *str,
                                                           int len)
 {
@@ -181,7 +181,7 @@ static void look_str_cb(int nid, STACK_OF(ENGINE) *sk, ENGINE *def, void *arg)
     }
 }
 
-const EVP_PKEY_ASN1_METHOD *ENGINE_pkey_asn1_find_str(ENGINE **pe,
+const EVP_PKEY_ASN1_METHOD *VR_ENGINE_pkey_asn1_find_str(ENGINE **pe,
                                                       const char *str,
                                                       int len)
 {
@@ -191,19 +191,19 @@ const EVP_PKEY_ASN1_METHOD *ENGINE_pkey_asn1_find_str(ENGINE **pe,
     fstr.str = str;
     fstr.len = len;
 
-    if (!RUN_ONCE(&engine_lock_init, do_engine_lock_init)) {
+    if (!RUN_ONCE(&engine_lock_init, VR_do_engine_lock_init)) {
         ENGINEerr(ENGINE_F_ENGINE_PKEY_ASN1_FIND_STR, ERR_R_MALLOC_FAILURE);
         return NULL;
     }
 
-    CRYPTO_THREAD_write_lock(global_engine_lock);
-    engine_table_doall(pkey_asn1_meth_table, look_str_cb, &fstr);
+    VR_CRYPTO_THREAD_write_lock(global_engine_lock);
+    VR_engine_table_doall(pkey_asn1_meth_table, look_str_cb, &fstr);
     /* If found obtain a structural reference to engine */
     if (fstr.e) {
         fstr.e->struct_ref++;
         engine_ref_debug(fstr.e, 0, 1);
     }
     *pe = fstr.e;
-    CRYPTO_THREAD_unlock(global_engine_lock);
+    VR_CRYPTO_THREAD_unlock(global_engine_lock);
     return fstr.ameth;
 }

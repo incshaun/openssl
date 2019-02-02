@@ -89,12 +89,12 @@ static CONF_METHOD WIN32_method = {
     def_load
 };
 
-CONF_METHOD *NCONF_default(void)
+CONF_METHOD *VR_NCONF_default(void)
 {
     return &default_method;
 }
 
-CONF_METHOD *NCONF_WIN32(void)
+CONF_METHOD *VR_NCONF_WIN32(void)
 {
     return &WIN32_method;
 }
@@ -106,7 +106,7 @@ static CONF *def_create(CONF_METHOD *meth)
     ret = OPENSSL_malloc(sizeof(*ret));
     if (ret != NULL)
         if (meth->init(ret) == 0) {
-            OPENSSL_free(ret);
+            OPENVR_SSL_free(ret);
             ret = NULL;
         }
     return ret;
@@ -139,7 +139,7 @@ static int def_init_WIN32(CONF *conf)
 static int def_destroy(CONF *conf)
 {
     if (def_destroy_data(conf)) {
-        OPENSSL_free(conf);
+        OPENVR_SSL_free(conf);
         return 1;
     }
     return 0;
@@ -149,7 +149,7 @@ static int def_destroy_data(CONF *conf)
 {
     if (conf == NULL)
         return 0;
-    _CONF_free_data(conf);
+    VR__CONF_free_data(conf);
     return 1;
 }
 
@@ -159,12 +159,12 @@ static int def_load(CONF *conf, const char *name, long *line)
     BIO *in = NULL;
 
 #ifdef OPENSSL_SYS_VMS
-    in = BIO_new_file(name, "r");
+    in = VR_BIO_new_file(name, "r");
 #else
-    in = BIO_new_file(name, "rb");
+    in = VR_BIO_new_file(name, "rb");
 #endif
     if (in == NULL) {
-        if (ERR_GET_REASON(ERR_peek_last_error()) == BIO_R_NO_SUCH_FILE)
+        if (ERR_GET_REASON(VR_ERR_peek_last_error()) == BIO_R_NO_SUCH_FILE)
             CONFerr(CONF_F_DEF_LOAD, CONF_R_NO_SUCH_FILE);
         else
             CONFerr(CONF_F_DEF_LOAD, ERR_R_SYS_LIB);
@@ -172,7 +172,7 @@ static int def_load(CONF *conf, const char *name, long *line)
     }
 
     ret = def_load_bio(conf, in, line);
-    BIO_free(in);
+    VR_BIO_free(in);
 
     return ret;
 }
@@ -198,7 +198,7 @@ static int def_load_bio(CONF *conf, BIO *in, long *line)
     OPENSSL_DIR_CTX *dirctx = NULL;
 #endif
 
-    if ((buff = BUF_MEM_new()) == NULL) {
+    if ((buff = VR_BUF_MEM_new()) == NULL) {
         CONFerr(CONF_F_DEF_LOAD_BIO, ERR_R_BUF_LIB);
         goto err;
     }
@@ -209,12 +209,12 @@ static int def_load_bio(CONF *conf, BIO *in, long *line)
         goto err;
     }
 
-    if (_CONF_new_data(conf) == 0) {
+    if (VR__CONF_new_data(conf) == 0) {
         CONFerr(CONF_F_DEF_LOAD_BIO, ERR_R_MALLOC_FAILURE);
         goto err;
     }
 
-    sv = _CONF_new_section(conf, section);
+    sv = VR__CONF_new_section(conf, section);
     if (sv == NULL) {
         CONFerr(CONF_F_DEF_LOAD_BIO, CONF_R_UNABLE_TO_CREATE_NEW_SECTION);
         goto err;
@@ -223,14 +223,14 @@ static int def_load_bio(CONF *conf, BIO *in, long *line)
     bufnum = 0;
     again = 0;
     for (;;) {
-        if (!BUF_MEM_grow(buff, bufnum + CONFBUFSIZE)) {
+        if (!VR_BUF_MEM_grow(buff, bufnum + CONFBUFSIZE)) {
             CONFerr(CONF_F_DEF_LOAD_BIO, ERR_R_BUF_LIB);
             goto err;
         }
         p = &(buff->data[bufnum]);
         *p = '\0';
  read_retry:
-        BIO_gets(in, p, CONFBUFSIZE - 1);
+        VR_BIO_gets(in, p, CONFBUFSIZE - 1);
         p[CONFBUFSIZE - 1] = '\0';
         ii = i = strlen(p);
         if (i == 0 && !again) {
@@ -243,21 +243,21 @@ static int def_load_bio(CONF *conf, BIO *in, long *line)
                 BIO *next;
 
                 if ((next = get_next_file(dirpath, &dirctx)) != NULL) {
-                    BIO_vfree(in);
+                    VR_BIO_vfree(in);
                     in = next;
                     goto read_retry;
                 } else {
-                    OPENSSL_free(dirpath);
+                    OPENVR_SSL_free(dirpath);
                     dirpath = NULL;
                 }
             }
 #endif
             /* no more files in directory, continue with processing parent */
-            if ((parent = sk_BIO_pop(biosk)) == NULL) {
+            if ((parent = sk_VR_BIO_pop(biosk)) == NULL) {
                 /* everything processed get out of the loop */
                 break;
             } else {
-                BIO_vfree(in);
+                VR_BIO_vfree(in);
                 in = parent;
                 goto read_retry;
             }
@@ -327,8 +327,8 @@ static int def_load_bio(CONF *conf, BIO *in, long *line)
             *end = '\0';
             if (!str_copy(conf, NULL, &section, start))
                 goto err;
-            if ((sv = _CONF_get_section(conf, section)) == NULL)
-                sv = _CONF_new_section(conf, section);
+            if ((sv = VR__CONF_get_section(conf, section)) == NULL)
+                sv = VR__CONF_new_section(conf, section);
             if (sv == NULL) {
                 CONFerr(CONF_F_DEF_LOAD_BIO,
                         CONF_R_UNABLE_TO_CREATE_NEW_SECTION);
@@ -360,21 +360,21 @@ static int def_load_bio(CONF *conf, BIO *in, long *line)
                 next = process_include(include, &dirctx, &dirpath);
                 if (include != dirpath) {
                     /* dirpath will contain include in case of a directory */
-                    OPENSSL_free(include);
+                    OPENVR_SSL_free(include);
                 }
 #else
-                next = BIO_new_file(include, "r");
-                OPENSSL_free(include);
+                next = VR_BIO_new_file(include, "r");
+                OPENVR_SSL_free(include);
 #endif
                 if (next != NULL) {
                     /* push the currently processing BIO onto stack */
                     if (biosk == NULL) {
-                        if ((biosk = sk_BIO_new_null()) == NULL) {
+                        if ((biosk = sk_VR_BIO_new_null()) == NULL) {
                             CONFerr(CONF_F_DEF_LOAD_BIO, ERR_R_MALLOC_FAILURE);
                             goto err;
                         }
                     }
-                    if (!sk_BIO_push(biosk, in)) {
+                    if (!sk_VR_BIO_push(biosk, in)) {
                         CONFerr(CONF_F_DEF_LOAD_BIO, ERR_R_MALLOC_FAILURE);
                         goto err;
                     }
@@ -405,9 +405,9 @@ static int def_load_bio(CONF *conf, BIO *in, long *line)
                 goto err;
 
             if (strcmp(psection, section) != 0) {
-                if ((tv = _CONF_get_section(conf, psection))
+                if ((tv = VR__CONF_get_section(conf, psection))
                     == NULL)
-                    tv = _CONF_new_section(conf, psection);
+                    tv = VR__CONF_new_section(conf, psection);
                 if (tv == NULL) {
                     CONFerr(CONF_F_DEF_LOAD_BIO,
                             CONF_R_UNABLE_TO_CREATE_NEW_SECTION);
@@ -415,52 +415,52 @@ static int def_load_bio(CONF *conf, BIO *in, long *line)
                 }
             } else
                 tv = sv;
-            if (_CONF_add_string(conf, tv, v) == 0) {
+            if (VR__CONF_add_string(conf, tv, v) == 0) {
                 CONFerr(CONF_F_DEF_LOAD_BIO, ERR_R_MALLOC_FAILURE);
                 goto err;
             }
             v = NULL;
         }
     }
-    BUF_MEM_free(buff);
-    OPENSSL_free(section);
+    VR_BUF_MEM_free(buff);
+    OPENVR_SSL_free(section);
     /*
      * No need to pop, since we only get here if the stack is empty.
      * If this causes a BIO leak, THE ISSUE IS SOMEWHERE ELSE!
      */
-    sk_BIO_free(biosk);
+    sk_VR_BIO_free(biosk);
     return 1;
  err:
-    BUF_MEM_free(buff);
-    OPENSSL_free(section);
+    VR_BUF_MEM_free(buff);
+    OPENVR_SSL_free(section);
     /*
      * Since |in| is the first element of the stack and should NOT be freed
-     * here, we cannot use sk_BIO_pop_free().  Instead, we pop and free one
+     * here, we cannot use sk_VR_BIO_pop_free().  Instead, we pop and free one
      * BIO at a time, making sure that the last one popped isn't.
      */
     while (sk_BIO_num(biosk) > 0) {
-        BIO *popped = sk_BIO_pop(biosk);
-        BIO_vfree(in);
+        BIO *popped = sk_VR_BIO_pop(biosk);
+        VR_BIO_vfree(in);
         in = popped;
     }
-    sk_BIO_free(biosk);
+    sk_VR_BIO_free(biosk);
 #ifndef OPENSSL_NO_POSIX_IO
-    OPENSSL_free(dirpath);
+    OPENVR_SSL_free(dirpath);
     if (dirctx != NULL)
-        OPENSSL_DIR_end(&dirctx);
+        VR_OPENSSL_DIR_end(&dirctx);
 #endif
     if (line != NULL)
         *line = eline;
-    BIO_snprintf(btmp, sizeof(btmp), "%ld", eline);
-    ERR_add_error_data(2, "line ", btmp);
+    VR_BIO_snprintf(btmp, sizeof(btmp), "%ld", eline);
+    VR_ERR_add_error_data(2, "line ", btmp);
     if (h != conf->data) {
-        CONF_free(conf->data);
+        VR_CONF_free(conf->data);
         conf->data = NULL;
     }
     if (v != NULL) {
-        OPENSSL_free(v->name);
-        OPENSSL_free(v->value);
-        OPENSSL_free(v);
+        OPENVR_SSL_free(v->name);
+        OPENVR_SSL_free(v->value);
+        OPENVR_SSL_free(v);
     }
     return 0;
 }
@@ -508,11 +508,11 @@ static int str_copy(CONF *conf, char *section, char **pto, char *from)
     char *s, *e, *rp, *p, *rrp, *np, *cp, v;
     BUF_MEM *buf;
 
-    if ((buf = BUF_MEM_new()) == NULL)
+    if ((buf = VR_BUF_MEM_new()) == NULL)
         return 0;
 
     len = strlen(from) + 1;
-    if (!BUF_MEM_grow(buf, len))
+    if (!VR_BUF_MEM_grow(buf, len))
         goto err;
 
     for (;;) {
@@ -609,7 +609,7 @@ static int str_copy(CONF *conf, char *section, char **pto, char *from)
              * r and rr are the chars replaced by the '\0'
              * rp and rrp is where 'r' and 'rr' came from.
              */
-            p = _CONF_get_string(conf, cp, np);
+            p = VR__CONF_get_string(conf, cp, np);
             if (rrp != NULL)
                 *rrp = rr;
             *rp = r;
@@ -622,7 +622,7 @@ static int str_copy(CONF *conf, char *section, char **pto, char *from)
                 CONFerr(CONF_F_STR_COPY, CONF_R_VARIABLE_EXPANSION_TOO_LONG);
                 goto err;
             }
-            if (!BUF_MEM_grow_clean(buf, newsize)) {
+            if (!VR_BUF_MEM_grow_clean(buf, newsize)) {
                 CONFerr(CONF_F_STR_COPY, ERR_R_MALLOC_FAILURE);
                 goto err;
             }
@@ -646,12 +646,12 @@ static int str_copy(CONF *conf, char *section, char **pto, char *from)
             buf->data[to++] = *(from++);
     }
     buf->data[to] = '\0';
-    OPENSSL_free(*pto);
+    OPENVR_SSL_free(*pto);
     *pto = buf->data;
-    OPENSSL_free(buf);
+    OPENVR_SSL_free(buf);
     return 1;
  err:
-    BUF_MEM_free(buf);
+    VR_BUF_MEM_free(buf);
     return 0;
 }
 
@@ -669,7 +669,7 @@ static BIO *process_include(char *include, OPENSSL_DIR_CTX **dirctx,
 
     if (stat(include, &st) < 0) {
         SYSerr(SYS_F_STAT, errno);
-        ERR_add_error_data(1, include);
+        VR_ERR_add_error_data(1, include);
         /* missing include file is not fatal error */
         return NULL;
     }
@@ -678,7 +678,7 @@ static BIO *process_include(char *include, OPENSSL_DIR_CTX **dirctx,
         if (*dirctx != NULL) {
             CONFerr(CONF_F_PROCESS_INCLUDE,
                     CONF_R_RECURSIVE_DIRECTORY_INCLUDE);
-            ERR_add_error_data(1, include);
+            VR_ERR_add_error_data(1, include);
             return NULL;
         }
         /* a directory, load its contents */
@@ -687,7 +687,7 @@ static BIO *process_include(char *include, OPENSSL_DIR_CTX **dirctx,
         return next;
     }
 
-    next = BIO_new_file(include, "r");
+    next = VR_BIO_new_file(include, "r");
     return next;
 }
 
@@ -699,7 +699,7 @@ static BIO *get_next_file(const char *path, OPENSSL_DIR_CTX **dirctx)
 {
     const char *filename;
 
-    while ((filename = OPENSSL_DIR_read(dirctx, path)) != NULL) {
+    while ((filename = VR_OPENSSL_DIR_read(dirctx, path)) != NULL) {
         size_t namelen;
 
         namelen = strlen(filename);
@@ -728,24 +728,24 @@ static BIO *get_next_file(const char *path, OPENSSL_DIR_CTX **dirctx)
                 if (path[pathlen - 1] == ']' || path[pathlen - 1] == '>'
                     || path[pathlen - 1] == ':') {
                     /* Clear VMS directory syntax, just copy as is */
-                    OPENSSL_strlcpy(newpath, path, newlen);
+                    VR_OPENSSL_strlcpy(newpath, path, newlen);
                 }
             }
 #endif
             if (newpath[0] == '\0') {
-                OPENSSL_strlcpy(newpath, path, newlen);
-                OPENSSL_strlcat(newpath, "/", newlen);
+                VR_OPENSSL_strlcpy(newpath, path, newlen);
+                VR_OPENSSL_strlcat(newpath, "/", newlen);
             }
-            OPENSSL_strlcat(newpath, filename, newlen);
+            VR_OPENSSL_strlcat(newpath, filename, newlen);
 
-            bio = BIO_new_file(newpath, "r");
-            OPENSSL_free(newpath);
+            bio = VR_BIO_new_file(newpath, "r");
+            OPENVR_SSL_free(newpath);
             /* Errors when opening files are non-fatal. */
             if (bio != NULL)
                 return bio;
         }
     }
-    OPENSSL_DIR_end(dirctx);
+    VR_OPENSSL_DIR_end(dirctx);
     *dirctx = NULL;
     return NULL;
 }
@@ -849,9 +849,9 @@ static char *scan_dquote(CONF *conf, char *p)
 static void dump_value_doall_arg(const CONF_VALUE *a, BIO *out)
 {
     if (a->name)
-        BIO_printf(out, "[%s] %s=%s\n", a->section, a->name, a->value);
+        VR_BIO_printf(out, "[%s] %s=%s\n", a->section, a->name, a->value);
     else
-        BIO_printf(out, "[[%s]]\n", a->section);
+        VR_BIO_printf(out, "[[%s]]\n", a->section);
 }
 
 IMPLEMENT_LHASH_DOALL_ARG_CONST(CONF_VALUE, BIO);

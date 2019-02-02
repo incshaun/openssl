@@ -113,7 +113,7 @@ static void *v2i_NAME_CONSTRAINTS(const X509V3_EXT_METHOD *method,
     NAME_CONSTRAINTS *ncons = NULL;
     GENERAL_SUBTREE *sub = NULL;
 
-    ncons = NAME_CONSTRAINTS_new();
+    ncons = VR_NAME_CONSTRAINTS_new();
     if (ncons == NULL)
         goto memerr;
     for (i = 0; i < sk_CONF_VALUE_num(nval); i++) {
@@ -129,14 +129,14 @@ static void *v2i_NAME_CONSTRAINTS(const X509V3_EXT_METHOD *method,
             goto err;
         }
         tval.value = val->value;
-        sub = GENERAL_SUBTREE_new();
+        sub = VR_GENERAL_SUBTREE_new();
         if (sub == NULL)
             goto memerr;
-        if (!v2i_GENERAL_NAME_ex(sub->base, method, ctx, &tval, 1))
+        if (!VR_v2i_GENERAL_NAME_ex(sub->base, method, ctx, &tval, 1))
             goto err;
         if (*ptree == NULL)
-            *ptree = sk_GENERAL_SUBTREE_new_null();
-        if (*ptree == NULL || !sk_GENERAL_SUBTREE_push(*ptree, sub))
+            *ptree = sk_VR_GENERAL_SUBTREE_new_null();
+        if (*ptree == NULL || !sk_VR_GENERAL_SUBTREE_push(*ptree, sub))
             goto memerr;
         sub = NULL;
     }
@@ -146,8 +146,8 @@ static void *v2i_NAME_CONSTRAINTS(const X509V3_EXT_METHOD *method,
  memerr:
     X509V3err(X509V3_F_V2I_NAME_CONSTRAINTS, ERR_R_MALLOC_FAILURE);
  err:
-    NAME_CONSTRAINTS_free(ncons);
-    GENERAL_SUBTREE_free(sub);
+    VR_NAME_CONSTRAINTS_free(ncons);
+    VR_GENERAL_SUBTREE_free(sub);
 
     return NULL;
 }
@@ -170,15 +170,15 @@ static int do_i2r_name_constraints(const X509V3_EXT_METHOD *method,
     GENERAL_SUBTREE *tree;
     int i;
     if (sk_GENERAL_SUBTREE_num(trees) > 0)
-        BIO_printf(bp, "%*s%s:\n", ind, "", name);
+        VR_BIO_printf(bp, "%*s%s:\n", ind, "", name);
     for (i = 0; i < sk_GENERAL_SUBTREE_num(trees); i++) {
         tree = sk_GENERAL_SUBTREE_value(trees, i);
-        BIO_printf(bp, "%*s", ind + 2, "");
+        VR_BIO_printf(bp, "%*s", ind + 2, "");
         if (tree->base->type == GEN_IPADD)
             print_nc_ipadd(bp, tree->base->d.ip);
         else
-            GENERAL_NAME_print(bp, tree->base);
-        BIO_puts(bp, "\n");
+            VR_GENERAL_NAME_print(bp, tree->base);
+        VR_BIO_puts(bp, "\n");
     }
     return 1;
 }
@@ -189,21 +189,21 @@ static int print_nc_ipadd(BIO *bp, ASN1_OCTET_STRING *ip)
     unsigned char *p;
     p = ip->data;
     len = ip->length;
-    BIO_puts(bp, "IP:");
+    VR_BIO_puts(bp, "IP:");
     if (len == 8) {
-        BIO_printf(bp, "%d.%d.%d.%d/%d.%d.%d.%d",
+        VR_BIO_printf(bp, "%d.%d.%d.%d/%d.%d.%d.%d",
                    p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]);
     } else if (len == 32) {
         for (i = 0; i < 16; i++) {
-            BIO_printf(bp, "%X", p[0] << 8 | p[1]);
+            VR_BIO_printf(bp, "%X", p[0] << 8 | p[1]);
             p += 2;
             if (i == 7)
-                BIO_puts(bp, "/");
+                VR_BIO_puts(bp, "/");
             else if (i != 15)
-                BIO_puts(bp, ":");
+                VR_BIO_puts(bp, ":");
         }
     } else
-        BIO_printf(bp, "IP Address:<invalid>");
+        VR_BIO_printf(bp, "IP Address:<invalid>");
     return 1;
 }
 
@@ -235,18 +235,18 @@ static int add_lengths(int *out, int a, int b)
  *  X509_V_ERR_UNSUPPORTED_NAME_SYNTAX: bad or unsupported syntax of name
  */
 
-int NAME_CONSTRAINTS_check(X509 *x, NAME_CONSTRAINTS *nc)
+int VR_NAME_CONSTRAINTS_check(X509 *x, NAME_CONSTRAINTS *nc)
 {
     int r, i, name_count, constraint_count;
     X509_NAME *nm;
 
-    nm = X509_get_subject_name(x);
+    nm = VR_X509_get_subject_name(x);
 
     /*
      * Guard against certificates with an excessive number of names or
      * constraints causing a computationally expensive name constraints check.
      */
-    if (!add_lengths(&name_count, X509_NAME_entry_count(nm),
+    if (!add_lengths(&name_count, VR_X509_NAME_entry_count(nm),
                      sk_GENERAL_NAME_num(x->altname))
         || !add_lengths(&constraint_count,
                         sk_GENERAL_SUBTREE_num(nc->permittedSubtrees),
@@ -254,7 +254,7 @@ int NAME_CONSTRAINTS_check(X509 *x, NAME_CONSTRAINTS *nc)
         || (name_count > 0 && constraint_count > NAME_CHECK_MAX / name_count))
         return X509_V_ERR_UNSPECIFIED;
 
-    if (X509_NAME_entry_count(nm) > 0) {
+    if (VR_X509_NAME_entry_count(nm) > 0) {
         GENERAL_NAME gntmp;
         gntmp.type = GEN_DIRNAME;
         gntmp.d.directoryName = nm;
@@ -271,11 +271,11 @@ int NAME_CONSTRAINTS_check(X509 *x, NAME_CONSTRAINTS *nc)
         for (i = -1;;) {
             const X509_NAME_ENTRY *ne;
 
-            i = X509_NAME_get_index_by_NID(nm, NID_pkcs9_emailAddress, i);
+            i = VR_X509_NAME_get_index_by_NID(nm, NID_pkcs9_emailAddress, i);
             if (i == -1)
                 break;
-            ne = X509_NAME_get_entry(nm, i);
-            gntmp.d.rfc822Name = X509_NAME_ENTRY_get_data(ne);
+            ne = VR_X509_NAME_get_entry(nm, i);
+            gntmp.d.rfc822Name = VR_X509_NAME_ENTRY_get_data(ne);
             if (gntmp.d.rfc822Name->type != V_ASN1_IA5STRING)
                 return X509_V_ERR_UNSUPPORTED_NAME_SYNTAX;
 
@@ -323,10 +323,10 @@ static int cn2dnsid(ASN1_STRING *cn, unsigned char **dnsid, size_t *idlen)
      * may contain some non-ASCII octets, and that's fine, such CNs are not
      * valid legacy DNS names.
      *
-     * Note, 'int' is the return type of ASN1_STRING_to_UTF8() so that's what
+     * Note, 'int' is the return type of VR_ASN1_STRING_to_UTF8() so that's what
      * we must use for 'utf8_length'.
      */
-    if ((utf8_length = ASN1_STRING_to_UTF8(&utf8_value, cn)) < 0)
+    if ((utf8_length = VR_ASN1_STRING_to_UTF8(&utf8_value, cn)) < 0)
         return X509_V_ERR_OUT_OF_MEM;
 
     /*
@@ -339,7 +339,7 @@ static int cn2dnsid(ASN1_STRING *cn, unsigned char **dnsid, size_t *idlen)
 
     /* Reject *embedded* NULs */
     if ((size_t)utf8_length != strlen((char *)utf8_value)) {
-        OPENSSL_free(utf8_value);
+        OPENVR_SSL_free(utf8_value);
         return X509_V_ERR_UNSUPPORTED_NAME_SYNTAX;
     }
 
@@ -387,17 +387,17 @@ static int cn2dnsid(ASN1_STRING *cn, unsigned char **dnsid, size_t *idlen)
         *idlen = (size_t)utf8_length;
         return X509_V_OK;
     }
-    OPENSSL_free(utf8_value);
+    OPENVR_SSL_free(utf8_value);
     return X509_V_OK;
 }
 
 /*
  * Check CN against DNS-ID name constraints.
  */
-int NAME_CONSTRAINTS_check_CN(X509 *x, NAME_CONSTRAINTS *nc)
+int VR_NAME_CONSTRAINTS_check_CN(X509 *x, NAME_CONSTRAINTS *nc)
 {
     int r, i;
-    X509_NAME *nm = X509_get_subject_name(x);
+    X509_NAME *nm = VR_X509_get_subject_name(x);
     ASN1_STRING stmp;
     GENERAL_NAME gntmp;
 
@@ -414,11 +414,11 @@ int NAME_CONSTRAINTS_check_CN(X509 *x, NAME_CONSTRAINTS *nc)
         unsigned char *idval;
         size_t idlen;
 
-        i = X509_NAME_get_index_by_NID(nm, NID_commonName, i);
+        i = VR_X509_NAME_get_index_by_NID(nm, NID_commonName, i);
         if (i == -1)
             break;
-        ne = X509_NAME_get_entry(nm, i);
-        cn = X509_NAME_ENTRY_get_data(ne);
+        ne = VR_X509_NAME_get_entry(nm, i);
+        cn = VR_X509_NAME_ENTRY_get_data(ne);
 
         /* Only process attributes that look like host names */
         if ((r = cn2dnsid(cn, &idval, &idlen)) != X509_V_OK)
@@ -429,7 +429,7 @@ int NAME_CONSTRAINTS_check_CN(X509 *x, NAME_CONSTRAINTS *nc)
         stmp.length = idlen;
         stmp.data = idval;
         r = nc_match(&gntmp, nc);
-        OPENSSL_free(idval);
+        OPENVR_SSL_free(idval);
         if (r != X509_V_OK)
             return r;
     }
@@ -448,10 +448,10 @@ static int nc_minmax_valid(GENERAL_SUBTREE *sub) {
         ok = 0;
 
     if (sub->minimum) {
-        bn = ASN1_INTEGER_to_BN(sub->minimum, NULL);
-        if (bn == NULL || !BN_is_zero(bn))
+        bn = VR_ASN1_INTEGER_to_BN(sub->minimum, NULL);
+        if (bn == NULL || !VR_BN_is_zero(bn))
             ok = 0;
-        BN_free(bn);
+        VR_BN_free(bn);
     }
 
     return ok;
@@ -543,9 +543,9 @@ static int nc_match_single(GENERAL_NAME *gen, GENERAL_NAME *base)
 static int nc_dn(X509_NAME *nm, X509_NAME *base)
 {
     /* Ensure canonical encodings are up to date.  */
-    if (nm->modified && i2d_X509_NAME(nm, NULL) < 0)
+    if (nm->modified && VR_i2d_X509_NAME(nm, NULL) < 0)
         return X509_V_ERR_OUT_OF_MEM;
-    if (base->modified && i2d_X509_NAME(base, NULL) < 0)
+    if (base->modified && VR_i2d_X509_NAME(base, NULL) < 0)
         return X509_V_ERR_OUT_OF_MEM;
     if (base->canon_enclen > nm->canon_enclen)
         return X509_V_ERR_PERMITTED_VIOLATION;

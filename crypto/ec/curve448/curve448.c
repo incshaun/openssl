@@ -43,13 +43,13 @@ static void gf_invert(gf y, const gf x, int assert_nonzero)
     mask_t ret;
     gf t1, t2;
 
-    gf_sqr(t1, x);              /* o^2 */
-    ret = gf_isr(t2, t1);       /* +-1/sqrt(o^2) = +-1/o */
+    VR_gf_sqr(t1, x);              /* o^2 */
+    ret = VR_gf_isr(t2, t1);       /* +-1/sqrt(o^2) = +-1/o */
     (void)ret;
     if (assert_nonzero)
         assert(ret);
-    gf_sqr(t1, t2);
-    gf_mul(t2, t1, x);          /* not direct to y in case of alias. */
+    VR_gf_sqr(t1, t2);
+    VR_gf_mul(t2, t1, x);          /* not direct to y in case of alias. */
     gf_copy(y, t2);
 }
 
@@ -62,26 +62,26 @@ static void point_double_internal(curve448_point_t p, const curve448_point_t q,
 {
     gf a, b, c, d;
 
-    gf_sqr(c, q->x);
-    gf_sqr(a, q->y);
-    gf_add_nr(d, c, a);         /* 2+e */
-    gf_add_nr(p->t, q->y, q->x); /* 2+e */
-    gf_sqr(b, p->t);
-    gf_subx_nr(b, b, d, 3);     /* 4+e */
-    gf_sub_nr(p->t, a, c);      /* 3+e */
-    gf_sqr(p->x, q->z);
-    gf_add_nr(p->z, p->x, p->x); /* 2+e */
-    gf_subx_nr(a, p->z, p->t, 4); /* 6+e */
+    VR_gf_sqr(c, q->x);
+    VR_gf_sqr(a, q->y);
+    VR_gf_add_nr(d, c, a);         /* 2+e */
+    VR_gf_add_nr(p->t, q->y, q->x); /* 2+e */
+    VR_gf_sqr(b, p->t);
+    VR_gf_subx_nr(b, b, d, 3);     /* 4+e */
+    VR_gf_sub_nr(p->t, a, c);      /* 3+e */
+    VR_gf_sqr(p->x, q->z);
+    VR_gf_add_nr(p->z, p->x, p->x); /* 2+e */
+    VR_gf_subx_nr(a, p->z, p->t, 4); /* 6+e */
     if (GF_HEADROOM == 5)
         gf_weak_reduce(a);      /* or 1+e */
-    gf_mul(p->x, a, b);
-    gf_mul(p->z, p->t, a);
-    gf_mul(p->y, p->t, d);
+    VR_gf_mul(p->x, a, b);
+    VR_gf_mul(p->z, p->t, a);
+    VR_gf_mul(p->y, p->t, d);
     if (!before_double)
-        gf_mul(p->t, b, d);
+        VR_gf_mul(p->t, b, d);
 }
 
-void curve448_point_double(curve448_point_t p, const curve448_point_t q)
+void VR_curve448_point_double(curve448_point_t p, const curve448_point_t q)
 {
     point_double_internal(p, q, 0);
 }
@@ -95,29 +95,29 @@ static ossl_inline void cond_neg_niels(niels_t n, mask_t neg)
 
 static void pt_to_pniels(pniels_t b, const curve448_point_t a)
 {
-    gf_sub(b->n->a, a->y, a->x);
-    gf_add(b->n->b, a->x, a->y);
-    gf_mulw(b->n->c, a->t, 2 * TWISTED_D);
-    gf_add(b->z, a->z, a->z);
+    VR_gf_sub(b->n->a, a->y, a->x);
+    VR_gf_add(b->n->b, a->x, a->y);
+    VR_gf_mulw(b->n->c, a->t, 2 * TWISTED_D);
+    VR_gf_add(b->z, a->z, a->z);
 }
 
 static void pniels_to_pt(curve448_point_t e, const pniels_t d)
 {
     gf eu;
 
-    gf_add(eu, d->n->b, d->n->a);
-    gf_sub(e->y, d->n->b, d->n->a);
-    gf_mul(e->t, e->y, eu);
-    gf_mul(e->x, d->z, e->y);
-    gf_mul(e->y, d->z, eu);
-    gf_sqr(e->z, d->z);
+    VR_gf_add(eu, d->n->b, d->n->a);
+    VR_gf_sub(e->y, d->n->b, d->n->a);
+    VR_gf_mul(e->t, e->y, eu);
+    VR_gf_mul(e->x, d->z, e->y);
+    VR_gf_mul(e->y, d->z, eu);
+    VR_gf_sqr(e->z, d->z);
 }
 
 static void niels_to_pt(curve448_point_t e, const niels_t n)
 {
-    gf_add(e->y, n->b, n->a);
-    gf_sub(e->x, n->b, n->a);
-    gf_mul(e->t, e->y, e->x);
+    VR_gf_add(e->y, n->b, n->a);
+    VR_gf_sub(e->x, n->b, n->a);
+    VR_gf_mul(e->t, e->y, e->x);
     gf_copy(e->z, ONE);
 }
 
@@ -126,20 +126,20 @@ static void add_niels_to_pt(curve448_point_t d, const niels_t e,
 {
     gf a, b, c;
 
-    gf_sub_nr(b, d->y, d->x);   /* 3+e */
-    gf_mul(a, e->a, b);
-    gf_add_nr(b, d->x, d->y);   /* 2+e */
-    gf_mul(d->y, e->b, b);
-    gf_mul(d->x, e->c, d->t);
-    gf_add_nr(c, a, d->y);      /* 2+e */
-    gf_sub_nr(b, d->y, a);      /* 3+e */
-    gf_sub_nr(d->y, d->z, d->x); /* 3+e */
-    gf_add_nr(a, d->x, d->z);   /* 2+e */
-    gf_mul(d->z, a, d->y);
-    gf_mul(d->x, d->y, b);
-    gf_mul(d->y, a, c);
+    VR_gf_sub_nr(b, d->y, d->x);   /* 3+e */
+    VR_gf_mul(a, e->a, b);
+    VR_gf_add_nr(b, d->x, d->y);   /* 2+e */
+    VR_gf_mul(d->y, e->b, b);
+    VR_gf_mul(d->x, e->c, d->t);
+    VR_gf_add_nr(c, a, d->y);      /* 2+e */
+    VR_gf_sub_nr(b, d->y, a);      /* 3+e */
+    VR_gf_sub_nr(d->y, d->z, d->x); /* 3+e */
+    VR_gf_add_nr(a, d->x, d->z);   /* 2+e */
+    VR_gf_mul(d->z, a, d->y);
+    VR_gf_mul(d->x, d->y, b);
+    VR_gf_mul(d->y, a, c);
     if (!before_double)
-        gf_mul(d->t, b, c);
+        VR_gf_mul(d->t, b, c);
 }
 
 static void sub_niels_from_pt(curve448_point_t d, const niels_t e,
@@ -147,20 +147,20 @@ static void sub_niels_from_pt(curve448_point_t d, const niels_t e,
 {
     gf a, b, c;
 
-    gf_sub_nr(b, d->y, d->x);   /* 3+e */
-    gf_mul(a, e->b, b);
-    gf_add_nr(b, d->x, d->y);   /* 2+e */
-    gf_mul(d->y, e->a, b);
-    gf_mul(d->x, e->c, d->t);
-    gf_add_nr(c, a, d->y);      /* 2+e */
-    gf_sub_nr(b, d->y, a);      /* 3+e */
-    gf_add_nr(d->y, d->z, d->x); /* 2+e */
-    gf_sub_nr(a, d->z, d->x);   /* 3+e */
-    gf_mul(d->z, a, d->y);
-    gf_mul(d->x, d->y, b);
-    gf_mul(d->y, a, c);
+    VR_gf_sub_nr(b, d->y, d->x);   /* 3+e */
+    VR_gf_mul(a, e->b, b);
+    VR_gf_add_nr(b, d->x, d->y);   /* 2+e */
+    VR_gf_mul(d->y, e->a, b);
+    VR_gf_mul(d->x, e->c, d->t);
+    VR_gf_add_nr(c, a, d->y);      /* 2+e */
+    VR_gf_sub_nr(b, d->y, a);      /* 3+e */
+    VR_gf_add_nr(d->y, d->z, d->x); /* 2+e */
+    VR_gf_sub_nr(a, d->z, d->x);   /* 3+e */
+    VR_gf_mul(d->z, a, d->y);
+    VR_gf_mul(d->x, d->y, b);
+    VR_gf_mul(d->y, a, c);
     if (!before_double)
-        gf_mul(d->t, b, c);
+        VR_gf_mul(d->t, b, c);
 }
 
 static void add_pniels_to_pt(curve448_point_t p, const pniels_t pn,
@@ -168,7 +168,7 @@ static void add_pniels_to_pt(curve448_point_t p, const pniels_t pn,
 {
     gf L0;
 
-    gf_mul(L0, p->z, pn->z);
+    VR_gf_mul(L0, p->z, pn->z);
     gf_copy(p->z, L0);
     add_niels_to_pt(p, pn->n, before_double);
 }
@@ -178,42 +178,42 @@ static void sub_pniels_from_pt(curve448_point_t p, const pniels_t pn,
 {
     gf L0;
 
-    gf_mul(L0, p->z, pn->z);
+    VR_gf_mul(L0, p->z, pn->z);
     gf_copy(p->z, L0);
     sub_niels_from_pt(p, pn->n, before_double);
 }
 
-c448_bool_t curve448_point_eq(const curve448_point_t p,
+c448_bool_t VR_curve448_point_eq(const curve448_point_t p,
                               const curve448_point_t q)
 {
     mask_t succ;
     gf a, b;
 
     /* equality mod 2-torsion compares x/y */
-    gf_mul(a, p->y, q->x);
-    gf_mul(b, q->y, p->x);
-    succ = gf_eq(a, b);
+    VR_gf_mul(a, p->y, q->x);
+    VR_gf_mul(b, q->y, p->x);
+    succ = VR_gf_eq(a, b);
 
     return mask_to_bool(succ);
 }
 
-c448_bool_t curve448_point_valid(const curve448_point_t p)
+c448_bool_t VR_curve448_point_valid(const curve448_point_t p)
 {
     mask_t out;
     gf a, b, c;
 
-    gf_mul(a, p->x, p->y);
-    gf_mul(b, p->z, p->t);
-    out = gf_eq(a, b);
-    gf_sqr(a, p->x);
-    gf_sqr(b, p->y);
-    gf_sub(a, b, a);
-    gf_sqr(b, p->t);
-    gf_mulw(c, b, TWISTED_D);
-    gf_sqr(b, p->z);
-    gf_add(b, b, c);
-    out &= gf_eq(a, b);
-    out &= ~gf_eq(p->z, ZERO);
+    VR_gf_mul(a, p->x, p->y);
+    VR_gf_mul(b, p->z, p->t);
+    out = VR_gf_eq(a, b);
+    VR_gf_sqr(a, p->x);
+    VR_gf_sqr(b, p->y);
+    VR_gf_sub(a, b, a);
+    VR_gf_sqr(b, p->t);
+    VR_gf_mulw(c, b, TWISTED_D);
+    VR_gf_sqr(b, p->z);
+    VR_gf_add(b, b, c);
+    out &= VR_gf_eq(a, b);
+    out &= ~VR_gf_eq(p->z, ZERO);
     return mask_to_bool(out);
 }
 
@@ -224,7 +224,7 @@ static ossl_inline void constant_time_lookup_niels(niels_s * RESTRICT ni,
     constant_time_lookup(ni, table, sizeof(niels_s), nelts, idx);
 }
 
-void curve448_precomputed_scalarmul(curve448_point_t out,
+void VR_curve448_precomputed_scalarmul(curve448_point_t out,
                                     const curve448_precomputed_s * table,
                                     const curve448_scalar_t scalar)
 {
@@ -233,8 +233,8 @@ void curve448_precomputed_scalarmul(curve448_point_t out,
     niels_t ni;
     curve448_scalar_t scalar1x;
 
-    curve448_scalar_add(scalar1x, scalar, precomputed_scalarmul_adjustment);
-    curve448_scalar_halve(scalar1x, scalar1x);
+    VR_curve448_scalar_add(scalar1x, scalar, precomputed_scalarmul_adjustment);
+    VR_curve448_scalar_halve(scalar1x, scalar1x);
 
     for (i = s; i > 0; i--) {
         if (i != s)
@@ -267,11 +267,11 @@ void curve448_precomputed_scalarmul(curve448_point_t out,
         }
     }
 
-    OPENSSL_cleanse(ni, sizeof(ni));
-    OPENSSL_cleanse(scalar1x, sizeof(scalar1x));
+    VR_OPENSSL_cleanse(ni, sizeof(ni));
+    VR_OPENSSL_cleanse(scalar1x, sizeof(scalar1x));
 }
 
-void curve448_point_mul_by_ratio_and_encode_like_eddsa(
+void VR_curve448_point_mul_by_ratio_and_encode_like_eddsa(
                                     uint8_t enc[EDDSA_448_PUBLIC_BYTES],
                                     const curve448_point_t p)
 {
@@ -285,40 +285,40 @@ void curve448_point_mul_by_ratio_and_encode_like_eddsa(
         /* 4-isogeny: 2xy/(y^+x^2), (y^2-x^2)/(2z^2-y^2+x^2) */
         gf u;
 
-        gf_sqr(x, q->x);
-        gf_sqr(t, q->y);
-        gf_add(u, x, t);
-        gf_add(z, q->y, q->x);
-        gf_sqr(y, z);
-        gf_sub(y, y, u);
-        gf_sub(z, t, x);
-        gf_sqr(x, q->z);
-        gf_add(t, x, x);
-        gf_sub(t, t, z);
-        gf_mul(x, t, y);
-        gf_mul(y, z, u);
-        gf_mul(z, u, t);
-        OPENSSL_cleanse(u, sizeof(u));
+        VR_gf_sqr(x, q->x);
+        VR_gf_sqr(t, q->y);
+        VR_gf_add(u, x, t);
+        VR_gf_add(z, q->y, q->x);
+        VR_gf_sqr(y, z);
+        VR_gf_sub(y, y, u);
+        VR_gf_sub(z, t, x);
+        VR_gf_sqr(x, q->z);
+        VR_gf_add(t, x, x);
+        VR_gf_sub(t, t, z);
+        VR_gf_mul(x, t, y);
+        VR_gf_mul(y, z, u);
+        VR_gf_mul(z, u, t);
+        VR_OPENSSL_cleanse(u, sizeof(u));
     }
 
     /* Affinize */
     gf_invert(z, z, 1);
-    gf_mul(t, x, z);
-    gf_mul(x, y, z);
+    VR_gf_mul(t, x, z);
+    VR_gf_mul(x, y, z);
 
     /* Encode */
     enc[EDDSA_448_PRIVATE_BYTES - 1] = 0;
-    gf_serialize(enc, x, 1);
-    enc[EDDSA_448_PRIVATE_BYTES - 1] |= 0x80 & gf_lobit(t);
+    VR_gf_serialize(enc, x, 1);
+    enc[EDDSA_448_PRIVATE_BYTES - 1] |= 0x80 & VR_gf_lobit(t);
 
-    OPENSSL_cleanse(x, sizeof(x));
-    OPENSSL_cleanse(y, sizeof(y));
-    OPENSSL_cleanse(z, sizeof(z));
-    OPENSSL_cleanse(t, sizeof(t));
-    curve448_point_destroy(q);
+    VR_OPENSSL_cleanse(x, sizeof(x));
+    VR_OPENSSL_cleanse(y, sizeof(y));
+    VR_OPENSSL_cleanse(z, sizeof(z));
+    VR_OPENSSL_cleanse(t, sizeof(t));
+    VR_curve448_point_destroy(q);
 }
 
-c448_error_t curve448_point_decode_like_eddsa_and_mul_by_ratio(
+c448_error_t VR_curve448_point_decode_like_eddsa_and_mul_by_ratio(
                                 curve448_point_t p,
                                 const uint8_t enc[EDDSA_448_PUBLIC_BYTES])
 {
@@ -331,52 +331,52 @@ c448_error_t curve448_point_decode_like_eddsa_and_mul_by_ratio(
     low = ~word_is_zero(enc2[EDDSA_448_PRIVATE_BYTES - 1] & 0x80);
     enc2[EDDSA_448_PRIVATE_BYTES - 1] &= ~0x80;
 
-    succ = gf_deserialize(p->y, enc2, 1, 0);
+    succ = VR_gf_deserialize(p->y, enc2, 1, 0);
     succ &= word_is_zero(enc2[EDDSA_448_PRIVATE_BYTES - 1]);
 
-    gf_sqr(p->x, p->y);
-    gf_sub(p->z, ONE, p->x);    /* num = 1-y^2 */
-    gf_mulw(p->t, p->x, EDWARDS_D); /* dy^2 */
-    gf_sub(p->t, ONE, p->t);    /* denom = 1-dy^2 or 1-d + dy^2 */
+    VR_gf_sqr(p->x, p->y);
+    VR_gf_sub(p->z, ONE, p->x);    /* num = 1-y^2 */
+    VR_gf_mulw(p->t, p->x, EDWARDS_D); /* dy^2 */
+    VR_gf_sub(p->t, ONE, p->t);    /* denom = 1-dy^2 or 1-d + dy^2 */
 
-    gf_mul(p->x, p->z, p->t);
-    succ &= gf_isr(p->t, p->x); /* 1/sqrt(num * denom) */
+    VR_gf_mul(p->x, p->z, p->t);
+    succ &= VR_gf_isr(p->t, p->x); /* 1/sqrt(num * denom) */
 
-    gf_mul(p->x, p->t, p->z);   /* sqrt(num / denom) */
-    gf_cond_neg(p->x, gf_lobit(p->x) ^ low);
+    VR_gf_mul(p->x, p->t, p->z);   /* sqrt(num / denom) */
+    gf_cond_neg(p->x, VR_gf_lobit(p->x) ^ low);
     gf_copy(p->z, ONE);
 
     {
         gf a, b, c, d;
 
         /* 4-isogeny 2xy/(y^2-ax^2), (y^2+ax^2)/(2-y^2-ax^2) */
-        gf_sqr(c, p->x);
-        gf_sqr(a, p->y);
-        gf_add(d, c, a);
-        gf_add(p->t, p->y, p->x);
-        gf_sqr(b, p->t);
-        gf_sub(b, b, d);
-        gf_sub(p->t, a, c);
-        gf_sqr(p->x, p->z);
-        gf_add(p->z, p->x, p->x);
-        gf_sub(a, p->z, d);
-        gf_mul(p->x, a, b);
-        gf_mul(p->z, p->t, a);
-        gf_mul(p->y, p->t, d);
-        gf_mul(p->t, b, d);
-        OPENSSL_cleanse(a, sizeof(a));
-        OPENSSL_cleanse(b, sizeof(b));
-        OPENSSL_cleanse(c, sizeof(c));
-        OPENSSL_cleanse(d, sizeof(d));
+        VR_gf_sqr(c, p->x);
+        VR_gf_sqr(a, p->y);
+        VR_gf_add(d, c, a);
+        VR_gf_add(p->t, p->y, p->x);
+        VR_gf_sqr(b, p->t);
+        VR_gf_sub(b, b, d);
+        VR_gf_sub(p->t, a, c);
+        VR_gf_sqr(p->x, p->z);
+        VR_gf_add(p->z, p->x, p->x);
+        VR_gf_sub(a, p->z, d);
+        VR_gf_mul(p->x, a, b);
+        VR_gf_mul(p->z, p->t, a);
+        VR_gf_mul(p->y, p->t, d);
+        VR_gf_mul(p->t, b, d);
+        VR_OPENSSL_cleanse(a, sizeof(a));
+        VR_OPENSSL_cleanse(b, sizeof(b));
+        VR_OPENSSL_cleanse(c, sizeof(c));
+        VR_OPENSSL_cleanse(d, sizeof(d));
     }
 
-    OPENSSL_cleanse(enc2, sizeof(enc2));
-    assert(curve448_point_valid(p) || ~succ);
+    VR_OPENSSL_cleanse(enc2, sizeof(enc2));
+    assert(VR_curve448_point_valid(p) || ~succ);
 
     return c448_succeed_if(mask_to_bool(succ));
 }
 
-c448_error_t x448_int(uint8_t out[X_PUBLIC_BYTES],
+c448_error_t VR_x448_int(uint8_t out[X_PUBLIC_BYTES],
                       const uint8_t base[X_PUBLIC_BYTES],
                       const uint8_t scalar[X_PRIVATE_BYTES])
 {
@@ -385,7 +385,7 @@ c448_error_t x448_int(uint8_t out[X_PUBLIC_BYTES],
     mask_t swap = 0;
     mask_t nz;
 
-    (void)gf_deserialize(x1, base, 1, 0);
+    (void)VR_gf_deserialize(x1, base, 1, 0);
     gf_copy(x2, ONE);
     gf_copy(z2, ZERO);
     gf_copy(x3, x1);
@@ -414,48 +414,48 @@ c448_error_t x448_int(uint8_t out[X_PUBLIC_BYTES],
          * comments, "2+e" is saying that the coefficients are at most 2+epsilon
          * times the reduction limit.
          */
-        gf_add_nr(t1, x2, z2);  /* A = x2 + z2 */ /* 2+e */
-        gf_sub_nr(t2, x2, z2);  /* B = x2 - z2 */ /* 3+e */
-        gf_sub_nr(z2, x3, z3);  /* D = x3 - z3 */ /* 3+e */
-        gf_mul(x2, t1, z2);     /* DA */
-        gf_add_nr(z2, z3, x3);  /* C = x3 + z3 */ /* 2+e */
-        gf_mul(x3, t2, z2);     /* CB */
-        gf_sub_nr(z3, x2, x3);  /* DA-CB */ /* 3+e */
-        gf_sqr(z2, z3);         /* (DA-CB)^2 */
-        gf_mul(z3, x1, z2);     /* z3 = x1(DA-CB)^2 */
-        gf_add_nr(z2, x2, x3);  /* (DA+CB) */ /* 2+e */
-        gf_sqr(x3, z2);         /* x3 = (DA+CB)^2 */
+        VR_gf_add_nr(t1, x2, z2);  /* A = x2 + z2 */ /* 2+e */
+        VR_gf_sub_nr(t2, x2, z2);  /* B = x2 - z2 */ /* 3+e */
+        VR_gf_sub_nr(z2, x3, z3);  /* D = x3 - z3 */ /* 3+e */
+        VR_gf_mul(x2, t1, z2);     /* DA */
+        VR_gf_add_nr(z2, z3, x3);  /* C = x3 + z3 */ /* 2+e */
+        VR_gf_mul(x3, t2, z2);     /* CB */
+        VR_gf_sub_nr(z3, x2, x3);  /* DA-CB */ /* 3+e */
+        VR_gf_sqr(z2, z3);         /* (DA-CB)^2 */
+        VR_gf_mul(z3, x1, z2);     /* z3 = x1(DA-CB)^2 */
+        VR_gf_add_nr(z2, x2, x3);  /* (DA+CB) */ /* 2+e */
+        VR_gf_sqr(x3, z2);         /* x3 = (DA+CB)^2 */
 
-        gf_sqr(z2, t1);         /* AA = A^2 */
-        gf_sqr(t1, t2);         /* BB = B^2 */
-        gf_mul(x2, z2, t1);     /* x2 = AA*BB */
-        gf_sub_nr(t2, z2, t1);  /* E = AA-BB */ /* 3+e */
+        VR_gf_sqr(z2, t1);         /* AA = A^2 */
+        VR_gf_sqr(t1, t2);         /* BB = B^2 */
+        VR_gf_mul(x2, z2, t1);     /* x2 = AA*BB */
+        VR_gf_sub_nr(t2, z2, t1);  /* E = AA-BB */ /* 3+e */
 
-        gf_mulw(t1, t2, -EDWARDS_D); /* E*-d = a24*E */
-        gf_add_nr(t1, t1, z2);  /* AA + a24*E */ /* 2+e */
-        gf_mul(z2, t2, t1);     /* z2 = E(AA+a24*E) */
+        VR_gf_mulw(t1, t2, -EDWARDS_D); /* E*-d = a24*E */
+        VR_gf_add_nr(t1, t1, z2);  /* AA + a24*E */ /* 2+e */
+        VR_gf_mul(z2, t2, t1);     /* z2 = E(AA+a24*E) */
     }
 
     /* Finish */
     gf_cond_swap(x2, x3, swap);
     gf_cond_swap(z2, z3, swap);
     gf_invert(z2, z2, 0);
-    gf_mul(x1, x2, z2);
-    gf_serialize(out, x1, 1);
-    nz = ~gf_eq(x1, ZERO);
+    VR_gf_mul(x1, x2, z2);
+    VR_gf_serialize(out, x1, 1);
+    nz = ~VR_gf_eq(x1, ZERO);
 
-    OPENSSL_cleanse(x1, sizeof(x1));
-    OPENSSL_cleanse(x2, sizeof(x2));
-    OPENSSL_cleanse(z2, sizeof(z2));
-    OPENSSL_cleanse(x3, sizeof(x3));
-    OPENSSL_cleanse(z3, sizeof(z3));
-    OPENSSL_cleanse(t1, sizeof(t1));
-    OPENSSL_cleanse(t2, sizeof(t2));
+    VR_OPENSSL_cleanse(x1, sizeof(x1));
+    VR_OPENSSL_cleanse(x2, sizeof(x2));
+    VR_OPENSSL_cleanse(z2, sizeof(z2));
+    VR_OPENSSL_cleanse(x3, sizeof(x3));
+    VR_OPENSSL_cleanse(z3, sizeof(z3));
+    VR_OPENSSL_cleanse(t1, sizeof(t1));
+    VR_OPENSSL_cleanse(t2, sizeof(t2));
 
     return c448_succeed_if(mask_to_bool(nz));
 }
 
-void curve448_point_mul_by_ratio_and_encode_like_x448(uint8_t
+void VR_curve448_point_mul_by_ratio_and_encode_like_x448(uint8_t
                                                       out[X_PUBLIC_BYTES],
                                                       const curve448_point_t p)
 {
@@ -463,13 +463,13 @@ void curve448_point_mul_by_ratio_and_encode_like_x448(uint8_t
 
     curve448_point_copy(q, p);
     gf_invert(q->t, q->x, 0);   /* 1/x */
-    gf_mul(q->z, q->t, q->y);   /* y/x */
-    gf_sqr(q->y, q->z);         /* (y/x)^2 */
-    gf_serialize(out, q->y, 1);
-    curve448_point_destroy(q);
+    VR_gf_mul(q->z, q->t, q->y);   /* y/x */
+    VR_gf_sqr(q->y, q->z);         /* (y/x)^2 */
+    VR_gf_serialize(out, q->y, 1);
+    VR_curve448_point_destroy(q);
 }
 
-void x448_derive_public_key(uint8_t out[X_PUBLIC_BYTES],
+void VR_x448_derive_public_key(uint8_t out[X_PUBLIC_BYTES],
                             const uint8_t scalar[X_PRIVATE_BYTES])
 {
     /* Scalar conditioning */
@@ -484,15 +484,15 @@ void x448_derive_public_key(uint8_t out[X_PUBLIC_BYTES],
     scalar2[X_PRIVATE_BYTES - 1] &= ~((0u - 1u) << ((X_PRIVATE_BITS + 7) % 8));
     scalar2[X_PRIVATE_BYTES - 1] |= 1 << ((X_PRIVATE_BITS + 7) % 8);
 
-    curve448_scalar_decode_long(the_scalar, scalar2, sizeof(scalar2));
+    VR_curve448_scalar_decode_long(the_scalar, scalar2, sizeof(scalar2));
 
     /* Compensate for the encoding ratio */
-    for (i = 1; i < X448_ENCODE_RATIO; i <<= 1)
-        curve448_scalar_halve(the_scalar, the_scalar);
+    for (i = 1; i < VR_X448_ENCODE_RATIO; i <<= 1)
+        VR_curve448_scalar_halve(the_scalar, the_scalar);
 
-    curve448_precomputed_scalarmul(p, curve448_precomputed_base, the_scalar);
-    curve448_point_mul_by_ratio_and_encode_like_x448(out, p);
-    curve448_point_destroy(p);
+    VR_curve448_precomputed_scalarmul(p, curve448_precomputed_base, the_scalar);
+    VR_curve448_point_mul_by_ratio_and_encode_like_x448(out, p);
+    VR_curve448_point_destroy(p);
 }
 
 /* Control for variable-time scalar multiply algorithms. */
@@ -609,7 +609,7 @@ static void prepare_wnaf_table(pniels_t * output,
     if (tbits == 0)
         return;
 
-    curve448_point_double(tmp, working);
+    VR_curve448_point_double(tmp, working);
     pt_to_pniels(twop, tmp);
 
     add_pniels_to_pt(tmp, output[0], 0);
@@ -620,11 +620,11 @@ static void prepare_wnaf_table(pniels_t * output,
         pt_to_pniels(output[i], tmp);
     }
 
-    curve448_point_destroy(tmp);
-    OPENSSL_cleanse(twop, sizeof(twop));
+    VR_curve448_point_destroy(tmp);
+    VR_OPENSSL_cleanse(twop, sizeof(twop));
 }
 
-void curve448_base_double_scalarmul_non_secret(curve448_point_t combo,
+void VR_curve448_base_double_scalarmul_non_secret(curve448_point_t combo,
                                                const curve448_scalar_t scalar1,
                                                const curve448_point_t base2,
                                                const curve448_scalar_t scalar2)
@@ -698,9 +698,9 @@ void curve448_base_double_scalarmul_non_secret(curve448_point_t combo,
     }
 
     /* This function is non-secret, but whatever this is cheap. */
-    OPENSSL_cleanse(control_var, sizeof(control_var));
-    OPENSSL_cleanse(control_pre, sizeof(control_pre));
-    OPENSSL_cleanse(precmp_var, sizeof(precmp_var));
+    VR_OPENSSL_cleanse(control_var, sizeof(control_var));
+    VR_OPENSSL_cleanse(control_pre, sizeof(control_pre));
+    VR_OPENSSL_cleanse(precmp_var, sizeof(precmp_var));
 
     assert(contv == ncb_var);
     (void)ncb_var;
@@ -708,20 +708,20 @@ void curve448_base_double_scalarmul_non_secret(curve448_point_t combo,
     (void)ncb_pre;
 }
 
-void curve448_point_destroy(curve448_point_t point)
+void VR_curve448_point_destroy(curve448_point_t point)
 {
-    OPENSSL_cleanse(point, sizeof(curve448_point_t));
+    VR_OPENSSL_cleanse(point, sizeof(curve448_point_t));
 }
 
-int X448(uint8_t out_shared_key[56], const uint8_t private_key[56],
+int VR_X448(uint8_t out_shared_key[56], const uint8_t private_key[56],
          const uint8_t peer_public_value[56])
 {
-    return x448_int(out_shared_key, peer_public_value, private_key)
+    return VR_x448_int(out_shared_key, peer_public_value, private_key)
            == C448_SUCCESS;
 }
 
-void X448_public_from_private(uint8_t out_public_value[56],
+void VR_X448_public_from_private(uint8_t out_public_value[56],
                               const uint8_t private_key[56])
 {
-    x448_derive_public_key(out_public_value, private_key);
+    VR_x448_derive_public_key(out_public_value, private_key);
 }

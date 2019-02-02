@@ -23,10 +23,10 @@
 
 #ifndef NO_ASN1_OLD
 
-int ASN1_verify(i2d_of_void *i2d, X509_ALGOR *a, ASN1_BIT_STRING *signature,
+int VR_ASN1_verify(i2d_of_void *i2d, X509_ALGOR *a, ASN1_BIT_STRING *signature,
                 char *data, EVP_PKEY *pkey)
 {
-    EVP_MD_CTX *ctx = EVP_MD_CTX_new();
+    EVP_MD_CTX *ctx = VR_EVP_MD_CTX_new();
     const EVP_MD *type;
     unsigned char *p, *buf_in = NULL;
     int ret = -1, i, inl;
@@ -35,8 +35,8 @@ int ASN1_verify(i2d_of_void *i2d, X509_ALGOR *a, ASN1_BIT_STRING *signature,
         ASN1err(ASN1_F_ASN1_VERIFY, ERR_R_MALLOC_FAILURE);
         goto err;
     }
-    i = OBJ_obj2nid(a->algorithm);
-    type = EVP_get_digestbyname(OBJ_nid2sn(i));
+    i = VR_OBJ_obj2nid(a->algorithm);
+    type = VR_EVP_get_digestbyname(VR_OBJ_nid2sn(i));
     if (type == NULL) {
         ASN1err(ASN1_F_ASN1_VERIFY, ASN1_R_UNKNOWN_MESSAGE_DIGEST_ALGORITHM);
         goto err;
@@ -63,7 +63,7 @@ int ASN1_verify(i2d_of_void *i2d, X509_ALGOR *a, ASN1_BIT_STRING *signature,
     ret = EVP_VerifyInit_ex(ctx, type, NULL)
         && EVP_VerifyUpdate(ctx, (unsigned char *)buf_in, inl);
 
-    OPENSSL_clear_free(buf_in, (unsigned int)inl);
+    OPENVR_SSL_clear_free(buf_in, (unsigned int)inl);
 
     if (!ret) {
         ASN1err(ASN1_F_ASN1_VERIFY, ERR_R_EVP_LIB);
@@ -71,7 +71,7 @@ int ASN1_verify(i2d_of_void *i2d, X509_ALGOR *a, ASN1_BIT_STRING *signature,
     }
     ret = -1;
 
-    if (EVP_VerifyFinal(ctx, (unsigned char *)signature->data,
+    if (VR_EVP_VerifyFinal(ctx, (unsigned char *)signature->data,
                         (unsigned int)signature->length, pkey) <= 0) {
         ASN1err(ASN1_F_ASN1_VERIFY, ERR_R_EVP_LIB);
         ret = 0;
@@ -79,13 +79,13 @@ int ASN1_verify(i2d_of_void *i2d, X509_ALGOR *a, ASN1_BIT_STRING *signature,
     }
     ret = 1;
  err:
-    EVP_MD_CTX_free(ctx);
+    VR_EVP_MD_CTX_free(ctx);
     return ret;
 }
 
 #endif
 
-int ASN1_item_verify(const ASN1_ITEM *it, X509_ALGOR *a,
+int VR_ASN1_item_verify(const ASN1_ITEM *it, X509_ALGOR *a,
                      ASN1_BIT_STRING *signature, void *asn, EVP_PKEY *pkey)
 {
     EVP_MD_CTX *ctx = NULL;
@@ -104,14 +104,14 @@ int ASN1_item_verify(const ASN1_ITEM *it, X509_ALGOR *a,
         return -1;
     }
 
-    ctx = EVP_MD_CTX_new();
+    ctx = VR_EVP_MD_CTX_new();
     if (ctx == NULL) {
         ASN1err(ASN1_F_ASN1_ITEM_VERIFY, ERR_R_MALLOC_FAILURE);
         goto err;
     }
 
     /* Convert signature OID into digest and public key OIDs */
-    if (!OBJ_find_sigid_algs(OBJ_obj2nid(a->algorithm), &mdnid, &pknid)) {
+    if (!VR_OBJ_find_sigid_algs(VR_OBJ_obj2nid(a->algorithm), &mdnid, &pknid)) {
         ASN1err(ASN1_F_ASN1_ITEM_VERIFY, ASN1_R_UNKNOWN_SIGNATURE_ALGORITHM);
         goto err;
     }
@@ -140,12 +140,12 @@ int ASN1_item_verify(const ASN1_ITEM *it, X509_ALGOR *a,
         }
 
         /* Check public key OID matches public key type */
-        if (EVP_PKEY_type(pknid) != pkey->ameth->pkey_id) {
+        if (VR_EVP_PKEY_type(pknid) != pkey->ameth->pkey_id) {
             ASN1err(ASN1_F_ASN1_ITEM_VERIFY, ASN1_R_WRONG_PUBLIC_KEY_TYPE);
             goto err;
         }
 
-        if (!EVP_DigestVerifyInit(ctx, NULL, type, NULL, pkey)) {
+        if (!VR_EVP_DigestVerifyInit(ctx, NULL, type, NULL, pkey)) {
             ASN1err(ASN1_F_ASN1_ITEM_VERIFY, ERR_R_EVP_LIB);
             ret = 0;
             goto err;
@@ -153,7 +153,7 @@ int ASN1_item_verify(const ASN1_ITEM *it, X509_ALGOR *a,
 
     }
 
-    inl = ASN1_item_i2d(asn, &buf_in, it);
+    inl = VR_ASN1_item_i2d(asn, &buf_in, it);
     if (inl <= 0) {
         ASN1err(ASN1_F_ASN1_ITEM_VERIFY, ERR_R_INTERNAL_ERROR);
         goto err;
@@ -164,7 +164,7 @@ int ASN1_item_verify(const ASN1_ITEM *it, X509_ALGOR *a,
     }
     inll = inl;
 
-    ret = EVP_DigestVerify(ctx, signature->data, (size_t)signature->length,
+    ret = VR_EVP_DigestVerify(ctx, signature->data, (size_t)signature->length,
                            buf_in, inl);
     if (ret <= 0) {
         ASN1err(ASN1_F_ASN1_ITEM_VERIFY, ERR_R_EVP_LIB);
@@ -172,7 +172,7 @@ int ASN1_item_verify(const ASN1_ITEM *it, X509_ALGOR *a,
     }
     ret = 1;
  err:
-    OPENSSL_clear_free(buf_in, inll);
-    EVP_MD_CTX_free(ctx);
+    OPENVR_SSL_clear_free(buf_in, inll);
+    VR_EVP_MD_CTX_free(ctx);
     return ret;
 }

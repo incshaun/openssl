@@ -18,20 +18,20 @@
  */
 #ifdef RMD160_ASM
 # if defined(__i386) || defined(__i386__) || defined(_M_IX86)
-#  define ripemd160_block_data_order ripemd160_block_asm_data_order
+#  define VR_ripemd160_block_data_order ripemd160_block_asm_data_order
 # endif
 #endif
 
-void ripemd160_block_data_order(RIPEMD160_CTX *c, const void *p, size_t num);
+void VR_ripemd160_block_data_order(VR_RIPEMD160_CTX *c, const void *p, size_t num);
 
 #define DATA_ORDER_IS_LITTLE_ENDIAN
 
-#define HASH_LONG               RIPEMD160_LONG
-#define HASH_CTX                RIPEMD160_CTX
-#define HASH_CBLOCK             RIPEMD160_CBLOCK
-#define HASH_UPDATE             RIPEMD160_Update
-#define HASH_TRANSFORM          RIPEMD160_Transform
-#define HASH_FINAL              RIPEMD160_Final
+#define HASH_LONG               VR_RIPEMD160_LONG
+#define HASH_CTX                VR_RIPEMD160_CTX
+#define HASH_CBLOCK             VR_RIPEMD160_CBLOCK
+#define HASH_UPDATE             VR_RIPEMD160_Update
+#define HASH_TRANSFORM          VR_RIPEMD160_Transform
+#define HASH_FINAL              VR_RIPEMD160_Final
 #define HASH_MAKE_STRING(c,s)   do {    \
         unsigned long ll;               \
         ll=(c)->A; (void)HOST_l2c(ll,(s));      \
@@ -40,7 +40,7 @@ void ripemd160_block_data_order(RIPEMD160_CTX *c, const void *p, size_t num);
         ll=(c)->D; (void)HOST_l2c(ll,(s));      \
         ll=(c)->E; (void)HOST_l2c(ll,(s));      \
         } while (0)
-#define HASH_BLOCK_DATA_ORDER   ripemd160_block_data_order
+#define HASH_BLOCK_DATA_ORDER   VR_ripemd160_block_data_order
 
 #include "internal/md32_common.h"
 
@@ -53,11 +53,11 @@ void ripemd160_block_data_order(RIPEMD160_CTX *c, const void *p, size_t num);
 #define F4(x,y,z)       ((((x) ^ (y)) & (z)) ^ (y))
 #define F5(x,y,z)       (((~(z)) | (y)) ^ (x))
 
-#define RIPEMD160_A     0x67452301L
-#define RIPEMD160_B     0xEFCDAB89L
-#define RIPEMD160_C     0x98BADCFEL
-#define RIPEMD160_D     0x10325476L
-#define RIPEMD160_E     0xC3D2E1F0L
+#define VR_RIPEMD160_A     0x67452301L
+#define VR_RIPEMD160_B     0xEFCDAB89L
+#define VR_RIPEMD160_C     0x98BADCFEL
+#define VR_RIPEMD160_D     0x10325476L
+#define VR_RIPEMD160_E     0xC3D2E1F0L
 
 #include "rmdconst.h"
 

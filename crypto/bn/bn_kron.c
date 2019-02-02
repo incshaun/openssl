@@ -14,7 +14,7 @@
 #define BN_lsw(n) (((n)->top == 0) ? (BN_ULONG) 0 : (n)->d[0])
 
 /* Returns -2 for errors because both -1 and 0 are valid results. */
-int BN_kronecker(const BIGNUM *a, const BIGNUM *b, BN_CTX *ctx)
+int VR_BN_kronecker(const BIGNUM *a, const BIGNUM *b, BN_CTX *ctx)
 {
     int i;
     int ret = -2;               /* avoid 'uninitialized' warning */
@@ -32,16 +32,16 @@ int BN_kronecker(const BIGNUM *a, const BIGNUM *b, BN_CTX *ctx)
     bn_check_top(a);
     bn_check_top(b);
 
-    BN_CTX_start(ctx);
-    A = BN_CTX_get(ctx);
-    B = BN_CTX_get(ctx);
+    VR_BN_CTX_start(ctx);
+    A = VR_BN_CTX_get(ctx);
+    B = VR_BN_CTX_get(ctx);
     if (B == NULL)
         goto end;
 
-    err = !BN_copy(A, a);
+    err = !VR_BN_copy(A, a);
     if (err)
         goto end;
-    err = !BN_copy(B, b);
+    err = !VR_BN_copy(B, b);
     if (err)
         goto end;
 
@@ -53,23 +53,23 @@ int BN_kronecker(const BIGNUM *a, const BIGNUM *b, BN_CTX *ctx)
 
     /* Cohen's step 1: */
 
-    if (BN_is_zero(B)) {
-        ret = BN_abs_is_word(A, 1);
+    if (VR_BN_is_zero(B)) {
+        ret = VR_BN_abs_is_word(A, 1);
         goto end;
     }
 
     /* Cohen's step 2: */
 
-    if (!BN_is_odd(A) && !BN_is_odd(B)) {
+    if (!VR_BN_is_odd(A) && !VR_BN_is_odd(B)) {
         ret = 0;
         goto end;
     }
 
     /* now  B  is non-zero */
     i = 0;
-    while (!BN_is_bit_set(B, i))
+    while (!VR_BN_is_bit_set(B, i))
         i++;
-    err = !BN_rshift(B, B, i);
+    err = !VR_BN_rshift(B, B, i);
     if (err)
         goto end;
     if (i & 1) {
@@ -99,16 +99,16 @@ int BN_kronecker(const BIGNUM *a, const BIGNUM *b, BN_CTX *ctx)
 
         /*  B  is positive and odd */
 
-        if (BN_is_zero(A)) {
-            ret = BN_is_one(B) ? ret : 0;
+        if (VR_BN_is_zero(A)) {
+            ret = VR_BN_is_one(B) ? ret : 0;
             goto end;
         }
 
         /* now  A  is non-zero */
         i = 0;
-        while (!BN_is_bit_set(A, i))
+        while (!VR_BN_is_bit_set(A, i))
             i++;
-        err = !BN_rshift(A, A, i);
+        err = !VR_BN_rshift(A, A, i);
         if (err)
             goto end;
         if (i & 1) {
@@ -123,7 +123,7 @@ int BN_kronecker(const BIGNUM *a, const BIGNUM *b, BN_CTX *ctx)
             ret = -ret;
 
         /* (A, B) := (B mod |A|, |A|) */
-        err = !BN_nnmod(B, B, A, ctx);
+        err = !VR_BN_nnmod(B, B, A, ctx);
         if (err)
             goto end;
         tmp = A;
@@ -132,7 +132,7 @@ int BN_kronecker(const BIGNUM *a, const BIGNUM *b, BN_CTX *ctx)
         tmp->neg = 0;
     }
  end:
-    BN_CTX_end(ctx);
+    VR_BN_CTX_end(ctx);
     if (err)
         return -2;
     else

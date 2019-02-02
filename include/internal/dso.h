@@ -13,13 +13,13 @@
 # include <openssl/crypto.h>
 # include "internal/dsoerr.h"
 
-/* These values are used as commands to DSO_ctrl() */
+/* These values are used as commands to VR_DSO_ctrl() */
 # define DSO_CTRL_GET_FLAGS      1
 # define DSO_CTRL_SET_FLAGS      2
 # define DSO_CTRL_OR_FLAGS       3
 
 /*
- * By default, DSO_load() will translate the provided filename into a form
+ * By default, VR_DSO_load() will translate the provided filename into a form
  * typical for the platform using the dso_name_converter function of the
  * method. Eg. win32 will transform "blah" into "blah.dll", and dlfcn will
  * transform it into "libblah.so". This callback could even utilise the
@@ -40,7 +40,7 @@
 # define DSO_FLAG_NAME_TRANSLATION_EXT_ONLY      0x02
 
 /*
- * Don't unload the DSO when we call DSO_free()
+ * Don't unload the DSO when we call VR_DSO_free()
  */
 # define DSO_FLAG_NO_UNLOAD_ON_FREE              0x04
 
@@ -62,7 +62,7 @@ typedef struct dso_meth_st DSO_METHOD;
  * pointer (or NULL if they are to be used independently of a DSO object) and
  * a filename to transform. They should either return NULL (if there is an
  * error condition) or a newly allocated string containing the transformed
- * form that the caller will need to free with OPENSSL_free() when done.
+ * form that the caller will need to free with OPENVR_SSL_free() when done.
  */
 typedef char *(*DSO_NAME_CONVERTER_FUNC)(DSO *, const char *);
 /*
@@ -72,7 +72,7 @@ typedef char *(*DSO_NAME_CONVERTER_FUNC)(DSO *, const char *);
  * object) and two file specifications to merge. They should either return
  * NULL (if there is an error condition) or a newly allocated string
  * containing the result of merging that the caller will need to free with
- * OPENSSL_free() when done. Here, merging means that bits and pieces are
+ * OPENVR_SSL_free() when done. Here, merging means that bits and pieces are
  * taken from each of the file specifications and added together in whatever
  * fashion that is sensible for the DSO method in question.  The only rule
  * that really applies is that if the two specification contain pieces of the
@@ -82,55 +82,55 @@ typedef char *(*DSO_NAME_CONVERTER_FUNC)(DSO *, const char *);
  */
 typedef char *(*DSO_MERGER_FUNC)(DSO *, const char *, const char *);
 
-DSO *DSO_new(void);
-int DSO_free(DSO *dso);
-int DSO_flags(DSO *dso);
-int DSO_up_ref(DSO *dso);
-long DSO_ctrl(DSO *dso, int cmd, long larg, void *parg);
+DSO *VR_DSO_new(void);
+int VR_DSO_free(DSO *dso);
+int VR_DSO_flags(DSO *dso);
+int VR_DSO_up_ref(DSO *dso);
+long VR_DSO_ctrl(DSO *dso, int cmd, long larg, void *parg);
 
 /*
  * These functions can be used to get/set the platform-independent filename
  * used for a DSO. NB: set will fail if the DSO is already loaded.
  */
-const char *DSO_get_filename(DSO *dso);
-int DSO_set_filename(DSO *dso, const char *filename);
+const char *VR_DSO_get_filename(DSO *dso);
+int VR_DSO_set_filename(DSO *dso, const char *filename);
 /*
  * This function will invoke the DSO's name_converter callback to translate a
  * filename, or if the callback isn't set it will instead use the DSO_METHOD's
  * converter. If "filename" is NULL, the "filename" in the DSO itself will be
  * used. If the DSO_FLAG_NO_NAME_TRANSLATION flag is set, then the filename is
  * simply duplicated. NB: This function is usually called from within a
- * DSO_METHOD during the processing of a DSO_load() call, and is exposed so
+ * DSO_METHOD during the processing of a VR_DSO_load() call, and is exposed so
  * that caller-created DSO_METHODs can do the same thing. A non-NULL return
- * value will need to be OPENSSL_free()'d.
+ * value will need to be OPENVR_SSL_free()'d.
  */
-char *DSO_convert_filename(DSO *dso, const char *filename);
+char *VR_DSO_convert_filename(DSO *dso, const char *filename);
 /*
  * This function will invoke the DSO's merger callback to merge two file
  * specifications, or if the callback isn't set it will instead use the
  * DSO_METHOD's merger.  A non-NULL return value will need to be
- * OPENSSL_free()'d.
+ * OPENVR_SSL_free()'d.
  */
-char *DSO_merge(DSO *dso, const char *filespec1, const char *filespec2);
+char *VR_DSO_merge(DSO *dso, const char *filespec1, const char *filespec2);
 
 /*
  * The all-singing all-dancing load function, you normally pass NULL for the
- * first and third parameters. Use DSO_up_ref and DSO_free for subsequent
+ * first and third parameters. Use VR_DSO_up_ref and VR_DSO_free for subsequent
  * reference count handling. Any flags passed in will be set in the
  * constructed DSO after its init() function but before the load operation.
  * If 'dso' is non-NULL, 'flags' is ignored.
  */
-DSO *DSO_load(DSO *dso, const char *filename, DSO_METHOD *meth, int flags);
+DSO *VR_DSO_load(DSO *dso, const char *filename, DSO_METHOD *meth, int flags);
 
 /* This function binds to a function inside a shared library. */
-DSO_FUNC_TYPE DSO_bind_func(DSO *dso, const char *symname);
+DSO_FUNC_TYPE VR_DSO_bind_func(DSO *dso, const char *symname);
 
 /*
  * This method is the default, but will beg, borrow, or steal whatever method
  * should be the default on any particular platform (including
  * DSO_METH_null() if necessary).
  */
-DSO_METHOD *DSO_METHOD_openssl(void);
+DSO_METHOD *VR_DSO_METHOD_openssl(void);
 
 /*
  * This function writes null-terminated pathname of DSO module containing
@@ -141,13 +141,13 @@ DSO_METHOD *DSO_METHOD_openssl(void);
  * pathname of cryptolib itself is returned. Negative or zero return value
  * denotes error.
  */
-int DSO_pathbyaddr(void *addr, char *path, int sz);
+int VR_DSO_pathbyaddr(void *addr, char *path, int sz);
 
 /*
- * Like DSO_pathbyaddr() but instead returns a handle to the DSO for the symbol
+ * Like VR_DSO_pathbyaddr() but instead returns a handle to the DSO for the symbol
  * or NULL on error.
  */
-DSO *DSO_dsobyaddr(void *addr, int flags);
+DSO *VR_DSO_dsobyaddr(void *addr, int flags);
 
 /*
  * This function should be used with caution! It looks up symbols in *all*
@@ -158,8 +158,8 @@ DSO *DSO_dsobyaddr(void *addr, int flags);
  * OS-specific details such as libc.so.versioning or where does it actually
  * reside: in libc itself or libsocket.
  */
-void *DSO_global_lookup(const char *name);
+void *VR_DSO_global_lookup(const char *name);
 
-int ERR_load_DSO_strings(void);
+int VR_ERR_load_DSO_strings(void);
 
 #endif

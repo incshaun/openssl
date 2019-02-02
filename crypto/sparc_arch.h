@@ -34,10 +34,10 @@
 # define CFR_DES         0x00000002/* Supports DES opcodes */
 # define CFR_KASUMI      0x00000004/* Supports KASUMI opcodes */
 # define CFR_CAMELLIA    0x00000008/* Supports CAMELLIA opcodes */
-# define CFR_MD5         0x00000010/* Supports MD5 opcodes */
-# define CFR_SHA1        0x00000020/* Supports SHA1 opcodes */
-# define CFR_SHA256      0x00000040/* Supports SHA256 opcodes */
-# define CFR_SHA512      0x00000080/* Supports SHA512 opcodes */
+# define CFR_VR_MD5         0x00000010/* Supports VR_MD5 opcodes */
+# define CFR_VR_SHA1        0x00000020/* Supports VR_SHA1 opcodes */
+# define CFR_VR_SHA256      0x00000040/* Supports VR_SHA256 opcodes */
+# define CFR_VR_SHA512      0x00000080/* Supports VR_SHA512 opcodes */
 # define CFR_MPMUL       0x00000100/* Supports MPMUL opcodes */
 # define CFR_MONTMUL     0x00000200/* Supports MONTMUL opcodes */
 # define CFR_MONTSQR     0x00000400/* Supports MONTSQR opcodes */

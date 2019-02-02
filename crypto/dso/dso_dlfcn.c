@@ -62,7 +62,7 @@ static DSO_METHOD dso_meth_dlfcn = {
     dlfcn_globallookup
 };
 
-DSO_METHOD *DSO_METHOD_openssl(void)
+DSO_METHOD *VR_DSO_METHOD_openssl(void)
 {
     return &dso_meth_dlfcn;
 }
@@ -98,7 +98,7 @@ static int dlfcn_load(DSO *dso)
 {
     void *ptr = NULL;
     /* See applicable comments in dso_dl.c */
-    char *filename = DSO_convert_filename(dso, NULL);
+    char *filename = VR_DSO_convert_filename(dso, NULL);
     int flags = DLOPEN_FLAG;
     int saveerrno = get_last_sys_error();
 
@@ -117,7 +117,7 @@ static int dlfcn_load(DSO *dso)
     ptr = dlopen(filename, flags);
     if (ptr == NULL) {
         DSOerr(DSO_F_DLFCN_LOAD, DSO_R_LOAD_FAILED);
-        ERR_add_error_data(4, "filename(", filename, "): ", dlerror());
+        VR_ERR_add_error_data(4, "filename(", filename, "): ", dlerror());
         goto err;
     }
     /*
@@ -125,7 +125,7 @@ static int dlfcn_load(DSO *dso)
      * on a successful call.
      */
     set_sys_error(saveerrno);
-    if (!sk_void_push(dso->meth_data, (char *)ptr)) {
+    if (!sk_VR_void_push(dso->meth_data, (char *)ptr)) {
         DSOerr(DSO_F_DLFCN_LOAD, DSO_R_STACK_ERROR);
         goto err;
     }
@@ -134,7 +134,7 @@ static int dlfcn_load(DSO *dso)
     return 1;
  err:
     /* Cleanup! */
-    OPENSSL_free(filename);
+    OPENVR_SSL_free(filename);
     if (ptr != NULL)
         dlclose(ptr);
     return 0;
@@ -149,13 +149,13 @@ static int dlfcn_unload(DSO *dso)
     }
     if (sk_void_num(dso->meth_data) < 1)
         return 1;
-    ptr = sk_void_pop(dso->meth_data);
+    ptr = sk_VR_void_pop(dso->meth_data);
     if (ptr == NULL) {
         DSOerr(DSO_F_DLFCN_UNLOAD, DSO_R_NULL_HANDLE);
         /*
          * Should push the value back onto the stack in case of a retry.
          */
-        sk_void_push(dso->meth_data, ptr);
+        sk_VR_void_push(dso->meth_data, ptr);
         return 0;
     }
     /* For now I'm not aware of any errors associated with dlclose() */
@@ -187,7 +187,7 @@ static DSO_FUNC_TYPE dlfcn_bind_func(DSO *dso, const char *symname)
     u.dlret = dlsym(ptr, symname);
     if (u.dlret == NULL) {
         DSOerr(DSO_F_DLFCN_BIND_FUNC, DSO_R_SYM_FAILURE);
-        ERR_add_error_data(4, "symname(", symname, "): ", dlerror());
+        VR_ERR_add_error_data(4, "symname(", symname, "): ", dlerror());
         return NULL;
     }
     return u.sym;
@@ -262,7 +262,7 @@ static char *dlfcn_name_converter(DSO *dso, const char *filename)
     if (transform) {
         /* We will convert this to "%s.so" or "lib%s.so" etc */
         rsize += strlen(DSO_EXTENSION);    /* The length of ".so" */
-        if ((DSO_flags(dso) & DSO_FLAG_NAME_TRANSLATION_EXT_ONLY) == 0)
+        if ((VR_DSO_flags(dso) & DSO_FLAG_NAME_TRANSLATION_EXT_ONLY) == 0)
             rsize += 3;         /* The length of "lib" */
     }
     translated = OPENSSL_malloc(rsize);
@@ -271,7 +271,7 @@ static char *dlfcn_name_converter(DSO *dso, const char *filename)
         return NULL;
     }
     if (transform) {
-        if ((DSO_flags(dso) & DSO_FLAG_NAME_TRANSLATION_EXT_ONLY) == 0)
+        if ((VR_DSO_flags(dso) & DSO_FLAG_NAME_TRANSLATION_EXT_ONLY) == 0)
             sprintf(translated, "lib%s" DSO_EXTENSION, filename);
         else
             sprintf(translated, "%s" DSO_EXTENSION, filename);
@@ -356,7 +356,7 @@ static int dladdr(void *ptr, Dl_info *dl)
          *  EINVAL (invalid flags),
          *  EFAULT (invalid ldinfos ptr)
          */
-        OPENSSL_free((void *)ldinfos);
+        OPENVR_SSL_free((void *)ldinfos);
         dl->dli_fname = NULL;
         return 0;
     }
@@ -379,16 +379,16 @@ static int dladdr(void *ptr, Dl_info *dl)
                 buffer_sz += 1 + member_len + 1;
             found = 1;
             if ((buffer = OPENSSL_malloc(buffer_sz)) != NULL) {
-                OPENSSL_strlcpy(buffer, this_ldi->ldinfo_filename, buffer_sz);
+                VR_OPENSSL_strlcpy(buffer, this_ldi->ldinfo_filename, buffer_sz);
                 if (member_len > 0) {
                     /*
                      * Need to respect a possible member name and not just
                      * returning the path name in this case. See docs:
                      * sys/ldr.h, loadquery() and dlopen()/RTLD_MEMBER.
                      */
-                    OPENSSL_strlcat(buffer, "(", buffer_sz);
-                    OPENSSL_strlcat(buffer, member, buffer_sz);
-                    OPENSSL_strlcat(buffer, ")", buffer_sz);
+                    VR_OPENSSL_strlcat(buffer, "(", buffer_sz);
+                    VR_OPENSSL_strlcat(buffer, member, buffer_sz);
+                    VR_OPENSSL_strlcat(buffer, ")", buffer_sz);
                 }
                 dl->dli_fname = buffer;
             } else {
@@ -399,7 +399,7 @@ static int dladdr(void *ptr, Dl_info *dl)
                                           this_ldi->ldinfo_next);
         }
     } while (this_ldi->ldinfo_next && !found);
-    OPENSSL_free((void *)ldinfos);
+    OPENVR_SSL_free((void *)ldinfos);
     return (found && dl->dli_fname != NULL);
 }
 # endif                         /* _AIX */
@@ -424,7 +424,7 @@ static int dlfcn_pathbyaddr(void *addr, char *path, int sz)
         len = (int)strlen(dli.dli_fname);
         if (sz <= 0) {
 #  ifdef _AIX
-            OPENSSL_free((void *)dli.dli_fname);
+            OPENVR_SSL_free((void *)dli.dli_fname);
 #  endif
             return len + 1;
         }
@@ -433,12 +433,12 @@ static int dlfcn_pathbyaddr(void *addr, char *path, int sz)
         memcpy(path, dli.dli_fname, len);
         path[len++] = 0;
 #  ifdef _AIX
-        OPENSSL_free((void *)dli.dli_fname);
+        OPENVR_SSL_free((void *)dli.dli_fname);
 #  endif
         return len;
     }
 
-    ERR_add_error_data(2, "dlfcn_pathbyaddr(): ", dlerror());
+    VR_ERR_add_error_data(2, "dlfcn_pathbyaddr(): ", dlerror());
 # endif
     return -1;
 }

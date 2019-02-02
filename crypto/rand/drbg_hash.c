@@ -68,20 +68,20 @@ static int hash_df(RAND_DRBG *drbg, unsigned char *out,
          * (Step 4.1) out = out || Hash(tmp || in || [in2] || [in3])
          *            (where tmp = counter || num_bits_returned || [inbyte])
          */
-        if (!(EVP_DigestInit_ex(ctx, hash->md, NULL)
-                && EVP_DigestUpdate(ctx, tmp, tmp_sz)
-                && EVP_DigestUpdate(ctx, in, inlen)
-                && (in2 == NULL || EVP_DigestUpdate(ctx, in2, in2len))
-                && (in3 == NULL || EVP_DigestUpdate(ctx, in3, in3len))))
+        if (!(VR_EVP_DigestInit_ex(ctx, hash->md, NULL)
+                && VR_EVP_DigestUpdate(ctx, tmp, tmp_sz)
+                && VR_EVP_DigestUpdate(ctx, in, inlen)
+                && (in2 == NULL || VR_EVP_DigestUpdate(ctx, in2, in2len))
+                && (in3 == NULL || VR_EVP_DigestUpdate(ctx, in3, in3len))))
             return 0;
 
         if (outlen < hash->blocklen) {
-            if (!EVP_DigestFinal(ctx, vtmp, NULL))
+            if (!VR_EVP_DigestFinal(ctx, vtmp, NULL))
                 return 0;
             memcpy(out, vtmp, outlen);
-            OPENSSL_cleanse(vtmp, hash->blocklen);
+            VR_OPENSSL_cleanse(vtmp, hash->blocklen);
             break;
-        } else if(!EVP_DigestFinal(ctx, out, NULL)) {
+        } else if(!VR_EVP_DigestFinal(ctx, out, NULL)) {
             return 0;
         }
 
@@ -146,11 +146,11 @@ static int add_hash_to_v(RAND_DRBG *drbg, unsigned char inbyte,
     RAND_DRBG_HASH *hash = &drbg->data.hash;
     EVP_MD_CTX *ctx = hash->ctx;
 
-    return EVP_DigestInit_ex(ctx, hash->md, NULL)
-           && EVP_DigestUpdate(ctx, &inbyte, 1)
-           && EVP_DigestUpdate(ctx, hash->V, drbg->seedlen)
-           && (adin == NULL || EVP_DigestUpdate(ctx, adin, adinlen))
-           && EVP_DigestFinal(ctx, hash->vtmp, NULL)
+    return VR_EVP_DigestInit_ex(ctx, hash->md, NULL)
+           && VR_EVP_DigestUpdate(ctx, &inbyte, 1)
+           && VR_EVP_DigestUpdate(ctx, hash->V, drbg->seedlen)
+           && (adin == NULL || VR_EVP_DigestUpdate(ctx, adin, adinlen))
+           && VR_EVP_DigestFinal(ctx, hash->vtmp, NULL)
            && add_bytes(drbg, hash->V, hash->vtmp, hash->blocklen);
 }
 
@@ -181,17 +181,17 @@ static int hash_gen(RAND_DRBG *drbg, unsigned char *out, size_t outlen)
         return 1;
     memcpy(hash->vtmp, hash->V, drbg->seedlen);
     for(;;) {
-        if (!EVP_DigestInit_ex(hash->ctx, hash->md, NULL)
-                || !EVP_DigestUpdate(hash->ctx, hash->vtmp, drbg->seedlen))
+        if (!VR_EVP_DigestInit_ex(hash->ctx, hash->md, NULL)
+                || !VR_EVP_DigestUpdate(hash->ctx, hash->vtmp, drbg->seedlen))
             return 0;
 
         if (outlen < hash->blocklen) {
-            if (!EVP_DigestFinal(hash->ctx, hash->vtmp, NULL))
+            if (!VR_EVP_DigestFinal(hash->ctx, hash->vtmp, NULL))
                 return 0;
             memcpy(out, hash->vtmp, outlen);
             return 1;
         } else {
-            if (!EVP_DigestFinal(hash->ctx, out, NULL))
+            if (!VR_EVP_DigestFinal(hash->ctx, out, NULL))
                 return 0;
             outlen -= hash->blocklen;
             if (outlen == 0)
@@ -289,8 +289,8 @@ static int drbg_hash_generate(RAND_DRBG *drbg,
 
 static int drbg_hash_uninstantiate(RAND_DRBG *drbg)
 {
-    EVP_MD_CTX_free(drbg->data.hash.ctx);
-    OPENSSL_cleanse(&drbg->data.hash, sizeof(drbg->data.hash));
+    VR_EVP_MD_CTX_free(drbg->data.hash.ctx);
+    VR_OPENSSL_cleanse(&drbg->data.hash, sizeof(drbg->data.hash));
     return 1;
 }
 
@@ -301,7 +301,7 @@ static RAND_DRBG_METHOD drbg_hash_meth = {
     drbg_hash_uninstantiate
 };
 
-int drbg_hash_init(RAND_DRBG *drbg)
+int VR_drbg_hash_init(RAND_DRBG *drbg)
 {
     const EVP_MD *md;
     RAND_DRBG_HASH *hash = &drbg->data.hash;
@@ -315,13 +315,13 @@ int drbg_hash_init(RAND_DRBG *drbg)
     hash->md = md;
 
     if (hash->ctx == NULL) {
-        hash->ctx = EVP_MD_CTX_new();
+        hash->ctx = VR_EVP_MD_CTX_new();
         if (hash->ctx == NULL)
             return 0;
     }
 
     /* These are taken from SP 800-90 10.1 Table 2 */
-    hash->blocklen = EVP_MD_size(md);
+    hash->blocklen = VR_EVP_MD_size(md);
     /* See SP800-57 Part1 Rev4 5.6.1 Table 3 */
     drbg->strength = 64 * (hash->blocklen >> 3);
     if (drbg->strength > 256)

@@ -61,39 +61,39 @@ static STACK_OF(NAME_FUNCS) *name_funcs_stack;
  */
 
 static unsigned long obj_name_hash(const OBJ_NAME *a);
-static int obj_name_cmp(const OBJ_NAME *a, const OBJ_NAME *b);
+static int obj_VR_name_cmp(const OBJ_NAME *a, const OBJ_NAME *b);
 
 static CRYPTO_ONCE init = CRYPTO_ONCE_STATIC_INIT;
 DEFINE_RUN_ONCE_STATIC(o_names_init)
 {
-    CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_DISABLE);
-    names_lh = lh_OBJ_NAME_new(obj_name_hash, obj_name_cmp);
-    obj_lock = CRYPTO_THREAD_lock_new();
-    CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ENABLE);
+    VR_CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_DISABLE);
+    names_lh = lh_VR_OBJ_NAME_new(obj_name_hash, obj_VR_name_cmp);
+    obj_lock = VR_CRYPTO_THREAD_lock_new();
+    VR_CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ENABLE);
     return names_lh != NULL && obj_lock != NULL;
 }
 
-int OBJ_NAME_init(void)
+int VR_OBJ_NAME_init(void)
 {
     return RUN_ONCE(&init, o_names_init);
 }
 
-int OBJ_NAME_new_index(unsigned long (*hash_func) (const char *),
+int VR_OBJ_NAME_new_index(unsigned long (*hash_func) (const char *),
                        int (*cmp_func) (const char *, const char *),
                        void (*free_func) (const char *, int, const char *))
 {
     int ret = 0, i, push;
     NAME_FUNCS *name_funcs;
 
-    if (!OBJ_NAME_init())
+    if (!VR_OBJ_NAME_init())
         return 0;
 
-    CRYPTO_THREAD_write_lock(obj_lock);
+    VR_CRYPTO_THREAD_write_lock(obj_lock);
 
     if (name_funcs_stack == NULL) {
-        CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_DISABLE);
-        name_funcs_stack = sk_NAME_FUNCS_new_null();
-        CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ENABLE);
+        VR_CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_DISABLE);
+        name_funcs_stack = sk_VR_NAME_FUNCS_new_null();
+        VR_CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ENABLE);
     }
     if (name_funcs_stack == NULL) {
         /* ERROR */
@@ -102,24 +102,24 @@ int OBJ_NAME_new_index(unsigned long (*hash_func) (const char *),
     ret = names_type_num;
     names_type_num++;
     for (i = sk_NAME_FUNCS_num(name_funcs_stack); i < names_type_num; i++) {
-        CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_DISABLE);
+        VR_CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_DISABLE);
         name_funcs = OPENSSL_zalloc(sizeof(*name_funcs));
-        CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ENABLE);
+        VR_CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ENABLE);
         if (name_funcs == NULL) {
             OBJerr(OBJ_F_OBJ_NAME_NEW_INDEX, ERR_R_MALLOC_FAILURE);
             ret = 0;
             goto out;
         }
-        name_funcs->hash_func = openssl_lh_strcasehash;
+        name_funcs->hash_func = VR_openssl_lh_strcasehash;
         name_funcs->cmp_func = obj_strcasecmp;
-        CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_DISABLE);
+        VR_CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_DISABLE);
 
-        push = sk_NAME_FUNCS_push(name_funcs_stack, name_funcs);
-        CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ENABLE);
+        push = sk_VR_NAME_FUNCS_push(name_funcs_stack, name_funcs);
+        VR_CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ENABLE);
 
         if (!push) {
             OBJerr(OBJ_F_OBJ_NAME_NEW_INDEX, ERR_R_MALLOC_FAILURE);
-            OPENSSL_free(name_funcs);
+            OPENVR_SSL_free(name_funcs);
             ret = 0;
             goto out;
         }
@@ -133,11 +133,11 @@ int OBJ_NAME_new_index(unsigned long (*hash_func) (const char *),
         name_funcs->free_func = free_func;
 
 out:
-    CRYPTO_THREAD_unlock(obj_lock);
+    VR_CRYPTO_THREAD_unlock(obj_lock);
     return ret;
 }
 
-static int obj_name_cmp(const OBJ_NAME *a, const OBJ_NAME *b)
+static int obj_VR_name_cmp(const OBJ_NAME *a, const OBJ_NAME *b)
 {
     int ret;
 
@@ -163,13 +163,13 @@ static unsigned long obj_name_hash(const OBJ_NAME *a)
             sk_NAME_FUNCS_value(name_funcs_stack,
                                 a->type)->hash_func(a->name);
     } else {
-        ret = openssl_lh_strcasehash(a->name);
+        ret = VR_openssl_lh_strcasehash(a->name);
     }
     ret ^= a->type;
     return ret;
 }
 
-const char *OBJ_NAME_get(const char *name, int type)
+const char *VR_OBJ_NAME_get(const char *name, int type)
 {
     OBJ_NAME on, *ret;
     int num = 0, alias;
@@ -177,9 +177,9 @@ const char *OBJ_NAME_get(const char *name, int type)
 
     if (name == NULL)
         return NULL;
-    if (!OBJ_NAME_init())
+    if (!VR_OBJ_NAME_init())
         return NULL;
-    CRYPTO_THREAD_read_lock(obj_lock);
+    VR_CRYPTO_THREAD_read_lock(obj_lock);
 
     alias = type & OBJ_NAME_ALIAS;
     type &= ~OBJ_NAME_ALIAS;
@@ -201,16 +201,16 @@ const char *OBJ_NAME_get(const char *name, int type)
         }
     }
 
-    CRYPTO_THREAD_unlock(obj_lock);
+    VR_CRYPTO_THREAD_unlock(obj_lock);
     return value;
 }
 
-int OBJ_NAME_add(const char *name, int type, const char *data)
+int VR_OBJ_NAME_add(const char *name, int type, const char *data)
 {
     OBJ_NAME *onp, *ret;
     int alias, ok = 0;
 
-    if (!OBJ_NAME_init())
+    if (!VR_OBJ_NAME_init())
         return 0;
 
     alias = type & OBJ_NAME_ALIAS;
@@ -227,7 +227,7 @@ int OBJ_NAME_add(const char *name, int type, const char *data)
     onp->type = type;
     onp->data = data;
 
-    CRYPTO_THREAD_write_lock(obj_lock);
+    VR_CRYPTO_THREAD_write_lock(obj_lock);
 
     ret = lh_OBJ_NAME_insert(names_lh, onp);
     if (ret != NULL) {
@@ -242,11 +242,11 @@ int OBJ_NAME_add(const char *name, int type, const char *data)
                                 ret->type)->free_func(ret->name, ret->type,
                                                       ret->data);
         }
-        OPENSSL_free(ret);
+        OPENVR_SSL_free(ret);
     } else {
         if (lh_OBJ_NAME_error(names_lh)) {
             /* ERROR */
-            OPENSSL_free(onp);
+            OPENVR_SSL_free(onp);
             goto unlock;
         }
     }
@@ -254,19 +254,19 @@ int OBJ_NAME_add(const char *name, int type, const char *data)
     ok = 1;
 
 unlock:
-    CRYPTO_THREAD_unlock(obj_lock);
+    VR_CRYPTO_THREAD_unlock(obj_lock);
     return ok;
 }
 
-int OBJ_NAME_remove(const char *name, int type)
+int VR_OBJ_NAME_remove(const char *name, int type)
 {
     OBJ_NAME on, *ret;
     int ok = 0;
 
-    if (!OBJ_NAME_init())
+    if (!VR_OBJ_NAME_init())
         return 0;
 
-    CRYPTO_THREAD_write_lock(obj_lock);
+    VR_CRYPTO_THREAD_write_lock(obj_lock);
 
     type &= ~OBJ_NAME_ALIAS;
     on.name = name;
@@ -284,11 +284,11 @@ int OBJ_NAME_remove(const char *name, int type)
                                 ret->type)->free_func(ret->name, ret->type,
                                                       ret->data);
         }
-        OPENSSL_free(ret);
+        OPENVR_SSL_free(ret);
         ok = 1;
     }
 
-    CRYPTO_THREAD_unlock(obj_lock);
+    VR_CRYPTO_THREAD_unlock(obj_lock);
     return ok;
 }
 
@@ -306,7 +306,7 @@ static void do_all_fn(const OBJ_NAME *name, OBJ_DOALL *d)
 
 IMPLEMENT_LHASH_DOALL_ARG_CONST(OBJ_NAME, OBJ_DOALL);
 
-void OBJ_NAME_do_all(int type, void (*fn) (const OBJ_NAME *, void *arg),
+void VR_OBJ_NAME_do_all(int type, void (*fn) (const OBJ_NAME *, void *arg),
                      void *arg)
 {
     OBJ_DOALL d;
@@ -342,7 +342,7 @@ static int do_all_sorted_cmp(const void *n1_, const void *n2_)
     return strcmp((*n1)->name, (*n2)->name);
 }
 
-void OBJ_NAME_do_all_sorted(int type,
+void VR_OBJ_NAME_do_all_sorted(int type,
                             void (*fn) (const OBJ_NAME *, void *arg),
                             void *arg)
 {
@@ -355,14 +355,14 @@ void OBJ_NAME_do_all_sorted(int type,
     /* Really should return an error if !d.names...but its a void function! */
     if (d.names != NULL) {
         d.n = 0;
-        OBJ_NAME_do_all(type, do_all_sorted_fn, &d);
+        VR_OBJ_NAME_do_all(type, do_all_sorted_fn, &d);
 
         qsort((void *)d.names, d.n, sizeof(*d.names), do_all_sorted_cmp);
 
         for (n = 0; n < d.n; ++n)
             fn(d.names[n], arg);
 
-        OPENSSL_free((void *)d.names);
+        OPENVR_SSL_free((void *)d.names);
     }
 }
 
@@ -374,15 +374,15 @@ static void names_lh_free_doall(OBJ_NAME *onp)
         return;
 
     if (free_type < 0 || free_type == onp->type)
-        OBJ_NAME_remove(onp->name, onp->type);
+        VR_OBJ_NAME_remove(onp->name, onp->type);
 }
 
 static void name_funcs_free(NAME_FUNCS *ptr)
 {
-    OPENSSL_free(ptr);
+    OPENVR_SSL_free(ptr);
 }
 
-void OBJ_NAME_cleanup(int type)
+void VR_OBJ_NAME_cleanup(int type)
 {
     unsigned long down_load;
 
@@ -390,14 +390,14 @@ void OBJ_NAME_cleanup(int type)
         return;
 
     free_type = type;
-    down_load = lh_OBJ_NAME_get_down_load(names_lh);
+    down_load = lh_VR_OBJ_NAME_get_down_load(names_lh);
     lh_OBJ_NAME_set_down_load(names_lh, 0);
 
     lh_OBJ_NAME_doall(names_lh, names_lh_free_doall);
     if (type < 0) {
-        lh_OBJ_NAME_free(names_lh);
-        sk_NAME_FUNCS_pop_free(name_funcs_stack, name_funcs_free);
-        CRYPTO_THREAD_lock_free(obj_lock);
+        lh_VR_OBJ_NAME_free(names_lh);
+        sk_VR_NAME_FUNCS_pop_free(name_funcs_stack, name_funcs_free);
+        VR_CRYPTO_THREAD_lock_free(obj_lock);
         names_lh = NULL;
         name_funcs_stack = NULL;
         obj_lock = NULL;

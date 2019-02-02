@@ -35,11 +35,11 @@ int main(int argc, char *argv[])
     char buf[512];
     int ret = EXIT_FAILURE, i;
 
-    ctx = SSL_CTX_new(TLS_server_method());
+    ctx = VR_SSL_CTX_new(VR_TLS_server_method());
 
-    conf = NCONF_new(NULL);
+    conf = VR_NCONF_new(NULL);
 
-    if (NCONF_load(conf, "accept.cnf", &errline) <= 0) {
+    if (VR_NCONF_load(conf, "accept.cnf", &errline) <= 0) {
         if (errline <= 0)
             fprintf(stderr, "Error processing config file\n");
         else
@@ -47,28 +47,28 @@ int main(int argc, char *argv[])
         goto err;
     }
 
-    sect = NCONF_get_section(conf, "default");
+    sect = VR_NCONF_get_section(conf, "default");
 
     if (sect == NULL) {
         fprintf(stderr, "Error retrieving default section\n");
         goto err;
     }
 
-    cctx = SSL_CONF_CTX_new();
-    SSL_CONF_CTX_set_flags(cctx, SSL_CONF_FLAG_SERVER);
-    SSL_CONF_CTX_set_flags(cctx, SSL_CONF_FLAG_CERTIFICATE);
-    SSL_CONF_CTX_set_flags(cctx, SSL_CONF_FLAG_FILE);
-    SSL_CONF_CTX_set_ssl_ctx(cctx, ctx);
+    cctx = VR_SSL_CONF_CTX_new();
+    VR_SSL_CONF_CTX_set_flags(cctx, SSL_CONF_FLAG_SERVER);
+    VR_SSL_CONF_CTX_set_flags(cctx, SSL_CONF_FLAG_CERTIFICATE);
+    VR_SSL_CONF_CTX_set_flags(cctx, SSL_CONF_FLAG_FILE);
+    VR_SSL_CONF_CTX_set_ssl_ctx(cctx, ctx);
     for (i = 0; i < sk_CONF_VALUE_num(sect); i++) {
         int rv;
         cnf = sk_CONF_VALUE_value(sect, i);
-        rv = SSL_CONF_cmd(cctx, cnf->name, cnf->value);
+        rv = VR_SSL_CONF_cmd(cctx, cnf->name, cnf->value);
         if (rv > 0)
             continue;
         if (rv != -2) {
             fprintf(stderr, "Error processing %s = %s\n",
                     cnf->name, cnf->value);
-            ERR_print_errors_fp(stderr);
+            VR_ERR_print_errors_fp(stderr);
             goto err;
         }
         if (strcmp(cnf->name, "Port") == 0) {
@@ -79,16 +79,16 @@ int main(int argc, char *argv[])
         }
     }
 
-    if (!SSL_CONF_CTX_finish(cctx)) {
+    if (!VR_SSL_CONF_CTX_finish(cctx)) {
         fprintf(stderr, "Finish error\n");
-        ERR_print_errors_fp(stderr);
+        VR_ERR_print_errors_fp(stderr);
         goto err;
     }
 
     /* Setup server side SSL bio */
-    ssl_bio = BIO_new_ssl(ctx, 0);
+    ssl_bio = VR_BIO_new_ssl(ctx, 0);
 
-    if ((in = BIO_new_accept(port)) == NULL)
+    if ((in = VR_BIO_new_accept(port)) == NULL)
         goto err;
 
     /*
@@ -102,14 +102,14 @@ int main(int argc, char *argv[])
     /*
      * The first call will setup the accept socket, and the second will get a
      * socket.  In this loop, the first actual accept will occur in the
-     * BIO_read() function.
+     * VR_BIO_read() function.
      */
 
     if (BIO_do_accept(in) <= 0)
         goto err;
 
     for (;;) {
-        i = BIO_read(in, buf, 512);
+        i = VR_BIO_read(in, buf, 512);
         if (i == 0) {
             /*
              * If we have finished, remove the underlying BIO stack so the
@@ -117,8 +117,8 @@ int main(int argc, char *argv[])
              * to do an accept
              */
             printf("Done\n");
-            tmp = BIO_pop(in);
-            BIO_free_all(tmp);
+            tmp = VR_BIO_pop(in);
+            VR_BIO_free_all(tmp);
             goto again;
         }
         if (i < 0) {
@@ -133,7 +133,7 @@ int main(int argc, char *argv[])
     ret = EXIT_SUCCESS;
  err:
     if (ret != EXIT_SUCCESS)
-        ERR_print_errors_fp(stderr);
-    BIO_free(in);
+        VR_ERR_print_errors_fp(stderr);
+    VR_BIO_free(in);
     return ret;
 }

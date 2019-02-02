@@ -24,21 +24,21 @@ IMPLEMENT_ASN1_FUNCTIONS(PBEPARAM)
 
 /* Set an algorithm identifier for a PKCS#5 PBE algorithm */
 
-int PKCS5_pbe_set0_algor(X509_ALGOR *algor, int alg, int iter,
+int VR_PKCS5_pbe_set0_algor(X509_ALGOR *algor, int alg, int iter,
                          const unsigned char *salt, int saltlen)
 {
     PBEPARAM *pbe = NULL;
     ASN1_STRING *pbe_str = NULL;
     unsigned char *sstr = NULL;
 
-    pbe = PBEPARAM_new();
+    pbe = VR_PBEPARAM_new();
     if (pbe == NULL) {
         ASN1err(ASN1_F_PKCS5_PBE_SET0_ALGOR, ERR_R_MALLOC_FAILURE);
         goto err;
     }
     if (iter <= 0)
         iter = PKCS5_DEFAULT_ITER;
-    if (!ASN1_INTEGER_set(pbe->iter, iter)) {
+    if (!VR_ASN1_INTEGER_set(pbe->iter, iter)) {
         ASN1err(ASN1_F_PKCS5_PBE_SET0_ALGOR, ERR_R_MALLOC_FAILURE);
         goto err;
     }
@@ -52,45 +52,45 @@ int PKCS5_pbe_set0_algor(X509_ALGOR *algor, int alg, int iter,
     }
     if (salt)
         memcpy(sstr, salt, saltlen);
-    else if (RAND_bytes(sstr, saltlen) <= 0)
+    else if (VR_RAND_bytes(sstr, saltlen) <= 0)
         goto err;
 
-    ASN1_STRING_set0(pbe->salt, sstr, saltlen);
+    VR_ASN1_STRING_set0(pbe->salt, sstr, saltlen);
     sstr = NULL;
 
-    if (!ASN1_item_pack(pbe, ASN1_ITEM_rptr(PBEPARAM), &pbe_str)) {
+    if (!VR_ASN1_item_pack(pbe, ASN1_ITEM_rptr(PBEPARAM), &pbe_str)) {
         ASN1err(ASN1_F_PKCS5_PBE_SET0_ALGOR, ERR_R_MALLOC_FAILURE);
         goto err;
     }
 
-    PBEPARAM_free(pbe);
+    VR_PBEPARAM_free(pbe);
     pbe = NULL;
 
-    if (X509_ALGOR_set0(algor, OBJ_nid2obj(alg), V_ASN1_SEQUENCE, pbe_str))
+    if (VR_X509_ALGOR_set0(algor, VR_OBJ_nid2obj(alg), V_ASN1_SEQUENCE, pbe_str))
         return 1;
 
  err:
-    OPENSSL_free(sstr);
-    PBEPARAM_free(pbe);
-    ASN1_STRING_free(pbe_str);
+    OPENVR_SSL_free(sstr);
+    VR_PBEPARAM_free(pbe);
+    VR_ASN1_STRING_free(pbe_str);
     return 0;
 }
 
 /* Return an algorithm identifier for a PKCS#5 PBE algorithm */
 
-X509_ALGOR *PKCS5_pbe_set(int alg, int iter,
+X509_ALGOR *VR_PKCS5_pbe_set(int alg, int iter,
                           const unsigned char *salt, int saltlen)
 {
     X509_ALGOR *ret;
-    ret = X509_ALGOR_new();
+    ret = VR_X509_ALGOR_new();
     if (ret == NULL) {
         ASN1err(ASN1_F_PKCS5_PBE_SET, ERR_R_MALLOC_FAILURE);
         return NULL;
     }
 
-    if (PKCS5_pbe_set0_algor(ret, alg, iter, salt, saltlen))
+    if (VR_PKCS5_pbe_set0_algor(ret, alg, iter, salt, saltlen))
         return ret;
 
-    X509_ALGOR_free(ret);
+    VR_X509_ALGOR_free(ret);
     return NULL;
 }

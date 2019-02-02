@@ -54,7 +54,7 @@ static void U64TO8(unsigned char *p, u64 v)
     p[7] = (unsigned char)((v >> 56) & 0xff);
 }
 
-int poly1305_init(void *ctx, const unsigned char key[16])
+int VR_poly1305_init(void *ctx, const unsigned char key[16])
 {
     poly1305_internal *st = (poly1305_internal *)ctx;
     u64 r0, r1;
@@ -78,7 +78,7 @@ int poly1305_init(void *ctx, const unsigned char key[16])
     return 0;
 }
 
-void poly1305_blocks(void *ctx, const unsigned char *inp, size_t len,
+void VR_poly1305_blocks(void *ctx, const unsigned char *inp, size_t len,
                      u32 padbit)
 {
     poly1305_internal *st = (poly1305_internal *)ctx;
@@ -132,7 +132,7 @@ void poly1305_blocks(void *ctx, const unsigned char *inp, size_t len,
     st->h[2] = h2;
 }
 
-void poly1305_emit(void *ctx, unsigned char mac[16], const u32 nonce[4])
+void VR_poly1305_emit(void *ctx, unsigned char mac[16], const u32 nonce[4])
 {
     poly1305_internal *st = (poly1305_internal *) ctx;
     u64 h0, h1, h2;

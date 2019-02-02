@@ -15,14 +15,14 @@
 
 static const ERR_STRING_DATA PEM_str_functs[] = {
     {ERR_PACK(ERR_LIB_PEM, PEM_F_B2I_DSS, 0), "b2i_dss"},
-    {ERR_PACK(ERR_LIB_PEM, PEM_F_B2I_PVK_BIO, 0), "b2i_PVK_bio"},
+    {ERR_PACK(ERR_LIB_PEM, PEM_F_B2I_PVK_BIO, 0), "VR_b2i_PVK_bio"},
     {ERR_PACK(ERR_LIB_PEM, PEM_F_B2I_RSA, 0), "b2i_rsa"},
     {ERR_PACK(ERR_LIB_PEM, PEM_F_CHECK_BITLEN_DSA, 0), "check_bitlen_dsa"},
     {ERR_PACK(ERR_LIB_PEM, PEM_F_CHECK_BITLEN_RSA, 0), "check_bitlen_rsa"},
     {ERR_PACK(ERR_LIB_PEM, PEM_F_D2I_PKCS8PRIVATEKEY_BIO, 0),
-     "d2i_PKCS8PrivateKey_bio"},
+     "VR_d2i_PKCS8PrivateKey_bio"},
     {ERR_PACK(ERR_LIB_PEM, PEM_F_D2I_PKCS8PRIVATEKEY_FP, 0),
-     "d2i_PKCS8PrivateKey_fp"},
+     "VR_d2i_PKCS8PrivateKey_fp"},
     {ERR_PACK(ERR_LIB_PEM, PEM_F_DO_B2I, 0), "do_b2i"},
     {ERR_PACK(ERR_LIB_PEM, PEM_F_DO_B2I_BIO, 0), "do_b2i_bio"},
     {ERR_PACK(ERR_LIB_PEM, PEM_F_DO_BLOB_HEADER, 0), "do_blob_header"},
@@ -35,38 +35,38 @@ static const ERR_STRING_DATA PEM_str_functs[] = {
      "get_header_and_data"},
     {ERR_PACK(ERR_LIB_PEM, PEM_F_GET_NAME, 0), "get_name"},
     {ERR_PACK(ERR_LIB_PEM, PEM_F_I2B_PVK, 0), "i2b_PVK"},
-    {ERR_PACK(ERR_LIB_PEM, PEM_F_I2B_PVK_BIO, 0), "i2b_PVK_bio"},
+    {ERR_PACK(ERR_LIB_PEM, PEM_F_I2B_PVK_BIO, 0), "VR_i2b_PVK_bio"},
     {ERR_PACK(ERR_LIB_PEM, PEM_F_LOAD_IV, 0), "load_iv"},
-    {ERR_PACK(ERR_LIB_PEM, PEM_F_PEM_ASN1_READ, 0), "PEM_ASN1_read"},
-    {ERR_PACK(ERR_LIB_PEM, PEM_F_PEM_ASN1_READ_BIO, 0), "PEM_ASN1_read_bio"},
-    {ERR_PACK(ERR_LIB_PEM, PEM_F_PEM_ASN1_WRITE, 0), "PEM_ASN1_write"},
-    {ERR_PACK(ERR_LIB_PEM, PEM_F_PEM_ASN1_WRITE_BIO, 0), "PEM_ASN1_write_bio"},
-    {ERR_PACK(ERR_LIB_PEM, PEM_F_PEM_DEF_CALLBACK, 0), "PEM_def_callback"},
-    {ERR_PACK(ERR_LIB_PEM, PEM_F_PEM_DO_HEADER, 0), "PEM_do_header"},
+    {ERR_PACK(ERR_LIB_PEM, PEM_F_PEM_ASN1_READ, 0), "VR_PEM_ASN1_read"},
+    {ERR_PACK(ERR_LIB_PEM, PEM_F_PEM_ASN1_READ_BIO, 0), "VR_PEM_ASN1_read_bio"},
+    {ERR_PACK(ERR_LIB_PEM, PEM_F_PEM_ASN1_WRITE, 0), "VR_PEM_ASN1_write"},
+    {ERR_PACK(ERR_LIB_PEM, PEM_F_PEM_ASN1_WRITE_BIO, 0), "VR_PEM_ASN1_write_bio"},
+    {ERR_PACK(ERR_LIB_PEM, PEM_F_PEM_DEF_CALLBACK, 0), "VR_PEM_def_callback"},
+    {ERR_PACK(ERR_LIB_PEM, PEM_F_PEM_DO_HEADER, 0), "VR_PEM_do_header"},
     {ERR_PACK(ERR_LIB_PEM, PEM_F_PEM_GET_EVP_CIPHER_INFO, 0),
-     "PEM_get_EVP_CIPHER_INFO"},
-    {ERR_PACK(ERR_LIB_PEM, PEM_F_PEM_READ, 0), "PEM_read"},
-    {ERR_PACK(ERR_LIB_PEM, PEM_F_PEM_READ_BIO, 0), "PEM_read_bio"},
+     "VR_PEM_get_EVP_CIPHER_INFO"},
+    {ERR_PACK(ERR_LIB_PEM, PEM_F_PEM_READ, 0), "VR_PEM_read"},
+    {ERR_PACK(ERR_LIB_PEM, PEM_F_PEM_READ_BIO, 0), "VR_PEM_read_bio"},
     {ERR_PACK(ERR_LIB_PEM, PEM_F_PEM_READ_BIO_DHPARAMS, 0),
-     "PEM_read_bio_DHparams"},
-    {ERR_PACK(ERR_LIB_PEM, PEM_F_PEM_READ_BIO_EX, 0), "PEM_read_bio_ex"},
+     "VR_PEM_read_bio_DHparams"},
+    {ERR_PACK(ERR_LIB_PEM, PEM_F_PEM_READ_BIO_EX, 0), "VR_PEM_read_bio_ex"},
     {ERR_PACK(ERR_LIB_PEM, PEM_F_PEM_READ_BIO_PARAMETERS, 0),
-     "PEM_read_bio_Parameters"},
+     "VR_PEM_read_bio_Parameters"},
     {ERR_PACK(ERR_LIB_PEM, PEM_F_PEM_READ_BIO_PRIVATEKEY, 0),
-     "PEM_read_bio_PrivateKey"},
-    {ERR_PACK(ERR_LIB_PEM, PEM_F_PEM_READ_DHPARAMS, 0), "PEM_read_DHparams"},
+     "VR_PEM_read_bio_PrivateKey"},
+    {ERR_PACK(ERR_LIB_PEM, PEM_F_PEM_READ_DHPARAMS, 0), "VR_PEM_read_DHparams"},
     {ERR_PACK(ERR_LIB_PEM, PEM_F_PEM_READ_PRIVATEKEY, 0),
-     "PEM_read_PrivateKey"},
-    {ERR_PACK(ERR_LIB_PEM, PEM_F_PEM_SIGNFINAL, 0), "PEM_SignFinal"},
-    {ERR_PACK(ERR_LIB_PEM, PEM_F_PEM_WRITE, 0), "PEM_write"},
-    {ERR_PACK(ERR_LIB_PEM, PEM_F_PEM_WRITE_BIO, 0), "PEM_write_bio"},
+     "VR_PEM_read_PrivateKey"},
+    {ERR_PACK(ERR_LIB_PEM, PEM_F_PEM_SIGNFINAL, 0), "VR_PEM_SignFinal"},
+    {ERR_PACK(ERR_LIB_PEM, PEM_F_PEM_WRITE, 0), "VR_PEM_write"},
+    {ERR_PACK(ERR_LIB_PEM, PEM_F_PEM_WRITE_BIO, 0), "VR_PEM_write_bio"},
     {ERR_PACK(ERR_LIB_PEM, PEM_F_PEM_WRITE_PRIVATEKEY, 0),
-     "PEM_write_PrivateKey"},
-    {ERR_PACK(ERR_LIB_PEM, PEM_F_PEM_X509_INFO_READ, 0), "PEM_X509_INFO_read"},
+     "VR_PEM_write_PrivateKey"},
+    {ERR_PACK(ERR_LIB_PEM, PEM_F_PEM_X509_INFO_READ, 0), "VR_PEM_X509_INFO_read"},
     {ERR_PACK(ERR_LIB_PEM, PEM_F_PEM_X509_INFO_READ_BIO, 0),
-     "PEM_X509_INFO_read_bio"},
+     "VR_PEM_X509_INFO_read_bio"},
     {ERR_PACK(ERR_LIB_PEM, PEM_F_PEM_X509_INFO_WRITE_BIO, 0),
-     "PEM_X509_INFO_write_bio"},
+     "VR_PEM_X509_INFO_write_bio"},
     {0, NULL}
 };
 
@@ -114,12 +114,12 @@ static const ERR_STRING_DATA PEM_str_reasons[] = {
 
 #endif
 
-int ERR_load_PEM_strings(void)
+int VR_ERR_load_PEM_strings(void)
 {
 #ifndef OPENSSL_NO_ERR
-    if (ERR_func_error_string(PEM_str_functs[0].error) == NULL) {
-        ERR_load_strings_const(PEM_str_functs);
-        ERR_load_strings_const(PEM_str_reasons);
+    if (VR_ERR_func_error_string(PEM_str_functs[0].error) == NULL) {
+        VR_ERR_load_strings_const(PEM_str_functs);
+        VR_ERR_load_strings_const(PEM_str_reasons);
     }
 #endif
     return 1;

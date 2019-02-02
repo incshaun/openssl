@@ -16,7 +16,7 @@
  * The extra state information to record how much of the 128bit block we have
  * used is contained in *num;
  */
-void CRYPTO_cfb128_encrypt(const unsigned char *in, unsigned char *out,
+void VR_CRYPTO_cfb128_encrypt(const unsigned char *in, unsigned char *out,
                            size_t len, const void *key,
                            unsigned char ivec[16], int *num,
                            int enc, block128_f block)
@@ -170,7 +170,7 @@ static void cfbr_encrypt_block(const unsigned char *in, unsigned char *out,
 }
 
 /* N.B. This expects the input to be packed, MS bit first */
-void CRYPTO_cfb128_1_encrypt(const unsigned char *in, unsigned char *out,
+void VR_CRYPTO_cfb128_1_encrypt(const unsigned char *in, unsigned char *out,
                              size_t bits, const void *key,
                              unsigned char ivec[16], int *num,
                              int enc, block128_f block)
@@ -186,7 +186,7 @@ void CRYPTO_cfb128_1_encrypt(const unsigned char *in, unsigned char *out,
     }
 }
 
-void CRYPTO_cfb128_8_encrypt(const unsigned char *in, unsigned char *out,
+void VR_CRYPTO_cfb128_8_encrypt(const unsigned char *in, unsigned char *out,
                              size_t length, const void *key,
                              unsigned char ivec[16], int *num,
                              int enc, block128_f block)

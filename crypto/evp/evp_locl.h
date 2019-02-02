@@ -46,7 +46,7 @@ struct evp_mac_ctx_st {
     void *data;                  /* Individual method data */
 } /* EVP_MAC_CTX */;
 
-int PKCS5_v2_PBKDF2_keyivgen(EVP_CIPHER_CTX *ctx, const char *pass,
+int VR_PKCS5_v2_PBKDF2_keyivgen(EVP_CIPHER_CTX *ctx, const char *pass,
                              int passlen, ASN1_TYPE *param,
                              const EVP_CIPHER *c, const EVP_MD *md,
                              int en_de);
@@ -70,4 +70,4 @@ struct evp_Encode_Ctx_st {
 typedef struct evp_pbe_st EVP_PBE_CTL;
 DEFINE_STACK_OF(EVP_PBE_CTL)
 
-int is_partially_overlapping(const void *ptr1, const void *ptr2, int len);
+int VR_is_partially_overlapping(const void *ptr1, const void *ptr2, int len);

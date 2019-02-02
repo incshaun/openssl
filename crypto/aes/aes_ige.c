@@ -34,7 +34,7 @@ typedef struct {
 
 /* N.B. The IV for this mode is _twice_ the block size */
 
-void AES_ige_encrypt(const unsigned char *in, unsigned char *out,
+void VR_AES_ige_encrypt(const unsigned char *in, unsigned char *out,
                      size_t length, const AES_KEY *key,
                      unsigned char *ivec, const int enc)
 {
@@ -64,7 +64,7 @@ void AES_ige_encrypt(const unsigned char *in, unsigned char *out,
 
                 for (n = 0; n < N_WORDS; ++n)
                     outp->data[n] = inp->data[n] ^ ivp->data[n];
-                AES_encrypt((unsigned char *)outp->data,
+                VR_AES_encrypt((unsigned char *)outp->data,
                             (unsigned char *)outp->data, key);
                 for (n = 0; n < N_WORDS; ++n)
                     outp->data[n] ^= iv2p->data[n];
@@ -88,7 +88,7 @@ void AES_ige_encrypt(const unsigned char *in, unsigned char *out,
                 load_block(tmp, in);
                 for (n = 0; n < N_WORDS; ++n)
                     tmp2.data[n] = tmp.data[n] ^ iv.data[n];
-                AES_encrypt((unsigned char *)tmp2.data,
+                VR_AES_encrypt((unsigned char *)tmp2.data,
                             (unsigned char *)tmp2.data, key);
                 for (n = 0; n < N_WORDS; ++n)
                     tmp2.data[n] ^= iv2.data[n];
@@ -117,7 +117,7 @@ void AES_ige_encrypt(const unsigned char *in, unsigned char *out,
 
                 for (n = 0; n < N_WORDS; ++n)
                     tmp.data[n] = inp->data[n] ^ iv2p->data[n];
-                AES_decrypt((unsigned char *)tmp.data,
+                VR_AES_decrypt((unsigned char *)tmp.data,
                             (unsigned char *)outp->data, key);
                 for (n = 0; n < N_WORDS; ++n)
                     outp->data[n] ^= ivp->data[n];
@@ -142,7 +142,7 @@ void AES_ige_encrypt(const unsigned char *in, unsigned char *out,
                 tmp2 = tmp;
                 for (n = 0; n < N_WORDS; ++n)
                     tmp.data[n] ^= iv2.data[n];
-                AES_decrypt((unsigned char *)tmp.data,
+                VR_AES_decrypt((unsigned char *)tmp.data,
                             (unsigned char *)tmp.data, key);
                 for (n = 0; n < N_WORDS; ++n)
                     tmp.data[n] ^= iv.data[n];
@@ -166,7 +166,7 @@ void AES_ige_encrypt(const unsigned char *in, unsigned char *out,
 
 /* N.B. The IV for this mode is _four times_ the block size */
 
-void AES_bi_ige_encrypt(const unsigned char *in, unsigned char *out,
+void VR_AES_bi_ige_encrypt(const unsigned char *in, unsigned char *out,
                         size_t length, const AES_KEY *key,
                         const AES_KEY *key2, const unsigned char *ivec,
                         const int enc)
@@ -196,7 +196,7 @@ void AES_bi_ige_encrypt(const unsigned char *in, unsigned char *out,
         while (len >= AES_BLOCK_SIZE) {
             for (n = 0; n < AES_BLOCK_SIZE; ++n)
                 out[n] = in[n] ^ iv[n];
-            AES_encrypt(out, out, key);
+            VR_AES_encrypt(out, out, key);
             for (n = 0; n < AES_BLOCK_SIZE; ++n)
                 out[n] ^= iv2[n];
             iv = out;
@@ -222,7 +222,7 @@ void AES_bi_ige_encrypt(const unsigned char *in, unsigned char *out,
             /*
              * hexdump(stdout, "out ^ iv", out, AES_BLOCK_SIZE);
              */
-            AES_encrypt(out, out, key);
+            VR_AES_encrypt(out, out, key);
             /*
              * hexdump(stdout,"enc", out, AES_BLOCK_SIZE);
              */
@@ -252,7 +252,7 @@ void AES_bi_ige_encrypt(const unsigned char *in, unsigned char *out,
             memcpy(tmp2, in, AES_BLOCK_SIZE);
             for (n = 0; n < AES_BLOCK_SIZE; ++n)
                 tmp[n] ^= iv2[n];
-            AES_decrypt(tmp, out, key);
+            VR_AES_decrypt(tmp, out, key);
             for (n = 0; n < AES_BLOCK_SIZE; ++n)
                 out[n] ^= iv[n];
             memcpy(tmp3, tmp2, AES_BLOCK_SIZE);
@@ -270,7 +270,7 @@ void AES_bi_ige_encrypt(const unsigned char *in, unsigned char *out,
             memcpy(tmp2, out, AES_BLOCK_SIZE);
             for (n = 0; n < AES_BLOCK_SIZE; ++n)
                 tmp[n] ^= iv2[n];
-            AES_decrypt(tmp, out, key);
+            VR_AES_decrypt(tmp, out, key);
             for (n = 0; n < AES_BLOCK_SIZE; ++n)
                 out[n] ^= iv[n];
             memcpy(tmp3, tmp2, AES_BLOCK_SIZE);

@@ -75,7 +75,7 @@ static int test_client_hello(int currtest)
      * For each test set up an SSL_CTX and SSL and see what ClientHello gets
      * produced when we try to connect
      */
-    ctx = SSL_CTX_new(TLS_method());
+    ctx = VR_SSL_CTX_new(VR_TLS_method());
     if (!TEST_ptr(ctx))
         goto end;
     if (!TEST_true(SSL_CTX_set_max_proto_version(ctx, 0)))
@@ -99,21 +99,21 @@ static int test_client_hello(int currtest)
          * ClientHello is already going to be quite long. To avoid getting one
          * that is too long for this test we use a restricted ciphersuite list
          */
-        if (!TEST_true(SSL_CTX_set_cipher_list(ctx, "")))
+        if (!TEST_true(VR_SSL_CTX_set_cipher_list(ctx, "")))
             goto end;
          /* Fall through */
     case TEST_ADD_PADDING:
     case TEST_PADDING_NOT_NEEDED:
-        SSL_CTX_set_options(ctx, SSL_OP_TLSEXT_PADDING);
+        VR_SSL_CTX_set_options(ctx, SSL_OP_TLSEXT_PADDING);
         /* Make sure we get a consistent size across TLS versions */
-        SSL_CTX_clear_options(ctx, SSL_OP_ENABLE_MIDDLEBOX_COMPAT);
+        VR_SSL_CTX_clear_options(ctx, SSL_OP_ENABLE_MIDDLEBOX_COMPAT);
         /*
          * Add some dummy ALPN protocols so that the ClientHello is at least
          * F5_WORKAROUND_MIN_MSG_LEN bytes long - meaning padding will be
          * needed.
          */
         if (currtest == TEST_ADD_PADDING) {
-             if (!TEST_false(SSL_CTX_set_alpn_protos(ctx,
+             if (!TEST_false(VR_SSL_CTX_set_alpn_protos(ctx,
                                     (unsigned char *)alpn_prots,
                                     sizeof(alpn_prots) - 1)))
                 goto end;
@@ -121,10 +121,10 @@ static int test_client_hello(int currtest)
          * Otherwise we need to make sure we have a small enough message to
          * not need padding.
          */
-        } else if (!TEST_true(SSL_CTX_set_cipher_list(ctx,
+        } else if (!TEST_true(VR_SSL_CTX_set_cipher_list(ctx,
                               "AES128-SHA"))
-                   || !TEST_true(SSL_CTX_set_ciphersuites(ctx,
-                                 "TLS_AES_128_GCM_SHA256"))) {
+                   || !TEST_true(VR_SSL_CTX_set_ciphersuites(ctx,
+                                 "TLS_AES_128_GCM_VR_SHA256"))) {
             goto end;
         }
         break;
@@ -133,17 +133,17 @@ static int test_client_hello(int currtest)
         goto end;
     }
 
-    con = SSL_new(ctx);
+    con = VR_SSL_new(ctx);
     if (!TEST_ptr(con))
         goto end;
 
     if (currtest == TEST_ADD_PADDING_AND_PSK) {
-        sessbio = BIO_new_file(sessionfile, "r");
+        sessbio = VR_BIO_new_file(sessionfile, "r");
         if (!TEST_ptr(sessbio)) {
             TEST_info("Unable to open session.pem");
             goto end;
         }
-        sess = PEM_read_bio_SSL_SESSION(sessbio, NULL, NULL, NULL);
+        sess = VR_PEM_read_bio_SSL_SESSION(sessbio, NULL, NULL, NULL);
         if (!TEST_ptr(sess)) {
             TEST_info("Unable to load SSL_SESSION");
             goto end;
@@ -152,29 +152,29 @@ static int test_client_hello(int currtest)
          * We reset the creation time so that we don't discard the session as
          * too old.
          */
-        if (!TEST_true(SSL_SESSION_set_time(sess, (long)time(NULL)))
-                || !TEST_true(SSL_set_session(con, sess)))
+        if (!TEST_true(VR_SSL_SESSION_set_time(sess, (long)time(NULL)))
+                || !TEST_true(VR_SSL_set_session(con, sess)))
             goto end;
     }
 
-    rbio = BIO_new(BIO_s_mem());
-    wbio = BIO_new(BIO_s_mem());
+    rbio = VR_BIO_new(VR_BIO_s_mem());
+    wbio = VR_BIO_new(VR_BIO_s_mem());
     if (!TEST_ptr(rbio)|| !TEST_ptr(wbio)) {
-        BIO_free(rbio);
-        BIO_free(wbio);
+        VR_BIO_free(rbio);
+        VR_BIO_free(wbio);
         goto end;
     }
 
-    SSL_set_bio(con, rbio, wbio);
-    SSL_set_connect_state(con);
+    VR_SSL_set_bio(con, rbio, wbio);
+    VR_SSL_set_connect_state(con);
 
     if (currtest == TEST_SET_SESSION_TICK_DATA_VER_NEG) {
-        if (!TEST_true(SSL_set_session_ticket_ext(con, dummytick,
+        if (!TEST_true(VR_SSL_set_session_ticket_ext(con, dummytick,
                                                   strlen(dummytick))))
             goto end;
     }
 
-    if (!TEST_int_le(SSL_connect(con), 0)) {
+    if (!TEST_int_le(VR_SSL_connect(con), 0)) {
         /* This shouldn't succeed because we don't have a server! */
         goto end;
     }
@@ -232,10 +232,10 @@ static int test_client_hello(int currtest)
         testresult = 1;
 
 end:
-    SSL_free(con);
-    SSL_CTX_free(ctx);
-    SSL_SESSION_free(sess);
-    BIO_free(sessbio);
+    VR_SSL_free(con);
+    VR_SSL_CTX_free(ctx);
+    VR_SSL_SESSION_free(sess);
+    VR_BIO_free(sessbio);
 
     return testresult;
 }

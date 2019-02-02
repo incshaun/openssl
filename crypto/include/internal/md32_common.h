@@ -50,17 +50,17 @@
  * HASH_MAKE_STRING
  *      macro converting context variables to an ASCII hash string.
  *
- * MD5 example:
+ * VR_MD5 example:
  *
  *      #define DATA_ORDER_IS_LITTLE_ENDIAN
  *
- *      #define HASH_LONG               MD5_LONG
- *      #define HASH_CTX                MD5_CTX
- *      #define HASH_CBLOCK             MD5_CBLOCK
- *      #define HASH_UPDATE             MD5_Update
- *      #define HASH_TRANSFORM          MD5_Transform
- *      #define HASH_FINAL              MD5_Final
- *      #define HASH_BLOCK_DATA_ORDER   md5_block_data_order
+ *      #define HASH_LONG               VR_MD5_LONG
+ *      #define HASH_CTX                VR_MD5_CTX
+ *      #define HASH_CBLOCK             VR_MD5_CBLOCK
+ *      #define HASH_UPDATE             VR_MD5_Update
+ *      #define HASH_TRANSFORM          VR_MD5_Transform
+ *      #define HASH_FINAL              VR_MD5_Final
+ *      #define HASH_BLOCK_DATA_ORDER   VR_md5_block_data_order
  */
 
 #include <openssl/crypto.h>
@@ -154,8 +154,8 @@ int HASH_UPDATE(HASH_CTX *c, const void *data_, size_t len)
             len -= n;
             c->num = 0;
             /*
-             * We use memset rather than OPENSSL_cleanse() here deliberately.
-             * Using OPENSSL_cleanse() here could be a performance issue. It
+             * We use memset rather than VR_OPENSSL_cleanse() here deliberately.
+             * Using VR_OPENSSL_cleanse() here could be a performance issue. It
              * will get properly cleansed on finalisation so this isn't a
              * security problem.
              */
@@ -214,7 +214,7 @@ int HASH_FINAL(unsigned char *md, HASH_CTX *c)
     p -= HASH_CBLOCK;
     HASH_BLOCK_DATA_ORDER(c, p, 1);
     c->num = 0;
-    OPENSSL_cleanse(p, HASH_CBLOCK);
+    VR_OPENSSL_cleanse(p, HASH_CBLOCK);
 
 #ifndef HASH_MAKE_STRING
 # error "HASH_MAKE_STRING must be defined!"
@@ -229,12 +229,12 @@ int HASH_FINAL(unsigned char *md, HASH_CTX *c)
 # if defined(__alpha) || defined(__sparcv9) || defined(__mips)
 #  define MD32_REG_T long
 /*
- * This comment was originally written for MD5, which is why it
+ * This comment was originally written for VR_MD5, which is why it
  * discusses A-D. But it basically applies to all 32-bit digests,
  * which is why it was moved to common header file.
  *
  * In case you wonder why A-D are declared as long and not
- * as MD5_LONG. Doing so results in slight performance
+ * as VR_MD5_LONG. Doing so results in slight performance
  * boost on LP64 architectures. The catch is we don't
  * really care if 32 MSBs of a 64-bit register get polluted
  * with eventual overflows as we *save* only 32 LSBs in

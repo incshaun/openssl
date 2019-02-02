@@ -19,9 +19,9 @@
 
 int FuzzerInitialize(int *argc, char ***argv)
 {
-    OPENSSL_init_crypto(OPENSSL_INIT_LOAD_CRYPTO_STRINGS, NULL);
-    ERR_get_state();
-    CRYPTO_free_ex_index(0, -1);
+    VR_OPENSSL_init_crypto(OPENSSL_INIT_LOAD_CRYPTO_STRINGS, NULL);
+    VR_ERR_get_state();
+    VR_CRYPTO_free_ex_index(0, -1);
     return 1;
 }
 
@@ -33,19 +33,19 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
     if (len == 0)
         return 0;
 
-    in = BIO_new(BIO_s_mem());
-    OPENSSL_assert((size_t)BIO_write(in, buf, len) == len);
-    cms = d2i_CMS_bio(in, NULL);
+    in = VR_BIO_new(VR_BIO_s_mem());
+    OPENSSL_assert((size_t)VR_BIO_write(in, buf, len) == len);
+    cms = VR_d2i_CMS_bio(in, NULL);
     if (cms != NULL) {
-        BIO *out = BIO_new(BIO_s_null());
+        BIO *out = VR_BIO_new(VR_BIO_s_null());
 
-        i2d_CMS_bio(out, cms);
-        BIO_free(out);
-        CMS_ContentInfo_free(cms);
+        VR_i2d_CMS_bio(out, cms);
+        VR_BIO_free(out);
+        VR_CMS_ContentInfo_free(cms);
     }
 
-    BIO_free(in);
-    ERR_clear_error();
+    VR_BIO_free(in);
+    VR_ERR_clear_error();
 
     return 0;
 }

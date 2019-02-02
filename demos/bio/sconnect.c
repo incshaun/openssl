@@ -52,36 +52,36 @@ int main(int argc, char *argv[])
     sock_init();
 #endif
 
-    ssl_ctx = SSL_CTX_new(TLS_client_method());
+    ssl_ctx = VR_SSL_CTX_new(VR_TLS_client_method());
 
     /* Enable trust chain verification */
-    SSL_CTX_set_verify(ssl_ctx, SSL_VERIFY_PEER, NULL);
-    SSL_CTX_load_verify_locations(ssl_ctx, CAfile, NULL);
+    VR_SSL_CTX_set_verify(ssl_ctx, SSL_VERIFY_PEER, NULL);
+    VR_SSL_CTX_load_verify_locations(ssl_ctx, CAfile, NULL);
 
     /* Lets make a SSL structure */
-    ssl = SSL_new(ssl_ctx);
-    SSL_set_connect_state(ssl);
+    ssl = VR_SSL_new(ssl_ctx);
+    VR_SSL_set_connect_state(ssl);
 
     /* Enable peername verification */
-    if (SSL_set1_host(ssl, hostname) <= 0)
+    if (VR_SSL_set1_host(ssl, hostname) <= 0)
         goto err;
 
     /* Use it inside an SSL BIO */
-    ssl_bio = BIO_new(BIO_f_ssl());
+    ssl_bio = VR_BIO_new(VR_BIO_f_ssl());
     BIO_set_ssl(ssl_bio, ssl, BIO_CLOSE);
 
     /* Lets use a connect BIO under the SSL BIO */
-    out = BIO_new(BIO_s_connect());
+    out = VR_BIO_new(VR_BIO_s_connect());
     BIO_set_conn_hostname(out, hostport);
     BIO_set_nbio(out, 1);
-    out = BIO_push(ssl_bio, out);
+    out = VR_BIO_push(ssl_bio, out);
 
     p = "GET / HTTP/1.0\r\n\r\n";
     len = strlen(p);
 
     off = 0;
     for (;;) {
-        i = BIO_write(out, &(p[off]), len);
+        i = VR_BIO_write(out, &(p[off]), len);
         if (i <= 0) {
             if (BIO_should_retry(out)) {
                 fprintf(stderr, "write DELAY\n");
@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
     }
 
     for (;;) {
-        i = BIO_read(out, buf, sizeof(buf));
+        i = VR_BIO_read(out, buf, sizeof(buf));
         if (i == 0)
             break;
         if (i < 0) {
@@ -116,14 +116,14 @@ int main(int argc, char *argv[])
     goto done;
 
  err:
-    if (ERR_peek_error() == 0) { /* system call error */
+    if (VR_ERR_peek_error() == 0) { /* system call error */
         fprintf(stderr, "errno=%d ", errno);
         perror("error");
     } else {
-        ERR_print_errors_fp(stderr);
+        VR_ERR_print_errors_fp(stderr);
     }
  done:
-    BIO_free_all(out);
-    SSL_CTX_free(ssl_ctx);
+    VR_BIO_free_all(out);
+    VR_SSL_CTX_free(ssl_ctx);
     return ret;
 }

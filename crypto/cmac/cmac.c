@@ -43,7 +43,7 @@ static void make_kn(unsigned char *k1, const unsigned char *l, int bl)
     k1[i] = (c << 1) ^ ((0 - carry) & (bl == 16 ? 0x87 : 0x1b));
 }
 
-CMAC_CTX *CMAC_CTX_new(void)
+CMAC_CTX *VR_CMAC_CTX_new(void)
 {
     CMAC_CTX *ctx;
 
@@ -51,47 +51,47 @@ CMAC_CTX *CMAC_CTX_new(void)
         CRYPTOerr(CRYPTO_F_CMAC_CTX_NEW, ERR_R_MALLOC_FAILURE);
         return NULL;
     }
-    ctx->cctx = EVP_CIPHER_CTX_new();
+    ctx->cctx = VR_EVP_CIPHER_CTX_new();
     if (ctx->cctx == NULL) {
-        OPENSSL_free(ctx);
+        OPENVR_SSL_free(ctx);
         return NULL;
     }
     ctx->nlast_block = -1;
     return ctx;
 }
 
-void CMAC_CTX_cleanup(CMAC_CTX *ctx)
+void VR_CMAC_CTX_cleanup(CMAC_CTX *ctx)
 {
-    EVP_CIPHER_CTX_reset(ctx->cctx);
-    OPENSSL_cleanse(ctx->tbl, EVP_MAX_BLOCK_LENGTH);
-    OPENSSL_cleanse(ctx->k1, EVP_MAX_BLOCK_LENGTH);
-    OPENSSL_cleanse(ctx->k2, EVP_MAX_BLOCK_LENGTH);
-    OPENSSL_cleanse(ctx->last_block, EVP_MAX_BLOCK_LENGTH);
+    VR_EVP_CIPHER_CTX_reset(ctx->cctx);
+    VR_OPENSSL_cleanse(ctx->tbl, EVP_MAX_BLOCK_LENGTH);
+    VR_OPENSSL_cleanse(ctx->k1, EVP_MAX_BLOCK_LENGTH);
+    VR_OPENSSL_cleanse(ctx->k2, EVP_MAX_BLOCK_LENGTH);
+    VR_OPENSSL_cleanse(ctx->last_block, EVP_MAX_BLOCK_LENGTH);
     ctx->nlast_block = -1;
 }
 
-EVP_CIPHER_CTX *CMAC_CTX_get0_cipher_ctx(CMAC_CTX *ctx)
+EVP_CIPHER_CTX *VR_CMAC_CTX_get0_cipher_ctx(CMAC_CTX *ctx)
 {
     return ctx->cctx;
 }
 
-void CMAC_CTX_free(CMAC_CTX *ctx)
+void VR_CMAC_CTX_free(CMAC_CTX *ctx)
 {
     if (!ctx)
         return;
-    CMAC_CTX_cleanup(ctx);
-    EVP_CIPHER_CTX_free(ctx->cctx);
-    OPENSSL_free(ctx);
+    VR_CMAC_CTX_cleanup(ctx);
+    VR_EVP_CIPHER_CTX_free(ctx->cctx);
+    OPENVR_SSL_free(ctx);
 }
 
-int CMAC_CTX_copy(CMAC_CTX *out, const CMAC_CTX *in)
+int VR_CMAC_CTX_copy(CMAC_CTX *out, const CMAC_CTX *in)
 {
     int bl;
     if (in->nlast_block == -1)
         return 0;
-    if (!EVP_CIPHER_CTX_copy(out->cctx, in->cctx))
+    if (!VR_EVP_CIPHER_CTX_copy(out->cctx, in->cctx))
         return 0;
-    bl = EVP_CIPHER_CTX_block_size(in->cctx);
+    bl = VR_EVP_CIPHER_CTX_block_size(in->cctx);
     memcpy(out->k1, in->k1, bl);
     memcpy(out->k2, in->k2, bl);
     memcpy(out->tbl, in->tbl, bl);
@@ -100,7 +100,7 @@ int CMAC_CTX_copy(CMAC_CTX *out, const CMAC_CTX *in)
     return 1;
 }
 
-int CMAC_Init(CMAC_CTX *ctx, const void *key, size_t keylen,
+int VR_CMAC_Init(CMAC_CTX *ctx, const void *key, size_t keylen,
               const EVP_CIPHER *cipher, ENGINE *impl)
 {
     static const unsigned char zero_iv[EVP_MAX_BLOCK_LENGTH] = { 0 };
@@ -109,32 +109,32 @@ int CMAC_Init(CMAC_CTX *ctx, const void *key, size_t keylen,
         /* Not initialised */
         if (ctx->nlast_block == -1)
             return 0;
-        if (!EVP_EncryptInit_ex(ctx->cctx, NULL, NULL, NULL, zero_iv))
+        if (!VR_EVP_EncryptInit_ex(ctx->cctx, NULL, NULL, NULL, zero_iv))
             return 0;
-        memset(ctx->tbl, 0, EVP_CIPHER_CTX_block_size(ctx->cctx));
+        memset(ctx->tbl, 0, VR_EVP_CIPHER_CTX_block_size(ctx->cctx));
         ctx->nlast_block = 0;
         return 1;
     }
     /* Initialise context */
-    if (cipher && !EVP_EncryptInit_ex(ctx->cctx, cipher, impl, NULL, NULL))
+    if (cipher && !VR_EVP_EncryptInit_ex(ctx->cctx, cipher, impl, NULL, NULL))
         return 0;
     /* Non-NULL key means initialisation complete */
     if (key) {
         int bl;
-        if (!EVP_CIPHER_CTX_cipher(ctx->cctx))
+        if (!VR_EVP_CIPHER_CTX_cipher(ctx->cctx))
             return 0;
-        if (!EVP_CIPHER_CTX_set_key_length(ctx->cctx, keylen))
+        if (!VR_EVP_CIPHER_CTX_set_key_length(ctx->cctx, keylen))
             return 0;
-        if (!EVP_EncryptInit_ex(ctx->cctx, NULL, NULL, key, zero_iv))
+        if (!VR_EVP_EncryptInit_ex(ctx->cctx, NULL, NULL, key, zero_iv))
             return 0;
-        bl = EVP_CIPHER_CTX_block_size(ctx->cctx);
-        if (!EVP_Cipher(ctx->cctx, ctx->tbl, zero_iv, bl))
+        bl = VR_EVP_CIPHER_CTX_block_size(ctx->cctx);
+        if (!VR_EVP_Cipher(ctx->cctx, ctx->tbl, zero_iv, bl))
             return 0;
         make_kn(ctx->k1, ctx->tbl, bl);
         make_kn(ctx->k2, ctx->k1, bl);
-        OPENSSL_cleanse(ctx->tbl, bl);
+        VR_OPENSSL_cleanse(ctx->tbl, bl);
         /* Reset context again ready for first data block */
-        if (!EVP_EncryptInit_ex(ctx->cctx, NULL, NULL, NULL, zero_iv))
+        if (!VR_EVP_EncryptInit_ex(ctx->cctx, NULL, NULL, NULL, zero_iv))
             return 0;
         /* Zero tbl so resume works */
         memset(ctx->tbl, 0, bl);
@@ -143,7 +143,7 @@ int CMAC_Init(CMAC_CTX *ctx, const void *key, size_t keylen,
     return 1;
 }
 
-int CMAC_Update(CMAC_CTX *ctx, const void *in, size_t dlen)
+int VR_CMAC_Update(CMAC_CTX *ctx, const void *in, size_t dlen)
 {
     const unsigned char *data = in;
     size_t bl;
@@ -151,7 +151,7 @@ int CMAC_Update(CMAC_CTX *ctx, const void *in, size_t dlen)
         return 0;
     if (dlen == 0)
         return 1;
-    bl = EVP_CIPHER_CTX_block_size(ctx->cctx);
+    bl = VR_EVP_CIPHER_CTX_block_size(ctx->cctx);
     /* Copy into partial block if we need to */
     if (ctx->nlast_block > 0) {
         size_t nleft;
@@ -166,12 +166,12 @@ int CMAC_Update(CMAC_CTX *ctx, const void *in, size_t dlen)
             return 1;
         data += nleft;
         /* Else not final block so encrypt it */
-        if (!EVP_Cipher(ctx->cctx, ctx->tbl, ctx->last_block, bl))
+        if (!VR_EVP_Cipher(ctx->cctx, ctx->tbl, ctx->last_block, bl))
             return 0;
     }
     /* Encrypt all but one of the complete blocks left */
     while (dlen > bl) {
-        if (!EVP_Cipher(ctx->cctx, ctx->tbl, data, bl))
+        if (!VR_EVP_Cipher(ctx->cctx, ctx->tbl, data, bl))
             return 0;
         dlen -= bl;
         data += bl;
@@ -183,12 +183,12 @@ int CMAC_Update(CMAC_CTX *ctx, const void *in, size_t dlen)
 
 }
 
-int CMAC_Final(CMAC_CTX *ctx, unsigned char *out, size_t *poutlen)
+int VR_CMAC_Final(CMAC_CTX *ctx, unsigned char *out, size_t *poutlen)
 {
     int i, bl, lb;
     if (ctx->nlast_block == -1)
         return 0;
-    bl = EVP_CIPHER_CTX_block_size(ctx->cctx);
+    bl = VR_EVP_CIPHER_CTX_block_size(ctx->cctx);
     *poutlen = (size_t)bl;
     if (!out)
         return 1;
@@ -204,14 +204,14 @@ int CMAC_Final(CMAC_CTX *ctx, unsigned char *out, size_t *poutlen)
         for (i = 0; i < bl; i++)
             out[i] = ctx->last_block[i] ^ ctx->k2[i];
     }
-    if (!EVP_Cipher(ctx->cctx, out, out, bl)) {
-        OPENSSL_cleanse(out, bl);
+    if (!VR_EVP_Cipher(ctx->cctx, out, out, bl)) {
+        VR_OPENSSL_cleanse(out, bl);
         return 0;
     }
     return 1;
 }
 
-int CMAC_resume(CMAC_CTX *ctx)
+int VR_CMAC_resume(CMAC_CTX *ctx)
 {
     if (ctx->nlast_block == -1)
         return 0;
@@ -220,7 +220,7 @@ int CMAC_resume(CMAC_CTX *ctx)
      * last IV (or all zeroes if no last encrypted block). The last block has
      * not been modified since CMAC_final(). So reinitialising using the last
      * decrypted block will allow CMAC to continue after calling
-     * CMAC_Final().
+     * VR_CMAC_Final().
      */
-    return EVP_EncryptInit_ex(ctx->cctx, NULL, NULL, NULL, ctx->tbl);
+    return VR_EVP_EncryptInit_ex(ctx->cctx, NULL, NULL, NULL, ctx->tbl);
 }

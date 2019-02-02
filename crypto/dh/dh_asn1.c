@@ -19,12 +19,12 @@ static int dh_cb(int operation, ASN1_VALUE **pval, const ASN1_ITEM *it,
                  void *exarg)
 {
     if (operation == ASN1_OP_NEW_PRE) {
-        *pval = (ASN1_VALUE *)DH_new();
+        *pval = (ASN1_VALUE *)VR_DH_new();
         if (*pval != NULL)
             return 2;
         return 0;
     } else if (operation == ASN1_OP_FREE_PRE) {
-        DH_free((DH *)*pval);
+        VR_DH_free((DH *)*pval);
         *pval = NULL;
         return 2;
     }
@@ -70,29 +70,29 @@ ASN1_SEQUENCE(DHxparams) = {
         ASN1_OPT(int_dhx942_dh, vparams, DHvparams),
 } static_ASN1_SEQUENCE_END_name(int_dhx942_dh, DHxparams)
 
-int_dhx942_dh *d2i_int_dhx(int_dhx942_dh **a,
+int_dhx942_dh *VR_d2i_int_dhx(int_dhx942_dh **a,
                            const unsigned char **pp, long length);
-int i2d_int_dhx(const int_dhx942_dh *a, unsigned char **pp);
+int VR_i2d_int_dhx(const int_dhx942_dh *a, unsigned char **pp);
 
 IMPLEMENT_ASN1_ENCODE_FUNCTIONS_const_fname(int_dhx942_dh, DHxparams, int_dhx)
 
 /* Application public function: read in X9.42 DH parameters into DH structure */
 
-DH *d2i_DHxparams(DH **a, const unsigned char **pp, long length)
+DH *VR_d2i_DHxparams(DH **a, const unsigned char **pp, long length)
 {
     int_dhx942_dh *dhx = NULL;
     DH *dh = NULL;
-    dh = DH_new();
+    dh = VR_DH_new();
     if (dh == NULL)
         return NULL;
-    dhx = d2i_int_dhx(NULL, pp, length);
+    dhx = VR_d2i_int_dhx(NULL, pp, length);
     if (dhx == NULL) {
-        DH_free(dh);
+        VR_DH_free(dh);
         return NULL;
     }
 
     if (a) {
-        DH_free(*a);
+        VR_DH_free(*a);
         *a = dh;
     }
 
@@ -106,16 +106,16 @@ DH *d2i_DHxparams(DH **a, const unsigned char **pp, long length)
         dh->seedlen = dhx->vparams->seed->length;
         dh->counter = dhx->vparams->counter;
         dhx->vparams->seed->data = NULL;
-        ASN1_BIT_STRING_free(dhx->vparams->seed);
-        OPENSSL_free(dhx->vparams);
+        VR_ASN1_BIT_STRING_free(dhx->vparams->seed);
+        OPENVR_SSL_free(dhx->vparams);
         dhx->vparams = NULL;
     }
 
-    OPENSSL_free(dhx);
+    OPENVR_SSL_free(dhx);
     return dh;
 }
 
-int i2d_DHxparams(const DH *dh, unsigned char **pp)
+int VR_i2d_DHxparams(const DH *dh, unsigned char **pp)
 {
     int_dhx942_dh dhx;
     int_dhvparams dhv;
@@ -134,5 +134,5 @@ int i2d_DHxparams(const DH *dh, unsigned char **pp)
     } else
         dhx.vparams = NULL;
 
-    return i2d_int_dhx(&dhx, pp);
+    return VR_i2d_int_dhx(&dhx, pp);
 }

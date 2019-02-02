@@ -249,7 +249,7 @@ int ossl_fromascii(int c)
 }
 #endif
 
-int ossl_ctype_check(int c, unsigned int mask)
+int VR_ossl_ctype_check(int c, unsigned int mask)
 {
     const int max = sizeof(ctype_char_map) / sizeof(*ctype_char_map);
     const int a = ossl_toascii(c);
@@ -263,12 +263,12 @@ static const int case_change = 0x40;
 static const int case_change = 0x20;
 #endif
 
-int ossl_tolower(int c)
+int VR_ossl_tolower(int c)
 {
     return ossl_isupper(c) ? c ^ case_change : c;
 }
 
-int ossl_toupper(int c)
+int VR_ossl_toupper(int c)
 {
     return ossl_islower(c) ? c ^ case_change : c;
 }

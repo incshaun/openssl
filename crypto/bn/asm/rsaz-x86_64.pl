@@ -95,10 +95,10 @@ $code.=<<___;
 
 .extern	OPENSSL_ia32cap_P
 
-.globl	rsaz_512_sqr
-.type	rsaz_512_sqr,\@function,5
+.globl	VR_rsaz_512_sqr
+.type	VR_rsaz_512_sqr,\@function,5
 .align	32
-rsaz_512_sqr:				# 25-29% faster than rsaz_512_mul
+VR_rsaz_512_sqr:				# 25-29% faster than VR_rsaz_512_mul
 .cfi_startproc
 	push	%rbx
 .cfi_push	%rbx
@@ -787,16 +787,16 @@ $code.=<<___;
 .Lsqr_epilogue:
 	ret
 .cfi_endproc
-.size	rsaz_512_sqr,.-rsaz_512_sqr
+.size	VR_rsaz_512_sqr,.-VR_rsaz_512_sqr
 ___
 }
 {
 my ($out,$ap,$bp,$mod,$n0) = ("%rdi","%rsi","%rdx","%rcx","%r8");
 $code.=<<___;
-.globl	rsaz_512_mul
-.type	rsaz_512_mul,\@function,5
+.globl	VR_rsaz_512_mul
+.type	VR_rsaz_512_mul,\@function,5
 .align	32
-rsaz_512_mul:
+VR_rsaz_512_mul:
 .cfi_startproc
 	push	%rbx
 .cfi_push	%rbx
@@ -827,7 +827,7 @@ ___
 $code.=<<___;
 	movq	($bp), %rbx		# pass b[0]
 	movq	$bp, %rbp		# pass argument
-	call	__rsaz_512_mul
+	call	__VR_rsaz_512_mul
 
 	movq	%xmm0, $out
 	movq	%xmm1, %rbp
@@ -850,7 +850,7 @@ $code.=<<___ if ($addx);
 .Lmulx:
 	movq	$bp, %rbp		# pass argument
 	movq	($bp), %rdx		# pass b[0]
-	call	__rsaz_512_mulx
+	call	__VR_rsaz_512_mulx
 
 	movq	%xmm0, $out
 	movq	%xmm1, %rbp
@@ -900,16 +900,16 @@ $code.=<<___;
 .Lmul_epilogue:
 	ret
 .cfi_endproc
-.size	rsaz_512_mul,.-rsaz_512_mul
+.size	VR_rsaz_512_mul,.-VR_rsaz_512_mul
 ___
 }
 {
 my ($out,$ap,$bp,$mod,$n0,$pwr) = ("%rdi","%rsi","%rdx","%rcx","%r8","%r9d");
 $code.=<<___;
-.globl	rsaz_512_mul_gather4
-.type	rsaz_512_mul_gather4,\@function,6
+.globl	VR_rsaz_512_mul_gather4
+.type	VR_rsaz_512_mul_gather4,\@function,6
 .align	32
-rsaz_512_mul_gather4:
+VR_rsaz_512_mul_gather4:
 .cfi_startproc
 	push	%rbx
 .cfi_push	%rbx
@@ -1369,16 +1369,16 @@ $code.=<<___;
 .Lmul_gather4_epilogue:
 	ret
 .cfi_endproc
-.size	rsaz_512_mul_gather4,.-rsaz_512_mul_gather4
+.size	VR_rsaz_512_mul_gather4,.-VR_rsaz_512_mul_gather4
 ___
 }
 {
 my ($out,$ap,$mod,$n0,$tbl,$pwr) = ("%rdi","%rsi","%rdx","%rcx","%r8","%r9d");
 $code.=<<___;
-.globl	rsaz_512_mul_scatter4
-.type	rsaz_512_mul_scatter4,\@function,6
+.globl	VR_rsaz_512_mul_scatter4
+.type	VR_rsaz_512_mul_scatter4,\@function,6
 .align	32
-rsaz_512_mul_scatter4:
+VR_rsaz_512_mul_scatter4:
 .cfi_startproc
 	push	%rbx
 .cfi_push	%rbx
@@ -1413,7 +1413,7 @@ $code.=<<___ if ($addx);
 ___
 $code.=<<___;
 	movq	($out),%rbx		# pass b[0]
-	call	__rsaz_512_mul
+	call	__VR_rsaz_512_mul
 
 	movq	%xmm0, $out
 	movq	%xmm1, %rbp
@@ -1435,7 +1435,7 @@ $code.=<<___ if ($addx);
 .align	32
 .Lmulx_scatter:
 	movq	($out), %rdx		# pass b[0]
-	call	__rsaz_512_mulx
+	call	__VR_rsaz_512_mulx
 
 	movq	%xmm0, $out
 	movq	%xmm1, %rbp
@@ -1496,16 +1496,16 @@ $code.=<<___;
 .Lmul_scatter4_epilogue:
 	ret
 .cfi_endproc
-.size	rsaz_512_mul_scatter4,.-rsaz_512_mul_scatter4
+.size	VR_rsaz_512_mul_scatter4,.-VR_rsaz_512_mul_scatter4
 ___
 }
 {
 my ($out,$inp,$mod,$n0) = ("%rdi","%rsi","%rdx","%rcx");
 $code.=<<___;
-.globl	rsaz_512_mul_by_one
-.type	rsaz_512_mul_by_one,\@function,4
+.globl	VR_rsaz_512_mul_by_one
+.type	VR_rsaz_512_mul_by_one,\@function,4
 .align	32
-rsaz_512_mul_by_one:
+VR_rsaz_512_mul_by_one:
 .cfi_startproc
 	push	%rbx
 .cfi_push	%rbx
@@ -1594,7 +1594,7 @@ $code.=<<___;
 .Lmul_by_one_epilogue:
 	ret
 .cfi_endproc
-.size	rsaz_512_mul_by_one,.-rsaz_512_mul_by_one
+.size	VR_rsaz_512_mul_by_one,.-VR_rsaz_512_mul_by_one
 ___
 }
 {	# __rsaz_512_reduce
@@ -1817,16 +1817,16 @@ __rsaz_512_subtract:
 .size	__rsaz_512_subtract,.-__rsaz_512_subtract
 ___
 }
-{	# __rsaz_512_mul
+{	# __VR_rsaz_512_mul
 	#
 	# input: %rsi - ap, %rbp - bp
 	# output:
 	# clobbers: everything
 my ($ap,$bp) = ("%rsi","%rbp");
 $code.=<<___;
-.type	__rsaz_512_mul,\@abi-omnipotent
+.type	__VR_rsaz_512_mul,\@abi-omnipotent
 .align	32
-__rsaz_512_mul:
+__VR_rsaz_512_mul:
 	leaq	8(%rsp), %rdi
 
 	movq	($ap), %rax
@@ -1965,20 +1965,20 @@ __rsaz_512_mul:
 	movq	%r15, 56(%rdi)
 
 	ret
-.size	__rsaz_512_mul,.-__rsaz_512_mul
+.size	__VR_rsaz_512_mul,.-__VR_rsaz_512_mul
 ___
 }
 if ($addx) {
-	# __rsaz_512_mulx
+	# __VR_rsaz_512_mulx
 	#
 	# input: %rsi - ap, %rbp - bp
 	# output:
 	# clobbers: everything
 my ($ap,$bp,$zero) = ("%rsi","%rbp","%rdi");
 $code.=<<___;
-.type	__rsaz_512_mulx,\@abi-omnipotent
+.type	__VR_rsaz_512_mulx,\@abi-omnipotent
 .align	32
-__rsaz_512_mulx:
+__VR_rsaz_512_mulx:
 	mulx	($ap), %rbx, %r8	# initial %rdx preloaded by caller
 	mov	\$-6, %rcx
 
@@ -2095,16 +2095,16 @@ __rsaz_512_mulx:
 	mov	%r15, 8+64+56(%rsp)
 
 	ret
-.size	__rsaz_512_mulx,.-__rsaz_512_mulx
+.size	__VR_rsaz_512_mulx,.-__VR_rsaz_512_mulx
 ___
 }
 {
 my ($out,$inp,$power)= $win64 ? ("%rcx","%rdx","%r8d") : ("%rdi","%rsi","%edx");
 $code.=<<___;
-.globl	rsaz_512_scatter4
-.type	rsaz_512_scatter4,\@abi-omnipotent
+.globl	VR_rsaz_512_scatter4
+.type	VR_rsaz_512_scatter4,\@abi-omnipotent
 .align	16
-rsaz_512_scatter4:
+VR_rsaz_512_scatter4:
 	leaq	($out,$power,8), $out
 	movl	\$8, %r9d
 	jmp	.Loop_scatter
@@ -2117,15 +2117,15 @@ rsaz_512_scatter4:
 	decl	%r9d
 	jnz	.Loop_scatter
 	ret
-.size	rsaz_512_scatter4,.-rsaz_512_scatter4
+.size	VR_rsaz_512_scatter4,.-VR_rsaz_512_scatter4
 
-.globl	rsaz_512_gather4
-.type	rsaz_512_gather4,\@abi-omnipotent
+.globl	VR_rsaz_512_gather4
+.type	VR_rsaz_512_gather4,\@abi-omnipotent
 .align	16
-rsaz_512_gather4:
+VR_rsaz_512_gather4:
 ___
 $code.=<<___	if ($win64);
-.LSEH_begin_rsaz_512_gather4:
+.LSEH_begin_VR_rsaz_512_gather4:
 	.byte	0x48,0x81,0xec,0xa8,0x00,0x00,0x00	# sub    $0xa8,%rsp
 	.byte	0x0f,0x29,0x34,0x24			# movaps %xmm6,(%rsp)
 	.byte	0x0f,0x29,0x7c,0x24,0x10		# movaps %xmm7,0x10(%rsp)
@@ -2216,8 +2216,8 @@ $code.=<<___	if ($win64);
 ___
 $code.=<<___;
 	ret
-.LSEH_end_rsaz_512_gather4:
-.size	rsaz_512_gather4,.-rsaz_512_gather4
+.LSEH_end_VR_rsaz_512_gather4:
+.size	VR_rsaz_512_gather4,.-VR_rsaz_512_gather4
 
 .align	64
 .Linc:
@@ -2337,53 +2337,53 @@ se_handler:
 
 .section	.pdata
 .align	4
-	.rva	.LSEH_begin_rsaz_512_sqr
-	.rva	.LSEH_end_rsaz_512_sqr
-	.rva	.LSEH_info_rsaz_512_sqr
+	.rva	.LSEH_begin_VR_rsaz_512_sqr
+	.rva	.LSEH_end_VR_rsaz_512_sqr
+	.rva	.LSEH_info_VR_rsaz_512_sqr
 
-	.rva	.LSEH_begin_rsaz_512_mul
-	.rva	.LSEH_end_rsaz_512_mul
-	.rva	.LSEH_info_rsaz_512_mul
+	.rva	.LSEH_begin_VR_rsaz_512_mul
+	.rva	.LSEH_end_VR_rsaz_512_mul
+	.rva	.LSEH_info_VR_rsaz_512_mul
 
-	.rva	.LSEH_begin_rsaz_512_mul_gather4
-	.rva	.LSEH_end_rsaz_512_mul_gather4
-	.rva	.LSEH_info_rsaz_512_mul_gather4
+	.rva	.LSEH_begin_VR_rsaz_512_mul_gather4
+	.rva	.LSEH_end_VR_rsaz_512_mul_gather4
+	.rva	.LSEH_info_VR_rsaz_512_mul_gather4
 
-	.rva	.LSEH_begin_rsaz_512_mul_scatter4
-	.rva	.LSEH_end_rsaz_512_mul_scatter4
-	.rva	.LSEH_info_rsaz_512_mul_scatter4
+	.rva	.LSEH_begin_VR_rsaz_512_mul_scatter4
+	.rva	.LSEH_end_VR_rsaz_512_mul_scatter4
+	.rva	.LSEH_info_VR_rsaz_512_mul_scatter4
 
-	.rva	.LSEH_begin_rsaz_512_mul_by_one
-	.rva	.LSEH_end_rsaz_512_mul_by_one
-	.rva	.LSEH_info_rsaz_512_mul_by_one
+	.rva	.LSEH_begin_VR_rsaz_512_mul_by_one
+	.rva	.LSEH_end_VR_rsaz_512_mul_by_one
+	.rva	.LSEH_info_VR_rsaz_512_mul_by_one
 
-	.rva	.LSEH_begin_rsaz_512_gather4
-	.rva	.LSEH_end_rsaz_512_gather4
-	.rva	.LSEH_info_rsaz_512_gather4
+	.rva	.LSEH_begin_VR_rsaz_512_gather4
+	.rva	.LSEH_end_VR_rsaz_512_gather4
+	.rva	.LSEH_info_VR_rsaz_512_gather4
 
 .section	.xdata
 .align	8
-.LSEH_info_rsaz_512_sqr:
+.LSEH_info_VR_rsaz_512_sqr:
 	.byte	9,0,0,0
 	.rva	se_handler
 	.rva	.Lsqr_body,.Lsqr_epilogue			# HandlerData[]
-.LSEH_info_rsaz_512_mul:
+.LSEH_info_VR_rsaz_512_mul:
 	.byte	9,0,0,0
 	.rva	se_handler
 	.rva	.Lmul_body,.Lmul_epilogue			# HandlerData[]
-.LSEH_info_rsaz_512_mul_gather4:
+.LSEH_info_VR_rsaz_512_mul_gather4:
 	.byte	9,0,0,0
 	.rva	se_handler
 	.rva	.Lmul_gather4_body,.Lmul_gather4_epilogue	# HandlerData[]
-.LSEH_info_rsaz_512_mul_scatter4:
+.LSEH_info_VR_rsaz_512_mul_scatter4:
 	.byte	9,0,0,0
 	.rva	se_handler
 	.rva	.Lmul_scatter4_body,.Lmul_scatter4_epilogue	# HandlerData[]
-.LSEH_info_rsaz_512_mul_by_one:
+.LSEH_info_VR_rsaz_512_mul_by_one:
 	.byte	9,0,0,0
 	.rva	se_handler
 	.rva	.Lmul_by_one_body,.Lmul_by_one_epilogue		# HandlerData[]
-.LSEH_info_rsaz_512_gather4:
+.LSEH_info_VR_rsaz_512_gather4:
 	.byte	0x01,0x46,0x16,0x00
 	.byte	0x46,0xf8,0x09,0x00	# vmovaps 0x90(rsp),xmm15
 	.byte	0x3d,0xe8,0x08,0x00	# vmovaps 0x80(rsp),xmm14

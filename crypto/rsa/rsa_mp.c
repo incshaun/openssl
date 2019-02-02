@@ -12,23 +12,23 @@
 #include <openssl/err.h>
 #include "rsa_locl.h"
 
-void rsa_multip_info_free_ex(RSA_PRIME_INFO *pinfo)
+void VR_rsa_multip_info_free_ex(RSA_PRIME_INFO *pinfo)
 {
     /* free pp and pinfo only */
-    BN_clear_free(pinfo->pp);
-    OPENSSL_free(pinfo);
+    VR_BN_clear_free(pinfo->pp);
+    OPENVR_SSL_free(pinfo);
 }
 
-void rsa_multip_info_free(RSA_PRIME_INFO *pinfo)
+void VR_rsa_multip_info_free(RSA_PRIME_INFO *pinfo)
 {
     /* free a RSA_PRIME_INFO structure */
-    BN_clear_free(pinfo->r);
-    BN_clear_free(pinfo->d);
-    BN_clear_free(pinfo->t);
-    rsa_multip_info_free_ex(pinfo);
+    VR_BN_clear_free(pinfo->r);
+    VR_BN_clear_free(pinfo->d);
+    VR_BN_clear_free(pinfo->t);
+    VR_rsa_multip_info_free_ex(pinfo);
 }
 
-RSA_PRIME_INFO *rsa_multip_info_new(void)
+RSA_PRIME_INFO *VR_rsa_multip_info_new(void)
 {
     RSA_PRIME_INFO *pinfo;
 
@@ -37,28 +37,28 @@ RSA_PRIME_INFO *rsa_multip_info_new(void)
         RSAerr(RSA_F_RSA_MULTIP_INFO_NEW, ERR_R_MALLOC_FAILURE);
         return NULL;
     }
-    if ((pinfo->r = BN_secure_new()) == NULL)
+    if ((pinfo->r = VR_BN_secure_new()) == NULL)
         goto err;
-    if ((pinfo->d = BN_secure_new()) == NULL)
+    if ((pinfo->d = VR_BN_secure_new()) == NULL)
         goto err;
-    if ((pinfo->t = BN_secure_new()) == NULL)
+    if ((pinfo->t = VR_BN_secure_new()) == NULL)
         goto err;
-    if ((pinfo->pp = BN_secure_new()) == NULL)
+    if ((pinfo->pp = VR_BN_secure_new()) == NULL)
         goto err;
 
     return pinfo;
 
  err:
-    BN_free(pinfo->r);
-    BN_free(pinfo->d);
-    BN_free(pinfo->t);
-    BN_free(pinfo->pp);
-    OPENSSL_free(pinfo);
+    VR_BN_free(pinfo->r);
+    VR_BN_free(pinfo->d);
+    VR_BN_free(pinfo->t);
+    VR_BN_free(pinfo->pp);
+    OPENVR_SSL_free(pinfo);
     return NULL;
 }
 
 /* Refill products of primes */
-int rsa_multip_calc_product(RSA *rsa)
+int VR_rsa_multip_calc_product(RSA *rsa)
 {
     RSA_PRIME_INFO *pinfo;
     BIGNUM *p1 = NULL, *p2 = NULL;
@@ -70,7 +70,7 @@ int rsa_multip_calc_product(RSA *rsa)
         goto err;
     }
 
-    if ((ctx = BN_CTX_new()) == NULL)
+    if ((ctx = VR_BN_CTX_new()) == NULL)
         goto err;
 
     /* calculate pinfo->pp = p * q for first 'extra' prime */
@@ -80,11 +80,11 @@ int rsa_multip_calc_product(RSA *rsa)
     for (i = 0; i < ex_primes; i++) {
         pinfo = sk_RSA_PRIME_INFO_value(rsa->prime_infos, i);
         if (pinfo->pp == NULL) {
-            pinfo->pp = BN_secure_new();
+            pinfo->pp = VR_BN_secure_new();
             if (pinfo->pp == NULL)
                 goto err;
         }
-        if (!BN_mul(pinfo->pp, p1, p2, ctx))
+        if (!VR_BN_mul(pinfo->pp, p1, p2, ctx))
             goto err;
         /* save previous one */
         p1 = pinfo->pp;
@@ -93,11 +93,11 @@ int rsa_multip_calc_product(RSA *rsa)
 
     rv = 1;
  err:
-    BN_CTX_free(ctx);
+    VR_BN_CTX_free(ctx);
     return rv;
 }
 
-int rsa_multip_cap(int bits)
+int VR_rsa_multip_cap(int bits)
 {
     int cap = 5;
 

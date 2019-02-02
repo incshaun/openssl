@@ -66,7 +66,7 @@ typedef unsigned long long u64;
 #undef SMALL_REGISTER_BANK
 #if defined(__i386) || defined(__i386__) || defined(_M_IX86)
 # define SMALL_REGISTER_BANK
-# if defined(WHIRLPOOL_ASM)
+# if defined(VR_WHIRLPOOL_ASM)
 #  ifndef OPENSSL_SMALL_FOOTPRINT
 /*
  * it appears that for elder non-MMX
@@ -76,9 +76,9 @@ typedef unsigned long long u64;
 #  endif
 #  define GO_FOR_MMX(ctx,inp,num)     do {                    \
         extern unsigned long OPENSSL_ia32cap_P[];               \
-        void whirlpool_block_mmx(void *,const void *,size_t);   \
+        void VR_whirlpool_block_mmx(void *,const void *,size_t);   \
         if (!(OPENSSL_ia32cap_P[0] & (1<<23)))  break;          \
-        whirlpool_block_mmx(ctx->H.c,inp,num);  return;         \
+        VR_whirlpool_block_mmx(ctx->H.c,inp,num);  return;         \
                                         } while (0)
 # endif
 #endif
@@ -475,7 +475,7 @@ static const
         }
     };
 
-void whirlpool_block(WHIRLPOOL_CTX *ctx, const void *inp, size_t n)
+void VR_whirlpool_block(VR_WHIRLPOOL_CTX *ctx, const void *inp, size_t n)
 {
     int r;
     const u8 *p = inp;

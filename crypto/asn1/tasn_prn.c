@@ -32,7 +32,7 @@ static ASN1_PCTX default_pctx = {
     0                           /* str_flags */
 };
 
-ASN1_PCTX *ASN1_PCTX_new(void)
+ASN1_PCTX *VR_ASN1_PCTX_new(void)
 {
     ASN1_PCTX *ret;
 
@@ -44,57 +44,57 @@ ASN1_PCTX *ASN1_PCTX_new(void)
     return ret;
 }
 
-void ASN1_PCTX_free(ASN1_PCTX *p)
+void VR_ASN1_PCTX_free(ASN1_PCTX *p)
 {
-    OPENSSL_free(p);
+    OPENVR_SSL_free(p);
 }
 
-unsigned long ASN1_PCTX_get_flags(const ASN1_PCTX *p)
+unsigned long VR_ASN1_PCTX_get_flags(const ASN1_PCTX *p)
 {
     return p->flags;
 }
 
-void ASN1_PCTX_set_flags(ASN1_PCTX *p, unsigned long flags)
+void VR_ASN1_PCTX_set_flags(ASN1_PCTX *p, unsigned long flags)
 {
     p->flags = flags;
 }
 
-unsigned long ASN1_PCTX_get_nm_flags(const ASN1_PCTX *p)
+unsigned long VR_ASN1_PCTX_get_nm_flags(const ASN1_PCTX *p)
 {
     return p->nm_flags;
 }
 
-void ASN1_PCTX_set_nm_flags(ASN1_PCTX *p, unsigned long flags)
+void VR_ASN1_PCTX_set_nm_flags(ASN1_PCTX *p, unsigned long flags)
 {
     p->nm_flags = flags;
 }
 
-unsigned long ASN1_PCTX_get_cert_flags(const ASN1_PCTX *p)
+unsigned long VR_ASN1_PCTX_get_cert_flags(const ASN1_PCTX *p)
 {
     return p->cert_flags;
 }
 
-void ASN1_PCTX_set_cert_flags(ASN1_PCTX *p, unsigned long flags)
+void VR_ASN1_PCTX_set_cert_flags(ASN1_PCTX *p, unsigned long flags)
 {
     p->cert_flags = flags;
 }
 
-unsigned long ASN1_PCTX_get_oid_flags(const ASN1_PCTX *p)
+unsigned long VR_ASN1_PCTX_get_oid_flags(const ASN1_PCTX *p)
 {
     return p->oid_flags;
 }
 
-void ASN1_PCTX_set_oid_flags(ASN1_PCTX *p, unsigned long flags)
+void VR_ASN1_PCTX_set_oid_flags(ASN1_PCTX *p, unsigned long flags)
 {
     p->oid_flags = flags;
 }
 
-unsigned long ASN1_PCTX_get_str_flags(const ASN1_PCTX *p)
+unsigned long VR_ASN1_PCTX_get_str_flags(const ASN1_PCTX *p)
 {
     return p->str_flags;
 }
 
-void ASN1_PCTX_set_str_flags(ASN1_PCTX *p, unsigned long flags)
+void VR_ASN1_PCTX_set_str_flags(ASN1_PCTX *p, unsigned long flags)
 {
     p->str_flags = flags;
 }
@@ -118,7 +118,7 @@ static int asn1_print_fsname(BIO *out, int indent,
                              const char *fname, const char *sname,
                              const ASN1_PCTX *pctx);
 
-int ASN1_item_print(BIO *out, ASN1_VALUE *ifld, int indent,
+int VR_ASN1_item_print(BIO *out, ASN1_VALUE *ifld, int indent,
                     const ASN1_ITEM *it, const ASN1_PCTX *pctx)
 {
     const char *sname;
@@ -156,7 +156,7 @@ static int asn1_item_print_ctx(BIO *out, ASN1_VALUE **fld, int indent,
         if (pctx->flags & ASN1_PCTX_FLAGS_SHOW_ABSENT) {
             if (!nohdr && !asn1_print_fsname(out, indent, fname, sname, pctx))
                 return 0;
-            if (BIO_puts(out, "<ABSENT>\n") <= 0)
+            if (VR_BIO_puts(out, "<ABSENT>\n") <= 0)
                 return 0;
         }
         return 1;
@@ -185,25 +185,25 @@ static int asn1_item_print_ctx(BIO *out, ASN1_VALUE **fld, int indent,
             i = ef->asn1_ex_print(out, fld, indent, "", pctx);
             if (!i)
                 return 0;
-            if ((i == 2) && (BIO_puts(out, "\n") <= 0))
+            if ((i == 2) && (VR_BIO_puts(out, "\n") <= 0))
                 return 0;
             return 1;
         } else if (sname &&
-                   BIO_printf(out, ":EXTERNAL TYPE %s\n", sname) <= 0)
+                   VR_BIO_printf(out, ":EXTERNAL TYPE %s\n", sname) <= 0)
             return 0;
         break;
 
     case ASN1_ITYPE_CHOICE:
         /* CHOICE type, get selector */
-        i = asn1_get_choice_selector(fld, it);
+        i = VR_asn1_get_choice_selector(fld, it);
         /* This should never happen... */
         if ((i < 0) || (i >= it->tcount)) {
-            if (BIO_printf(out, "ERROR: selector [%d] invalid\n", i) <= 0)
+            if (VR_BIO_printf(out, "ERROR: selector [%d] invalid\n", i) <= 0)
                 return 0;
             return 1;
         }
         tt = it->templates + i;
-        tmpfld = asn1_get_field_ptr(fld, tt);
+        tmpfld = VR_asn1_get_field_ptr(fld, tt);
         if (!asn1_template_print_ctx(out, tmpfld, indent, tt, pctx))
             return 0;
         break;
@@ -214,10 +214,10 @@ static int asn1_item_print_ctx(BIO *out, ASN1_VALUE **fld, int indent,
             return 0;
         if (fname || sname) {
             if (pctx->flags & ASN1_PCTX_FLAGS_SHOW_SEQUENCE) {
-                if (BIO_puts(out, " {\n") <= 0)
+                if (VR_BIO_puts(out, " {\n") <= 0)
                     return 0;
             } else {
-                if (BIO_puts(out, "\n") <= 0)
+                if (VR_BIO_puts(out, "\n") <= 0)
                     return 0;
             }
         }
@@ -233,16 +233,16 @@ static int asn1_item_print_ctx(BIO *out, ASN1_VALUE **fld, int indent,
         /* Print each field entry */
         for (i = 0, tt = it->templates; i < it->tcount; i++, tt++) {
             const ASN1_TEMPLATE *seqtt;
-            seqtt = asn1_do_adb(fld, tt, 1);
+            seqtt = VR_asn1_do_adb(fld, tt, 1);
             if (!seqtt)
                 return 0;
-            tmpfld = asn1_get_field_ptr(fld, seqtt);
+            tmpfld = VR_asn1_get_field_ptr(fld, seqtt);
             if (!asn1_template_print_ctx(out, tmpfld,
                                          indent + 2, seqtt, pctx))
                 return 0;
         }
         if (pctx->flags & ASN1_PCTX_FLAGS_SHOW_SEQUENCE) {
-            if (BIO_printf(out, "%*s}\n", indent, "") < 0)
+            if (VR_BIO_printf(out, "%*s}\n", indent, "") < 0)
                 return 0;
         }
 
@@ -254,7 +254,7 @@ static int asn1_item_print_ctx(BIO *out, ASN1_VALUE **fld, int indent,
         break;
 
     default:
-        BIO_printf(out, "Unprocessed type %d\n", it->itype);
+        VR_BIO_printf(out, "Unprocessed type %d\n", it->itype);
         return 0;
     }
 
@@ -298,15 +298,15 @@ static int asn1_template_print_ctx(BIO *out, ASN1_VALUE **fld, int indent,
                     tname = "SET";
                 else
                     tname = "SEQUENCE";
-                if (BIO_printf(out, "%*s%s OF %s {\n",
+                if (VR_BIO_printf(out, "%*s%s OF %s {\n",
                                indent, "", tname, tt->field_name) <= 0)
                     return 0;
-            } else if (BIO_printf(out, "%*s%s:\n", indent, "", fname) <= 0)
+            } else if (VR_BIO_printf(out, "%*s%s:\n", indent, "", fname) <= 0)
                 return 0;
         }
         stack = (STACK_OF(ASN1_VALUE) *)*fld;
         for (i = 0; i < sk_ASN1_VALUE_num(stack); i++) {
-            if ((i > 0) && (BIO_puts(out, "\n") <= 0))
+            if ((i > 0) && (VR_BIO_puts(out, "\n") <= 0))
                 return 0;
 
             skitem = sk_ASN1_VALUE_value(stack, i);
@@ -315,11 +315,11 @@ static int asn1_template_print_ctx(BIO *out, ASN1_VALUE **fld, int indent,
                                      pctx))
                 return 0;
         }
-        if (i == 0 && BIO_printf(out, "%*s<%s>\n", indent + 2, "",
+        if (i == 0 && VR_BIO_printf(out, "%*s<%s>\n", indent + 2, "",
                                  stack == NULL ? "ABSENT" : "EMPTY") <= 0)
             return 0;
         if (pctx->flags & ASN1_PCTX_FLAGS_SHOW_SEQUENCE) {
-            if (BIO_printf(out, "%*s}\n", indent, "") <= 0)
+            if (VR_BIO_printf(out, "%*s}\n", indent, "") <= 0)
                 return 0;
         }
         return 1;
@@ -336,11 +336,11 @@ static int asn1_print_fsname(BIO *out, int indent,
     static const int nspaces = sizeof(spaces) - 1;
 
     while (indent > nspaces) {
-        if (BIO_write(out, spaces, nspaces) != nspaces)
+        if (VR_BIO_write(out, spaces, nspaces) != nspaces)
             return 0;
         indent -= nspaces;
     }
-    if (BIO_write(out, spaces, indent) != indent)
+    if (VR_BIO_write(out, spaces, indent) != indent)
         return 0;
     if (pctx->flags & ASN1_PCTX_FLAGS_NO_STRUCT_NAME)
         sname = NULL;
@@ -349,19 +349,19 @@ static int asn1_print_fsname(BIO *out, int indent,
     if (!sname && !fname)
         return 1;
     if (fname) {
-        if (BIO_puts(out, fname) <= 0)
+        if (VR_BIO_puts(out, fname) <= 0)
             return 0;
     }
     if (sname) {
         if (fname) {
-            if (BIO_printf(out, " (%s)", sname) <= 0)
+            if (VR_BIO_printf(out, " (%s)", sname) <= 0)
                 return 0;
         } else {
-            if (BIO_puts(out, sname) <= 0)
+            if (VR_BIO_puts(out, sname) <= 0)
                 return 0;
         }
     }
-    if (BIO_write(out, ": ", 2) != 2)
+    if (VR_BIO_write(out, ": ", 2) != 2)
         return 0;
     return 1;
 }
@@ -384,7 +384,7 @@ static int asn1_print_boolean(BIO *out, int boolval)
 
     }
 
-    if (BIO_puts(out, str) <= 0)
+    if (VR_BIO_puts(out, str) <= 0)
         return 0;
     return 1;
 
@@ -394,12 +394,12 @@ static int asn1_print_integer(BIO *out, const ASN1_INTEGER *str)
 {
     char *s;
     int ret = 1;
-    s = i2s_ASN1_INTEGER(NULL, str);
+    s = VR_i2s_ASN1_INTEGER(NULL, str);
     if (s == NULL)
         return 0;
-    if (BIO_puts(out, s) <= 0)
+    if (VR_BIO_puts(out, s) <= 0)
         ret = 0;
-    OPENSSL_free(s);
+    OPENVR_SSL_free(s);
     return ret;
 }
 
@@ -407,11 +407,11 @@ static int asn1_print_oid(BIO *out, const ASN1_OBJECT *oid)
 {
     char objbuf[80];
     const char *ln;
-    ln = OBJ_nid2ln(OBJ_obj2nid(oid));
+    ln = VR_OBJ_nid2ln(VR_OBJ_obj2nid(oid));
     if (!ln)
         ln = "";
-    OBJ_obj2txt(objbuf, sizeof(objbuf), oid, 1);
-    if (BIO_printf(out, "%s (%s)", ln, objbuf) <= 0)
+    VR_OBJ_obj2txt(objbuf, sizeof(objbuf), oid, 1);
+    if (VR_BIO_printf(out, "%s (%s)", ln, objbuf) <= 0)
         return 0;
     return 1;
 }
@@ -419,12 +419,12 @@ static int asn1_print_oid(BIO *out, const ASN1_OBJECT *oid)
 static int asn1_print_obstring(BIO *out, const ASN1_STRING *str, int indent)
 {
     if (str->type == V_ASN1_BIT_STRING) {
-        if (BIO_printf(out, " (%ld unused bits)\n", str->flags & 0x7) <= 0)
+        if (VR_BIO_printf(out, " (%ld unused bits)\n", str->flags & 0x7) <= 0)
             return 0;
-    } else if (BIO_puts(out, "\n") <= 0)
+    } else if (VR_BIO_puts(out, "\n") <= 0)
         return 0;
     if ((str->length > 0)
-        && BIO_dump_indent(out, (const char *)str->data, str->length,
+        && VR_BIO_dump_indent(out, (const char *)str->data, str->length,
                            indent + 2) <= 0)
         return 0;
     return 1;
@@ -463,24 +463,24 @@ static int asn1_primitive_print(BIO *out, ASN1_VALUE **fld,
         if (pctx->flags & ASN1_PCTX_FLAGS_NO_ANY_TYPE)
             pname = NULL;
         else
-            pname = ASN1_tag2str(utype);
+            pname = VR_ASN1_tag2str(utype);
     } else {
         if (pctx->flags & ASN1_PCTX_FLAGS_SHOW_TYPE)
-            pname = ASN1_tag2str(utype);
+            pname = VR_ASN1_tag2str(utype);
         else
             pname = NULL;
     }
 
     if (utype == V_ASN1_NULL) {
-        if (BIO_puts(out, "NULL\n") <= 0)
+        if (VR_BIO_puts(out, "NULL\n") <= 0)
             return 0;
         return 1;
     }
 
     if (pname) {
-        if (BIO_puts(out, pname) <= 0)
+        if (VR_BIO_puts(out, pname) <= 0)
             return 0;
-        if (BIO_puts(out, ":") <= 0)
+        if (VR_BIO_puts(out, ":") <= 0)
             return 0;
     }
 
@@ -500,11 +500,11 @@ static int asn1_primitive_print(BIO *out, ASN1_VALUE **fld,
         break;
 
     case V_ASN1_UTCTIME:
-        ret = ASN1_UTCTIME_print(out, str);
+        ret = VR_ASN1_UTCTIME_print(out, str);
         break;
 
     case V_ASN1_GENERALIZEDTIME:
-        ret = ASN1_GENERALIZEDTIME_print(out, str);
+        ret = VR_ASN1_GENERALIZEDTIME_print(out, str);
         break;
 
     case V_ASN1_OBJECT:
@@ -520,20 +520,20 @@ static int asn1_primitive_print(BIO *out, ASN1_VALUE **fld,
     case V_ASN1_SEQUENCE:
     case V_ASN1_SET:
     case V_ASN1_OTHER:
-        if (BIO_puts(out, "\n") <= 0)
+        if (VR_BIO_puts(out, "\n") <= 0)
             return 0;
-        if (ASN1_parse_dump(out, str->data, str->length, indent, 0) <= 0)
+        if (VR_ASN1_parse_dump(out, str->data, str->length, indent, 0) <= 0)
             ret = 0;
         needlf = 0;
         break;
 
     default:
-        ret = ASN1_STRING_print_ex(out, str, pctx->str_flags);
+        ret = VR_ASN1_STRING_print_ex(out, str, pctx->str_flags);
 
     }
     if (!ret)
         return 0;
-    if (needlf && BIO_puts(out, "\n") <= 0)
+    if (needlf && VR_BIO_puts(out, "\n") <= 0)
         return 0;
     return 1;
 }

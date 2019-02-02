@@ -224,27 +224,27 @@ static const BIGNUM _bignum_nist_p_521 = {
     BN_FLG_STATIC_DATA
 };
 
-const BIGNUM *BN_get0_nist_prime_192(void)
+const BIGNUM *VR_BN_get0_nist_prime_192(void)
 {
     return &_bignum_nist_p_192;
 }
 
-const BIGNUM *BN_get0_nist_prime_224(void)
+const BIGNUM *VR_BN_get0_nist_prime_224(void)
 {
     return &_bignum_nist_p_224;
 }
 
-const BIGNUM *BN_get0_nist_prime_256(void)
+const BIGNUM *VR_BN_get0_nist_prime_256(void)
 {
     return &_bignum_nist_p_256;
 }
 
-const BIGNUM *BN_get0_nist_prime_384(void)
+const BIGNUM *VR_BN_get0_nist_prime_384(void)
 {
     return &_bignum_nist_p_384;
 }
 
-const BIGNUM *BN_get0_nist_prime_521(void)
+const BIGNUM *VR_BN_get0_nist_prime_521(void)
 {
     return &_bignum_nist_p_521;
 }
@@ -315,7 +315,7 @@ static void nist_cp_bn(BN_ULONG *dst, const BN_ULONG *src, int top)
         bn_cp_64(to, 2, from, (a1) - 3) \
         }
 
-int BN_nist_mod_192(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
+int VR_BN_nist_mod_192(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
                     BN_CTX *ctx)
 {
     int top = a->top, i;
@@ -337,18 +337,18 @@ int BN_nist_mod_192(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
 
     field = &_bignum_nist_p_192; /* just to make sure */
 
-    if (BN_is_negative(a) || BN_ucmp(a, &_bignum_nist_p_192_sqr) >= 0)
-        return BN_nnmod(r, a, field, ctx);
+    if (VR_BN_is_negative(a) || VR_BN_ucmp(a, &_bignum_nist_p_192_sqr) >= 0)
+        return VR_BN_nnmod(r, a, field, ctx);
 
-    i = BN_ucmp(field, a);
+    i = VR_BN_ucmp(field, a);
     if (i == 0) {
         BN_zero(r);
         return 1;
     } else if (i > 0)
-        return (r == a) ? 1 : (BN_copy(r, a) != NULL);
+        return (r == a) ? 1 : (VR_BN_copy(r, a) != NULL);
 
     if (r != a) {
-        if (!bn_wexpand(r, BN_NIST_192_TOP))
+        if (!VR_bn_wexpand(r, BN_NIST_192_TOP))
             return 0;
         r_d = r->d;
         nist_cp_bn(r_d, a_d, BN_NIST_192_TOP);
@@ -408,16 +408,16 @@ int BN_nist_mod_192(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
         BN_ULONG t_d[BN_NIST_192_TOP];
 
         nist_set_192(t_d, buf.bn, 0, 3, 3);
-        carry = (int)bn_add_words(r_d, r_d, t_d, BN_NIST_192_TOP);
+        carry = (int)VR_bn_add_words(r_d, r_d, t_d, BN_NIST_192_TOP);
         nist_set_192(t_d, buf.bn, 4, 4, 0);
-        carry += (int)bn_add_words(r_d, r_d, t_d, BN_NIST_192_TOP);
+        carry += (int)VR_bn_add_words(r_d, r_d, t_d, BN_NIST_192_TOP);
         nist_set_192(t_d, buf.bn, 5, 5, 5)
-            carry += (int)bn_add_words(r_d, r_d, t_d, BN_NIST_192_TOP);
+            carry += (int)VR_bn_add_words(r_d, r_d, t_d, BN_NIST_192_TOP);
     }
 #endif
     if (carry > 0)
         carry =
-            (int)bn_sub_words(r_d, r_d, _nist_p_192[carry - 1],
+            (int)VR_bn_sub_words(r_d, r_d, _nist_p_192[carry - 1],
                               BN_NIST_192_TOP);
     else
         carry = 1;
@@ -429,7 +429,7 @@ int BN_nist_mod_192(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
      * this is what happens below, but without explicit if:-) a.
      */
     mask =
-        0 - (PTR_SIZE_INT) bn_sub_words(c_d, r_d, _nist_p_192[0],
+        0 - (PTR_SIZE_INT) VR_bn_sub_words(c_d, r_d, _nist_p_192[0],
                                         BN_NIST_192_TOP);
     mask &= 0 - (PTR_SIZE_INT) carry;
     res = c_d;
@@ -437,7 +437,7 @@ int BN_nist_mod_192(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
         (((PTR_SIZE_INT) res & ~mask) | ((PTR_SIZE_INT) r_d & mask));
     nist_cp_bn(r_d, res, BN_NIST_192_TOP);
     r->top = BN_NIST_192_TOP;
-    bn_correct_top(r);
+    VR_bn_correct_top(r);
 
     return 1;
 }
@@ -456,7 +456,7 @@ typedef BN_ULONG (*bn_addsub_f) (BN_ULONG *, const BN_ULONG *,
         bn_cp_32(to, 6, from, (a1) - 7) \
         }
 
-int BN_nist_mod_224(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
+int VR_BN_nist_mod_224(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
                     BN_CTX *ctx)
 {
     int top = a->top, i;
@@ -482,18 +482,18 @@ int BN_nist_mod_224(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
 
     field = &_bignum_nist_p_224; /* just to make sure */
 
-    if (BN_is_negative(a) || BN_ucmp(a, &_bignum_nist_p_224_sqr) >= 0)
-        return BN_nnmod(r, a, field, ctx);
+    if (VR_BN_is_negative(a) || VR_BN_ucmp(a, &_bignum_nist_p_224_sqr) >= 0)
+        return VR_BN_nnmod(r, a, field, ctx);
 
-    i = BN_ucmp(field, a);
+    i = VR_BN_ucmp(field, a);
     if (i == 0) {
         BN_zero(r);
         return 1;
     } else if (i > 0)
-        return (r == a) ? 1 : (BN_copy(r, a) != NULL);
+        return (r == a) ? 1 : (VR_BN_copy(r, a) != NULL);
 
     if (r != a) {
-        if (!bn_wexpand(r, BN_NIST_224_TOP))
+        if (!VR_bn_wexpand(r, BN_NIST_224_TOP))
             return 0;
         r_d = r->d;
         nist_cp_bn(r_d, a_d, BN_NIST_224_TOP);
@@ -573,45 +573,45 @@ int BN_nist_mod_224(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
         BN_ULONG t_d[BN_NIST_224_TOP];
 
         nist_set_224(t_d, buf.bn, 10, 9, 8, 7, 0, 0, 0);
-        carry = (int)bn_add_words(r_d, r_d, t_d, BN_NIST_224_TOP);
+        carry = (int)VR_bn_add_words(r_d, r_d, t_d, BN_NIST_224_TOP);
         nist_set_224(t_d, buf.bn, 0, 13, 12, 11, 0, 0, 0);
-        carry += (int)bn_add_words(r_d, r_d, t_d, BN_NIST_224_TOP);
+        carry += (int)VR_bn_add_words(r_d, r_d, t_d, BN_NIST_224_TOP);
         nist_set_224(t_d, buf.bn, 13, 12, 11, 10, 9, 8, 7);
-        carry -= (int)bn_sub_words(r_d, r_d, t_d, BN_NIST_224_TOP);
+        carry -= (int)VR_bn_sub_words(r_d, r_d, t_d, BN_NIST_224_TOP);
         nist_set_224(t_d, buf.bn, 0, 0, 0, 0, 13, 12, 11);
-        carry -= (int)bn_sub_words(r_d, r_d, t_d, BN_NIST_224_TOP);
+        carry -= (int)VR_bn_sub_words(r_d, r_d, t_d, BN_NIST_224_TOP);
 
 # if BN_BITS2==64
         carry = (int)(r_d[BN_NIST_224_TOP - 1] >> 32);
 # endif
     }
 #endif
-    u.f = bn_sub_words;
+    u.f = VR_bn_sub_words;
     if (carry > 0) {
         carry =
-            (int)bn_sub_words(r_d, r_d, _nist_p_224[carry - 1],
+            (int)VR_bn_sub_words(r_d, r_d, _nist_p_224[carry - 1],
                               BN_NIST_224_TOP);
 #if BN_BITS2==64
         carry = (int)(~(r_d[BN_NIST_224_TOP - 1] >> 32)) & 1;
 #endif
     } else if (carry < 0) {
         /*
-         * it's a bit more complicated logic in this case. if bn_add_words
+         * it's a bit more complicated logic in this case. if VR_bn_add_words
          * yields no carry, then result has to be adjusted by unconditionally
          * *adding* the modulus. but if it does, then result has to be
          * compared to the modulus and conditionally adjusted by
          * *subtracting* the latter.
          */
         carry =
-            (int)bn_add_words(r_d, r_d, _nist_p_224[-carry - 1],
+            (int)VR_bn_add_words(r_d, r_d, _nist_p_224[-carry - 1],
                               BN_NIST_224_TOP);
         mask = 0 - (PTR_SIZE_INT) carry;
-        u.p = ((PTR_SIZE_INT) bn_sub_words & mask) |
-            ((PTR_SIZE_INT) bn_add_words & ~mask);
+        u.p = ((PTR_SIZE_INT) VR_bn_sub_words & mask) |
+            ((PTR_SIZE_INT) VR_bn_add_words & ~mask);
     } else
         carry = 1;
 
-    /* otherwise it's effectively same as in BN_nist_mod_192... */
+    /* otherwise it's effectively same as in VR_BN_nist_mod_192... */
     mask =
         0 - (PTR_SIZE_INT) (*u.f) (c_d, r_d, _nist_p_224[0], BN_NIST_224_TOP);
     mask &= 0 - (PTR_SIZE_INT) carry;
@@ -620,7 +620,7 @@ int BN_nist_mod_224(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
                        ((PTR_SIZE_INT) r_d & mask));
     nist_cp_bn(r_d, res, BN_NIST_224_TOP);
     r->top = BN_NIST_224_TOP;
-    bn_correct_top(r);
+    VR_bn_correct_top(r);
 
     return 1;
 }
@@ -637,7 +637,7 @@ int BN_nist_mod_224(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
         bn_cp_32(to, 7, from, (a1) - 8) \
         }
 
-int BN_nist_mod_256(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
+int VR_BN_nist_mod_256(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
                     BN_CTX *ctx)
 {
     int i, top = a->top;
@@ -663,18 +663,18 @@ int BN_nist_mod_256(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
 
     field = &_bignum_nist_p_256; /* just to make sure */
 
-    if (BN_is_negative(a) || BN_ucmp(a, &_bignum_nist_p_256_sqr) >= 0)
-        return BN_nnmod(r, a, field, ctx);
+    if (VR_BN_is_negative(a) || VR_BN_ucmp(a, &_bignum_nist_p_256_sqr) >= 0)
+        return VR_BN_nnmod(r, a, field, ctx);
 
-    i = BN_ucmp(field, a);
+    i = VR_BN_ucmp(field, a);
     if (i == 0) {
         BN_zero(r);
         return 1;
     } else if (i > 0)
-        return (r == a) ? 1 : (BN_copy(r, a) != NULL);
+        return (r == a) ? 1 : (VR_BN_copy(r, a) != NULL);
 
     if (r != a) {
-        if (!bn_wexpand(r, BN_NIST_256_TOP))
+        if (!VR_bn_wexpand(r, BN_NIST_256_TOP))
             return 0;
         r_d = r->d;
         nist_cp_bn(r_d, a_d, BN_NIST_256_TOP);
@@ -790,7 +790,7 @@ int BN_nist_mod_256(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
          * S2
          */
         nist_set_256(c_d, buf.bn, 0, 15, 14, 13, 12, 0, 0, 0);
-        carry = (int)bn_add_words(t_d, t_d, c_d, BN_NIST_256_TOP);
+        carry = (int)VR_bn_add_words(t_d, t_d, c_d, BN_NIST_256_TOP);
         /* left shift */
         {
             register BN_ULONG *ap, t, c;
@@ -804,53 +804,53 @@ int BN_nist_mod_256(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
             carry <<= 1;
             carry |= c;
         }
-        carry += (int)bn_add_words(r_d, r_d, t_d, BN_NIST_256_TOP);
+        carry += (int)VR_bn_add_words(r_d, r_d, t_d, BN_NIST_256_TOP);
         /*
          * S3
          */
         nist_set_256(t_d, buf.bn, 15, 14, 0, 0, 0, 10, 9, 8);
-        carry += (int)bn_add_words(r_d, r_d, t_d, BN_NIST_256_TOP);
+        carry += (int)VR_bn_add_words(r_d, r_d, t_d, BN_NIST_256_TOP);
         /*
          * S4
          */
         nist_set_256(t_d, buf.bn, 8, 13, 15, 14, 13, 11, 10, 9);
-        carry += (int)bn_add_words(r_d, r_d, t_d, BN_NIST_256_TOP);
+        carry += (int)VR_bn_add_words(r_d, r_d, t_d, BN_NIST_256_TOP);
         /*
          * D1
          */
         nist_set_256(t_d, buf.bn, 10, 8, 0, 0, 0, 13, 12, 11);
-        carry -= (int)bn_sub_words(r_d, r_d, t_d, BN_NIST_256_TOP);
+        carry -= (int)VR_bn_sub_words(r_d, r_d, t_d, BN_NIST_256_TOP);
         /*
          * D2
          */
         nist_set_256(t_d, buf.bn, 11, 9, 0, 0, 15, 14, 13, 12);
-        carry -= (int)bn_sub_words(r_d, r_d, t_d, BN_NIST_256_TOP);
+        carry -= (int)VR_bn_sub_words(r_d, r_d, t_d, BN_NIST_256_TOP);
         /*
          * D3
          */
         nist_set_256(t_d, buf.bn, 12, 0, 10, 9, 8, 15, 14, 13);
-        carry -= (int)bn_sub_words(r_d, r_d, t_d, BN_NIST_256_TOP);
+        carry -= (int)VR_bn_sub_words(r_d, r_d, t_d, BN_NIST_256_TOP);
         /*
          * D4
          */
         nist_set_256(t_d, buf.bn, 13, 0, 11, 10, 9, 0, 15, 14);
-        carry -= (int)bn_sub_words(r_d, r_d, t_d, BN_NIST_256_TOP);
+        carry -= (int)VR_bn_sub_words(r_d, r_d, t_d, BN_NIST_256_TOP);
 
     }
 #endif
-    /* see BN_nist_mod_224 for explanation */
-    u.f = bn_sub_words;
+    /* see VR_BN_nist_mod_224 for explanation */
+    u.f = VR_bn_sub_words;
     if (carry > 0)
         carry =
-            (int)bn_sub_words(r_d, r_d, _nist_p_256[carry - 1],
+            (int)VR_bn_sub_words(r_d, r_d, _nist_p_256[carry - 1],
                               BN_NIST_256_TOP);
     else if (carry < 0) {
         carry =
-            (int)bn_add_words(r_d, r_d, _nist_p_256[-carry - 1],
+            (int)VR_bn_add_words(r_d, r_d, _nist_p_256[-carry - 1],
                               BN_NIST_256_TOP);
         mask = 0 - (PTR_SIZE_INT) carry;
-        u.p = ((PTR_SIZE_INT) bn_sub_words & mask) |
-            ((PTR_SIZE_INT) bn_add_words & ~mask);
+        u.p = ((PTR_SIZE_INT) VR_bn_sub_words & mask) |
+            ((PTR_SIZE_INT) VR_bn_add_words & ~mask);
     } else
         carry = 1;
 
@@ -862,7 +862,7 @@ int BN_nist_mod_256(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
                        ((PTR_SIZE_INT) r_d & mask));
     nist_cp_bn(r_d, res, BN_NIST_256_TOP);
     r->top = BN_NIST_256_TOP;
-    bn_correct_top(r);
+    VR_bn_correct_top(r);
 
     return 1;
 }
@@ -883,7 +883,7 @@ int BN_nist_mod_256(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
         bn_cp_32(to, 11, from, (a1) - 12)  \
         }
 
-int BN_nist_mod_384(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
+int VR_BN_nist_mod_384(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
                     BN_CTX *ctx)
 {
     int i, top = a->top;
@@ -909,18 +909,18 @@ int BN_nist_mod_384(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
 
     field = &_bignum_nist_p_384; /* just to make sure */
 
-    if (BN_is_negative(a) || BN_ucmp(a, &_bignum_nist_p_384_sqr) >= 0)
-        return BN_nnmod(r, a, field, ctx);
+    if (VR_BN_is_negative(a) || VR_BN_ucmp(a, &_bignum_nist_p_384_sqr) >= 0)
+        return VR_BN_nnmod(r, a, field, ctx);
 
-    i = BN_ucmp(field, a);
+    i = VR_BN_ucmp(field, a);
     if (i == 0) {
         BN_zero(r);
         return 1;
     } else if (i > 0)
-        return (r == a) ? 1 : (BN_copy(r, a) != NULL);
+        return (r == a) ? 1 : (VR_BN_copy(r, a) != NULL);
 
     if (r != a) {
-        if (!bn_wexpand(r, BN_NIST_384_TOP))
+        if (!VR_bn_wexpand(r, BN_NIST_384_TOP))
             return 0;
         r_d = r->d;
         nist_cp_bn(r_d, a_d, BN_NIST_384_TOP);
@@ -1072,66 +1072,66 @@ int BN_nist_mod_384(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
             *ap = c;
         }
         carry =
-            (int)bn_add_words(r_d + (128 / BN_BITS2), r_d + (128 / BN_BITS2),
+            (int)VR_bn_add_words(r_d + (128 / BN_BITS2), r_d + (128 / BN_BITS2),
                               t_d, BN_NIST_256_TOP);
         /*
          * S2
          */
-        carry += (int)bn_add_words(r_d, r_d, buf.bn, BN_NIST_384_TOP);
+        carry += (int)VR_bn_add_words(r_d, r_d, buf.bn, BN_NIST_384_TOP);
         /*
          * S3
          */
         nist_set_384(t_d, buf.bn, 20, 19, 18, 17, 16, 15, 14, 13, 12, 23, 22,
                      21);
-        carry += (int)bn_add_words(r_d, r_d, t_d, BN_NIST_384_TOP);
+        carry += (int)VR_bn_add_words(r_d, r_d, t_d, BN_NIST_384_TOP);
         /*
          * S4
          */
         nist_set_384(t_d, buf.bn, 19, 18, 17, 16, 15, 14, 13, 12, 20, 0, 23,
                      0);
-        carry += (int)bn_add_words(r_d, r_d, t_d, BN_NIST_384_TOP);
+        carry += (int)VR_bn_add_words(r_d, r_d, t_d, BN_NIST_384_TOP);
         /*
          * S5
          */
         nist_set_384(t_d, buf.bn, 0, 0, 0, 0, 23, 22, 21, 20, 0, 0, 0, 0);
-        carry += (int)bn_add_words(r_d, r_d, t_d, BN_NIST_384_TOP);
+        carry += (int)VR_bn_add_words(r_d, r_d, t_d, BN_NIST_384_TOP);
         /*
          * S6
          */
         nist_set_384(t_d, buf.bn, 0, 0, 0, 0, 0, 0, 23, 22, 21, 0, 0, 20);
-        carry += (int)bn_add_words(r_d, r_d, t_d, BN_NIST_384_TOP);
+        carry += (int)VR_bn_add_words(r_d, r_d, t_d, BN_NIST_384_TOP);
         /*
          * D1
          */
         nist_set_384(t_d, buf.bn, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12,
                      23);
-        carry -= (int)bn_sub_words(r_d, r_d, t_d, BN_NIST_384_TOP);
+        carry -= (int)VR_bn_sub_words(r_d, r_d, t_d, BN_NIST_384_TOP);
         /*
          * D2
          */
         nist_set_384(t_d, buf.bn, 0, 0, 0, 0, 0, 0, 0, 23, 22, 21, 20, 0);
-        carry -= (int)bn_sub_words(r_d, r_d, t_d, BN_NIST_384_TOP);
+        carry -= (int)VR_bn_sub_words(r_d, r_d, t_d, BN_NIST_384_TOP);
         /*
          * D3
          */
         nist_set_384(t_d, buf.bn, 0, 0, 0, 0, 0, 0, 0, 23, 23, 0, 0, 0);
-        carry -= (int)bn_sub_words(r_d, r_d, t_d, BN_NIST_384_TOP);
+        carry -= (int)VR_bn_sub_words(r_d, r_d, t_d, BN_NIST_384_TOP);
 
     }
 #endif
-    /* see BN_nist_mod_224 for explanation */
-    u.f = bn_sub_words;
+    /* see VR_BN_nist_mod_224 for explanation */
+    u.f = VR_bn_sub_words;
     if (carry > 0)
         carry =
-            (int)bn_sub_words(r_d, r_d, _nist_p_384[carry - 1],
+            (int)VR_bn_sub_words(r_d, r_d, _nist_p_384[carry - 1],
                               BN_NIST_384_TOP);
     else if (carry < 0) {
         carry =
-            (int)bn_add_words(r_d, r_d, _nist_p_384[-carry - 1],
+            (int)VR_bn_add_words(r_d, r_d, _nist_p_384[-carry - 1],
                               BN_NIST_384_TOP);
         mask = 0 - (PTR_SIZE_INT) carry;
-        u.p = ((PTR_SIZE_INT) bn_sub_words & mask) |
-            ((PTR_SIZE_INT) bn_add_words & ~mask);
+        u.p = ((PTR_SIZE_INT) VR_bn_sub_words & mask) |
+            ((PTR_SIZE_INT) VR_bn_add_words & ~mask);
     } else
         carry = 1;
 
@@ -1143,7 +1143,7 @@ int BN_nist_mod_384(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
                        ((PTR_SIZE_INT) r_d & mask));
     nist_cp_bn(r_d, res, BN_NIST_384_TOP);
     r->top = BN_NIST_384_TOP;
-    bn_correct_top(r);
+    VR_bn_correct_top(r);
 
     return 1;
 }
@@ -1152,7 +1152,7 @@ int BN_nist_mod_384(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
 #define BN_NIST_521_LSHIFT      (BN_BITS2-BN_NIST_521_RSHIFT)
 #define BN_NIST_521_TOP_MASK    ((BN_ULONG)BN_MASK2>>BN_NIST_521_LSHIFT)
 
-int BN_nist_mod_521(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
+int VR_BN_nist_mod_521(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
                     BN_CTX *ctx)
 {
     int top = a->top, i;
@@ -1167,18 +1167,18 @@ int BN_nist_mod_521(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
 
     field = &_bignum_nist_p_521; /* just to make sure */
 
-    if (BN_is_negative(a) || BN_ucmp(a, &_bignum_nist_p_521_sqr) >= 0)
-        return BN_nnmod(r, a, field, ctx);
+    if (VR_BN_is_negative(a) || VR_BN_ucmp(a, &_bignum_nist_p_521_sqr) >= 0)
+        return VR_BN_nnmod(r, a, field, ctx);
 
-    i = BN_ucmp(field, a);
+    i = VR_BN_ucmp(field, a);
     if (i == 0) {
         BN_zero(r);
         return 1;
     } else if (i > 0)
-        return (r == a) ? 1 : (BN_copy(r, a) != NULL);
+        return (r == a) ? 1 : (VR_BN_copy(r, a) != NULL);
 
     if (r != a) {
-        if (!bn_wexpand(r, BN_NIST_521_TOP))
+        if (!VR_bn_wexpand(r, BN_NIST_521_TOP))
             return 0;
         r_d = r->d;
         nist_cp_bn(r_d, a_d, BN_NIST_521_TOP);
@@ -1209,31 +1209,31 @@ int BN_nist_mod_521(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
     /* lower 521 bits */
     r_d[i] &= BN_NIST_521_TOP_MASK;
 
-    bn_add_words(r_d, r_d, t_d, BN_NIST_521_TOP);
+    VR_bn_add_words(r_d, r_d, t_d, BN_NIST_521_TOP);
     mask =
-        0 - (PTR_SIZE_INT) bn_sub_words(t_d, r_d, _nist_p_521,
+        0 - (PTR_SIZE_INT) VR_bn_sub_words(t_d, r_d, _nist_p_521,
                                         BN_NIST_521_TOP);
     res = t_d;
     res = (BN_ULONG *)(((PTR_SIZE_INT) res & ~mask) |
                        ((PTR_SIZE_INT) r_d & mask));
     nist_cp_bn(r_d, res, BN_NIST_521_TOP);
     r->top = BN_NIST_521_TOP;
-    bn_correct_top(r);
+    VR_bn_correct_top(r);
 
     return 1;
 }
 
-int (*BN_nist_mod_func(const BIGNUM *p)) (BIGNUM *r, const BIGNUM *a,
+int (*VR_BN_nist_mod_func(const BIGNUM *p)) (BIGNUM *r, const BIGNUM *a,
                                           const BIGNUM *field, BN_CTX *ctx) {
-    if (BN_ucmp(&_bignum_nist_p_192, p) == 0)
-        return BN_nist_mod_192;
-    if (BN_ucmp(&_bignum_nist_p_224, p) == 0)
-        return BN_nist_mod_224;
-    if (BN_ucmp(&_bignum_nist_p_256, p) == 0)
-        return BN_nist_mod_256;
-    if (BN_ucmp(&_bignum_nist_p_384, p) == 0)
-        return BN_nist_mod_384;
-    if (BN_ucmp(&_bignum_nist_p_521, p) == 0)
-        return BN_nist_mod_521;
+    if (VR_BN_ucmp(&_bignum_nist_p_192, p) == 0)
+        return VR_BN_nist_mod_192;
+    if (VR_BN_ucmp(&_bignum_nist_p_224, p) == 0)
+        return VR_BN_nist_mod_224;
+    if (VR_BN_ucmp(&_bignum_nist_p_256, p) == 0)
+        return VR_BN_nist_mod_256;
+    if (VR_BN_ucmp(&_bignum_nist_p_384, p) == 0)
+        return VR_BN_nist_mod_384;
+    if (VR_BN_ucmp(&_bignum_nist_p_521, p) == 0)
+        return VR_BN_nist_mod_521;
     return 0;
 }

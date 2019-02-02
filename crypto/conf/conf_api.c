@@ -20,7 +20,7 @@ static void value_free_hash(const CONF_VALUE *a, LHASH_OF(CONF_VALUE) *conf);
 static void value_free_stack_doall(CONF_VALUE *a);
 
 /* Up until OpenSSL 0.9.5a, this was get_section */
-CONF_VALUE *_CONF_get_section(const CONF *conf, const char *section)
+CONF_VALUE *VR__CONF_get_section(const CONF *conf, const char *section)
 {
     CONF_VALUE *v, vv;
 
@@ -32,20 +32,20 @@ CONF_VALUE *_CONF_get_section(const CONF *conf, const char *section)
     return v;
 }
 
-/* Up until OpenSSL 0.9.5a, this was CONF_get_section */
-STACK_OF(CONF_VALUE) *_CONF_get_section_values(const CONF *conf,
+/* Up until OpenSSL 0.9.5a, this was VR_CONF_get_section */
+STACK_OF(CONF_VALUE) *VR__CONF_get_section_values(const CONF *conf,
                                                const char *section)
 {
     CONF_VALUE *v;
 
-    v = _CONF_get_section(conf, section);
+    v = VR__CONF_get_section(conf, section);
     if (v != NULL)
         return ((STACK_OF(CONF_VALUE) *)v->value);
     else
         return NULL;
 }
 
-int _CONF_add_string(CONF *conf, CONF_VALUE *section, CONF_VALUE *value)
+int VR__CONF_add_string(CONF *conf, CONF_VALUE *section, CONF_VALUE *value)
 {
     CONF_VALUE *v = NULL;
     STACK_OF(CONF_VALUE) *ts;
@@ -53,21 +53,21 @@ int _CONF_add_string(CONF *conf, CONF_VALUE *section, CONF_VALUE *value)
     ts = (STACK_OF(CONF_VALUE) *)section->value;
 
     value->section = section->section;
-    if (!sk_CONF_VALUE_push(ts, value)) {
+    if (!sk_VR_CONF_VALUE_push(ts, value)) {
         return 0;
     }
 
     v = lh_CONF_VALUE_insert(conf->data, value);
     if (v != NULL) {
         (void)sk_CONF_VALUE_delete_ptr(ts, v);
-        OPENSSL_free(v->name);
-        OPENSSL_free(v->value);
-        OPENSSL_free(v);
+        OPENVR_SSL_free(v->name);
+        OPENVR_SSL_free(v->value);
+        OPENVR_SSL_free(v);
     }
     return 1;
 }
 
-char *_CONF_get_string(const CONF *conf, const char *section,
+char *VR__CONF_get_string(const CONF *conf, const char *section,
                        const char *name)
 {
     CONF_VALUE *v, vv;
@@ -83,7 +83,7 @@ char *_CONF_get_string(const CONF *conf, const char *section,
             if (v != NULL)
                 return v->value;
             if (strcmp(section, "ENV") == 0) {
-                p = ossl_safe_getenv(name);
+                p = VR_ossl_safe_getenv(name);
                 if (p != NULL)
                     return p;
             }
@@ -96,12 +96,12 @@ char *_CONF_get_string(const CONF *conf, const char *section,
         else
             return NULL;
     } else
-        return ossl_safe_getenv(name);
+        return VR_ossl_safe_getenv(name);
 }
 
 static unsigned long conf_value_hash(const CONF_VALUE *v)
 {
-    return (OPENSSL_LH_strhash(v->section) << 2) ^ OPENSSL_LH_strhash(v->name);
+    return (VR_OPENSSL_LH_strhash(v->section) << 2) ^ VR_OPENSSL_LH_strhash(v->name);
 }
 
 static int conf_value_cmp(const CONF_VALUE *a, const CONF_VALUE *b)
@@ -123,13 +123,13 @@ static int conf_value_cmp(const CONF_VALUE *a, const CONF_VALUE *b)
         return ((a->name == NULL) ? -1 : 1);
 }
 
-int _CONF_new_data(CONF *conf)
+int VR__CONF_new_data(CONF *conf)
 {
     if (conf == NULL) {
         return 0;
     }
     if (conf->data == NULL) {
-        conf->data = lh_CONF_VALUE_new(conf_value_hash, conf_value_cmp);
+        conf->data = lh_VR_CONF_VALUE_new(conf_value_hash, conf_value_cmp);
         if (conf->data == NULL)
             return 0;
     }
@@ -140,12 +140,12 @@ typedef LHASH_OF(CONF_VALUE) LH_CONF_VALUE;
 
 IMPLEMENT_LHASH_DOALL_ARG_CONST(CONF_VALUE, LH_CONF_VALUE);
 
-void _CONF_free_data(CONF *conf)
+void VR__CONF_free_data(CONF *conf)
 {
     if (conf == NULL || conf->data == NULL)
         return;
 
-    /* evil thing to make sure the 'OPENSSL_free()' works as expected */
+    /* evil thing to make sure the 'OPENVR_SSL_free()' works as expected */
     lh_CONF_VALUE_set_down_load(conf->data, 0);
     lh_CONF_VALUE_doall_LH_CONF_VALUE(conf->data, value_free_hash, conf->data);
 
@@ -155,7 +155,7 @@ void _CONF_free_data(CONF *conf)
      */
 
     lh_CONF_VALUE_doall(conf->data, value_free_stack_doall);
-    lh_CONF_VALUE_free(conf->data);
+    lh_VR_CONF_VALUE_free(conf->data);
 }
 
 static void value_free_hash(const CONF_VALUE *a, LHASH_OF(CONF_VALUE) *conf)
@@ -176,23 +176,23 @@ static void value_free_stack_doall(CONF_VALUE *a)
     sk = (STACK_OF(CONF_VALUE) *)a->value;
     for (i = sk_CONF_VALUE_num(sk) - 1; i >= 0; i--) {
         vv = sk_CONF_VALUE_value(sk, i);
-        OPENSSL_free(vv->value);
-        OPENSSL_free(vv->name);
-        OPENSSL_free(vv);
+        OPENVR_SSL_free(vv->value);
+        OPENVR_SSL_free(vv->name);
+        OPENVR_SSL_free(vv);
     }
-    sk_CONF_VALUE_free(sk);
-    OPENSSL_free(a->section);
-    OPENSSL_free(a);
+    sk_VR_CONF_VALUE_free(sk);
+    OPENVR_SSL_free(a->section);
+    OPENVR_SSL_free(a);
 }
 
 /* Up until OpenSSL 0.9.5a, this was new_section */
-CONF_VALUE *_CONF_new_section(CONF *conf, const char *section)
+CONF_VALUE *VR__CONF_new_section(CONF *conf, const char *section)
 {
     STACK_OF(CONF_VALUE) *sk = NULL;
     int i;
     CONF_VALUE *v = NULL, *vv;
 
-    if ((sk = sk_CONF_VALUE_new_null()) == NULL)
+    if ((sk = sk_VR_CONF_VALUE_new_null()) == NULL)
         goto err;
     if ((v = OPENSSL_malloc(sizeof(*v))) == NULL)
         goto err;
@@ -210,9 +210,9 @@ CONF_VALUE *_CONF_new_section(CONF *conf, const char *section)
     return v;
 
  err:
-    sk_CONF_VALUE_free(sk);
+    sk_VR_CONF_VALUE_free(sk);
     if (v != NULL)
-        OPENSSL_free(v->section);
-    OPENSSL_free(v);
+        OPENVR_SSL_free(v->section);
+    OPENVR_SSL_free(v);
     return NULL;
 }

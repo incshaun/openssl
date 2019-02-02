@@ -210,14 +210,14 @@ static ASN1_PCTX *pctx;
     \
     if (type != NULL) { \
         int len2; \
-        BIO *bio = BIO_new(BIO_s_null()); \
+        BIO *bio = VR_BIO_new(VR_BIO_s_null()); \
         \
         PRINT(bio, type); \
-        BIO_free(bio); \
+        VR_BIO_free(bio); \
         len2 = I2D(type, &der); \
         if (len2 != 0) {} \
-        OPENSSL_free(der); \
-        TYPE ## _free(type); \
+        OPENVR_SSL_free(der); \
+        VR_##TYPE ## _free(type); \
     } \
 }
 
@@ -227,13 +227,13 @@ static ASN1_PCTX *pctx;
     TYPE *type = D2I(NULL, &p, len); \
     \
     if (type != NULL) { \
-        BIO *bio = BIO_new(BIO_s_null()); \
+        BIO *bio = VR_BIO_new(VR_BIO_s_null()); \
         \
         PRINT(bio, type, 0); \
-        BIO_free(bio); \
+        VR_BIO_free(bio); \
         I2D(type, &der); \
-        OPENSSL_free(der); \
-        TYPE ## _free(type); \
+        OPENVR_SSL_free(der); \
+        VR_##TYPE ## _free(type); \
     } \
 }
 
@@ -243,13 +243,13 @@ static ASN1_PCTX *pctx;
     TYPE *type = D2I(NULL, &p, len); \
     \
     if (type != NULL) { \
-        BIO *bio = BIO_new(BIO_s_null()); \
+        BIO *bio = VR_BIO_new(VR_BIO_s_null()); \
         \
         PRINT(bio, type, 0, pctx); \
-        BIO_free(bio); \
+        VR_BIO_free(bio); \
         I2D(type, &der); \
-        OPENSSL_free(der); \
-        TYPE ## _free(type); \
+        OPENVR_SSL_free(der); \
+        VR_##TYPE ## _free(type); \
     } \
 }
 
@@ -260,29 +260,29 @@ static ASN1_PCTX *pctx;
     TYPE *type = D2I(NULL, &p, len); \
     \
     if (type != NULL) { \
-        BIO *bio = BIO_new(BIO_s_null()); \
+        BIO *bio = VR_BIO_new(VR_BIO_s_null()); \
         \
-        BIO_free(bio); \
+        VR_BIO_free(bio); \
         I2D(type, &der); \
-        OPENSSL_free(der); \
-        TYPE ## _free(type); \
+        OPENVR_SSL_free(der); \
+        VR_##TYPE ## _free(type); \
     } \
 }
 
 
 int FuzzerInitialize(int *argc, char ***argv)
 {
-    pctx = ASN1_PCTX_new();
-    ASN1_PCTX_set_flags(pctx, ASN1_PCTX_FLAGS_SHOW_ABSENT |
+    pctx = VR_ASN1_PCTX_new();
+    VR_ASN1_PCTX_set_flags(pctx, ASN1_PCTX_FLAGS_SHOW_ABSENT |
         ASN1_PCTX_FLAGS_SHOW_SEQUENCE | ASN1_PCTX_FLAGS_SHOW_SSOF |
         ASN1_PCTX_FLAGS_SHOW_TYPE | ASN1_PCTX_FLAGS_SHOW_FIELD_STRUCT_NAME);
-    ASN1_PCTX_set_str_flags(pctx, ASN1_STRFLGS_UTF8_CONVERT |
+    VR_ASN1_PCTX_set_str_flags(pctx, ASN1_STRFLGS_UTF8_CONVERT |
         ASN1_STRFLGS_SHOW_TYPE | ASN1_STRFLGS_DUMP_ALL);
 
-    OPENSSL_init_crypto(OPENSSL_INIT_LOAD_CRYPTO_STRINGS, NULL);
-    OPENSSL_init_ssl(OPENSSL_INIT_LOAD_SSL_STRINGS, NULL);
-    ERR_get_state();
-    CRYPTO_free_ex_index(0, -1);
+    VR_OPENSSL_init_crypto(OPENSSL_INIT_LOAD_CRYPTO_STRINGS, NULL);
+    VR_OPENSSL_init_ssl(OPENSSL_INIT_LOAD_SSL_STRINGS, NULL);
+    VR_ERR_get_state();
+    VR_CRYPTO_free_ex_index(0, -1);
     FuzzerSetRand();
 
     return 1;
@@ -297,56 +297,56 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
         const uint8_t *b = buf;
         unsigned char *der = NULL;
         const ASN1_ITEM *i = ASN1_ITEM_ptr(item_type[n]);
-        ASN1_VALUE *o = ASN1_item_d2i(NULL, &b, len, i);
+        ASN1_VALUE *o = VR_ASN1_item_d2i(NULL, &b, len, i);
 
         if (o != NULL) {
-            BIO *bio = BIO_new(BIO_s_null());
+            BIO *bio = VR_BIO_new(VR_BIO_s_null());
 
-            ASN1_item_print(bio, o, 4, i, pctx);
-            BIO_free(bio);
-            ASN1_item_i2d(o, &der, i);
-            OPENSSL_free(der);
-            ASN1_item_free(o, i);
+            VR_ASN1_item_print(bio, o, 4, i, pctx);
+            VR_BIO_free(bio);
+            VR_ASN1_item_i2d(o, &der, i);
+            OPENVR_SSL_free(der);
+            VR_ASN1_item_free(o, i);
         }
     }
 
 #ifndef OPENSSL_NO_TS
-    DO_TEST(TS_REQ, d2i_TS_REQ, i2d_TS_REQ, TS_REQ_print_bio);
-    DO_TEST(TS_MSG_IMPRINT, d2i_TS_MSG_IMPRINT, i2d_TS_MSG_IMPRINT, TS_MSG_IMPRINT_print_bio);
-    DO_TEST(TS_RESP, d2i_TS_RESP, i2d_TS_RESP, TS_RESP_print_bio);
-    DO_TEST(TS_STATUS_INFO, d2i_TS_STATUS_INFO, i2d_TS_STATUS_INFO, TS_STATUS_INFO_print_bio);
-    DO_TEST(TS_TST_INFO, d2i_TS_TST_INFO, i2d_TS_TST_INFO, TS_TST_INFO_print_bio);
-    DO_TEST_NO_PRINT(TS_ACCURACY, d2i_TS_ACCURACY, i2d_TS_ACCURACY);
-    DO_TEST_NO_PRINT(ESS_ISSUER_SERIAL, d2i_ESS_ISSUER_SERIAL, i2d_ESS_ISSUER_SERIAL);
-    DO_TEST_NO_PRINT(ESS_CERT_ID, d2i_ESS_CERT_ID, i2d_ESS_CERT_ID);
-    DO_TEST_NO_PRINT(ESS_SIGNING_CERT, d2i_ESS_SIGNING_CERT, i2d_ESS_SIGNING_CERT);
+    DO_TEST(TS_REQ, VR_d2i_TS_REQ, VR_i2d_TS_REQ, VR_TS_REQ_print_bio);
+    DO_TEST(TS_MSG_IMPRINT, VR_d2i_TS_MSG_IMPRINT, VR_i2d_TS_MSG_IMPRINT, VR_TS_MSG_IMPRINT_print_bio);
+    DO_TEST(TS_RESP, VR_d2i_TS_RESP, VR_i2d_TS_RESP, VR_TS_RESP_print_bio);
+    DO_TEST(TS_STATUS_INFO, VR_d2i_TS_STATUS_INFO, VR_i2d_TS_STATUS_INFO, VR_TS_STATUS_INFO_print_bio);
+    DO_TEST(TS_TST_INFO, VR_d2i_TS_TST_INFO, VR_i2d_TS_TST_INFO, VR_TS_TST_INFO_print_bio);
+    DO_TEST_NO_PRINT(TS_ACCURACY, VR_d2i_TS_ACCURACY, VR_i2d_TS_ACCURACY);
+    DO_TEST_NO_PRINT(ESS_ISSUER_SERIAL, VR_d2i_ESS_ISSUER_SERIAL, VR_i2d_ESS_ISSUER_SERIAL);
+    DO_TEST_NO_PRINT(ESS_CERT_ID, VR_d2i_ESS_CERT_ID, VR_i2d_ESS_CERT_ID);
+    DO_TEST_NO_PRINT(ESS_SIGNING_CERT, VR_d2i_ESS_SIGNING_CERT, VR_i2d_ESS_SIGNING_CERT);
 #endif
 #ifndef OPENSSL_NO_DH
-    DO_TEST(DH, d2i_DHparams, i2d_DHparams, DHparams_print);
-    DO_TEST(DH, d2i_DHxparams, i2d_DHxparams, DHparams_print);
+    DO_TEST(DH, VR_d2i_DHparams, VR_i2d_DHparams, VR_DHparams_print);
+    DO_TEST(DH, VR_d2i_DHxparams, VR_i2d_DHxparams, VR_DHparams_print);
 #endif
 #ifndef OPENSSL_NO_DSA
-    DO_TEST_NO_PRINT(DSA_SIG, d2i_DSA_SIG, i2d_DSA_SIG);
-    DO_TEST_PRINT_OFFSET(DSA, d2i_DSAPrivateKey, i2d_DSAPrivateKey, DSA_print);
-    DO_TEST_PRINT_OFFSET(DSA, d2i_DSAPublicKey, i2d_DSAPublicKey, DSA_print);
-    DO_TEST(DSA, d2i_DSAparams, i2d_DSAparams, DSAparams_print);
+    DO_TEST_NO_PRINT(DSA_SIG, VR_d2i_DSA_SIG, VR_i2d_DSA_SIG);
+    DO_TEST_PRINT_OFFSET(DSA, VR_d2i_DSAPrivateKey, VR_i2d_DSAPrivateKey, VR_DSA_print);
+    DO_TEST_PRINT_OFFSET(DSA, VR_d2i_DSAPublicKey, VR_i2d_DSAPublicKey, VR_DSA_print);
+    DO_TEST(DSA, VR_d2i_DSAparams, VR_i2d_DSAparams, VR_DSAparams_print);
 #endif
-    DO_TEST_PRINT_OFFSET(RSA, d2i_RSAPublicKey, i2d_RSAPublicKey, RSA_print);
+    DO_TEST_PRINT_OFFSET(RSA, VR_d2i_RSAPublicKey, VR_i2d_RSAPublicKey, VR_RSA_print);
 #ifndef OPENSSL_NO_EC
-    DO_TEST_PRINT_OFFSET(EC_GROUP, d2i_ECPKParameters, i2d_ECPKParameters, ECPKParameters_print);
-    DO_TEST_PRINT_OFFSET(EC_KEY, d2i_ECPrivateKey, i2d_ECPrivateKey, EC_KEY_print);
-    DO_TEST(EC_KEY, d2i_ECParameters, i2d_ECParameters, ECParameters_print);
-    DO_TEST_NO_PRINT(ECDSA_SIG, d2i_ECDSA_SIG, i2d_ECDSA_SIG);
+    DO_TEST_PRINT_OFFSET(EC_GROUP, VR_d2i_ECPKParameters, VR_i2d_ECPKParameters, VR_ECPKParameters_print);
+    DO_TEST_PRINT_OFFSET(EC_KEY, VR_d2i_ECPrivateKey, VR_i2d_ECPrivateKey, VR_EC_KEY_print);
+    DO_TEST(EC_KEY, VR_d2i_ECParameters, VR_i2d_ECParameters, VR_ECParameters_print);
+    DO_TEST_NO_PRINT(ECDSA_SIG, VR_d2i_ECDSA_SIG, VR_i2d_ECDSA_SIG);
 #endif
-    DO_TEST_PRINT_PCTX(EVP_PKEY, d2i_AutoPrivateKey, i2d_PrivateKey, EVP_PKEY_print_private);
-    DO_TEST(SSL_SESSION, d2i_SSL_SESSION, i2d_SSL_SESSION, SSL_SESSION_print);
+    DO_TEST_PRINT_PCTX(EVP_PKEY, VR_d2i_AutoPrivateKey, VR_i2d_PrivateKey, VR_EVP_PKEY_print_private);
+    DO_TEST(SSL_SESSION, VR_d2i_SSL_SESSION, VR_i2d_SSL_SESSION, VR_SSL_SESSION_print);
 
-    ERR_clear_error();
+    VR_ERR_clear_error();
 
     return 0;
 }
 
 void FuzzerCleanup(void)
 {
-    ASN1_PCTX_free(pctx);
+    VR_ASN1_PCTX_free(pctx);
 }

@@ -23,57 +23,57 @@
 /* forward declaration */
 typedef struct rand_pool_st RAND_POOL;
 
-void rand_cleanup_int(void);
-void rand_drbg_cleanup_int(void);
-void drbg_delete_thread_state(void);
-void rand_fork(void);
+void VR_rand_cleanup_int(void);
+void VR_rand_drbg_cleanup_int(void);
+void VR_drbg_delete_thread_state(void);
+void VR_rand_fork(void);
 
 /* Hardware-based seeding functions. */
 size_t rand_acquire_entropy_from_tsc(RAND_POOL *pool);
 size_t rand_acquire_entropy_from_cpu(RAND_POOL *pool);
 
 /* DRBG entropy callbacks. */
-size_t rand_drbg_get_entropy(RAND_DRBG *drbg,
+size_t VR_rand_drbg_get_entropy(RAND_DRBG *drbg,
                              unsigned char **pout,
                              int entropy, size_t min_len, size_t max_len,
                              int prediction_resistance);
-void rand_drbg_cleanup_entropy(RAND_DRBG *drbg,
+void VR_rand_drbg_cleanup_entropy(RAND_DRBG *drbg,
                                unsigned char *out, size_t outlen);
-size_t rand_drbg_get_nonce(RAND_DRBG *drbg,
+size_t VR_rand_drbg_get_nonce(RAND_DRBG *drbg,
                            unsigned char **pout,
                            int entropy, size_t min_len, size_t max_len);
-void rand_drbg_cleanup_nonce(RAND_DRBG *drbg,
+void VR_rand_drbg_cleanup_nonce(RAND_DRBG *drbg,
                              unsigned char *out, size_t outlen);
 
-size_t rand_drbg_get_additional_data(RAND_POOL *pool, unsigned char **pout);
+size_t VR_rand_drbg_get_additional_data(RAND_POOL *pool, unsigned char **pout);
 
-void rand_drbg_cleanup_additional_data(RAND_POOL *pool, unsigned char *out);
+void VR_rand_drbg_cleanup_additional_data(RAND_POOL *pool, unsigned char *out);
 
 /*
  * RAND_POOL functions
  */
-RAND_POOL *rand_pool_new(int entropy_requested, size_t min_len, size_t max_len);
-RAND_POOL *rand_pool_attach(const unsigned char *buffer, size_t len,
+RAND_POOL *VR_rand_pool_new(int entropy_requested, size_t min_len, size_t max_len);
+RAND_POOL *VR_rand_pool_attach(const unsigned char *buffer, size_t len,
                             size_t entropy);
-void rand_pool_free(RAND_POOL *pool);
+void VR_rand_pool_free(RAND_POOL *pool);
 
-const unsigned char *rand_pool_buffer(RAND_POOL *pool);
-unsigned char *rand_pool_detach(RAND_POOL *pool);
-void rand_pool_reattach(RAND_POOL *pool, unsigned char *buffer);
+const unsigned char *VR_rand_pool_buffer(RAND_POOL *pool);
+unsigned char *VR_rand_pool_detach(RAND_POOL *pool);
+void VR_rand_pool_reattach(RAND_POOL *pool, unsigned char *buffer);
 
-size_t rand_pool_entropy(RAND_POOL *pool);
-size_t rand_pool_length(RAND_POOL *pool);
+size_t VR_rand_pool_entropy(RAND_POOL *pool);
+size_t VR_rand_pool_length(RAND_POOL *pool);
 
-size_t rand_pool_entropy_available(RAND_POOL *pool);
-size_t rand_pool_entropy_needed(RAND_POOL *pool);
+size_t VR_rand_pool_entropy_available(RAND_POOL *pool);
+size_t VR_rand_pool_entropy_needed(RAND_POOL *pool);
 /* |entropy_factor| expresses how many bits of data contain 1 bit of entropy */
-size_t rand_pool_bytes_needed(RAND_POOL *pool, unsigned int entropy_factor);
-size_t rand_pool_bytes_remaining(RAND_POOL *pool);
+size_t VR_rand_pool_bytes_needed(RAND_POOL *pool, unsigned int entropy_factor);
+size_t VR_rand_pool_bytes_remaining(RAND_POOL *pool);
 
-int rand_pool_add(RAND_POOL *pool,
+int VR_rand_pool_add(RAND_POOL *pool,
                   const unsigned char *buffer, size_t len, size_t entropy);
-unsigned char *rand_pool_add_begin(RAND_POOL *pool, size_t len);
-int rand_pool_add_end(RAND_POOL *pool, size_t len, size_t entropy);
+unsigned char *VR_rand_pool_add_begin(RAND_POOL *pool, size_t len);
+int VR_rand_pool_add_end(RAND_POOL *pool, size_t len, size_t entropy);
 
 
 /*
@@ -86,7 +86,7 @@ int rand_pool_add_end(RAND_POOL *pool, size_t len, size_t entropy);
  * of entropy, the total entropy count is returned. If it fails, it returns
  * an entropy count of 0.
  */
-size_t rand_pool_acquire_entropy(RAND_POOL *pool);
+size_t VR_rand_pool_acquire_entropy(RAND_POOL *pool);
 
 /*
  * Add some application specific nonce data
@@ -96,11 +96,11 @@ size_t rand_pool_acquire_entropy(RAND_POOL *pool);
  *
  * This data currently consists of the process and thread id, and a high
  * resolution timestamp. The data does not include an atomic counter,
- * because that is added by the calling function rand_drbg_get_nonce().
+ * because that is added by the calling function VR_rand_drbg_get_nonce().
  *
  * Returns 1 on success and 0 on failure.
  */
-int rand_pool_add_nonce_data(RAND_POOL *pool);
+int VR_rand_pool_add_nonce_data(RAND_POOL *pool);
 
 
 /*
@@ -112,23 +112,23 @@ int rand_pool_add_nonce_data(RAND_POOL *pool);
  *
  * Returns 1 on success and 0 on failure.
  */
-int rand_pool_add_additional_data(RAND_POOL *pool);
+int VR_rand_pool_add_additional_data(RAND_POOL *pool);
 
 /*
  * Initialise the random pool reseeding sources.
  *
  * Returns 1 on success and 0 on failure.
  */
-int rand_pool_init(void);
+int VR_rand_pool_init(void);
 
 /*
  * Finalise the random pool reseeding sources.
  */
-void rand_pool_cleanup(void);
+void VR_rand_pool_cleanup(void);
 
 /*
  * Control the random pool use of open file descriptors.
  */
-void rand_pool_keep_random_devices_open(int keep);
+void VR_rand_pool_keep_random_devices_open(int keep);
 
 #endif

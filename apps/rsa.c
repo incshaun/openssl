@@ -53,7 +53,7 @@ const OPTIONS rsa_options[] = {
     {"modulus", OPT_MODULUS, '-', "Print the RSA key modulus"},
     {"check", OPT_CHECK, '-', "Verify key consistency"},
     {"", OPT_CIPHER, '-', "Any supported cipher"},
-# if !defined(OPENSSL_NO_DSA) && !defined(OPENSSL_NO_RC4)
+# if !defined(OPENSSL_NO_DSA) && !defined(OPENSSL_NO_VR_RC4)
     {"pvk-strong", OPT_PVK_STRONG, '-', "Enable 'Strong' PVK encoding level (default)"},
     {"pvk-weak", OPT_PVK_WEAK, '-', "Enable 'Weak' PVK encoding level"},
     {"pvk-none", OPT_PVK_NONE, '-', "Don't enforce PVK encoding"},
@@ -75,7 +75,7 @@ int rsa_main(int argc, char **argv)
     int i, private = 0;
     int informat = FORMAT_PEM, outformat = FORMAT_PEM, text = 0, check = 0;
     int noout = 0, modulus = 0, pubin = 0, pubout = 0, ret = 1;
-# if !defined(OPENSSL_NO_DSA) && !defined(OPENSSL_NO_RC4)
+# if !defined(OPENSSL_NO_DSA) && !defined(OPENSSL_NO_VR_RC4)
     int pvk_encr = 2;
 # endif
     OPTION_CHOICE o;
@@ -86,7 +86,7 @@ int rsa_main(int argc, char **argv)
         case OPT_EOF:
         case OPT_ERR:
  opthelp:
-            BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
+            VR_BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
             opt_help(rsa_options);
@@ -130,7 +130,7 @@ int rsa_main(int argc, char **argv)
         case OPT_PVK_STRONG:    /* pvk_encr:= 2 */
         case OPT_PVK_WEAK:      /* pvk_encr:= 1 */
         case OPT_PVK_NONE:      /* pvk_encr:= 0 */
-# if !defined(OPENSSL_NO_DSA) && !defined(OPENSSL_NO_RC4)
+# if !defined(OPENSSL_NO_DSA) && !defined(OPENSSL_NO_VR_RC4)
             pvk_encr = (o - OPT_PVK_NONE);
 # endif
             break;
@@ -159,11 +159,11 @@ int rsa_main(int argc, char **argv)
     private = (text && !pubin) || (!pubout && !noout) ? 1 : 0;
 
     if (!app_passwd(passinarg, passoutarg, &passin, &passout)) {
-        BIO_printf(bio_err, "Error getting passwords\n");
+        VR_BIO_printf(bio_err, "Error getting passwords\n");
         goto end;
     }
     if (check && pubin) {
-        BIO_printf(bio_err, "Only private keys can be checked\n");
+        VR_BIO_printf(bio_err, "Only private keys can be checked\n");
         goto end;
     }
 
@@ -187,12 +187,12 @@ int rsa_main(int argc, char **argv)
         }
 
         if (pkey != NULL)
-            rsa = EVP_PKEY_get1_RSA(pkey);
-        EVP_PKEY_free(pkey);
+            rsa = VR_EVP_PKEY_get1_RSA(pkey);
+        VR_EVP_PKEY_free(pkey);
     }
 
     if (rsa == NULL) {
-        ERR_print_errors(bio_err);
+        VR_ERR_print_errors(bio_err);
         goto end;
     }
 
@@ -202,39 +202,39 @@ int rsa_main(int argc, char **argv)
 
     if (text) {
         assert(pubin || private);
-        if (!RSA_print(out, rsa, 0)) {
+        if (!VR_RSA_print(out, rsa, 0)) {
             perror(outfile);
-            ERR_print_errors(bio_err);
+            VR_ERR_print_errors(bio_err);
             goto end;
         }
     }
 
     if (modulus) {
         const BIGNUM *n;
-        RSA_get0_key(rsa, &n, NULL, NULL);
-        BIO_printf(out, "Modulus=");
-        BN_print(out, n);
-        BIO_printf(out, "\n");
+        VR_RSA_get0_key(rsa, &n, NULL, NULL);
+        VR_BIO_printf(out, "Modulus=");
+        VR_BN_print(out, n);
+        VR_BIO_printf(out, "\n");
     }
 
     if (check) {
-        int r = RSA_check_key_ex(rsa, NULL);
+        int r = VR_RSA_check_key_ex(rsa, NULL);
 
         if (r == 1) {
-            BIO_printf(out, "RSA key ok\n");
+            VR_BIO_printf(out, "RSA key ok\n");
         } else if (r == 0) {
             unsigned long err;
 
-            while ((err = ERR_peek_error()) != 0 &&
+            while ((err = VR_ERR_peek_error()) != 0 &&
                    ERR_GET_LIB(err) == ERR_LIB_RSA &&
                    ERR_GET_FUNC(err) == RSA_F_RSA_CHECK_KEY_EX &&
                    ERR_GET_REASON(err) != ERR_R_MALLOC_FAILURE) {
-                BIO_printf(out, "RSA key error: %s\n",
-                           ERR_reason_error_string(err));
-                ERR_get_error(); /* remove err from error stack */
+                VR_BIO_printf(out, "RSA key error: %s\n",
+                           VR_ERR_reason_error_string(err));
+                VR_ERR_get_error(); /* remove err from error stack */
             }
         } else if (r == -1) {
-            ERR_print_errors(bio_err);
+            VR_ERR_print_errors(bio_err);
             goto end;
         }
     }
@@ -243,74 +243,74 @@ int rsa_main(int argc, char **argv)
         ret = 0;
         goto end;
     }
-    BIO_printf(bio_err, "writing RSA key\n");
+    VR_BIO_printf(bio_err, "writing RSA key\n");
     if (outformat == FORMAT_ASN1) {
         if (pubout || pubin) {
             if (pubout == 2)
-                i = i2d_RSAPublicKey_bio(out, rsa);
+                i = VR_i2d_RSAPublicKey_bio(out, rsa);
             else
-                i = i2d_RSA_PUBKEY_bio(out, rsa);
+                i = VR_i2d_RSA_PUBKEY_bio(out, rsa);
         } else {
             assert(private);
-            i = i2d_RSAPrivateKey_bio(out, rsa);
+            i = VR_i2d_RSAPrivateKey_bio(out, rsa);
         }
     } else if (outformat == FORMAT_PEM) {
         if (pubout || pubin) {
             if (pubout == 2)
-                i = PEM_write_bio_RSAPublicKey(out, rsa);
+                i = VR_PEM_write_bio_RSAPublicKey(out, rsa);
             else
-                i = PEM_write_bio_RSA_PUBKEY(out, rsa);
+                i = VR_PEM_write_bio_RSA_PUBKEY(out, rsa);
         } else {
             assert(private);
-            i = PEM_write_bio_RSAPrivateKey(out, rsa,
+            i = VR_PEM_write_bio_RSAPrivateKey(out, rsa,
                                             enc, NULL, 0, NULL, passout);
         }
 # ifndef OPENSSL_NO_DSA
     } else if (outformat == FORMAT_MSBLOB || outformat == FORMAT_PVK) {
         EVP_PKEY *pk;
-        pk = EVP_PKEY_new();
+        pk = VR_EVP_PKEY_new();
         if (pk == NULL)
             goto end;
 
-        EVP_PKEY_set1_RSA(pk, rsa);
+        VR_EVP_PKEY_set1_RSA(pk, rsa);
         if (outformat == FORMAT_PVK) {
             if (pubin) {
-                BIO_printf(bio_err, "PVK form impossible with public key input\n");
-                EVP_PKEY_free(pk);
+                VR_BIO_printf(bio_err, "PVK form impossible with public key input\n");
+                VR_EVP_PKEY_free(pk);
                 goto end;
             }
             assert(private);
-#  ifdef OPENSSL_NO_RC4
-            BIO_printf(bio_err, "PVK format not supported\n");
-            EVP_PKEY_free(pk);
+#  ifdef OPENSSL_NO_VR_RC4
+            VR_BIO_printf(bio_err, "PVK format not supported\n");
+            VR_EVP_PKEY_free(pk);
             goto end;
 #  else
-            i = i2b_PVK_bio(out, pk, pvk_encr, 0, passout);
+            i = VR_i2b_PVK_bio(out, pk, pvk_encr, 0, passout);
 #  endif
         } else if (pubin || pubout) {
-            i = i2b_PublicKey_bio(out, pk);
+            i = VR_i2b_PublicKey_bio(out, pk);
         } else {
             assert(private);
-            i = i2b_PrivateKey_bio(out, pk);
+            i = VR_i2b_PrivateKey_bio(out, pk);
         }
-        EVP_PKEY_free(pk);
+        VR_EVP_PKEY_free(pk);
 # endif
     } else {
-        BIO_printf(bio_err, "bad output format specified for outfile\n");
+        VR_BIO_printf(bio_err, "bad output format specified for outfile\n");
         goto end;
     }
     if (i <= 0) {
-        BIO_printf(bio_err, "unable to write key\n");
-        ERR_print_errors(bio_err);
+        VR_BIO_printf(bio_err, "unable to write key\n");
+        VR_ERR_print_errors(bio_err);
     } else {
         ret = 0;
     }
  end:
     release_engine(e);
-    BIO_free_all(out);
-    RSA_free(rsa);
-    OPENSSL_free(passin);
-    OPENSSL_free(passout);
+    VR_BIO_free_all(out);
+    VR_RSA_free(rsa);
+    OPENVR_SSL_free(passin);
+    OPENVR_SSL_free(passout);
     return ret;
 }
 #endif

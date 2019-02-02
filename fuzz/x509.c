@@ -18,9 +18,9 @@
 
 int FuzzerInitialize(int *argc, char ***argv)
 {
-    OPENSSL_init_crypto(OPENSSL_INIT_LOAD_CRYPTO_STRINGS, NULL);
-    ERR_get_state();
-    CRYPTO_free_ex_index(0, -1);
+    VR_OPENSSL_init_crypto(OPENSSL_INIT_LOAD_CRYPTO_STRINGS, NULL);
+    VR_ERR_get_state();
+    VR_CRYPTO_free_ex_index(0, -1);
     FuzzerSetRand();
     return 1;
 }
@@ -30,19 +30,19 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
     const unsigned char *p = buf;
     unsigned char *der = NULL;
 
-    X509 *x509 = d2i_X509(NULL, &p, len);
+    X509 *x509 = VR_d2i_X509(NULL, &p, len);
     if (x509 != NULL) {
-        BIO *bio = BIO_new(BIO_s_null());
+        BIO *bio = VR_BIO_new(VR_BIO_s_null());
         /* This will load and print the public key as well as extensions */
-        X509_print(bio, x509);
-        BIO_free(bio);
+        VR_X509_print(bio, x509);
+        VR_BIO_free(bio);
 
-        i2d_X509(x509, &der);
-        OPENSSL_free(der);
+        VR_i2d_X509(x509, &der);
+        OPENVR_SSL_free(der);
 
-        X509_free(x509);
+        VR_X509_free(x509);
     }
-    ERR_clear_error();
+    VR_ERR_clear_error();
     return 0;
 }
 

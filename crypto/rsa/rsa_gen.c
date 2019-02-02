@@ -29,16 +29,16 @@ static int rsa_builtin_keygen(RSA *rsa, int bits, int primes, BIGNUM *e_value,
  * that wasn't previously linking object code related to key-generation won't
  * have to now just because key-generation is part of RSA_METHOD.
  */
-int RSA_generate_key_ex(RSA *rsa, int bits, BIGNUM *e_value, BN_GENCB *cb)
+int VR_RSA_generate_key_ex(RSA *rsa, int bits, BIGNUM *e_value, BN_GENCB *cb)
 {
     if (rsa->meth->rsa_keygen != NULL)
         return rsa->meth->rsa_keygen(rsa, bits, e_value, cb);
 
-    return RSA_generate_multi_prime_key(rsa, bits, RSA_DEFAULT_PRIME_NUM,
+    return VR_RSA_generate_multi_prime_key(rsa, bits, RSA_DEFAULT_PRIME_NUM,
                                         e_value, cb);
 }
 
-int RSA_generate_multi_prime_key(RSA *rsa, int bits, int primes,
+int VR_RSA_generate_multi_prime_key(RSA *rsa, int bits, int primes,
                                  BIGNUM *e_value, BN_GENCB *cb)
 {
     /* multi-prime is only supported with the builtin key generation */
@@ -79,19 +79,19 @@ static int rsa_builtin_keygen(RSA *rsa, int bits, int primes, BIGNUM *e_value,
         goto err;
     }
 
-    if (primes < RSA_DEFAULT_PRIME_NUM || primes > rsa_multip_cap(bits)) {
+    if (primes < RSA_DEFAULT_PRIME_NUM || primes > VR_rsa_multip_cap(bits)) {
         ok = 0;             /* we set our own err */
         RSAerr(RSA_F_RSA_BUILTIN_KEYGEN, RSA_R_KEY_PRIME_NUM_INVALID);
         goto err;
     }
 
-    ctx = BN_CTX_new();
+    ctx = VR_BN_CTX_new();
     if (ctx == NULL)
         goto err;
-    BN_CTX_start(ctx);
-    r0 = BN_CTX_get(ctx);
-    r1 = BN_CTX_get(ctx);
-    r2 = BN_CTX_get(ctx);
+    VR_BN_CTX_start(ctx);
+    r0 = VR_BN_CTX_get(ctx);
+    r1 = VR_BN_CTX_get(ctx);
+    r2 = VR_BN_CTX_get(ctx);
     if (r2 == NULL)
         goto err;
 
@@ -103,45 +103,45 @@ static int rsa_builtin_keygen(RSA *rsa, int bits, int primes, BIGNUM *e_value,
         bitsr[i] = (i < rmd) ? quo + 1 : quo;
 
     /* We need the RSA components non-NULL */
-    if (!rsa->n && ((rsa->n = BN_new()) == NULL))
+    if (!rsa->n && ((rsa->n = VR_BN_new()) == NULL))
         goto err;
-    if (!rsa->d && ((rsa->d = BN_secure_new()) == NULL))
+    if (!rsa->d && ((rsa->d = VR_BN_secure_new()) == NULL))
         goto err;
-    if (!rsa->e && ((rsa->e = BN_new()) == NULL))
+    if (!rsa->e && ((rsa->e = VR_BN_new()) == NULL))
         goto err;
-    if (!rsa->p && ((rsa->p = BN_secure_new()) == NULL))
+    if (!rsa->p && ((rsa->p = VR_BN_secure_new()) == NULL))
         goto err;
-    if (!rsa->q && ((rsa->q = BN_secure_new()) == NULL))
+    if (!rsa->q && ((rsa->q = VR_BN_secure_new()) == NULL))
         goto err;
-    if (!rsa->dmp1 && ((rsa->dmp1 = BN_secure_new()) == NULL))
+    if (!rsa->dmp1 && ((rsa->dmp1 = VR_BN_secure_new()) == NULL))
         goto err;
-    if (!rsa->dmq1 && ((rsa->dmq1 = BN_secure_new()) == NULL))
+    if (!rsa->dmq1 && ((rsa->dmq1 = VR_BN_secure_new()) == NULL))
         goto err;
-    if (!rsa->iqmp && ((rsa->iqmp = BN_secure_new()) == NULL))
+    if (!rsa->iqmp && ((rsa->iqmp = VR_BN_secure_new()) == NULL))
         goto err;
 
     /* initialize multi-prime components */
     if (primes > RSA_DEFAULT_PRIME_NUM) {
         rsa->version = RSA_ASN1_VERSION_MULTI;
-        prime_infos = sk_RSA_PRIME_INFO_new_reserve(NULL, primes - 2);
+        prime_infos = sk_VR_RSA_PRIME_INFO_new_reserve(NULL, primes - 2);
         if (prime_infos == NULL)
             goto err;
         if (rsa->prime_infos != NULL) {
             /* could this happen? */
-            sk_RSA_PRIME_INFO_pop_free(rsa->prime_infos, rsa_multip_info_free);
+            sk_VR_RSA_PRIME_INFO_pop_free(rsa->prime_infos, VR_rsa_multip_info_free);
         }
         rsa->prime_infos = prime_infos;
 
         /* prime_info from 2 to |primes| -1 */
         for (i = 2; i < primes; i++) {
-            pinfo = rsa_multip_info_new();
+            pinfo = VR_rsa_multip_info_new();
             if (pinfo == NULL)
                 goto err;
-            (void)sk_RSA_PRIME_INFO_push(prime_infos, pinfo);
+            (void)sk_VR_RSA_PRIME_INFO_push(prime_infos, pinfo);
         }
     }
 
-    if (BN_copy(rsa->e, e_value) == NULL)
+    if (VR_BN_copy(rsa->e, e_value) == NULL)
         goto err;
 
     /* generate p, q and other primes (if any) */
@@ -157,11 +157,11 @@ static int rsa_builtin_keygen(RSA *rsa, int bits, int primes, BIGNUM *e_value,
             pinfo = sk_RSA_PRIME_INFO_value(prime_infos, i - 2);
             prime = pinfo->r;
         }
-        BN_set_flags(prime, BN_FLG_CONSTTIME);
+        VR_BN_set_flags(prime, BN_FLG_CONSTTIME);
 
         for (;;) {
  redo:
-            if (!BN_generate_prime_ex(prime, bitsr[i] + adj, 0, NULL, NULL, cb))
+            if (!VR_BN_generate_prime_ex(prime, bitsr[i] + adj, 0, NULL, NULL, cb))
                 goto err;
             /*
              * prime should not be equal to p, q, r_3...
@@ -181,28 +181,28 @@ static int rsa_builtin_keygen(RSA *rsa, int bits, int primes, BIGNUM *e_value,
                         prev_prime = sk_RSA_PRIME_INFO_value(prime_infos,
                                                              j - 2)->r;
 
-                    if (!BN_cmp(prime, prev_prime)) {
+                    if (!VR_BN_cmp(prime, prev_prime)) {
                         goto redo;
                     }
                 }
             }
-            if (!BN_sub(r2, prime, BN_value_one()))
+            if (!VR_BN_sub(r2, prime, VR_BN_value_one()))
                 goto err;
-            ERR_set_mark();
-            BN_set_flags(r2, BN_FLG_CONSTTIME);
-            if (BN_mod_inverse(r1, r2, rsa->e, ctx) != NULL) {
+            VR_ERR_set_mark();
+            VR_BN_set_flags(r2, BN_FLG_CONSTTIME);
+            if (VR_BN_mod_inverse(r1, r2, rsa->e, ctx) != NULL) {
                /* GCD == 1 since inverse exists */
                 break;
             }
-            error = ERR_peek_last_error();
+            error = VR_ERR_peek_last_error();
             if (ERR_GET_LIB(error) == ERR_LIB_BN
                 && ERR_GET_REASON(error) == BN_R_NO_INVERSE) {
                 /* GCD != 1 */
-                ERR_pop_to_mark();
+                VR_ERR_pop_to_mark();
             } else {
                 goto err;
             }
-            if (!BN_GENCB_call(cb, 2, n++))
+            if (!VR_BN_GENCB_call(cb, 2, n++))
                 goto err;
         }
 
@@ -211,15 +211,15 @@ static int rsa_builtin_keygen(RSA *rsa, int bits, int primes, BIGNUM *e_value,
         /* calculate n immediately to see if it's sufficient */
         if (i == 1) {
             /* we get at least 2 primes */
-            if (!BN_mul(r1, rsa->p, rsa->q, ctx))
+            if (!VR_BN_mul(r1, rsa->p, rsa->q, ctx))
                 goto err;
         } else if (i != 0) {
             /* modulus n = p * q * r_3 * r_4 ... */
-            if (!BN_mul(r1, rsa->n, prime, ctx))
+            if (!VR_BN_mul(r1, rsa->n, prime, ctx))
                 goto err;
         } else {
             /* i == 0, do nothing */
-            if (!BN_GENCB_call(cb, 3, i))
+            if (!VR_BN_GENCB_call(cb, 3, i))
                 goto err;
             continue;
         }
@@ -237,9 +237,9 @@ static int rsa_builtin_keygen(RSA *rsa, int bits, int primes, BIGNUM *e_value,
          * key by using the modulus in a certificate. This is also covered
          * by checking the length should not be less than 0x9.
          */
-        if (!BN_rshift(r2, r1, bitse - 4))
+        if (!VR_BN_rshift(r2, r1, bitse - 4))
             goto err;
-        bitst = BN_get_word(r2);
+        bitst = VR_BN_get_word(r2);
 
         if (bitst < 0x9 || bitst > 0xF) {
             /*
@@ -254,7 +254,7 @@ static int rsa_builtin_keygen(RSA *rsa, int bits, int primes, BIGNUM *e_value,
              * 2. stay the same logic with normal 2-prime key
              */
             bitse -= bitsr[i];
-            if (!BN_GENCB_call(cb, 2, n++))
+            if (!VR_BN_GENCB_call(cb, 2, n++))
                 goto err;
             if (primes > 4) {
                 if (bitst < 0x9)
@@ -275,15 +275,15 @@ static int rsa_builtin_keygen(RSA *rsa, int bits, int primes, BIGNUM *e_value,
             goto redo;
         }
         /* save product of primes for further use, for multi-prime only */
-        if (i > 1 && BN_copy(pinfo->pp, rsa->n) == NULL)
+        if (i > 1 && VR_BN_copy(pinfo->pp, rsa->n) == NULL)
             goto err;
-        if (BN_copy(rsa->n, r1) == NULL)
+        if (VR_BN_copy(rsa->n, r1) == NULL)
             goto err;
-        if (!BN_GENCB_call(cb, 3, i))
+        if (!VR_BN_GENCB_call(cb, 3, i))
             goto err;
     }
 
-    if (BN_cmp(rsa->p, rsa->q) < 0) {
+    if (VR_BN_cmp(rsa->p, rsa->q) < 0) {
         tmp = rsa->p;
         rsa->p = rsa->q;
         rsa->q = tmp;
@@ -292,51 +292,51 @@ static int rsa_builtin_keygen(RSA *rsa, int bits, int primes, BIGNUM *e_value,
     /* calculate d */
 
     /* p - 1 */
-    if (!BN_sub(r1, rsa->p, BN_value_one()))
+    if (!VR_BN_sub(r1, rsa->p, VR_BN_value_one()))
         goto err;
     /* q - 1 */
-    if (!BN_sub(r2, rsa->q, BN_value_one()))
+    if (!VR_BN_sub(r2, rsa->q, VR_BN_value_one()))
         goto err;
     /* (p - 1)(q - 1) */
-    if (!BN_mul(r0, r1, r2, ctx))
+    if (!VR_BN_mul(r0, r1, r2, ctx))
         goto err;
     /* multi-prime */
     for (i = 2; i < primes; i++) {
         pinfo = sk_RSA_PRIME_INFO_value(prime_infos, i - 2);
         /* save r_i - 1 to pinfo->d temporarily */
-        if (!BN_sub(pinfo->d, pinfo->r, BN_value_one()))
+        if (!VR_BN_sub(pinfo->d, pinfo->r, VR_BN_value_one()))
             goto err;
-        if (!BN_mul(r0, r0, pinfo->d, ctx))
+        if (!VR_BN_mul(r0, r0, pinfo->d, ctx))
             goto err;
     }
 
     {
-        BIGNUM *pr0 = BN_new();
+        BIGNUM *pr0 = VR_BN_new();
 
         if (pr0 == NULL)
             goto err;
 
-        BN_with_flags(pr0, r0, BN_FLG_CONSTTIME);
-        if (!BN_mod_inverse(rsa->d, rsa->e, pr0, ctx)) {
-            BN_free(pr0);
+        VR_BN_with_flags(pr0, r0, BN_FLG_CONSTTIME);
+        if (!VR_BN_mod_inverse(rsa->d, rsa->e, pr0, ctx)) {
+            VR_BN_free(pr0);
             goto err;               /* d */
         }
         /* We MUST free pr0 before any further use of r0 */
-        BN_free(pr0);
+        VR_BN_free(pr0);
     }
 
     {
-        BIGNUM *d = BN_new();
+        BIGNUM *d = VR_BN_new();
 
         if (d == NULL)
             goto err;
 
-        BN_with_flags(d, rsa->d, BN_FLG_CONSTTIME);
+        VR_BN_with_flags(d, rsa->d, BN_FLG_CONSTTIME);
 
         /* calculate d mod (p-1) and d mod (q - 1) */
         if (!BN_mod(rsa->dmp1, d, r1, ctx)
             || !BN_mod(rsa->dmq1, d, r2, ctx)) {
-            BN_free(d);
+            VR_BN_free(d);
             goto err;
         }
 
@@ -345,40 +345,40 @@ static int rsa_builtin_keygen(RSA *rsa, int bits, int primes, BIGNUM *e_value,
             pinfo = sk_RSA_PRIME_INFO_value(prime_infos, i - 2);
             /* pinfo->d == r_i - 1 */
             if (!BN_mod(pinfo->d, d, pinfo->d, ctx)) {
-                BN_free(d);
+                VR_BN_free(d);
                 goto err;
             }
         }
 
         /* We MUST free d before any further use of rsa->d */
-        BN_free(d);
+        VR_BN_free(d);
     }
 
     {
-        BIGNUM *p = BN_new();
+        BIGNUM *p = VR_BN_new();
 
         if (p == NULL)
             goto err;
-        BN_with_flags(p, rsa->p, BN_FLG_CONSTTIME);
+        VR_BN_with_flags(p, rsa->p, BN_FLG_CONSTTIME);
 
         /* calculate inverse of q mod p */
-        if (!BN_mod_inverse(rsa->iqmp, rsa->q, p, ctx)) {
-            BN_free(p);
+        if (!VR_BN_mod_inverse(rsa->iqmp, rsa->q, p, ctx)) {
+            VR_BN_free(p);
             goto err;
         }
 
         /* calculate CRT coefficient for other primes */
         for (i = 2; i < primes; i++) {
             pinfo = sk_RSA_PRIME_INFO_value(prime_infos, i - 2);
-            BN_with_flags(p, pinfo->r, BN_FLG_CONSTTIME);
-            if (!BN_mod_inverse(pinfo->t, pinfo->pp, p, ctx)) {
-                BN_free(p);
+            VR_BN_with_flags(p, pinfo->r, BN_FLG_CONSTTIME);
+            if (!VR_BN_mod_inverse(pinfo->t, pinfo->pp, p, ctx)) {
+                VR_BN_free(p);
                 goto err;
             }
         }
 
         /* We MUST free p before any further use of rsa->p */
-        BN_free(p);
+        VR_BN_free(p);
     }
 
     ok = 1;
@@ -388,7 +388,7 @@ static int rsa_builtin_keygen(RSA *rsa, int bits, int primes, BIGNUM *e_value,
         ok = 0;
     }
     if (ctx != NULL)
-        BN_CTX_end(ctx);
-    BN_CTX_free(ctx);
+        VR_BN_CTX_end(ctx);
+    VR_BN_CTX_free(ctx);
     return ok;
 }

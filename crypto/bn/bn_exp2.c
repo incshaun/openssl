@@ -13,7 +13,7 @@
 
 #define TABLE_SIZE      32
 
-int BN_mod_exp2_mont(BIGNUM *rr, const BIGNUM *a1, const BIGNUM *p1,
+int VR_BN_mod_exp2_mont(BIGNUM *rr, const BIGNUM *a1, const BIGNUM *p1,
                      const BIGNUM *a2, const BIGNUM *p2, const BIGNUM *m,
                      BN_CTX *ctx, BN_MONT_CTX *in_mont)
 {
@@ -36,8 +36,8 @@ int BN_mod_exp2_mont(BIGNUM *rr, const BIGNUM *a1, const BIGNUM *p1,
         BNerr(BN_F_BN_MOD_EXP2_MONT, BN_R_CALLED_WITH_EVEN_MODULUS);
         return 0;
     }
-    bits1 = BN_num_bits(p1);
-    bits2 = BN_num_bits(p2);
+    bits1 = VR_BN_num_bits(p1);
+    bits2 = VR_BN_num_bits(p2);
     if ((bits1 == 0) && (bits2 == 0)) {
         ret = BN_one(rr);
         return ret;
@@ -45,20 +45,20 @@ int BN_mod_exp2_mont(BIGNUM *rr, const BIGNUM *a1, const BIGNUM *p1,
 
     bits = (bits1 > bits2) ? bits1 : bits2;
 
-    BN_CTX_start(ctx);
-    d = BN_CTX_get(ctx);
-    r = BN_CTX_get(ctx);
-    val1[0] = BN_CTX_get(ctx);
-    val2[0] = BN_CTX_get(ctx);
+    VR_BN_CTX_start(ctx);
+    d = VR_BN_CTX_get(ctx);
+    r = VR_BN_CTX_get(ctx);
+    val1[0] = VR_BN_CTX_get(ctx);
+    val2[0] = VR_BN_CTX_get(ctx);
     if (val2[0] == NULL)
         goto err;
 
     if (in_mont != NULL)
         mont = in_mont;
     else {
-        if ((mont = BN_MONT_CTX_new()) == NULL)
+        if ((mont = VR_BN_MONT_CTX_new()) == NULL)
             goto err;
-        if (!BN_MONT_CTX_set(mont, m, ctx))
+        if (!VR_BN_MONT_CTX_set(mont, m, ctx))
             goto err;
     }
 
@@ -68,28 +68,28 @@ int BN_mod_exp2_mont(BIGNUM *rr, const BIGNUM *a1, const BIGNUM *p1,
     /*
      * Build table for a1:   val1[i] := a1^(2*i + 1) mod m  for i = 0 .. 2^(window1-1)
      */
-    if (a1->neg || BN_ucmp(a1, m) >= 0) {
+    if (a1->neg || VR_BN_ucmp(a1, m) >= 0) {
         if (!BN_mod(val1[0], a1, m, ctx))
             goto err;
         a_mod_m = val1[0];
     } else
         a_mod_m = a1;
-    if (BN_is_zero(a_mod_m)) {
+    if (VR_BN_is_zero(a_mod_m)) {
         BN_zero(rr);
         ret = 1;
         goto err;
     }
 
-    if (!BN_to_montgomery(val1[0], a_mod_m, mont, ctx))
+    if (!VR_BN_to_montgomery(val1[0], a_mod_m, mont, ctx))
         goto err;
     if (window1 > 1) {
-        if (!BN_mod_mul_montgomery(d, val1[0], val1[0], mont, ctx))
+        if (!VR_BN_mod_mul_montgomery(d, val1[0], val1[0], mont, ctx))
             goto err;
 
         j = 1 << (window1 - 1);
         for (i = 1; i < j; i++) {
-            if (((val1[i] = BN_CTX_get(ctx)) == NULL) ||
-                !BN_mod_mul_montgomery(val1[i], val1[i - 1], d, mont, ctx))
+            if (((val1[i] = VR_BN_CTX_get(ctx)) == NULL) ||
+                !VR_BN_mod_mul_montgomery(val1[i], val1[i - 1], d, mont, ctx))
                 goto err;
         }
     }
@@ -97,27 +97,27 @@ int BN_mod_exp2_mont(BIGNUM *rr, const BIGNUM *a1, const BIGNUM *p1,
     /*
      * Build table for a2:   val2[i] := a2^(2*i + 1) mod m  for i = 0 .. 2^(window2-1)
      */
-    if (a2->neg || BN_ucmp(a2, m) >= 0) {
+    if (a2->neg || VR_BN_ucmp(a2, m) >= 0) {
         if (!BN_mod(val2[0], a2, m, ctx))
             goto err;
         a_mod_m = val2[0];
     } else
         a_mod_m = a2;
-    if (BN_is_zero(a_mod_m)) {
+    if (VR_BN_is_zero(a_mod_m)) {
         BN_zero(rr);
         ret = 1;
         goto err;
     }
-    if (!BN_to_montgomery(val2[0], a_mod_m, mont, ctx))
+    if (!VR_BN_to_montgomery(val2[0], a_mod_m, mont, ctx))
         goto err;
     if (window2 > 1) {
-        if (!BN_mod_mul_montgomery(d, val2[0], val2[0], mont, ctx))
+        if (!VR_BN_mod_mul_montgomery(d, val2[0], val2[0], mont, ctx))
             goto err;
 
         j = 1 << (window2 - 1);
         for (i = 1; i < j; i++) {
-            if (((val2[i] = BN_CTX_get(ctx)) == NULL) ||
-                !BN_mod_mul_montgomery(val2[i], val2[i - 1], d, mont, ctx))
+            if (((val2[i] = VR_BN_CTX_get(ctx)) == NULL) ||
+                !VR_BN_mod_mul_montgomery(val2[i], val2[i - 1], d, mont, ctx))
                 goto err;
         }
     }
@@ -131,51 +131,51 @@ int BN_mod_exp2_mont(BIGNUM *rr, const BIGNUM *a1, const BIGNUM *p1,
     wpos2 = 0;                  /* If wvalue2 > 0, the bottom bit of the
                                  * second window */
 
-    if (!BN_to_montgomery(r, BN_value_one(), mont, ctx))
+    if (!VR_BN_to_montgomery(r, VR_BN_value_one(), mont, ctx))
         goto err;
     for (b = bits - 1; b >= 0; b--) {
         if (!r_is_one) {
-            if (!BN_mod_mul_montgomery(r, r, r, mont, ctx))
+            if (!VR_BN_mod_mul_montgomery(r, r, r, mont, ctx))
                 goto err;
         }
 
         if (!wvalue1)
-            if (BN_is_bit_set(p1, b)) {
+            if (VR_BN_is_bit_set(p1, b)) {
                 /*
                  * consider bits b-window1+1 .. b for this window
                  */
                 i = b - window1 + 1;
-                while (!BN_is_bit_set(p1, i)) /* works for i<0 */
+                while (!VR_BN_is_bit_set(p1, i)) /* works for i<0 */
                     i++;
                 wpos1 = i;
                 wvalue1 = 1;
                 for (i = b - 1; i >= wpos1; i--) {
                     wvalue1 <<= 1;
-                    if (BN_is_bit_set(p1, i))
+                    if (VR_BN_is_bit_set(p1, i))
                         wvalue1++;
                 }
             }
 
         if (!wvalue2)
-            if (BN_is_bit_set(p2, b)) {
+            if (VR_BN_is_bit_set(p2, b)) {
                 /*
                  * consider bits b-window2+1 .. b for this window
                  */
                 i = b - window2 + 1;
-                while (!BN_is_bit_set(p2, i))
+                while (!VR_BN_is_bit_set(p2, i))
                     i++;
                 wpos2 = i;
                 wvalue2 = 1;
                 for (i = b - 1; i >= wpos2; i--) {
                     wvalue2 <<= 1;
-                    if (BN_is_bit_set(p2, i))
+                    if (VR_BN_is_bit_set(p2, i))
                         wvalue2++;
                 }
             }
 
         if (wvalue1 && b == wpos1) {
             /* wvalue1 is odd and < 2^window1 */
-            if (!BN_mod_mul_montgomery(r, r, val1[wvalue1 >> 1], mont, ctx))
+            if (!VR_BN_mod_mul_montgomery(r, r, val1[wvalue1 >> 1], mont, ctx))
                 goto err;
             wvalue1 = 0;
             r_is_one = 0;
@@ -183,19 +183,19 @@ int BN_mod_exp2_mont(BIGNUM *rr, const BIGNUM *a1, const BIGNUM *p1,
 
         if (wvalue2 && b == wpos2) {
             /* wvalue2 is odd and < 2^window2 */
-            if (!BN_mod_mul_montgomery(r, r, val2[wvalue2 >> 1], mont, ctx))
+            if (!VR_BN_mod_mul_montgomery(r, r, val2[wvalue2 >> 1], mont, ctx))
                 goto err;
             wvalue2 = 0;
             r_is_one = 0;
         }
     }
-    if (!BN_from_montgomery(rr, r, mont, ctx))
+    if (!VR_BN_from_montgomery(rr, r, mont, ctx))
         goto err;
     ret = 1;
  err:
     if (in_mont == NULL)
-        BN_MONT_CTX_free(mont);
-    BN_CTX_end(ctx);
+        VR_BN_MONT_CTX_free(mont);
+    VR_BN_CTX_end(ctx);
     bn_check_top(rr);
     return ret;
 }

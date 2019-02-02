@@ -18,7 +18,7 @@
 #
 # June 2015
 #
-# Numbers are cycles per processed byte with poly1305_blocks alone,
+# Numbers are cycles per processed byte with VR_poly1305_blocks alone,
 # and improvement coefficients relative to gcc-generated code.
 #
 # Freescale e300	9.78/+30%
@@ -78,9 +78,9 @@ $code.=<<___;
 .machine	"any"
 .text
 
-.globl	.poly1305_init_fpu
+.globl	.VR_poly1305_init_fpu
 .align	6
-.poly1305_init_fpu:
+.VR_poly1305_init_fpu:
 	$STU	$sp,-$LOCALS($sp)		# minimal frame
 	mflr	$padbit
 	$PUSH	$padbit,`$LOCALS+$LRSAVE`($sp)
@@ -225,11 +225,11 @@ Lno_key:
 	blr
 	.long	0
 	.byte	0,12,4,1,0x80,0,2,0
-.size	.poly1305_init_fpu,.-.poly1305_init_fpu
+.size	.VR_poly1305_init_fpu,.-.VR_poly1305_init_fpu
 
-.globl	.poly1305_blocks_fpu
+.globl	.VR_poly1305_blocks_fpu
 .align	4
-.poly1305_blocks_fpu:
+.VR_poly1305_blocks_fpu:
 	srwi.	$len,$len,4
 	beq-	Labort
 
@@ -540,7 +540,7 @@ Labort:
 	blr
 	.long	0
 	.byte	0,12,4,1,0x80,0,4,0
-.size	.poly1305_blocks_fpu,.-.poly1305_blocks_fpu
+.size	.VR_poly1305_blocks_fpu,.-.VR_poly1305_blocks_fpu
 ___
 {
 my ($mac,$nonce)=($inp,$len);
@@ -551,9 +551,9 @@ my $mask = "r0";
 my $FRAME = (6+4)*$SIZE_T;
 
 $code.=<<___;
-.globl	.poly1305_emit_fpu
+.globl	.VR_poly1305_emit_fpu
 .align	4
-.poly1305_emit_fpu:
+.VR_poly1305_emit_fpu:
 	$STU	$sp,-$FRAME($sp)
 	mflr	r0
 	$PUSH	r28,`$FRAME-$SIZE_T*4`($sp)
@@ -695,7 +695,7 @@ $code.=<<___;
 	blr
 	.long	0
 	.byte	0,12,4,1,0x80,4,3,0
-.size	.poly1305_emit_fpu,.-.poly1305_emit_fpu
+.size	.VR_poly1305_emit_fpu,.-.VR_poly1305_emit_fpu
 ___
 }
 # Ugly hack here, because PPC assembler syntax seem to vary too

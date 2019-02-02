@@ -89,11 +89,11 @@ extern "C" {
  * OPENSSL_VERSION_PATCH, OPENSSL_VERSION_PRE_RELEASE and
  * OPENSSL_VERSION_BUILD_METADATA, respectively.
  */
-unsigned int OPENSSL_version_major(void);
-unsigned int OPENSSL_version_minor(void);
-unsigned int OPENSSL_version_patch(void);
-const char *OPENSSL_version_pre_release(void);
-const char *OPENSSL_version_build_metadata(void);
+unsigned int VR_OPENSSL_version_major(void);
+unsigned int VR_OPENSSL_version_minor(void);
+unsigned int VR_OPENSSL_version_patch(void);
+const char *VR_OPENSSL_version_pre_release(void);
+const char *VR_OPENSSL_version_build_metadata(void);
 
 /*
  * Macros to get the version in easily digested string form, both the short

@@ -19,7 +19,7 @@
  * with the exception that the most significant digit may be only
  * w-1 zeros away from that next non-zero digit.
  */
-signed char *bn_compute_wNAF(const BIGNUM *scalar, int w, size_t *ret_len)
+signed char *VR_bn_compute_wNAF(const BIGNUM *scalar, int w, size_t *ret_len)
 {
     int window_val;
     signed char *r = NULL;
@@ -27,7 +27,7 @@ signed char *bn_compute_wNAF(const BIGNUM *scalar, int w, size_t *ret_len)
     int bit, next_bit, mask;
     size_t len = 0, j;
 
-    if (BN_is_zero(scalar)) {
+    if (VR_BN_is_zero(scalar)) {
         r = OPENSSL_malloc(1);
         if (r == NULL) {
             BNerr(BN_F_BN_COMPUTE_WNAF, ERR_R_MALLOC_FAILURE);
@@ -47,7 +47,7 @@ signed char *bn_compute_wNAF(const BIGNUM *scalar, int w, size_t *ret_len)
     next_bit = bit << 1;        /* at most 256 */
     mask = next_bit - 1;        /* at most 255 */
 
-    if (BN_is_negative(scalar)) {
+    if (VR_BN_is_negative(scalar)) {
         sign = -1;
     }
 
@@ -56,11 +56,11 @@ signed char *bn_compute_wNAF(const BIGNUM *scalar, int w, size_t *ret_len)
         goto err;
     }
 
-    len = BN_num_bits(scalar);
+    len = VR_BN_num_bits(scalar);
     r = OPENSSL_malloc(len + 1); /*
                                   * Modified wNAF may be one digit longer than binary representation
                                   * (*ret_len will be set to the actual length, i.e. at most
-                                  * BN_num_bits(scalar) + 1)
+                                  * VR_BN_num_bits(scalar) + 1)
                                   */
     if (r == NULL) {
         BNerr(BN_F_BN_COMPUTE_WNAF, ERR_R_MALLOC_FAILURE);
@@ -118,7 +118,7 @@ signed char *bn_compute_wNAF(const BIGNUM *scalar, int w, size_t *ret_len)
         r[j++] = sign * digit;
 
         window_val >>= 1;
-        window_val += bit * BN_is_bit_set(scalar, j + w);
+        window_val += bit * VR_BN_is_bit_set(scalar, j + w);
 
         if (window_val > next_bit) {
             BNerr(BN_F_BN_COMPUTE_WNAF, ERR_R_INTERNAL_ERROR);
@@ -134,21 +134,21 @@ signed char *bn_compute_wNAF(const BIGNUM *scalar, int w, size_t *ret_len)
     return r;
 
  err:
-    OPENSSL_free(r);
+    OPENVR_SSL_free(r);
     return NULL;
 }
 
-int bn_get_top(const BIGNUM *a)
+int VR_bn_get_top(const BIGNUM *a)
 {
     return a->top;
 }
 
-int bn_get_dmax(const BIGNUM *a)
+int VR_bn_get_dmax(const BIGNUM *a)
 {
     return a->dmax;
 }
 
-void bn_set_all_zero(BIGNUM *a)
+void VR_bn_set_all_zero(BIGNUM *a)
 {
     int i;
 
@@ -156,7 +156,7 @@ void bn_set_all_zero(BIGNUM *a)
         a->d[i] = 0;
 }
 
-int bn_copy_words(BN_ULONG *out, const BIGNUM *in, int size)
+int VR_bn_copy_words(BN_ULONG *out, const BIGNUM *in, int size)
 {
     if (in->top > size)
         return 0;
@@ -167,12 +167,12 @@ int bn_copy_words(BN_ULONG *out, const BIGNUM *in, int size)
     return 1;
 }
 
-BN_ULONG *bn_get_words(const BIGNUM *a)
+BN_ULONG *VR_bn_get_words(const BIGNUM *a)
 {
     return a->d;
 }
 
-void bn_set_static_words(BIGNUM *a, const BN_ULONG *words, int size)
+void VR_bn_set_static_words(BIGNUM *a, const BN_ULONG *words, int size)
 {
     /*
      * |const| qualifier omission is compensated by BN_FLG_STATIC_DATA
@@ -182,18 +182,18 @@ void bn_set_static_words(BIGNUM *a, const BN_ULONG *words, int size)
     a->dmax = a->top = size;
     a->neg = 0;
     a->flags |= BN_FLG_STATIC_DATA;
-    bn_correct_top(a);
+    VR_bn_correct_top(a);
 }
 
-int bn_set_words(BIGNUM *a, const BN_ULONG *words, int num_words)
+int VR_bn_set_words(BIGNUM *a, const BN_ULONG *words, int num_words)
 {
-    if (bn_wexpand(a, num_words) == NULL) {
+    if (VR_bn_wexpand(a, num_words) == NULL) {
         BNerr(BN_F_BN_SET_WORDS, ERR_R_MALLOC_FAILURE);
         return 0;
     }
 
     memcpy(a->d, words, sizeof(BN_ULONG) * num_words);
     a->top = num_words;
-    bn_correct_top(a);
+    VR_bn_correct_top(a);
     return 1;
 }

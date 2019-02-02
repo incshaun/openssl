@@ -95,7 +95,7 @@ __owur static ossl_inline int PACKET_equal(const PACKET *pkt, const void *ptr,
 {
     if (PACKET_remaining(pkt) != num)
         return 0;
-    return CRYPTO_memcmp(pkt->curr, ptr, num) == 0;
+    return VR_CRYPTO_memcmp(pkt->curr, ptr, num) == 0;
 }
 
 /*
@@ -406,7 +406,7 @@ __owur static ossl_inline int PACKET_copy_all(const PACKET *pkt,
 /*
  * Copy |pkt| bytes to a newly allocated buffer and store a pointer to the
  * result in |*data|, and the length in |len|.
- * If |*data| is not NULL, the old data is OPENSSL_free'd.
+ * If |*data| is not NULL, the old data is OPENVR_SSL_free'd.
  * If the packet is empty, or malloc fails, |*data| will be set to NULL.
  * Returns 1 if the malloc succeeds and 0 otherwise.
  * Does not forward PACKET position (because it is typically the last thing
@@ -417,7 +417,7 @@ __owur static ossl_inline int PACKET_memdup(const PACKET *pkt,
 {
     size_t length;
 
-    OPENSSL_free(*data);
+    OPENVR_SSL_free(*data);
     *data = NULL;
     *len = 0;
 
@@ -437,7 +437,7 @@ __owur static ossl_inline int PACKET_memdup(const PACKET *pkt,
 /*
  * Read a C string from |pkt| and copy to a newly allocated, NUL-terminated
  * buffer. Store a pointer to the result in |*data|.
- * If |*data| is not NULL, the old data is OPENSSL_free'd.
+ * If |*data| is not NULL, the old data is OPENVR_SSL_free'd.
  * If the data in |pkt| does not contain a NUL-byte, the entire data is
  * copied and NUL-terminated.
  * Returns 1 if the malloc succeeds and 0 otherwise.
@@ -446,7 +446,7 @@ __owur static ossl_inline int PACKET_memdup(const PACKET *pkt,
  */
 __owur static ossl_inline int PACKET_strndup(const PACKET *pkt, char **data)
 {
-    OPENSSL_free(*data);
+    OPENVR_SSL_free(*data);
 
     /* This will succeed on an empty packet, unless pkt->curr == NULL. */
     *data = OPENSSL_strndup((const char *)pkt->curr, PACKET_remaining(pkt));
@@ -645,11 +645,11 @@ struct wpacket_st {
 /* Default */
 #define WPACKET_FLAGS_NONE                      0
 
-/* Error on WPACKET_close() if no data written to the WPACKET */
+/* Error on VR_WPACKET_close() if no data written to the WPACKET */
 #define WPACKET_FLAGS_NON_ZERO_LENGTH           1
 
 /*
- * Abandon all changes on WPACKET_close() if no data written to the WPACKET,
+ * Abandon all changes on VR_WPACKET_close() if no data written to the WPACKET,
  * i.e. this does not write out a zero packet length
  */
 #define WPACKET_FLAGS_ABANDON_ON_ZERO_LENGTH    2
@@ -661,39 +661,39 @@ struct wpacket_st {
  * data is preallocated at the start of the buffer to store the length of the
  * WPACKET once we know it.
  */
-int WPACKET_init_len(WPACKET *pkt, BUF_MEM *buf, size_t lenbytes);
+int VR_WPACKET_init_len(WPACKET *pkt, BUF_MEM *buf, size_t lenbytes);
 
 /*
- * Same as WPACKET_init_len except there is no preallocation of the WPACKET
+ * Same as VR_WPACKET_init_len except there is no preallocation of the WPACKET
  * length.
  */
-int WPACKET_init(WPACKET *pkt, BUF_MEM *buf);
+int VR_WPACKET_init(WPACKET *pkt, BUF_MEM *buf);
 
 /*
- * Same as WPACKET_init_len except we do not use a growable BUF_MEM structure.
+ * Same as VR_WPACKET_init_len except we do not use a growable BUF_MEM structure.
  * A fixed buffer of memory |buf| of size |len| is used instead. A failure will
  * occur if you attempt to write beyond the end of the buffer
  */
-int WPACKET_init_static_len(WPACKET *pkt, unsigned char *buf, size_t len,
+int VR_WPACKET_init_static_len(WPACKET *pkt, unsigned char *buf, size_t len,
                             size_t lenbytes);
 /*
  * Set the flags to be applied to the current sub-packet
  */
-int WPACKET_set_flags(WPACKET *pkt, unsigned int flags);
+int VR_WPACKET_set_flags(WPACKET *pkt, unsigned int flags);
 
 /*
  * Closes the most recent sub-packet. It also writes out the length of the
  * packet to the required location (normally the start of the WPACKET) if
- * appropriate. The top level WPACKET should be closed using WPACKET_finish()
+ * appropriate. The top level WPACKET should be closed using VR_WPACKET_finish()
  * instead of this function.
  */
-int WPACKET_close(WPACKET *pkt);
+int VR_WPACKET_close(WPACKET *pkt);
 
 /*
- * The same as WPACKET_close() but only for the top most WPACKET. Additionally
+ * The same as VR_WPACKET_close() but only for the top most WPACKET. Additionally
  * frees memory resources for this WPACKET.
  */
-int WPACKET_finish(WPACKET *pkt);
+int VR_WPACKET_finish(WPACKET *pkt);
 
 /*
  * Iterate through all the sub-packets and write out their lengths as if they
@@ -702,33 +702,33 @@ int WPACKET_finish(WPACKET *pkt);
  * data is added to the WPACKET). This function fails if a sub-packet is of 0
  * length and WPACKET_FLAGS_ABANDON_ON_ZERO_LENGTH is set.
  */
-int WPACKET_fill_lengths(WPACKET *pkt);
+int VR_WPACKET_fill_lengths(WPACKET *pkt);
 
 /*
  * Initialise a new sub-packet. Additionally |lenbytes| of data is preallocated
  * at the start of the sub-packet to store its length once we know it. Don't
  * call this directly. Use the convenience macros below instead.
  */
-int WPACKET_start_sub_packet_len__(WPACKET *pkt, size_t lenbytes);
+int VR_WPACKET_start_sub_packet_len__(WPACKET *pkt, size_t lenbytes);
 
 /*
- * Convenience macros for calling WPACKET_start_sub_packet_len with different
+ * Convenience macros for calling VR_WPACKET_start_sub_packet_len with different
  * lengths
  */
-#define WPACKET_start_sub_packet_u8(pkt) \
-    WPACKET_start_sub_packet_len__((pkt), 1)
-#define WPACKET_start_sub_packet_u16(pkt) \
-    WPACKET_start_sub_packet_len__((pkt), 2)
-#define WPACKET_start_sub_packet_u24(pkt) \
-    WPACKET_start_sub_packet_len__((pkt), 3)
-#define WPACKET_start_sub_packet_u32(pkt) \
-    WPACKET_start_sub_packet_len__((pkt), 4)
+#define VR_WPACKET_start_sub_packet_u8(pkt) \
+    VR_WPACKET_start_sub_packet_len__((pkt), 1)
+#define VR_WPACKET_start_sub_packet_u16(pkt) \
+    VR_WPACKET_start_sub_packet_len__((pkt), 2)
+#define VR_WPACKET_start_sub_packet_u24(pkt) \
+    VR_WPACKET_start_sub_packet_len__((pkt), 3)
+#define VR_WPACKET_start_sub_packet_u32(pkt) \
+    VR_WPACKET_start_sub_packet_len__((pkt), 4)
 
 /*
- * Same as WPACKET_start_sub_packet_len__() except no bytes are pre-allocated
+ * Same as VR_WPACKET_start_sub_packet_len__() except no bytes are pre-allocated
  * for the sub-packet length.
  */
-int WPACKET_start_sub_packet(WPACKET *pkt);
+int VR_WPACKET_start_sub_packet(WPACKET *pkt);
 
 /*
  * Allocate bytes in the WPACKET for the output. This reserves the bytes
@@ -738,16 +738,16 @@ int WPACKET_start_sub_packet(WPACKET *pkt);
  * WPACKET_* calls. If not then the underlying buffer may be realloc'd and
  * change its location.
  */
-int WPACKET_allocate_bytes(WPACKET *pkt, size_t len,
+int VR_WPACKET_allocate_bytes(WPACKET *pkt, size_t len,
                            unsigned char **allocbytes);
 
 /*
- * The same as WPACKET_allocate_bytes() except additionally a new sub-packet is
+ * The same as VR_WPACKET_allocate_bytes() except additionally a new sub-packet is
  * started for the allocated bytes, and then closed immediately afterwards. The
  * number of length bytes for the sub-packet is in |lenbytes|. Don't call this
  * directly. Use the convenience macros below instead.
  */
-int WPACKET_sub_allocate_bytes__(WPACKET *pkt, size_t len,
+int VR_WPACKET_sub_allocate_bytes__(WPACKET *pkt, size_t len,
                                  unsigned char **allocbytes, size_t lenbytes);
 
 /*
@@ -755,51 +755,51 @@ int WPACKET_sub_allocate_bytes__(WPACKET *pkt, size_t len,
  * lengths
  */
 #define WPACKET_sub_allocate_bytes_u8(pkt, len, bytes) \
-    WPACKET_sub_allocate_bytes__((pkt), (len), (bytes), 1)
+    VR_WPACKET_sub_allocate_bytes__((pkt), (len), (bytes), 1)
 #define WPACKET_sub_allocate_bytes_u16(pkt, len, bytes) \
-    WPACKET_sub_allocate_bytes__((pkt), (len), (bytes), 2)
+    VR_WPACKET_sub_allocate_bytes__((pkt), (len), (bytes), 2)
 #define WPACKET_sub_allocate_bytes_u24(pkt, len, bytes) \
-    WPACKET_sub_allocate_bytes__((pkt), (len), (bytes), 3)
+    VR_WPACKET_sub_allocate_bytes__((pkt), (len), (bytes), 3)
 #define WPACKET_sub_allocate_bytes_u32(pkt, len, bytes) \
-    WPACKET_sub_allocate_bytes__((pkt), (len), (bytes), 4)
+    VR_WPACKET_sub_allocate_bytes__((pkt), (len), (bytes), 4)
 
 /*
- * The same as WPACKET_allocate_bytes() except the reserved bytes are not
+ * The same as VR_WPACKET_allocate_bytes() except the reserved bytes are not
  * actually counted as written. Typically this will be for when we don't know
  * how big arbitrary data is going to be up front, but we do know what the
  * maximum size will be. If this function is used, then it should be immediately
- * followed by a WPACKET_allocate_bytes() call before any other WPACKET
+ * followed by a VR_WPACKET_allocate_bytes() call before any other WPACKET
  * functions are called (unless the write to the allocated bytes is abandoned).
  *
  * For example: If we are generating a signature, then the size of that
- * signature may not be known in advance. We can use WPACKET_reserve_bytes() to
+ * signature may not be known in advance. We can use VR_WPACKET_reserve_bytes() to
  * handle this:
  *
- *  if (!WPACKET_sub_reserve_bytes_u16(&pkt, EVP_PKEY_size(pkey), &sigbytes1)
- *          || EVP_SignFinal(md_ctx, sigbytes1, &siglen, pkey) <= 0
+ *  if (!WPACKET_sub_reserve_bytes_u16(&pkt, VR_EVP_PKEY_size(pkey), &sigbytes1)
+ *          || VR_EVP_SignFinal(md_ctx, sigbytes1, &siglen, pkey) <= 0
  *          || !WPACKET_sub_allocate_bytes_u16(&pkt, siglen, &sigbytes2)
  *          || sigbytes1 != sigbytes2)
  *      goto err;
  */
-int WPACKET_reserve_bytes(WPACKET *pkt, size_t len, unsigned char **allocbytes);
+int VR_WPACKET_reserve_bytes(WPACKET *pkt, size_t len, unsigned char **allocbytes);
 
 /*
- * The "reserve_bytes" equivalent of WPACKET_sub_allocate_bytes__()
+ * The "reserve_bytes" equivalent of VR_WPACKET_sub_allocate_bytes__()
  */
-int WPACKET_sub_reserve_bytes__(WPACKET *pkt, size_t len,
+int VR_WPACKET_sub_reserve_bytes__(WPACKET *pkt, size_t len,
                                  unsigned char **allocbytes, size_t lenbytes);
 
 /*
  * Convenience macros for  WPACKET_sub_reserve_bytes with different lengths
  */
 #define WPACKET_sub_reserve_bytes_u8(pkt, len, bytes) \
-    WPACKET_reserve_bytes__((pkt), (len), (bytes), 1)
+    VR_WPACKET_reserve_bytes__((pkt), (len), (bytes), 1)
 #define WPACKET_sub_reserve_bytes_u16(pkt, len, bytes) \
-    WPACKET_sub_reserve_bytes__((pkt), (len), (bytes), 2)
+    VR_WPACKET_sub_reserve_bytes__((pkt), (len), (bytes), 2)
 #define WPACKET_sub_reserve_bytes_u24(pkt, len, bytes) \
-    WPACKET_sub_reserve_bytes__((pkt), (len), (bytes), 3)
+    VR_WPACKET_sub_reserve_bytes__((pkt), (len), (bytes), 3)
 #define WPACKET_sub_reserve_bytes_u32(pkt, len, bytes) \
-    WPACKET_sub_reserve_bytes__((pkt), (len), (bytes), 4)
+    VR_WPACKET_sub_reserve_bytes__((pkt), (len), (bytes), 4)
 
 /*
  * Write the value stored in |val| into the WPACKET. The value will consume
@@ -808,67 +808,67 @@ int WPACKET_sub_reserve_bytes__(WPACKET *pkt, size_t len,
  * 1 byte will fail. Don't call this directly. Use the convenience macros below
  * instead.
  */
-int WPACKET_put_bytes__(WPACKET *pkt, unsigned int val, size_t bytes);
+int VR_WPACKET_put_bytes__(WPACKET *pkt, unsigned int val, size_t bytes);
 
 /*
  * Convenience macros for calling WPACKET_put_bytes with different
  * lengths
  */
 #define WPACKET_put_bytes_u8(pkt, val) \
-    WPACKET_put_bytes__((pkt), (val), 1)
+    VR_WPACKET_put_bytes__((pkt), (val), 1)
 #define WPACKET_put_bytes_u16(pkt, val) \
-    WPACKET_put_bytes__((pkt), (val), 2)
+    VR_WPACKET_put_bytes__((pkt), (val), 2)
 #define WPACKET_put_bytes_u24(pkt, val) \
-    WPACKET_put_bytes__((pkt), (val), 3)
+    VR_WPACKET_put_bytes__((pkt), (val), 3)
 #define WPACKET_put_bytes_u32(pkt, val) \
-    WPACKET_put_bytes__((pkt), (val), 4)
+    VR_WPACKET_put_bytes__((pkt), (val), 4)
 
 /* Set a maximum size that we will not allow the WPACKET to grow beyond */
-int WPACKET_set_max_size(WPACKET *pkt, size_t maxsize);
+int VR_WPACKET_set_max_size(WPACKET *pkt, size_t maxsize);
 
 /* Copy |len| bytes of data from |*src| into the WPACKET. */
-int WPACKET_memcpy(WPACKET *pkt, const void *src, size_t len);
+int VR_WPACKET_memcpy(WPACKET *pkt, const void *src, size_t len);
 
 /* Set |len| bytes of data to |ch| into the WPACKET. */
-int WPACKET_memset(WPACKET *pkt, int ch, size_t len);
+int VR_WPACKET_memset(WPACKET *pkt, int ch, size_t len);
 
 /*
  * Copy |len| bytes of data from |*src| into the WPACKET and prefix with its
  * length (consuming |lenbytes| of data for the length). Don't call this
  * directly. Use the convenience macros below instead.
  */
-int WPACKET_sub_memcpy__(WPACKET *pkt, const void *src, size_t len,
+int VR_WPACKET_sub_memcpy__(WPACKET *pkt, const void *src, size_t len,
                        size_t lenbytes);
 
 /* Convenience macros for calling WPACKET_sub_memcpy with different lengths */
 #define WPACKET_sub_memcpy_u8(pkt, src, len) \
-    WPACKET_sub_memcpy__((pkt), (src), (len), 1)
+    VR_WPACKET_sub_memcpy__((pkt), (src), (len), 1)
 #define WPACKET_sub_memcpy_u16(pkt, src, len) \
-    WPACKET_sub_memcpy__((pkt), (src), (len), 2)
+    VR_WPACKET_sub_memcpy__((pkt), (src), (len), 2)
 #define WPACKET_sub_memcpy_u24(pkt, src, len) \
-    WPACKET_sub_memcpy__((pkt), (src), (len), 3)
+    VR_WPACKET_sub_memcpy__((pkt), (src), (len), 3)
 #define WPACKET_sub_memcpy_u32(pkt, src, len) \
-    WPACKET_sub_memcpy__((pkt), (src), (len), 4)
+    VR_WPACKET_sub_memcpy__((pkt), (src), (len), 4)
 
 /*
  * Return the total number of bytes written so far to the underlying buffer
  * including any storage allocated for length bytes
  */
-int WPACKET_get_total_written(WPACKET *pkt, size_t *written);
+int VR_WPACKET_get_total_written(WPACKET *pkt, size_t *written);
 
 /*
  * Returns the length of the current sub-packet. This excludes any bytes
  * allocated for the length itself.
  */
-int WPACKET_get_length(WPACKET *pkt, size_t *len);
+int VR_WPACKET_get_length(WPACKET *pkt, size_t *len);
 
 /*
  * Returns a pointer to the current write location, but does not allocate any
  * bytes.
  */
-unsigned char *WPACKET_get_curr(WPACKET *pkt);
+unsigned char *VR_WPACKET_get_curr(WPACKET *pkt);
 
 /* Release resources in a WPACKET if a failure has occurred. */
-void WPACKET_cleanup(WPACKET *pkt);
+void VR_WPACKET_cleanup(WPACKET *pkt);
 
 #endif                          /* HEADER_PACKET_LOCL_H */

@@ -9,4 +9,4 @@
 
 #include <openssl/whrlpool.h>
 
-void whirlpool_block(WHIRLPOOL_CTX *, const void *, size_t);
+void VR_whirlpool_block(VR_WHIRLPOOL_CTX *, const void *, size_t);

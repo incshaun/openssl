@@ -42,7 +42,7 @@ int nseq_main(int argc, char **argv)
         case OPT_EOF:
         case OPT_ERR:
  opthelp:
-            BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
+            VR_BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
             ret = 0;
@@ -71,44 +71,44 @@ int nseq_main(int argc, char **argv)
         goto end;
 
     if (toseq) {
-        seq = NETSCAPE_CERT_SEQUENCE_new();
+        seq = VR_NETSCAPE_CERT_SEQUENCE_new();
         if (seq == NULL)
             goto end;
-        seq->certs = sk_X509_new_null();
+        seq->certs = sk_VR_X509_new_null();
         if (seq->certs == NULL)
             goto end;
-        while ((x509 = PEM_read_bio_X509(in, NULL, NULL, NULL)))
-            sk_X509_push(seq->certs, x509);
+        while ((x509 = VR_PEM_read_bio_X509(in, NULL, NULL, NULL)))
+            sk_VR_X509_push(seq->certs, x509);
 
         if (!sk_X509_num(seq->certs)) {
-            BIO_printf(bio_err, "%s: Error reading certs file %s\n",
+            VR_BIO_printf(bio_err, "%s: Error reading certs file %s\n",
                        prog, infile);
-            ERR_print_errors(bio_err);
+            VR_ERR_print_errors(bio_err);
             goto end;
         }
-        PEM_write_bio_NETSCAPE_CERT_SEQUENCE(out, seq);
+        VR_PEM_write_bio_NETSCAPE_CERT_SEQUENCE(out, seq);
         ret = 0;
         goto end;
     }
 
-    seq = PEM_read_bio_NETSCAPE_CERT_SEQUENCE(in, NULL, NULL, NULL);
+    seq = VR_PEM_read_bio_NETSCAPE_CERT_SEQUENCE(in, NULL, NULL, NULL);
     if (seq == NULL) {
-        BIO_printf(bio_err, "%s: Error reading sequence file %s\n",
+        VR_BIO_printf(bio_err, "%s: Error reading sequence file %s\n",
                    prog, infile);
-        ERR_print_errors(bio_err);
+        VR_ERR_print_errors(bio_err);
         goto end;
     }
 
     for (i = 0; i < sk_X509_num(seq->certs); i++) {
         x509 = sk_X509_value(seq->certs, i);
         dump_cert_text(out, x509);
-        PEM_write_bio_X509(out, x509);
+        VR_PEM_write_bio_X509(out, x509);
     }
     ret = 0;
  end:
-    BIO_free(in);
-    BIO_free_all(out);
-    NETSCAPE_CERT_SEQUENCE_free(seq);
+    VR_BIO_free(in);
+    VR_BIO_free_all(out);
+    VR_NETSCAPE_CERT_SEQUENCE_free(seq);
 
     return ret;
 }

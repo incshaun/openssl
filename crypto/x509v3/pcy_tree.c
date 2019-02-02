@@ -29,26 +29,26 @@ static void expected_print(BIO *err, X509_POLICY_LEVEL *lev,
 {
     if ((lev->flags & X509_V_FLAG_INHIBIT_MAP)
         || !(node->data->flags & POLICY_DATA_FLAG_MAP_MASK))
-        BIO_puts(err, "  Not Mapped\n");
+        VR_BIO_puts(err, "  Not Mapped\n");
     else {
         int i;
         STACK_OF(ASN1_OBJECT) *pset = node->data->expected_policy_set;
         ASN1_OBJECT *oid;
-        BIO_puts(err, "  Expected: ");
+        VR_BIO_puts(err, "  Expected: ");
         for (i = 0; i < sk_ASN1_OBJECT_num(pset); i++) {
             oid = sk_ASN1_OBJECT_value(pset, i);
             if (i)
-                BIO_puts(err, ", ");
-            i2a_ASN1_OBJECT(err, oid);
+                VR_BIO_puts(err, ", ");
+            VR_i2a_ASN1_OBJECT(err, oid);
         }
-        BIO_puts(err, "\n");
+        VR_BIO_puts(err, "\n");
     }
 }
 
 static void tree_print(char *str, X509_POLICY_TREE *tree,
                        X509_POLICY_LEVEL *curr)
 {
-    BIO *err = BIO_new_fp(stderr, BIO_NOCLOSE);
+    BIO *err = VR_BIO_new_fp(stderr, BIO_NOCLOSE);
     X509_POLICY_LEVEL *plev;
 
     if (err == NULL)
@@ -58,24 +58,24 @@ static void tree_print(char *str, X509_POLICY_TREE *tree,
     else
         curr++;
 
-    BIO_printf(err, "Level print after %s\n", str);
-    BIO_printf(err, "Printing Up to Level %ld\n", curr - tree->levels);
+    VR_BIO_printf(err, "Level print after %s\n", str);
+    VR_BIO_printf(err, "Printing Up to Level %ld\n", curr - tree->levels);
     for (plev = tree->levels; plev != curr; plev++) {
         int i;
 
-        BIO_printf(err, "Level %ld, flags = %x\n",
+        VR_BIO_printf(err, "Level %ld, flags = %x\n",
                    (long)(plev - tree->levels), plev->flags);
         for (i = 0; i < sk_X509_POLICY_NODE_num(plev->nodes); i++) {
             X509_POLICY_NODE *node = sk_X509_POLICY_NODE_value(plev->nodes, i);
 
-            X509_POLICY_NODE_print(err, node, 2);
+            VR_X509_POLICY_NODE_print(err, node, 2);
             expected_print(err, plev, node, 2);
-            BIO_printf(err, "  Flags: %x\n", node->data->flags);
+            VR_BIO_printf(err, "  Flags: %x\n", node->data->flags);
         }
         if (plev->anyPolicy)
-            X509_POLICY_NODE_print(err, plev->anyPolicy, 2);
+            VR_X509_POLICY_NODE_print(err, plev->anyPolicy, 2);
     }
-    BIO_free(err);
+    VR_BIO_free(err);
 }
 #endif
 
@@ -108,17 +108,17 @@ static int tree_init(X509_POLICY_TREE **ptree, STACK_OF(X509) *certs,
 
     /*
      * First setup the policy cache in all n non-TA certificates, this will be
-     * used in X509_verify_cert() which will invoke the verify callback for all
+     * used in VR_X509_verify_cert() which will invoke the verify callback for all
      * certificates with invalid policy extensions.
      */
     for (i = n - 1; i >= 0; i--) {
         X509 *x = sk_X509_value(certs, i);
 
         /* Call for side-effect of computing hash and caching extensions */
-        X509_check_purpose(x, -1, 0);
+        VR_X509_check_purpose(x, -1, 0);
 
         /* If cache is NULL, likely ENOMEM: return immediately */
-        if (policy_cache_set(x) == NULL)
+        if (VR_policy_cache_set(x) == NULL)
             return X509_PCY_TREE_INTERNAL;
     }
 
@@ -137,14 +137,14 @@ static int tree_init(X509_POLICY_TREE **ptree, STACK_OF(X509) *certs,
          i >= 0 && (explicit_policy > 0 || (ret & X509_PCY_TREE_EMPTY) == 0);
          i--) {
         X509 *x = sk_X509_value(certs, i);
-        uint32_t ex_flags = X509_get_extension_flags(x);
+        uint32_t ex_flags = VR_X509_get_extension_flags(x);
 
         /* All the policies are already cached, we can return early */
         if (ex_flags & EXFLAG_INVALID_POLICY)
             return X509_PCY_TREE_INVALID;
 
         /* Access the cache which we now know exists */
-        cache = policy_cache_set(x);
+        cache = VR_policy_cache_set(x);
 
         if ((ret & X509_PCY_TREE_VALID) && cache->data == NULL)
             ret = X509_PCY_TREE_EMPTY;
@@ -176,16 +176,16 @@ static int tree_init(X509_POLICY_TREE **ptree, STACK_OF(X509) *certs,
      * depth n, we have the leaf at depth 0 and the TA at depth n).
      */
     if ((tree->levels = OPENSSL_zalloc(sizeof(*tree->levels)*(n+1))) == NULL) {
-        OPENSSL_free(tree);
+        OPENVR_SSL_free(tree);
         X509V3err(X509V3_F_TREE_INIT, ERR_R_MALLOC_FAILURE);
         return X509_PCY_TREE_INTERNAL;
     }
     tree->nlevel = n+1;
     level = tree->levels;
-    if ((data = policy_data_new(NULL, OBJ_nid2obj(NID_any_policy), 0)) == NULL)
+    if ((data = VR_policy_data_new(NULL, VR_OBJ_nid2obj(NID_any_policy), 0)) == NULL)
         goto bad_tree;
-    if (level_add_node(level, data, NULL, tree) == NULL) {
-        policy_data_free(data);
+    if (VR_level_add_node(level, data, NULL, tree) == NULL) {
+        VR_policy_data_free(data);
         goto bad_tree;
     }
 
@@ -195,12 +195,12 @@ static int tree_init(X509_POLICY_TREE **ptree, STACK_OF(X509) *certs,
      */
     for (i = n - 1; i >= 0; i--) {
         X509 *x = sk_X509_value(certs, i);
-        uint32_t ex_flags = X509_get_extension_flags(x);
+        uint32_t ex_flags = VR_X509_get_extension_flags(x);
 
         /* Access the cache which we now know exists */
-        cache = policy_cache_set(x);
+        cache = VR_policy_cache_set(x);
 
-        X509_up_ref(x);
+        VR_X509_up_ref(x);
         (++level)->cert = x;
 
         if (!cache->anyPolicy)
@@ -235,7 +235,7 @@ static int tree_init(X509_POLICY_TREE **ptree, STACK_OF(X509) *certs,
     return ret;
 
  bad_tree:
-    X509_policy_tree_free(tree);
+    VR_X509_policy_tree_free(tree);
     return X509_PCY_TREE_INTERNAL;
 }
 
@@ -252,14 +252,14 @@ static int tree_link_matching_nodes(X509_POLICY_LEVEL *curr,
     for (i = 0; i < sk_X509_POLICY_NODE_num(last->nodes); i++) {
         X509_POLICY_NODE *node = sk_X509_POLICY_NODE_value(last->nodes, i);
 
-        if (policy_node_match(last, node, data->valid_policy)) {
-            if (level_add_node(curr, data, node, NULL) == NULL)
+        if (VR_policy_node_match(last, node, data->valid_policy)) {
+            if (VR_level_add_node(curr, data, node, NULL) == NULL)
                 return 0;
             matched = 1;
         }
     }
     if (!matched && last->anyPolicy) {
-        if (level_add_node(curr, data, last->anyPolicy, NULL) == NULL)
+        if (VR_level_add_node(curr, data, last->anyPolicy, NULL) == NULL)
             return 0;
     }
     return 1;
@@ -305,14 +305,14 @@ static int tree_add_unmatched(X509_POLICY_LEVEL *curr,
      * Create a new node with qualifiers from anyPolicy and id from unmatched
      * node.
      */
-    if ((data = policy_data_new(NULL, id, node_critical(node))) == NULL)
+    if ((data = VR_policy_data_new(NULL, id, node_critical(node))) == NULL)
         return 0;
 
     /* Curr may not have anyPolicy */
     data->qualifier_set = cache->anyPolicy->qualifier_set;
     data->flags |= POLICY_DATA_FLAG_SHARED_QUALIFIERS;
-    if (level_add_node(curr, data, node, tree) == NULL) {
-        policy_data_free(data);
+    if (VR_level_add_node(curr, data, node, tree) == NULL) {
+        VR_policy_data_free(data);
         return 0;
     }
     return 1;
@@ -344,7 +344,7 @@ static int tree_link_unmatched(X509_POLICY_LEVEL *curr,
         /* Locate unmatched nodes */
         for (i = 0; i < sk_ASN1_OBJECT_num(expset); i++) {
             ASN1_OBJECT *oid = sk_ASN1_OBJECT_value(expset, i);
-            if (level_find_node(curr, node, oid))
+            if (VR_level_find_node(curr, node, oid))
                 continue;
             if (!tree_add_unmatched(curr, cache, oid, node, tree))
                 return 0;
@@ -373,7 +373,7 @@ static int tree_link_any(X509_POLICY_LEVEL *curr,
     }
     /* Finally add link to anyPolicy */
     if (last->anyPolicy &&
-        level_add_node(curr, cache->anyPolicy, last->anyPolicy, NULL) == NULL)
+        VR_level_add_node(curr, cache->anyPolicy, last->anyPolicy, NULL) == NULL)
         return 0;
     return 1;
 }
@@ -400,7 +400,7 @@ static int tree_prune(X509_POLICY_TREE *tree, X509_POLICY_LEVEL *curr)
             /* Delete any mapped data: see RFC3280 XXXX */
             if (node->data->flags & POLICY_DATA_FLAG_MAP_MASK) {
                 node->parent->nchild--;
-                OPENSSL_free(node);
+                OPENVR_SSL_free(node);
                 (void)sk_X509_POLICY_NODE_delete(nodes, i);
             }
         }
@@ -413,14 +413,14 @@ static int tree_prune(X509_POLICY_TREE *tree, X509_POLICY_LEVEL *curr)
             node = sk_X509_POLICY_NODE_value(nodes, i);
             if (node->nchild == 0) {
                 node->parent->nchild--;
-                OPENSSL_free(node);
+                OPENVR_SSL_free(node);
                 (void)sk_X509_POLICY_NODE_delete(nodes, i);
             }
         }
         if (curr->anyPolicy && !curr->anyPolicy->nchild) {
             if (curr->anyPolicy->parent)
                 curr->anyPolicy->parent->nchild--;
-            OPENSSL_free(curr->anyPolicy);
+            OPENVR_SSL_free(curr->anyPolicy);
             curr->anyPolicy = NULL;
         }
         if (curr == tree->levels) {
@@ -440,11 +440,11 @@ static int tree_add_auth_node(STACK_OF(X509_POLICY_NODE) **pnodes,
                               X509_POLICY_NODE *pcy)
 {
     if (*pnodes == NULL &&
-        (*pnodes = policy_node_cmp_new()) == NULL)
+        (*pnodes = VR_policy_node_cmp_new()) == NULL)
         return 0;
-    if (sk_X509_POLICY_NODE_find(*pnodes, pcy) >= 0)
+    if (sk_VR_X509_POLICY_NODE_find(*pnodes, pcy) >= 0)
         return 1;
-    return sk_X509_POLICY_NODE_push(*pnodes, pcy) != 0;
+    return sk_VR_X509_POLICY_NODE_push(*pnodes, pcy) != 0;
 }
 
 #define TREE_CALC_FAILURE 0
@@ -495,7 +495,7 @@ static int tree_calculate_authority_set(X509_POLICY_TREE *tree,
             if ((node->parent == anyptr)
                 && !tree_add_auth_node(addnodes, node)) {
                 if (addnodes == pnodes) {
-                    sk_X509_POLICY_NODE_free(*pnodes);
+                    sk_VR_X509_POLICY_NODE_free(*pnodes);
                     *pnodes = NULL;
                 }
                 return TREE_CALC_FAILURE;
@@ -533,7 +533,7 @@ static int tree_calculate_user_set(X509_POLICY_TREE *tree,
 
     for (i = 0; i < sk_ASN1_OBJECT_num(policy_oids); i++) {
         oid = sk_ASN1_OBJECT_value(policy_oids, i);
-        if (OBJ_obj2nid(oid) == NID_any_policy) {
+        if (VR_OBJ_obj2nid(oid) == NID_any_policy) {
             tree->flags |= POLICY_FLAG_ANY_POLICY;
             return 1;
         }
@@ -541,7 +541,7 @@ static int tree_calculate_user_set(X509_POLICY_TREE *tree,
 
     for (i = 0; i < sk_ASN1_OBJECT_num(policy_oids); i++) {
         oid = sk_ASN1_OBJECT_value(policy_oids, i);
-        node = tree_find_sk(auth_nodes, oid);
+        node = VR_tree_find_sk(auth_nodes, oid);
         if (!node) {
             if (!anyPolicy)
                 continue;
@@ -549,20 +549,20 @@ static int tree_calculate_user_set(X509_POLICY_TREE *tree,
              * Create a new node with policy ID from user set and qualifiers
              * from anyPolicy.
              */
-            extra = policy_data_new(NULL, oid, node_critical(anyPolicy));
+            extra = VR_policy_data_new(NULL, oid, node_critical(anyPolicy));
             if (extra == NULL)
                 return 0;
             extra->qualifier_set = anyPolicy->data->qualifier_set;
             extra->flags = POLICY_DATA_FLAG_SHARED_QUALIFIERS
                 | POLICY_DATA_FLAG_EXTRA_NODE;
-            node = level_add_node(NULL, extra, anyPolicy->parent, tree);
+            node = VR_level_add_node(NULL, extra, anyPolicy->parent, tree);
         }
         if (!tree->user_policies) {
-            tree->user_policies = sk_X509_POLICY_NODE_new_null();
+            tree->user_policies = sk_VR_X509_POLICY_NODE_new_null();
             if (!tree->user_policies)
                 return 1;
         }
-        if (!sk_X509_POLICY_NODE_push(tree->user_policies, node))
+        if (!sk_VR_X509_POLICY_NODE_push(tree->user_policies, node))
             return 0;
     }
     return 1;
@@ -581,7 +581,7 @@ static int tree_evaluate(X509_POLICY_TREE *tree)
     const X509_POLICY_CACHE *cache;
 
     for (i = 1; i < tree->nlevel; i++, curr++) {
-        cache = policy_cache_set(curr->cert);
+        cache = VR_policy_cache_set(curr->cert);
         if (!tree_link_nodes(curr, cache))
             return X509_PCY_TREE_INTERNAL;
 
@@ -601,10 +601,10 @@ static int tree_evaluate(X509_POLICY_TREE *tree)
 static void exnode_free(X509_POLICY_NODE *node)
 {
     if (node->data && (node->data->flags & POLICY_DATA_FLAG_EXTRA_NODE))
-        OPENSSL_free(node);
+        OPENVR_SSL_free(node);
 }
 
-void X509_policy_tree_free(X509_POLICY_TREE *tree)
+void VR_X509_policy_tree_free(X509_POLICY_TREE *tree)
 {
     X509_POLICY_LEVEL *curr;
     int i;
@@ -612,18 +612,18 @@ void X509_policy_tree_free(X509_POLICY_TREE *tree)
     if (!tree)
         return;
 
-    sk_X509_POLICY_NODE_free(tree->auth_policies);
-    sk_X509_POLICY_NODE_pop_free(tree->user_policies, exnode_free);
+    sk_VR_X509_POLICY_NODE_free(tree->auth_policies);
+    sk_VR_X509_POLICY_NODE_pop_free(tree->user_policies, exnode_free);
 
     for (i = 0, curr = tree->levels; i < tree->nlevel; i++, curr++) {
-        X509_free(curr->cert);
-        sk_X509_POLICY_NODE_pop_free(curr->nodes, policy_node_free);
-        policy_node_free(curr->anyPolicy);
+        VR_X509_free(curr->cert);
+        sk_VR_X509_POLICY_NODE_pop_free(curr->nodes, VR_policy_node_free);
+        VR_policy_node_free(curr->anyPolicy);
     }
 
-    sk_X509_POLICY_DATA_pop_free(tree->extra_data, policy_data_free);
-    OPENSSL_free(tree->levels);
-    OPENSSL_free(tree);
+    sk_VR_X509_POLICY_DATA_pop_free(tree->extra_data, VR_policy_data_free);
+    OPENVR_SSL_free(tree->levels);
+    OPENVR_SSL_free(tree);
 
 }
 
@@ -635,7 +635,7 @@ void X509_policy_tree_free(X509_POLICY_TREE *tree)
  *  X509_PCY_TREE_INTERNAL: Internal error, most likely malloc
  *  X509_PCY_TREE_VALID:    Success (null tree if empty or bare TA)
  */
-int X509_policy_check(X509_POLICY_TREE **ptree, int *pexplicit_policy,
+int VR_X509_policy_check(X509_POLICY_TREE **ptree, int *pexplicit_policy,
                       STACK_OF(X509) *certs,
                       STACK_OF(ASN1_OBJECT) *policy_oids, unsigned int flags)
 {
@@ -654,7 +654,7 @@ int X509_policy_check(X509_POLICY_TREE **ptree, int *pexplicit_policy,
 
     if ((init_ret & X509_PCY_TREE_EXPLICIT) == 0) {
         if (init_ret & X509_PCY_TREE_EMPTY) {
-            X509_policy_tree_free(tree);
+            VR_X509_policy_tree_free(tree);
             return X509_PCY_TREE_VALID;
         }
     } else {
@@ -672,7 +672,7 @@ int X509_policy_check(X509_POLICY_TREE **ptree, int *pexplicit_policy,
         goto error;
 
     if (ret == X509_PCY_TREE_EMPTY) {
-        X509_policy_tree_free(tree);
+        VR_X509_policy_tree_free(tree);
         if (init_ret & X509_PCY_TREE_EXPLICIT)
             return X509_PCY_TREE_FAILURE;
         return X509_PCY_TREE_VALID;
@@ -684,20 +684,20 @@ int X509_policy_check(X509_POLICY_TREE **ptree, int *pexplicit_policy,
         goto error;
     ret = tree_calculate_user_set(tree, policy_oids, auth_nodes);
     if (calc_ret == TREE_CALC_OK_DOFREE)
-        sk_X509_POLICY_NODE_free(auth_nodes);
+        sk_VR_X509_POLICY_NODE_free(auth_nodes);
     if (!ret)
         goto error;
 
     *ptree = tree;
 
     if (init_ret & X509_PCY_TREE_EXPLICIT) {
-        nodes = X509_policy_tree_get0_user_policies(tree);
+        nodes = VR_X509_policy_tree_get0_user_policies(tree);
         if (sk_X509_POLICY_NODE_num(nodes) <= 0)
             return X509_PCY_TREE_FAILURE;
     }
     return X509_PCY_TREE_VALID;
 
  error:
-    X509_policy_tree_free(tree);
+    VR_X509_policy_tree_free(tree);
     return X509_PCY_TREE_INTERNAL;
 }

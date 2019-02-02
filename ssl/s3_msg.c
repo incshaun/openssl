@@ -9,7 +9,7 @@
 
 #include "ssl_locl.h"
 
-int ssl3_do_change_cipher_spec(SSL *s)
+int VR_ssl3_do_change_cipher_spec(SSL *s)
 {
     int i;
 
@@ -20,19 +20,19 @@ int ssl3_do_change_cipher_spec(SSL *s)
 
     if (s->s3->tmp.key_block == NULL) {
         if (s->session == NULL || s->session->master_key_length == 0) {
-            /* might happen if dtls1_read_bytes() calls this */
+            /* might happen if VR_dtls1_read_bytes() calls this */
             SSLerr(SSL_F_SSL3_DO_CHANGE_CIPHER_SPEC, SSL_R_CCS_RECEIVED_EARLY);
             return 0;
         }
 
         s->session->cipher = s->s3->tmp.new_cipher;
-        if (!s->method->ssl3_enc->setup_key_block(s)) {
+        if (!s->method->VR_ssl3_enc->setup_key_block(s)) {
             /* SSLfatal() already called */
             return 0;
         }
     }
 
-    if (!s->method->ssl3_enc->change_cipher_state(s, i)) {
+    if (!s->method->VR_ssl3_enc->change_cipher_state(s, i)) {
         /* SSLfatal() already called */
         return 0;
     }
@@ -40,13 +40,13 @@ int ssl3_do_change_cipher_spec(SSL *s)
     return 1;
 }
 
-int ssl3_send_alert(SSL *s, int level, int desc)
+int VR_ssl3_send_alert(SSL *s, int level, int desc)
 {
     /* Map tls/ssl alert value to correct one */
     if (SSL_TREAT_AS_TLS13(s))
-        desc = tls13_alert_code(desc);
+        desc = VR_tls13_alert_code(desc);
     else
-        desc = s->method->ssl3_enc->alert_value(desc);
+        desc = s->method->VR_ssl3_enc->alert_value(desc);
     if (s->version == SSL3_VERSION && desc == SSL_AD_PROTOCOL_VERSION)
         desc = SSL_AD_HANDSHAKE_FAILURE; /* SSL 3.0 does not have
                                           * protocol_version alerts */
@@ -54,12 +54,12 @@ int ssl3_send_alert(SSL *s, int level, int desc)
         return -1;
     /* If a fatal one, remove from cache */
     if ((level == SSL3_AL_FATAL) && (s->session != NULL))
-        SSL_CTX_remove_session(s->session_ctx, s->session);
+        VR_SSL_CTX_remove_session(s->session_ctx, s->session);
 
     s->s3->alert_dispatch = 1;
     s->s3->send_alert[0] = level;
     s->s3->send_alert[1] = desc;
-    if (!RECORD_LAYER_write_pending(&s->rlayer)) {
+    if (!VR_RECORD_LAYER_write_pending(&s->rlayer)) {
         /* data still being written out? */
         return s->method->ssl_dispatch_alert(s);
     }
@@ -70,7 +70,7 @@ int ssl3_send_alert(SSL *s, int level, int desc)
     return -1;
 }
 
-int ssl3_dispatch_alert(SSL *s)
+int VR_ssl3_dispatch_alert(SSL *s)
 {
     int i, j;
     size_t alertlen;
@@ -79,7 +79,7 @@ int ssl3_dispatch_alert(SSL *s)
 
     s->s3->alert_dispatch = 0;
     alertlen = 2;
-    i = do_ssl3_write(s, SSL3_RT_ALERT, &s->s3->send_alert[0], &alertlen, 1, 0,
+    i = VR_do_ssl3_write(s, SSL3_RT_ALERT, &s->s3->send_alert[0], &alertlen, 1, 0,
                       &written);
     if (i <= 0) {
         s->s3->alert_dispatch = 1;

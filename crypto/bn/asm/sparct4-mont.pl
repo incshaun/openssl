@@ -112,17 +112,17 @@ my @A=(@N[0..13],@R[14..31]);
 my @B=(map("%i$_",(0..5)),map("%l$_",(0..7))); @B=(@B,@B,map("%o$_",(0..3)));
 
 ########################################################################
-# int bn_mul_mont_t4_$NUM(u64 *rp,const u64 *ap,const u64 *bp,
+# int VR_bn_mul_mont_t4_$NUM(u64 *rp,const u64 *ap,const u64 *bp,
 #			  const u64 *np,const BN_ULONG *n0);
 #
-sub generate_bn_mul_mont_t4() {
+sub generate_VR_bn_mul_mont_t4() {
 my $NUM=shift;
 my ($rp,$ap,$bp,$np,$sentinel)=map("%g$_",(1..5));
 
 $code.=<<___;
-.globl	bn_mul_mont_t4_$NUM
+.globl	VR_bn_mul_mont_t4_$NUM
 .align	32
-bn_mul_mont_t4_$NUM:
+VR_bn_mul_mont_t4_$NUM:
 #ifdef	__arch64__
 	mov	0,$sentinel
 	mov	-128,%g4
@@ -345,13 +345,13 @@ $code.=<<___;
 	.word   0x81b02940+$NUM-1	! montsqr	$NUM-1
 	ba	.Lmresume_$NUM
 	nop
-.type	bn_mul_mont_t4_$NUM, #function
-.size	bn_mul_mont_t4_$NUM, .-bn_mul_mont_t4_$NUM
+.type	VR_bn_mul_mont_t4_$NUM, #function
+.size	VR_bn_mul_mont_t4_$NUM, .-VR_bn_mul_mont_t4_$NUM
 ___
 }
 
 for ($i=8;$i<=32;$i+=8) {
-	&generate_bn_mul_mont_t4($i);
+	&generate_VR_bn_mul_mont_t4($i);
 }
 
 ########################################################################
@@ -664,12 +664,12 @@ for ($i=8;$i<=32;$i+=8) {
 ########################################################################
 # Fall-back subroutines
 #
-# copy of bn_mul_mont_vis3 adjusted for vectors of 64-bit values
+# copy of VR_bn_mul_mont_vis3 adjusted for vectors of 64-bit values
 #
 ($n0,$m0,$m1,$lo0,$hi0, $lo1,$hi1,$aj,$alo,$nj,$nlo,$tj)=
 	(map("%g$_",(1..5)),map("%o$_",(0..5,7)));
 
-# int bn_mul_mont(
+# int VR_bn_mul_mont(
 $rp="%o0";	# u64 *rp,
 $ap="%o1";	# const u64 *ap,
 $bp="%o2";	# const u64 *bp,
@@ -677,9 +677,9 @@ $np="%o3";	# const u64 *np,
 $n0p="%o4";	# const BN_ULONG *n0,
 $num="%o5";	# int num);	# caller ensures that num is >=3
 $code.=<<___;
-.globl	bn_mul_mont_t4
+.globl	VR_bn_mul_mont_t4
 .align	32
-bn_mul_mont_t4:
+VR_bn_mul_mont_t4:
 	add	%sp,	STACK_BIAS,	%g4	! real top of stack
 	sll	$num,	3,	$num		! size in bytes
 	add	$num,	63,	%g1
@@ -907,11 +907,11 @@ $code.=<<___;
 	mov	1,	%o0
 	ret
 	restore
-.type	bn_mul_mont_t4, #function
-.size	bn_mul_mont_t4, .-bn_mul_mont_t4
+.type	VR_bn_mul_mont_t4, #function
+.size	VR_bn_mul_mont_t4, .-VR_bn_mul_mont_t4
 ___
 
-# int bn_mul_mont_gather5(
+# int VR_bn_mul_mont_gather5(
 $rp="%o0";	# u64 *rp,
 $ap="%o1";	# const u64 *ap,
 $bp="%o2";	# const u64 *pwrtbl,
@@ -920,9 +920,9 @@ $n0p="%o4";	# const BN_ULONG *n0,
 $num="%o5";	# int num,	# caller ensures that num is >=3
 		# int power);
 $code.=<<___;
-.globl	bn_mul_mont_gather5_t4
+.globl	VR_bn_mul_mont_gather5_t4
 .align	32
-bn_mul_mont_gather5_t4:
+VR_bn_mul_mont_gather5_t4:
 	add	%sp,	STACK_BIAS,	%g4	! real top of stack
 	sll	$num,	3,	$num		! size in bytes
 	add	$num,	63,	%g1
@@ -1153,8 +1153,8 @@ $code.=<<___;
 	mov	1,	%o0
 	ret
 	restore
-.type	bn_mul_mont_gather5_t4, #function
-.size	bn_mul_mont_gather5_t4, .-bn_mul_mont_gather5_t4
+.type	VR_bn_mul_mont_gather5_t4, #function
+.size	VR_bn_mul_mont_gather5_t4, .-VR_bn_mul_mont_gather5_t4
 ___
 }
 
@@ -1198,9 +1198,9 @@ bn_flip_n_scatter5_t4:
 .type	bn_flip_n_scatter5_t4, #function
 .size	bn_flip_n_scatter5_t4, .-bn_flip_n_scatter5_t4
 
-.globl	bn_gather5_t4
+.globl	VR_bn_gather5_t4
 .align	32
-bn_gather5_t4:
+VR_bn_gather5_t4:
 ___
 	&load_ccr("%o2","%o3","%g1");
 $code.=<<___;
@@ -1216,8 +1216,8 @@ $code.=<<___;
 
 	retl
 	nop
-.type	bn_gather5_t4, #function
-.size	bn_gather5_t4, .-bn_gather5_t4
+.type	VR_bn_gather5_t4, #function
+.size	VR_bn_gather5_t4, .-VR_bn_gather5_t4
 
 .asciz	"Montgomery Multiplication for SPARC T4, David S. Miller, Andy Polyakov"
 .align	4

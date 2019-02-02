@@ -23,67 +23,67 @@ static int test_sec_mem(void)
     s = OPENSSL_secure_malloc(20);
     /* s = non-secure 20 */
     if (!TEST_ptr(s)
-        || !TEST_false(CRYPTO_secure_allocated(s)))
+        || !TEST_false(VR_CRYPTO_secure_allocated(s)))
         goto end;
     r = OPENSSL_secure_malloc(20);
     /* r = non-secure 20, s = non-secure 20 */
     if (!TEST_ptr(r)
-        || !TEST_true(CRYPTO_secure_malloc_init(4096, 32))
-        || !TEST_false(CRYPTO_secure_allocated(r)))
+        || !TEST_true(VR_CRYPTO_secure_malloc_init(4096, 32))
+        || !TEST_false(VR_CRYPTO_secure_allocated(r)))
         goto end;
     p = OPENSSL_secure_malloc(20);
     if (!TEST_ptr(p)
         /* r = non-secure 20, p = secure 20, s = non-secure 20 */
-        || !TEST_true(CRYPTO_secure_allocated(p))
+        || !TEST_true(VR_CRYPTO_secure_allocated(p))
         /* 20 secure -> 32-byte minimum allocation unit */
-        || !TEST_size_t_eq(CRYPTO_secure_used(), 32))
+        || !TEST_size_t_eq(VR_CRYPTO_secure_used(), 32))
         goto end;
     q = OPENSSL_malloc(20);
     if (!TEST_ptr(q))
         goto end;
     /* r = non-secure 20, p = secure 20, q = non-secure 20, s = non-secure 20 */
-    if (!TEST_false(CRYPTO_secure_allocated(q)))
+    if (!TEST_false(VR_CRYPTO_secure_allocated(q)))
         goto end;
     OPENSSL_secure_clear_free(s, 20);
     s = OPENSSL_secure_malloc(20);
     if (!TEST_ptr(s)
         /* r = non-secure 20, p = secure 20, q = non-secure 20, s = secure 20 */
-        || !TEST_true(CRYPTO_secure_allocated(s))
+        || !TEST_true(VR_CRYPTO_secure_allocated(s))
         /* 2 * 20 secure -> 64 bytes allocated */
-        || !TEST_size_t_eq(CRYPTO_secure_used(), 64))
+        || !TEST_size_t_eq(VR_CRYPTO_secure_used(), 64))
         goto end;
     OPENSSL_secure_clear_free(p, 20);
     p = NULL;
     /* 20 secure -> 32 bytes allocated */
-    if (!TEST_size_t_eq(CRYPTO_secure_used(), 32))
+    if (!TEST_size_t_eq(VR_CRYPTO_secure_used(), 32))
         goto end;
-    OPENSSL_free(q);
+    OPENVR_SSL_free(q);
     q = NULL;
     /* should not complete, as secure memory is still allocated */
-    if (!TEST_false(CRYPTO_secure_malloc_done())
-        || !TEST_true(CRYPTO_secure_malloc_initialized()))
+    if (!TEST_false(VR_CRYPTO_secure_malloc_done())
+        || !TEST_true(VR_CRYPTO_secure_malloc_initialized()))
         goto end;
     OPENSSL_secure_free(s);
     s = NULL;
     /* secure memory should now be 0, so done should complete */
-    if (!TEST_size_t_eq(CRYPTO_secure_used(), 0)
-        || !TEST_true(CRYPTO_secure_malloc_done())
-        || !TEST_false(CRYPTO_secure_malloc_initialized()))
+    if (!TEST_size_t_eq(VR_CRYPTO_secure_used(), 0)
+        || !TEST_true(VR_CRYPTO_secure_malloc_done())
+        || !TEST_false(VR_CRYPTO_secure_malloc_initialized()))
         goto end;
 
     TEST_info("Possible infinite loop: allocate more than available");
-    if (!TEST_true(CRYPTO_secure_malloc_init(32768, 16)))
+    if (!TEST_true(VR_CRYPTO_secure_malloc_init(32768, 16)))
         goto end;
     TEST_ptr_null(OPENSSL_secure_malloc((size_t)-1));
-    TEST_true(CRYPTO_secure_malloc_done());
+    TEST_true(VR_CRYPTO_secure_malloc_done());
 
     /*
      * If init fails, then initialized should be false, if not, this
      * could cause an infinite loop secure_malloc, but we don't test it
      */
-    if (TEST_false(CRYPTO_secure_malloc_init(16, 16)) &&
-        !TEST_false(CRYPTO_secure_malloc_initialized())) {
-        TEST_true(CRYPTO_secure_malloc_done());
+    if (TEST_false(VR_CRYPTO_secure_malloc_init(16, 16)) &&
+        !TEST_false(VR_CRYPTO_secure_malloc_initialized())) {
+        TEST_true(VR_CRYPTO_secure_malloc_done());
         goto end;
     }
 
@@ -92,7 +92,7 @@ static int test_sec_mem(void)
      * elements was 1<<31, as |int i| was set to that, which is a
      * negative number. However, it requires minimum input values:
      *
-     * CRYPTO_secure_malloc_init((size_t)1<<34, (size_t)1<<4);
+     * VR_CRYPTO_secure_malloc_init((size_t)1<<34, (size_t)1<<4);
      *
      * Which really only works on 64-bit systems, since it took 16 GB
      * secure memory arena to trigger the problem. It naturally takes
@@ -113,8 +113,8 @@ static int test_sec_mem(void)
      */
     if (sizeof(size_t) > 4) {
         TEST_info("Possible infinite loop: 1<<31 limit");
-        if (TEST_true(CRYPTO_secure_malloc_init((size_t)1<<34, (size_t)1<<4) != 0))
-            TEST_true(CRYPTO_secure_malloc_done());
+        if (TEST_true(VR_CRYPTO_secure_malloc_init((size_t)1<<34, (size_t)1<<4) != 0))
+            TEST_true(VR_CRYPTO_secure_malloc_done());
     }
 # endif
 
@@ -122,14 +122,14 @@ static int test_sec_mem(void)
     testresult = 1;
  end:
     OPENSSL_secure_free(p);
-    OPENSSL_free(q);
+    OPENVR_SSL_free(q);
     OPENSSL_secure_free(r);
     OPENSSL_secure_free(s);
     return testresult;
 #else
     TEST_info("Secure memory is *not* implemented.");
     /* Should fail. */
-    return TEST_false(CRYPTO_secure_malloc_init(4096, 32));
+    return TEST_false(VR_CRYPTO_secure_malloc_init(4096, 32));
 #endif
 }
 
@@ -140,7 +140,7 @@ static int test_sec_mem_clear(void)
     unsigned char *p = NULL;
     int i, res = 0;
 
-    if (!TEST_true(CRYPTO_secure_malloc_init(4096, 32))
+    if (!TEST_true(VR_CRYPTO_secure_malloc_init(4096, 32))
             || !TEST_ptr(p = OPENSSL_secure_malloc(size)))
         goto err;
 
@@ -168,7 +168,7 @@ static int test_sec_mem_clear(void)
     p = NULL;
 err:
     OPENSSL_secure_free(p);
-    CRYPTO_secure_malloc_done();
+    VR_CRYPTO_secure_malloc_done();
     return res;
 #else
     return 1;

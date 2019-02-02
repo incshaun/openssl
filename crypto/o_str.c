@@ -13,7 +13,7 @@
 #include "internal/cryptlib.h"
 #include "internal/o_str.h"
 
-int OPENSSL_memcmp(const void *v1, const void *v2, size_t n)
+int VR_OPENSSL_memcmp(const void *v1, const void *v2, size_t n)
 {
     const unsigned char *c1 = v1, *c2 = v2;
     int ret = 0;
@@ -24,19 +24,19 @@ int OPENSSL_memcmp(const void *v1, const void *v2, size_t n)
     return ret;
 }
 
-char *CRYPTO_strdup(const char *str, const char* file, int line)
+char *VR_CRYPTO_strdup(const char *str, const char* file, int line)
 {
     char *ret;
 
     if (str == NULL)
         return NULL;
-    ret = CRYPTO_malloc(strlen(str) + 1, file, line);
+    ret = VR_CRYPTO_malloc(strlen(str) + 1, file, line);
     if (ret != NULL)
         strcpy(ret, str);
     return ret;
 }
 
-char *CRYPTO_strndup(const char *str, size_t s, const char* file, int line)
+char *VR_CRYPTO_strndup(const char *str, size_t s, const char* file, int line)
 {
     size_t maxlen;
     char *ret;
@@ -44,9 +44,9 @@ char *CRYPTO_strndup(const char *str, size_t s, const char* file, int line)
     if (str == NULL)
         return NULL;
 
-    maxlen = OPENSSL_strnlen(str, s);
+    maxlen = VR_OPENSSL_strnlen(str, s);
 
-    ret = CRYPTO_malloc(maxlen + 1, file, line);
+    ret = VR_CRYPTO_malloc(maxlen + 1, file, line);
     if (ret) {
         memcpy(ret, str, maxlen);
         ret[maxlen] = '\0';
@@ -54,14 +54,14 @@ char *CRYPTO_strndup(const char *str, size_t s, const char* file, int line)
     return ret;
 }
 
-void *CRYPTO_memdup(const void *data, size_t siz, const char* file, int line)
+void *VR_CRYPTO_memdup(const void *data, size_t siz, const char* file, int line)
 {
     void *ret;
 
     if (data == NULL || siz >= INT_MAX)
         return NULL;
 
-    ret = CRYPTO_malloc(siz, file, line);
+    ret = VR_CRYPTO_malloc(siz, file, line);
     if (ret == NULL) {
         CRYPTOerr(CRYPTO_F_CRYPTO_MEMDUP, ERR_R_MALLOC_FAILURE);
         return NULL;
@@ -69,7 +69,7 @@ void *CRYPTO_memdup(const void *data, size_t siz, const char* file, int line)
     return memcpy(ret, data, siz);
 }
 
-size_t OPENSSL_strnlen(const char *str, size_t maxlen)
+size_t VR_OPENSSL_strnlen(const char *str, size_t maxlen)
 {
     const char *p;
 
@@ -78,7 +78,7 @@ size_t OPENSSL_strnlen(const char *str, size_t maxlen)
     return p - str;
 }
 
-size_t OPENSSL_strlcpy(char *dst, const char *src, size_t size)
+size_t VR_OPENSSL_strlcpy(char *dst, const char *src, size_t size)
 {
     size_t l = 0;
     for (; size > 1 && *src; size--) {
@@ -90,15 +90,15 @@ size_t OPENSSL_strlcpy(char *dst, const char *src, size_t size)
     return l + strlen(src);
 }
 
-size_t OPENSSL_strlcat(char *dst, const char *src, size_t size)
+size_t VR_OPENSSL_strlcat(char *dst, const char *src, size_t size)
 {
     size_t l = 0;
     for (; size > 0 && *dst; size--, dst++)
         l++;
-    return l + OPENSSL_strlcpy(dst, src, size);
+    return l + VR_OPENSSL_strlcpy(dst, src, size);
 }
 
-int OPENSSL_hexchar2int(unsigned char c)
+int VR_OPENSSL_hexchar2int(unsigned char c)
 {
 #ifdef CHARSET_EBCDIC
     c = os_toebcdic[c];
@@ -144,7 +144,7 @@ int OPENSSL_hexchar2int(unsigned char c)
 /*
  * Give a string of hex digits convert to a buffer
  */
-unsigned char *OPENSSL_hexstr2buf(const char *str, long *len)
+unsigned char *VR_OPENSSL_hexstr2buf(const char *str, long *len)
 {
     unsigned char *hexbuf, *q;
     unsigned char ch, cl;
@@ -165,13 +165,13 @@ unsigned char *OPENSSL_hexstr2buf(const char *str, long *len)
         if (!cl) {
             CRYPTOerr(CRYPTO_F_OPENSSL_HEXSTR2BUF,
                       CRYPTO_R_ODD_NUMBER_OF_DIGITS);
-            OPENSSL_free(hexbuf);
+            OPENVR_SSL_free(hexbuf);
             return NULL;
         }
-        cli = OPENSSL_hexchar2int(cl);
-        chi = OPENSSL_hexchar2int(ch);
+        cli = VR_OPENSSL_hexchar2int(cl);
+        chi = VR_OPENSSL_hexchar2int(ch);
         if (cli < 0 || chi < 0) {
-            OPENSSL_free(hexbuf);
+            OPENVR_SSL_free(hexbuf);
             CRYPTOerr(CRYPTO_F_OPENSSL_HEXSTR2BUF, CRYPTO_R_ILLEGAL_HEX_DIGIT);
             return NULL;
         }
@@ -188,7 +188,7 @@ unsigned char *OPENSSL_hexstr2buf(const char *str, long *len)
  * hex representation @@@ (Contents of buffer are always kept in ASCII, also
  * on EBCDIC machines)
  */
-char *OPENSSL_buf2hexstr(const unsigned char *buffer, long len)
+char *VR_OPENSSL_buf2hexstr(const unsigned char *buffer, long len)
 {
     static const char hexdig[] = "0123456789ABCDEF";
     char *tmp, *q;
@@ -218,7 +218,7 @@ char *OPENSSL_buf2hexstr(const unsigned char *buffer, long len)
     return tmp;
 }
 
-int openssl_strerror_r(int errnum, char *buf, size_t buflen)
+int VR_openssl_strerror_r(int errnum, char *buf, size_t buflen)
 {
 #if defined(_MSC_VER) && _MSC_VER>=1400
     return !strerror_s(buf, buflen, errnum);

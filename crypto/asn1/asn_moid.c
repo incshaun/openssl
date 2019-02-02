@@ -27,8 +27,8 @@ static int oid_module_init(CONF_IMODULE *md, const CONF *cnf)
     STACK_OF(CONF_VALUE) *sktmp;
     CONF_VALUE *oval;
 
-    oid_section = CONF_imodule_get_value(md);
-    if ((sktmp = NCONF_get_section(cnf, oid_section)) == NULL) {
+    oid_section = VR_CONF_imodule_get_value(md);
+    if ((sktmp = VR_NCONF_get_section(cnf, oid_section)) == NULL) {
         ASN1err(ASN1_F_OID_MODULE_INIT, ASN1_R_ERROR_LOADING_SECTION);
         return 0;
     }
@@ -46,9 +46,9 @@ static void oid_module_finish(CONF_IMODULE *md)
 {
 }
 
-void ASN1_add_oid_module(void)
+void VR_ASN1_add_oid_module(void)
 {
-    CONF_module_add("oid_section", oid_module_init, oid_module_finish);
+    VR_CONF_module_add("oid_section", oid_module_init, oid_module_finish);
 }
 
 /*-
@@ -92,9 +92,9 @@ static int do_create(const char *value, const char *name)
         ln = lntmp;
     }
 
-    nid = OBJ_create(ostr, name, ln);
+    nid = VR_OBJ_create(ostr, name, ln);
 
-    OPENSSL_free(lntmp);
+    OPENVR_SSL_free(lntmp);
 
     return nid != NID_undef;
 }

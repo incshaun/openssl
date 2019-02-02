@@ -197,7 +197,7 @@ $code.=<<___;
 
 .align	64
 .skip	16
-_sparcv9_AES_encrypt:
+_sparcv9_VR_AES_encrypt:
 	save	%sp,-$frame-$locals,%sp
 	stx	%i7,[%sp+$bias+$frame+0]	! off-load return address
 	ld	[$key+240],$rounds
@@ -516,12 +516,12 @@ _sparcv9_AES_encrypt:
 
 	ret
 	restore
-.type	_sparcv9_AES_encrypt,#function
-.size	_sparcv9_AES_encrypt,(.-_sparcv9_AES_encrypt)
+.type	_sparcv9_VR_AES_encrypt,#function
+.size	_sparcv9_VR_AES_encrypt,(.-_sparcv9_VR_AES_encrypt)
 
 .align	32
-.globl	AES_encrypt
-AES_encrypt:
+.globl	VR_AES_encrypt
+VR_AES_encrypt:
 	or	%o0,%o1,%g1
 	andcc	%g1,3,%g0
 	bnz,pn	%xcc,.Lunaligned_enc
@@ -534,7 +534,7 @@ AES_encrypt:
 
 1:	call	.+8
 	add	%o7,AES_Te-1b,%o4
-	call	_sparcv9_AES_encrypt
+	call	_sparcv9_VR_AES_encrypt
 	mov	%i2,%o5
 
 	st	%o0,[%i1+0]
@@ -594,7 +594,7 @@ AES_encrypt:
 
 1:	call	.+8
 	add	%o7,AES_Te-1b,%o4
-	call	_sparcv9_AES_encrypt
+	call	_sparcv9_VR_AES_encrypt
 	mov	%i2,%o5
 
 	srl	%o0,24,%l0
@@ -631,8 +631,8 @@ AES_encrypt:
 
 	ret
 	restore
-.type	AES_encrypt,#function
-.size	AES_encrypt,(.-AES_encrypt)
+.type	VR_AES_encrypt,#function
+.size	VR_AES_encrypt,(.-VR_AES_encrypt)
 
 ___
 
@@ -743,7 +743,7 @@ $code.=<<___;
 
 .align	64
 .skip	16
-_sparcv9_AES_decrypt:
+_sparcv9_VR_AES_decrypt:
 	save	%sp,-$frame-$locals,%sp
 	stx	%i7,[%sp+$bias+$frame+0]	! off-load return address
 	ld	[$key+240],$rounds
@@ -1062,12 +1062,12 @@ _sparcv9_AES_decrypt:
 
 	ret
 	restore
-.type	_sparcv9_AES_decrypt,#function
-.size	_sparcv9_AES_decrypt,(.-_sparcv9_AES_decrypt)
+.type	_sparcv9_VR_AES_decrypt,#function
+.size	_sparcv9_VR_AES_decrypt,(.-_sparcv9_VR_AES_decrypt)
 
 .align	32
-.globl	AES_decrypt
-AES_decrypt:
+.globl	VR_AES_decrypt
+VR_AES_decrypt:
 	or	%o0,%o1,%g1
 	andcc	%g1,3,%g0
 	bnz,pn	%xcc,.Lunaligned_dec
@@ -1080,7 +1080,7 @@ AES_decrypt:
 
 1:	call	.+8
 	add	%o7,AES_Td-1b,%o4
-	call	_sparcv9_AES_decrypt
+	call	_sparcv9_VR_AES_decrypt
 	mov	%i2,%o5
 
 	st	%o0,[%i1+0]
@@ -1140,7 +1140,7 @@ AES_decrypt:
 
 1:	call	.+8
 	add	%o7,AES_Td-1b,%o4
-	call	_sparcv9_AES_decrypt
+	call	_sparcv9_VR_AES_decrypt
 	mov	%i2,%o5
 
 	srl	%o0,24,%l0
@@ -1177,8 +1177,8 @@ AES_decrypt:
 
 	ret
 	restore
-.type	AES_decrypt,#function
-.size	AES_decrypt,(.-AES_decrypt)
+.type	VR_AES_decrypt,#function
+.size	VR_AES_decrypt,(.-VR_AES_decrypt)
 ___
 
 # fmovs instructions substituting for FP nops were originally added

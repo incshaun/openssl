@@ -31,10 +31,10 @@ static const BIO_METHOD methods_linebuffer = {
     BIO_TYPE_LINEBUFFER,
     "linebuffer",
     /* TODO: Convert to new style write function */
-    bwrite_conv,
+    VR_bwrite_conv,
     linebuffer_write,
     /* TODO: Convert to new style read function */
-    bread_conv,
+    VR_bread_conv,
     linebuffer_read,
     linebuffer_puts,
     linebuffer_gets,
@@ -44,7 +44,7 @@ static const BIO_METHOD methods_linebuffer = {
     linebuffer_callback_ctrl,
 };
 
-const BIO_METHOD *BIO_f_linebuffer(void)
+const BIO_METHOD *VR_BIO_f_linebuffer(void)
 {
     return &methods_linebuffer;
 }
@@ -66,7 +66,7 @@ static int linebuffer_new(BIO *bi)
     ctx->obuf = OPENSSL_malloc(DEFAULT_LINEBUFFER_SIZE);
     if (ctx->obuf == NULL) {
         BIOerr(BIO_F_LINEBUFFER_NEW, ERR_R_MALLOC_FAILURE);
-        OPENSSL_free(ctx);
+        OPENVR_SSL_free(ctx);
         return 0;
     }
     ctx->obuf_size = DEFAULT_LINEBUFFER_SIZE;
@@ -85,8 +85,8 @@ static int linebuffer_free(BIO *a)
     if (a == NULL)
         return 0;
     b = (BIO_LINEBUFFER_CTX *)a->ptr;
-    OPENSSL_free(b->obuf);
-    OPENSSL_free(a->ptr);
+    OPENVR_SSL_free(b->obuf);
+    OPENVR_SSL_free(a->ptr);
     a->ptr = NULL;
     a->init = 0;
     a->flags = 0;
@@ -101,9 +101,9 @@ static int linebuffer_read(BIO *b, char *out, int outl)
         return 0;
     if (b->next_bio == NULL)
         return 0;
-    ret = BIO_read(b->next_bio, out, outl);
+    ret = VR_BIO_read(b->next_bio, out, outl);
     BIO_clear_retry_flags(b);
-    BIO_copy_next_retry(b);
+    VR_BIO_copy_next_retry(b);
     return ret;
 }
 
@@ -155,10 +155,10 @@ static int linebuffer_write(BIO *b, const char *in, int inl)
                     num += i;
                 }
             }
-            i = BIO_write(b->next_bio, ctx->obuf, ctx->obuf_len);
+            i = VR_BIO_write(b->next_bio, ctx->obuf, ctx->obuf_len);
             if (i <= 0) {
                 ctx->obuf_len = orig_olen;
-                BIO_copy_next_retry(b);
+                VR_BIO_copy_next_retry(b);
 
                 if (i < 0)
                     return ((num > 0) ? num : i);
@@ -175,9 +175,9 @@ static int linebuffer_write(BIO *b, const char *in, int inl)
          * if a NL was found and there is anything to write.
          */
         if ((foundnl || p - in > ctx->obuf_size) && p - in > 0) {
-            i = BIO_write(b->next_bio, in, p - in);
+            i = VR_BIO_write(b->next_bio, in, p - in);
             if (i <= 0) {
-                BIO_copy_next_retry(b);
+                VR_BIO_copy_next_retry(b);
                 if (i < 0)
                     return ((num > 0) ? num : i);
                 if (i == 0)
@@ -218,7 +218,7 @@ static long linebuffer_ctrl(BIO *b, int cmd, long num, void *ptr)
         ctx->obuf_len = 0;
         if (b->next_bio == NULL)
             return 0;
-        ret = BIO_ctrl(b->next_bio, cmd, num, ptr);
+        ret = VR_BIO_ctrl(b->next_bio, cmd, num, ptr);
         break;
     case BIO_CTRL_INFO:
         ret = (long)ctx->obuf_len;
@@ -228,7 +228,7 @@ static long linebuffer_ctrl(BIO *b, int cmd, long num, void *ptr)
         if (ret == 0) {
             if (b->next_bio == NULL)
                 return 0;
-            ret = BIO_ctrl(b->next_bio, cmd, num, ptr);
+            ret = VR_BIO_ctrl(b->next_bio, cmd, num, ptr);
         }
         break;
     case BIO_C_SET_BUFF_SIZE:
@@ -244,7 +244,7 @@ static long linebuffer_ctrl(BIO *b, int cmd, long num, void *ptr)
                 ctx->obuf_len = obs;
             }
             memcpy(p, ctx->obuf, ctx->obuf_len);
-            OPENSSL_free(ctx->obuf);
+            OPENVR_SSL_free(ctx->obuf);
             ctx->obuf = p;
             ctx->obuf_size = obs;
         }
@@ -253,23 +253,23 @@ static long linebuffer_ctrl(BIO *b, int cmd, long num, void *ptr)
         if (b->next_bio == NULL)
             return 0;
         BIO_clear_retry_flags(b);
-        ret = BIO_ctrl(b->next_bio, cmd, num, ptr);
-        BIO_copy_next_retry(b);
+        ret = VR_BIO_ctrl(b->next_bio, cmd, num, ptr);
+        VR_BIO_copy_next_retry(b);
         break;
 
     case BIO_CTRL_FLUSH:
         if (b->next_bio == NULL)
             return 0;
         if (ctx->obuf_len <= 0) {
-            ret = BIO_ctrl(b->next_bio, cmd, num, ptr);
+            ret = VR_BIO_ctrl(b->next_bio, cmd, num, ptr);
             break;
         }
 
         for (;;) {
             BIO_clear_retry_flags(b);
             if (ctx->obuf_len > 0) {
-                r = BIO_write(b->next_bio, ctx->obuf, ctx->obuf_len);
-                BIO_copy_next_retry(b);
+                r = VR_BIO_write(b->next_bio, ctx->obuf, ctx->obuf_len);
+                VR_BIO_copy_next_retry(b);
                 if (r <= 0)
                     return (long)r;
                 if (r < ctx->obuf_len)
@@ -280,7 +280,7 @@ static long linebuffer_ctrl(BIO *b, int cmd, long num, void *ptr)
                 break;
             }
         }
-        ret = BIO_ctrl(b->next_bio, cmd, num, ptr);
+        ret = VR_BIO_ctrl(b->next_bio, cmd, num, ptr);
         break;
     case BIO_CTRL_DUP:
         dbio = (BIO *)ptr;
@@ -290,7 +290,7 @@ static long linebuffer_ctrl(BIO *b, int cmd, long num, void *ptr)
     default:
         if (b->next_bio == NULL)
             return 0;
-        ret = BIO_ctrl(b->next_bio, cmd, num, ptr);
+        ret = VR_BIO_ctrl(b->next_bio, cmd, num, ptr);
         break;
     }
     return ret;
@@ -307,7 +307,7 @@ static long linebuffer_callback_ctrl(BIO *b, int cmd, BIO_info_cb *fp)
         return 0;
     switch (cmd) {
     default:
-        ret = BIO_callback_ctrl(b->next_bio, cmd, fp);
+        ret = VR_BIO_callback_ctrl(b->next_bio, cmd, fp);
         break;
     }
     return ret;
@@ -317,7 +317,7 @@ static int linebuffer_gets(BIO *b, char *buf, int size)
 {
     if (b->next_bio == NULL)
         return 0;
-    return BIO_gets(b->next_bio, buf, size);
+    return VR_BIO_gets(b->next_bio, buf, size);
 }
 
 static int linebuffer_puts(BIO *b, const char *str)

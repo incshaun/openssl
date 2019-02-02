@@ -28,32 +28,32 @@ struct rand_meth_st {
     int (*status) (void);
 };
 
-int RAND_set_rand_method(const RAND_METHOD *meth);
-const RAND_METHOD *RAND_get_rand_method(void);
+int VR_RAND_set_rand_method(const RAND_METHOD *meth);
+const RAND_METHOD *VR_RAND_get_rand_method(void);
 # ifndef OPENSSL_NO_ENGINE
-int RAND_set_rand_engine(ENGINE *engine);
+int VR_RAND_set_rand_engine(ENGINE *engine);
 # endif
 
-RAND_METHOD *RAND_OpenSSL(void);
+RAND_METHOD *VR_RAND_OpenSSL(void);
 
 # if !OPENSSL_API_1_1_0
 #   define RAND_cleanup() while(0) continue
 # endif
-int RAND_bytes(unsigned char *buf, int num);
-int RAND_priv_bytes(unsigned char *buf, int num);
-DEPRECATEDIN_1_1_0(int RAND_pseudo_bytes(unsigned char *buf, int num))
+int VR_RAND_bytes(unsigned char *buf, int num);
+int VR_RAND_priv_bytes(unsigned char *buf, int num);
+DEPRECATEDIN_1_1_0(int VR_RAND_pseudo_bytes(unsigned char *buf, int num))
 
-void RAND_seed(const void *buf, int num);
-void RAND_keep_random_devices_open(int keep);
+void VR_RAND_seed(const void *buf, int num);
+void VR_RAND_keep_random_devices_open(int keep);
 
 # if defined(__ANDROID__) && defined(__NDK_FPABI__)
 __NDK_FPABI__	/* __attribute__((pcs("aapcs"))) on ARM */
 # endif
-void RAND_add(const void *buf, int num, double randomness);
-int RAND_load_file(const char *file, long max_bytes);
-int RAND_write_file(const char *file);
-const char *RAND_file_name(char *file, size_t num);
-int RAND_status(void);
+void VR_RAND_add(const void *buf, int num, double randomness);
+int VR_RAND_load_file(const char *file, long max_bytes);
+int VR_RAND_write_file(const char *file);
+const char *VR_RAND_file_name(char *file, size_t num);
+int VR_RAND_status(void);
 
 # ifndef OPENSSL_NO_EGD
 int RAND_query_egd_bytes(const char *path, unsigned char *buf, int bytes);
@@ -61,7 +61,7 @@ int RAND_egd(const char *path);
 int RAND_egd_bytes(const char *path, int bytes);
 # endif
 
-int RAND_poll(void);
+int VR_RAND_poll(void);
 
 # if defined(_WIN32) && (defined(BASETYPES) || defined(_WINDEF_H))
 /* application has to include <windows.h> in order to use these */

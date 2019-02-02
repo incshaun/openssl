@@ -16,13 +16,13 @@
 #
 # July 2004
 #
-# 2.22x RC4 tune-up:-) It should be noted though that my hand [as in
+# 2.22x VR_RC4 tune-up:-) It should be noted though that my hand [as in
 # "hand-coded assembler"] doesn't stand for the whole improvement
-# coefficient. It turned out that eliminating RC4_CHAR from config
+# coefficient. It turned out that eliminating VR_RC4_CHAR from config
 # line results in ~40% improvement (yes, even for C implementation).
 # Presumably it has everything to do with AMD cache architecture and
 # RAW or whatever penalties. Once again! The module *requires* config
-# line *without* RC4_CHAR! As for coding "secret," I bet on partial
+# line *without* VR_RC4_CHAR! As for coding "secret," I bet on partial
 # register arithmetics. For example instead of 'inc %r8; and $255,%r8'
 # I simply 'inc %r8b'. Even though optimization manual discourages
 # to operate on partial registers, it turned out to be the best bet.
@@ -32,7 +32,7 @@
 #
 # As was shown by Marc Bevand reordering of couple of load operations
 # results in even higher performance gain of 3.3x:-) At least on
-# Opteron... For reference, 1x in this case is RC4_CHAR C-code
+# Opteron... For reference, 1x in this case is VR_RC4_CHAR C-code
 # compiled with gcc 3.3.2, which performs at ~54MBps per 1GHz clock.
 # Latter means that if you want to *estimate* what to expect from
 # *your* Opteron, then multiply 54 by 3.3 and clock frequency in GHz.
@@ -41,7 +41,7 @@
 #
 # Intel P4 EM64T core was found to run the AMD64 code really slow...
 # The only way to achieve comparable performance on P4 was to keep
-# RC4_CHAR. Kind of ironic, huh? As it's apparently impossible to
+# VR_RC4_CHAR. Kind of ironic, huh? As it's apparently impossible to
 # compose blended code, which would perform even within 30% marginal
 # on either AMD and Intel platforms, I implement both cases. See
 # rc4_skey.c for further details...
@@ -61,10 +61,10 @@
 # as my IA-64 implementation. On Opteron this resulted in modest 5%
 # improvement [I had to test it], while final Intel P4 performance
 # achieves respectful 432MBps on 2.8GHz processor now. For reference.
-# If executed on Xeon, current RC4_CHAR code-path is 2.7x faster than
-# RC4_INT code-path. While if executed on Opteron, it's only 25%
-# slower than the RC4_INT one [meaning that if CPU µ-arch detection
-# is not implemented, then this final RC4_CHAR code-path should be
+# If executed on Xeon, current VR_RC4_CHAR code-path is 2.7x faster than
+# VR_RC4_INT code-path. While if executed on Opteron, it's only 25%
+# slower than the VR_RC4_INT one [meaning that if CPU µ-arch detection
+# is not implemented, then this final VR_RC4_CHAR code-path should be
 # preferred, as it provides better *all-round* performance].
 
 # March 2007
@@ -88,7 +88,7 @@
 # The only code path that was not modified is P4-specific one. Non-P4
 # Intel code path optimization is heavily based on submission by Maxim
 # Perminov, Maxim Locktyukhin and Jim Guilford of Intel. I've used
-# some of the ideas even in attempt to optimize the original RC4_INT
+# some of the ideas even in attempt to optimize the original VR_RC4_INT
 # code path... Current performance in cycles per processed byte (less
 # is better) and improvement coefficients relative to previous
 # version of this module are:
@@ -135,10 +135,10 @@ $code=<<___;
 .text
 .extern	OPENSSL_ia32cap_P
 
-.globl	RC4
-.type	RC4,\@function,4
+.globl	VR_RC4
+.type	VR_RC4,\@function,4
 .align	16
-RC4:	or	$len,$len
+VR_RC4:	or	$len,$len
 	jne	.Lentry
 	ret
 .Lentry:
@@ -171,7 +171,7 @@ $code.=<<___;
 	mov	-8($dat),$XX[0]#b
 	mov	-4($dat),$YY#b
 	cmpl	\$-1,256($dat)
-	je	.LRC4_CHAR
+	je	.LVR_RC4_CHAR
 	mov	OPENSSL_ia32cap_P(%rip),%r8d
 	xor	$TX[1],$TX[1]
 	inc	$XX[0]#b
@@ -266,7 +266,7 @@ $code.=<<___;
 .Loop16_is_hot:
 	lea	($dat,$XX[0],4),$XX[1]
 ___
-sub RC4_loop {
+sub VR_RC4_loop {
   my $i=shift;
   my $j=$i<0?0:$i;
   my $xmm="%xmm".($j&1);
@@ -291,7 +291,7 @@ sub RC4_loop {
     $code.="	lea	16($inp),$inp\n"		if ($i==0);
     $code.="	movl	($XX[1]),$TX[1]#d\n"		if ($i==15);
 }
-	RC4_loop(-1);
+	VR_RC4_loop(-1);
 $code.=<<___;
 	jmp	.Loop16_enter
 .align	16
@@ -300,7 +300,7 @@ ___
 
 for ($i=0;$i<16;$i++) {
     $code.=".Loop16_enter:\n"		if ($i==1);
-	RC4_loop($i);
+	VR_RC4_loop($i);
 	push(@TX,shift(@TX)); 		# "rotate" registers
 }
 $code.=<<___;
@@ -339,7 +339,7 @@ $code.=<<___;
 	jmp	.Lexit
 
 .align	16
-.LRC4_CHAR:
+.LVR_RC4_CHAR:
 	add	\$1,$XX[0]#b
 	movzb	($dat,$XX[0]),$TX[0]#d
 	test	\$-8,$len
@@ -441,7 +441,7 @@ $code.=<<___;
 .Lepilogue:
 	ret
 .cfi_endproc
-.size	RC4,.-RC4
+.size	VR_RC4,.-VR_RC4
 ___
 }
 
@@ -449,10 +449,10 @@ $idx="%r8";
 $ido="%r9";
 
 $code.=<<___;
-.globl	RC4_set_key
-.type	RC4_set_key,\@function,3
+.globl	VR_RC4_set_key
+.type	VR_RC4_set_key,\@function,3
 .align	16
-RC4_set_key:
+VR_RC4_set_key:
 	lea	8($dat),$dat
 	lea	($inp,$len),$inp
 	neg	$len
@@ -463,7 +463,7 @@ RC4_set_key:
 	xor	%r11,%r11
 
 	mov	OPENSSL_ia32cap_P(%rip),$idx#d
-	bt	\$20,$idx#d	# RC4_CHAR?
+	bt	\$20,$idx#d	# VR_RC4_CHAR?
 	jc	.Lc1stloop
 	jmp	.Lw1stloop
 
@@ -519,12 +519,12 @@ RC4_set_key:
 	mov	%eax,-8($dat)
 	mov	%eax,-4($dat)
 	ret
-.size	RC4_set_key,.-RC4_set_key
+.size	VR_RC4_set_key,.-VR_RC4_set_key
 
-.globl	RC4_options
-.type	RC4_options,\@abi-omnipotent
+.globl	VR_RC4_options
+.type	VR_RC4_options,\@abi-omnipotent
 .align	16
-RC4_options:
+VR_RC4_options:
 	lea	.Lopts(%rip),%rax
 	mov	OPENSSL_ia32cap_P(%rip),%edx
 	bt	\$20,%edx
@@ -542,9 +542,9 @@ RC4_options:
 .asciz	"rc4(8x,int)"
 .asciz	"rc4(8x,char)"
 .asciz	"rc4(16x,int)"
-.asciz	"RC4 for x86_64, CRYPTOGAMS by <appro\@openssl.org>"
+.asciz	"VR_RC4 for x86_64, CRYPTOGAMS by <appro\@openssl.org>"
 .align	64
-.size	RC4_options,.-RC4_options
+.size	VR_RC4_options,.-VR_RC4_options
 ___
 
 # EXCEPTION_DISPOSITION handler (EXCEPTION_RECORD *rec,ULONG64 frame,
@@ -660,20 +660,20 @@ key_se_handler:
 
 .section	.pdata
 .align	4
-	.rva	.LSEH_begin_RC4
-	.rva	.LSEH_end_RC4
-	.rva	.LSEH_info_RC4
+	.rva	.LSEH_begin_VR_RC4
+	.rva	.LSEH_end_VR_RC4
+	.rva	.LSEH_info_VR_RC4
 
-	.rva	.LSEH_begin_RC4_set_key
-	.rva	.LSEH_end_RC4_set_key
-	.rva	.LSEH_info_RC4_set_key
+	.rva	.LSEH_begin_VR_RC4_set_key
+	.rva	.LSEH_end_VR_RC4_set_key
+	.rva	.LSEH_info_VR_RC4_set_key
 
 .section	.xdata
 .align	8
-.LSEH_info_RC4:
+.LSEH_info_VR_RC4:
 	.byte	9,0,0,0
 	.rva	stream_se_handler
-.LSEH_info_RC4_set_key:
+.LSEH_info_VR_RC4_set_key:
 	.byte	9,0,0,0
 	.rva	key_se_handler
 ___

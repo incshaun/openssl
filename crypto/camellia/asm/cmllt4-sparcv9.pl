@@ -57,7 +57,7 @@ $output = pop;
 open STDOUT,">$output";
 
 $::evp=1;	# if $evp is set to 0, script generates module with
-# Camellia_[en|de]crypt, Camellia_set_key and Camellia_cbc_encrypt
+# Camellia_[en|de]crypt, Camellia_set_key and VR_Camellia_cbc_encrypt
 # entry points. These are fully compatible with openssl/camellia.h.
 
 ######################################################################
@@ -911,9 +911,9 @@ ___
 my ($inp,$out,$len,$key,$ivec,$enc)=map("%o$_",(0..5));
 
 $code.=<<___;
-.globl	Camellia_cbc_encrypt
+.globl	VR_Camellia_cbc_encrypt
 .align	32
-Camellia_cbc_encrypt:
+VR_Camellia_cbc_encrypt:
 	ld		[$key + 272], %g1
 	nop
 	brz		$enc, .Lcbc_decrypt
@@ -929,8 +929,8 @@ Camellia_cbc_encrypt:
 	nop
 	ba		cmll256_t4_cbc_decrypt
 	nop
-.type	Camellia_cbc_encrypt,#function
-.size	Camellia_cbc_encrypt,.-Camellia_cbc_encrypt
+.type	VR_Camellia_cbc_encrypt,#function
+.size	VR_Camellia_cbc_encrypt,.-VR_Camellia_cbc_encrypt
 ___
 }
 

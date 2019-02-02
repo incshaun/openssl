@@ -40,19 +40,19 @@ static int sigx_cmp(const nid_triple *const *a, const nid_triple *const *b)
 
 IMPLEMENT_OBJ_BSEARCH_CMP_FN(const nid_triple *, const nid_triple *, sigx);
 
-int OBJ_find_sigid_algs(int signid, int *pdig_nid, int *ppkey_nid)
+int VR_OBJ_find_sigid_algs(int signid, int *pdig_nid, int *ppkey_nid)
 {
     nid_triple tmp;
     const nid_triple *rv = NULL;
     tmp.sign_id = signid;
 
     if (sig_app != NULL) {
-        int idx = sk_nid_triple_find(sig_app, &tmp);
+        int idx = sk_VR_nid_triple_find(sig_app, &tmp);
         rv = sk_nid_triple_value(sig_app, idx);
     }
 #ifndef OBJ_XREF_TEST2
     if (rv == NULL) {
-        rv = OBJ_bsearch_sig(&tmp, sigoid_srt, OSSL_NELEM(sigoid_srt));
+        rv = VR_OBJ_bsearch_sig(&tmp, sigoid_srt, OSSL_NELEM(sigoid_srt));
     }
 #endif
     if (rv == NULL)
@@ -64,7 +64,7 @@ int OBJ_find_sigid_algs(int signid, int *pdig_nid, int *ppkey_nid)
     return 1;
 }
 
-int OBJ_find_sigid_by_algs(int *psignid, int dig_nid, int pkey_nid)
+int VR_OBJ_find_sigid_by_algs(int *psignid, int dig_nid, int pkey_nid)
 {
     nid_triple tmp;
     const nid_triple *t = &tmp;
@@ -74,7 +74,7 @@ int OBJ_find_sigid_by_algs(int *psignid, int dig_nid, int pkey_nid)
     tmp.pkey_id = pkey_nid;
 
     if (sigx_app) {
-        int idx = sk_nid_triple_find(sigx_app, &tmp);
+        int idx = sk_VR_nid_triple_find(sigx_app, &tmp);
         if (idx >= 0) {
             t = sk_nid_triple_value(sigx_app, idx);
             rv = &t;
@@ -82,7 +82,7 @@ int OBJ_find_sigid_by_algs(int *psignid, int dig_nid, int pkey_nid)
     }
 #ifndef OBJ_XREF_TEST2
     if (rv == NULL) {
-        rv = OBJ_bsearch_sigx(&t, sigoid_srt_xref, OSSL_NELEM(sigoid_srt_xref));
+        rv = VR_OBJ_bsearch_sigx(&t, sigoid_srt_xref, OSSL_NELEM(sigoid_srt_xref));
     }
 #endif
     if (rv == NULL)
@@ -92,15 +92,15 @@ int OBJ_find_sigid_by_algs(int *psignid, int dig_nid, int pkey_nid)
     return 1;
 }
 
-int OBJ_add_sigid(int signid, int dig_id, int pkey_id)
+int VR_OBJ_add_sigid(int signid, int dig_id, int pkey_id)
 {
     nid_triple *ntr;
     if (sig_app == NULL)
-        sig_app = sk_nid_triple_new(sig_sk_cmp);
+        sig_app = sk_VR_nid_triple_new(sig_sk_cmp);
     if (sig_app == NULL)
         return 0;
     if (sigx_app == NULL)
-        sigx_app = sk_nid_triple_new(sigx_cmp);
+        sigx_app = sk_VR_nid_triple_new(sigx_cmp);
     if (sigx_app == NULL)
         return 0;
     if ((ntr = OPENSSL_malloc(sizeof(*ntr))) == NULL) {
@@ -111,12 +111,12 @@ int OBJ_add_sigid(int signid, int dig_id, int pkey_id)
     ntr->hash_id = dig_id;
     ntr->pkey_id = pkey_id;
 
-    if (!sk_nid_triple_push(sig_app, ntr)) {
-        OPENSSL_free(ntr);
+    if (!sk_VR_nid_triple_push(sig_app, ntr)) {
+        OPENVR_SSL_free(ntr);
         return 0;
     }
 
-    if (!sk_nid_triple_push(sigx_app, ntr))
+    if (!sk_VR_nid_triple_push(sigx_app, ntr))
         return 0;
 
     sk_nid_triple_sort(sig_app);
@@ -127,13 +127,13 @@ int OBJ_add_sigid(int signid, int dig_id, int pkey_id)
 
 static void sid_free(nid_triple *tt)
 {
-    OPENSSL_free(tt);
+    OPENVR_SSL_free(tt);
 }
 
-void OBJ_sigid_free(void)
+void VR_OBJ_sigid_free(void)
 {
-    sk_nid_triple_pop_free(sig_app, sid_free);
+    sk_VR_nid_triple_pop_free(sig_app, sid_free);
     sig_app = NULL;
-    sk_nid_triple_free(sigx_app);
+    sk_VR_nid_triple_free(sigx_app);
     sigx_app = NULL;
 }

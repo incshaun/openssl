@@ -67,17 +67,17 @@ const X509V3_EXT_METHOD v3_pci =
 static int i2r_pci(X509V3_EXT_METHOD *method, PROXY_CERT_INFO_EXTENSION *pci,
                    BIO *out, int indent)
 {
-    BIO_printf(out, "%*sPath Length Constraint: ", indent, "");
+    VR_BIO_printf(out, "%*sPath Length Constraint: ", indent, "");
     if (pci->pcPathLengthConstraint)
-        i2a_ASN1_INTEGER(out, pci->pcPathLengthConstraint);
+        VR_i2a_ASN1_INTEGER(out, pci->pcPathLengthConstraint);
     else
-        BIO_printf(out, "infinite");
-    BIO_puts(out, "\n");
-    BIO_printf(out, "%*sPolicy Language: ", indent, "");
-    i2a_ASN1_OBJECT(out, pci->proxyPolicy->policyLanguage);
-    BIO_puts(out, "\n");
+        VR_BIO_printf(out, "infinite");
+    VR_BIO_puts(out, "\n");
+    VR_BIO_printf(out, "%*sPolicy Language: ", indent, "");
+    VR_i2a_ASN1_OBJECT(out, pci->proxyPolicy->policyLanguage);
+    VR_BIO_puts(out, "\n");
     if (pci->proxyPolicy->policy && pci->proxyPolicy->policy->data)
-        BIO_printf(out, "%*sPolicy Text: %s\n", indent, "",
+        VR_BIO_printf(out, "%*sPolicy Text: %s\n", indent, "",
                    pci->proxyPolicy->policy->data);
     return 1;
 }
@@ -95,7 +95,7 @@ static int process_pci_value(CONF_VALUE *val,
             X509V3_conf_err(val);
             return 0;
         }
-        if ((*language = OBJ_txt2obj(val->value, 0)) == NULL) {
+        if ((*language = VR_OBJ_txt2obj(val->value, 0)) == NULL) {
             X509V3err(X509V3_F_PROCESS_PCI_VALUE,
                       X509V3_R_INVALID_OBJECT_IDENTIFIER);
             X509V3_conf_err(val);
@@ -108,7 +108,7 @@ static int process_pci_value(CONF_VALUE *val,
             X509V3_conf_err(val);
             return 0;
         }
-        if (!X509V3_get_value_int(val, pathlen)) {
+        if (!VR_X509V3_get_value_int(val, pathlen)) {
             X509V3err(X509V3_F_PROCESS_PCI_VALUE,
                       X509V3_R_POLICY_PATH_LENGTH);
             X509V3_conf_err(val);
@@ -118,7 +118,7 @@ static int process_pci_value(CONF_VALUE *val,
         unsigned char *tmp_data = NULL;
         long val_len;
         if (!*policy) {
-            *policy = ASN1_OCTET_STRING_new();
+            *policy = VR_ASN1_OCTET_STRING_new();
             if (*policy == NULL) {
                 X509V3err(X509V3_F_PROCESS_PCI_VALUE, ERR_R_MALLOC_FAILURE);
                 X509V3_conf_err(val);
@@ -128,7 +128,7 @@ static int process_pci_value(CONF_VALUE *val,
         }
         if (strncmp(val->value, "hex:", 4) == 0) {
             unsigned char *tmp_data2 =
-                OPENSSL_hexstr2buf(val->value + 4, &val_len);
+                VR_OPENSSL_hexstr2buf(val->value + 4, &val_len);
 
             if (!tmp_data2) {
                 X509V3_conf_err(val);
@@ -144,29 +144,29 @@ static int process_pci_value(CONF_VALUE *val,
                 (*policy)->length += val_len;
                 (*policy)->data[(*policy)->length] = '\0';
             } else {
-                OPENSSL_free(tmp_data2);
+                OPENVR_SSL_free(tmp_data2);
                 /*
                  * realloc failure implies the original data space is b0rked
                  * too!
                  */
-                OPENSSL_free((*policy)->data);
+                OPENVR_SSL_free((*policy)->data);
                 (*policy)->data = NULL;
                 (*policy)->length = 0;
                 X509V3err(X509V3_F_PROCESS_PCI_VALUE, ERR_R_MALLOC_FAILURE);
                 X509V3_conf_err(val);
                 goto err;
             }
-            OPENSSL_free(tmp_data2);
+            OPENVR_SSL_free(tmp_data2);
         } else if (strncmp(val->value, "file:", 5) == 0) {
             unsigned char buf[2048];
             int n;
-            BIO *b = BIO_new_file(val->value + 5, "r");
+            BIO *b = VR_BIO_new_file(val->value + 5, "r");
             if (!b) {
                 X509V3err(X509V3_F_PROCESS_PCI_VALUE, ERR_R_BIO_LIB);
                 X509V3_conf_err(val);
                 goto err;
             }
-            while ((n = BIO_read(b, buf, sizeof(buf))) > 0
+            while ((n = VR_BIO_read(b, buf, sizeof(buf))) > 0
                    || (n == 0 && BIO_should_retry(b))) {
                 if (!n)
                     continue;
@@ -175,13 +175,13 @@ static int process_pci_value(CONF_VALUE *val,
                                            (*policy)->length + n + 1);
 
                 if (!tmp_data) {
-                    OPENSSL_free((*policy)->data);
+                    OPENVR_SSL_free((*policy)->data);
                     (*policy)->data = NULL;
                     (*policy)->length = 0;
                     X509V3err(X509V3_F_PROCESS_PCI_VALUE,
                               ERR_R_MALLOC_FAILURE);
                     X509V3_conf_err(val);
-                    BIO_free_all(b);
+                    VR_BIO_free_all(b);
                     goto err;
                 }
 
@@ -190,7 +190,7 @@ static int process_pci_value(CONF_VALUE *val,
                 (*policy)->length += n;
                 (*policy)->data[(*policy)->length] = '\0';
             }
-            BIO_free_all(b);
+            VR_BIO_free_all(b);
 
             if (n < 0) {
                 X509V3err(X509V3_F_PROCESS_PCI_VALUE, ERR_R_BIO_LIB);
@@ -212,7 +212,7 @@ static int process_pci_value(CONF_VALUE *val,
                  * realloc failure implies the original data space is b0rked
                  * too!
                  */
-                OPENSSL_free((*policy)->data);
+                OPENVR_SSL_free((*policy)->data);
                 (*policy)->data = NULL;
                 (*policy)->length = 0;
                 X509V3err(X509V3_F_PROCESS_PCI_VALUE, ERR_R_MALLOC_FAILURE);
@@ -234,7 +234,7 @@ static int process_pci_value(CONF_VALUE *val,
     return 1;
  err:
     if (free_policy) {
-        ASN1_OCTET_STRING_free(*policy);
+        VR_ASN1_OCTET_STRING_free(*policy);
         *policy = NULL;
     }
     return 0;
@@ -250,7 +250,7 @@ static PROXY_CERT_INFO_EXTENSION *r2i_pci(X509V3_EXT_METHOD *method,
     ASN1_OCTET_STRING *policy = NULL;
     int i, j;
 
-    vals = X509V3_parse_list(value);
+    vals = VR_X509V3_parse_list(value);
     for (i = 0; i < sk_CONF_VALUE_num(vals); i++) {
         CONF_VALUE *cnf = sk_CONF_VALUE_value(vals, i);
         if (!cnf->name || (*cnf->name != '@' && !cnf->value)) {
@@ -263,7 +263,7 @@ static PROXY_CERT_INFO_EXTENSION *r2i_pci(X509V3_EXT_METHOD *method,
             STACK_OF(CONF_VALUE) *sect;
             int success_p = 1;
 
-            sect = X509V3_get_section(ctx, cnf->name + 1);
+            sect = VR_X509V3_get_section(ctx, cnf->name + 1);
             if (!sect) {
                 X509V3err(X509V3_F_R2I_PCI, X509V3_R_INVALID_SECTION);
                 X509V3_conf_err(cnf);
@@ -274,7 +274,7 @@ static PROXY_CERT_INFO_EXTENSION *r2i_pci(X509V3_EXT_METHOD *method,
                     process_pci_value(sk_CONF_VALUE_value(sect, j),
                                       &language, &pathlen, &policy);
             }
-            X509V3_section_free(ctx, sect);
+            VR_X509V3_section_free(ctx, sect);
             if (!success_p)
                 goto err;
         } else {
@@ -291,14 +291,14 @@ static PROXY_CERT_INFO_EXTENSION *r2i_pci(X509V3_EXT_METHOD *method,
                   X509V3_R_NO_PROXY_CERT_POLICY_LANGUAGE_DEFINED);
         goto err;
     }
-    i = OBJ_obj2nid(language);
+    i = VR_OBJ_obj2nid(language);
     if ((i == NID_Independent || i == NID_id_ppl_inheritAll) && policy) {
         X509V3err(X509V3_F_R2I_PCI,
                   X509V3_R_POLICY_WHEN_PROXY_LANGUAGE_REQUIRES_NO_POLICY);
         goto err;
     }
 
-    pci = PROXY_CERT_INFO_EXTENSION_new();
+    pci = VR_PROXY_CERT_INFO_EXTENSION_new();
     if (pci == NULL) {
         X509V3err(X509V3_F_R2I_PCI, ERR_R_MALLOC_FAILURE);
         goto err;
@@ -312,14 +312,14 @@ static PROXY_CERT_INFO_EXTENSION *r2i_pci(X509V3_EXT_METHOD *method,
     pathlen = NULL;
     goto end;
  err:
-    ASN1_OBJECT_free(language);
-    ASN1_INTEGER_free(pathlen);
+    VR_ASN1_OBJECT_free(language);
+    VR_ASN1_INTEGER_free(pathlen);
     pathlen = NULL;
-    ASN1_OCTET_STRING_free(policy);
+    VR_ASN1_OCTET_STRING_free(policy);
     policy = NULL;
-    PROXY_CERT_INFO_EXTENSION_free(pci);
+    VR_PROXY_CERT_INFO_EXTENSION_free(pci);
     pci = NULL;
  end:
-    sk_CONF_VALUE_pop_free(vals, X509V3_conf_free);
+    sk_VR_CONF_VALUE_pop_free(vals, VR_X509V3_conf_free);
     return pci;
 }

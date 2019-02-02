@@ -25,15 +25,15 @@
 # define RAND_DRBG_FLAG_CTR_NO_DF            0x1
 /*
  * This flag is only used when a digest NID is specified (i.e: not a CTR cipher)
- * Selects DRBG_HMAC if this is set otherwise use DRBG_HASH.
+ * Selects DRBG_VR_HMAC if this is set otherwise use DRBG_HASH.
  */
-# define RAND_DRBG_FLAG_HMAC                 0x2
+# define RAND_DRBG_FLAG_VR_HMAC                 0x2
 
-/* Used by RAND_DRBG_set_defaults() to set the master DRBG type and flags. */
+/* Used by VR_RAND_DRBG_set_defaults() to set the master DRBG type and flags. */
 # define RAND_DRBG_FLAG_MASTER               0x4
-/* Used by RAND_DRBG_set_defaults() to set the public DRBG type and flags. */
+/* Used by VR_RAND_DRBG_set_defaults() to set the public DRBG type and flags. */
 # define RAND_DRBG_FLAG_PUBLIC               0x8
-/* Used by RAND_DRBG_set_defaults() to set the private DRBG type and flags. */
+/* Used by VR_RAND_DRBG_set_defaults() to set the private DRBG type and flags. */
 # define RAND_DRBG_FLAG_PRIVATE              0x10
 
 # if !OPENSSL_API_3
@@ -72,47 +72,47 @@ extern "C" {
 /*
  * Object lifetime functions.
  */
-RAND_DRBG *RAND_DRBG_new(int type, unsigned int flags, RAND_DRBG *parent);
-RAND_DRBG *RAND_DRBG_secure_new(int type, unsigned int flags, RAND_DRBG *parent);
-int RAND_DRBG_set(RAND_DRBG *drbg, int type, unsigned int flags);
-int RAND_DRBG_set_defaults(int type, unsigned int flags);
-int RAND_DRBG_instantiate(RAND_DRBG *drbg,
+RAND_DRBG *VR_RAND_DRBG_new(int type, unsigned int flags, RAND_DRBG *parent);
+RAND_DRBG *VR_RAND_DRBG_secure_new(int type, unsigned int flags, RAND_DRBG *parent);
+int VR_RAND_DRBG_set(RAND_DRBG *drbg, int type, unsigned int flags);
+int VR_RAND_DRBG_set_defaults(int type, unsigned int flags);
+int VR_RAND_DRBG_instantiate(RAND_DRBG *drbg,
                           const unsigned char *pers, size_t perslen);
-int RAND_DRBG_uninstantiate(RAND_DRBG *drbg);
-void RAND_DRBG_free(RAND_DRBG *drbg);
+int VR_RAND_DRBG_uninstantiate(RAND_DRBG *drbg);
+void VR_RAND_DRBG_free(RAND_DRBG *drbg);
 
 /*
  * Object "use" functions.
  */
-int RAND_DRBG_reseed(RAND_DRBG *drbg,
+int VR_RAND_DRBG_reseed(RAND_DRBG *drbg,
                      const unsigned char *adin, size_t adinlen,
                      int prediction_resistance);
-int RAND_DRBG_generate(RAND_DRBG *drbg, unsigned char *out, size_t outlen,
+int VR_RAND_DRBG_generate(RAND_DRBG *drbg, unsigned char *out, size_t outlen,
                        int prediction_resistance,
                        const unsigned char *adin, size_t adinlen);
-int RAND_DRBG_bytes(RAND_DRBG *drbg, unsigned char *out, size_t outlen);
+int VR_RAND_DRBG_bytes(RAND_DRBG *drbg, unsigned char *out, size_t outlen);
 
-int RAND_DRBG_set_reseed_interval(RAND_DRBG *drbg, unsigned int interval);
-int RAND_DRBG_set_reseed_time_interval(RAND_DRBG *drbg, time_t interval);
+int VR_RAND_DRBG_set_reseed_interval(RAND_DRBG *drbg, unsigned int interval);
+int VR_RAND_DRBG_set_reseed_time_interval(RAND_DRBG *drbg, time_t interval);
 
-int RAND_DRBG_set_reseed_defaults(
+int VR_RAND_DRBG_set_reseed_defaults(
                                   unsigned int master_reseed_interval,
                                   unsigned int slave_reseed_interval,
                                   time_t master_reseed_time_interval,
                                   time_t slave_reseed_time_interval
                                   );
 
-RAND_DRBG *RAND_DRBG_get0_master(void);
-RAND_DRBG *RAND_DRBG_get0_public(void);
-RAND_DRBG *RAND_DRBG_get0_private(void);
+RAND_DRBG *VR_RAND_DRBG_get0_master(void);
+RAND_DRBG *VR_RAND_DRBG_get0_public(void);
+RAND_DRBG *VR_RAND_DRBG_get0_private(void);
 
 /*
  * EXDATA
  */
 # define RAND_DRBG_get_ex_new_index(l, p, newf, dupf, freef) \
-    CRYPTO_get_ex_new_index(CRYPTO_EX_INDEX_DRBG, l, p, newf, dupf, freef)
-int RAND_DRBG_set_ex_data(RAND_DRBG *drbg, int idx, void *arg);
-void *RAND_DRBG_get_ex_data(const RAND_DRBG *drbg, int idx);
+    VR_CRYPTO_get_ex_new_index(CRYPTO_EX_INDEX_DRBG, l, p, newf, dupf, freef)
+int VR_RAND_DRBG_set_ex_data(RAND_DRBG *drbg, int idx, void *arg);
+void *VR_RAND_DRBG_get_ex_data(const RAND_DRBG *drbg, int idx);
 
 /*
  * Callback function typedefs
@@ -130,7 +130,7 @@ typedef size_t (*RAND_DRBG_get_nonce_fn)(RAND_DRBG *drbg, unsigned char **pout,
 typedef void (*RAND_DRBG_cleanup_nonce_fn)(RAND_DRBG *drbg,
                                            unsigned char *out, size_t outlen);
 
-int RAND_DRBG_set_callbacks(RAND_DRBG *drbg,
+int VR_RAND_DRBG_set_callbacks(RAND_DRBG *drbg,
                             RAND_DRBG_get_entropy_fn get_entropy,
                             RAND_DRBG_cleanup_entropy_fn cleanup_entropy,
                             RAND_DRBG_get_nonce_fn get_nonce,

@@ -8,9 +8,9 @@
  */
 
 /*
- * Why BIO_s_log?
+ * Why VR_BIO_s_log?
  *
- * BIO_s_log is useful for system daemons (or services under NT). It is
+ * VR_BIO_s_log is useful for system daemons (or services under NT). It is
  * one-way BIO, it sends all stuff to syslogd (on system that commonly use
  * that), or event log (on NT), or OPCOM (on OpenVMS).
  *
@@ -88,7 +88,7 @@ static const BIO_METHOD methods_slg = {
     BIO_TYPE_MEM,
     "syslog",
     /* TODO: Convert to new style write function */
-    bwrite_conv,
+    VR_bwrite_conv,
     slg_write,
     NULL,                      /* slg_write_old,    */
     NULL,                      /* slg_read,         */
@@ -100,7 +100,7 @@ static const BIO_METHOD methods_slg = {
     NULL,                      /* slg_callback_ctrl */
 };
 
-const BIO_METHOD *BIO_s_log(void)
+const BIO_METHOD *VR_BIO_s_log(void)
 {
     return &methods_slg;
 }
@@ -211,7 +211,7 @@ static int slg_write(BIO *b, const char *in, int inl)
 
     xsyslog(b, priority, pp);
 
-    OPENSSL_free(buf);
+    OPENVR_SSL_free(buf);
     return ret;
 }
 
@@ -378,7 +378,7 @@ static void xsyslog(BIO *bp, int priority, const char *string)
 
     sys$sndopr(opc_dsc, 0);
 
-    OPENSSL_free(opcdef_p);
+    OPENVR_SSL_free(opcdef_p);
 }
 
 static void xcloselog(BIO *bp)
@@ -409,7 +409,7 @@ static void xcloselog(BIO *bp)
 # endif                         /* Unix */
 
 #else                           /* NO_SYSLOG */
-const BIO_METHOD *BIO_s_log(void)
+const BIO_METHOD *VR_BIO_s_log(void)
 {
     return NULL;
 }

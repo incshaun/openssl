@@ -14,7 +14,7 @@
 #include <openssl/x509.h>
 #include "internal/evp_int.h"
 
-int EVP_SignFinal(EVP_MD_CTX *ctx, unsigned char *sigret,
+int VR_EVP_SignFinal(EVP_MD_CTX *ctx, unsigned char *sigret,
                   unsigned int *siglen, EVP_PKEY *pkey)
 {
     unsigned char m[EVP_MAX_MD_SIZE];
@@ -24,38 +24,38 @@ int EVP_SignFinal(EVP_MD_CTX *ctx, unsigned char *sigret,
     EVP_PKEY_CTX *pkctx = NULL;
 
     *siglen = 0;
-    if (EVP_MD_CTX_test_flags(ctx, EVP_MD_CTX_FLAG_FINALISE)) {
-        if (!EVP_DigestFinal_ex(ctx, m, &m_len))
+    if (VR_EVP_MD_CTX_test_flags(ctx, EVP_MD_CTX_FLAG_FINALISE)) {
+        if (!VR_EVP_DigestFinal_ex(ctx, m, &m_len))
             goto err;
     } else {
         int rv = 0;
-        EVP_MD_CTX *tmp_ctx = EVP_MD_CTX_new();
+        EVP_MD_CTX *tmp_ctx = VR_EVP_MD_CTX_new();
         if (tmp_ctx == NULL) {
             EVPerr(EVP_F_EVP_SIGNFINAL, ERR_R_MALLOC_FAILURE);
             return 0;
         }
-        rv = EVP_MD_CTX_copy_ex(tmp_ctx, ctx);
+        rv = VR_EVP_MD_CTX_copy_ex(tmp_ctx, ctx);
         if (rv)
-            rv = EVP_DigestFinal_ex(tmp_ctx, m, &m_len);
-        EVP_MD_CTX_free(tmp_ctx);
+            rv = VR_EVP_DigestFinal_ex(tmp_ctx, m, &m_len);
+        VR_EVP_MD_CTX_free(tmp_ctx);
         if (!rv)
             return 0;
     }
 
-    sltmp = (size_t)EVP_PKEY_size(pkey);
+    sltmp = (size_t)VR_EVP_PKEY_size(pkey);
     i = 0;
-    pkctx = EVP_PKEY_CTX_new(pkey, NULL);
+    pkctx = VR_EVP_PKEY_CTX_new(pkey, NULL);
     if (pkctx == NULL)
         goto err;
-    if (EVP_PKEY_sign_init(pkctx) <= 0)
+    if (VR_EVP_PKEY_sign_init(pkctx) <= 0)
         goto err;
-    if (EVP_PKEY_CTX_set_signature_md(pkctx, EVP_MD_CTX_md(ctx)) <= 0)
+    if (EVP_PKEY_CTX_set_signature_md(pkctx, VR_EVP_MD_CTX_md(ctx)) <= 0)
         goto err;
-    if (EVP_PKEY_sign(pkctx, sigret, &sltmp, m, m_len) <= 0)
+    if (VR_EVP_PKEY_sign(pkctx, sigret, &sltmp, m, m_len) <= 0)
         goto err;
     *siglen = sltmp;
     i = 1;
  err:
-    EVP_PKEY_CTX_free(pkctx);
+    VR_EVP_PKEY_CTX_free(pkctx);
     return i;
 }

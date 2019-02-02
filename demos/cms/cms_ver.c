@@ -26,41 +26,41 @@ int main(int argc, char **argv)
 
     /* Set up trusted CA certificate store */
 
-    st = X509_STORE_new();
+    st = VR_X509_STORE_new();
 
     /* Read in CA certificate */
-    tbio = BIO_new_file("cacert.pem", "r");
+    tbio = VR_BIO_new_file("cacert.pem", "r");
 
     if (!tbio)
         goto err;
 
-    cacert = PEM_read_bio_X509(tbio, NULL, 0, NULL);
+    cacert = VR_PEM_read_bio_X509(tbio, NULL, 0, NULL);
 
     if (!cacert)
         goto err;
 
-    if (!X509_STORE_add_cert(st, cacert))
+    if (!VR_X509_STORE_add_cert(st, cacert))
         goto err;
 
     /* Open message being verified */
 
-    in = BIO_new_file("smout.txt", "r");
+    in = VR_BIO_new_file("smout.txt", "r");
 
     if (!in)
         goto err;
 
     /* parse message */
-    cms = SMIME_read_CMS(in, &cont);
+    cms = VR_SMIME_read_CMS(in, &cont);
 
     if (!cms)
         goto err;
 
     /* File to output verified content to */
-    out = BIO_new_file("smver.txt", "w");
+    out = VR_BIO_new_file("smver.txt", "w");
     if (!out)
         goto err;
 
-    if (!CMS_verify(cms, NULL, st, cont, out, 0)) {
+    if (!VR_CMS_verify(cms, NULL, st, cont, out, 0)) {
         fprintf(stderr, "Verification Failure\n");
         goto err;
     }
@@ -73,13 +73,13 @@ int main(int argc, char **argv)
 
     if (ret) {
         fprintf(stderr, "Error Verifying Data\n");
-        ERR_print_errors_fp(stderr);
+        VR_ERR_print_errors_fp(stderr);
     }
 
-    CMS_ContentInfo_free(cms);
-    X509_free(cacert);
-    BIO_free(in);
-    BIO_free(out);
-    BIO_free(tbio);
+    VR_CMS_ContentInfo_free(cms);
+    VR_X509_free(cacert);
+    VR_BIO_free(in);
+    VR_BIO_free(out);
+    VR_BIO_free(tbio);
     return ret;
 }

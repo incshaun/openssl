@@ -144,15 +144,15 @@ static int afalg_setup_async_event_notification(afalg_aio *aio)
     void *custom = NULL;
     int ret;
 
-    if ((job = ASYNC_get_current_job()) != NULL) {
+    if ((job = VR_ASYNC_get_current_job()) != NULL) {
         /* Async mode */
-        waitctx = ASYNC_get_wait_ctx(job);
+        waitctx = VR_ASYNC_get_wait_ctx(job);
         if (waitctx == NULL) {
-            ALG_WARN("%s(%d): ASYNC_get_wait_ctx error", __FILE__, __LINE__);
+            ALG_WARN("%s(%d): VR_ASYNC_get_wait_ctx error", __FILE__, __LINE__);
             return 0;
         }
         /* Get waitfd from ASYNC_WAIT_CTX if it is already set */
-        ret = ASYNC_WAIT_CTX_get_fd(waitctx, engine_afalg_id,
+        ret = VR_ASYNC_WAIT_CTX_get_fd(waitctx, engine_afalg_id,
                                     &aio->efd, &custom);
         if (ret == 0) {
             /*
@@ -167,7 +167,7 @@ static int afalg_setup_async_event_notification(afalg_aio *aio)
                          AFALG_R_EVENTFD_FAILED);
                 return 0;
             }
-            ret = ASYNC_WAIT_CTX_set_wait_fd(waitctx, engine_afalg_id,
+            ret = VR_ASYNC_WAIT_CTX_set_wait_fd(waitctx, engine_afalg_id,
                                              aio->efd, custom,
                                              afalg_waitfd_cleanup);
             if (ret == 0) {
@@ -264,7 +264,7 @@ static int afalg_fin_cipher_aio(afalg_aio *aio, int sfd, unsigned char *buf,
 
     do {
         /* While AIO read is being performed pause job */
-        ASYNC_pause_job();
+        VR_ASYNC_pause_job();
 
         /* Check for completion of AIO read */
         r = read(aio->efd, &eval, sizeof(eval));
@@ -509,18 +509,18 @@ static int afalg_cipher_init(EVP_CIPHER_CTX *ctx, const unsigned char *key,
         return 0;
     }
 
-    if (EVP_CIPHER_CTX_cipher(ctx) == NULL) {
+    if (VR_EVP_CIPHER_CTX_cipher(ctx) == NULL) {
         ALG_WARN("%s(%d): Cipher object NULL\n", __FILE__, __LINE__);
         return 0;
     }
 
-    actx = EVP_CIPHER_CTX_get_cipher_data(ctx);
+    actx = VR_EVP_CIPHER_CTX_get_cipher_data(ctx);
     if (actx == NULL) {
         ALG_WARN("%s(%d): Cipher data NULL\n", __FILE__, __LINE__);
         return 0;
     }
 
-    ciphertype = EVP_CIPHER_CTX_nid(ctx);
+    ciphertype = VR_EVP_CIPHER_CTX_nid(ctx);
     switch (ciphertype) {
     case NID_aes_128_cbc:
     case NID_aes_192_cbc:
@@ -534,9 +534,9 @@ static int afalg_cipher_init(EVP_CIPHER_CTX *ctx, const unsigned char *key,
     }
     ciphername[ALG_MAX_SALG_NAME-1]='\0';
 
-    if (ALG_AES_IV_LEN != EVP_CIPHER_CTX_iv_length(ctx)) {
+    if (ALG_AES_IV_LEN != VR_EVP_CIPHER_CTX_iv_length(ctx)) {
         ALG_WARN("%s(%d): Unsupported IV length :%d\n", __FILE__, __LINE__,
-                 EVP_CIPHER_CTX_iv_length(ctx));
+                 VR_EVP_CIPHER_CTX_iv_length(ctx));
         return 0;
     }
 
@@ -546,7 +546,7 @@ static int afalg_cipher_init(EVP_CIPHER_CTX *ctx, const unsigned char *key,
         return 0;
 
 
-    ret = afalg_set_key(actx, key, EVP_CIPHER_CTX_key_length(ctx));
+    ret = afalg_set_key(actx, key, VR_EVP_CIPHER_CTX_key_length(ctx));
     if (ret < 1)
         goto err;
 
@@ -581,7 +581,7 @@ static int afalg_do_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
         return 0;
     }
 
-    actx = (afalg_ctx *) EVP_CIPHER_CTX_get_cipher_data(ctx);
+    actx = (afalg_ctx *) VR_EVP_CIPHER_CTX_get_cipher_data(ctx);
     if (actx == NULL || actx->init_done != MAGIC_INIT_NUM) {
         ALG_WARN("%s afalg ctx passed\n",
                  ctx == NULL ? "NULL" : "Uninitialised");
@@ -592,14 +592,14 @@ static int afalg_do_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
      * set iv now for decrypt operation as the input buffer can be
      * overwritten for inplace operation where in = out.
      */
-    if (EVP_CIPHER_CTX_encrypting(ctx) == 0) {
+    if (VR_EVP_CIPHER_CTX_encrypting(ctx) == 0) {
         memcpy(nxtiv, in + (inl - ALG_AES_IV_LEN), ALG_AES_IV_LEN);
     }
 
     /* Send input data to kernel space */
     ret = afalg_start_cipher_sk(actx, (unsigned char *)in, inl,
-                                EVP_CIPHER_CTX_iv(ctx),
-                                EVP_CIPHER_CTX_encrypting(ctx));
+                                VR_EVP_CIPHER_CTX_iv(ctx),
+                                VR_EVP_CIPHER_CTX_encrypting(ctx));
     if (ret < 1) {
         return 0;
     }
@@ -609,11 +609,11 @@ static int afalg_do_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
     if (ret < 1)
         return 0;
 
-    if (EVP_CIPHER_CTX_encrypting(ctx)) {
-        memcpy(EVP_CIPHER_CTX_iv_noconst(ctx), out + (inl - ALG_AES_IV_LEN),
+    if (VR_EVP_CIPHER_CTX_encrypting(ctx)) {
+        memcpy(VR_EVP_CIPHER_CTX_iv_noconst(ctx), out + (inl - ALG_AES_IV_LEN),
                ALG_AES_IV_LEN);
     } else {
-        memcpy(EVP_CIPHER_CTX_iv_noconst(ctx), nxtiv, ALG_AES_IV_LEN);
+        memcpy(VR_EVP_CIPHER_CTX_iv_noconst(ctx), nxtiv, ALG_AES_IV_LEN);
     }
 
     return 1;
@@ -629,7 +629,7 @@ static int afalg_cipher_cleanup(EVP_CIPHER_CTX *ctx)
         return 0;
     }
 
-    actx = (afalg_ctx *) EVP_CIPHER_CTX_get_cipher_data(ctx);
+    actx = (afalg_ctx *) VR_EVP_CIPHER_CTX_get_cipher_data(ctx);
     if (actx == NULL || actx->init_done != MAGIC_INIT_NUM) {
         ALG_WARN("%s afalg ctx passed\n",
                  ctx == NULL ? "NULL" : "Uninitialised");
@@ -669,23 +669,23 @@ static const EVP_CIPHER *afalg_aes_cbc(int nid)
     cbc_handles *cipher_handle = get_cipher_handle(nid);
     if (cipher_handle->_hidden == NULL
         && ((cipher_handle->_hidden =
-         EVP_CIPHER_meth_new(nid,
+         VR_EVP_CIPHER_meth_new(nid,
                              AES_BLOCK_SIZE,
                              cipher_handle->key_size)) == NULL
-        || !EVP_CIPHER_meth_set_iv_length(cipher_handle->_hidden,
+        || !VR_EVP_CIPHER_meth_set_iv_length(cipher_handle->_hidden,
                                           AES_IV_LEN)
-        || !EVP_CIPHER_meth_set_flags(cipher_handle->_hidden,
+        || !VR_EVP_CIPHER_meth_set_flags(cipher_handle->_hidden,
                                       EVP_CIPH_CBC_MODE |
                                       EVP_CIPH_FLAG_DEFAULT_ASN1)
-        || !EVP_CIPHER_meth_set_init(cipher_handle->_hidden,
+        || !VR_EVP_CIPHER_meth_set_init(cipher_handle->_hidden,
                                      afalg_cipher_init)
-        || !EVP_CIPHER_meth_set_do_cipher(cipher_handle->_hidden,
+        || !VR_EVP_CIPHER_meth_set_do_cipher(cipher_handle->_hidden,
                                           afalg_do_cipher)
-        || !EVP_CIPHER_meth_set_cleanup(cipher_handle->_hidden,
+        || !VR_EVP_CIPHER_meth_set_cleanup(cipher_handle->_hidden,
                                         afalg_cipher_cleanup)
-        || !EVP_CIPHER_meth_set_impl_ctx_size(cipher_handle->_hidden,
+        || !VR_EVP_CIPHER_meth_set_impl_ctx_size(cipher_handle->_hidden,
                                               sizeof(afalg_ctx)))) {
-        EVP_CIPHER_meth_free(cipher_handle->_hidden);
+        VR_EVP_CIPHER_meth_free(cipher_handle->_hidden);
         cipher_handle->_hidden= NULL;
     }
     return cipher_handle->_hidden;
@@ -720,11 +720,11 @@ static int bind_afalg(ENGINE *e)
     unsigned short i;
     ERR_load_AFALG_strings();
 
-    if (!ENGINE_set_id(e, engine_afalg_id)
-        || !ENGINE_set_name(e, engine_afalg_name)
-        || !ENGINE_set_destroy_function(e, afalg_destroy)
-        || !ENGINE_set_init_function(e, afalg_init)
-        || !ENGINE_set_finish_function(e, afalg_finish)) {
+    if (!VR_ENGINE_set_id(e, engine_afalg_id)
+        || !VR_ENGINE_set_name(e, engine_afalg_name)
+        || !VR_ENGINE_set_destroy_function(e, afalg_destroy)
+        || !VR_ENGINE_set_init_function(e, afalg_init)
+        || !VR_ENGINE_set_finish_function(e, afalg_finish)) {
         AFALGerr(AFALG_F_BIND_AFALG, AFALG_R_INIT_FAILED);
         return 0;
     }
@@ -741,7 +741,7 @@ static int bind_afalg(ENGINE *e)
         }
     }
 
-    if (!ENGINE_set_ciphers(e, afalg_ciphers)) {
+    if (!VR_ENGINE_set_ciphers(e, afalg_ciphers)) {
         AFALGerr(AFALG_F_BIND_AFALG, AFALG_R_INIT_FAILED);
         return 0;
     }
@@ -814,11 +814,11 @@ static int afalg_chk_platform(void)
 # ifdef OPENSSL_NO_DYNAMIC_ENGINE
 static ENGINE *engine_afalg(void)
 {
-    ENGINE *ret = ENGINE_new();
+    ENGINE *ret = VR_ENGINE_new();
     if (ret == NULL)
         return NULL;
     if (!bind_afalg(ret)) {
-        ENGINE_free(ret);
+        VR_ENGINE_free(ret);
         return NULL;
     }
     return ret;
@@ -834,9 +834,9 @@ void engine_load_afalg_int(void)
     toadd = engine_afalg();
     if (toadd == NULL)
         return;
-    ENGINE_add(toadd);
-    ENGINE_free(toadd);
-    ERR_clear_error();
+    VR_ENGINE_add(toadd);
+    VR_ENGINE_free(toadd);
+    VR_ERR_clear_error();
 }
 # endif
 
@@ -854,7 +854,7 @@ static int free_cbc(void)
 {
     short unsigned int i;
     for(i = 0; i < OSSL_NELEM(afalg_cipher_nids); i++) {
-        EVP_CIPHER_meth_free(cbc_handle[i]._hidden);
+        VR_EVP_CIPHER_meth_free(cbc_handle[i]._hidden);
         cbc_handle[i]._hidden = NULL;
     }
     return 1;

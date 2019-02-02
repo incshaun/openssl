@@ -13,7 +13,7 @@
 #include <openssl/buffer.h>
 #include <openssl/err.h>
 
-void ERR_print_errors_cb(int (*cb) (const char *str, size_t len, void *u),
+void VR_ERR_print_errors_cb(int (*cb) (const char *str, size_t len, void *u),
                          void *u)
 {
     unsigned long l;
@@ -31,11 +31,11 @@ void ERR_print_errors_cb(int (*cb) (const char *str, size_t len, void *u),
     } tid;
 
     tid.ltid = 0;
-    tid.tid = CRYPTO_THREAD_get_current_id();
+    tid.tid = VR_CRYPTO_THREAD_get_current_id();
 
-    while ((l = ERR_get_error_line_data(&file, &line, &data, &flags)) != 0) {
-        ERR_error_string_n(l, buf, sizeof(buf));
-        BIO_snprintf(buf2, sizeof(buf2), "%lu:%s:%s:%d:%s\n", tid.ltid, buf,
+    while ((l = VR_ERR_get_error_line_data(&file, &line, &data, &flags)) != 0) {
+        VR_ERR_error_string_n(l, buf, sizeof(buf));
+        VR_BIO_snprintf(buf2, sizeof(buf2), "%lu:%s:%s:%d:%s\n", tid.ltid, buf,
                      file, line, (flags & ERR_TXT_STRING) ? data : "");
         if (cb(buf2, strlen(buf2), u) <= 0)
             break;              /* abort outputting the error report */
@@ -44,22 +44,22 @@ void ERR_print_errors_cb(int (*cb) (const char *str, size_t len, void *u),
 
 static int print_bio(const char *str, size_t len, void *bp)
 {
-    return BIO_write((BIO *)bp, str, len);
+    return VR_BIO_write((BIO *)bp, str, len);
 }
 
-void ERR_print_errors(BIO *bp)
+void VR_ERR_print_errors(BIO *bp)
 {
-    ERR_print_errors_cb(print_bio, bp);
+    VR_ERR_print_errors_cb(print_bio, bp);
 }
 
 #ifndef OPENSSL_NO_STDIO
-void ERR_print_errors_fp(FILE *fp)
+void VR_ERR_print_errors_fp(FILE *fp)
 {
-    BIO *bio = BIO_new_fp(fp, BIO_NOCLOSE);
+    BIO *bio = VR_BIO_new_fp(fp, BIO_NOCLOSE);
     if (bio == NULL)
         return;
 
-    ERR_print_errors_cb(print_bio, bio);
-    BIO_free(bio);
+    VR_ERR_print_errors_cb(print_bio, bio);
+    VR_BIO_free(bio);
 }
 #endif

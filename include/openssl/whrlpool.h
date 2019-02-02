@@ -12,33 +12,33 @@
 
 #include <openssl/opensslconf.h>
 
-# ifndef OPENSSL_NO_WHIRLPOOL
+# ifndef OPENSSL_NO_VR_WHIRLPOOL
 # include <openssl/e_os2.h>
 # include <stddef.h>
 # ifdef __cplusplus
 extern "C" {
 # endif
 
-# define WHIRLPOOL_DIGEST_LENGTH (512/8)
-# define WHIRLPOOL_BBLOCK        512
-# define WHIRLPOOL_COUNTER       (256/8)
+# define VR_WHIRLPOOL_DIGEST_LENGTH (512/8)
+# define VR_WHIRLPOOL_BBLOCK        512
+# define VR_WHIRLPOOL_COUNTER       (256/8)
 
 typedef struct {
     union {
-        unsigned char c[WHIRLPOOL_DIGEST_LENGTH];
+        unsigned char c[VR_WHIRLPOOL_DIGEST_LENGTH];
         /* double q is here to ensure 64-bit alignment */
-        double q[WHIRLPOOL_DIGEST_LENGTH / sizeof(double)];
+        double q[VR_WHIRLPOOL_DIGEST_LENGTH / sizeof(double)];
     } H;
-    unsigned char data[WHIRLPOOL_BBLOCK / 8];
+    unsigned char data[VR_WHIRLPOOL_BBLOCK / 8];
     unsigned int bitoff;
-    size_t bitlen[WHIRLPOOL_COUNTER / sizeof(size_t)];
-} WHIRLPOOL_CTX;
+    size_t bitlen[VR_WHIRLPOOL_COUNTER / sizeof(size_t)];
+} VR_WHIRLPOOL_CTX;
 
-int WHIRLPOOL_Init(WHIRLPOOL_CTX *c);
-int WHIRLPOOL_Update(WHIRLPOOL_CTX *c, const void *inp, size_t bytes);
-void WHIRLPOOL_BitUpdate(WHIRLPOOL_CTX *c, const void *inp, size_t bits);
-int WHIRLPOOL_Final(unsigned char *md, WHIRLPOOL_CTX *c);
-unsigned char *WHIRLPOOL(const void *inp, size_t bytes, unsigned char *md);
+int VR_WHIRLPOOL_Init(VR_WHIRLPOOL_CTX *c);
+int VR_WHIRLPOOL_Update(VR_WHIRLPOOL_CTX *c, const void *inp, size_t bytes);
+void VR_WHIRLPOOL_BitUpdate(VR_WHIRLPOOL_CTX *c, const void *inp, size_t bits);
+int VR_WHIRLPOOL_Final(unsigned char *md, VR_WHIRLPOOL_CTX *c);
+unsigned char *VR_WHIRLPOOL(const void *inp, size_t bytes, unsigned char *md);
 
 # ifdef __cplusplus
 }

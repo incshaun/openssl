@@ -74,12 +74,12 @@ static int dsa_test(void)
     unsigned int siglen;
     const BIGNUM *p = NULL, *q = NULL, *g = NULL;
 
-    if (!TEST_ptr(cb = BN_GENCB_new()))
+    if (!TEST_ptr(cb = VR_BN_GENCB_new()))
         goto end;
 
-    BN_GENCB_set(cb, dsa_cb, NULL);
-    if (!TEST_ptr(dsa = DSA_new())
-        || !TEST_true(DSA_generate_parameters_ex(dsa, 512, seed, 20,
+    VR_BN_GENCB_set(cb, dsa_cb, NULL);
+    if (!TEST_ptr(dsa = VR_DSA_new())
+        || !TEST_true(VR_DSA_generate_parameters_ex(dsa, 512, seed, 20,
                                                 &counter, &h, cb)))
         goto end;
 
@@ -88,30 +88,30 @@ static int dsa_test(void)
     if (!TEST_int_eq(h, 2))
         goto end;
 
-    DSA_get0_pqg(dsa, &p, &q, &g);
-    i = BN_bn2bin(q, buf);
+    VR_DSA_get0_pqg(dsa, &p, &q, &g);
+    i = VR_BN_bn2bin(q, buf);
     j = sizeof(out_q);
     if (!TEST_int_eq(i, j) || !TEST_mem_eq(buf, i, out_q, i))
         goto end;
 
-    i = BN_bn2bin(p, buf);
+    i = VR_BN_bn2bin(p, buf);
     j = sizeof(out_p);
     if (!TEST_int_eq(i, j) || !TEST_mem_eq(buf, i, out_p, i))
         goto end;
 
-    i = BN_bn2bin(g, buf);
+    i = VR_BN_bn2bin(g, buf);
     j = sizeof(out_g);
     if (!TEST_int_eq(i, j) || !TEST_mem_eq(buf, i, out_g, i))
         goto end;
 
-    DSA_generate_key(dsa);
-    DSA_sign(0, str1, 20, sig, &siglen, dsa);
-    if (TEST_true(DSA_verify(0, str1, 20, sig, siglen, dsa)))
+    VR_DSA_generate_key(dsa);
+    VR_DSA_sign(0, str1, 20, sig, &siglen, dsa);
+    if (TEST_true(VR_DSA_verify(0, str1, 20, sig, siglen, dsa)))
         ret = 1;
 
  end:
-    DSA_free(dsa);
-    BN_GENCB_free(cb);
+    VR_DSA_free(dsa);
+    VR_BN_GENCB_free(cb);
     return ret;
 }
 

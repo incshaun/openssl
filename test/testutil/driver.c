@@ -117,8 +117,8 @@ void setup_test_framework(void)
 
 #ifndef OPENSSL_NO_CRYPTO_MDEBUG
     if (should_report_leaks()) {
-        CRYPTO_set_mem_debug(1);
-        CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ON);
+        VR_CRYPTO_set_mem_debug(1);
+        VR_CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ON);
     }
 #endif
 }
@@ -138,9 +138,9 @@ int pulldown_test_framework(int ret)
 static void finalize(int success)
 {
     if (success)
-        ERR_clear_error();
+        VR_ERR_clear_error();
     else
-        ERR_print_errors_cb(openssl_error_cb, NULL);
+        VR_ERR_print_errors_cb(openssl_error_cb, NULL);
 }
 
 static char *test_title = NULL;

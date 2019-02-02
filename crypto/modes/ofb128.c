@@ -16,7 +16,7 @@
  * The extra state information to record how much of the 128bit block we have
  * used is contained in *num;
  */
-void CRYPTO_ofb128_encrypt(const unsigned char *in, unsigned char *out,
+void VR_CRYPTO_ofb128_encrypt(const unsigned char *in, unsigned char *out,
                            size_t len, const void *key,
                            unsigned char ivec[16], int *num, block128_f block)
 {

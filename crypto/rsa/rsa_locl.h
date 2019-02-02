@@ -91,8 +91,8 @@ struct rsa_meth_st {
     /*
      * New sign and verify functions: some libraries don't allow arbitrary
      * data to be signed/verified: this allows them to be used. Note: for
-     * this to work the RSA_public_decrypt() and RSA_private_encrypt() should
-     * *NOT* be used RSA_sign(), RSA_verify() should be used instead.
+     * this to work the VR_RSA_public_decrypt() and VR_RSA_private_encrypt() should
+     * *NOT* be used VR_RSA_sign(), VR_RSA_verify() should be used instead.
      */
     int (*rsa_sign) (int type,
                      const unsigned char *m, unsigned int m_length,
@@ -112,7 +112,7 @@ struct rsa_meth_st {
                                    BIGNUM *e, BN_GENCB *cb);
 };
 
-extern int int_rsa_verify(int dtype, const unsigned char *m,
+extern int VR_int_rsa_verify(int dtype, const unsigned char *m,
                           unsigned int m_len, unsigned char *rm,
                           size_t *prm_len, const unsigned char *sigbuf,
                           size_t siglen, RSA *rsa);
@@ -120,13 +120,13 @@ extern int int_rsa_verify(int dtype, const unsigned char *m,
 #define pkey_is_pss(pkey) (pkey->ameth->pkey_id == EVP_PKEY_RSA_PSS)
 #define pkey_ctx_is_pss(ctx) (ctx->pmeth->pkey_id == EVP_PKEY_RSA_PSS)
 
-RSA_PSS_PARAMS *rsa_pss_params_create(const EVP_MD *sigmd,
+RSA_PSS_PARAMS *VR_rsa_pss_params_create(const EVP_MD *sigmd,
                                       const EVP_MD *mgf1md, int saltlen);
-int rsa_pss_get_param(const RSA_PSS_PARAMS *pss, const EVP_MD **pmd,
+int VR_rsa_pss_get_param(const RSA_PSS_PARAMS *pss, const EVP_MD **pmd,
                       const EVP_MD **pmgf1md, int *psaltlen);
 /* internal function to clear and free multi-prime parameters */
-void rsa_multip_info_free_ex(RSA_PRIME_INFO *pinfo);
-void rsa_multip_info_free(RSA_PRIME_INFO *pinfo);
-RSA_PRIME_INFO *rsa_multip_info_new(void);
-int rsa_multip_calc_product(RSA *rsa);
-int rsa_multip_cap(int bits);
+void VR_rsa_multip_info_free_ex(RSA_PRIME_INFO *pinfo);
+void VR_rsa_multip_info_free(RSA_PRIME_INFO *pinfo);
+RSA_PRIME_INFO *VR_rsa_multip_info_new(void);
+int VR_rsa_multip_calc_product(RSA *rsa);
+int VR_rsa_multip_cap(int bits);

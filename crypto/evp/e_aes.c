@@ -103,32 +103,32 @@ typedef struct {
 #define MAXBITCHUNK     ((size_t)1<<(sizeof(size_t)*8-4))
 
 #ifdef VPAES_ASM
-int vpaes_set_encrypt_key(const unsigned char *userKey, int bits,
+int VR_vpaes_set_encrypt_key(const unsigned char *userKey, int bits,
                           AES_KEY *key);
-int vpaes_set_decrypt_key(const unsigned char *userKey, int bits,
+int VR_vpaes_set_decrypt_key(const unsigned char *userKey, int bits,
                           AES_KEY *key);
 
-void vpaes_encrypt(const unsigned char *in, unsigned char *out,
+void VR_vpaes_encrypt(const unsigned char *in, unsigned char *out,
                    const AES_KEY *key);
-void vpaes_decrypt(const unsigned char *in, unsigned char *out,
+void VR_vpaes_decrypt(const unsigned char *in, unsigned char *out,
                    const AES_KEY *key);
 
-void vpaes_cbc_encrypt(const unsigned char *in,
+void VR_vpaes_cbc_encrypt(const unsigned char *in,
                        unsigned char *out,
                        size_t length,
                        const AES_KEY *key, unsigned char *ivec, int enc);
 #endif
 #ifdef BSAES_ASM
-void bsaes_cbc_encrypt(const unsigned char *in, unsigned char *out,
+void VR_bsaes_cbc_encrypt(const unsigned char *in, unsigned char *out,
                        size_t length, const AES_KEY *key,
                        unsigned char ivec[16], int enc);
-void bsaes_ctr32_encrypt_blocks(const unsigned char *in, unsigned char *out,
+void VR_bsaes_ctr32_encrypt_blocks(const unsigned char *in, unsigned char *out,
                                 size_t len, const AES_KEY *key,
                                 const unsigned char ivec[16]);
-void bsaes_xts_encrypt(const unsigned char *inp, unsigned char *out,
+void VR_bsaes_xts_encrypt(const unsigned char *inp, unsigned char *out,
                        size_t len, const AES_KEY *key1,
                        const AES_KEY *key2, const unsigned char iv[16]);
-void bsaes_xts_decrypt(const unsigned char *inp, unsigned char *out,
+void VR_bsaes_xts_decrypt(const unsigned char *inp, unsigned char *out,
                        size_t len, const AES_KEY *key1,
                        const AES_KEY *key2, const unsigned char iv[16]);
 #endif
@@ -168,11 +168,11 @@ static void ctr64_inc(unsigned char *counter)
 #  define VPAES_CAPABLE (OPENSSL_ppccap_P & PPC_ALTIVEC)
 # endif
 # define HWAES_CAPABLE  (OPENSSL_ppccap_P & PPC_CRYPTO207)
-# define HWAES_set_encrypt_key aes_p8_set_encrypt_key
-# define HWAES_set_decrypt_key aes_p8_set_decrypt_key
-# define HWAES_encrypt aes_p8_encrypt
-# define HWAES_decrypt aes_p8_decrypt
-# define HWAES_cbc_encrypt aes_p8_cbc_encrypt
+# define HWVR_AES_set_encrypt_key aes_p8_set_encrypt_key
+# define HWVR_AES_set_decrypt_key aes_p8_set_decrypt_key
+# define HWVR_AES_encrypt aes_p8_encrypt
+# define HWVR_AES_decrypt aes_p8_decrypt
+# define HWVR_AES_cbc_encrypt aes_p8_cbc_encrypt
 # define HWAES_ctr32_encrypt_blocks aes_p8_ctr32_encrypt_blocks
 # define HWAES_xts_encrypt aes_p8_xts_encrypt
 # define HWAES_xts_decrypt aes_p8_xts_decrypt
@@ -197,49 +197,49 @@ extern unsigned int OPENSSL_ia32cap_P[];
  */
 # define AESNI_CAPABLE   (OPENSSL_ia32cap_P[1]&(1<<(57-32)))
 
-int aesni_set_encrypt_key(const unsigned char *userKey, int bits,
+int VR_aesni_set_encrypt_key(const unsigned char *userKey, int bits,
                           AES_KEY *key);
-int aesni_set_decrypt_key(const unsigned char *userKey, int bits,
+int VR_aesni_set_decrypt_key(const unsigned char *userKey, int bits,
                           AES_KEY *key);
 
-void aesni_encrypt(const unsigned char *in, unsigned char *out,
+void VR_aesni_encrypt(const unsigned char *in, unsigned char *out,
                    const AES_KEY *key);
-void aesni_decrypt(const unsigned char *in, unsigned char *out,
+void VR_aesni_decrypt(const unsigned char *in, unsigned char *out,
                    const AES_KEY *key);
 
-void aesni_ecb_encrypt(const unsigned char *in,
+void VR_aesni_ecb_encrypt(const unsigned char *in,
                        unsigned char *out,
                        size_t length, const AES_KEY *key, int enc);
-void aesni_cbc_encrypt(const unsigned char *in,
+void VR_aesni_cbc_encrypt(const unsigned char *in,
                        unsigned char *out,
                        size_t length,
                        const AES_KEY *key, unsigned char *ivec, int enc);
 
-void aesni_ctr32_encrypt_blocks(const unsigned char *in,
+void VR_aesni_ctr32_encrypt_blocks(const unsigned char *in,
                                 unsigned char *out,
                                 size_t blocks,
                                 const void *key, const unsigned char *ivec);
 
-void aesni_xts_encrypt(const unsigned char *in,
+void VR_aesni_xts_encrypt(const unsigned char *in,
                        unsigned char *out,
                        size_t length,
                        const AES_KEY *key1, const AES_KEY *key2,
                        const unsigned char iv[16]);
 
-void aesni_xts_decrypt(const unsigned char *in,
+void VR_aesni_xts_decrypt(const unsigned char *in,
                        unsigned char *out,
                        size_t length,
                        const AES_KEY *key1, const AES_KEY *key2,
                        const unsigned char iv[16]);
 
-void aesni_ccm64_encrypt_blocks(const unsigned char *in,
+void VR_aesni_ccm64_encrypt_blocks(const unsigned char *in,
                                 unsigned char *out,
                                 size_t blocks,
                                 const void *key,
                                 const unsigned char ivec[16],
                                 unsigned char cmac[16]);
 
-void aesni_ccm64_decrypt_blocks(const unsigned char *in,
+void VR_aesni_ccm64_decrypt_blocks(const unsigned char *in,
                                 unsigned char *out,
                                 size_t blocks,
                                 const void *key,
@@ -247,22 +247,22 @@ void aesni_ccm64_decrypt_blocks(const unsigned char *in,
                                 unsigned char cmac[16]);
 
 # if defined(__x86_64) || defined(__x86_64__) || defined(_M_AMD64) || defined(_M_X64)
-size_t aesni_gcm_encrypt(const unsigned char *in,
+size_t VR_aesni_gcm_encrypt(const unsigned char *in,
                          unsigned char *out,
                          size_t len,
                          const void *key, unsigned char ivec[16], u64 *Xi);
-#  define AES_gcm_encrypt aesni_gcm_encrypt
-size_t aesni_gcm_decrypt(const unsigned char *in,
+#  define AES_gcm_encrypt VR_aesni_gcm_encrypt
+size_t VR_aesni_gcm_decrypt(const unsigned char *in,
                          unsigned char *out,
                          size_t len,
                          const void *key, unsigned char ivec[16], u64 *Xi);
-#  define AES_gcm_decrypt aesni_gcm_decrypt
-void gcm_ghash_avx(u64 Xi[2], const u128 Htable[16], const u8 *in,
+#  define AES_gcm_decrypt VR_aesni_gcm_decrypt
+void VR_gcm_ghash_avx(u64 Xi[2], const u128 Htable[16], const u8 *in,
                    size_t len);
-#  define AES_GCM_ASM(gctx)       (gctx->ctr==aesni_ctr32_encrypt_blocks && \
-                                 gctx->gcm.ghash==gcm_ghash_avx)
-#  define AES_GCM_ASM2(gctx)      (gctx->gcm.block==(block128_f)aesni_encrypt && \
-                                 gctx->gcm.ghash==gcm_ghash_avx)
+#  define AES_GCM_ASM(gctx)       (gctx->ctr==VR_aesni_ctr32_encrypt_blocks && \
+                                 gctx->gcm.ghash==VR_gcm_ghash_avx)
+#  define AES_GCM_ASM2(gctx)      (gctx->gcm.block==(block128_f)VR_aesni_encrypt && \
+                                 gctx->gcm.ghash==VR_gcm_ghash_avx)
 #  undef AES_GCM_ASM2          /* minor size optimization */
 # endif
 
@@ -275,19 +275,19 @@ static int aesni_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
     mode = EVP_CIPHER_CTX_mode(ctx);
     if ((mode == EVP_CIPH_ECB_MODE || mode == EVP_CIPH_CBC_MODE)
         && !enc) {
-        ret = aesni_set_decrypt_key(key, EVP_CIPHER_CTX_key_length(ctx) * 8,
+        ret = VR_aesni_set_decrypt_key(key, VR_EVP_CIPHER_CTX_key_length(ctx) * 8,
                                     &dat->ks.ks);
-        dat->block = (block128_f) aesni_decrypt;
+        dat->block = (block128_f) VR_aesni_decrypt;
         dat->stream.cbc = mode == EVP_CIPH_CBC_MODE ?
-            (cbc128_f) aesni_cbc_encrypt : NULL;
+            (cbc128_f) VR_aesni_cbc_encrypt : NULL;
     } else {
-        ret = aesni_set_encrypt_key(key, EVP_CIPHER_CTX_key_length(ctx) * 8,
+        ret = VR_aesni_set_encrypt_key(key, VR_EVP_CIPHER_CTX_key_length(ctx) * 8,
                                     &dat->ks.ks);
-        dat->block = (block128_f) aesni_encrypt;
+        dat->block = (block128_f) VR_aesni_encrypt;
         if (mode == EVP_CIPH_CBC_MODE)
-            dat->stream.cbc = (cbc128_f) aesni_cbc_encrypt;
+            dat->stream.cbc = (cbc128_f) VR_aesni_cbc_encrypt;
         else if (mode == EVP_CIPH_CTR_MODE)
-            dat->stream.ctr = (ctr128_f) aesni_ctr32_encrypt_blocks;
+            dat->stream.ctr = (ctr128_f) VR_aesni_ctr32_encrypt_blocks;
         else
             dat->stream.cbc = NULL;
     }
@@ -303,9 +303,9 @@ static int aesni_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
 static int aesni_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                             const unsigned char *in, size_t len)
 {
-    aesni_cbc_encrypt(in, out, len, &EVP_C_DATA(EVP_AES_KEY,ctx)->ks.ks,
-                      EVP_CIPHER_CTX_iv_noconst(ctx),
-                      EVP_CIPHER_CTX_encrypting(ctx));
+    VR_aesni_cbc_encrypt(in, out, len, &EVP_C_DATA(EVP_AES_KEY,ctx)->ks.ks,
+                      VR_EVP_CIPHER_CTX_iv_noconst(ctx),
+                      VR_EVP_CIPHER_CTX_encrypting(ctx));
 
     return 1;
 }
@@ -313,13 +313,13 @@ static int aesni_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
 static int aesni_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                             const unsigned char *in, size_t len)
 {
-    size_t bl = EVP_CIPHER_CTX_block_size(ctx);
+    size_t bl = VR_EVP_CIPHER_CTX_block_size(ctx);
 
     if (len < bl)
         return 1;
 
-    aesni_ecb_encrypt(in, out, len, &EVP_C_DATA(EVP_AES_KEY,ctx)->ks.ks,
-                      EVP_CIPHER_CTX_encrypting(ctx));
+    VR_aesni_ecb_encrypt(in, out, len, &EVP_C_DATA(EVP_AES_KEY,ctx)->ks.ks,
+                      VR_EVP_CIPHER_CTX_encrypting(ctx));
 
     return 1;
 }
@@ -351,24 +351,24 @@ static int aesni_gcm_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
     if (!iv && !key)
         return 1;
     if (key) {
-        aesni_set_encrypt_key(key, EVP_CIPHER_CTX_key_length(ctx) * 8,
+        VR_aesni_set_encrypt_key(key, VR_EVP_CIPHER_CTX_key_length(ctx) * 8,
                               &gctx->ks.ks);
-        CRYPTO_gcm128_init(&gctx->gcm, &gctx->ks, (block128_f) aesni_encrypt);
-        gctx->ctr = (ctr128_f) aesni_ctr32_encrypt_blocks;
+        VR_CRYPTO_gcm128_init(&gctx->gcm, &gctx->ks, (block128_f) VR_aesni_encrypt);
+        gctx->ctr = (ctr128_f) VR_aesni_ctr32_encrypt_blocks;
         /*
          * If we have an iv can set it directly, otherwise use saved IV.
          */
         if (iv == NULL && gctx->iv_set)
             iv = gctx->iv;
         if (iv) {
-            CRYPTO_gcm128_setiv(&gctx->gcm, iv, gctx->ivlen);
+            VR_CRYPTO_gcm128_setiv(&gctx->gcm, iv, gctx->ivlen);
             gctx->iv_set = 1;
         }
         gctx->key_set = 1;
     } else {
         /* If key set use IV, otherwise copy */
         if (gctx->key_set)
-            CRYPTO_gcm128_setiv(&gctx->gcm, iv, gctx->ivlen);
+            VR_CRYPTO_gcm128_setiv(&gctx->gcm, iv, gctx->ivlen);
         else
             memcpy(gctx->iv, iv, gctx->ivlen);
         gctx->iv_set = 1;
@@ -391,28 +391,28 @@ static int aesni_xts_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
     if (key) {
         /* key_len is two AES keys */
         if (enc) {
-            aesni_set_encrypt_key(key, EVP_CIPHER_CTX_key_length(ctx) * 4,
+            VR_aesni_set_encrypt_key(key, VR_EVP_CIPHER_CTX_key_length(ctx) * 4,
                                   &xctx->ks1.ks);
-            xctx->xts.block1 = (block128_f) aesni_encrypt;
-            xctx->stream = aesni_xts_encrypt;
+            xctx->xts.block1 = (block128_f) VR_aesni_encrypt;
+            xctx->stream = VR_aesni_xts_encrypt;
         } else {
-            aesni_set_decrypt_key(key, EVP_CIPHER_CTX_key_length(ctx) * 4,
+            VR_aesni_set_decrypt_key(key, VR_EVP_CIPHER_CTX_key_length(ctx) * 4,
                                   &xctx->ks1.ks);
-            xctx->xts.block1 = (block128_f) aesni_decrypt;
-            xctx->stream = aesni_xts_decrypt;
+            xctx->xts.block1 = (block128_f) VR_aesni_decrypt;
+            xctx->stream = VR_aesni_xts_decrypt;
         }
 
-        aesni_set_encrypt_key(key + EVP_CIPHER_CTX_key_length(ctx) / 2,
-                              EVP_CIPHER_CTX_key_length(ctx) * 4,
+        VR_aesni_set_encrypt_key(key + VR_EVP_CIPHER_CTX_key_length(ctx) / 2,
+                              VR_EVP_CIPHER_CTX_key_length(ctx) * 4,
                               &xctx->ks2.ks);
-        xctx->xts.block2 = (block128_f) aesni_encrypt;
+        xctx->xts.block2 = (block128_f) VR_aesni_encrypt;
 
         xctx->xts.key1 = &xctx->ks1;
     }
 
     if (iv) {
         xctx->xts.key2 = &xctx->ks2;
-        memcpy(EVP_CIPHER_CTX_iv_noconst(ctx), iv, 16);
+        memcpy(VR_EVP_CIPHER_CTX_iv_noconst(ctx), iv, 16);
     }
 
     return 1;
@@ -429,16 +429,16 @@ static int aesni_ccm_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
     if (!iv && !key)
         return 1;
     if (key) {
-        aesni_set_encrypt_key(key, EVP_CIPHER_CTX_key_length(ctx) * 8,
+        VR_aesni_set_encrypt_key(key, VR_EVP_CIPHER_CTX_key_length(ctx) * 8,
                               &cctx->ks.ks);
-        CRYPTO_ccm128_init(&cctx->ccm, cctx->M, cctx->L,
-                           &cctx->ks, (block128_f) aesni_encrypt);
-        cctx->str = enc ? (ccm128_f) aesni_ccm64_encrypt_blocks :
-            (ccm128_f) aesni_ccm64_decrypt_blocks;
+        VR_CRYPTO_ccm128_init(&cctx->ccm, cctx->M, cctx->L,
+                           &cctx->ks, (block128_f) VR_aesni_encrypt);
+        cctx->str = enc ? (ccm128_f) VR_aesni_ccm64_encrypt_blocks :
+            (ccm128_f) VR_aesni_ccm64_decrypt_blocks;
         cctx->key_set = 1;
     }
     if (iv) {
-        memcpy(EVP_CIPHER_CTX_iv_noconst(ctx), iv, 15 - cctx->L);
+        memcpy(VR_EVP_CIPHER_CTX_iv_noconst(ctx), iv, 15 - cctx->L);
         cctx->iv_set = 1;
     }
     return 1;
@@ -449,13 +449,13 @@ static int aesni_ccm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                             const unsigned char *in, size_t len);
 
 # ifndef OPENSSL_NO_OCB
-void aesni_ocb_encrypt(const unsigned char *in, unsigned char *out,
+void VR_aesni_ocb_encrypt(const unsigned char *in, unsigned char *out,
                        size_t blocks, const void *key,
                        size_t start_block_num,
                        unsigned char offset_i[16],
                        const unsigned char L_[][16],
                        unsigned char checksum[16]);
-void aesni_ocb_decrypt(const unsigned char *in, unsigned char *out,
+void VR_aesni_ocb_decrypt(const unsigned char *in, unsigned char *out,
                        size_t blocks, const void *key,
                        size_t start_block_num,
                        unsigned char offset_i[16],
@@ -475,16 +475,16 @@ static int aesni_ocb_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
              * needs both. We could possibly optimise to remove setting the
              * decrypt for an encryption operation.
              */
-            aesni_set_encrypt_key(key, EVP_CIPHER_CTX_key_length(ctx) * 8,
+            VR_aesni_set_encrypt_key(key, VR_EVP_CIPHER_CTX_key_length(ctx) * 8,
                                   &octx->ksenc.ks);
-            aesni_set_decrypt_key(key, EVP_CIPHER_CTX_key_length(ctx) * 8,
+            VR_aesni_set_decrypt_key(key, VR_EVP_CIPHER_CTX_key_length(ctx) * 8,
                                   &octx->ksdec.ks);
-            if (!CRYPTO_ocb128_init(&octx->ocb,
+            if (!VR_CRYPTO_ocb128_init(&octx->ocb,
                                     &octx->ksenc.ks, &octx->ksdec.ks,
-                                    (block128_f) aesni_encrypt,
-                                    (block128_f) aesni_decrypt,
-                                    enc ? aesni_ocb_encrypt
-                                        : aesni_ocb_decrypt))
+                                    (block128_f) VR_aesni_encrypt,
+                                    (block128_f) VR_aesni_decrypt,
+                                    enc ? VR_aesni_ocb_encrypt
+                                        : VR_aesni_ocb_decrypt))
                 return 0;
         }
         while (0);
@@ -495,7 +495,7 @@ static int aesni_ocb_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
         if (iv == NULL && octx->iv_set)
             iv = octx->iv;
         if (iv) {
-            if (CRYPTO_ocb128_setiv(&octx->ocb, iv, octx->ivlen, octx->taglen)
+            if (VR_CRYPTO_ocb128_setiv(&octx->ocb, iv, octx->ivlen, octx->taglen)
                 != 1)
                 return 0;
             octx->iv_set = 1;
@@ -504,7 +504,7 @@ static int aesni_ocb_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
     } else {
         /* If key set use IV, otherwise copy */
         if (octx->key_set)
-            CRYPTO_ocb128_setiv(&octx->ocb, iv, octx->ivlen, octx->taglen);
+            VR_CRYPTO_ocb128_setiv(&octx->ocb, iv, octx->ivlen, octx->taglen);
         else
             memcpy(octx->iv, iv, octx->ivlen);
         octx->iv_set = 1;
@@ -535,7 +535,7 @@ static const EVP_CIPHER aes_##keylen##_##mode = { \
         NULL,                           \
         sizeof(EVP_AES_KEY),            \
         NULL,NULL,NULL,NULL }; \
-const EVP_CIPHER *EVP_aes_##keylen##_##mode(void) \
+const EVP_CIPHER *VR_##EVP_aes_##keylen##_##mode(void) \
 { return AESNI_CAPABLE?&aesni_##keylen##_##mode:&aes_##keylen##_##mode; }
 
 # define BLOCK_CIPHER_custom(nid,keylen,blocksize,ivlen,mode,MODE,flags) \
@@ -559,7 +559,7 @@ static const EVP_CIPHER aes_##keylen##_##mode = { \
         aes_##mode##_cleanup,           \
         sizeof(EVP_AES_##MODE##_CTX),   \
         NULL,NULL,aes_##mode##_ctrl,NULL }; \
-const EVP_CIPHER *EVP_aes_##keylen##_##mode(void) \
+const EVP_CIPHER *VR_##EVP_aes_##keylen##_##mode(void) \
 { return AESNI_CAPABLE?&aesni_##keylen##_##mode:&aes_##keylen##_##mode; }
 
 #elif   defined(AES_ASM) && (defined(__sparc) || defined(__sparc__))
@@ -572,11 +572,11 @@ extern unsigned int OPENSSL_sparcv9cap_P[];
  * Initial Fujitsu SPARC64 X support
  */
 # define HWAES_CAPABLE           (OPENSSL_sparcv9cap_P[0] & SPARCV9_FJAESX)
-# define HWAES_set_encrypt_key aes_fx_set_encrypt_key
-# define HWAES_set_decrypt_key aes_fx_set_decrypt_key
-# define HWAES_encrypt aes_fx_encrypt
-# define HWAES_decrypt aes_fx_decrypt
-# define HWAES_cbc_encrypt aes_fx_cbc_encrypt
+# define HWVR_AES_set_encrypt_key aes_fx_set_encrypt_key
+# define HWVR_AES_set_decrypt_key aes_fx_set_decrypt_key
+# define HWVR_AES_encrypt aes_fx_encrypt
+# define HWVR_AES_decrypt aes_fx_decrypt
+# define HWVR_AES_cbc_encrypt aes_fx_cbc_encrypt
 # define HWAES_ctr32_encrypt_blocks aes_fx_ctr32_encrypt_blocks
 
 # define SPARC_AES_CAPABLE       (OPENSSL_sparcv9cap_P[1] & CFR_AES)
@@ -645,7 +645,7 @@ static int aes_t4_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
     EVP_AES_KEY *dat = EVP_C_DATA(EVP_AES_KEY,ctx);
 
     mode = EVP_CIPHER_CTX_mode(ctx);
-    bits = EVP_CIPHER_CTX_key_length(ctx) * 8;
+    bits = VR_EVP_CIPHER_CTX_key_length(ctx) * 8;
     if ((mode == EVP_CIPH_ECB_MODE || mode == EVP_CIPH_CBC_MODE)
         && !enc) {
         ret = 0;
@@ -744,9 +744,9 @@ static int aes_t4_gcm_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
     if (!iv && !key)
         return 1;
     if (key) {
-        int bits = EVP_CIPHER_CTX_key_length(ctx) * 8;
+        int bits = VR_EVP_CIPHER_CTX_key_length(ctx) * 8;
         aes_t4_set_encrypt_key(key, bits, &gctx->ks.ks);
-        CRYPTO_gcm128_init(&gctx->gcm, &gctx->ks,
+        VR_CRYPTO_gcm128_init(&gctx->gcm, &gctx->ks,
                            (block128_f) aes_t4_encrypt);
         switch (bits) {
         case 128:
@@ -767,14 +767,14 @@ static int aes_t4_gcm_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
         if (iv == NULL && gctx->iv_set)
             iv = gctx->iv;
         if (iv) {
-            CRYPTO_gcm128_setiv(&gctx->gcm, iv, gctx->ivlen);
+            VR_CRYPTO_gcm128_setiv(&gctx->gcm, iv, gctx->ivlen);
             gctx->iv_set = 1;
         }
         gctx->key_set = 1;
     } else {
         /* If key set use IV, otherwise copy */
         if (gctx->key_set)
-            CRYPTO_gcm128_setiv(&gctx->gcm, iv, gctx->ivlen);
+            VR_CRYPTO_gcm128_setiv(&gctx->gcm, iv, gctx->ivlen);
         else
             memcpy(gctx->iv, iv, gctx->ivlen);
         gctx->iv_set = 1;
@@ -795,7 +795,7 @@ static int aes_t4_xts_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
         return 1;
 
     if (key) {
-        int bits = EVP_CIPHER_CTX_key_length(ctx) * 4;
+        int bits = VR_EVP_CIPHER_CTX_key_length(ctx) * 4;
         xctx->stream = NULL;
         /* key_len is two AES keys */
         if (enc) {
@@ -812,7 +812,7 @@ static int aes_t4_xts_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
                 return 0;
             }
         } else {
-            aes_t4_set_decrypt_key(key, EVP_CIPHER_CTX_key_length(ctx) * 4,
+            aes_t4_set_decrypt_key(key, VR_EVP_CIPHER_CTX_key_length(ctx) * 4,
                                    &xctx->ks1.ks);
             xctx->xts.block1 = (block128_f) aes_t4_decrypt;
             switch (bits) {
@@ -827,8 +827,8 @@ static int aes_t4_xts_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
             }
         }
 
-        aes_t4_set_encrypt_key(key + EVP_CIPHER_CTX_key_length(ctx) / 2,
-                               EVP_CIPHER_CTX_key_length(ctx) * 4,
+        aes_t4_set_encrypt_key(key + VR_EVP_CIPHER_CTX_key_length(ctx) / 2,
+                               VR_EVP_CIPHER_CTX_key_length(ctx) * 4,
                                &xctx->ks2.ks);
         xctx->xts.block2 = (block128_f) aes_t4_encrypt;
 
@@ -837,7 +837,7 @@ static int aes_t4_xts_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
 
     if (iv) {
         xctx->xts.key2 = &xctx->ks2;
-        memcpy(EVP_CIPHER_CTX_iv_noconst(ctx), iv, 16);
+        memcpy(VR_EVP_CIPHER_CTX_iv_noconst(ctx), iv, 16);
     }
 
     return 1;
@@ -854,15 +854,15 @@ static int aes_t4_ccm_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
     if (!iv && !key)
         return 1;
     if (key) {
-        int bits = EVP_CIPHER_CTX_key_length(ctx) * 8;
+        int bits = VR_EVP_CIPHER_CTX_key_length(ctx) * 8;
         aes_t4_set_encrypt_key(key, bits, &cctx->ks.ks);
-        CRYPTO_ccm128_init(&cctx->ccm, cctx->M, cctx->L,
+        VR_CRYPTO_ccm128_init(&cctx->ccm, cctx->M, cctx->L,
                            &cctx->ks, (block128_f) aes_t4_encrypt);
         cctx->str = NULL;
         cctx->key_set = 1;
     }
     if (iv) {
-        memcpy(EVP_CIPHER_CTX_iv_noconst(ctx), iv, 15 - cctx->L);
+        memcpy(VR_EVP_CIPHER_CTX_iv_noconst(ctx), iv, 15 - cctx->L);
         cctx->iv_set = 1;
     }
     return 1;
@@ -886,11 +886,11 @@ static int aes_t4_ocb_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
              * needs both. We could possibly optimise to remove setting the
              * decrypt for an encryption operation.
              */
-            aes_t4_set_encrypt_key(key, EVP_CIPHER_CTX_key_length(ctx) * 8,
+            aes_t4_set_encrypt_key(key, VR_EVP_CIPHER_CTX_key_length(ctx) * 8,
                                    &octx->ksenc.ks);
-            aes_t4_set_decrypt_key(key, EVP_CIPHER_CTX_key_length(ctx) * 8,
+            aes_t4_set_decrypt_key(key, VR_EVP_CIPHER_CTX_key_length(ctx) * 8,
                                    &octx->ksdec.ks);
-            if (!CRYPTO_ocb128_init(&octx->ocb,
+            if (!VR_CRYPTO_ocb128_init(&octx->ocb,
                                     &octx->ksenc.ks, &octx->ksdec.ks,
                                     (block128_f) aes_t4_encrypt,
                                     (block128_f) aes_t4_decrypt,
@@ -905,7 +905,7 @@ static int aes_t4_ocb_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
         if (iv == NULL && octx->iv_set)
             iv = octx->iv;
         if (iv) {
-            if (CRYPTO_ocb128_setiv(&octx->ocb, iv, octx->ivlen, octx->taglen)
+            if (VR_CRYPTO_ocb128_setiv(&octx->ocb, iv, octx->ivlen, octx->taglen)
                 != 1)
                 return 0;
             octx->iv_set = 1;
@@ -914,7 +914,7 @@ static int aes_t4_ocb_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
     } else {
         /* If key set use IV, otherwise copy */
         if (octx->key_set)
-            CRYPTO_ocb128_setiv(&octx->ocb, iv, octx->ivlen, octx->taglen);
+            VR_CRYPTO_ocb128_setiv(&octx->ocb, iv, octx->ivlen, octx->taglen);
         else
             memcpy(octx->iv, iv, octx->ivlen);
         octx->iv_set = 1;
@@ -950,7 +950,7 @@ static const EVP_CIPHER aes_##keylen##_##mode = { \
         NULL,                           \
         sizeof(EVP_AES_KEY),            \
         NULL,NULL,NULL,NULL }; \
-const EVP_CIPHER *EVP_aes_##keylen##_##mode(void) \
+const EVP_CIPHER *VR_##EVP_aes_##keylen##_##mode(void) \
 { return SPARC_AES_CAPABLE?&aes_t4_##keylen##_##mode:&aes_##keylen##_##mode; }
 
 # define BLOCK_CIPHER_custom(nid,keylen,blocksize,ivlen,mode,MODE,flags) \
@@ -974,7 +974,7 @@ static const EVP_CIPHER aes_##keylen##_##mode = { \
         aes_##mode##_cleanup,           \
         sizeof(EVP_AES_##MODE##_CTX),   \
         NULL,NULL,aes_##mode##_ctrl,NULL }; \
-const EVP_CIPHER *EVP_aes_##keylen##_##mode(void) \
+const EVP_CIPHER *VR_##EVP_aes_##keylen##_##mode(void) \
 { return SPARC_AES_CAPABLE?&aes_t4_##keylen##_##mode:&aes_##keylen##_##mode; }
 
 #elif defined(OPENSSL_CPUID_OBJ) && defined(__s390__)
@@ -1170,7 +1170,7 @@ static int s390x_aes_ecb_init_key(EVP_CIPHER_CTX *ctx,
                                   const unsigned char *iv, int enc)
 {
     S390X_AES_ECB_CTX *cctx = EVP_C_DATA(S390X_AES_ECB_CTX, ctx);
-    const int keylen = EVP_CIPHER_CTX_key_length(ctx);
+    const int keylen = VR_EVP_CIPHER_CTX_key_length(ctx);
 
     cctx->fc = S390X_AES_FC(keylen);
     if (!enc)
@@ -1204,9 +1204,9 @@ static int s390x_aes_ofb_init_key(EVP_CIPHER_CTX *ctx,
                                   const unsigned char *ivec, int enc)
 {
     S390X_AES_OFB_CTX *cctx = EVP_C_DATA(S390X_AES_OFB_CTX, ctx);
-    const unsigned char *iv = EVP_CIPHER_CTX_original_iv(ctx);
-    const int keylen = EVP_CIPHER_CTX_key_length(ctx);
-    const int ivlen = EVP_CIPHER_CTX_iv_length(ctx);
+    const unsigned char *iv = VR_EVP_CIPHER_CTX_original_iv(ctx);
+    const int keylen = VR_EVP_CIPHER_CTX_key_length(ctx);
+    const int ivlen = VR_EVP_CIPHER_CTX_iv_length(ctx);
 
     memcpy(cctx->kmo.param.cv, iv, ivlen);
     memcpy(cctx->kmo.param.k, key, keylen);
@@ -1269,9 +1269,9 @@ static int s390x_aes_cfb_init_key(EVP_CIPHER_CTX *ctx,
                                   const unsigned char *ivec, int enc)
 {
     S390X_AES_CFB_CTX *cctx = EVP_C_DATA(S390X_AES_CFB_CTX, ctx);
-    const unsigned char *iv = EVP_CIPHER_CTX_original_iv(ctx);
-    const int keylen = EVP_CIPHER_CTX_key_length(ctx);
-    const int ivlen = EVP_CIPHER_CTX_iv_length(ctx);
+    const unsigned char *iv = VR_EVP_CIPHER_CTX_original_iv(ctx);
+    const int keylen = VR_EVP_CIPHER_CTX_key_length(ctx);
+    const int ivlen = VR_EVP_CIPHER_CTX_iv_length(ctx);
 
     cctx->fc = S390X_AES_FC(keylen);
     cctx->fc |= 16 << 24;   /* 16 bytes cipher feedback */
@@ -1288,8 +1288,8 @@ static int s390x_aes_cfb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                                 const unsigned char *in, size_t len)
 {
     S390X_AES_CFB_CTX *cctx = EVP_C_DATA(S390X_AES_CFB_CTX, ctx);
-    const int keylen = EVP_CIPHER_CTX_key_length(ctx);
-    const int enc = EVP_CIPHER_CTX_encrypting(ctx);
+    const int keylen = VR_EVP_CIPHER_CTX_key_length(ctx);
+    const int enc = VR_EVP_CIPHER_CTX_encrypting(ctx);
     int n = cctx->res;
     int rem;
     unsigned char tmp;
@@ -1342,9 +1342,9 @@ static int s390x_aes_cfb8_init_key(EVP_CIPHER_CTX *ctx,
                                    const unsigned char *ivec, int enc)
 {
     S390X_AES_CFB_CTX *cctx = EVP_C_DATA(S390X_AES_CFB_CTX, ctx);
-    const unsigned char *iv = EVP_CIPHER_CTX_original_iv(ctx);
-    const int keylen = EVP_CIPHER_CTX_key_length(ctx);
-    const int ivlen = EVP_CIPHER_CTX_iv_length(ctx);
+    const unsigned char *iv = VR_EVP_CIPHER_CTX_original_iv(ctx);
+    const int keylen = VR_EVP_CIPHER_CTX_key_length(ctx);
+    const int ivlen = VR_EVP_CIPHER_CTX_iv_length(ctx);
 
     cctx->fc = S390X_AES_FC(keylen);
     cctx->fc |= 1 << 24;   /* 1 byte cipher feedback */
@@ -1590,8 +1590,8 @@ static int s390x_aes_gcm_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr)
 
     switch (type) {
     case EVP_CTRL_INIT:
-        ivlen = EVP_CIPHER_CTX_iv_length(c);
-        iv = EVP_CIPHER_CTX_iv_noconst(c);
+        ivlen = VR_EVP_CIPHER_CTX_iv_length(c);
+        iv = VR_EVP_CIPHER_CTX_iv_noconst(c);
         gctx->key_set = 0;
         gctx->iv_set = 0;
         gctx->ivlen = ivlen;
@@ -1606,13 +1606,13 @@ static int s390x_aes_gcm_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr)
             return 0;
 
         if (arg != 12) {
-            iv = EVP_CIPHER_CTX_iv_noconst(c);
+            iv = VR_EVP_CIPHER_CTX_iv_noconst(c);
             len = S390X_gcm_ivpadlen(arg);
 
             /* Allocate memory for iv if needed. */
             if (gctx->ivlen == 12 || len > S390X_gcm_ivpadlen(gctx->ivlen)) {
                 if (gctx->iv != iv)
-                    OPENSSL_free(gctx->iv);
+                    OPENVR_SSL_free(gctx->iv);
 
                 if ((gctx->iv = OPENSSL_malloc(len)) == NULL) {
                     EVPerr(EVP_F_S390X_AES_GCM_CTRL, ERR_R_MALLOC_FAILURE);
@@ -1627,8 +1627,8 @@ static int s390x_aes_gcm_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr)
         return 1;
 
     case EVP_CTRL_AEAD_SET_TAG:
-        buf = EVP_CIPHER_CTX_buf_noconst(c);
-        enc = EVP_CIPHER_CTX_encrypting(c);
+        buf = VR_EVP_CIPHER_CTX_buf_noconst(c);
+        enc = VR_EVP_CIPHER_CTX_encrypting(c);
         if (arg <= 0 || arg > 16 || enc)
             return 0;
 
@@ -1637,7 +1637,7 @@ static int s390x_aes_gcm_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr)
         return 1;
 
     case EVP_CTRL_AEAD_GET_TAG:
-        enc = EVP_CIPHER_CTX_encrypting(c);
+        enc = VR_EVP_CIPHER_CTX_encrypting(c);
         if (arg <= 0 || arg > 16 || !enc || gctx->taglen < 0)
             return 0;
 
@@ -1661,8 +1661,8 @@ static int s390x_aes_gcm_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr)
         if (arg)
             memcpy(gctx->iv, ptr, arg);
 
-        enc = EVP_CIPHER_CTX_encrypting(c);
-        if (enc && RAND_bytes(gctx->iv + arg, gctx->ivlen - arg) <= 0)
+        enc = VR_EVP_CIPHER_CTX_encrypting(c);
+        if (enc && VR_RAND_bytes(gctx->iv + arg, gctx->ivlen - arg) <= 0)
             return 0;
 
         gctx->iv_gen = 1;
@@ -1687,7 +1687,7 @@ static int s390x_aes_gcm_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr)
         return 1;
 
     case EVP_CTRL_GCM_SET_IV_INV:
-        enc = EVP_CIPHER_CTX_encrypting(c);
+        enc = VR_EVP_CIPHER_CTX_encrypting(c);
         if (gctx->iv_gen == 0 || gctx->key_set == 0 || enc)
             return 0;
 
@@ -1701,7 +1701,7 @@ static int s390x_aes_gcm_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr)
         if (arg != EVP_AEAD_TLS1_AAD_LEN)
             return 0;
 
-        buf = EVP_CIPHER_CTX_buf_noconst(c);
+        buf = VR_EVP_CIPHER_CTX_buf_noconst(c);
         memcpy(buf, ptr, arg);
         gctx->tls_aad_len = arg;
         gctx->tls_enc_records = 0;
@@ -1713,7 +1713,7 @@ static int s390x_aes_gcm_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr)
         len -= EVP_GCM_TLS_EXPLICIT_IV_LEN;
 
         /* If decrypting correct for tag too. */
-        enc = EVP_CIPHER_CTX_encrypting(c);
+        enc = VR_EVP_CIPHER_CTX_encrypting(c);
         if (!enc) {
             if (len < EVP_GCM_TLS_TAG_LEN)
                 return 0;
@@ -1727,10 +1727,10 @@ static int s390x_aes_gcm_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr)
     case EVP_CTRL_COPY:
         out = ptr;
         gctx_out = EVP_C_DATA(S390X_AES_GCM_CTX, out);
-        iv = EVP_CIPHER_CTX_iv_noconst(c);
+        iv = VR_EVP_CIPHER_CTX_iv_noconst(c);
 
         if (gctx->iv == iv) {
-            gctx_out->iv = EVP_CIPHER_CTX_iv_noconst(out);
+            gctx_out->iv = VR_EVP_CIPHER_CTX_iv_noconst(out);
         } else {
             len = S390X_gcm_ivpadlen(gctx->ivlen);
 
@@ -1762,7 +1762,7 @@ static int s390x_aes_gcm_init_key(EVP_CIPHER_CTX *ctx,
         return 1;
 
     if (key != NULL) {
-        keylen = EVP_CIPHER_CTX_key_length(ctx);
+        keylen = VR_EVP_CIPHER_CTX_key_length(ctx);
         memcpy(&gctx->kma.param.k, key, keylen);
 
         gctx->fc = S390X_AES_FC(keylen);
@@ -1797,8 +1797,8 @@ static int s390x_aes_gcm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                                     const unsigned char *in, size_t len)
 {
     S390X_AES_GCM_CTX *gctx = EVP_C_DATA(S390X_AES_GCM_CTX, ctx);
-    const unsigned char *buf = EVP_CIPHER_CTX_buf_noconst(ctx);
-    const int enc = EVP_CIPHER_CTX_encrypting(ctx);
+    const unsigned char *buf = VR_EVP_CIPHER_CTX_buf_noconst(ctx);
+    const int enc = VR_EVP_CIPHER_CTX_encrypting(ctx);
     int rv = -1;
 
     if (out != in || len < (EVP_GCM_TLS_EXPLICIT_IV_LEN + EVP_GCM_TLS_TAG_LEN))
@@ -1815,7 +1815,7 @@ static int s390x_aes_gcm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
         goto err;
     }
 
-    if (EVP_CIPHER_CTX_ctrl(ctx, enc ? EVP_CTRL_GCM_IV_GEN
+    if (VR_EVP_CIPHER_CTX_ctrl(ctx, enc ? EVP_CTRL_GCM_IV_GEN
                                      : EVP_CTRL_GCM_SET_IV_INV,
                             EVP_GCM_TLS_EXPLICIT_IV_LEN, out) <= 0)
         goto err;
@@ -1833,9 +1833,9 @@ static int s390x_aes_gcm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
         memcpy(out + len, gctx->kma.param.t.b, EVP_GCM_TLS_TAG_LEN);
         rv = len + EVP_GCM_TLS_EXPLICIT_IV_LEN + EVP_GCM_TLS_TAG_LEN;
     } else {
-        if (CRYPTO_memcmp(gctx->kma.param.t.b, in + len,
+        if (VR_CRYPTO_memcmp(gctx->kma.param.t.b, in + len,
                           EVP_GCM_TLS_TAG_LEN)) {
-            OPENSSL_cleanse(out, len);
+            VR_OPENSSL_cleanse(out, len);
             goto err;
         }
         rv = len;
@@ -1884,18 +1884,18 @@ static int s390x_aes_gcm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                   gctx->fc | S390X_KMA_LAAD | S390X_KMA_LPC, &gctx->kma.param);
         /* recall that we already did en-/decrypt gctx->mres
          * and returned it to caller... */
-        OPENSSL_cleanse(tmp, gctx->mreslen);
+        VR_OPENSSL_cleanse(tmp, gctx->mreslen);
         gctx->iv_set = 0;
 
-        enc = EVP_CIPHER_CTX_encrypting(ctx);
+        enc = VR_EVP_CIPHER_CTX_encrypting(ctx);
         if (enc) {
             gctx->taglen = 16;
         } else {
             if (gctx->taglen < 0)
                 return -1;
 
-            buf = EVP_CIPHER_CTX_buf_noconst(ctx);
-            if (CRYPTO_memcmp(buf, gctx->kma.param.t.b, gctx->taglen))
+            buf = VR_EVP_CIPHER_CTX_buf_noconst(ctx);
+            if (VR_CRYPTO_memcmp(buf, gctx->kma.param.t.b, gctx->taglen))
                 return -1;
         }
         return 0;
@@ -1910,11 +1910,11 @@ static int s390x_aes_gcm_cleanup(EVP_CIPHER_CTX *c)
     if (gctx == NULL)
         return 0;
 
-    iv = EVP_CIPHER_CTX_iv(c);
+    iv = VR_EVP_CIPHER_CTX_iv(c);
     if (iv != gctx->iv)
-        OPENSSL_free(gctx->iv);
+        OPENVR_SSL_free(gctx->iv);
 
-    OPENSSL_cleanse(gctx, sizeof(*gctx));
+    VR_OPENSSL_cleanse(gctx, sizeof(*gctx));
     return 1;
 }
 
@@ -2083,12 +2083,12 @@ static int s390x_aes_ccm(S390X_AES_CCM_CTX *ctx, const unsigned char *in,
                      ctx->aes.ccm.kmac_param.k);
         }
 
-        CRYPTO_ctr128_encrypt_ctr32(in, out, len + rem, &ctx->aes.key.k,
+        VR_CRYPTO_ctr128_encrypt_ctr32(in, out, len + rem, &ctx->aes.key.k,
                                     ctx->aes.ccm.nonce.b, ctx->aes.ccm.buf.b,
                                     &num, (ctr128_f)AES_ctr32_encrypt);
     } else {
         /* decrypt-then-mac */
-        CRYPTO_ctr128_encrypt_ctr32(in, out, len + rem, &ctx->aes.key.k,
+        VR_CRYPTO_ctr128_encrypt_ctr32(in, out, len + rem, &ctx->aes.key.k,
                                     ctx->aes.ccm.nonce.b, ctx->aes.ccm.buf.b,
                                     &num, (ctr128_f)AES_ctr32_encrypt);
 
@@ -2124,9 +2124,9 @@ static int s390x_aes_ccm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                                     const unsigned char *in, size_t len)
 {
     S390X_AES_CCM_CTX *cctx = EVP_C_DATA(S390X_AES_CCM_CTX, ctx);
-    unsigned char *ivec = EVP_CIPHER_CTX_iv_noconst(ctx);
-    unsigned char *buf = EVP_CIPHER_CTX_buf_noconst(ctx);
-    const int enc = EVP_CIPHER_CTX_encrypting(ctx);
+    unsigned char *ivec = VR_EVP_CIPHER_CTX_iv_noconst(ctx);
+    unsigned char *buf = VR_EVP_CIPHER_CTX_buf_noconst(ctx);
+    const int enc = VR_EVP_CIPHER_CTX_encrypting(ctx);
 
     if (out != in
             || len < (EVP_CCM_TLS_EXPLICIT_IV_LEN + (size_t)cctx->aes.ccm.m))
@@ -2159,12 +2159,12 @@ static int s390x_aes_ccm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
         return len + EVP_CCM_TLS_EXPLICIT_IV_LEN + cctx->aes.ccm.m;
     } else {
         if (!s390x_aes_ccm(cctx, in, out, len, enc)) {
-            if (!CRYPTO_memcmp(cctx->aes.ccm.kmac_param.icv.b, in + len,
+            if (!VR_CRYPTO_memcmp(cctx->aes.ccm.kmac_param.icv.b, in + len,
                                cctx->aes.ccm.m))
                 return len;
         }
 
-        OPENSSL_cleanse(out, len);
+        VR_OPENSSL_cleanse(out, len);
         return -1;
     }
 }
@@ -2185,7 +2185,7 @@ static int s390x_aes_ccm_init_key(EVP_CIPHER_CTX *ctx,
         return 1;
 
     if (key != NULL) {
-        keylen = EVP_CIPHER_CTX_key_length(ctx);
+        keylen = VR_EVP_CIPHER_CTX_key_length(ctx);
         cctx->aes.ccm.fc = S390X_AES_FC(keylen);
         memcpy(cctx->aes.ccm.kmac_param.k, key, keylen);
 
@@ -2200,7 +2200,7 @@ static int s390x_aes_ccm_init_key(EVP_CIPHER_CTX *ctx,
     }
 
     if (iv != NULL) {
-        ivec = EVP_CIPHER_CTX_iv_noconst(ctx);
+        ivec = VR_EVP_CIPHER_CTX_iv_noconst(ctx);
         memcpy(ivec, iv, 15 - cctx->aes.ccm.l);
 
         cctx->aes.ccm.iv_set = 1;
@@ -2219,7 +2219,7 @@ static int s390x_aes_ccm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                                 const unsigned char *in, size_t len)
 {
     S390X_AES_CCM_CTX *cctx = EVP_C_DATA(S390X_AES_CCM_CTX, ctx);
-    const int enc = EVP_CIPHER_CTX_encrypting(ctx);
+    const int enc = VR_EVP_CIPHER_CTX_encrypting(ctx);
     int rv;
     unsigned char *buf, *ivec;
 
@@ -2246,7 +2246,7 @@ static int s390x_aes_ccm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
     if (out == NULL) {
         /* Update(): Pass message length. */
         if (in == NULL) {
-            ivec = EVP_CIPHER_CTX_iv_noconst(ctx);
+            ivec = VR_EVP_CIPHER_CTX_iv_noconst(ctx);
             s390x_aes_ccm_setiv(cctx, ivec, len);
 
             cctx->aes.ccm.len_set = 1;
@@ -2268,7 +2268,7 @@ static int s390x_aes_ccm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
          * In case message length was not previously set explicitly via
          * Update(), set it now.
          */
-        ivec = EVP_CIPHER_CTX_iv_noconst(ctx);
+        ivec = VR_EVP_CIPHER_CTX_iv_noconst(ctx);
         s390x_aes_ccm_setiv(cctx, ivec, len);
 
         cctx->aes.ccm.len_set = 1;
@@ -2284,14 +2284,14 @@ static int s390x_aes_ccm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
         rv = -1;
 
         if (!s390x_aes_ccm(cctx, in, out, len, enc)) {
-            buf = EVP_CIPHER_CTX_buf_noconst(ctx);
-            if (!CRYPTO_memcmp(cctx->aes.ccm.kmac_param.icv.b, buf,
+            buf = VR_EVP_CIPHER_CTX_buf_noconst(ctx);
+            if (!VR_CRYPTO_memcmp(cctx->aes.ccm.kmac_param.icv.b, buf,
                                cctx->aes.ccm.m))
                 rv = len;
         }
 
         if (rv == -1)
-            OPENSSL_cleanse(out, len);
+            VR_OPENSSL_cleanse(out, len);
 
         cctx->aes.ccm.iv_set = 0;
         cctx->aes.ccm.tag_set = 0;
@@ -2327,7 +2327,7 @@ static int s390x_aes_ccm_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr)
             return 0;
 
         /* Save the aad for later use. */
-        buf = EVP_CIPHER_CTX_buf_noconst(c);
+        buf = VR_EVP_CIPHER_CTX_buf_noconst(c);
         memcpy(buf, ptr, arg);
         cctx->aes.ccm.tls_aad_len = arg;
 
@@ -2338,7 +2338,7 @@ static int s390x_aes_ccm_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr)
         /* Correct length for explicit iv. */
         len -= EVP_CCM_TLS_EXPLICIT_IV_LEN;
 
-        enc = EVP_CIPHER_CTX_encrypting(c);
+        enc = VR_EVP_CIPHER_CTX_encrypting(c);
         if (!enc) {
             if (len < cctx->aes.ccm.m)
                 return 0;
@@ -2358,7 +2358,7 @@ static int s390x_aes_ccm_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr)
             return 0;
 
         /* Copy to first part of the iv. */
-        iv = EVP_CIPHER_CTX_iv_noconst(c);
+        iv = VR_EVP_CIPHER_CTX_iv_noconst(c);
         memcpy(iv, ptr, arg);
         return 1;
 
@@ -2377,13 +2377,13 @@ static int s390x_aes_ccm_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr)
         if ((arg & 1) || arg < 4 || arg > 16)
             return 0;
 
-        enc = EVP_CIPHER_CTX_encrypting(c);
+        enc = VR_EVP_CIPHER_CTX_encrypting(c);
         if (enc && ptr)
             return 0;
 
         if (ptr) {
             cctx->aes.ccm.tag_set = 1;
-            buf = EVP_CIPHER_CTX_buf_noconst(c);
+            buf = VR_EVP_CIPHER_CTX_buf_noconst(c);
             memcpy(buf, ptr, arg);
         }
 
@@ -2391,7 +2391,7 @@ static int s390x_aes_ccm_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr)
         return 1;
 
     case EVP_CTRL_AEAD_GET_TAG:
-        enc = EVP_CIPHER_CTX_encrypting(c);
+        enc = VR_EVP_CIPHER_CTX_encrypting(c);
         if (!enc || !cctx->aes.ccm.tag_set)
             return 0;
 
@@ -2475,7 +2475,7 @@ static const EVP_CIPHER aes_##keylen##_##mode = {			\
     NULL,								\
     NULL								\
 };									\
-const EVP_CIPHER *EVP_aes_##keylen##_##mode(void)			\
+const EVP_CIPHER *VR_##EVP_aes_##keylen##_##mode(void)			\
 {									\
     return S390X_aes_##keylen##_##mode##_CAPABLE ?			\
            &s390x_aes_##keylen##_##mode : &aes_##keylen##_##mode;	\
@@ -2511,7 +2511,7 @@ static const EVP_CIPHER aes_##keylen##_##mode = {			\
     aes_##mode##_ctrl,							\
     NULL								\
 };									\
-const EVP_CIPHER *EVP_aes_##keylen##_##mode(void)			\
+const EVP_CIPHER *VR_##EVP_aes_##keylen##_##mode(void)			\
 {									\
     return S390X_aes_##keylen##_##mode##_CAPABLE ?			\
            &s390x_aes_##keylen##_##mode : &aes_##keylen##_##mode;	\
@@ -2528,7 +2528,7 @@ static const EVP_CIPHER aes_##keylen##_##mode = { \
         NULL,                           \
         sizeof(EVP_AES_KEY),            \
         NULL,NULL,NULL,NULL }; \
-const EVP_CIPHER *EVP_aes_##keylen##_##mode(void) \
+const EVP_CIPHER *VR_##EVP_aes_##keylen##_##mode(void) \
 { return &aes_##keylen##_##mode; }
 
 # define BLOCK_CIPHER_custom(nid,keylen,blocksize,ivlen,mode,MODE,flags) \
@@ -2542,7 +2542,7 @@ static const EVP_CIPHER aes_##keylen##_##mode = { \
         aes_##mode##_cleanup,           \
         sizeof(EVP_AES_##MODE##_CTX),   \
         NULL,NULL,aes_##mode##_ctrl,NULL }; \
-const EVP_CIPHER *EVP_aes_##keylen##_##mode(void) \
+const EVP_CIPHER *VR_##EVP_aes_##keylen##_##mode(void) \
 { return &aes_##keylen##_##mode; }
 
 #endif
@@ -2557,25 +2557,25 @@ const EVP_CIPHER *EVP_aes_##keylen##_##mode(void) \
 #   define VPAES_CAPABLE (OPENSSL_armcap_P & ARMV7_NEON)
 #  endif
 #  define HWAES_CAPABLE (OPENSSL_armcap_P & ARMV8_AES)
-#  define HWAES_set_encrypt_key aes_v8_set_encrypt_key
-#  define HWAES_set_decrypt_key aes_v8_set_decrypt_key
-#  define HWAES_encrypt aes_v8_encrypt
-#  define HWAES_decrypt aes_v8_decrypt
-#  define HWAES_cbc_encrypt aes_v8_cbc_encrypt
+#  define HWVR_AES_set_encrypt_key aes_v8_set_encrypt_key
+#  define HWVR_AES_set_decrypt_key aes_v8_set_decrypt_key
+#  define HWVR_AES_encrypt aes_v8_encrypt
+#  define HWVR_AES_decrypt aes_v8_decrypt
+#  define HWVR_AES_cbc_encrypt aes_v8_cbc_encrypt
 #  define HWAES_ctr32_encrypt_blocks aes_v8_ctr32_encrypt_blocks
 # endif
 #endif
 
 #if defined(HWAES_CAPABLE)
-int HWAES_set_encrypt_key(const unsigned char *userKey, const int bits,
+int HWVR_AES_set_encrypt_key(const unsigned char *userKey, const int bits,
                           AES_KEY *key);
-int HWAES_set_decrypt_key(const unsigned char *userKey, const int bits,
+int HWVR_AES_set_decrypt_key(const unsigned char *userKey, const int bits,
                           AES_KEY *key);
-void HWAES_encrypt(const unsigned char *in, unsigned char *out,
+void HWVR_AES_encrypt(const unsigned char *in, unsigned char *out,
                    const AES_KEY *key);
-void HWAES_decrypt(const unsigned char *in, unsigned char *out,
+void HWVR_AES_decrypt(const unsigned char *in, unsigned char *out,
                    const AES_KEY *key);
-void HWAES_cbc_encrypt(const unsigned char *in, unsigned char *out,
+void HWVR_AES_cbc_encrypt(const unsigned char *in, unsigned char *out,
                        size_t length, const AES_KEY *key,
                        unsigned char *ivec, const int enc);
 void HWAES_ctr32_encrypt_blocks(const unsigned char *in, unsigned char *out,
@@ -2609,53 +2609,53 @@ static int aes_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
         && !enc) {
 #ifdef HWAES_CAPABLE
         if (HWAES_CAPABLE) {
-            ret = HWAES_set_decrypt_key(key,
-                                        EVP_CIPHER_CTX_key_length(ctx) * 8,
+            ret = HWVR_AES_set_decrypt_key(key,
+                                        VR_EVP_CIPHER_CTX_key_length(ctx) * 8,
                                         &dat->ks.ks);
-            dat->block = (block128_f) HWAES_decrypt;
+            dat->block = (block128_f) HWVR_AES_decrypt;
             dat->stream.cbc = NULL;
-# ifdef HWAES_cbc_encrypt
+# ifdef HWVR_AES_cbc_encrypt
             if (mode == EVP_CIPH_CBC_MODE)
-                dat->stream.cbc = (cbc128_f) HWAES_cbc_encrypt;
+                dat->stream.cbc = (cbc128_f) HWVR_AES_cbc_encrypt;
 # endif
         } else
 #endif
 #ifdef BSAES_CAPABLE
         if (BSAES_CAPABLE && mode == EVP_CIPH_CBC_MODE) {
-            ret = AES_set_decrypt_key(key, EVP_CIPHER_CTX_key_length(ctx) * 8,
+            ret = VR_AES_set_decrypt_key(key, VR_EVP_CIPHER_CTX_key_length(ctx) * 8,
                                       &dat->ks.ks);
-            dat->block = (block128_f) AES_decrypt;
-            dat->stream.cbc = (cbc128_f) bsaes_cbc_encrypt;
+            dat->block = (block128_f) VR_AES_decrypt;
+            dat->stream.cbc = (cbc128_f) VR_bsaes_cbc_encrypt;
         } else
 #endif
 #ifdef VPAES_CAPABLE
         if (VPAES_CAPABLE) {
-            ret = vpaes_set_decrypt_key(key,
-                                        EVP_CIPHER_CTX_key_length(ctx) * 8,
+            ret = VR_vpaes_set_decrypt_key(key,
+                                        VR_EVP_CIPHER_CTX_key_length(ctx) * 8,
                                         &dat->ks.ks);
-            dat->block = (block128_f) vpaes_decrypt;
+            dat->block = (block128_f) VR_vpaes_decrypt;
             dat->stream.cbc = mode == EVP_CIPH_CBC_MODE ?
-                (cbc128_f) vpaes_cbc_encrypt : NULL;
+                (cbc128_f) VR_vpaes_cbc_encrypt : NULL;
         } else
 #endif
         {
-            ret = AES_set_decrypt_key(key,
-                                      EVP_CIPHER_CTX_key_length(ctx) * 8,
+            ret = VR_AES_set_decrypt_key(key,
+                                      VR_EVP_CIPHER_CTX_key_length(ctx) * 8,
                                       &dat->ks.ks);
-            dat->block = (block128_f) AES_decrypt;
+            dat->block = (block128_f) VR_AES_decrypt;
             dat->stream.cbc = mode == EVP_CIPH_CBC_MODE ?
-                (cbc128_f) AES_cbc_encrypt : NULL;
+                (cbc128_f) VR_AES_cbc_encrypt : NULL;
         }
     } else
 #ifdef HWAES_CAPABLE
     if (HWAES_CAPABLE) {
-        ret = HWAES_set_encrypt_key(key, EVP_CIPHER_CTX_key_length(ctx) * 8,
+        ret = HWVR_AES_set_encrypt_key(key, VR_EVP_CIPHER_CTX_key_length(ctx) * 8,
                                     &dat->ks.ks);
-        dat->block = (block128_f) HWAES_encrypt;
+        dat->block = (block128_f) HWVR_AES_encrypt;
         dat->stream.cbc = NULL;
-# ifdef HWAES_cbc_encrypt
+# ifdef HWVR_AES_cbc_encrypt
         if (mode == EVP_CIPH_CBC_MODE)
-            dat->stream.cbc = (cbc128_f) HWAES_cbc_encrypt;
+            dat->stream.cbc = (cbc128_f) HWVR_AES_cbc_encrypt;
         else
 # endif
 # ifdef HWAES_ctr32_encrypt_blocks
@@ -2668,27 +2668,27 @@ static int aes_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
 #endif
 #ifdef BSAES_CAPABLE
     if (BSAES_CAPABLE && mode == EVP_CIPH_CTR_MODE) {
-        ret = AES_set_encrypt_key(key, EVP_CIPHER_CTX_key_length(ctx) * 8,
+        ret = VR_AES_set_encrypt_key(key, VR_EVP_CIPHER_CTX_key_length(ctx) * 8,
                                   &dat->ks.ks);
-        dat->block = (block128_f) AES_encrypt;
-        dat->stream.ctr = (ctr128_f) bsaes_ctr32_encrypt_blocks;
+        dat->block = (block128_f) VR_AES_encrypt;
+        dat->stream.ctr = (ctr128_f) VR_bsaes_ctr32_encrypt_blocks;
     } else
 #endif
 #ifdef VPAES_CAPABLE
     if (VPAES_CAPABLE) {
-        ret = vpaes_set_encrypt_key(key, EVP_CIPHER_CTX_key_length(ctx) * 8,
+        ret = VR_vpaes_set_encrypt_key(key, VR_EVP_CIPHER_CTX_key_length(ctx) * 8,
                                     &dat->ks.ks);
-        dat->block = (block128_f) vpaes_encrypt;
+        dat->block = (block128_f) VR_vpaes_encrypt;
         dat->stream.cbc = mode == EVP_CIPH_CBC_MODE ?
-            (cbc128_f) vpaes_cbc_encrypt : NULL;
+            (cbc128_f) VR_vpaes_cbc_encrypt : NULL;
     } else
 #endif
     {
-        ret = AES_set_encrypt_key(key, EVP_CIPHER_CTX_key_length(ctx) * 8,
+        ret = VR_AES_set_encrypt_key(key, VR_EVP_CIPHER_CTX_key_length(ctx) * 8,
                                   &dat->ks.ks);
-        dat->block = (block128_f) AES_encrypt;
+        dat->block = (block128_f) VR_AES_encrypt;
         dat->stream.cbc = mode == EVP_CIPH_CBC_MODE ?
-            (cbc128_f) AES_cbc_encrypt : NULL;
+            (cbc128_f) VR_AES_cbc_encrypt : NULL;
 #ifdef AES_CTR_ASM
         if (mode == EVP_CIPH_CTR_MODE)
             dat->stream.ctr = (ctr128_f) AES_ctr32_encrypt;
@@ -2710,14 +2710,14 @@ static int aes_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
 
     if (dat->stream.cbc)
         (*dat->stream.cbc) (in, out, len, &dat->ks,
-                            EVP_CIPHER_CTX_iv_noconst(ctx),
-                            EVP_CIPHER_CTX_encrypting(ctx));
-    else if (EVP_CIPHER_CTX_encrypting(ctx))
-        CRYPTO_cbc128_encrypt(in, out, len, &dat->ks,
-                              EVP_CIPHER_CTX_iv_noconst(ctx), dat->block);
+                            VR_EVP_CIPHER_CTX_iv_noconst(ctx),
+                            VR_EVP_CIPHER_CTX_encrypting(ctx));
+    else if (VR_EVP_CIPHER_CTX_encrypting(ctx))
+        VR_CRYPTO_cbc128_encrypt(in, out, len, &dat->ks,
+                              VR_EVP_CIPHER_CTX_iv_noconst(ctx), dat->block);
     else
-        CRYPTO_cbc128_decrypt(in, out, len, &dat->ks,
-                              EVP_CIPHER_CTX_iv_noconst(ctx), dat->block);
+        VR_CRYPTO_cbc128_decrypt(in, out, len, &dat->ks,
+                              VR_EVP_CIPHER_CTX_iv_noconst(ctx), dat->block);
 
     return 1;
 }
@@ -2725,7 +2725,7 @@ static int aes_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
 static int aes_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                           const unsigned char *in, size_t len)
 {
-    size_t bl = EVP_CIPHER_CTX_block_size(ctx);
+    size_t bl = VR_EVP_CIPHER_CTX_block_size(ctx);
     size_t i;
     EVP_AES_KEY *dat = EVP_C_DATA(EVP_AES_KEY,ctx);
 
@@ -2743,10 +2743,10 @@ static int aes_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
 {
     EVP_AES_KEY *dat = EVP_C_DATA(EVP_AES_KEY,ctx);
 
-    int num = EVP_CIPHER_CTX_num(ctx);
-    CRYPTO_ofb128_encrypt(in, out, len, &dat->ks,
-                          EVP_CIPHER_CTX_iv_noconst(ctx), &num, dat->block);
-    EVP_CIPHER_CTX_set_num(ctx, num);
+    int num = VR_EVP_CIPHER_CTX_num(ctx);
+    VR_CRYPTO_ofb128_encrypt(in, out, len, &dat->ks,
+                          VR_EVP_CIPHER_CTX_iv_noconst(ctx), &num, dat->block);
+    VR_EVP_CIPHER_CTX_set_num(ctx, num);
     return 1;
 }
 
@@ -2755,11 +2755,11 @@ static int aes_cfb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
 {
     EVP_AES_KEY *dat = EVP_C_DATA(EVP_AES_KEY,ctx);
 
-    int num = EVP_CIPHER_CTX_num(ctx);
-    CRYPTO_cfb128_encrypt(in, out, len, &dat->ks,
-                          EVP_CIPHER_CTX_iv_noconst(ctx), &num,
-                          EVP_CIPHER_CTX_encrypting(ctx), dat->block);
-    EVP_CIPHER_CTX_set_num(ctx, num);
+    int num = VR_EVP_CIPHER_CTX_num(ctx);
+    VR_CRYPTO_cfb128_encrypt(in, out, len, &dat->ks,
+                          VR_EVP_CIPHER_CTX_iv_noconst(ctx), &num,
+                          VR_EVP_CIPHER_CTX_encrypting(ctx), dat->block);
+    VR_EVP_CIPHER_CTX_set_num(ctx, num);
     return 1;
 }
 
@@ -2768,11 +2768,11 @@ static int aes_cfb8_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
 {
     EVP_AES_KEY *dat = EVP_C_DATA(EVP_AES_KEY,ctx);
 
-    int num = EVP_CIPHER_CTX_num(ctx);
-    CRYPTO_cfb128_8_encrypt(in, out, len, &dat->ks,
-                            EVP_CIPHER_CTX_iv_noconst(ctx), &num,
-                            EVP_CIPHER_CTX_encrypting(ctx), dat->block);
-    EVP_CIPHER_CTX_set_num(ctx, num);
+    int num = VR_EVP_CIPHER_CTX_num(ctx);
+    VR_CRYPTO_cfb128_8_encrypt(in, out, len, &dat->ks,
+                            VR_EVP_CIPHER_CTX_iv_noconst(ctx), &num,
+                            VR_EVP_CIPHER_CTX_encrypting(ctx), dat->block);
+    VR_EVP_CIPHER_CTX_set_num(ctx, num);
     return 1;
 }
 
@@ -2781,31 +2781,31 @@ static int aes_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
 {
     EVP_AES_KEY *dat = EVP_C_DATA(EVP_AES_KEY,ctx);
 
-    if (EVP_CIPHER_CTX_test_flags(ctx, EVP_CIPH_FLAG_LENGTH_BITS)) {
-        int num = EVP_CIPHER_CTX_num(ctx);
-        CRYPTO_cfb128_1_encrypt(in, out, len, &dat->ks,
-                                EVP_CIPHER_CTX_iv_noconst(ctx), &num,
-                                EVP_CIPHER_CTX_encrypting(ctx), dat->block);
-        EVP_CIPHER_CTX_set_num(ctx, num);
+    if (VR_EVP_CIPHER_CTX_test_flags(ctx, EVP_CIPH_FLAG_LENGTH_BITS)) {
+        int num = VR_EVP_CIPHER_CTX_num(ctx);
+        VR_CRYPTO_cfb128_1_encrypt(in, out, len, &dat->ks,
+                                VR_EVP_CIPHER_CTX_iv_noconst(ctx), &num,
+                                VR_EVP_CIPHER_CTX_encrypting(ctx), dat->block);
+        VR_EVP_CIPHER_CTX_set_num(ctx, num);
         return 1;
     }
 
     while (len >= MAXBITCHUNK) {
-        int num = EVP_CIPHER_CTX_num(ctx);
-        CRYPTO_cfb128_1_encrypt(in, out, MAXBITCHUNK * 8, &dat->ks,
-                                EVP_CIPHER_CTX_iv_noconst(ctx), &num,
-                                EVP_CIPHER_CTX_encrypting(ctx), dat->block);
-        EVP_CIPHER_CTX_set_num(ctx, num);
+        int num = VR_EVP_CIPHER_CTX_num(ctx);
+        VR_CRYPTO_cfb128_1_encrypt(in, out, MAXBITCHUNK * 8, &dat->ks,
+                                VR_EVP_CIPHER_CTX_iv_noconst(ctx), &num,
+                                VR_EVP_CIPHER_CTX_encrypting(ctx), dat->block);
+        VR_EVP_CIPHER_CTX_set_num(ctx, num);
         len -= MAXBITCHUNK;
         out += MAXBITCHUNK;
         in  += MAXBITCHUNK;
     }
     if (len) {
-        int num = EVP_CIPHER_CTX_num(ctx);
-        CRYPTO_cfb128_1_encrypt(in, out, len * 8, &dat->ks,
-                                EVP_CIPHER_CTX_iv_noconst(ctx), &num,
-                                EVP_CIPHER_CTX_encrypting(ctx), dat->block);
-        EVP_CIPHER_CTX_set_num(ctx, num);
+        int num = VR_EVP_CIPHER_CTX_num(ctx);
+        VR_CRYPTO_cfb128_1_encrypt(in, out, len * 8, &dat->ks,
+                                VR_EVP_CIPHER_CTX_iv_noconst(ctx), &num,
+                                VR_EVP_CIPHER_CTX_encrypting(ctx), dat->block);
+        VR_EVP_CIPHER_CTX_set_num(ctx, num);
     }
 
     return 1;
@@ -2814,20 +2814,20 @@ static int aes_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
 static int aes_ctr_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                           const unsigned char *in, size_t len)
 {
-    unsigned int num = EVP_CIPHER_CTX_num(ctx);
+    unsigned int num = VR_EVP_CIPHER_CTX_num(ctx);
     EVP_AES_KEY *dat = EVP_C_DATA(EVP_AES_KEY,ctx);
 
     if (dat->stream.ctr)
-        CRYPTO_ctr128_encrypt_ctr32(in, out, len, &dat->ks,
-                                    EVP_CIPHER_CTX_iv_noconst(ctx),
-                                    EVP_CIPHER_CTX_buf_noconst(ctx),
+        VR_CRYPTO_ctr128_encrypt_ctr32(in, out, len, &dat->ks,
+                                    VR_EVP_CIPHER_CTX_iv_noconst(ctx),
+                                    VR_EVP_CIPHER_CTX_buf_noconst(ctx),
                                     &num, dat->stream.ctr);
     else
-        CRYPTO_ctr128_encrypt(in, out, len, &dat->ks,
-                              EVP_CIPHER_CTX_iv_noconst(ctx),
-                              EVP_CIPHER_CTX_buf_noconst(ctx), &num,
+        VR_CRYPTO_ctr128_encrypt(in, out, len, &dat->ks,
+                              VR_EVP_CIPHER_CTX_iv_noconst(ctx),
+                              VR_EVP_CIPHER_CTX_buf_noconst(ctx), &num,
                               dat->block);
-    EVP_CIPHER_CTX_set_num(ctx, num);
+    VR_EVP_CIPHER_CTX_set_num(ctx, num);
     return 1;
 }
 
@@ -2840,9 +2840,9 @@ static int aes_gcm_cleanup(EVP_CIPHER_CTX *c)
     EVP_AES_GCM_CTX *gctx = EVP_C_DATA(EVP_AES_GCM_CTX,c);
     if (gctx == NULL)
         return 0;
-    OPENSSL_cleanse(&gctx->gcm, sizeof(gctx->gcm));
-    if (gctx->iv != EVP_CIPHER_CTX_iv_noconst(c))
-        OPENSSL_free(gctx->iv);
+    VR_OPENSSL_cleanse(&gctx->gcm, sizeof(gctx->gcm));
+    if (gctx->iv != VR_EVP_CIPHER_CTX_iv_noconst(c))
+        OPENVR_SSL_free(gctx->iv);
     return 1;
 }
 
@@ -2866,7 +2866,7 @@ static int aes_gcm_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr)
         /* Allocate memory for IV if needed */
         if ((arg > EVP_MAX_IV_LENGTH) && (arg > gctx->ivlen)) {
             if (gctx->iv != c->iv)
-                OPENSSL_free(gctx->iv);
+                OPENVR_SSL_free(gctx->iv);
             if ((gctx->iv = OPENSSL_malloc(arg)) == NULL) {
                 EVPerr(EVP_F_AES_GCM_CTRL, ERR_R_MALLOC_FAILURE);
                 return 0;
@@ -2912,7 +2912,7 @@ static int aes_gcm_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr)
             return 0;
         if (arg)
             memcpy(gctx->iv, ptr, arg);
-        if (c->encrypt && RAND_bytes(gctx->iv + arg, gctx->ivlen - arg) <= 0)
+        if (c->encrypt && VR_RAND_bytes(gctx->iv + arg, gctx->ivlen - arg) <= 0)
             return 0;
         gctx->iv_gen = 1;
         return 1;
@@ -2920,7 +2920,7 @@ static int aes_gcm_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr)
     case EVP_CTRL_GCM_IV_GEN:
         if (gctx->iv_gen == 0 || gctx->key_set == 0)
             return 0;
-        CRYPTO_gcm128_setiv(&gctx->gcm, gctx->iv, gctx->ivlen);
+        VR_CRYPTO_gcm128_setiv(&gctx->gcm, gctx->iv, gctx->ivlen);
         if (arg <= 0 || arg > gctx->ivlen)
             arg = gctx->ivlen;
         memcpy(ptr, gctx->iv + gctx->ivlen - arg, arg);
@@ -2936,7 +2936,7 @@ static int aes_gcm_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr)
         if (gctx->iv_gen == 0 || gctx->key_set == 0 || c->encrypt)
             return 0;
         memcpy(gctx->iv + gctx->ivlen - arg, ptr, arg);
-        CRYPTO_gcm128_setiv(&gctx->gcm, gctx->iv, gctx->ivlen);
+        VR_CRYPTO_gcm128_setiv(&gctx->gcm, gctx->iv, gctx->ivlen);
         gctx->iv_set = 1;
         return 1;
 
@@ -3002,9 +3002,9 @@ static int aes_gcm_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
         do {
 #ifdef HWAES_CAPABLE
             if (HWAES_CAPABLE) {
-                HWAES_set_encrypt_key(key, ctx->key_len * 8, &gctx->ks.ks);
-                CRYPTO_gcm128_init(&gctx->gcm, &gctx->ks,
-                                   (block128_f) HWAES_encrypt);
+                HWVR_AES_set_encrypt_key(key, ctx->key_len * 8, &gctx->ks.ks);
+                VR_CRYPTO_gcm128_init(&gctx->gcm, &gctx->ks,
+                                   (block128_f) HWVR_AES_encrypt);
 # ifdef HWAES_ctr32_encrypt_blocks
                 gctx->ctr = (ctr128_f) HWAES_ctr32_encrypt_blocks;
 # else
@@ -3015,27 +3015,27 @@ static int aes_gcm_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
 #endif
 #ifdef BSAES_CAPABLE
             if (BSAES_CAPABLE) {
-                AES_set_encrypt_key(key, ctx->key_len * 8, &gctx->ks.ks);
-                CRYPTO_gcm128_init(&gctx->gcm, &gctx->ks,
-                                   (block128_f) AES_encrypt);
-                gctx->ctr = (ctr128_f) bsaes_ctr32_encrypt_blocks;
+                VR_AES_set_encrypt_key(key, ctx->key_len * 8, &gctx->ks.ks);
+                VR_CRYPTO_gcm128_init(&gctx->gcm, &gctx->ks,
+                                   (block128_f) VR_AES_encrypt);
+                gctx->ctr = (ctr128_f) VR_bsaes_ctr32_encrypt_blocks;
                 break;
             } else
 #endif
 #ifdef VPAES_CAPABLE
             if (VPAES_CAPABLE) {
-                vpaes_set_encrypt_key(key, ctx->key_len * 8, &gctx->ks.ks);
-                CRYPTO_gcm128_init(&gctx->gcm, &gctx->ks,
-                                   (block128_f) vpaes_encrypt);
+                VR_vpaes_set_encrypt_key(key, ctx->key_len * 8, &gctx->ks.ks);
+                VR_CRYPTO_gcm128_init(&gctx->gcm, &gctx->ks,
+                                   (block128_f) VR_vpaes_encrypt);
                 gctx->ctr = NULL;
                 break;
             } else
 #endif
                 (void)0;        /* terminate potentially open 'else' */
 
-            AES_set_encrypt_key(key, ctx->key_len * 8, &gctx->ks.ks);
-            CRYPTO_gcm128_init(&gctx->gcm, &gctx->ks,
-                               (block128_f) AES_encrypt);
+            VR_AES_set_encrypt_key(key, ctx->key_len * 8, &gctx->ks.ks);
+            VR_CRYPTO_gcm128_init(&gctx->gcm, &gctx->ks,
+                               (block128_f) VR_AES_encrypt);
 #ifdef AES_CTR_ASM
             gctx->ctr = (ctr128_f) AES_ctr32_encrypt;
 #else
@@ -3049,14 +3049,14 @@ static int aes_gcm_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
         if (iv == NULL && gctx->iv_set)
             iv = gctx->iv;
         if (iv) {
-            CRYPTO_gcm128_setiv(&gctx->gcm, iv, gctx->ivlen);
+            VR_CRYPTO_gcm128_setiv(&gctx->gcm, iv, gctx->ivlen);
             gctx->iv_set = 1;
         }
         gctx->key_set = 1;
     } else {
         /* If key set use IV, otherwise copy */
         if (gctx->key_set)
-            CRYPTO_gcm128_setiv(&gctx->gcm, iv, gctx->ivlen);
+            VR_CRYPTO_gcm128_setiv(&gctx->gcm, iv, gctx->ivlen);
         else
             memcpy(gctx->iv, iv, gctx->ivlen);
         gctx->iv_set = 1;
@@ -3097,12 +3097,12 @@ static int aes_gcm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
      * Set IV from start of buffer or generate IV and write to start of
      * buffer.
      */
-    if (EVP_CIPHER_CTX_ctrl(ctx, ctx->encrypt ? EVP_CTRL_GCM_IV_GEN
+    if (VR_EVP_CIPHER_CTX_ctrl(ctx, ctx->encrypt ? EVP_CTRL_GCM_IV_GEN
                                               : EVP_CTRL_GCM_SET_IV_INV,
                             EVP_GCM_TLS_EXPLICIT_IV_LEN, out) <= 0)
         goto err;
     /* Use saved AAD */
-    if (CRYPTO_gcm128_aad(&gctx->gcm, ctx->buf, gctx->tls_aad_len))
+    if (VR_CRYPTO_gcm128_aad(&gctx->gcm, ctx->buf, gctx->tls_aad_len))
         goto err;
     /* Fix buffer and length to point to payload */
     in += EVP_GCM_TLS_EXPLICIT_IV_LEN;
@@ -3114,7 +3114,7 @@ static int aes_gcm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
             size_t bulk = 0;
 #if defined(AES_GCM_ASM)
             if (len >= 32 && AES_GCM_ASM(gctx)) {
-                if (CRYPTO_gcm128_encrypt(&gctx->gcm, NULL, NULL, 0))
+                if (VR_CRYPTO_gcm128_encrypt(&gctx->gcm, NULL, NULL, 0))
                     return -1;
 
                 bulk = AES_gcm_encrypt(in, out, len,
@@ -3123,7 +3123,7 @@ static int aes_gcm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                 gctx->gcm.len.u[1] += bulk;
             }
 #endif
-            if (CRYPTO_gcm128_encrypt_ctr32(&gctx->gcm,
+            if (VR_CRYPTO_gcm128_encrypt_ctr32(&gctx->gcm,
                                             in + bulk,
                                             out + bulk,
                                             len - bulk, gctx->ctr))
@@ -3132,7 +3132,7 @@ static int aes_gcm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
             size_t bulk = 0;
 #if defined(AES_GCM_ASM2)
             if (len >= 32 && AES_GCM_ASM2(gctx)) {
-                if (CRYPTO_gcm128_encrypt(&gctx->gcm, NULL, NULL, 0))
+                if (VR_CRYPTO_gcm128_encrypt(&gctx->gcm, NULL, NULL, 0))
                     return -1;
 
                 bulk = AES_gcm_encrypt(in, out, len,
@@ -3141,13 +3141,13 @@ static int aes_gcm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                 gctx->gcm.len.u[1] += bulk;
             }
 #endif
-            if (CRYPTO_gcm128_encrypt(&gctx->gcm,
+            if (VR_CRYPTO_gcm128_encrypt(&gctx->gcm,
                                       in + bulk, out + bulk, len - bulk))
                 goto err;
         }
         out += len;
         /* Finally write tag */
-        CRYPTO_gcm128_tag(&gctx->gcm, out, EVP_GCM_TLS_TAG_LEN);
+        VR_CRYPTO_gcm128_tag(&gctx->gcm, out, EVP_GCM_TLS_TAG_LEN);
         rv = len + EVP_GCM_TLS_EXPLICIT_IV_LEN + EVP_GCM_TLS_TAG_LEN;
     } else {
         /* Decrypt */
@@ -3155,7 +3155,7 @@ static int aes_gcm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
             size_t bulk = 0;
 #if defined(AES_GCM_ASM)
             if (len >= 16 && AES_GCM_ASM(gctx)) {
-                if (CRYPTO_gcm128_decrypt(&gctx->gcm, NULL, NULL, 0))
+                if (VR_CRYPTO_gcm128_decrypt(&gctx->gcm, NULL, NULL, 0))
                     return -1;
 
                 bulk = AES_gcm_decrypt(in, out, len,
@@ -3164,7 +3164,7 @@ static int aes_gcm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                 gctx->gcm.len.u[1] += bulk;
             }
 #endif
-            if (CRYPTO_gcm128_decrypt_ctr32(&gctx->gcm,
+            if (VR_CRYPTO_gcm128_decrypt_ctr32(&gctx->gcm,
                                             in + bulk,
                                             out + bulk,
                                             len - bulk, gctx->ctr))
@@ -3173,7 +3173,7 @@ static int aes_gcm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
             size_t bulk = 0;
 #if defined(AES_GCM_ASM2)
             if (len >= 16 && AES_GCM_ASM2(gctx)) {
-                if (CRYPTO_gcm128_decrypt(&gctx->gcm, NULL, NULL, 0))
+                if (VR_CRYPTO_gcm128_decrypt(&gctx->gcm, NULL, NULL, 0))
                     return -1;
 
                 bulk = AES_gcm_decrypt(in, out, len,
@@ -3182,15 +3182,15 @@ static int aes_gcm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                 gctx->gcm.len.u[1] += bulk;
             }
 #endif
-            if (CRYPTO_gcm128_decrypt(&gctx->gcm,
+            if (VR_CRYPTO_gcm128_decrypt(&gctx->gcm,
                                       in + bulk, out + bulk, len - bulk))
                 goto err;
         }
         /* Retrieve tag */
-        CRYPTO_gcm128_tag(&gctx->gcm, ctx->buf, EVP_GCM_TLS_TAG_LEN);
+        VR_CRYPTO_gcm128_tag(&gctx->gcm, ctx->buf, EVP_GCM_TLS_TAG_LEN);
         /* If tag mismatch wipe buffer */
-        if (CRYPTO_memcmp(ctx->buf, in + len, EVP_GCM_TLS_TAG_LEN)) {
-            OPENSSL_cleanse(out, len);
+        if (VR_CRYPTO_memcmp(ctx->buf, in + len, EVP_GCM_TLS_TAG_LEN)) {
+            VR_OPENSSL_cleanse(out, len);
             goto err;
         }
         rv = len;
@@ -3217,7 +3217,7 @@ static int aes_gcm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
         return -1;
     if (in) {
         if (out == NULL) {
-            if (CRYPTO_gcm128_aad(&gctx->gcm, in, len))
+            if (VR_CRYPTO_gcm128_aad(&gctx->gcm, in, len))
                 return -1;
         } else if (ctx->encrypt) {
             if (gctx->ctr) {
@@ -3226,7 +3226,7 @@ static int aes_gcm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                 if (len >= 32 && AES_GCM_ASM(gctx)) {
                     size_t res = (16 - gctx->gcm.mres) % 16;
 
-                    if (CRYPTO_gcm128_encrypt(&gctx->gcm, in, out, res))
+                    if (VR_CRYPTO_gcm128_encrypt(&gctx->gcm, in, out, res))
                         return -1;
 
                     bulk = AES_gcm_encrypt(in + res,
@@ -3237,7 +3237,7 @@ static int aes_gcm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                     bulk += res;
                 }
 #endif
-                if (CRYPTO_gcm128_encrypt_ctr32(&gctx->gcm,
+                if (VR_CRYPTO_gcm128_encrypt_ctr32(&gctx->gcm,
                                                 in + bulk,
                                                 out + bulk,
                                                 len - bulk, gctx->ctr))
@@ -3248,7 +3248,7 @@ static int aes_gcm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                 if (len >= 32 && AES_GCM_ASM2(gctx)) {
                     size_t res = (16 - gctx->gcm.mres) % 16;
 
-                    if (CRYPTO_gcm128_encrypt(&gctx->gcm, in, out, res))
+                    if (VR_CRYPTO_gcm128_encrypt(&gctx->gcm, in, out, res))
                         return -1;
 
                     bulk = AES_gcm_encrypt(in + res,
@@ -3259,7 +3259,7 @@ static int aes_gcm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                     bulk += res;
                 }
 #endif
-                if (CRYPTO_gcm128_encrypt(&gctx->gcm,
+                if (VR_CRYPTO_gcm128_encrypt(&gctx->gcm,
                                           in + bulk, out + bulk, len - bulk))
                     return -1;
             }
@@ -3270,7 +3270,7 @@ static int aes_gcm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                 if (len >= 16 && AES_GCM_ASM(gctx)) {
                     size_t res = (16 - gctx->gcm.mres) % 16;
 
-                    if (CRYPTO_gcm128_decrypt(&gctx->gcm, in, out, res))
+                    if (VR_CRYPTO_gcm128_decrypt(&gctx->gcm, in, out, res))
                         return -1;
 
                     bulk = AES_gcm_decrypt(in + res,
@@ -3281,7 +3281,7 @@ static int aes_gcm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                     bulk += res;
                 }
 #endif
-                if (CRYPTO_gcm128_decrypt_ctr32(&gctx->gcm,
+                if (VR_CRYPTO_gcm128_decrypt_ctr32(&gctx->gcm,
                                                 in + bulk,
                                                 out + bulk,
                                                 len - bulk, gctx->ctr))
@@ -3292,7 +3292,7 @@ static int aes_gcm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                 if (len >= 16 && AES_GCM_ASM2(gctx)) {
                     size_t res = (16 - gctx->gcm.mres) % 16;
 
-                    if (CRYPTO_gcm128_decrypt(&gctx->gcm, in, out, res))
+                    if (VR_CRYPTO_gcm128_decrypt(&gctx->gcm, in, out, res))
                         return -1;
 
                     bulk = AES_gcm_decrypt(in + res,
@@ -3303,7 +3303,7 @@ static int aes_gcm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                     bulk += res;
                 }
 #endif
-                if (CRYPTO_gcm128_decrypt(&gctx->gcm,
+                if (VR_CRYPTO_gcm128_decrypt(&gctx->gcm,
                                           in + bulk, out + bulk, len - bulk))
                     return -1;
             }
@@ -3313,12 +3313,12 @@ static int aes_gcm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
         if (!ctx->encrypt) {
             if (gctx->taglen < 0)
                 return -1;
-            if (CRYPTO_gcm128_finish(&gctx->gcm, ctx->buf, gctx->taglen) != 0)
+            if (VR_CRYPTO_gcm128_finish(&gctx->gcm, ctx->buf, gctx->taglen) != 0)
                 return -1;
             gctx->iv_set = 0;
             return 0;
         }
-        CRYPTO_gcm128_tag(&gctx->gcm, ctx->buf, 16);
+        VR_CRYPTO_gcm128_tag(&gctx->gcm, ctx->buf, 16);
         gctx->taglen = 16;
         /* Don't reuse the IV */
         gctx->iv_set = 0;
@@ -3382,27 +3382,27 @@ static int aes_xts_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
 #ifdef HWAES_CAPABLE
             if (HWAES_CAPABLE) {
                 if (enc) {
-                    HWAES_set_encrypt_key(key,
-                                          EVP_CIPHER_CTX_key_length(ctx) * 4,
+                    HWVR_AES_set_encrypt_key(key,
+                                          VR_EVP_CIPHER_CTX_key_length(ctx) * 4,
                                           &xctx->ks1.ks);
-                    xctx->xts.block1 = (block128_f) HWAES_encrypt;
+                    xctx->xts.block1 = (block128_f) HWVR_AES_encrypt;
 # ifdef HWAES_xts_encrypt
                     xctx->stream = HWAES_xts_encrypt;
 # endif
                 } else {
-                    HWAES_set_decrypt_key(key,
-                                          EVP_CIPHER_CTX_key_length(ctx) * 4,
+                    HWVR_AES_set_decrypt_key(key,
+                                          VR_EVP_CIPHER_CTX_key_length(ctx) * 4,
                                           &xctx->ks1.ks);
-                    xctx->xts.block1 = (block128_f) HWAES_decrypt;
+                    xctx->xts.block1 = (block128_f) HWVR_AES_decrypt;
 # ifdef HWAES_xts_decrypt
                     xctx->stream = HWAES_xts_decrypt;
 #endif
                 }
 
-                HWAES_set_encrypt_key(key + EVP_CIPHER_CTX_key_length(ctx) / 2,
-                                      EVP_CIPHER_CTX_key_length(ctx) * 4,
+                HWVR_AES_set_encrypt_key(key + VR_EVP_CIPHER_CTX_key_length(ctx) / 2,
+                                      VR_EVP_CIPHER_CTX_key_length(ctx) * 4,
                                       &xctx->ks2.ks);
-                xctx->xts.block2 = (block128_f) HWAES_encrypt;
+                xctx->xts.block2 = (block128_f) HWVR_AES_encrypt;
 
                 xctx->xts.key1 = &xctx->ks1;
                 break;
@@ -3410,27 +3410,27 @@ static int aes_xts_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
 #endif
 #ifdef BSAES_CAPABLE
             if (BSAES_CAPABLE)
-                xctx->stream = enc ? bsaes_xts_encrypt : bsaes_xts_decrypt;
+                xctx->stream = enc ? VR_bsaes_xts_encrypt : VR_bsaes_xts_decrypt;
             else
 #endif
 #ifdef VPAES_CAPABLE
             if (VPAES_CAPABLE) {
                 if (enc) {
-                    vpaes_set_encrypt_key(key,
-                                          EVP_CIPHER_CTX_key_length(ctx) * 4,
+                    VR_vpaes_set_encrypt_key(key,
+                                          VR_EVP_CIPHER_CTX_key_length(ctx) * 4,
                                           &xctx->ks1.ks);
-                    xctx->xts.block1 = (block128_f) vpaes_encrypt;
+                    xctx->xts.block1 = (block128_f) VR_vpaes_encrypt;
                 } else {
-                    vpaes_set_decrypt_key(key,
-                                          EVP_CIPHER_CTX_key_length(ctx) * 4,
+                    VR_vpaes_set_decrypt_key(key,
+                                          VR_EVP_CIPHER_CTX_key_length(ctx) * 4,
                                           &xctx->ks1.ks);
-                    xctx->xts.block1 = (block128_f) vpaes_decrypt;
+                    xctx->xts.block1 = (block128_f) VR_vpaes_decrypt;
                 }
 
-                vpaes_set_encrypt_key(key + EVP_CIPHER_CTX_key_length(ctx) / 2,
-                                      EVP_CIPHER_CTX_key_length(ctx) * 4,
+                VR_vpaes_set_encrypt_key(key + VR_EVP_CIPHER_CTX_key_length(ctx) / 2,
+                                      VR_EVP_CIPHER_CTX_key_length(ctx) * 4,
                                       &xctx->ks2.ks);
-                xctx->xts.block2 = (block128_f) vpaes_encrypt;
+                xctx->xts.block2 = (block128_f) VR_vpaes_encrypt;
 
                 xctx->xts.key1 = &xctx->ks1;
                 break;
@@ -3439,26 +3439,26 @@ static int aes_xts_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
                 (void)0;        /* terminate potentially open 'else' */
 
             if (enc) {
-                AES_set_encrypt_key(key, EVP_CIPHER_CTX_key_length(ctx) * 4,
+                VR_AES_set_encrypt_key(key, VR_EVP_CIPHER_CTX_key_length(ctx) * 4,
                                     &xctx->ks1.ks);
-                xctx->xts.block1 = (block128_f) AES_encrypt;
+                xctx->xts.block1 = (block128_f) VR_AES_encrypt;
             } else {
-                AES_set_decrypt_key(key, EVP_CIPHER_CTX_key_length(ctx) * 4,
+                VR_AES_set_decrypt_key(key, VR_EVP_CIPHER_CTX_key_length(ctx) * 4,
                                     &xctx->ks1.ks);
-                xctx->xts.block1 = (block128_f) AES_decrypt;
+                xctx->xts.block1 = (block128_f) VR_AES_decrypt;
             }
 
-            AES_set_encrypt_key(key + EVP_CIPHER_CTX_key_length(ctx) / 2,
-                                EVP_CIPHER_CTX_key_length(ctx) * 4,
+            VR_AES_set_encrypt_key(key + VR_EVP_CIPHER_CTX_key_length(ctx) / 2,
+                                VR_EVP_CIPHER_CTX_key_length(ctx) * 4,
                                 &xctx->ks2.ks);
-            xctx->xts.block2 = (block128_f) AES_encrypt;
+            xctx->xts.block2 = (block128_f) VR_AES_encrypt;
 
             xctx->xts.key1 = &xctx->ks1;
         } while (0);
 
     if (iv) {
         xctx->xts.key2 = &xctx->ks2;
-        memcpy(EVP_CIPHER_CTX_iv_noconst(ctx), iv, 16);
+        memcpy(VR_EVP_CIPHER_CTX_iv_noconst(ctx), iv, 16);
     }
 
     return 1;
@@ -3488,17 +3488,17 @@ static int aes_xts_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
      *      "The check for Key_1 != Key_2 shall be done at any place BEFORE
      *       using the keys in the XTS-AES algorithm to process data with them."
     */
-    if (CRYPTO_memcmp(xctx->xts.key1, xctx->xts.key2,
-                      EVP_CIPHER_CTX_key_length(ctx) / 2) == 0)
+    if (VR_CRYPTO_memcmp(xctx->xts.key1, xctx->xts.key2,
+                      VR_EVP_CIPHER_CTX_key_length(ctx) / 2) == 0)
         return 0;
 
     if (xctx->stream)
         (*xctx->stream) (in, out, len,
                          xctx->xts.key1, xctx->xts.key2,
-                         EVP_CIPHER_CTX_iv_noconst(ctx));
-    else if (CRYPTO_xts128_encrypt(&xctx->xts, EVP_CIPHER_CTX_iv_noconst(ctx),
+                         VR_EVP_CIPHER_CTX_iv_noconst(ctx));
+    else if (VR_CRYPTO_xts128_encrypt(&xctx->xts, VR_EVP_CIPHER_CTX_iv_noconst(ctx),
                                    in, out, len,
-                                   EVP_CIPHER_CTX_encrypting(ctx)))
+                                   VR_EVP_CIPHER_CTX_encrypting(ctx)))
         return 0;
     return 1;
 }
@@ -3530,24 +3530,24 @@ static int aes_ccm_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr)
         /* Save the AAD for later use */
         if (arg != EVP_AEAD_TLS1_AAD_LEN)
             return 0;
-        memcpy(EVP_CIPHER_CTX_buf_noconst(c), ptr, arg);
+        memcpy(VR_EVP_CIPHER_CTX_buf_noconst(c), ptr, arg);
         cctx->tls_aad_len = arg;
         {
             uint16_t len =
-                EVP_CIPHER_CTX_buf_noconst(c)[arg - 2] << 8
-                | EVP_CIPHER_CTX_buf_noconst(c)[arg - 1];
+                VR_EVP_CIPHER_CTX_buf_noconst(c)[arg - 2] << 8
+                | VR_EVP_CIPHER_CTX_buf_noconst(c)[arg - 1];
             /* Correct length for explicit IV */
             if (len < EVP_CCM_TLS_EXPLICIT_IV_LEN)
                 return 0;
             len -= EVP_CCM_TLS_EXPLICIT_IV_LEN;
             /* If decrypting correct for tag too */
-            if (!EVP_CIPHER_CTX_encrypting(c)) {
+            if (!VR_EVP_CIPHER_CTX_encrypting(c)) {
                 if (len < cctx->M)
                     return 0;
                 len -= cctx->M;
             }
-            EVP_CIPHER_CTX_buf_noconst(c)[arg - 2] = len >> 8;
-            EVP_CIPHER_CTX_buf_noconst(c)[arg - 1] = len & 0xff;
+            VR_EVP_CIPHER_CTX_buf_noconst(c)[arg - 2] = len >> 8;
+            VR_EVP_CIPHER_CTX_buf_noconst(c)[arg - 1] = len & 0xff;
         }
         /* Extra padding: tag appended to record */
         return cctx->M;
@@ -3557,7 +3557,7 @@ static int aes_ccm_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr)
         if (arg != EVP_CCM_TLS_FIXED_IV_LEN)
             return 0;
         /* Just copy to first part of IV */
-        memcpy(EVP_CIPHER_CTX_iv_noconst(c), ptr, arg);
+        memcpy(VR_EVP_CIPHER_CTX_iv_noconst(c), ptr, arg);
         return 1;
 
     case EVP_CTRL_AEAD_SET_IVLEN:
@@ -3572,19 +3572,19 @@ static int aes_ccm_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr)
     case EVP_CTRL_AEAD_SET_TAG:
         if ((arg & 1) || arg < 4 || arg > 16)
             return 0;
-        if (EVP_CIPHER_CTX_encrypting(c) && ptr)
+        if (VR_EVP_CIPHER_CTX_encrypting(c) && ptr)
             return 0;
         if (ptr) {
             cctx->tag_set = 1;
-            memcpy(EVP_CIPHER_CTX_buf_noconst(c), ptr, arg);
+            memcpy(VR_EVP_CIPHER_CTX_buf_noconst(c), ptr, arg);
         }
         cctx->M = arg;
         return 1;
 
     case EVP_CTRL_AEAD_GET_TAG:
-        if (!EVP_CIPHER_CTX_encrypting(c) || !cctx->tag_set)
+        if (!VR_EVP_CIPHER_CTX_encrypting(c) || !cctx->tag_set)
             return 0;
-        if (!CRYPTO_ccm128_tag(&cctx->ccm, ptr, (size_t)arg))
+        if (!VR_CRYPTO_ccm128_tag(&cctx->ccm, ptr, (size_t)arg))
             return 0;
         cctx->tag_set = 0;
         cctx->iv_set = 0;
@@ -3619,11 +3619,11 @@ static int aes_ccm_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
         do {
 #ifdef HWAES_CAPABLE
             if (HWAES_CAPABLE) {
-                HWAES_set_encrypt_key(key, EVP_CIPHER_CTX_key_length(ctx) * 8,
+                HWVR_AES_set_encrypt_key(key, VR_EVP_CIPHER_CTX_key_length(ctx) * 8,
                                       &cctx->ks.ks);
 
-                CRYPTO_ccm128_init(&cctx->ccm, cctx->M, cctx->L,
-                                   &cctx->ks, (block128_f) HWAES_encrypt);
+                VR_CRYPTO_ccm128_init(&cctx->ccm, cctx->M, cctx->L,
+                                   &cctx->ks, (block128_f) HWVR_AES_encrypt);
                 cctx->str = NULL;
                 cctx->key_set = 1;
                 break;
@@ -3631,24 +3631,24 @@ static int aes_ccm_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
 #endif
 #ifdef VPAES_CAPABLE
             if (VPAES_CAPABLE) {
-                vpaes_set_encrypt_key(key, EVP_CIPHER_CTX_key_length(ctx) * 8,
+                VR_vpaes_set_encrypt_key(key, VR_EVP_CIPHER_CTX_key_length(ctx) * 8,
                                       &cctx->ks.ks);
-                CRYPTO_ccm128_init(&cctx->ccm, cctx->M, cctx->L,
-                                   &cctx->ks, (block128_f) vpaes_encrypt);
+                VR_CRYPTO_ccm128_init(&cctx->ccm, cctx->M, cctx->L,
+                                   &cctx->ks, (block128_f) VR_vpaes_encrypt);
                 cctx->str = NULL;
                 cctx->key_set = 1;
                 break;
             }
 #endif
-            AES_set_encrypt_key(key, EVP_CIPHER_CTX_key_length(ctx) * 8,
+            VR_AES_set_encrypt_key(key, VR_EVP_CIPHER_CTX_key_length(ctx) * 8,
                                 &cctx->ks.ks);
-            CRYPTO_ccm128_init(&cctx->ccm, cctx->M, cctx->L,
-                               &cctx->ks, (block128_f) AES_encrypt);
+            VR_CRYPTO_ccm128_init(&cctx->ccm, cctx->M, cctx->L,
+                               &cctx->ks, (block128_f) VR_AES_encrypt);
             cctx->str = NULL;
             cctx->key_set = 1;
         } while (0);
     if (iv) {
-        memcpy(EVP_CIPHER_CTX_iv_noconst(ctx), iv, 15 - cctx->L);
+        memcpy(VR_EVP_CIPHER_CTX_iv_noconst(ctx), iv, 15 - cctx->L);
         cctx->iv_set = 1;
     }
     return 1;
@@ -3663,41 +3663,41 @@ static int aes_ccm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
     if (out != in || len < (EVP_CCM_TLS_EXPLICIT_IV_LEN + (size_t)cctx->M))
         return -1;
     /* If encrypting set explicit IV from sequence number (start of AAD) */
-    if (EVP_CIPHER_CTX_encrypting(ctx))
-        memcpy(out, EVP_CIPHER_CTX_buf_noconst(ctx),
+    if (VR_EVP_CIPHER_CTX_encrypting(ctx))
+        memcpy(out, VR_EVP_CIPHER_CTX_buf_noconst(ctx),
                EVP_CCM_TLS_EXPLICIT_IV_LEN);
     /* Get rest of IV from explicit IV */
-    memcpy(EVP_CIPHER_CTX_iv_noconst(ctx) + EVP_CCM_TLS_FIXED_IV_LEN, in,
+    memcpy(VR_EVP_CIPHER_CTX_iv_noconst(ctx) + EVP_CCM_TLS_FIXED_IV_LEN, in,
            EVP_CCM_TLS_EXPLICIT_IV_LEN);
     /* Correct length value */
     len -= EVP_CCM_TLS_EXPLICIT_IV_LEN + cctx->M;
-    if (CRYPTO_ccm128_setiv(ccm, EVP_CIPHER_CTX_iv_noconst(ctx), 15 - cctx->L,
+    if (VR_CRYPTO_ccm128_setiv(ccm, VR_EVP_CIPHER_CTX_iv_noconst(ctx), 15 - cctx->L,
                             len))
             return -1;
     /* Use saved AAD */
-    CRYPTO_ccm128_aad(ccm, EVP_CIPHER_CTX_buf_noconst(ctx), cctx->tls_aad_len);
+    VR_CRYPTO_ccm128_aad(ccm, VR_EVP_CIPHER_CTX_buf_noconst(ctx), cctx->tls_aad_len);
     /* Fix buffer to point to payload */
     in += EVP_CCM_TLS_EXPLICIT_IV_LEN;
     out += EVP_CCM_TLS_EXPLICIT_IV_LEN;
-    if (EVP_CIPHER_CTX_encrypting(ctx)) {
-        if (cctx->str ? CRYPTO_ccm128_encrypt_ccm64(ccm, in, out, len,
+    if (VR_EVP_CIPHER_CTX_encrypting(ctx)) {
+        if (cctx->str ? VR_CRYPTO_ccm128_encrypt_ccm64(ccm, in, out, len,
                                                     cctx->str) :
-            CRYPTO_ccm128_encrypt(ccm, in, out, len))
+            VR_CRYPTO_ccm128_encrypt(ccm, in, out, len))
             return -1;
-        if (!CRYPTO_ccm128_tag(ccm, out + len, cctx->M))
+        if (!VR_CRYPTO_ccm128_tag(ccm, out + len, cctx->M))
             return -1;
         return len + EVP_CCM_TLS_EXPLICIT_IV_LEN + cctx->M;
     } else {
-        if (cctx->str ? !CRYPTO_ccm128_decrypt_ccm64(ccm, in, out, len,
+        if (cctx->str ? !VR_CRYPTO_ccm128_decrypt_ccm64(ccm, in, out, len,
                                                      cctx->str) :
-            !CRYPTO_ccm128_decrypt(ccm, in, out, len)) {
+            !VR_CRYPTO_ccm128_decrypt(ccm, in, out, len)) {
             unsigned char tag[16];
-            if (CRYPTO_ccm128_tag(ccm, tag, cctx->M)) {
-                if (!CRYPTO_memcmp(tag, in + len, cctx->M))
+            if (VR_CRYPTO_ccm128_tag(ccm, tag, cctx->M)) {
+                if (!VR_CRYPTO_memcmp(tag, in + len, cctx->M))
                     return len;
             }
         }
-        OPENSSL_cleanse(out, len);
+        VR_OPENSSL_cleanse(out, len);
         return -1;
     }
 }
@@ -3721,11 +3721,11 @@ static int aes_ccm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
     if (!cctx->iv_set)
         return -1;
 
-    if (!EVP_CIPHER_CTX_encrypting(ctx) && !cctx->tag_set)
+    if (!VR_EVP_CIPHER_CTX_encrypting(ctx) && !cctx->tag_set)
         return -1;
     if (!out) {
         if (!in) {
-            if (CRYPTO_ccm128_setiv(ccm, EVP_CIPHER_CTX_iv_noconst(ctx),
+            if (VR_CRYPTO_ccm128_setiv(ccm, VR_EVP_CIPHER_CTX_iv_noconst(ctx),
                                     15 - cctx->L, len))
                 return -1;
             cctx->len_set = 1;
@@ -3734,37 +3734,37 @@ static int aes_ccm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
         /* If have AAD need message length */
         if (!cctx->len_set && len)
             return -1;
-        CRYPTO_ccm128_aad(ccm, in, len);
+        VR_CRYPTO_ccm128_aad(ccm, in, len);
         return len;
     }
     /* If not set length yet do it */
     if (!cctx->len_set) {
-        if (CRYPTO_ccm128_setiv(ccm, EVP_CIPHER_CTX_iv_noconst(ctx),
+        if (VR_CRYPTO_ccm128_setiv(ccm, VR_EVP_CIPHER_CTX_iv_noconst(ctx),
                                 15 - cctx->L, len))
             return -1;
         cctx->len_set = 1;
     }
-    if (EVP_CIPHER_CTX_encrypting(ctx)) {
-        if (cctx->str ? CRYPTO_ccm128_encrypt_ccm64(ccm, in, out, len,
+    if (VR_EVP_CIPHER_CTX_encrypting(ctx)) {
+        if (cctx->str ? VR_CRYPTO_ccm128_encrypt_ccm64(ccm, in, out, len,
                                                     cctx->str) :
-            CRYPTO_ccm128_encrypt(ccm, in, out, len))
+            VR_CRYPTO_ccm128_encrypt(ccm, in, out, len))
             return -1;
         cctx->tag_set = 1;
         return len;
     } else {
         int rv = -1;
-        if (cctx->str ? !CRYPTO_ccm128_decrypt_ccm64(ccm, in, out, len,
+        if (cctx->str ? !VR_CRYPTO_ccm128_decrypt_ccm64(ccm, in, out, len,
                                                      cctx->str) :
-            !CRYPTO_ccm128_decrypt(ccm, in, out, len)) {
+            !VR_CRYPTO_ccm128_decrypt(ccm, in, out, len)) {
             unsigned char tag[16];
-            if (CRYPTO_ccm128_tag(ccm, tag, cctx->M)) {
-                if (!CRYPTO_memcmp(tag, EVP_CIPHER_CTX_buf_noconst(ctx),
+            if (VR_CRYPTO_ccm128_tag(ccm, tag, cctx->M)) {
+                if (!VR_CRYPTO_memcmp(tag, VR_EVP_CIPHER_CTX_buf_noconst(ctx),
                                    cctx->M))
                     rv = len;
             }
         }
         if (rv == -1)
-            OPENSSL_cleanse(out, len);
+            VR_OPENSSL_cleanse(out, len);
         cctx->iv_set = 0;
         cctx->tag_set = 0;
         cctx->len_set = 0;
@@ -3797,18 +3797,18 @@ static int aes_wrap_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
     if (!iv && !key)
         return 1;
     if (key) {
-        if (EVP_CIPHER_CTX_encrypting(ctx))
-            AES_set_encrypt_key(key, EVP_CIPHER_CTX_key_length(ctx) * 8,
+        if (VR_EVP_CIPHER_CTX_encrypting(ctx))
+            VR_AES_set_encrypt_key(key, VR_EVP_CIPHER_CTX_key_length(ctx) * 8,
                                 &wctx->ks.ks);
         else
-            AES_set_decrypt_key(key, EVP_CIPHER_CTX_key_length(ctx) * 8,
+            VR_AES_set_decrypt_key(key, VR_EVP_CIPHER_CTX_key_length(ctx) * 8,
                                 &wctx->ks.ks);
         if (!iv)
             wctx->iv = NULL;
     }
     if (iv) {
-        memcpy(EVP_CIPHER_CTX_iv_noconst(ctx), iv, EVP_CIPHER_CTX_iv_length(ctx));
-        wctx->iv = EVP_CIPHER_CTX_iv_noconst(ctx);
+        memcpy(VR_EVP_CIPHER_CTX_iv_noconst(ctx), iv, VR_EVP_CIPHER_CTX_iv_length(ctx));
+        wctx->iv = VR_EVP_CIPHER_CTX_iv_noconst(ctx);
     }
     return 1;
 }
@@ -3819,7 +3819,7 @@ static int aes_wrap_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
     EVP_AES_WRAP_CTX *wctx = EVP_C_DATA(EVP_AES_WRAP_CTX,ctx);
     size_t rv;
     /* AES wrap with padding has IV length of 4, without padding 8 */
-    int pad = EVP_CIPHER_CTX_iv_length(ctx) == 4;
+    int pad = VR_EVP_CIPHER_CTX_iv_length(ctx) == 4;
     /* No final operation so always return zero length */
     if (!in)
         return 0;
@@ -3827,17 +3827,17 @@ static int aes_wrap_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
     if (!inlen)
         return -1;
     /* If decrypting need at least 16 bytes and multiple of 8 */
-    if (!EVP_CIPHER_CTX_encrypting(ctx) && (inlen < 16 || inlen & 0x7))
+    if (!VR_EVP_CIPHER_CTX_encrypting(ctx) && (inlen < 16 || inlen & 0x7))
         return -1;
     /* If not padding input must be multiple of 8 */
     if (!pad && inlen & 0x7)
         return -1;
-    if (is_partially_overlapping(out, in, inlen)) {
+    if (VR_is_partially_overlapping(out, in, inlen)) {
         EVPerr(EVP_F_AES_WRAP_CIPHER, EVP_R_PARTIALLY_OVERLAPPING);
         return 0;
     }
     if (!out) {
-        if (EVP_CIPHER_CTX_encrypting(ctx)) {
+        if (VR_EVP_CIPHER_CTX_encrypting(ctx)) {
             /* If padding round up to multiple of 8 */
             if (pad)
                 inlen = (inlen + 7) / 8 * 8;
@@ -3853,21 +3853,21 @@ static int aes_wrap_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
         }
     }
     if (pad) {
-        if (EVP_CIPHER_CTX_encrypting(ctx))
-            rv = CRYPTO_128_wrap_pad(&wctx->ks.ks, wctx->iv,
+        if (VR_EVP_CIPHER_CTX_encrypting(ctx))
+            rv = VR_CRYPTO_128_wrap_pad(&wctx->ks.ks, wctx->iv,
                                      out, in, inlen,
-                                     (block128_f) AES_encrypt);
+                                     (block128_f) VR_AES_encrypt);
         else
-            rv = CRYPTO_128_unwrap_pad(&wctx->ks.ks, wctx->iv,
+            rv = VR_CRYPTO_128_unwrap_pad(&wctx->ks.ks, wctx->iv,
                                        out, in, inlen,
-                                       (block128_f) AES_decrypt);
+                                       (block128_f) VR_AES_decrypt);
     } else {
-        if (EVP_CIPHER_CTX_encrypting(ctx))
-            rv = CRYPTO_128_wrap(&wctx->ks.ks, wctx->iv,
-                                 out, in, inlen, (block128_f) AES_encrypt);
+        if (VR_EVP_CIPHER_CTX_encrypting(ctx))
+            rv = VR_CRYPTO_128_wrap(&wctx->ks.ks, wctx->iv,
+                                 out, in, inlen, (block128_f) VR_AES_encrypt);
         else
-            rv = CRYPTO_128_unwrap(&wctx->ks.ks, wctx->iv,
-                                   out, in, inlen, (block128_f) AES_decrypt);
+            rv = VR_CRYPTO_128_unwrap(&wctx->ks.ks, wctx->iv,
+                                   out, in, inlen, (block128_f) VR_AES_decrypt);
     }
     return rv ? (int)rv : -1;
 }
@@ -3885,7 +3885,7 @@ static const EVP_CIPHER aes_128_wrap = {
     NULL, NULL, NULL, NULL
 };
 
-const EVP_CIPHER *EVP_aes_128_wrap(void)
+const EVP_CIPHER *VR_EVP_aes_128_wrap(void)
 {
     return &aes_128_wrap;
 }
@@ -3899,7 +3899,7 @@ static const EVP_CIPHER aes_192_wrap = {
     NULL, NULL, NULL, NULL
 };
 
-const EVP_CIPHER *EVP_aes_192_wrap(void)
+const EVP_CIPHER *VR_EVP_aes_192_wrap(void)
 {
     return &aes_192_wrap;
 }
@@ -3913,7 +3913,7 @@ static const EVP_CIPHER aes_256_wrap = {
     NULL, NULL, NULL, NULL
 };
 
-const EVP_CIPHER *EVP_aes_256_wrap(void)
+const EVP_CIPHER *VR_EVP_aes_256_wrap(void)
 {
     return &aes_256_wrap;
 }
@@ -3927,7 +3927,7 @@ static const EVP_CIPHER aes_128_wrap_pad = {
     NULL, NULL, NULL, NULL
 };
 
-const EVP_CIPHER *EVP_aes_128_wrap_pad(void)
+const EVP_CIPHER *VR_EVP_aes_128_wrap_pad(void)
 {
     return &aes_128_wrap_pad;
 }
@@ -3941,7 +3941,7 @@ static const EVP_CIPHER aes_192_wrap_pad = {
     NULL, NULL, NULL, NULL
 };
 
-const EVP_CIPHER *EVP_aes_192_wrap_pad(void)
+const EVP_CIPHER *VR_EVP_aes_192_wrap_pad(void)
 {
     return &aes_192_wrap_pad;
 }
@@ -3955,7 +3955,7 @@ static const EVP_CIPHER aes_256_wrap_pad = {
     NULL, NULL, NULL, NULL
 };
 
-const EVP_CIPHER *EVP_aes_256_wrap_pad(void)
+const EVP_CIPHER *VR_EVP_aes_256_wrap_pad(void)
 {
     return &aes_256_wrap_pad;
 }
@@ -3971,8 +3971,8 @@ static int aes_ocb_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr)
     case EVP_CTRL_INIT:
         octx->key_set = 0;
         octx->iv_set = 0;
-        octx->ivlen = EVP_CIPHER_CTX_iv_length(c);
-        octx->iv = EVP_CIPHER_CTX_iv_noconst(c);
+        octx->ivlen = VR_EVP_CIPHER_CTX_iv_length(c);
+        octx->iv = VR_EVP_CIPHER_CTX_iv_noconst(c);
         octx->taglen = 16;
         octx->data_buf_len = 0;
         octx->aad_buf_len = 0;
@@ -3995,13 +3995,13 @@ static int aes_ocb_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr)
             octx->taglen = arg;
             return 1;
         }
-        if (arg != octx->taglen || EVP_CIPHER_CTX_encrypting(c))
+        if (arg != octx->taglen || VR_EVP_CIPHER_CTX_encrypting(c))
             return 0;
         memcpy(octx->tag, ptr, arg);
         return 1;
 
     case EVP_CTRL_AEAD_GET_TAG:
-        if (arg != octx->taglen || !EVP_CIPHER_CTX_encrypting(c))
+        if (arg != octx->taglen || !VR_EVP_CIPHER_CTX_encrypting(c))
             return 0;
 
         memcpy(ptr, octx->tag, arg);
@@ -4010,7 +4010,7 @@ static int aes_ocb_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr)
     case EVP_CTRL_COPY:
         newc = (EVP_CIPHER_CTX *)ptr;
         new_octx = EVP_C_DATA(EVP_AES_OCB_CTX,newc);
-        return CRYPTO_ocb128_copy_ctx(&new_octx->ocb, &octx->ocb,
+        return VR_CRYPTO_ocb128_copy_ctx(&new_octx->ocb, &octx->ocb,
                                       &new_octx->ksenc.ks,
                                       &new_octx->ksdec.ks);
 
@@ -4058,14 +4058,14 @@ static int aes_ocb_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
              */
 # ifdef HWAES_CAPABLE
             if (HWAES_CAPABLE) {
-                HWAES_set_encrypt_key(key, EVP_CIPHER_CTX_key_length(ctx) * 8,
+                HWVR_AES_set_encrypt_key(key, VR_EVP_CIPHER_CTX_key_length(ctx) * 8,
                                       &octx->ksenc.ks);
-                HWAES_set_decrypt_key(key, EVP_CIPHER_CTX_key_length(ctx) * 8,
+                HWVR_AES_set_decrypt_key(key, VR_EVP_CIPHER_CTX_key_length(ctx) * 8,
                                       &octx->ksdec.ks);
-                if (!CRYPTO_ocb128_init(&octx->ocb,
+                if (!VR_CRYPTO_ocb128_init(&octx->ocb,
                                         &octx->ksenc.ks, &octx->ksdec.ks,
-                                        (block128_f) HWAES_encrypt,
-                                        (block128_f) HWAES_decrypt,
+                                        (block128_f) HWVR_AES_encrypt,
+                                        (block128_f) HWVR_AES_decrypt,
                                         enc ? HWAES_ocb_encrypt
                                             : HWAES_ocb_decrypt))
                     return 0;
@@ -4074,27 +4074,27 @@ static int aes_ocb_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
 # endif
 # ifdef VPAES_CAPABLE
             if (VPAES_CAPABLE) {
-                vpaes_set_encrypt_key(key, EVP_CIPHER_CTX_key_length(ctx) * 8,
+                VR_vpaes_set_encrypt_key(key, VR_EVP_CIPHER_CTX_key_length(ctx) * 8,
                                       &octx->ksenc.ks);
-                vpaes_set_decrypt_key(key, EVP_CIPHER_CTX_key_length(ctx) * 8,
+                VR_vpaes_set_decrypt_key(key, VR_EVP_CIPHER_CTX_key_length(ctx) * 8,
                                       &octx->ksdec.ks);
-                if (!CRYPTO_ocb128_init(&octx->ocb,
+                if (!VR_CRYPTO_ocb128_init(&octx->ocb,
                                         &octx->ksenc.ks, &octx->ksdec.ks,
-                                        (block128_f) vpaes_encrypt,
-                                        (block128_f) vpaes_decrypt,
+                                        (block128_f) VR_vpaes_encrypt,
+                                        (block128_f) VR_vpaes_decrypt,
                                         NULL))
                     return 0;
                 break;
             }
 # endif
-            AES_set_encrypt_key(key, EVP_CIPHER_CTX_key_length(ctx) * 8,
+            VR_AES_set_encrypt_key(key, VR_EVP_CIPHER_CTX_key_length(ctx) * 8,
                                 &octx->ksenc.ks);
-            AES_set_decrypt_key(key, EVP_CIPHER_CTX_key_length(ctx) * 8,
+            VR_AES_set_decrypt_key(key, VR_EVP_CIPHER_CTX_key_length(ctx) * 8,
                                 &octx->ksdec.ks);
-            if (!CRYPTO_ocb128_init(&octx->ocb,
+            if (!VR_CRYPTO_ocb128_init(&octx->ocb,
                                     &octx->ksenc.ks, &octx->ksdec.ks,
-                                    (block128_f) AES_encrypt,
-                                    (block128_f) AES_decrypt,
+                                    (block128_f) VR_AES_encrypt,
+                                    (block128_f) VR_AES_decrypt,
                                     NULL))
                 return 0;
         }
@@ -4106,7 +4106,7 @@ static int aes_ocb_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
         if (iv == NULL && octx->iv_set)
             iv = octx->iv;
         if (iv) {
-            if (CRYPTO_ocb128_setiv(&octx->ocb, iv, octx->ivlen, octx->taglen)
+            if (VR_CRYPTO_ocb128_setiv(&octx->ocb, iv, octx->ivlen, octx->taglen)
                 != 1)
                 return 0;
             octx->iv_set = 1;
@@ -4115,7 +4115,7 @@ static int aes_ocb_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
     } else {
         /* If key set use IV, otherwise copy */
         if (octx->key_set)
-            CRYPTO_ocb128_setiv(&octx->ocb, iv, octx->ivlen, octx->taglen);
+            VR_CRYPTO_ocb128_setiv(&octx->ocb, iv, octx->ivlen, octx->taglen);
         else
             memcpy(octx->iv, iv, octx->ivlen);
         octx->iv_set = 1;
@@ -4142,8 +4142,8 @@ static int aes_ocb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
     if (in != NULL) {
         /*
          * Need to ensure we are only passing full blocks to low level OCB
-         * routines. We do it here rather than in EVP_EncryptUpdate/
-         * EVP_DecryptUpdate because we need to pass full blocks of AAD too
+         * routines. We do it here rather than in VR_EVP_EncryptUpdate/
+         * VR_EVP_DecryptUpdate because we need to pass full blocks of AAD too
          * and those routines don't support that
          */
 
@@ -4155,7 +4155,7 @@ static int aes_ocb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
             buf = octx->data_buf;
             buf_len = &(octx->data_buf_len);
 
-            if (is_partially_overlapping(out + *buf_len, in, len)) {
+            if (VR_is_partially_overlapping(out + *buf_len, in, len)) {
                 EVPerr(EVP_F_AES_OCB_CIPHER, EVP_R_PARTIALLY_OVERLAPPING);
                 return 0;
             }
@@ -4182,14 +4182,14 @@ static int aes_ocb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
             len -= remaining;
             in += remaining;
             if (out == NULL) {
-                if (!CRYPTO_ocb128_aad(&octx->ocb, buf, AES_BLOCK_SIZE))
+                if (!VR_CRYPTO_ocb128_aad(&octx->ocb, buf, AES_BLOCK_SIZE))
                     return -1;
-            } else if (EVP_CIPHER_CTX_encrypting(ctx)) {
-                if (!CRYPTO_ocb128_encrypt(&octx->ocb, buf, out,
+            } else if (VR_EVP_CIPHER_CTX_encrypting(ctx)) {
+                if (!VR_CRYPTO_ocb128_encrypt(&octx->ocb, buf, out,
                                            AES_BLOCK_SIZE))
                     return -1;
             } else {
-                if (!CRYPTO_ocb128_decrypt(&octx->ocb, buf, out,
+                if (!VR_CRYPTO_ocb128_decrypt(&octx->ocb, buf, out,
                                            AES_BLOCK_SIZE))
                     return -1;
             }
@@ -4207,14 +4207,14 @@ static int aes_ocb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
          */
         if (len != trailing_len) {
             if (out == NULL) {
-                if (!CRYPTO_ocb128_aad(&octx->ocb, in, len - trailing_len))
+                if (!VR_CRYPTO_ocb128_aad(&octx->ocb, in, len - trailing_len))
                     return -1;
-            } else if (EVP_CIPHER_CTX_encrypting(ctx)) {
-                if (!CRYPTO_ocb128_encrypt
+            } else if (VR_EVP_CIPHER_CTX_encrypting(ctx)) {
+                if (!VR_CRYPTO_ocb128_encrypt
                     (&octx->ocb, in, out, len - trailing_len))
                     return -1;
             } else {
-                if (!CRYPTO_ocb128_decrypt
+                if (!VR_CRYPTO_ocb128_decrypt
                     (&octx->ocb, in, out, len - trailing_len))
                     return -1;
             }
@@ -4235,12 +4235,12 @@ static int aes_ocb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
          * have been provided - both for data and AAD
          */
         if (octx->data_buf_len > 0) {
-            if (EVP_CIPHER_CTX_encrypting(ctx)) {
-                if (!CRYPTO_ocb128_encrypt(&octx->ocb, octx->data_buf, out,
+            if (VR_EVP_CIPHER_CTX_encrypting(ctx)) {
+                if (!VR_CRYPTO_ocb128_encrypt(&octx->ocb, octx->data_buf, out,
                                            octx->data_buf_len))
                     return -1;
             } else {
-                if (!CRYPTO_ocb128_decrypt(&octx->ocb, octx->data_buf, out,
+                if (!VR_CRYPTO_ocb128_decrypt(&octx->ocb, octx->data_buf, out,
                                            octx->data_buf_len))
                     return -1;
             }
@@ -4248,23 +4248,23 @@ static int aes_ocb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
             octx->data_buf_len = 0;
         }
         if (octx->aad_buf_len > 0) {
-            if (!CRYPTO_ocb128_aad
+            if (!VR_CRYPTO_ocb128_aad
                 (&octx->ocb, octx->aad_buf, octx->aad_buf_len))
                 return -1;
             octx->aad_buf_len = 0;
         }
         /* If decrypting then verify */
-        if (!EVP_CIPHER_CTX_encrypting(ctx)) {
+        if (!VR_EVP_CIPHER_CTX_encrypting(ctx)) {
             if (octx->taglen < 0)
                 return -1;
-            if (CRYPTO_ocb128_finish(&octx->ocb,
+            if (VR_CRYPTO_ocb128_finish(&octx->ocb,
                                      octx->tag, octx->taglen) != 0)
                 return -1;
             octx->iv_set = 0;
             return written_len;
         }
         /* If encrypting then just get the tag */
-        if (CRYPTO_ocb128_tag(&octx->ocb, octx->tag, 16) != 1)
+        if (VR_CRYPTO_ocb128_tag(&octx->ocb, octx->tag, 16) != 1)
             return -1;
         /* Don't reuse the IV */
         octx->iv_set = 0;
@@ -4275,7 +4275,7 @@ static int aes_ocb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
 static int aes_ocb_cleanup(EVP_CIPHER_CTX *c)
 {
     EVP_AES_OCB_CTX *octx = EVP_C_DATA(EVP_AES_OCB_CTX,c);
-    CRYPTO_ocb128_cleanup(&octx->ocb);
+    VR_CRYPTO_ocb128_cleanup(&octx->ocb);
     return 1;
 }
 
@@ -4299,23 +4299,23 @@ static int aes_siv_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
     const EVP_CIPHER *ctr;
     const EVP_CIPHER *cbc;
     SIV128_CONTEXT *sctx = EVP_C_DATA(SIV128_CONTEXT, ctx);
-    int klen = EVP_CIPHER_CTX_key_length(ctx) / 2;
+    int klen = VR_EVP_CIPHER_CTX_key_length(ctx) / 2;
 
     if (key == NULL)
         return 1;
 
     switch (klen) {
     case 16:
-        cbc = EVP_aes_128_cbc();
-        ctr = EVP_aes_128_ctr();
+        cbc = VR_EVP_aes_128_cbc();
+        ctr = VR_EVP_aes_128_ctr();
         break;
     case 24:
-        cbc = EVP_aes_192_cbc();
-        ctr = EVP_aes_192_ctr();
+        cbc = VR_EVP_aes_192_cbc();
+        ctr = VR_EVP_aes_192_ctr();
         break;
     case 32:
-        cbc = EVP_aes_256_cbc();
-        ctr = EVP_aes_256_ctr();
+        cbc = VR_EVP_aes_256_cbc();
+        ctr = VR_EVP_aes_256_ctr();
         break;
     default:
         return 0;
@@ -4323,7 +4323,7 @@ static int aes_siv_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
 
     /* klen is the length of the underlying cipher, not the input key,
        which should be twice as long */
-    return CRYPTO_siv128_init(sctx, key, klen, cbc, ctr);
+    return VR_CRYPTO_siv128_init(sctx, key, klen, cbc, ctr);
 }
 
 #define aesni_siv_cipher aes_siv_cipher
@@ -4334,16 +4334,16 @@ static int aes_siv_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
 
     /* EncryptFinal or DecryptFinal */
     if (in == NULL)
-        return CRYPTO_siv128_finish(sctx);
+        return VR_CRYPTO_siv128_finish(sctx);
 
     /* Deal with associated data */
     if (out == NULL)
-        return CRYPTO_siv128_aad(sctx, in, len);
+        return VR_CRYPTO_siv128_aad(sctx, in, len);
 
-    if (EVP_CIPHER_CTX_encrypting(ctx))
-        return CRYPTO_siv128_encrypt(sctx, in, out, len);
+    if (VR_EVP_CIPHER_CTX_encrypting(ctx))
+        return VR_CRYPTO_siv128_encrypt(sctx, in, out, len);
 
-    return CRYPTO_siv128_decrypt(sctx, in, out, len);
+    return VR_CRYPTO_siv128_decrypt(sctx, in, out, len);
 }
 
 #define aesni_siv_cleanup aes_siv_cleanup
@@ -4351,7 +4351,7 @@ static int aes_siv_cleanup(EVP_CIPHER_CTX *c)
 {
     SIV128_CONTEXT *sctx = EVP_C_DATA(SIV128_CONTEXT, c);
 
-    return CRYPTO_siv128_cleanup(sctx);
+    return VR_CRYPTO_siv128_cleanup(sctx);
 }
 
 
@@ -4363,24 +4363,24 @@ static int aes_siv_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr)
 
     switch (type) {
     case EVP_CTRL_INIT:
-        return CRYPTO_siv128_cleanup(sctx);
+        return VR_CRYPTO_siv128_cleanup(sctx);
 
     case EVP_CTRL_SET_SPEED:
-        return CRYPTO_siv128_speed(sctx, arg);
+        return VR_CRYPTO_siv128_speed(sctx, arg);
 
     case EVP_CTRL_AEAD_SET_TAG:
-        if (!EVP_CIPHER_CTX_encrypting(c))
-            return CRYPTO_siv128_set_tag(sctx, ptr, arg);
+        if (!VR_EVP_CIPHER_CTX_encrypting(c))
+            return VR_CRYPTO_siv128_set_tag(sctx, ptr, arg);
         return 1;
 
     case EVP_CTRL_AEAD_GET_TAG:
-        if (!EVP_CIPHER_CTX_encrypting(c))
+        if (!VR_EVP_CIPHER_CTX_encrypting(c))
             return 0;
-        return CRYPTO_siv128_get_tag(sctx, ptr, arg);
+        return VR_CRYPTO_siv128_get_tag(sctx, ptr, arg);
 
     case EVP_CTRL_COPY:
         sctx_out = EVP_C_DATA(SIV128_CONTEXT, (EVP_CIPHER_CTX*)ptr);
-        return CRYPTO_siv128_copy_ctx(sctx_out, sctx);
+        return VR_CRYPTO_siv128_copy_ctx(sctx_out, sctx);
 
     default:
         return -1;

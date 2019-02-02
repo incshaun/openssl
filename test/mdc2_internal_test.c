@@ -18,7 +18,7 @@
 
 typedef struct {
     const char *input;
-    const unsigned char expected[MDC2_DIGEST_LENGTH];
+    const unsigned char expected[VR_MDC2_DIGEST_LENGTH];
 } TESTDATA;
 
 
@@ -46,17 +46,17 @@ static TESTDATA tests[] = {
 
 static int test_mdc2(int idx)
 {
-    unsigned char md[MDC2_DIGEST_LENGTH];
-    MDC2_CTX c;
+    unsigned char md[VR_MDC2_DIGEST_LENGTH];
+    VR_MDC2_CTX c;
     const TESTDATA testdata = tests[idx];
 
-    MDC2_Init(&c);
-    MDC2_Update(&c, (const unsigned char *)testdata.input,
+    VR_MDC2_Init(&c);
+    VR_MDC2_Update(&c, (const unsigned char *)testdata.input,
                 strlen(testdata.input));
-    MDC2_Final(&(md[0]), &c);
+    VR_MDC2_Final(&(md[0]), &c);
 
-    if (!TEST_mem_eq(testdata.expected, MDC2_DIGEST_LENGTH,
-                     md, MDC2_DIGEST_LENGTH)) {
+    if (!TEST_mem_eq(testdata.expected, VR_MDC2_DIGEST_LENGTH,
+                     md, VR_MDC2_DIGEST_LENGTH)) {
         TEST_info("mdc2 test %d: unexpected output", idx);
         return 0;
     }

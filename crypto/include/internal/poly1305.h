@@ -15,7 +15,7 @@
 
 typedef struct poly1305_context POLY1305;
 
-size_t Poly1305_ctx_size(void);
-void Poly1305_Init(POLY1305 *ctx, const unsigned char key[32]);
-void Poly1305_Update(POLY1305 *ctx, const unsigned char *inp, size_t len);
-void Poly1305_Final(POLY1305 *ctx, unsigned char mac[16]);
+size_t VR_Poly1305_ctx_size(void);
+void VR_Poly1305_Init(POLY1305 *ctx, const unsigned char key[32]);
+void VR_Poly1305_Update(POLY1305 *ctx, const unsigned char *inp, size_t len);
+void VR_Poly1305_Final(POLY1305 *ctx, unsigned char mac[16]);

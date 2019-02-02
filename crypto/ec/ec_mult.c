@@ -60,16 +60,16 @@ static EC_PRE_COMP *ec_pre_comp_new(const EC_GROUP *group)
     ret->w = 4;                 /* default */
     ret->references = 1;
 
-    ret->lock = CRYPTO_THREAD_lock_new();
+    ret->lock = VR_CRYPTO_THREAD_lock_new();
     if (ret->lock == NULL) {
         ECerr(EC_F_EC_PRE_COMP_NEW, ERR_R_MALLOC_FAILURE);
-        OPENSSL_free(ret);
+        OPENVR_SSL_free(ret);
         return NULL;
     }
     return ret;
 }
 
-EC_PRE_COMP *EC_ec_pre_comp_dup(EC_PRE_COMP *pre)
+EC_PRE_COMP *VR_EC_ec_pre_comp_dup(EC_PRE_COMP *pre)
 {
     int i;
     if (pre != NULL)
@@ -77,7 +77,7 @@ EC_PRE_COMP *EC_ec_pre_comp_dup(EC_PRE_COMP *pre)
     return pre;
 }
 
-void EC_ec_pre_comp_free(EC_PRE_COMP *pre)
+void VR_EC_ec_pre_comp_free(EC_PRE_COMP *pre)
 {
     int i;
 
@@ -94,17 +94,17 @@ void EC_ec_pre_comp_free(EC_PRE_COMP *pre)
         EC_POINT **pts;
 
         for (pts = pre->points; *pts != NULL; pts++)
-            EC_POINT_free(*pts);
-        OPENSSL_free(pre->points);
+            VR_EC_POINT_free(*pts);
+        OPENVR_SSL_free(pre->points);
     }
-    CRYPTO_THREAD_lock_free(pre->lock);
-    OPENSSL_free(pre);
+    VR_CRYPTO_THREAD_lock_free(pre->lock);
+    OPENVR_SSL_free(pre);
 }
 
-#define EC_POINT_BN_set_flags(P, flags) do { \
-    BN_set_flags((P)->X, (flags)); \
-    BN_set_flags((P)->Y, (flags)); \
-    BN_set_flags((P)->Z, (flags)); \
+#define EC_POINT_VR_BN_set_flags(P, flags) do { \
+    VR_BN_set_flags((P)->X, (flags)); \
+    VR_BN_set_flags((P)->Y, (flags)); \
+    VR_BN_set_flags((P)->Z, (flags)); \
 } while(0)
 
 /*-
@@ -125,8 +125,8 @@ void EC_ec_pre_comp_free(EC_PRE_COMP *pre)
  * defined and non-zero: it fails with an error code otherwise.
  *
  * NB: This says nothing about the constant-timeness of the ladder step
- * implementation (i.e., the default implementation is based on EC_POINT_add and
- * EC_POINT_dbl, which of course are not constant time themselves) or the
+ * implementation (i.e., the default implementation is based on VR_EC_POINT_add and
+ * VR_EC_POINT_dbl, which of course are not constant time themselves) or the
  * underlying multiprecision arithmetic.
  *
  * The product is stored in `r`.
@@ -136,7 +136,7 @@ void EC_ec_pre_comp_free(EC_PRE_COMP *pre)
  *
  * Returns 1 on success, 0 otherwise.
  */
-int ec_scalar_mul_ladder(const EC_GROUP *group, EC_POINT *r,
+int VR_ec_scalar_mul_ladder(const EC_GROUP *group, EC_POINT *r,
                          const BIGNUM *scalar, const EC_POINT *point,
                          BN_CTX *ctx)
 {
@@ -149,51 +149,51 @@ int ec_scalar_mul_ladder(const EC_GROUP *group, EC_POINT *r,
     int ret = 0;
 
     /* early exit if the input point is the point at infinity */
-    if (point != NULL && EC_POINT_is_at_infinity(group, point))
-        return EC_POINT_set_to_infinity(group, r);
+    if (point != NULL && VR_EC_POINT_is_at_infinity(group, point))
+        return VR_EC_POINT_set_to_infinity(group, r);
 
-    if (BN_is_zero(group->order)) {
+    if (VR_BN_is_zero(group->order)) {
         ECerr(EC_F_EC_SCALAR_MUL_LADDER, EC_R_UNKNOWN_ORDER);
         return 0;
     }
-    if (BN_is_zero(group->cofactor)) {
+    if (VR_BN_is_zero(group->cofactor)) {
         ECerr(EC_F_EC_SCALAR_MUL_LADDER, EC_R_UNKNOWN_COFACTOR);
         return 0;
     }
 
-    BN_CTX_start(ctx);
+    VR_BN_CTX_start(ctx);
 
-    if (((p = EC_POINT_new(group)) == NULL)
-        || ((s = EC_POINT_new(group)) == NULL)) {
+    if (((p = VR_EC_POINT_new(group)) == NULL)
+        || ((s = VR_EC_POINT_new(group)) == NULL)) {
         ECerr(EC_F_EC_SCALAR_MUL_LADDER, ERR_R_MALLOC_FAILURE);
         goto err;
     }
 
     if (point == NULL) {
-        if (!EC_POINT_copy(p, group->generator)) {
+        if (!VR_EC_POINT_copy(p, group->generator)) {
             ECerr(EC_F_EC_SCALAR_MUL_LADDER, ERR_R_EC_LIB);
             goto err;
         }
     } else {
-        if (!EC_POINT_copy(p, point)) {
+        if (!VR_EC_POINT_copy(p, point)) {
             ECerr(EC_F_EC_SCALAR_MUL_LADDER, ERR_R_EC_LIB);
             goto err;
         }
     }
 
-    EC_POINT_BN_set_flags(p, BN_FLG_CONSTTIME);
-    EC_POINT_BN_set_flags(r, BN_FLG_CONSTTIME);
-    EC_POINT_BN_set_flags(s, BN_FLG_CONSTTIME);
+    EC_POINT_VR_BN_set_flags(p, BN_FLG_CONSTTIME);
+    EC_POINT_VR_BN_set_flags(r, BN_FLG_CONSTTIME);
+    EC_POINT_VR_BN_set_flags(s, BN_FLG_CONSTTIME);
 
-    cardinality = BN_CTX_get(ctx);
-    lambda = BN_CTX_get(ctx);
-    k = BN_CTX_get(ctx);
+    cardinality = VR_BN_CTX_get(ctx);
+    lambda = VR_BN_CTX_get(ctx);
+    k = VR_BN_CTX_get(ctx);
     if (k == NULL) {
         ECerr(EC_F_EC_SCALAR_MUL_LADDER, ERR_R_MALLOC_FAILURE);
         goto err;
     }
 
-    if (!BN_mul(cardinality, group->order, group->cofactor, ctx)) {
+    if (!VR_BN_mul(cardinality, group->order, group->cofactor, ctx)) {
         ECerr(EC_F_EC_SCALAR_MUL_LADDER, ERR_R_BN_LIB);
         goto err;
     }
@@ -204,38 +204,38 @@ int ec_scalar_mul_ladder(const EC_GROUP *group, EC_POINT *r,
      * pop if it needs to be expanded due to carries.
      * So expand ahead of time.
      */
-    cardinality_bits = BN_num_bits(cardinality);
-    group_top = bn_get_top(cardinality);
-    if ((bn_wexpand(k, group_top + 2) == NULL)
-        || (bn_wexpand(lambda, group_top + 2) == NULL)) {
+    cardinality_bits = VR_BN_num_bits(cardinality);
+    group_top = VR_bn_get_top(cardinality);
+    if ((VR_bn_wexpand(k, group_top + 2) == NULL)
+        || (VR_bn_wexpand(lambda, group_top + 2) == NULL)) {
         ECerr(EC_F_EC_SCALAR_MUL_LADDER, ERR_R_BN_LIB);
         goto err;
     }
 
-    if (!BN_copy(k, scalar)) {
+    if (!VR_BN_copy(k, scalar)) {
         ECerr(EC_F_EC_SCALAR_MUL_LADDER, ERR_R_BN_LIB);
         goto err;
     }
 
-    BN_set_flags(k, BN_FLG_CONSTTIME);
+    VR_BN_set_flags(k, BN_FLG_CONSTTIME);
 
-    if ((BN_num_bits(k) > cardinality_bits) || (BN_is_negative(k))) {
+    if ((VR_BN_num_bits(k) > cardinality_bits) || (VR_BN_is_negative(k))) {
         /*-
          * this is an unusual input, and we don't guarantee
          * constant-timeness
          */
-        if (!BN_nnmod(k, k, cardinality, ctx)) {
+        if (!VR_BN_nnmod(k, k, cardinality, ctx)) {
             ECerr(EC_F_EC_SCALAR_MUL_LADDER, ERR_R_BN_LIB);
             goto err;
         }
     }
 
-    if (!BN_add(lambda, k, cardinality)) {
+    if (!VR_BN_add(lambda, k, cardinality)) {
         ECerr(EC_F_EC_SCALAR_MUL_LADDER, ERR_R_BN_LIB);
         goto err;
     }
-    BN_set_flags(lambda, BN_FLG_CONSTTIME);
-    if (!BN_add(k, lambda, cardinality)) {
+    VR_BN_set_flags(lambda, BN_FLG_CONSTTIME);
+    if (!VR_BN_add(k, lambda, cardinality)) {
         ECerr(EC_F_EC_SCALAR_MUL_LADDER, ERR_R_BN_LIB);
         goto err;
     }
@@ -243,19 +243,19 @@ int ec_scalar_mul_ladder(const EC_GROUP *group, EC_POINT *r,
      * lambda := scalar + cardinality
      * k := scalar + 2*cardinality
      */
-    kbit = BN_is_bit_set(lambda, cardinality_bits);
-    BN_consttime_swap(kbit, k, lambda, group_top + 2);
+    kbit = VR_BN_is_bit_set(lambda, cardinality_bits);
+    VR_BN_consttime_swap(kbit, k, lambda, group_top + 2);
 
-    group_top = bn_get_top(group->field);
-    if ((bn_wexpand(s->X, group_top) == NULL)
-        || (bn_wexpand(s->Y, group_top) == NULL)
-        || (bn_wexpand(s->Z, group_top) == NULL)
-        || (bn_wexpand(r->X, group_top) == NULL)
-        || (bn_wexpand(r->Y, group_top) == NULL)
-        || (bn_wexpand(r->Z, group_top) == NULL)
-        || (bn_wexpand(p->X, group_top) == NULL)
-        || (bn_wexpand(p->Y, group_top) == NULL)
-        || (bn_wexpand(p->Z, group_top) == NULL)) {
+    group_top = VR_bn_get_top(group->field);
+    if ((VR_bn_wexpand(s->X, group_top) == NULL)
+        || (VR_bn_wexpand(s->Y, group_top) == NULL)
+        || (VR_bn_wexpand(s->Z, group_top) == NULL)
+        || (VR_bn_wexpand(r->X, group_top) == NULL)
+        || (VR_bn_wexpand(r->Y, group_top) == NULL)
+        || (VR_bn_wexpand(r->Z, group_top) == NULL)
+        || (VR_bn_wexpand(p->X, group_top) == NULL)
+        || (VR_bn_wexpand(p->Y, group_top) == NULL)
+        || (VR_bn_wexpand(p->Z, group_top) == NULL)) {
         ECerr(EC_F_EC_SCALAR_MUL_LADDER, ERR_R_BN_LIB);
         goto err;
     }
@@ -264,11 +264,11 @@ int ec_scalar_mul_ladder(const EC_GROUP *group, EC_POINT *r,
      * Apply coordinate blinding for EC_POINT.
      *
      * The underlying EC_METHOD can optionally implement this function:
-     * ec_point_blind_coordinates() returns 0 in case of errors or 1 on
+     * VR_ec_point_blind_coordinates() returns 0 in case of errors or 1 on
      * success or if coordinate blinding is not implemented for this
      * group.
      */
-    if (!ec_point_blind_coordinates(group, p, ctx)) {
+    if (!VR_ec_point_blind_coordinates(group, p, ctx)) {
         ECerr(EC_F_EC_SCALAR_MUL_LADDER, EC_R_POINT_COORDINATES_BLIND_FAILURE);
         goto err;
     }
@@ -283,9 +283,9 @@ int ec_scalar_mul_ladder(const EC_GROUP *group, EC_POINT *r,
     pbit = 1;
 
 #define EC_POINT_CSWAP(c, a, b, w, t) do {         \
-        BN_consttime_swap(c, (a)->X, (b)->X, w);   \
-        BN_consttime_swap(c, (a)->Y, (b)->Y, w);   \
-        BN_consttime_swap(c, (a)->Z, (b)->Z, w);   \
+        VR_BN_consttime_swap(c, (a)->X, (b)->X, w);   \
+        VR_BN_consttime_swap(c, (a)->Y, (b)->Y, w);   \
+        VR_BN_consttime_swap(c, (a)->Z, (b)->Z, w);   \
         t = ((a)->Z_is_one ^ (b)->Z_is_one) & (c); \
         (a)->Z_is_one ^= (t);                      \
         (b)->Z_is_one ^= (t);                      \
@@ -350,7 +350,7 @@ int ec_scalar_mul_ladder(const EC_GROUP *group, EC_POINT *r,
      */
 
     for (i = cardinality_bits - 1; i >= 0; i--) {
-        kbit = BN_is_bit_set(k, i) ^ pbit;
+        kbit = VR_BN_is_bit_set(k, i) ^ pbit;
         EC_POINT_CSWAP(kbit, r, s, group_top, Z_is_one);
 
         /* Perform a single step of the Montgomery ladder */
@@ -377,14 +377,14 @@ int ec_scalar_mul_ladder(const EC_GROUP *group, EC_POINT *r,
     ret = 1;
 
  err:
-    EC_POINT_free(p);
-    EC_POINT_free(s);
-    BN_CTX_end(ctx);
+    VR_EC_POINT_free(p);
+    VR_EC_POINT_free(s);
+    VR_BN_CTX_end(ctx);
 
     return ret;
 }
 
-#undef EC_POINT_BN_set_flags
+#undef EC_POINT_VR_BN_set_flags
 
 /*
  * TODO: table should be optimised for the wNAF-based implementation,
@@ -407,7 +407,7 @@ int ec_scalar_mul_ladder(const EC_GROUP *group, EC_POINT *r,
  *      scalar*generator
  * in the addition if scalar != NULL
  */
-int ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
+int VR_ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
                 size_t num, const EC_POINT *points[], const BIGNUM *scalars[],
                 BN_CTX *ctx)
 {
@@ -435,7 +435,7 @@ int ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
                                  * precomputation is not available */
     int ret = 0;
 
-    if (!BN_is_zero(group->order) && !BN_is_zero(group->cofactor)) {
+    if (!VR_BN_is_zero(group->order) && !VR_BN_is_zero(group->cofactor)) {
         /*-
          * Handle the common cases where the scalar is secret, enforcing a
          * scalar multiplication implementation based on a Montgomery ladder,
@@ -450,7 +450,7 @@ int ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
              * is why we ignore if BN_FLG_CONSTTIME is actually set and we
              * always call the ladder version.
              */
-            return ec_scalar_mul_ladder(group, r, scalar, NULL, ctx);
+            return VR_ec_scalar_mul_ladder(group, r, scalar, NULL, ctx);
         }
         if ((scalar == NULL) && (num == 1)) {
             /*-
@@ -460,12 +460,12 @@ int ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
              * To protect the secret scalar, we ignore if BN_FLG_CONSTTIME is
              * actually set and we always call the ladder version.
              */
-            return ec_scalar_mul_ladder(group, r, scalars[0], points[0], ctx);
+            return VR_ec_scalar_mul_ladder(group, r, scalars[0], points[0], ctx);
         }
     }
 
     if (scalar != NULL) {
-        generator = EC_GROUP_get0_generator(group);
+        generator = VR_EC_GROUP_get0_generator(group);
         if (generator == NULL) {
             ECerr(EC_F_EC_WNAF_MUL, EC_R_UNDEFINED_GENERATOR);
             goto err;
@@ -475,7 +475,7 @@ int ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
 
         pre_comp = group->pre_comp.ec;
         if (pre_comp && pre_comp->numblocks
-            && (EC_POINT_cmp(group, generator, pre_comp->points[0], ctx) ==
+            && (VR_EC_POINT_cmp(group, generator, pre_comp->points[0], ctx) ==
                 0)) {
             blocksize = pre_comp->blocksize;
 
@@ -483,7 +483,7 @@ int ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
              * determine maximum number of blocks that wNAF splitting may
              * yield (NB: maximum wNAF length is bit length plus one)
              */
-            numblocks = (BN_num_bits(scalar) / blocksize) + 1;
+            numblocks = (VR_BN_num_bits(scalar) / blocksize) + 1;
 
             /*
              * we cannot use more blocks than we have precomputation for
@@ -532,12 +532,12 @@ int ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
     for (i = 0; i < num + num_scalar; i++) {
         size_t bits;
 
-        bits = i < num ? BN_num_bits(scalars[i]) : BN_num_bits(scalar);
+        bits = i < num ? VR_BN_num_bits(scalars[i]) : VR_BN_num_bits(scalar);
         wsize[i] = EC_window_bits_for_scalar_size(bits);
         num_val += (size_t)1 << (wsize[i] - 1);
         wNAF[i + 1] = NULL;     /* make sure we always have a pivot */
         wNAF[i] =
-            bn_compute_wNAF((i < num ? scalars[i] : scalar), wsize[i],
+            VR_bn_compute_wNAF((i < num ? scalars[i] : scalar), wsize[i],
                             &wNAF_len[i]);
         if (wNAF[i] == NULL)
             goto err;
@@ -567,7 +567,7 @@ int ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
              * use the window size for which we have precomputation
              */
             wsize[num] = pre_comp->w;
-            tmp_wNAF = bn_compute_wNAF(scalar, wsize[num], &tmp_len);
+            tmp_wNAF = VR_bn_compute_wNAF(scalar, wsize[num], &tmp_len);
             if (!tmp_wNAF)
                 goto err;
 
@@ -603,7 +603,7 @@ int ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
                     numblocks = (tmp_len + blocksize - 1) / blocksize;
                     if (numblocks > pre_comp->numblocks) {
                         ECerr(EC_F_EC_WNAF_MUL, ERR_R_INTERNAL_ERROR);
-                        OPENSSL_free(tmp_wNAF);
+                        OPENVR_SSL_free(tmp_wNAF);
                         goto err;
                     }
                     totalnum = num + numblocks;
@@ -618,7 +618,7 @@ int ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
                         wNAF_len[i] = blocksize;
                         if (tmp_len < blocksize) {
                             ECerr(EC_F_EC_WNAF_MUL, ERR_R_INTERNAL_ERROR);
-                            OPENSSL_free(tmp_wNAF);
+                            OPENVR_SSL_free(tmp_wNAF);
                             goto err;
                         }
                         tmp_len -= blocksize;
@@ -633,7 +633,7 @@ int ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
                     wNAF[i] = OPENSSL_malloc(wNAF_len[i]);
                     if (wNAF[i] == NULL) {
                         ECerr(EC_F_EC_WNAF_MUL, ERR_R_MALLOC_FAILURE);
-                        OPENSSL_free(tmp_wNAF);
+                        OPENVR_SSL_free(tmp_wNAF);
                         goto err;
                     }
                     memcpy(wNAF[i], pp, wNAF_len[i]);
@@ -642,14 +642,14 @@ int ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
 
                     if (*tmp_points == NULL) {
                         ECerr(EC_F_EC_WNAF_MUL, ERR_R_INTERNAL_ERROR);
-                        OPENSSL_free(tmp_wNAF);
+                        OPENVR_SSL_free(tmp_wNAF);
                         goto err;
                     }
                     val_sub[i] = tmp_points;
                     tmp_points += pre_points_per_block;
                     pp += blocksize;
                 }
-                OPENSSL_free(tmp_wNAF);
+                OPENVR_SSL_free(tmp_wNAF);
             }
         }
     }
@@ -671,7 +671,7 @@ int ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
     for (i = 0; i < num + num_scalar; i++) {
         val_sub[i] = v;
         for (j = 0; j < ((size_t)1 << (wsize[i] - 1)); j++) {
-            *v = EC_POINT_new(group);
+            *v = VR_EC_POINT_new(group);
             if (*v == NULL)
                 goto err;
             v++;
@@ -682,7 +682,7 @@ int ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
         goto err;
     }
 
-    if ((tmp = EC_POINT_new(group)) == NULL)
+    if ((tmp = VR_EC_POINT_new(group)) == NULL)
         goto err;
 
     /*-
@@ -694,32 +694,32 @@ int ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
      */
     for (i = 0; i < num + num_scalar; i++) {
         if (i < num) {
-            if (!EC_POINT_copy(val_sub[i][0], points[i]))
+            if (!VR_EC_POINT_copy(val_sub[i][0], points[i]))
                 goto err;
         } else {
-            if (!EC_POINT_copy(val_sub[i][0], generator))
+            if (!VR_EC_POINT_copy(val_sub[i][0], generator))
                 goto err;
         }
 
         if (wsize[i] > 1) {
-            if (!EC_POINT_dbl(group, tmp, val_sub[i][0], ctx))
+            if (!VR_EC_POINT_dbl(group, tmp, val_sub[i][0], ctx))
                 goto err;
             for (j = 1; j < ((size_t)1 << (wsize[i] - 1)); j++) {
-                if (!EC_POINT_add
+                if (!VR_EC_POINT_add
                     (group, val_sub[i][j], val_sub[i][j - 1], tmp, ctx))
                     goto err;
             }
         }
     }
 
-    if (!EC_POINTs_make_affine(group, num_val, val, ctx))
+    if (!VR_EC_POINTs_make_affine(group, num_val, val, ctx))
         goto err;
 
     r_is_at_infinity = 1;
 
     for (k = max_len - 1; k >= 0; k--) {
         if (!r_is_at_infinity) {
-            if (!EC_POINT_dbl(group, r, r, ctx))
+            if (!VR_EC_POINT_dbl(group, r, r, ctx))
                 goto err;
         }
 
@@ -736,7 +736,7 @@ int ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
 
                     if (is_neg != r_is_inverted) {
                         if (!r_is_at_infinity) {
-                            if (!EC_POINT_invert(group, r, ctx))
+                            if (!VR_EC_POINT_invert(group, r, ctx))
                                 goto err;
                         }
                         r_is_inverted = !r_is_inverted;
@@ -745,11 +745,11 @@ int ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
                     /* digit > 0 */
 
                     if (r_is_at_infinity) {
-                        if (!EC_POINT_copy(r, val_sub[i][digit >> 1]))
+                        if (!VR_EC_POINT_copy(r, val_sub[i][digit >> 1]))
                             goto err;
                         r_is_at_infinity = 0;
                     } else {
-                        if (!EC_POINT_add
+                        if (!VR_EC_POINT_add
                             (group, r, r, val_sub[i][digit >> 1], ctx))
                             goto err;
                     }
@@ -759,42 +759,42 @@ int ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
     }
 
     if (r_is_at_infinity) {
-        if (!EC_POINT_set_to_infinity(group, r))
+        if (!VR_EC_POINT_set_to_infinity(group, r))
             goto err;
     } else {
         if (r_is_inverted)
-            if (!EC_POINT_invert(group, r, ctx))
+            if (!VR_EC_POINT_invert(group, r, ctx))
                 goto err;
     }
 
     ret = 1;
 
  err:
-    EC_POINT_free(tmp);
-    OPENSSL_free(wsize);
-    OPENSSL_free(wNAF_len);
+    VR_EC_POINT_free(tmp);
+    OPENVR_SSL_free(wsize);
+    OPENVR_SSL_free(wNAF_len);
     if (wNAF != NULL) {
         signed char **w;
 
         for (w = wNAF; *w != NULL; w++)
-            OPENSSL_free(*w);
+            OPENVR_SSL_free(*w);
 
-        OPENSSL_free(wNAF);
+        OPENVR_SSL_free(wNAF);
     }
     if (val != NULL) {
         for (v = val; *v != NULL; v++)
-            EC_POINT_clear_free(*v);
+            VR_EC_POINT_clear_free(*v);
 
-        OPENSSL_free(val);
+        OPENVR_SSL_free(val);
     }
-    OPENSSL_free(val_sub);
+    OPENVR_SSL_free(val_sub);
     return ret;
 }
 
 /*-
- * ec_wNAF_precompute_mult()
+ * VR_ec_wNAF_precompute_mult()
  * creates an EC_PRE_COMP object with preprecomputed multiples of the generator
- * for use with wNAF splitting as implemented in ec_wNAF_mul().
+ * for use with wNAF splitting as implemented in VR_ec_wNAF_mul().
  *
  * 'pre_comp->points' is an array of multiples of the generator
  * of the following form:
@@ -811,7 +811,7 @@ int ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
  * points[2^(w-1)*numblocks-1]     = (2^(w-1)) *  2^(blocksize*(numblocks-1)) * generator
  * points[2^(w-1)*numblocks]       = NULL
  */
-int ec_wNAF_precompute_mult(EC_GROUP *group, BN_CTX *ctx)
+int VR_ec_wNAF_precompute_mult(EC_GROUP *group, BN_CTX *ctx)
 {
     const EC_POINT *generator;
     EC_POINT *tmp_point = NULL, *base = NULL, **var;
@@ -823,33 +823,33 @@ int ec_wNAF_precompute_mult(EC_GROUP *group, BN_CTX *ctx)
     int ret = 0;
 
     /* if there is an old EC_PRE_COMP object, throw it away */
-    EC_pre_comp_free(group);
+    VR_EC_pre_comp_free(group);
     if ((pre_comp = ec_pre_comp_new(group)) == NULL)
         return 0;
 
-    generator = EC_GROUP_get0_generator(group);
+    generator = VR_EC_GROUP_get0_generator(group);
     if (generator == NULL) {
         ECerr(EC_F_EC_WNAF_PRECOMPUTE_MULT, EC_R_UNDEFINED_GENERATOR);
         goto err;
     }
 
     if (ctx == NULL) {
-        ctx = new_ctx = BN_CTX_new();
+        ctx = new_ctx = VR_BN_CTX_new();
         if (ctx == NULL)
             goto err;
     }
 
-    BN_CTX_start(ctx);
+    VR_BN_CTX_start(ctx);
 
-    order = EC_GROUP_get0_order(group);
+    order = VR_EC_GROUP_get0_order(group);
     if (order == NULL)
         goto err;
-    if (BN_is_zero(order)) {
+    if (VR_BN_is_zero(order)) {
         ECerr(EC_F_EC_WNAF_PRECOMPUTE_MULT, EC_R_UNKNOWN_ORDER);
         goto err;
     }
 
-    bits = BN_num_bits(order);
+    bits = VR_BN_num_bits(order);
     /*
      * The following parameters mean we precompute (approximately) one point
      * per bit. TBD: The combination 8, 4 is perfect for 160 bits; for other
@@ -880,36 +880,36 @@ int ec_wNAF_precompute_mult(EC_GROUP *group, BN_CTX *ctx)
     var = points;
     var[num] = NULL;            /* pivot */
     for (i = 0; i < num; i++) {
-        if ((var[i] = EC_POINT_new(group)) == NULL) {
+        if ((var[i] = VR_EC_POINT_new(group)) == NULL) {
             ECerr(EC_F_EC_WNAF_PRECOMPUTE_MULT, ERR_R_MALLOC_FAILURE);
             goto err;
         }
     }
 
-    if ((tmp_point = EC_POINT_new(group)) == NULL
-        || (base = EC_POINT_new(group)) == NULL) {
+    if ((tmp_point = VR_EC_POINT_new(group)) == NULL
+        || (base = VR_EC_POINT_new(group)) == NULL) {
         ECerr(EC_F_EC_WNAF_PRECOMPUTE_MULT, ERR_R_MALLOC_FAILURE);
         goto err;
     }
 
-    if (!EC_POINT_copy(base, generator))
+    if (!VR_EC_POINT_copy(base, generator))
         goto err;
 
     /* do the precomputation */
     for (i = 0; i < numblocks; i++) {
         size_t j;
 
-        if (!EC_POINT_dbl(group, tmp_point, base, ctx))
+        if (!VR_EC_POINT_dbl(group, tmp_point, base, ctx))
             goto err;
 
-        if (!EC_POINT_copy(*var++, base))
+        if (!VR_EC_POINT_copy(*var++, base))
             goto err;
 
         for (j = 1; j < pre_points_per_block; j++, var++) {
             /*
              * calculate odd multiples of the current base point
              */
-            if (!EC_POINT_add(group, *var, tmp_point, *(var - 1), ctx))
+            if (!VR_EC_POINT_add(group, *var, tmp_point, *(var - 1), ctx))
                 goto err;
         }
 
@@ -924,16 +924,16 @@ int ec_wNAF_precompute_mult(EC_GROUP *group, BN_CTX *ctx)
                 goto err;
             }
 
-            if (!EC_POINT_dbl(group, base, tmp_point, ctx))
+            if (!VR_EC_POINT_dbl(group, base, tmp_point, ctx))
                 goto err;
             for (k = 2; k < blocksize; k++) {
-                if (!EC_POINT_dbl(group, base, base, ctx))
+                if (!VR_EC_POINT_dbl(group, base, base, ctx))
                     goto err;
             }
         }
     }
 
-    if (!EC_POINTs_make_affine(group, num, points, ctx))
+    if (!VR_EC_POINTs_make_affine(group, num, points, ctx))
         goto err;
 
     pre_comp->group = group;
@@ -949,22 +949,22 @@ int ec_wNAF_precompute_mult(EC_GROUP *group, BN_CTX *ctx)
 
  err:
     if (ctx != NULL)
-        BN_CTX_end(ctx);
-    BN_CTX_free(new_ctx);
-    EC_ec_pre_comp_free(pre_comp);
+        VR_BN_CTX_end(ctx);
+    VR_BN_CTX_free(new_ctx);
+    VR_EC_ec_pre_comp_free(pre_comp);
     if (points) {
         EC_POINT **p;
 
         for (p = points; *p != NULL; p++)
-            EC_POINT_free(*p);
-        OPENSSL_free(points);
+            VR_EC_POINT_free(*p);
+        OPENVR_SSL_free(points);
     }
-    EC_POINT_free(tmp_point);
-    EC_POINT_free(base);
+    VR_EC_POINT_free(tmp_point);
+    VR_EC_POINT_free(base);
     return ret;
 }
 
-int ec_wNAF_have_precompute_mult(const EC_GROUP *group)
+int VR_ec_wNAF_have_precompute_mult(const EC_GROUP *group)
 {
     return HAVEPRECOMP(group, ec);
 }

@@ -23,23 +23,23 @@ int main(int argc, char **argv)
 
     /* Open compressed content */
 
-    in = BIO_new_file("smcomp.txt", "r");
+    in = VR_BIO_new_file("smcomp.txt", "r");
 
     if (!in)
         goto err;
 
     /* Sign content */
-    cms = SMIME_read_CMS(in, NULL);
+    cms = VR_SMIME_read_CMS(in, NULL);
 
     if (!cms)
         goto err;
 
-    out = BIO_new_file("smuncomp.txt", "w");
+    out = VR_BIO_new_file("smuncomp.txt", "w");
     if (!out)
         goto err;
 
     /* Uncompress S/MIME message */
-    if (!CMS_uncompress(cms, out, NULL, 0))
+    if (!VR_CMS_uncompress(cms, out, NULL, 0))
         goto err;
 
     ret = 0;
@@ -48,11 +48,11 @@ int main(int argc, char **argv)
 
     if (ret) {
         fprintf(stderr, "Error Uncompressing Data\n");
-        ERR_print_errors_fp(stderr);
+        VR_ERR_print_errors_fp(stderr);
     }
 
-    CMS_ContentInfo_free(cms);
-    BIO_free(in);
-    BIO_free(out);
+    VR_CMS_ContentInfo_free(cms);
+    VR_BIO_free(in);
+    VR_BIO_free(out);
     return ret;
 }

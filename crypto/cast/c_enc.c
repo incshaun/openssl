@@ -10,7 +10,7 @@
 #include <openssl/cast.h>
 #include "cast_lcl.h"
 
-void CAST_encrypt(CAST_LONG *data, const CAST_KEY *key)
+void VR_CAST_encrypt(CAST_LONG *data, const CAST_KEY *key)
 {
     CAST_LONG l, r, t;
     const CAST_LONG *k;
@@ -42,7 +42,7 @@ void CAST_encrypt(CAST_LONG *data, const CAST_KEY *key)
     data[0] = r & 0xffffffffL;
 }
 
-void CAST_decrypt(CAST_LONG *data, const CAST_KEY *key)
+void VR_CAST_decrypt(CAST_LONG *data, const CAST_KEY *key)
 {
     CAST_LONG l, r, t;
     const CAST_LONG *k;
@@ -74,7 +74,7 @@ void CAST_decrypt(CAST_LONG *data, const CAST_KEY *key)
     data[0] = r & 0xffffffffL;
 }
 
-void CAST_cbc_encrypt(const unsigned char *in, unsigned char *out,
+void VR_CAST_cbc_encrypt(const unsigned char *in, unsigned char *out,
                       long length, const CAST_KEY *ks, unsigned char *iv,
                       int enc)
 {
@@ -94,7 +94,7 @@ void CAST_cbc_encrypt(const unsigned char *in, unsigned char *out,
             tin1 ^= tout1;
             tin[0] = tin0;
             tin[1] = tin1;
-            CAST_encrypt(tin, ks);
+            VR_CAST_encrypt(tin, ks);
             tout0 = tin[0];
             tout1 = tin[1];
             l2n(tout0, out);
@@ -106,7 +106,7 @@ void CAST_cbc_encrypt(const unsigned char *in, unsigned char *out,
             tin1 ^= tout1;
             tin[0] = tin0;
             tin[1] = tin1;
-            CAST_encrypt(tin, ks);
+            VR_CAST_encrypt(tin, ks);
             tout0 = tin[0];
             tout1 = tin[1];
             l2n(tout0, out);
@@ -123,7 +123,7 @@ void CAST_cbc_encrypt(const unsigned char *in, unsigned char *out,
             n2l(in, tin1);
             tin[0] = tin0;
             tin[1] = tin1;
-            CAST_decrypt(tin, ks);
+            VR_CAST_decrypt(tin, ks);
             tout0 = tin[0] ^ xor0;
             tout1 = tin[1] ^ xor1;
             l2n(tout0, out);
@@ -136,7 +136,7 @@ void CAST_cbc_encrypt(const unsigned char *in, unsigned char *out,
             n2l(in, tin1);
             tin[0] = tin0;
             tin[1] = tin1;
-            CAST_decrypt(tin, ks);
+            VR_CAST_decrypt(tin, ks);
             tout0 = tin[0] ^ xor0;
             tout1 = tin[1] ^ xor1;
             l2nn(tout0, tout1, out, l + 8);

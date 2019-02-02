@@ -34,7 +34,7 @@ static async_ctx *async_ctx_new(void)
 {
     async_ctx *nctx;
 
-    if (!ossl_init_thread_start(OPENSSL_INIT_THREAD_ASYNC))
+    if (!VR_ossl_init_thread_start(OPENSSL_INIT_THREAD_ASYNC))
         return NULL;
 
     nctx = OPENSSL_malloc(sizeof(*nctx));
@@ -46,31 +46,31 @@ static async_ctx *async_ctx_new(void)
     async_fibre_init_dispatcher(&nctx->dispatcher);
     nctx->currjob = NULL;
     nctx->blocked = 0;
-    if (!CRYPTO_THREAD_set_local(&ctxkey, nctx))
+    if (!VR_CRYPTO_THREAD_set_local(&ctxkey, nctx))
         goto err;
 
     return nctx;
 err:
-    OPENSSL_free(nctx);
+    OPENVR_SSL_free(nctx);
 
     return NULL;
 }
 
-async_ctx *async_get_ctx(void)
+async_ctx *VR_async_get_ctx(void)
 {
-    return (async_ctx *)CRYPTO_THREAD_get_local(&ctxkey);
+    return (async_ctx *)VR_CRYPTO_THREAD_get_local(&ctxkey);
 }
 
 static int async_ctx_free(void)
 {
     async_ctx *ctx;
 
-    ctx = async_get_ctx();
+    ctx = VR_async_get_ctx();
 
-    if (!CRYPTO_THREAD_set_local(&ctxkey, NULL))
+    if (!VR_CRYPTO_THREAD_set_local(&ctxkey, NULL))
         return 0;
 
-    OPENSSL_free(ctx);
+    OPENVR_SSL_free(ctx);
 
     return 1;
 }
@@ -93,9 +93,9 @@ static ASYNC_JOB *async_job_new(void)
 static void async_job_free(ASYNC_JOB *job)
 {
     if (job != NULL) {
-        OPENSSL_free(job->funcargs);
-        async_fibre_free(&job->fibrectx);
-        OPENSSL_free(job);
+        OPENVR_SSL_free(job->funcargs);
+        VR_async_fibre_free(&job->fibrectx);
+        OPENVR_SSL_free(job);
     }
 }
 
@@ -103,18 +103,18 @@ static ASYNC_JOB *async_get_pool_job(void) {
     ASYNC_JOB *job;
     async_pool *pool;
 
-    pool = (async_pool *)CRYPTO_THREAD_get_local(&poolkey);
+    pool = (async_pool *)VR_CRYPTO_THREAD_get_local(&poolkey);
     if (pool == NULL) {
         /*
          * Pool has not been initialised, so init with the defaults, i.e.
          * no max size and no pre-created jobs
          */
-        if (ASYNC_init_thread(0, 0) == 0)
+        if (VR_ASYNC_init_thread(0, 0) == 0)
             return NULL;
-        pool = (async_pool *)CRYPTO_THREAD_get_local(&poolkey);
+        pool = (async_pool *)VR_CRYPTO_THREAD_get_local(&poolkey);
     }
 
-    job = sk_ASYNC_JOB_pop(pool->jobs);
+    job = sk_VR_ASYNC_JOB_pop(pool->jobs);
     if (job == NULL) {
         /* Pool is empty */
         if ((pool->max_size != 0) && (pool->curr_size >= pool->max_size))
@@ -122,7 +122,7 @@ static ASYNC_JOB *async_get_pool_job(void) {
 
         job = async_job_new();
         if (job != NULL) {
-            if (! async_fibre_makecontext(&job->fibrectx)) {
+            if (! VR_async_fibre_makecontext(&job->fibrectx)) {
                 async_job_free(job);
                 return NULL;
             }
@@ -135,16 +135,16 @@ static ASYNC_JOB *async_get_pool_job(void) {
 static void async_release_job(ASYNC_JOB *job) {
     async_pool *pool;
 
-    pool = (async_pool *)CRYPTO_THREAD_get_local(&poolkey);
-    OPENSSL_free(job->funcargs);
+    pool = (async_pool *)VR_CRYPTO_THREAD_get_local(&poolkey);
+    OPENVR_SSL_free(job->funcargs);
     job->funcargs = NULL;
-    sk_ASYNC_JOB_push(pool->jobs, job);
+    sk_VR_ASYNC_JOB_push(pool->jobs, job);
 }
 
-void async_start_func(void)
+void VR_async_start_func(void)
 {
     ASYNC_JOB *job;
-    async_ctx *ctx = async_get_ctx();
+    async_ctx *ctx = VR_async_get_ctx();
 
     while (1) {
         /* Run the job */
@@ -164,15 +164,15 @@ void async_start_func(void)
     }
 }
 
-int ASYNC_start_job(ASYNC_JOB **job, ASYNC_WAIT_CTX *wctx, int *ret,
+int VR_ASYNC_start_job(ASYNC_JOB **job, ASYNC_WAIT_CTX *wctx, int *ret,
                     int (*func)(void *), void *args, size_t size)
 {
     async_ctx *ctx;
 
-    if (!OPENSSL_init_crypto(OPENSSL_INIT_ASYNC, NULL))
+    if (!VR_OPENSSL_init_crypto(OPENSSL_INIT_ASYNC, NULL))
         return ASYNC_ERR;
 
-    ctx = async_get_ctx();
+    ctx = VR_async_get_ctx();
     if (ctx == NULL)
         ctx = async_ctx_new();
     if (ctx == NULL)
@@ -252,10 +252,10 @@ err:
     return ASYNC_ERR;
 }
 
-int ASYNC_pause_job(void)
+int VR_ASYNC_pause_job(void)
 {
     ASYNC_JOB *job;
-    async_ctx *ctx = async_get_ctx();
+    async_ctx *ctx = VR_async_get_ctx();
 
     if (ctx == NULL
             || ctx->currjob == NULL
@@ -276,7 +276,7 @@ int ASYNC_pause_job(void)
         return 0;
     }
     /* Reset counts of added and deleted fds */
-    async_wait_ctx_reset_counts(job->waitctx);
+    VR_async_wait_ctx_reset_counts(job->waitctx);
 
     return 1;
 }
@@ -289,31 +289,31 @@ static void async_empty_pool(async_pool *pool)
         return;
 
     do {
-        job = sk_ASYNC_JOB_pop(pool->jobs);
+        job = sk_VR_ASYNC_JOB_pop(pool->jobs);
         async_job_free(job);
     } while (job);
 }
 
-int async_init(void)
+int VR_async_init(void)
 {
-    if (!CRYPTO_THREAD_init_local(&ctxkey, NULL))
+    if (!VR_CRYPTO_THREAD_init_local(&ctxkey, NULL))
         return 0;
 
-    if (!CRYPTO_THREAD_init_local(&poolkey, NULL)) {
-        CRYPTO_THREAD_cleanup_local(&ctxkey);
+    if (!VR_CRYPTO_THREAD_init_local(&poolkey, NULL)) {
+        VR_CRYPTO_THREAD_cleanup_local(&ctxkey);
         return 0;
     }
 
     return 1;
 }
 
-void async_deinit(void)
+void VR_async_deinit(void)
 {
-    CRYPTO_THREAD_cleanup_local(&ctxkey);
-    CRYPTO_THREAD_cleanup_local(&poolkey);
+    VR_CRYPTO_THREAD_cleanup_local(&ctxkey);
+    VR_CRYPTO_THREAD_cleanup_local(&poolkey);
 }
 
-int ASYNC_init_thread(size_t max_size, size_t init_size)
+int VR_ASYNC_init_thread(size_t max_size, size_t init_size)
 {
     async_pool *pool;
     size_t curr_size = 0;
@@ -323,10 +323,10 @@ int ASYNC_init_thread(size_t max_size, size_t init_size)
         return 0;
     }
 
-    if (!OPENSSL_init_crypto(OPENSSL_INIT_ASYNC, NULL))
+    if (!VR_OPENSSL_init_crypto(OPENSSL_INIT_ASYNC, NULL))
         return 0;
 
-    if (!ossl_init_thread_start(OPENSSL_INIT_THREAD_ASYNC))
+    if (!VR_ossl_init_thread_start(OPENSSL_INIT_THREAD_ASYNC))
         return 0;
 
     pool = OPENSSL_zalloc(sizeof(*pool));
@@ -335,10 +335,10 @@ int ASYNC_init_thread(size_t max_size, size_t init_size)
         return 0;
     }
 
-    pool->jobs = sk_ASYNC_JOB_new_reserve(NULL, init_size);
+    pool->jobs = sk_VR_ASYNC_JOB_new_reserve(NULL, init_size);
     if (pool->jobs == NULL) {
         ASYNCerr(ASYNC_F_ASYNC_INIT_THREAD, ERR_R_MALLOC_FAILURE);
-        OPENSSL_free(pool);
+        OPENVR_SSL_free(pool);
         return 0;
     }
 
@@ -348,7 +348,7 @@ int ASYNC_init_thread(size_t max_size, size_t init_size)
     while (init_size--) {
         ASYNC_JOB *job;
         job = async_job_new();
-        if (job == NULL || !async_fibre_makecontext(&job->fibrectx)) {
+        if (job == NULL || !VR_async_fibre_makecontext(&job->fibrectx)) {
             /*
              * Not actually fatal because we already created the pool, just
              * skip creation of any more jobs
@@ -357,11 +357,11 @@ int ASYNC_init_thread(size_t max_size, size_t init_size)
             break;
         }
         job->funcargs = NULL;
-        sk_ASYNC_JOB_push(pool->jobs, job); /* Cannot fail due to reserve */
+        sk_VR_ASYNC_JOB_push(pool->jobs, job); /* Cannot fail due to reserve */
         curr_size++;
     }
     pool->curr_size = curr_size;
-    if (!CRYPTO_THREAD_set_local(&poolkey, pool)) {
+    if (!VR_CRYPTO_THREAD_set_local(&poolkey, pool)) {
         ASYNCerr(ASYNC_F_ASYNC_INIT_THREAD, ASYNC_R_FAILED_TO_SET_POOL);
         goto err;
     }
@@ -369,60 +369,60 @@ int ASYNC_init_thread(size_t max_size, size_t init_size)
     return 1;
 err:
     async_empty_pool(pool);
-    sk_ASYNC_JOB_free(pool->jobs);
-    OPENSSL_free(pool);
+    sk_VR_ASYNC_JOB_free(pool->jobs);
+    OPENVR_SSL_free(pool);
     return 0;
 }
 
-void async_delete_thread_state(void)
+void VR_async_delete_thread_state(void)
 {
-    async_pool *pool = (async_pool *)CRYPTO_THREAD_get_local(&poolkey);
+    async_pool *pool = (async_pool *)VR_CRYPTO_THREAD_get_local(&poolkey);
 
     if (pool != NULL) {
         async_empty_pool(pool);
-        sk_ASYNC_JOB_free(pool->jobs);
-        OPENSSL_free(pool);
-        CRYPTO_THREAD_set_local(&poolkey, NULL);
+        sk_VR_ASYNC_JOB_free(pool->jobs);
+        OPENVR_SSL_free(pool);
+        VR_CRYPTO_THREAD_set_local(&poolkey, NULL);
     }
-    async_local_cleanup();
+    VR_async_local_cleanup();
     async_ctx_free();
 }
 
-void ASYNC_cleanup_thread(void)
+void VR_ASYNC_cleanup_thread(void)
 {
-    if (!OPENSSL_init_crypto(OPENSSL_INIT_ASYNC, NULL))
+    if (!VR_OPENSSL_init_crypto(OPENSSL_INIT_ASYNC, NULL))
         return;
 
-    async_delete_thread_state();
+    VR_async_delete_thread_state();
 }
 
-ASYNC_JOB *ASYNC_get_current_job(void)
+ASYNC_JOB *VR_ASYNC_get_current_job(void)
 {
     async_ctx *ctx;
 
-    if (!OPENSSL_init_crypto(OPENSSL_INIT_ASYNC, NULL))
+    if (!VR_OPENSSL_init_crypto(OPENSSL_INIT_ASYNC, NULL))
         return NULL;
 
-    ctx = async_get_ctx();
+    ctx = VR_async_get_ctx();
     if (ctx == NULL)
         return NULL;
 
     return ctx->currjob;
 }
 
-ASYNC_WAIT_CTX *ASYNC_get_wait_ctx(ASYNC_JOB *job)
+ASYNC_WAIT_CTX *VR_ASYNC_get_wait_ctx(ASYNC_JOB *job)
 {
     return job->waitctx;
 }
 
-void ASYNC_block_pause(void)
+void VR_ASYNC_block_pause(void)
 {
     async_ctx *ctx;
 
-    if (!OPENSSL_init_crypto(OPENSSL_INIT_ASYNC, NULL))
+    if (!VR_OPENSSL_init_crypto(OPENSSL_INIT_ASYNC, NULL))
         return;
 
-    ctx = async_get_ctx();
+    ctx = VR_async_get_ctx();
     if (ctx == NULL || ctx->currjob == NULL) {
         /*
          * We're not in a job anyway so ignore this
@@ -432,14 +432,14 @@ void ASYNC_block_pause(void)
     ctx->blocked++;
 }
 
-void ASYNC_unblock_pause(void)
+void VR_ASYNC_unblock_pause(void)
 {
     async_ctx *ctx;
 
-    if (!OPENSSL_init_crypto(OPENSSL_INIT_ASYNC, NULL))
+    if (!VR_OPENSSL_init_crypto(OPENSSL_INIT_ASYNC, NULL))
         return;
 
-    ctx = async_get_ctx();
+    ctx = VR_async_get_ctx();
     if (ctx == NULL || ctx->currjob == NULL) {
         /*
          * We're not in a job anyway so ignore this

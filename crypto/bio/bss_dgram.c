@@ -67,10 +67,10 @@ static const BIO_METHOD methods_dgramp = {
     BIO_TYPE_DGRAM,
     "datagram socket",
     /* TODO: Convert to new style write function */
-    bwrite_conv,
+    VR_bwrite_conv,
     dgram_write,
     /* TODO: Convert to new style read function */
-    bread_conv,
+    VR_bread_conv,
     dgram_read,
     dgram_puts,
     NULL,                       /* dgram_gets,         */
@@ -85,10 +85,10 @@ static const BIO_METHOD methods_dgramp_sctp = {
     BIO_TYPE_DGRAM_SCTP,
     "datagram sctp socket",
     /* TODO: Convert to new style write function */
-    bwrite_conv,
+    VR_bwrite_conv,
     dgram_sctp_write,
     /* TODO: Convert to new style write function */
-    bread_conv,
+    VR_bread_conv,
     dgram_sctp_read,
     dgram_sctp_puts,
     NULL,                       /* dgram_gets,         */
@@ -134,16 +134,16 @@ typedef struct bio_dgram_sctp_data_st {
 } bio_dgram_sctp_data;
 # endif
 
-const BIO_METHOD *BIO_s_datagram(void)
+const BIO_METHOD *VR_BIO_s_datagram(void)
 {
     return &methods_dgramp;
 }
 
-BIO *BIO_new_dgram(int fd, int close_flag)
+BIO *VR_BIO_new_dgram(int fd, int close_flag)
 {
     BIO *ret;
 
-    ret = BIO_new(BIO_s_datagram());
+    ret = VR_BIO_new(VR_BIO_s_datagram());
     if (ret == NULL)
         return NULL;
     BIO_set_fd(ret, fd, close_flag);
@@ -170,7 +170,7 @@ static int dgram_free(BIO *a)
         return 0;
 
     data = (bio_dgram_data *)a->ptr;
-    OPENSSL_free(data);
+    OPENVR_SSL_free(data);
 
     return 1;
 }
@@ -181,7 +181,7 @@ static int dgram_clear(BIO *a)
         return 0;
     if (a->shutdown) {
         if (a->init) {
-            BIO_closesocket(a->num);
+            VR_BIO_closesocket(a->num);
         }
         a->init = 0;
         a->flags = 0;
@@ -310,10 +310,10 @@ static int dgram_read(BIO *b, char *out, int outl)
         if (data->peekmode)
             flags = MSG_PEEK;
         ret = recvfrom(b->num, out, outl, flags,
-                       BIO_ADDR_sockaddr_noconst(&peer), &len);
+                       VR_BIO_ADDR_sockaddr_noconst(&peer), &len);
 
         if (!data->connected && ret >= 0)
-            BIO_ctrl(b, BIO_CTRL_DGRAM_SET_PEER, 0, &peer);
+            VR_BIO_ctrl(b, BIO_CTRL_DGRAM_SET_PEER, 0, &peer);
 
         BIO_clear_retry_flags(b);
         if (ret < 0) {
@@ -337,10 +337,10 @@ static int dgram_write(BIO *b, const char *in, int inl)
     if (data->connected)
         ret = writesocket(b->num, in, inl);
     else {
-        int peerlen = BIO_ADDR_sockaddr_size(&data->peer);
+        int peerlen = VR_BIO_ADDR_sockaddr_size(&data->peer);
 
         ret = sendto(b->num, in, inl, 0,
-                     BIO_ADDR_sockaddr(&data->peer), peerlen);
+                     VR_BIO_ADDR_sockaddr(&data->peer), peerlen);
     }
 
     BIO_clear_retry_flags(b);
@@ -357,7 +357,7 @@ static long dgram_get_mtu_overhead(bio_dgram_data *data)
 {
     long ret;
 
-    switch (BIO_ADDR_family(&data->peer)) {
+    switch (VR_BIO_ADDR_family(&data->peer)) {
     case AF_INET:
         /*
          * Assume this is UDP - 20 bytes for IP, 8 bytes for UDP
@@ -369,7 +369,7 @@ static long dgram_get_mtu_overhead(bio_dgram_data *data)
         {
 #  ifdef IN6_IS_ADDR_V4MAPPED
             struct in6_addr tmp_addr;
-            if (BIO_ADDR_rawaddress(&data->peer, &tmp_addr, NULL)
+            if (VR_BIO_ADDR_rawaddress(&data->peer, &tmp_addr, NULL)
                 && IN6_IS_ADDR_V4MAPPED(&tmp_addr))
                 /*
                  * Assume this is UDP - 20 bytes for IP, 8 bytes for UDP
@@ -446,7 +446,7 @@ static long dgram_ctrl(BIO *b, int cmd, long num, void *ptr)
         ret = 1;
         break;
     case BIO_CTRL_DGRAM_CONNECT:
-        BIO_ADDR_make(&data->peer, BIO_ADDR_sockaddr((BIO_ADDR *)ptr));
+        VR_BIO_ADDR_make(&data->peer, VR_BIO_ADDR_sockaddr((BIO_ADDR *)ptr));
         break;
         /* (Linux)kernel sets DF bit on outgoing IP packets */
     case BIO_CTRL_DGRAM_MTU_DISCOVER:
@@ -531,7 +531,7 @@ static long dgram_ctrl(BIO *b, int cmd, long num, void *ptr)
         break;
     case BIO_CTRL_DGRAM_GET_FALLBACK_MTU:
         ret = -dgram_get_mtu_overhead(data);
-        switch (BIO_ADDR_family(&data->peer)) {
+        switch (VR_BIO_ADDR_family(&data->peer)) {
         case AF_INET:
             ret += 576;
             break;
@@ -540,7 +540,7 @@ static long dgram_ctrl(BIO *b, int cmd, long num, void *ptr)
             {
 #  ifdef IN6_IS_ADDR_V4MAPPED
                 struct in6_addr tmp_addr;
-                if (BIO_ADDR_rawaddress(&data->peer, &tmp_addr, NULL)
+                if (VR_BIO_ADDR_rawaddress(&data->peer, &tmp_addr, NULL)
                     && IN6_IS_ADDR_V4MAPPED(&tmp_addr))
                     ret += 576;
                 else
@@ -563,14 +563,14 @@ static long dgram_ctrl(BIO *b, int cmd, long num, void *ptr)
     case BIO_CTRL_DGRAM_SET_CONNECTED:
         if (ptr != NULL) {
             data->connected = 1;
-            BIO_ADDR_make(&data->peer, BIO_ADDR_sockaddr((BIO_ADDR *)ptr));
+            VR_BIO_ADDR_make(&data->peer, VR_BIO_ADDR_sockaddr((BIO_ADDR *)ptr));
         } else {
             data->connected = 0;
             memset(&data->peer, 0, sizeof(data->peer));
         }
         break;
     case BIO_CTRL_DGRAM_GET_PEER:
-        ret = BIO_ADDR_sockaddr_size(&data->peer);
+        ret = VR_BIO_ADDR_sockaddr_size(&data->peer);
         /* FIXME: if num < ret, we will only return part of an address.
            That should bee an error, no? */
         if (num == 0 || num > ret)
@@ -578,7 +578,7 @@ static long dgram_ctrl(BIO *b, int cmd, long num, void *ptr)
         memcpy(ptr, &data->peer, (ret = num));
         break;
     case BIO_CTRL_DGRAM_SET_PEER:
-        BIO_ADDR_make(&data->peer, BIO_ADDR_sockaddr((BIO_ADDR *)ptr));
+        VR_BIO_ADDR_make(&data->peer, VR_BIO_ADDR_sockaddr((BIO_ADDR *)ptr));
         break;
     case BIO_CTRL_DGRAM_SET_NEXT_TIMEOUT:
         memcpy(&(data->next_timeout), ptr, sizeof(struct timeval));
@@ -807,12 +807,12 @@ static int dgram_puts(BIO *bp, const char *str)
 }
 
 # ifndef OPENSSL_NO_SCTP
-const BIO_METHOD *BIO_s_datagram_sctp(void)
+const BIO_METHOD *VR_BIO_s_datagram_sctp(void)
 {
     return &methods_dgramp_sctp;
 }
 
-BIO *BIO_new_dgram_sctp(int fd, int close_flag)
+BIO *VR_BIO_new_dgram_sctp(int fd, int close_flag)
 {
     BIO *bio;
     int ret, optval = 20000;
@@ -829,7 +829,7 @@ BIO *BIO_new_dgram_sctp(int fd, int close_flag)
 #   endif
 #  endif
 
-    bio = BIO_new(BIO_s_datagram_sctp());
+    bio = VR_BIO_new(VR_BIO_s_datagram_sctp());
     if (bio == NULL)
         return NULL;
     BIO_set_fd(bio, fd, close_flag);
@@ -840,9 +840,9 @@ BIO *BIO_new_dgram_sctp(int fd, int close_flag)
         setsockopt(fd, IPPROTO_SCTP, SCTP_AUTH_CHUNK, &auth,
                    sizeof(struct sctp_authchunk));
     if (ret < 0) {
-        BIO_vfree(bio);
+        VR_BIO_vfree(bio);
         BIOerr(BIO_F_BIO_NEW_DGRAM_SCTP, ERR_R_SYS_LIB);
-        ERR_add_error_data(1, "Ensure SCTP AUTH chunks are enabled in kernel");
+        VR_ERR_add_error_data(1, "Ensure SCTP AUTH chunks are enabled in kernel");
         return NULL;
     }
     auth.sauth_chunk = OPENSSL_SCTP_FORWARD_CUM_TSN_CHUNK_TYPE;
@@ -850,9 +850,9 @@ BIO *BIO_new_dgram_sctp(int fd, int close_flag)
         setsockopt(fd, IPPROTO_SCTP, SCTP_AUTH_CHUNK, &auth,
                    sizeof(struct sctp_authchunk));
     if (ret < 0) {
-        BIO_vfree(bio);
+        VR_BIO_vfree(bio);
         BIOerr(BIO_F_BIO_NEW_DGRAM_SCTP, ERR_R_SYS_LIB);
-        ERR_add_error_data(1, "Ensure SCTP AUTH chunks are enabled in kernel");
+        VR_ERR_add_error_data(1, "Ensure SCTP AUTH chunks are enabled in kernel");
         return NULL;
     }
 
@@ -865,14 +865,14 @@ BIO *BIO_new_dgram_sctp(int fd, int close_flag)
     sockopt_len = (socklen_t) (sizeof(sctp_assoc_t) + 256 * sizeof(uint8_t));
     authchunks = OPENSSL_zalloc(sockopt_len);
     if (authchunks == NULL) {
-        BIO_vfree(bio);
+        VR_BIO_vfree(bio);
         return NULL;
     }
     ret = getsockopt(fd, IPPROTO_SCTP, SCTP_LOCAL_AUTH_CHUNKS, authchunks,
                    &sockopt_len);
     if (ret < 0) {
-        OPENSSL_free(authchunks);
-        BIO_vfree(bio);
+        OPENVR_SSL_free(authchunks);
+        VR_BIO_vfree(bio);
         return NULL;
     }
 
@@ -885,12 +885,12 @@ BIO *BIO_new_dgram_sctp(int fd, int close_flag)
             auth_forward = 1;
     }
 
-    OPENSSL_free(authchunks);
+    OPENVR_SSL_free(authchunks);
 
     if (!auth_data || !auth_forward) {
-        BIO_vfree(bio);
+        VR_BIO_vfree(bio);
         BIOerr(BIO_F_BIO_NEW_DGRAM_SCTP, ERR_R_SYS_LIB);
-        ERR_add_error_data(1,
+        VR_ERR_add_error_data(1,
                            "Ensure SCTP AUTH chunks are enabled on the "
                            "underlying socket");
         return NULL;
@@ -906,14 +906,14 @@ BIO *BIO_new_dgram_sctp(int fd, int close_flag)
         setsockopt(fd, IPPROTO_SCTP, SCTP_EVENT, &event,
                    sizeof(struct sctp_event));
     if (ret < 0) {
-        BIO_vfree(bio);
+        VR_BIO_vfree(bio);
         return NULL;
     }
 #   else
     sockopt_len = (socklen_t) sizeof(struct sctp_event_subscribe);
     ret = getsockopt(fd, IPPROTO_SCTP, SCTP_EVENTS, &event, &sockopt_len);
     if (ret < 0) {
-        BIO_vfree(bio);
+        VR_BIO_vfree(bio);
         return NULL;
     }
 
@@ -923,7 +923,7 @@ BIO *BIO_new_dgram_sctp(int fd, int close_flag)
         setsockopt(fd, IPPROTO_SCTP, SCTP_EVENTS, &event,
                    sizeof(struct sctp_event_subscribe));
     if (ret < 0) {
-        BIO_vfree(bio);
+        VR_BIO_vfree(bio);
         return NULL;
     }
 #   endif
@@ -937,7 +937,7 @@ BIO *BIO_new_dgram_sctp(int fd, int close_flag)
         setsockopt(fd, IPPROTO_SCTP, SCTP_PARTIAL_DELIVERY_POINT, &optval,
                    sizeof(optval));
     if (ret < 0) {
-        BIO_vfree(bio);
+        VR_BIO_vfree(bio);
         return NULL;
     }
 
@@ -946,7 +946,7 @@ BIO *BIO_new_dgram_sctp(int fd, int close_flag)
 
 int BIO_dgram_is_sctp(BIO *bio)
 {
-    return (BIO_method_type(bio) == BIO_TYPE_DGRAM_SCTP);
+    return (VR_BIO_method_type(bio) == BIO_TYPE_DGRAM_SCTP);
 }
 
 static int dgram_sctp_new(BIO *bi)
@@ -979,7 +979,7 @@ static int dgram_sctp_free(BIO *a)
 
     data = (bio_dgram_sctp_data *) a->ptr;
     if (data != NULL)
-        OPENSSL_free(data);
+        OPENVR_SSL_free(data);
 
     return 1;
 }
@@ -1208,7 +1208,7 @@ static int dgram_sctp_read(BIO *b, char *out, int outl)
                         auth_forward = 1;
                 }
 
-            OPENSSL_free(authchunks);
+            OPENVR_SSL_free(authchunks);
 
             if (!auth_data || !auth_forward) {
                 BIOerr(BIO_F_DGRAM_SCTP_READ, BIO_R_CONNECT_ERROR);
@@ -1424,7 +1424,7 @@ static long dgram_sctp_ctrl(BIO *b, int cmd, long num, void *ptr)
         ret =
             setsockopt(b->num, IPPROTO_SCTP, SCTP_AUTH_KEY, authkey,
                        sockopt_len);
-        OPENSSL_free(authkey);
+        OPENVR_SSL_free(authkey);
         authkey = NULL;
         if (ret < 0)
             break;
@@ -1846,12 +1846,12 @@ static int BIO_dgram_should_retry(int i)
          */
 # endif
 
-        return BIO_dgram_non_fatal_error(err);
+        return VR_BIO_dgram_non_fatal_error(err);
     }
     return 0;
 }
 
-int BIO_dgram_non_fatal_error(int err)
+int VR_BIO_dgram_non_fatal_error(int err)
 {
     switch (err) {
 # if defined(OPENSSL_SYS_WINDOWS)

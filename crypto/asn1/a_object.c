@@ -18,7 +18,7 @@
 #include "internal/asn1_int.h"
 #include "asn1_locl.h"
 
-int i2d_ASN1_OBJECT(const ASN1_OBJECT *a, unsigned char **pp)
+int VR_i2d_ASN1_OBJECT(const ASN1_OBJECT *a, unsigned char **pp)
 {
     unsigned char *p, *allocated = NULL;
     int objsize;
@@ -26,7 +26,7 @@ int i2d_ASN1_OBJECT(const ASN1_OBJECT *a, unsigned char **pp)
     if ((a == NULL) || (a->data == NULL))
         return 0;
 
-    objsize = ASN1_object_size(0, a->length, V_ASN1_OBJECT);
+    objsize = VR_ASN1_object_size(0, a->length, V_ASN1_OBJECT);
     if (pp == NULL || objsize == -1)
         return objsize;
 
@@ -39,7 +39,7 @@ int i2d_ASN1_OBJECT(const ASN1_OBJECT *a, unsigned char **pp)
         p = *pp;
     }
 
-    ASN1_put_object(&p, 0, a->length, V_ASN1_OBJECT, V_ASN1_UNIVERSAL);
+    VR_ASN1_put_object(&p, 0, a->length, V_ASN1_OBJECT, V_ASN1_UNIVERSAL);
     memcpy(p, a->data, a->length);
 
     /*
@@ -50,7 +50,7 @@ int i2d_ASN1_OBJECT(const ASN1_OBJECT *a, unsigned char **pp)
     return objsize;
 }
 
-int a2d_ASN1_OBJECT(unsigned char *out, int olen, const char *buf, int num)
+int VR_a2d_ASN1_OBJECT(unsigned char *out, int olen, const char *buf, int num)
 {
     int i, first, len = 0, c, use_bn;
     char ftmp[24], *tmp = ftmp;
@@ -103,13 +103,13 @@ int a2d_ASN1_OBJECT(unsigned char *out, int olen, const char *buf, int num)
             if (!use_bn && l >= ((ULONG_MAX - 80) / 10L)) {
                 use_bn = 1;
                 if (bl == NULL)
-                    bl = BN_new();
-                if (bl == NULL || !BN_set_word(bl, l))
+                    bl = VR_BN_new();
+                if (bl == NULL || !VR_BN_set_word(bl, l))
                     goto err;
             }
             if (use_bn) {
-                if (!BN_mul_word(bl, 10L)
-                    || !BN_add_word(bl, c - '0'))
+                if (!VR_BN_mul_word(bl, 10L)
+                    || !VR_BN_add_word(bl, c - '0'))
                     goto err;
             } else
                 l = l * 10L + (long)(c - '0');
@@ -121,7 +121,7 @@ int a2d_ASN1_OBJECT(unsigned char *out, int olen, const char *buf, int num)
                 goto err;
             }
             if (use_bn) {
-                if (!BN_add_word(bl, first * 40))
+                if (!VR_BN_add_word(bl, first * 40))
                     goto err;
             } else
                 l += (long)first *40;
@@ -129,18 +129,18 @@ int a2d_ASN1_OBJECT(unsigned char *out, int olen, const char *buf, int num)
         i = 0;
         if (use_bn) {
             int blsize;
-            blsize = BN_num_bits(bl);
+            blsize = VR_BN_num_bits(bl);
             blsize = (blsize + 6) / 7;
             if (blsize > tmpsize) {
                 if (tmp != ftmp)
-                    OPENSSL_free(tmp);
+                    OPENVR_SSL_free(tmp);
                 tmpsize = blsize + 32;
                 tmp = OPENSSL_malloc(tmpsize);
                 if (tmp == NULL)
                     goto err;
             }
             while (blsize--) {
-                BN_ULONG t = BN_div_word(bl, 0x80L);
+                BN_ULONG t = VR_BN_div_word(bl, 0x80L);
                 if (t == (BN_ULONG)-1)
                     goto err;
                 tmp[i++] = (unsigned char)t;
@@ -167,48 +167,48 @@ int a2d_ASN1_OBJECT(unsigned char *out, int olen, const char *buf, int num)
             len += i;
     }
     if (tmp != ftmp)
-        OPENSSL_free(tmp);
-    BN_free(bl);
+        OPENVR_SSL_free(tmp);
+    VR_BN_free(bl);
     return len;
  err:
     if (tmp != ftmp)
-        OPENSSL_free(tmp);
-    BN_free(bl);
+        OPENVR_SSL_free(tmp);
+    VR_BN_free(bl);
     return 0;
 }
 
-int i2t_ASN1_OBJECT(char *buf, int buf_len, const ASN1_OBJECT *a)
+int VR_i2t_ASN1_OBJECT(char *buf, int buf_len, const ASN1_OBJECT *a)
 {
-    return OBJ_obj2txt(buf, buf_len, a, 0);
+    return VR_OBJ_obj2txt(buf, buf_len, a, 0);
 }
 
-int i2a_ASN1_OBJECT(BIO *bp, const ASN1_OBJECT *a)
+int VR_i2a_ASN1_OBJECT(BIO *bp, const ASN1_OBJECT *a)
 {
     char buf[80], *p = buf;
     int i;
 
     if ((a == NULL) || (a->data == NULL))
-        return BIO_write(bp, "NULL", 4);
-    i = i2t_ASN1_OBJECT(buf, sizeof(buf), a);
+        return VR_BIO_write(bp, "NULL", 4);
+    i = VR_i2t_ASN1_OBJECT(buf, sizeof(buf), a);
     if (i > (int)(sizeof(buf) - 1)) {
         if ((p = OPENSSL_malloc(i + 1)) == NULL) {
             ASN1err(ASN1_F_I2A_ASN1_OBJECT, ERR_R_MALLOC_FAILURE);
             return -1;
         }
-        i2t_ASN1_OBJECT(p, i + 1, a);
+        VR_i2t_ASN1_OBJECT(p, i + 1, a);
     }
     if (i <= 0) {
-        i = BIO_write(bp, "<INVALID>", 9);
-        i += BIO_dump(bp, (const char *)a->data, a->length);
+        i = VR_BIO_write(bp, "<INVALID>", 9);
+        i += VR_BIO_dump(bp, (const char *)a->data, a->length);
         return i;
     }
-    BIO_write(bp, p, i);
+    VR_BIO_write(bp, p, i);
     if (p != buf)
-        OPENSSL_free(p);
+        OPENVR_SSL_free(p);
     return i;
 }
 
-ASN1_OBJECT *d2i_ASN1_OBJECT(ASN1_OBJECT **a, const unsigned char **pp,
+ASN1_OBJECT *VR_d2i_ASN1_OBJECT(ASN1_OBJECT **a, const unsigned char **pp,
                              long length)
 {
     const unsigned char *p;
@@ -217,7 +217,7 @@ ASN1_OBJECT *d2i_ASN1_OBJECT(ASN1_OBJECT **a, const unsigned char **pp,
     int inf, i;
     ASN1_OBJECT *ret = NULL;
     p = *pp;
-    inf = ASN1_get_object(&p, &len, &tag, &xclass, length);
+    inf = VR_ASN1_get_object(&p, &len, &tag, &xclass, length);
     if (inf & 0x80) {
         i = ASN1_R_BAD_OBJECT_HEADER;
         goto err;
@@ -227,7 +227,7 @@ ASN1_OBJECT *d2i_ASN1_OBJECT(ASN1_OBJECT **a, const unsigned char **pp,
         i = ASN1_R_EXPECTING_AN_OBJECT;
         goto err;
     }
-    ret = c2i_ASN1_OBJECT(a, &p, len);
+    ret = VR_c2i_ASN1_OBJECT(a, &p, len);
     if (ret)
         *pp = p;
     return ret;
@@ -236,7 +236,7 @@ ASN1_OBJECT *d2i_ASN1_OBJECT(ASN1_OBJECT **a, const unsigned char **pp,
     return NULL;
 }
 
-ASN1_OBJECT *c2i_ASN1_OBJECT(ASN1_OBJECT **a, const unsigned char **pp,
+ASN1_OBJECT *VR_c2i_ASN1_OBJECT(ASN1_OBJECT **a, const unsigned char **pp,
                              long len)
 {
     ASN1_OBJECT *ret = NULL, tobj;
@@ -264,16 +264,16 @@ ASN1_OBJECT *c2i_ASN1_OBJECT(ASN1_OBJECT **a, const unsigned char **pp,
     tobj.data = p;
     tobj.length = length;
     tobj.flags = 0;
-    i = OBJ_obj2nid(&tobj);
+    i = VR_OBJ_obj2nid(&tobj);
     if (i != NID_undef) {
         /*
          * Return shared registered OID object: this improves efficiency
          * because we don't have to return a dynamically allocated OID
          * and NID lookups can use the cached value.
          */
-        ret = OBJ_nid2obj(i);
+        ret = VR_OBJ_nid2obj(i);
         if (a) {
-            ASN1_OBJECT_free(*a);
+            VR_ASN1_OBJECT_free(*a);
             *a = ret;
         }
         *pp += len;
@@ -292,7 +292,7 @@ ASN1_OBJECT *c2i_ASN1_OBJECT(ASN1_OBJECT **a, const unsigned char **pp,
      */
     if ((a == NULL) || ((*a) == NULL) ||
         !((*a)->flags & ASN1_OBJECT_FLAG_DYNAMIC)) {
-        if ((ret = ASN1_OBJECT_new()) == NULL)
+        if ((ret = VR_ASN1_OBJECT_new()) == NULL)
             return NULL;
     } else
         ret = (*a);
@@ -304,7 +304,7 @@ ASN1_OBJECT *c2i_ASN1_OBJECT(ASN1_OBJECT **a, const unsigned char **pp,
     /* once detached we can change it */
     if ((data == NULL) || (ret->length < length)) {
         ret->length = 0;
-        OPENSSL_free(data);
+        OPENVR_SSL_free(data);
         data = OPENSSL_malloc(length);
         if (data == NULL) {
             i = ERR_R_MALLOC_FAILURE;
@@ -328,11 +328,11 @@ ASN1_OBJECT *c2i_ASN1_OBJECT(ASN1_OBJECT **a, const unsigned char **pp,
  err:
     ASN1err(ASN1_F_C2I_ASN1_OBJECT, i);
     if ((a == NULL) || (*a != ret))
-        ASN1_OBJECT_free(ret);
+        VR_ASN1_OBJECT_free(ret);
     return NULL;
 }
 
-ASN1_OBJECT *ASN1_OBJECT_new(void)
+ASN1_OBJECT *VR_ASN1_OBJECT_new(void)
 {
     ASN1_OBJECT *ret;
 
@@ -345,7 +345,7 @@ ASN1_OBJECT *ASN1_OBJECT_new(void)
     return ret;
 }
 
-void ASN1_OBJECT_free(ASN1_OBJECT *a)
+void VR_ASN1_OBJECT_free(ASN1_OBJECT *a)
 {
     if (a == NULL)
         return;
@@ -353,21 +353,21 @@ void ASN1_OBJECT_free(ASN1_OBJECT *a)
 #ifndef CONST_STRICT            /* disable purely for compile-time strict
                                  * const checking. Doing this on a "real"
                                  * compile will cause memory leaks */
-        OPENSSL_free((void*)a->sn);
-        OPENSSL_free((void*)a->ln);
+        OPENVR_SSL_free((void*)a->sn);
+        OPENVR_SSL_free((void*)a->ln);
 #endif
         a->sn = a->ln = NULL;
     }
     if (a->flags & ASN1_OBJECT_FLAG_DYNAMIC_DATA) {
-        OPENSSL_free((void*)a->data);
+        OPENVR_SSL_free((void*)a->data);
         a->data = NULL;
         a->length = 0;
     }
     if (a->flags & ASN1_OBJECT_FLAG_DYNAMIC)
-        OPENSSL_free(a);
+        OPENVR_SSL_free(a);
 }
 
-ASN1_OBJECT *ASN1_OBJECT_create(int nid, unsigned char *data, int len,
+ASN1_OBJECT *VR_ASN1_OBJECT_create(int nid, unsigned char *data, int len,
                                 const char *sn, const char *ln)
 {
     ASN1_OBJECT o;
@@ -379,5 +379,5 @@ ASN1_OBJECT *ASN1_OBJECT_create(int nid, unsigned char *data, int len,
     o.length = len;
     o.flags = ASN1_OBJECT_FLAG_DYNAMIC | ASN1_OBJECT_FLAG_DYNAMIC_STRINGS |
         ASN1_OBJECT_FLAG_DYNAMIC_DATA;
-    return OBJ_dup(&o);
+    return VR_OBJ_dup(&o);
 }

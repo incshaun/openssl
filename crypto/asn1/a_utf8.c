@@ -24,7 +24,7 @@
  * -4 = character encoded incorrectly (not minimal length).
  */
 
-int UTF8_getc(const unsigned char *str, int len, unsigned long *val)
+int VR_UTF8_getc(const unsigned char *str, int len, unsigned long *val)
 {
     const unsigned char *p;
     unsigned long value;
@@ -121,7 +121,7 @@ int UTF8_getc(const unsigned char *str, int len, unsigned long *val)
  * most 6 characters.
  */
 
-int UTF8_putc(unsigned char *str, int len, unsigned long value)
+int VR_UTF8_putc(unsigned char *str, int len, unsigned long value)
 {
     if (!str)
         len = 6;                /* Maximum we will need */

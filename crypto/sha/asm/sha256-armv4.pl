@@ -212,18 +212,18 @@ K256:
 .word	0				@ terminator
 #if __ARM_MAX_ARCH__>=7 && !defined(__KERNEL__)
 .LOPENSSL_armcap:
-.word	OPENSSL_armcap_P-.Lsha256_block_data_order
+.word	OPENSSL_armcap_P-.LVR_sha256_block_data_order
 #endif
 .align	5
 
-.global	sha256_block_data_order
-.type	sha256_block_data_order,%function
-sha256_block_data_order:
-.Lsha256_block_data_order:
+.global	VR_sha256_block_data_order
+.type	VR_sha256_block_data_order,%function
+VR_sha256_block_data_order:
+.LVR_sha256_block_data_order:
 #if __ARM_ARCH__<7 && !defined(__thumb2__)
-	sub	r3,pc,#8		@ sha256_block_data_order
+	sub	r3,pc,#8		@ VR_sha256_block_data_order
 #else
-	adr	r3,.Lsha256_block_data_order
+	adr	r3,.LVR_sha256_block_data_order
 #endif
 #if __ARM_MAX_ARCH__>=7 && !defined(__KERNEL__)
 	ldr	r12,.LOPENSSL_armcap
@@ -293,7 +293,7 @@ $code.=<<___;
 	moveq	pc,lr			@ be binary compatible with V4, yet
 	bx	lr			@ interoperable with Thumb ISA:-)
 #endif
-.size	sha256_block_data_order,.-sha256_block_data_order
+.size	VR_sha256_block_data_order,.-VR_sha256_block_data_order
 ___
 ######################################################################
 # NEON stuff
@@ -473,11 +473,11 @@ $code.=<<___;
 .arch	armv7-a
 .fpu	neon
 
-.global	sha256_block_data_order_neon
-.type	sha256_block_data_order_neon,%function
+.global	VR_sha256_block_data_order_neon
+.type	VR_sha256_block_data_order_neon,%function
 .align	5
 .skip	16
-sha256_block_data_order_neon:
+VR_sha256_block_data_order_neon:
 .LNEON:
 	stmdb	sp!,{r4-r12,lr}
 
@@ -586,7 +586,7 @@ $code.=<<___;
 	bne	.L_00_48
 
 	ldmia	sp!,{r4-r12,pc}
-.size	sha256_block_data_order_neon,.-sha256_block_data_order_neon
+.size	VR_sha256_block_data_order_neon,.-VR_sha256_block_data_order_neon
 #endif
 ___
 }}}
@@ -608,9 +608,9 @@ $code.=<<___;
 #  define INST(a,b,c,d)	.byte	a,b,c,d
 # endif
 
-.type	sha256_block_data_order_armv8,%function
+.type	VR_sha256_block_data_order_armv8,%function
 .align	5
-sha256_block_data_order_armv8:
+VR_sha256_block_data_order_armv8:
 .LARMv8:
 	vld1.32	{$ABCD,$EFGH},[$ctx]
 	sub	$Ktbl,$Ktbl,#256+32
@@ -675,7 +675,7 @@ $code.=<<___;
 	vst1.32		{$ABCD,$EFGH},[$ctx]
 
 	ret		@ bx lr
-.size	sha256_block_data_order_armv8,.-sha256_block_data_order_armv8
+.size	VR_sha256_block_data_order_armv8,.-VR_sha256_block_data_order_armv8
 #endif
 ___
 }}}

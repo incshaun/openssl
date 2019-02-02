@@ -356,19 +356,19 @@ static EVP_PKEY *load_example_rsa_key(void)
     EVP_PKEY *pkey = NULL;
     RSA *rsa = NULL;
 
-    if (!TEST_true(d2i_RSAPrivateKey(&rsa, &derp, sizeof(kExampleRSAKeyDER))))
+    if (!TEST_true(VR_d2i_RSAPrivateKey(&rsa, &derp, sizeof(kExampleRSAKeyDER))))
         return NULL;
 
-    if (!TEST_ptr(pkey = EVP_PKEY_new())
-            || !TEST_true(EVP_PKEY_set1_RSA(pkey, rsa)))
+    if (!TEST_ptr(pkey = VR_EVP_PKEY_new())
+            || !TEST_true(VR_EVP_PKEY_set1_RSA(pkey, rsa)))
         goto end;
 
     ret = pkey;
     pkey = NULL;
 
 end:
-    EVP_PKEY_free(pkey);
-    RSA_free(rsa);
+    VR_EVP_PKEY_free(pkey);
+    VR_RSA_free(rsa);
 
     return ret;
 }
@@ -383,25 +383,25 @@ static int test_EVP_Enveloped(void)
     static const unsigned char msg[] = { 1, 2, 3, 4, 5, 6, 7, 8 };
     int len, kek_len, ciphertext_len, plaintext_len;
     unsigned char ciphertext[32], plaintext[16];
-    const EVP_CIPHER *type = EVP_aes_256_cbc();
+    const EVP_CIPHER *type = VR_EVP_aes_256_cbc();
 
     if (!TEST_ptr(keypair = load_example_rsa_key())
-            || !TEST_ptr(kek = OPENSSL_zalloc(EVP_PKEY_size(keypair)))
-            || !TEST_ptr(ctx = EVP_CIPHER_CTX_new())
-            || !TEST_true(EVP_SealInit(ctx, type, &kek, &kek_len, iv,
+            || !TEST_ptr(kek = OPENSSL_zalloc(VR_EVP_PKEY_size(keypair)))
+            || !TEST_ptr(ctx = VR_EVP_CIPHER_CTX_new())
+            || !TEST_true(VR_EVP_SealInit(ctx, type, &kek, &kek_len, iv,
                                        &keypair, 1))
             || !TEST_true(EVP_SealUpdate(ctx, ciphertext, &ciphertext_len,
                                          msg, sizeof(msg)))
-            || !TEST_true(EVP_SealFinal(ctx, ciphertext + ciphertext_len,
+            || !TEST_true(VR_EVP_SealFinal(ctx, ciphertext + ciphertext_len,
                                         &len)))
         goto err;
 
     ciphertext_len += len;
 
-    if (!TEST_true(EVP_OpenInit(ctx, type, kek, kek_len, iv, keypair))
+    if (!TEST_true(VR_EVP_OpenInit(ctx, type, kek, kek_len, iv, keypair))
             || !TEST_true(EVP_OpenUpdate(ctx, plaintext, &plaintext_len,
                                          ciphertext, ciphertext_len))
-            || !TEST_true(EVP_OpenFinal(ctx, plaintext + plaintext_len, &len)))
+            || !TEST_true(VR_EVP_OpenFinal(ctx, plaintext + plaintext_len, &len)))
         goto err;
 
     plaintext_len += len;
@@ -410,14 +410,14 @@ static int test_EVP_Enveloped(void)
 
     ret = 1;
 err:
-    OPENSSL_free(kek);
-    EVP_PKEY_free(keypair);
-    EVP_CIPHER_CTX_free(ctx);
+    OPENVR_SSL_free(kek);
+    VR_EVP_PKEY_free(keypair);
+    VR_EVP_CIPHER_CTX_free(ctx);
     return ret;
 }
 
 
-static int test_EVP_DigestSignInit(void)
+static int test_VR_EVP_DigestSignInit(void)
 {
     int ret = 0;
     EVP_PKEY *pkey = NULL;
@@ -425,67 +425,67 @@ static int test_EVP_DigestSignInit(void)
     size_t sig_len = 0;
     EVP_MD_CTX *md_ctx, *md_ctx_verify = NULL;
 
-    if (!TEST_ptr(md_ctx = EVP_MD_CTX_new())
-            || !TEST_ptr(md_ctx_verify = EVP_MD_CTX_new())
+    if (!TEST_ptr(md_ctx = VR_EVP_MD_CTX_new())
+            || !TEST_ptr(md_ctx_verify = VR_EVP_MD_CTX_new())
             || !TEST_ptr(pkey = load_example_rsa_key()))
         goto out;
 
-    if (!TEST_true(EVP_DigestSignInit(md_ctx, NULL, EVP_sha256(), NULL, pkey))
-            || !TEST_true(EVP_DigestSignUpdate(md_ctx, kMsg, sizeof(kMsg))))
+    if (!TEST_true(VR_EVP_DigestSignInit(md_ctx, NULL, VR_EVP_sha256(), NULL, pkey))
+            || !TEST_true(VR_EVP_DigestSignUpdate(md_ctx, kMsg, sizeof(kMsg))))
         goto out;
 
     /* Determine the size of the signature. */
-    if (!TEST_true(EVP_DigestSignFinal(md_ctx, NULL, &sig_len))
-            || !TEST_size_t_eq(sig_len, (size_t)EVP_PKEY_size(pkey)))
+    if (!TEST_true(VR_EVP_DigestSignFinal(md_ctx, NULL, &sig_len))
+            || !TEST_size_t_eq(sig_len, (size_t)VR_EVP_PKEY_size(pkey)))
         goto out;
 
     if (!TEST_ptr(sig = OPENSSL_malloc(sig_len))
-            || !TEST_true(EVP_DigestSignFinal(md_ctx, sig, &sig_len)))
+            || !TEST_true(VR_EVP_DigestSignFinal(md_ctx, sig, &sig_len)))
         goto out;
 
     /* Ensure that the signature round-trips. */
-    if (!TEST_true(EVP_DigestVerifyInit(md_ctx_verify, NULL, EVP_sha256(),
+    if (!TEST_true(VR_EVP_DigestVerifyInit(md_ctx_verify, NULL, VR_EVP_sha256(),
                                         NULL, pkey))
-            || !TEST_true(EVP_DigestVerifyUpdate(md_ctx_verify,
+            || !TEST_true(VR_EVP_DigestVerifyUpdate(md_ctx_verify,
                                                  kMsg, sizeof(kMsg)))
-            || !TEST_true(EVP_DigestVerifyFinal(md_ctx_verify, sig, sig_len)))
+            || !TEST_true(VR_EVP_DigestVerifyFinal(md_ctx_verify, sig, sig_len)))
         goto out;
 
     ret = 1;
 
  out:
-    EVP_MD_CTX_free(md_ctx);
-    EVP_MD_CTX_free(md_ctx_verify);
-    EVP_PKEY_free(pkey);
-    OPENSSL_free(sig);
+    VR_EVP_MD_CTX_free(md_ctx);
+    VR_EVP_MD_CTX_free(md_ctx_verify);
+    VR_EVP_PKEY_free(pkey);
+    OPENVR_SSL_free(sig);
 
     return ret;
 }
 
-static int test_EVP_DigestVerifyInit(void)
+static int test_VR_EVP_DigestVerifyInit(void)
 {
     int ret = 0;
     EVP_PKEY *pkey = NULL;
     EVP_MD_CTX *md_ctx = NULL;
 
-    if (!TEST_ptr(md_ctx = EVP_MD_CTX_new())
+    if (!TEST_ptr(md_ctx = VR_EVP_MD_CTX_new())
             || !TEST_ptr(pkey = load_example_rsa_key()))
         goto out;
 
-    if (!TEST_true(EVP_DigestVerifyInit(md_ctx, NULL, EVP_sha256(), NULL, pkey))
-            || !TEST_true(EVP_DigestVerifyUpdate(md_ctx, kMsg, sizeof(kMsg)))
-            || !TEST_true(EVP_DigestVerifyFinal(md_ctx, kSignature,
+    if (!TEST_true(VR_EVP_DigestVerifyInit(md_ctx, NULL, VR_EVP_sha256(), NULL, pkey))
+            || !TEST_true(VR_EVP_DigestVerifyUpdate(md_ctx, kMsg, sizeof(kMsg)))
+            || !TEST_true(VR_EVP_DigestVerifyFinal(md_ctx, kSignature,
                                                  sizeof(kSignature))))
         goto out;
     ret = 1;
 
  out:
-    EVP_MD_CTX_free(md_ctx);
-    EVP_PKEY_free(pkey);
+    VR_EVP_MD_CTX_free(md_ctx);
+    VR_EVP_PKEY_free(pkey);
     return ret;
 }
 
-static int test_d2i_AutoPrivateKey(int i)
+static int test_VR_d2i_AutoPrivateKey(int i)
 {
     int ret = 0;
     const unsigned char *p;
@@ -496,28 +496,28 @@ static int test_d2i_AutoPrivateKey(int i)
     int expected_id = ak->evptype;
 
     p = input;
-    if (!TEST_ptr(pkey = d2i_AutoPrivateKey(NULL, &p, input_len))
+    if (!TEST_ptr(pkey = VR_d2i_AutoPrivateKey(NULL, &p, input_len))
             || !TEST_ptr_eq(p, input + input_len)
-            || !TEST_int_eq(EVP_PKEY_id(pkey), expected_id))
+            || !TEST_int_eq(VR_EVP_PKEY_id(pkey), expected_id))
         goto done;
 
     ret = 1;
 
  done:
-    EVP_PKEY_free(pkey);
+    VR_EVP_PKEY_free(pkey);
     return ret;
 }
 
 #ifndef OPENSSL_NO_EC
 /* Tests loading a bad key in PKCS8 format */
-static int test_EVP_PKCS82PKEY(void)
+static int test_VR_EVP_PKCS82PKEY(void)
 {
     int ret = 0;
     const unsigned char *derp = kExampleBadECKeyDER;
     PKCS8_PRIV_KEY_INFO *p8inf = NULL;
     EVP_PKEY *pkey = NULL;
 
-    if (!TEST_ptr(p8inf = d2i_PKCS8_PRIV_KEY_INFO(NULL, &derp,
+    if (!TEST_ptr(p8inf = VR_d2i_PKCS8_PRIV_KEY_INFO(NULL, &derp,
                                               sizeof(kExampleBadECKeyDER))))
         goto done;
 
@@ -525,14 +525,14 @@ static int test_EVP_PKCS82PKEY(void)
                      kExampleBadECKeyDER + sizeof(kExampleBadECKeyDER)))
         goto done;
 
-    if (!TEST_ptr_null(pkey = EVP_PKCS82PKEY(p8inf)))
+    if (!TEST_ptr_null(pkey = VR_EVP_PKCS82PKEY(p8inf)))
         goto done;
 
     ret = 1;
 
  done:
-    PKCS8_PRIV_KEY_INFO_free(p8inf);
-    EVP_PKEY_free(pkey);
+    VR_PKCS8_PRIV_KEY_INFO_free(p8inf);
+    VR_EVP_PKEY_free(pkey);
 
     return ret;
 }
@@ -577,44 +577,44 @@ static int test_EVP_SM2_verify(void)
     EVP_MD_CTX *mctx = NULL;
     EVP_PKEY_CTX *pctx = NULL;
 
-    bio = BIO_new_mem_buf(pubkey, strlen(pubkey));
+    bio = VR_BIO_new_mem_buf(pubkey, strlen(pubkey));
     if (!TEST_true(bio != NULL))
         goto done;
 
-    pkey = PEM_read_bio_PUBKEY(bio, NULL, NULL, NULL);
+    pkey = VR_PEM_read_bio_PUBKEY(bio, NULL, NULL, NULL);
     if (!TEST_true(pkey != NULL))
         goto done;
 
-    if (!TEST_true(EVP_PKEY_set_alias_type(pkey, EVP_PKEY_SM2)))
+    if (!TEST_true(VR_EVP_PKEY_set_alias_type(pkey, EVP_PKEY_SM2)))
         goto done;
 
-    if (!TEST_ptr(mctx = EVP_MD_CTX_new()))
+    if (!TEST_ptr(mctx = VR_EVP_MD_CTX_new()))
         goto done;
 
-    if (!TEST_ptr(pctx = EVP_PKEY_CTX_new(pkey, NULL)))
+    if (!TEST_ptr(pctx = VR_EVP_PKEY_CTX_new(pkey, NULL)))
         goto done;
 
     if (!TEST_int_gt(EVP_PKEY_CTX_set1_id(pctx, (const uint8_t *)id,
                                           strlen(id)), 0))
         goto done;
 
-    EVP_MD_CTX_set_pkey_ctx(mctx, pctx);
+    VR_EVP_MD_CTX_set_pkey_ctx(mctx, pctx);
 
-    if (!TEST_true(EVP_DigestVerifyInit(mctx, NULL, EVP_sm3(), NULL, pkey)))
+    if (!TEST_true(VR_EVP_DigestVerifyInit(mctx, NULL, VR_EVP_sm3(), NULL, pkey)))
         goto done;
 
-    if (!TEST_true(EVP_DigestVerifyUpdate(mctx, msg, strlen(msg))))
+    if (!TEST_true(VR_EVP_DigestVerifyUpdate(mctx, msg, strlen(msg))))
         goto done;
 
-    if (!TEST_true(EVP_DigestVerifyFinal(mctx, signature, sizeof(signature))))
+    if (!TEST_true(VR_EVP_DigestVerifyFinal(mctx, signature, sizeof(signature))))
         goto done;
     rc = 1;
 
  done:
-    BIO_free(bio);
-    EVP_PKEY_free(pkey);
-    EVP_PKEY_CTX_free(pctx);
-    EVP_MD_CTX_free(mctx);
+    VR_BIO_free(bio);
+    VR_EVP_PKEY_free(pkey);
+    VR_EVP_PKEY_CTX_free(pctx);
+    VR_EVP_MD_CTX_free(mctx);
     return rc;
 }
 
@@ -640,92 +640,92 @@ static int test_EVP_SM2(void)
 
     uint8_t sm2_id[] = {1, 2, 3, 4, 'l', 'e', 't', 't', 'e', 'r'};
 
-    pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_EC, NULL);
+    pctx = VR_EVP_PKEY_CTX_new_id(EVP_PKEY_EC, NULL);
     if (!TEST_ptr(pctx))
         goto done;
 
-    if (!TEST_true(EVP_PKEY_paramgen_init(pctx) == 1))
+    if (!TEST_true(VR_EVP_PKEY_paramgen_init(pctx) == 1))
         goto done;
 
     if (!TEST_true(EVP_PKEY_CTX_set_ec_paramgen_curve_nid(pctx, NID_sm2)))
         goto done;
 
-    if (!TEST_true(EVP_PKEY_paramgen(pctx, &params)))
+    if (!TEST_true(VR_EVP_PKEY_paramgen(pctx, &params)))
         goto done;
 
-    kctx = EVP_PKEY_CTX_new(params, NULL);
+    kctx = VR_EVP_PKEY_CTX_new(params, NULL);
     if (!TEST_ptr(kctx))
         goto done;
 
-    if (!TEST_true(EVP_PKEY_keygen_init(kctx)))
+    if (!TEST_true(VR_EVP_PKEY_keygen_init(kctx)))
         goto done;
 
-    if (!TEST_true(EVP_PKEY_keygen(kctx, &pkey)))
+    if (!TEST_true(VR_EVP_PKEY_keygen(kctx, &pkey)))
         goto done;
 
-    if (!TEST_true(EVP_PKEY_set_alias_type(pkey, EVP_PKEY_SM2)))
+    if (!TEST_true(VR_EVP_PKEY_set_alias_type(pkey, EVP_PKEY_SM2)))
         goto done;
 
-    if (!TEST_ptr(md_ctx = EVP_MD_CTX_new()))
+    if (!TEST_ptr(md_ctx = VR_EVP_MD_CTX_new()))
         goto done;
 
-    if (!TEST_ptr(md_ctx_verify = EVP_MD_CTX_new()))
+    if (!TEST_ptr(md_ctx_verify = VR_EVP_MD_CTX_new()))
         goto done;
 
-    if (!TEST_ptr(sctx = EVP_PKEY_CTX_new(pkey, NULL)))
+    if (!TEST_ptr(sctx = VR_EVP_PKEY_CTX_new(pkey, NULL)))
         goto done;
 
-    EVP_MD_CTX_set_pkey_ctx(md_ctx, sctx);
-    EVP_MD_CTX_set_pkey_ctx(md_ctx_verify, sctx);
+    VR_EVP_MD_CTX_set_pkey_ctx(md_ctx, sctx);
+    VR_EVP_MD_CTX_set_pkey_ctx(md_ctx_verify, sctx);
 
     if (!TEST_int_gt(EVP_PKEY_CTX_set1_id(sctx, sm2_id, sizeof(sm2_id)), 0))
         goto done;
 
-    if (!TEST_true(EVP_DigestSignInit(md_ctx, NULL, EVP_sm3(), NULL, pkey)))
+    if (!TEST_true(VR_EVP_DigestSignInit(md_ctx, NULL, VR_EVP_sm3(), NULL, pkey)))
         goto done;
 
-    if(!TEST_true(EVP_DigestSignUpdate(md_ctx, kMsg, sizeof(kMsg))))
+    if(!TEST_true(VR_EVP_DigestSignUpdate(md_ctx, kMsg, sizeof(kMsg))))
         goto done;
 
     /* Determine the size of the signature. */
-    if (!TEST_true(EVP_DigestSignFinal(md_ctx, NULL, &sig_len)))
+    if (!TEST_true(VR_EVP_DigestSignFinal(md_ctx, NULL, &sig_len)))
         goto done;
 
-    if (!TEST_size_t_eq(sig_len, (size_t)EVP_PKEY_size(pkey)))
+    if (!TEST_size_t_eq(sig_len, (size_t)VR_EVP_PKEY_size(pkey)))
         goto done;
 
     if (!TEST_ptr(sig = OPENSSL_malloc(sig_len)))
         goto done;
 
-    if (!TEST_true(EVP_DigestSignFinal(md_ctx, sig, &sig_len)))
+    if (!TEST_true(VR_EVP_DigestSignFinal(md_ctx, sig, &sig_len)))
         goto done;
 
     /* Ensure that the signature round-trips. */
 
-    if (!TEST_true(EVP_DigestVerifyInit(md_ctx_verify, NULL, EVP_sm3(), NULL, pkey)))
+    if (!TEST_true(VR_EVP_DigestVerifyInit(md_ctx_verify, NULL, VR_EVP_sm3(), NULL, pkey)))
         goto done;
 
-    if (!TEST_true(EVP_DigestVerifyUpdate(md_ctx_verify, kMsg, sizeof(kMsg))))
+    if (!TEST_true(VR_EVP_DigestVerifyUpdate(md_ctx_verify, kMsg, sizeof(kMsg))))
         goto done;
 
-    if (!TEST_true(EVP_DigestVerifyFinal(md_ctx_verify, sig, sig_len)))
+    if (!TEST_true(VR_EVP_DigestVerifyFinal(md_ctx_verify, sig, sig_len)))
         goto done;
 
     /* now check encryption/decryption */
 
-    if (!TEST_ptr(cctx = EVP_PKEY_CTX_new(pkey, NULL)))
+    if (!TEST_ptr(cctx = VR_EVP_PKEY_CTX_new(pkey, NULL)))
         goto done;
 
-    if (!TEST_true(EVP_PKEY_encrypt_init(cctx)))
+    if (!TEST_true(VR_EVP_PKEY_encrypt_init(cctx)))
         goto done;
 
-    if (!TEST_true(EVP_PKEY_encrypt(cctx, ciphertext, &ctext_len, kMsg, sizeof(kMsg))))
+    if (!TEST_true(VR_EVP_PKEY_encrypt(cctx, ciphertext, &ctext_len, kMsg, sizeof(kMsg))))
         goto done;
 
-    if (!TEST_true(EVP_PKEY_decrypt_init(cctx)))
+    if (!TEST_true(VR_EVP_PKEY_decrypt_init(cctx)))
         goto done;
 
-    if (!TEST_true(EVP_PKEY_decrypt(cctx, plaintext, &ptext_len, ciphertext, ctext_len)))
+    if (!TEST_true(VR_EVP_PKEY_decrypt(cctx, plaintext, &ptext_len, ciphertext, ctext_len)))
         goto done;
 
     if (!TEST_true(ptext_len == sizeof(kMsg)))
@@ -736,15 +736,15 @@ static int test_EVP_SM2(void)
 
     ret = 1;
 done:
-    EVP_PKEY_CTX_free(pctx);
-    EVP_PKEY_CTX_free(kctx);
-    EVP_PKEY_CTX_free(sctx);
-    EVP_PKEY_CTX_free(cctx);
-    EVP_PKEY_free(pkey);
-    EVP_PKEY_free(params);
-    EVP_MD_CTX_free(md_ctx);
-    EVP_MD_CTX_free(md_ctx_verify);
-    OPENSSL_free(sig);
+    VR_EVP_PKEY_CTX_free(pctx);
+    VR_EVP_PKEY_CTX_free(kctx);
+    VR_EVP_PKEY_CTX_free(sctx);
+    VR_EVP_PKEY_CTX_free(cctx);
+    VR_EVP_PKEY_free(pkey);
+    VR_EVP_PKEY_free(params);
+    VR_EVP_MD_CTX_free(md_ctx);
+    VR_EVP_MD_CTX_free(md_ctx_verify);
+    OPENVR_SSL_free(sig);
     return ret;
 }
 
@@ -756,7 +756,7 @@ static struct keys_st {
     char *pub;
 } keys[] = {
     {
-        EVP_PKEY_HMAC, "0123456789", NULL
+        EVP_PKEY_VR_HMAC, "0123456789", NULL
     }, {
         EVP_PKEY_POLY1305, "01234567890123456789012345678901", NULL
     }, {
@@ -764,13 +764,13 @@ static struct keys_st {
     },
 #ifndef OPENSSL_NO_EC
     {
-        EVP_PKEY_X25519, "01234567890123456789012345678901",
+        EVP_PKEY_VR_X25519, "01234567890123456789012345678901",
         "abcdefghijklmnopqrstuvwxyzabcdef"
     }, {
         EVP_PKEY_ED25519, "01234567890123456789012345678901",
         "abcdefghijklmnopqrstuvwxyzabcdef"
     }, {
-        EVP_PKEY_X448,
+        EVP_PKEY_VR_X448,
         "01234567890123456789012345678901234567890123456789012345",
         "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcd"
     }, {
@@ -798,31 +798,31 @@ static int test_set_get_raw_keys_int(int tst, int pub)
     if (pub) {
         inlen = strlen(keys[tst].pub);
         in = (unsigned char *)keys[tst].pub;
-        pkey = EVP_PKEY_new_raw_public_key(keys[tst].type,
+        pkey = VR_EVP_PKEY_new_raw_public_key(keys[tst].type,
                                            NULL,
                                            in,
                                            inlen);
     } else {
         inlen = strlen(keys[tst].priv);
         in = (unsigned char *)keys[tst].priv;
-        pkey = EVP_PKEY_new_raw_private_key(keys[tst].type,
+        pkey = VR_EVP_PKEY_new_raw_private_key(keys[tst].type,
                                             NULL,
                                             in,
                                             inlen);
     }
 
     if (!TEST_ptr(pkey)
-            || (!pub && !TEST_true(EVP_PKEY_get_raw_private_key(pkey, NULL, &len)))
-            || (pub && !TEST_true(EVP_PKEY_get_raw_public_key(pkey, NULL, &len)))
+            || (!pub && !TEST_true(VR_EVP_PKEY_get_raw_private_key(pkey, NULL, &len)))
+            || (pub && !TEST_true(VR_EVP_PKEY_get_raw_public_key(pkey, NULL, &len)))
             || !TEST_true(len == inlen)
-            || (!pub && !TEST_true(EVP_PKEY_get_raw_private_key(pkey, buf, &len)))
-            || (pub && !TEST_true(EVP_PKEY_get_raw_public_key(pkey, buf, &len)))
+            || (!pub && !TEST_true(VR_EVP_PKEY_get_raw_private_key(pkey, buf, &len)))
+            || (pub && !TEST_true(VR_EVP_PKEY_get_raw_public_key(pkey, buf, &len)))
             || !TEST_mem_eq(in, inlen, buf, len))
         goto done;
 
     ret = 1;
  done:
-    EVP_PKEY_free(pkey);
+    VR_EVP_PKEY_free(pkey);
     return ret;
 }
 
@@ -849,7 +849,7 @@ static int pkey_custom_param_check(EVP_PKEY *pkey)
 
 static EVP_PKEY_METHOD *custom_pmeth;
 
-static int test_EVP_PKEY_check(int i)
+static int test_VR_EVP_PKEY_check(int i)
 {
     int ret = 0;
     const unsigned char *p;
@@ -873,24 +873,24 @@ static int test_EVP_PKEY_check(int i)
 
     switch (type) {
     case 0:
-        if (!TEST_ptr(pkey = d2i_AutoPrivateKey(NULL, &p, input_len))
+        if (!TEST_ptr(pkey = VR_d2i_AutoPrivateKey(NULL, &p, input_len))
             || !TEST_ptr_eq(p, input + input_len)
-            || !TEST_int_eq(EVP_PKEY_id(pkey), expected_id))
+            || !TEST_int_eq(VR_EVP_PKEY_id(pkey), expected_id))
             goto done;
         break;
 #ifndef OPENSSL_NO_EC
     case 1:
-        if (!TEST_ptr(pubkey = BIO_new_mem_buf(input, input_len))
-            || !TEST_ptr(eckey = d2i_EC_PUBKEY_bio(pubkey, NULL))
-            || !TEST_ptr(pkey = EVP_PKEY_new())
-            || !TEST_true(EVP_PKEY_assign_EC_KEY(pkey, eckey)))
+        if (!TEST_ptr(pubkey = VR_BIO_new_mem_buf(input, input_len))
+            || !TEST_ptr(eckey = VR_d2i_EC_PUBKEY_bio(pubkey, NULL))
+            || !TEST_ptr(pkey = VR_EVP_PKEY_new())
+            || !TEST_true(VR_EVP_PKEY_assign_EC_KEY(pkey, eckey)))
             goto done;
         break;
     case 2:
-        if (!TEST_ptr(eckey = d2i_ECParameters(NULL, &p, input_len))
+        if (!TEST_ptr(eckey = VR_d2i_ECParameters(NULL, &p, input_len))
             || !TEST_ptr_eq(p, input + input_len)
-            || !TEST_ptr(pkey = EVP_PKEY_new())
-            || !TEST_true(EVP_PKEY_assign_EC_KEY(pkey, eckey)))
+            || !TEST_ptr(pkey = VR_EVP_PKEY_new())
+            || !TEST_true(VR_EVP_PKEY_assign_EC_KEY(pkey, eckey)))
             goto done;
         break;
 #endif
@@ -898,39 +898,39 @@ static int test_EVP_PKEY_check(int i)
         return 0;
     }
 
-    if (!TEST_ptr(ctx = EVP_PKEY_CTX_new(pkey, NULL)))
+    if (!TEST_ptr(ctx = VR_EVP_PKEY_CTX_new(pkey, NULL)))
         goto done;
 
-    if (!TEST_int_eq(EVP_PKEY_check(ctx), expected_check))
+    if (!TEST_int_eq(VR_EVP_PKEY_check(ctx), expected_check))
         goto done;
 
-    if (!TEST_int_eq(EVP_PKEY_public_check(ctx), expected_pub_check))
+    if (!TEST_int_eq(VR_EVP_PKEY_public_check(ctx), expected_pub_check))
         goto done;
 
-    if (!TEST_int_eq(EVP_PKEY_param_check(ctx), expected_param_check))
+    if (!TEST_int_eq(VR_EVP_PKEY_param_check(ctx), expected_param_check))
         goto done;
 
-    ctx2 = EVP_PKEY_CTX_new_id(0xdefaced, NULL);
+    ctx2 = VR_EVP_PKEY_CTX_new_id(0xdefaced, NULL);
     /* assign the pkey directly, as an internal test */
-    EVP_PKEY_up_ref(pkey);
+    VR_EVP_PKEY_up_ref(pkey);
     ctx2->pkey = pkey;
 
-    if (!TEST_int_eq(EVP_PKEY_check(ctx2), 0xbeef))
+    if (!TEST_int_eq(VR_EVP_PKEY_check(ctx2), 0xbeef))
         goto done;
 
-    if (!TEST_int_eq(EVP_PKEY_public_check(ctx2), 0xbeef))
+    if (!TEST_int_eq(VR_EVP_PKEY_public_check(ctx2), 0xbeef))
         goto done;
 
-    if (!TEST_int_eq(EVP_PKEY_param_check(ctx2), 0xbeef))
+    if (!TEST_int_eq(VR_EVP_PKEY_param_check(ctx2), 0xbeef))
         goto done;
 
     ret = 1;
 
  done:
-    EVP_PKEY_CTX_free(ctx);
-    EVP_PKEY_CTX_free(ctx2);
-    EVP_PKEY_free(pkey);
-    BIO_free(pubkey);
+    VR_EVP_PKEY_CTX_free(ctx);
+    VR_EVP_PKEY_CTX_free(ctx2);
+    VR_EVP_PKEY_free(pkey);
+    VR_BIO_free(pubkey);
     return ret;
 }
 
@@ -949,7 +949,7 @@ static int test_HKDF(void)
     };
     size_t expectedlen = sizeof(expected);
 
-    if (!TEST_ptr(pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_HKDF, NULL)))
+    if (!TEST_ptr(pctx = VR_EVP_PKEY_CTX_new_id(EVP_PKEY_HKDF, NULL)))
         goto done;
 
     /* We do this twice to test reuse of the EVP_PKEY_CTX */
@@ -957,15 +957,15 @@ static int test_HKDF(void)
         outlen = sizeof(out);
         memset(out, 0, outlen);
 
-        if (!TEST_int_gt(EVP_PKEY_derive_init(pctx), 0)
-                || !TEST_int_gt(EVP_PKEY_CTX_set_hkdf_md(pctx, EVP_sha256()), 0)
+        if (!TEST_int_gt(VR_EVP_PKEY_derive_init(pctx), 0)
+                || !TEST_int_gt(EVP_PKEY_CTX_set_hkdf_md(pctx, VR_EVP_sha256()), 0)
                 || !TEST_int_gt(EVP_PKEY_CTX_set1_hkdf_salt(pctx, salt,
                                                             sizeof(salt) - 1), 0)
                 || !TEST_int_gt(EVP_PKEY_CTX_set1_hkdf_key(pctx, key,
                                                            sizeof(key) - 1), 0)
                 || !TEST_int_gt(EVP_PKEY_CTX_add1_hkdf_info(pctx, info,
                                                             sizeof(info) - 1), 0)
-                || !TEST_int_gt(EVP_PKEY_derive(pctx, out, &outlen), 0)
+                || !TEST_int_gt(VR_EVP_PKEY_derive(pctx, out, &outlen), 0)
                 || !TEST_mem_eq(out, outlen, expected, expectedlen))
             goto done;
     }
@@ -973,7 +973,7 @@ static int test_HKDF(void)
     ret = 1;
 
  done:
-    EVP_PKEY_CTX_free(pctx);
+    VR_EVP_PKEY_CTX_free(pctx);
 
     return ret;
 }
@@ -986,52 +986,52 @@ static int test_X509_PUBKEY_inplace(void)
   const unsigned char *p = kExampleECPubKeyDER;
   size_t input_len = sizeof(kExampleECPubKeyDER);
 
-  if (!TEST_ptr(xp = d2i_X509_PUBKEY(NULL, &p, input_len)))
+  if (!TEST_ptr(xp = VR_d2i_X509_PUBKEY(NULL, &p, input_len)))
     goto done;
 
-  if (!TEST_ptr(X509_PUBKEY_get0(xp)))
+  if (!TEST_ptr(VR_X509_PUBKEY_get0(xp)))
     goto done;
 
   p = kExampleBadECPubKeyDER;
   input_len = sizeof(kExampleBadECPubKeyDER);
 
-  if (!TEST_ptr(xp = d2i_X509_PUBKEY(&xp, &p, input_len)))
+  if (!TEST_ptr(xp = VR_d2i_X509_PUBKEY(&xp, &p, input_len)))
     goto done;
 
-  if (!TEST_true(X509_PUBKEY_get0(xp) == NULL))
+  if (!TEST_true(VR_X509_PUBKEY_get0(xp) == NULL))
     goto done;
 
   ret = 1;
 
 done:
-  X509_PUBKEY_free(xp);
+  VR_X509_PUBKEY_free(xp);
   return ret;
 }
 #endif
 
 int setup_tests(void)
 {
-    ADD_TEST(test_EVP_DigestSignInit);
-    ADD_TEST(test_EVP_DigestVerifyInit);
+    ADD_TEST(test_VR_EVP_DigestSignInit);
+    ADD_TEST(test_VR_EVP_DigestVerifyInit);
     ADD_TEST(test_EVP_Enveloped);
-    ADD_ALL_TESTS(test_d2i_AutoPrivateKey, OSSL_NELEM(keydata));
+    ADD_ALL_TESTS(test_VR_d2i_AutoPrivateKey, OSSL_NELEM(keydata));
 #ifndef OPENSSL_NO_EC
-    ADD_TEST(test_EVP_PKCS82PKEY);
+    ADD_TEST(test_VR_EVP_PKCS82PKEY);
 #endif
 #ifndef OPENSSL_NO_SM2
     ADD_TEST(test_EVP_SM2);
     ADD_TEST(test_EVP_SM2_verify);
 #endif
     ADD_ALL_TESTS(test_set_get_raw_keys, OSSL_NELEM(keys));
-    custom_pmeth = EVP_PKEY_meth_new(0xdefaced, 0);
+    custom_pmeth = VR_EVP_PKEY_meth_new(0xdefaced, 0);
     if (!TEST_ptr(custom_pmeth))
         return 0;
-    EVP_PKEY_meth_set_check(custom_pmeth, pkey_custom_check);
-    EVP_PKEY_meth_set_public_check(custom_pmeth, pkey_custom_pub_check);
-    EVP_PKEY_meth_set_param_check(custom_pmeth, pkey_custom_param_check);
-    if (!TEST_int_eq(EVP_PKEY_meth_add0(custom_pmeth), 1))
+    VR_EVP_PKEY_meth_set_check(custom_pmeth, pkey_custom_check);
+    VR_EVP_PKEY_meth_set_public_check(custom_pmeth, pkey_custom_pub_check);
+    VR_EVP_PKEY_meth_set_param_check(custom_pmeth, pkey_custom_param_check);
+    if (!TEST_int_eq(VR_EVP_PKEY_meth_add0(custom_pmeth), 1))
         return 0;
-    ADD_ALL_TESTS(test_EVP_PKEY_check, OSSL_NELEM(keycheckdata));
+    ADD_ALL_TESTS(test_VR_EVP_PKEY_check, OSSL_NELEM(keycheckdata));
     ADD_TEST(test_HKDF);
 #ifndef OPENSSL_NO_EC
     ADD_TEST(test_X509_PUBKEY_inplace);

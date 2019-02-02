@@ -12,12 +12,12 @@
 
 #include <openssl/err.h>
 
-ASYNC_WAIT_CTX *ASYNC_WAIT_CTX_new(void)
+ASYNC_WAIT_CTX *VR_ASYNC_WAIT_CTX_new(void)
 {
     return OPENSSL_zalloc(sizeof(ASYNC_WAIT_CTX));
 }
 
-void ASYNC_WAIT_CTX_free(ASYNC_WAIT_CTX *ctx)
+void VR_ASYNC_WAIT_CTX_free(ASYNC_WAIT_CTX *ctx)
 {
     struct fd_lookup_st *curr;
     struct fd_lookup_st *next;
@@ -34,13 +34,13 @@ void ASYNC_WAIT_CTX_free(ASYNC_WAIT_CTX *ctx)
         }
         /* Always free the fd_lookup_st */
         next = curr->next;
-        OPENSSL_free(curr);
+        OPENVR_SSL_free(curr);
         curr = next;
     }
 
-    OPENSSL_free(ctx);
+    OPENVR_SSL_free(ctx);
 }
-int ASYNC_WAIT_CTX_set_wait_fd(ASYNC_WAIT_CTX *ctx, const void *key,
+int VR_ASYNC_WAIT_CTX_set_wait_fd(ASYNC_WAIT_CTX *ctx, const void *key,
                                OSSL_ASYNC_FD fd, void *custom_data,
                                void (*cleanup)(ASYNC_WAIT_CTX *, const void *,
                                                OSSL_ASYNC_FD, void *))
@@ -63,7 +63,7 @@ int ASYNC_WAIT_CTX_set_wait_fd(ASYNC_WAIT_CTX *ctx, const void *key,
     return 1;
 }
 
-int ASYNC_WAIT_CTX_get_fd(ASYNC_WAIT_CTX *ctx, const void *key,
+int VR_ASYNC_WAIT_CTX_get_fd(ASYNC_WAIT_CTX *ctx, const void *key,
                           OSSL_ASYNC_FD *fd, void **custom_data)
 {
     struct fd_lookup_st *curr;
@@ -85,7 +85,7 @@ int ASYNC_WAIT_CTX_get_fd(ASYNC_WAIT_CTX *ctx, const void *key,
     return 0;
 }
 
-int ASYNC_WAIT_CTX_get_all_fds(ASYNC_WAIT_CTX *ctx, OSSL_ASYNC_FD *fd,
+int VR_ASYNC_WAIT_CTX_get_all_fds(ASYNC_WAIT_CTX *ctx, OSSL_ASYNC_FD *fd,
                                size_t *numfds)
 {
     struct fd_lookup_st *curr;
@@ -108,7 +108,7 @@ int ASYNC_WAIT_CTX_get_all_fds(ASYNC_WAIT_CTX *ctx, OSSL_ASYNC_FD *fd,
     return 1;
 }
 
-int ASYNC_WAIT_CTX_get_changed_fds(ASYNC_WAIT_CTX *ctx, OSSL_ASYNC_FD *addfd,
+int VR_ASYNC_WAIT_CTX_get_changed_fds(ASYNC_WAIT_CTX *ctx, OSSL_ASYNC_FD *addfd,
                                    size_t *numaddfds, OSSL_ASYNC_FD *delfd,
                                    size_t *numdelfds)
 {
@@ -137,7 +137,7 @@ int ASYNC_WAIT_CTX_get_changed_fds(ASYNC_WAIT_CTX *ctx, OSSL_ASYNC_FD *addfd,
     return 1;
 }
 
-int ASYNC_WAIT_CTX_clear_fd(ASYNC_WAIT_CTX *ctx, const void *key)
+int VR_ASYNC_WAIT_CTX_clear_fd(ASYNC_WAIT_CTX *ctx, const void *key)
 {
     struct fd_lookup_st *curr, *prev;
 
@@ -160,9 +160,9 @@ int ASYNC_WAIT_CTX_clear_fd(ASYNC_WAIT_CTX *ctx, const void *key)
                 }
 
                 /* It is responsibility of the caller to cleanup before calling
-                 * ASYNC_WAIT_CTX_clear_fd
+                 * VR_ASYNC_WAIT_CTX_clear_fd
                  */
-                OPENSSL_free(curr);
+                OPENVR_SSL_free(curr);
                 ctx->numadd--;
                 return 1;
             }
@@ -182,7 +182,7 @@ int ASYNC_WAIT_CTX_clear_fd(ASYNC_WAIT_CTX *ctx, const void *key)
     return 0;
 }
 
-int ASYNC_WAIT_CTX_set_callback(ASYNC_WAIT_CTX *ctx,
+int VR_ASYNC_WAIT_CTX_set_callback(ASYNC_WAIT_CTX *ctx,
                                 ASYNC_callback_fn callback,
                                 void *callback_arg)
 {
@@ -194,7 +194,7 @@ int ASYNC_WAIT_CTX_set_callback(ASYNC_WAIT_CTX *ctx,
       return 1;
 }
 
-int ASYNC_WAIT_CTX_get_callback(ASYNC_WAIT_CTX *ctx,
+int VR_ASYNC_WAIT_CTX_get_callback(ASYNC_WAIT_CTX *ctx,
                                 ASYNC_callback_fn *callback,
                                 void **callback_arg)
 {
@@ -206,18 +206,18 @@ int ASYNC_WAIT_CTX_get_callback(ASYNC_WAIT_CTX *ctx,
       return 1;
 }
 
-int ASYNC_WAIT_CTX_set_status(ASYNC_WAIT_CTX *ctx, int status)
+int VR_ASYNC_WAIT_CTX_set_status(ASYNC_WAIT_CTX *ctx, int status)
 {
       ctx->status = status;
       return 1;
 }
 
-int ASYNC_WAIT_CTX_get_status(ASYNC_WAIT_CTX *ctx)
+int VR_ASYNC_WAIT_CTX_get_status(ASYNC_WAIT_CTX *ctx)
 {
       return ctx->status;
 }
 
-void async_wait_ctx_reset_counts(ASYNC_WAIT_CTX *ctx)
+void VR_async_wait_ctx_reset_counts(ASYNC_WAIT_CTX *ctx)
 {
     struct fd_lookup_st *curr, *prev = NULL;
 
@@ -232,7 +232,7 @@ void async_wait_ctx_reset_counts(ASYNC_WAIT_CTX *ctx)
                 ctx->fds = curr->next;
             else
                 prev->next = curr->next;
-            OPENSSL_free(curr);
+            OPENVR_SSL_free(curr);
             if (prev == NULL)
                 curr = ctx->fds;
             else

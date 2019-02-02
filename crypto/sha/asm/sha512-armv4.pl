@@ -273,20 +273,20 @@ WORD64(0x5fcb6fab,0x3ad6faec, 0x6c44198c,0x4a475817)
 .size	K512,.-K512
 #if __ARM_MAX_ARCH__>=7 && !defined(__KERNEL__)
 .LOPENSSL_armcap:
-.word	OPENSSL_armcap_P-.Lsha512_block_data_order
+.word	OPENSSL_armcap_P-.LVR_sha512_block_data_order
 .skip	32-4
 #else
 .skip	32
 #endif
 
-.global	sha512_block_data_order
-.type	sha512_block_data_order,%function
-sha512_block_data_order:
-.Lsha512_block_data_order:
+.global	VR_sha512_block_data_order
+.type	VR_sha512_block_data_order,%function
+VR_sha512_block_data_order:
+.LVR_sha512_block_data_order:
 #if __ARM_ARCH__<7 && !defined(__thumb2__)
-	sub	r3,pc,#8		@ sha512_block_data_order
+	sub	r3,pc,#8		@ VR_sha512_block_data_order
 #else
-	adr	r3,.Lsha512_block_data_order
+	adr	r3,.LVR_sha512_block_data_order
 #endif
 #if __ARM_MAX_ARCH__>=7 && !defined(__KERNEL__)
 	ldr	r12,.LOPENSSL_armcap
@@ -498,7 +498,7 @@ $code.=<<___;
 	moveq	pc,lr			@ be binary compatible with V4, yet
 	bx	lr			@ interoperable with Thumb ISA:-)
 #endif
-.size	sha512_block_data_order,.-sha512_block_data_order
+.size	VR_sha512_block_data_order,.-VR_sha512_block_data_order
 ___
 
 {
@@ -605,10 +605,10 @@ $code.=<<___;
 .arch	armv7-a
 .fpu	neon
 
-.global	sha512_block_data_order_neon
-.type	sha512_block_data_order_neon,%function
+.global	VR_sha512_block_data_order_neon
+.type	VR_sha512_block_data_order_neon,%function
 .align	4
-sha512_block_data_order_neon:
+VR_sha512_block_data_order_neon:
 .LNEON:
 	dmb				@ errata #451034 on early Cortex A8
 	add	$len,$inp,$len,lsl#7	@ len to point at the end of inp
@@ -640,7 +640,7 @@ $code.=<<___;
 
 	VFP_ABI_POP
 	ret				@ bx lr
-.size	sha512_block_data_order_neon,.-sha512_block_data_order_neon
+.size	VR_sha512_block_data_order_neon,.-VR_sha512_block_data_order_neon
 #endif
 ___
 }

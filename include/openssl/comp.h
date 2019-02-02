@@ -21,22 +21,22 @@ extern "C" {
 
 
 
-COMP_CTX *COMP_CTX_new(COMP_METHOD *meth);
-const COMP_METHOD *COMP_CTX_get_method(const COMP_CTX *ctx);
-int COMP_CTX_get_type(const COMP_CTX* comp);
-int COMP_get_type(const COMP_METHOD *meth);
-const char *COMP_get_name(const COMP_METHOD *meth);
-void COMP_CTX_free(COMP_CTX *ctx);
+COMP_CTX *VR_COMP_CTX_new(COMP_METHOD *meth);
+const COMP_METHOD *VR_COMP_CTX_get_method(const COMP_CTX *ctx);
+int VR_COMP_CTX_get_type(const COMP_CTX* comp);
+int VR_COMP_get_type(const COMP_METHOD *meth);
+const char *VR_COMP_get_name(const COMP_METHOD *meth);
+void VR_COMP_CTX_free(COMP_CTX *ctx);
 
-int COMP_compress_block(COMP_CTX *ctx, unsigned char *out, int olen,
+int VR_COMP_compress_block(COMP_CTX *ctx, unsigned char *out, int olen,
                         unsigned char *in, int ilen);
-int COMP_expand_block(COMP_CTX *ctx, unsigned char *out, int olen,
+int VR_COMP_expand_block(COMP_CTX *ctx, unsigned char *out, int olen,
                       unsigned char *in, int ilen);
 
-COMP_METHOD *COMP_zlib(void);
+COMP_METHOD *VR_COMP_zlib(void);
 
 #if !OPENSSL_API_1_1_0
-#define COMP_zlib_cleanup() while(0) continue
+#define VR_COMP_zlib_cleanup() while(0) continue
 #endif
 
 # ifdef HEADER_BIO_H

@@ -1113,20 +1113,20 @@ my ($inp,$out,$len,$key, $ivp,$fp,$rounds)=map("r$_",(0..3,8..10));
 my ($keysched)=("sp");
 
 $code.=<<___;
-.extern AES_cbc_encrypt
-.extern AES_decrypt
+.extern VR_AES_cbc_encrypt
+.extern VR_AES_decrypt
 
-.global	bsaes_cbc_encrypt
-.type	bsaes_cbc_encrypt,%function
+.global	VR_bsaes_cbc_encrypt
+.type	VR_bsaes_cbc_encrypt,%function
 .align	5
-bsaes_cbc_encrypt:
+VR_bsaes_cbc_encrypt:
 #ifndef	__KERNEL__
 	cmp	$len, #128
 #ifndef	__thumb__
-	blo	AES_cbc_encrypt
+	blo	VR_AES_cbc_encrypt
 #else
 	bhs	1f
-	b	AES_cbc_encrypt
+	b	VR_AES_cbc_encrypt
 1:
 #endif
 #endif
@@ -1360,7 +1360,7 @@ bsaes_cbc_encrypt:
 	mov	r2, $key
 	vmov	@XMM[4],@XMM[15]		@ just in case ensure that IV
 	vmov	@XMM[5],@XMM[0]			@ and input are preserved
-	bl	AES_decrypt
+	bl	VR_AES_decrypt
 	vld1.8	{@XMM[0]}, [$fp]		@ load result
 	veor	@XMM[0], @XMM[0], @XMM[4]	@ ^= IV
 	vmov	@XMM[15], @XMM[5]		@ @XMM[5] holds input
@@ -1381,7 +1381,7 @@ bsaes_cbc_encrypt:
 	vst1.8	{@XMM[15]}, [$ivp]		@ return IV
 	VFP_ABI_POP
 	ldmia	sp!, {r4-r10, pc}
-.size	bsaes_cbc_encrypt,.-bsaes_cbc_encrypt
+.size	VR_bsaes_cbc_encrypt,.-VR_bsaes_cbc_encrypt
 ___
 }
 {
@@ -1390,11 +1390,11 @@ my $const = "r6";	# shared with _bsaes_encrypt8_alt
 my $keysched = "sp";
 
 $code.=<<___;
-.extern	AES_encrypt
-.global	bsaes_ctr32_encrypt_blocks
-.type	bsaes_ctr32_encrypt_blocks,%function
+.extern	VR_AES_encrypt
+.global	VR_bsaes_ctr32_encrypt_blocks
+.type	VR_bsaes_ctr32_encrypt_blocks,%function
 .align	5
-bsaes_ctr32_encrypt_blocks:
+VR_bsaes_ctr32_encrypt_blocks:
 	cmp	$len, #8			@ use plain AES for
 	blo	.Lctr_enc_short			@ small sizes
 
@@ -1596,7 +1596,7 @@ bsaes_ctr32_encrypt_blocks:
 	mov	r1, sp			@ output on the stack
 	mov	r2, r7			@ key
 
-	bl	AES_encrypt
+	bl	VR_AES_encrypt
 
 	vld1.8	{@XMM[0]}, [r4]!	@ load input
 	vld1.8	{@XMM[1]}, [sp]		@ load encrypted counter
@@ -1617,7 +1617,7 @@ bsaes_ctr32_encrypt_blocks:
 	vstmia		sp!, {q0-q1}
 
 	ldmia	sp!, {r4-r8, pc}
-.size	bsaes_ctr32_encrypt_blocks,.-bsaes_ctr32_encrypt_blocks
+.size	VR_bsaes_ctr32_encrypt_blocks,.-VR_bsaes_ctr32_encrypt_blocks
 ___
 }
 {
@@ -1632,10 +1632,10 @@ my $twmask=@XMM[5];
 my @T=@XMM[6..7];
 
 $code.=<<___;
-.globl	bsaes_xts_encrypt
-.type	bsaes_xts_encrypt,%function
+.globl	VR_bsaes_xts_encrypt
+.type	VR_bsaes_xts_encrypt,%function
 .align	4
-bsaes_xts_encrypt:
+VR_bsaes_xts_encrypt:
 	mov	ip, sp
 	stmdb	sp!, {r4-r10, lr}		@ 0x20
 	VFP_ABI_PUSH
@@ -1657,7 +1657,7 @@ bsaes_xts_encrypt:
 	ldr	r0, [ip, #4]			@ iv[]
 	mov	r1, sp
 	ldr	r2, [ip, #0]			@ key2
-	bl	AES_encrypt
+	bl	VR_AES_encrypt
 	mov	r0,sp				@ pointer to initial tweak
 #endif
 
@@ -1975,7 +1975,7 @@ $code.=<<___;
 	mov		r2, $key
 	mov		r4, $fp				@ preserve fp
 
-	bl		AES_encrypt
+	bl		VR_AES_encrypt
 
 	vld1.8		{@XMM[0]}, [sp,:128]
 	veor		@XMM[0], @XMM[0], @XMM[8]
@@ -2007,7 +2007,7 @@ $code.=<<___;
 	mov		r2, $key
 	mov		r4, $fp			@ preserve fp
 
-	bl		AES_encrypt
+	bl		VR_AES_encrypt
 
 	vld1.8		{@XMM[0]}, [sp,:128]
 	veor		@XMM[0], @XMM[0], @XMM[8]
@@ -2034,12 +2034,12 @@ $code.=<<___;
 	VFP_ABI_POP
 	ldmia		sp!, {r4-r10, pc}	@ return
 
-.size	bsaes_xts_encrypt,.-bsaes_xts_encrypt
+.size	VR_bsaes_xts_encrypt,.-VR_bsaes_xts_encrypt
 
-.globl	bsaes_xts_decrypt
-.type	bsaes_xts_decrypt,%function
+.globl	VR_bsaes_xts_decrypt
+.type	VR_bsaes_xts_decrypt,%function
 .align	4
-bsaes_xts_decrypt:
+VR_bsaes_xts_decrypt:
 	mov	ip, sp
 	stmdb	sp!, {r4-r10, lr}		@ 0x20
 	VFP_ABI_PUSH
@@ -2061,7 +2061,7 @@ bsaes_xts_decrypt:
 	ldr	r0, [ip, #4]			@ iv[]
 	mov	r1, sp
 	ldr	r2, [ip, #0]			@ key2
-	bl	AES_encrypt
+	bl	VR_AES_encrypt
 	mov	r0, sp				@ pointer to initial tweak
 #endif
 
@@ -2387,7 +2387,7 @@ $code.=<<___;
 	mov		r2, $key
 	mov		r4, $fp				@ preserve fp
 
-	bl		AES_decrypt
+	bl		VR_AES_decrypt
 
 	vld1.8		{@XMM[0]}, [sp,:128]
 	veor		@XMM[0], @XMM[0], @XMM[8]
@@ -2419,7 +2419,7 @@ $code.=<<___;
 	mov		r2, $key
 	mov		r4, $fp			@ preserve fp
 
-	bl		AES_decrypt
+	bl		VR_AES_decrypt
 
 	vld1.8		{@XMM[0]}, [sp,:128]
 	veor		@XMM[0], @XMM[0], @XMM[9]
@@ -2442,7 +2442,7 @@ $code.=<<___;
 	vst1.8		{@XMM[0]}, [sp,:128]
 	mov		r2, $key
 
-	bl		AES_decrypt
+	bl		VR_AES_decrypt
 
 	vld1.8		{@XMM[0]}, [sp,:128]
 	veor		@XMM[0], @XMM[0], @XMM[8]
@@ -2469,7 +2469,7 @@ $code.=<<___;
 	VFP_ABI_POP
 	ldmia		sp!, {r4-r10, pc}	@ return
 
-.size	bsaes_xts_decrypt,.-bsaes_xts_decrypt
+.size	VR_bsaes_xts_decrypt,.-VR_bsaes_xts_decrypt
 ___
 }
 $code.=<<___;

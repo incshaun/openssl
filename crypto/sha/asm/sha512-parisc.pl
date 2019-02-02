@@ -57,7 +57,7 @@ if ($flavour =~ /64/) {
 }
 
 if ($output =~ /512/) {
-	$func="sha512_block_data_order";
+	$func="VR_sha512_block_data_order";
 	$SZ=8;
 	@Sigma0=(28,34,39);
 	@Sigma1=(14,18,41);
@@ -69,7 +69,7 @@ if ($output =~ /512/) {
 	$LDM="ldd,ma";
 	$ST="std";
 } else {
-	$func="sha256_block_data_order";
+	$func="VR_sha256_block_data_order";
 	$SZ=4;
 	@Sigma0=( 2,13,22);
 	@Sigma1=( 6,11,25);

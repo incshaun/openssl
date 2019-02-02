@@ -61,10 +61,10 @@ static int pkey_hkdf_init(EVP_PKEY_CTX *ctx)
 static void pkey_hkdf_cleanup(EVP_PKEY_CTX *ctx)
 {
     HKDF_PKEY_CTX *kctx = ctx->data;
-    OPENSSL_clear_free(kctx->salt, kctx->salt_len);
-    OPENSSL_clear_free(kctx->key, kctx->key_len);
-    OPENSSL_cleanse(kctx->info, kctx->info_len);
-    OPENSSL_free(kctx);
+    OPENVR_SSL_clear_free(kctx->salt, kctx->salt_len);
+    OPENVR_SSL_clear_free(kctx->key, kctx->key_len);
+    VR_OPENSSL_cleanse(kctx->info, kctx->info_len);
+    OPENVR_SSL_free(kctx);
 }
 
 static int pkey_hkdf_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2)
@@ -91,7 +91,7 @@ static int pkey_hkdf_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2)
             return 0;
 
         if (kctx->salt != NULL)
-            OPENSSL_clear_free(kctx->salt, kctx->salt_len);
+            OPENVR_SSL_clear_free(kctx->salt, kctx->salt_len);
 
         kctx->salt = OPENSSL_memdup(p2, p1);
         if (kctx->salt == NULL)
@@ -105,7 +105,7 @@ static int pkey_hkdf_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2)
             return 0;
 
         if (kctx->key != NULL)
-            OPENSSL_clear_free(kctx->key, kctx->key_len);
+            OPENVR_SSL_clear_free(kctx->key, kctx->key_len);
 
         kctx->key = OPENSSL_memdup(p2, p1);
         if (kctx->key == NULL)
@@ -150,26 +150,26 @@ static int pkey_hkdf_ctrl_str(EVP_PKEY_CTX *ctx, const char *type,
     }
 
     if (strcmp(type, "md") == 0)
-        return EVP_PKEY_CTX_md(ctx, EVP_PKEY_OP_DERIVE,
+        return VR_EVP_PKEY_CTX_md(ctx, EVP_PKEY_OP_DERIVE,
                                EVP_PKEY_CTRL_HKDF_MD, value);
 
     if (strcmp(type, "salt") == 0)
-        return EVP_PKEY_CTX_str2ctrl(ctx, EVP_PKEY_CTRL_HKDF_SALT, value);
+        return VR_EVP_PKEY_CTX_str2ctrl(ctx, EVP_PKEY_CTRL_HKDF_SALT, value);
 
     if (strcmp(type, "hexsalt") == 0)
-        return EVP_PKEY_CTX_hex2ctrl(ctx, EVP_PKEY_CTRL_HKDF_SALT, value);
+        return VR_EVP_PKEY_CTX_hex2ctrl(ctx, EVP_PKEY_CTRL_HKDF_SALT, value);
 
     if (strcmp(type, "key") == 0)
-        return EVP_PKEY_CTX_str2ctrl(ctx, EVP_PKEY_CTRL_HKDF_KEY, value);
+        return VR_EVP_PKEY_CTX_str2ctrl(ctx, EVP_PKEY_CTRL_HKDF_KEY, value);
 
     if (strcmp(type, "hexkey") == 0)
-        return EVP_PKEY_CTX_hex2ctrl(ctx, EVP_PKEY_CTRL_HKDF_KEY, value);
+        return VR_EVP_PKEY_CTX_hex2ctrl(ctx, EVP_PKEY_CTRL_HKDF_KEY, value);
 
     if (strcmp(type, "info") == 0)
-        return EVP_PKEY_CTX_str2ctrl(ctx, EVP_PKEY_CTRL_HKDF_INFO, value);
+        return VR_EVP_PKEY_CTX_str2ctrl(ctx, EVP_PKEY_CTRL_HKDF_INFO, value);
 
     if (strcmp(type, "hexinfo") == 0)
-        return EVP_PKEY_CTX_hex2ctrl(ctx, EVP_PKEY_CTRL_HKDF_INFO, value);
+        return VR_EVP_PKEY_CTX_hex2ctrl(ctx, EVP_PKEY_CTRL_HKDF_INFO, value);
 
     KDFerr(KDF_F_PKEY_HKDF_CTRL_STR, KDF_R_UNKNOWN_PARAMETER_TYPE);
     return -2;
@@ -179,9 +179,9 @@ static int pkey_hkdf_derive_init(EVP_PKEY_CTX *ctx)
 {
     HKDF_PKEY_CTX *kctx = ctx->data;
 
-    OPENSSL_clear_free(kctx->key, kctx->key_len);
-    OPENSSL_clear_free(kctx->salt, kctx->salt_len);
-    OPENSSL_cleanse(kctx->info, kctx->info_len);
+    OPENVR_SSL_clear_free(kctx->key, kctx->key_len);
+    OPENVR_SSL_clear_free(kctx->salt, kctx->salt_len);
+    VR_OPENSSL_cleanse(kctx->info, kctx->info_len);
     memset(kctx, 0, sizeof(*kctx));
 
     return 1;
@@ -209,7 +209,7 @@ static int pkey_hkdf_derive(EVP_PKEY_CTX *ctx, unsigned char *key,
 
     case EVP_PKEY_HKDEF_MODE_EXTRACT_ONLY:
         if (key == NULL) {
-            *keylen = EVP_MD_size(kctx->md);
+            *keylen = VR_EVP_MD_size(kctx->md);
             return 1;
         }
         return HKDF_Extract(kctx->md, kctx->salt, kctx->salt_len, kctx->key,
@@ -268,7 +268,7 @@ static unsigned char *HKDF(const EVP_MD *evp_md,
         return NULL;
 
     ret = HKDF_Expand(evp_md, prk, prk_len, info, info_len, okm, okm_len);
-    OPENSSL_cleanse(prk, sizeof(prk));
+    VR_OPENSSL_cleanse(prk, sizeof(prk));
 
     return ret;
 }
@@ -280,7 +280,7 @@ static unsigned char *HKDF_Extract(const EVP_MD *evp_md,
 {
     unsigned int tmp_len;
 
-    if (!HMAC(evp_md, salt, salt_len, key, key_len, prk, &tmp_len))
+    if (!VR_HMAC(evp_md, salt, salt_len, key, key_len, prk, &tmp_len))
         return NULL;
 
     *prk_len = tmp_len;
@@ -292,14 +292,14 @@ static unsigned char *HKDF_Expand(const EVP_MD *evp_md,
                                   const unsigned char *info, size_t info_len,
                                   unsigned char *okm, size_t okm_len)
 {
-    HMAC_CTX *hmac;
+    VR_HMAC_CTX *hmac;
     unsigned char *ret = NULL;
 
     unsigned int i;
 
     unsigned char prev[EVP_MAX_MD_SIZE];
 
-    size_t done_len = 0, dig_len = EVP_MD_size(evp_md);
+    size_t done_len = 0, dig_len = VR_EVP_MD_size(evp_md);
 
     size_t n = okm_len / dig_len;
     if (okm_len % dig_len)
@@ -308,10 +308,10 @@ static unsigned char *HKDF_Expand(const EVP_MD *evp_md,
     if (n > 255 || okm == NULL)
         return NULL;
 
-    if ((hmac = HMAC_CTX_new()) == NULL)
+    if ((hmac = VR_HMAC_CTX_new()) == NULL)
         return NULL;
 
-    if (!HMAC_Init_ex(hmac, prk, prk_len, evp_md, NULL))
+    if (!VR_HMAC_Init_ex(hmac, prk, prk_len, evp_md, NULL))
         goto err;
 
     for (i = 1; i <= n; i++) {
@@ -319,20 +319,20 @@ static unsigned char *HKDF_Expand(const EVP_MD *evp_md,
         const unsigned char ctr = i;
 
         if (i > 1) {
-            if (!HMAC_Init_ex(hmac, NULL, 0, NULL, NULL))
+            if (!VR_HMAC_Init_ex(hmac, NULL, 0, NULL, NULL))
                 goto err;
 
-            if (!HMAC_Update(hmac, prev, dig_len))
+            if (!VR_HMAC_Update(hmac, prev, dig_len))
                 goto err;
         }
 
-        if (!HMAC_Update(hmac, info, info_len))
+        if (!VR_HMAC_Update(hmac, info, info_len))
             goto err;
 
-        if (!HMAC_Update(hmac, &ctr, 1))
+        if (!VR_HMAC_Update(hmac, &ctr, 1))
             goto err;
 
-        if (!HMAC_Final(hmac, prev, NULL))
+        if (!VR_HMAC_Final(hmac, prev, NULL))
             goto err;
 
         copy_len = (done_len + dig_len > okm_len) ?
@@ -346,7 +346,7 @@ static unsigned char *HKDF_Expand(const EVP_MD *evp_md,
     ret = okm;
 
  err:
-    OPENSSL_cleanse(prev, sizeof(prev));
-    HMAC_CTX_free(hmac);
+    VR_OPENSSL_cleanse(prev, sizeof(prev));
+    VR_HMAC_CTX_free(hmac);
     return ret;
 }

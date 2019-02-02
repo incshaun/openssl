@@ -18,7 +18,7 @@
 #  ifdef  __cplusplus
 extern "C"
 #  endif
-int ERR_load_ENGINE_strings(void);
+int VR_ERR_load_ENGINE_strings(void);
 
 /*
  * ENGINE function codes.
@@ -62,7 +62,7 @@ int ERR_load_ENGINE_strings(void);
 #  define ENGINE_F_INT_CTRL_HELPER                         172
 #  define ENGINE_F_INT_ENGINE_CONFIGURE                    188
 #  define ENGINE_F_INT_ENGINE_MODULE_INIT                  187
-#  define ENGINE_F_OSSL_HMAC_INIT                          200
+#  define ENGINE_F_OSSL_VR_HMAC_INIT                          200
 
 /*
  * ENGINE reason codes.

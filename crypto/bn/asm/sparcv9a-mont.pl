@@ -29,7 +29,7 @@
 # integer-only pure SPARCv9 module to "fall down" to.
 
 # USI&II cores currently exhibit uniform 2x improvement [over pre-
-# bn_mul_mont codebase] for all key lengths and benchmarks. On USIII
+# VR_bn_mul_mont codebase] for all key lengths and benchmarks. On USIII
 # performance improves few percents for shorter keys and worsens few
 # percents for longer keys. This is because USIII integer multiplier
 # is >3x faster than USI&II one, which is harder to match [but see
@@ -65,7 +65,7 @@
 $output = pop;
 open STDOUT,">$output";
 
-$fname="bn_mul_mont_fpu";
+$fname="VR_bn_mul_mont_fpu";
 
 $frame="STACK_FRAME";
 $bias="STACK_BIAS";
@@ -74,7 +74,7 @@ $locals=64;
 # In order to provide for 32-/64-bit ABI duality, I keep integers wider
 # than 32 bit in %g1-%g4 and %o0-%o5. %l0-%l7 and %i0-%i5 are used
 # exclusively for pointers, indexes and other small values...
-# int bn_mul_mont(
+# int VR_bn_mul_mont(
 $rp="%i0";	# BN_ULONG *rp,
 $ap="%i1";	# const BN_ULONG *ap,
 $bp="%i2";	# const BN_ULONG *bp,

@@ -7,11 +7,11 @@
  * https://www.openssl.org/source/license.html
  */
 
-#ifndef HEADER_HMAC_LCL_H
-# define HEADER_HMAC_LCL_H
+#ifndef HEADER_VR_HMAC_LCL_H
+# define HEADER_VR_HMAC_LCL_H
 
 /* The current largest case is for SHA3-224 */
-#define HMAC_MAX_MD_CBLOCK_SIZE     144
+#define VR_HMAC_MAX_MD_CBLOCK_SIZE     144
 
 struct hmac_ctx_st {
     const EVP_MD *md;
@@ -19,7 +19,7 @@ struct hmac_ctx_st {
     EVP_MD_CTX *i_ctx;
     EVP_MD_CTX *o_ctx;
     unsigned int key_length;
-    unsigned char key[HMAC_MAX_MD_CBLOCK_SIZE];
+    unsigned char key[VR_HMAC_MAX_MD_CBLOCK_SIZE];
 };
 
 #endif

@@ -36,22 +36,22 @@ typedef struct bf_key_st {
     BF_LONG S[4 * 256];
 } BF_KEY;
 
-void BF_set_key(BF_KEY *key, int len, const unsigned char *data);
+void VR_BF_set_key(BF_KEY *key, int len, const unsigned char *data);
 
-void BF_encrypt(BF_LONG *data, const BF_KEY *key);
-void BF_decrypt(BF_LONG *data, const BF_KEY *key);
+void VR_BF_encrypt(BF_LONG *data, const BF_KEY *key);
+void VR_BF_decrypt(BF_LONG *data, const BF_KEY *key);
 
-void BF_ecb_encrypt(const unsigned char *in, unsigned char *out,
+void VR_BF_ecb_encrypt(const unsigned char *in, unsigned char *out,
                     const BF_KEY *key, int enc);
-void BF_cbc_encrypt(const unsigned char *in, unsigned char *out, long length,
+void VR_BF_cbc_encrypt(const unsigned char *in, unsigned char *out, long length,
                     const BF_KEY *schedule, unsigned char *ivec, int enc);
-void BF_cfb64_encrypt(const unsigned char *in, unsigned char *out,
+void VR_BF_cfb64_encrypt(const unsigned char *in, unsigned char *out,
                       long length, const BF_KEY *schedule,
                       unsigned char *ivec, int *num, int enc);
-void BF_ofb64_encrypt(const unsigned char *in, unsigned char *out,
+void VR_BF_ofb64_encrypt(const unsigned char *in, unsigned char *out,
                       long length, const BF_KEY *schedule,
                       unsigned char *ivec, int *num);
-const char *BF_options(void);
+const char *VR_BF_options(void);
 
 # ifdef  __cplusplus
 }

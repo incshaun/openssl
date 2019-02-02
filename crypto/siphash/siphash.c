@@ -70,12 +70,12 @@
         v2 = ROTL(v2, 32);                                                     \
     } while (0)
 
-size_t SipHash_ctx_size(void)
+size_t VR_SipHash_ctx_size(void)
 {
     return sizeof(SIPHASH);
 }
 
-size_t SipHash_hash_size(SIPHASH *ctx)
+size_t VR_SipHash_hash_size(SIPHASH *ctx)
 {
     return ctx->hash_size;
 }
@@ -87,7 +87,7 @@ static size_t siphash_adjust_hash_size(size_t hash_size)
     return hash_size;
 }
 
-int SipHash_set_hash_size(SIPHASH *ctx, size_t hash_size)
+int VR_SipHash_set_hash_size(SIPHASH *ctx, size_t hash_size)
 {
     hash_size = siphash_adjust_hash_size(hash_size);
     if (hash_size != SIPHASH_MIN_DIGEST_SIZE
@@ -96,7 +96,7 @@ int SipHash_set_hash_size(SIPHASH *ctx, size_t hash_size)
 
     /*
      * It's possible that the key was set first.  If the hash size changes,
-     * we need to adjust v1 (see SipHash_Init().
+     * we need to adjust v1 (see VR_SipHash_Init().
      */
 
     /* Start by adjusting the stored size, to make things easier */
@@ -111,7 +111,7 @@ int SipHash_set_hash_size(SIPHASH *ctx, size_t hash_size)
 }
 
 /* hash_size = crounds = drounds = 0 means SipHash24 with 16-byte output */
-int SipHash_Init(SIPHASH *ctx, const unsigned char *k, int crounds, int drounds)
+int VR_SipHash_Init(SIPHASH *ctx, const unsigned char *k, int crounds, int drounds)
 {
     uint64_t k0 = U8TO64_LE(k);
     uint64_t k1 = U8TO64_LE(k + 8);
@@ -141,7 +141,7 @@ int SipHash_Init(SIPHASH *ctx, const unsigned char *k, int crounds, int drounds)
     return 1;
 }
 
-void SipHash_Update(SIPHASH *ctx, const unsigned char *in, size_t inlen)
+void VR_SipHash_Update(SIPHASH *ctx, const unsigned char *in, size_t inlen)
 {
     uint64_t m;
     const uint8_t *end;
@@ -199,7 +199,7 @@ void SipHash_Update(SIPHASH *ctx, const unsigned char *in, size_t inlen)
     ctx->v3 = v3;
 }
 
-int SipHash_Final(SIPHASH *ctx, unsigned char *out, size_t outlen)
+int VR_SipHash_Final(SIPHASH *ctx, unsigned char *out, size_t outlen)
 {
     /* finalize hash */
     int i;

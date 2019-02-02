@@ -16,13 +16,13 @@
 static const ERR_STRING_DATA ASYNC_str_functs[] = {
     {ERR_PACK(ERR_LIB_ASYNC, ASYNC_F_ASYNC_CTX_NEW, 0), "async_ctx_new"},
     {ERR_PACK(ERR_LIB_ASYNC, ASYNC_F_ASYNC_INIT_THREAD, 0),
-     "ASYNC_init_thread"},
+     "VR_ASYNC_init_thread"},
     {ERR_PACK(ERR_LIB_ASYNC, ASYNC_F_ASYNC_JOB_NEW, 0), "async_job_new"},
-    {ERR_PACK(ERR_LIB_ASYNC, ASYNC_F_ASYNC_PAUSE_JOB, 0), "ASYNC_pause_job"},
-    {ERR_PACK(ERR_LIB_ASYNC, ASYNC_F_ASYNC_START_FUNC, 0), "async_start_func"},
-    {ERR_PACK(ERR_LIB_ASYNC, ASYNC_F_ASYNC_START_JOB, 0), "ASYNC_start_job"},
+    {ERR_PACK(ERR_LIB_ASYNC, ASYNC_F_ASYNC_PAUSE_JOB, 0), "VR_ASYNC_pause_job"},
+    {ERR_PACK(ERR_LIB_ASYNC, ASYNC_F_ASYNC_START_FUNC, 0), "VR_async_start_func"},
+    {ERR_PACK(ERR_LIB_ASYNC, ASYNC_F_ASYNC_START_JOB, 0), "VR_ASYNC_start_job"},
     {ERR_PACK(ERR_LIB_ASYNC, ASYNC_F_ASYNC_WAIT_CTX_SET_WAIT_FD, 0),
-     "ASYNC_WAIT_CTX_set_wait_fd"},
+     "VR_ASYNC_WAIT_CTX_set_wait_fd"},
     {0, NULL}
 };
 
@@ -39,12 +39,12 @@ static const ERR_STRING_DATA ASYNC_str_reasons[] = {
 
 #endif
 
-int ERR_load_ASYNC_strings(void)
+int VR_ERR_load_ASYNC_strings(void)
 {
 #ifndef OPENSSL_NO_ERR
-    if (ERR_func_error_string(ASYNC_str_functs[0].error) == NULL) {
-        ERR_load_strings_const(ASYNC_str_functs);
-        ERR_load_strings_const(ASYNC_str_reasons);
+    if (VR_ERR_func_error_string(ASYNC_str_functs[0].error) == NULL) {
+        VR_ERR_load_strings_const(ASYNC_str_functs);
+        VR_ERR_load_strings_const(ASYNC_str_reasons);
     }
 #endif
     return 1;

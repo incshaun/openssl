@@ -21,12 +21,12 @@
 
 static SRTP_PROTECTION_PROFILE srtp_known_profiles[] = {
     {
-     "SRTP_AES128_CM_SHA1_80",
-     SRTP_AES128_CM_SHA1_80,
+     "SRTP_AES128_CM_VR_SHA1_80",
+     SRTP_AES128_CM_VR_SHA1_80,
      },
     {
-     "SRTP_AES128_CM_SHA1_32",
-     SRTP_AES128_CM_SHA1_32,
+     "SRTP_AES128_CM_VR_SHA1_32",
+     SRTP_AES128_CM_VR_SHA1_32,
      },
     {
      "SRTP_AEAD_AES_128_GCM",
@@ -67,7 +67,7 @@ static int ssl_ctx_make_profiles(const char *profiles_string,
     char *ptr = (char *)profiles_string;
     SRTP_PROTECTION_PROFILE *p;
 
-    if ((profiles = sk_SRTP_PROTECTION_PROFILE_new_null()) == NULL) {
+    if ((profiles = sk_VR_SRTP_PROTECTION_PROFILE_new_null()) == NULL) {
         SSLerr(SSL_F_SSL_CTX_MAKE_PROFILES,
                SSL_R_SRTP_COULD_NOT_ALLOCATE_PROFILES);
         return 1;
@@ -78,13 +78,13 @@ static int ssl_ctx_make_profiles(const char *profiles_string,
 
         if (!find_profile_by_name(ptr, &p, col ? (size_t)(col - ptr)
                                                : strlen(ptr))) {
-            if (sk_SRTP_PROTECTION_PROFILE_find(profiles, p) >= 0) {
+            if (sk_VR_SRTP_PROTECTION_PROFILE_find(profiles, p) >= 0) {
                 SSLerr(SSL_F_SSL_CTX_MAKE_PROFILES,
                        SSL_R_BAD_SRTP_PROTECTION_PROFILE_LIST);
                 goto err;
             }
 
-            if (!sk_SRTP_PROTECTION_PROFILE_push(profiles, p)) {
+            if (!sk_VR_SRTP_PROTECTION_PROFILE_push(profiles, p)) {
                 SSLerr(SSL_F_SSL_CTX_MAKE_PROFILES,
                        SSL_R_SRTP_COULD_NOT_ALLOCATE_PROFILES);
                 goto err;
@@ -99,27 +99,27 @@ static int ssl_ctx_make_profiles(const char *profiles_string,
             ptr = col + 1;
     } while (col);
 
-    sk_SRTP_PROTECTION_PROFILE_free(*out);
+    sk_VR_SRTP_PROTECTION_PROFILE_free(*out);
 
     *out = profiles;
 
     return 0;
  err:
-    sk_SRTP_PROTECTION_PROFILE_free(profiles);
+    sk_VR_SRTP_PROTECTION_PROFILE_free(profiles);
     return 1;
 }
 
-int SSL_CTX_set_tlsext_use_srtp(SSL_CTX *ctx, const char *profiles)
+int VR_SSL_CTX_set_tlsext_use_srtp(SSL_CTX *ctx, const char *profiles)
 {
     return ssl_ctx_make_profiles(profiles, &ctx->srtp_profiles);
 }
 
-int SSL_set_tlsext_use_srtp(SSL *s, const char *profiles)
+int VR_SSL_set_tlsext_use_srtp(SSL *s, const char *profiles)
 {
     return ssl_ctx_make_profiles(profiles, &s->srtp_profiles);
 }
 
-STACK_OF(SRTP_PROTECTION_PROFILE) *SSL_get_srtp_profiles(SSL *s)
+STACK_OF(SRTP_PROTECTION_PROFILE) *VR_SSL_get_srtp_profiles(SSL *s)
 {
     if (s != NULL) {
         if (s->srtp_profiles != NULL) {
@@ -132,7 +132,7 @@ STACK_OF(SRTP_PROTECTION_PROFILE) *SSL_get_srtp_profiles(SSL *s)
     return NULL;
 }
 
-SRTP_PROTECTION_PROFILE *SSL_get_selected_srtp_profile(SSL *s)
+SRTP_PROTECTION_PROFILE *VR_SSL_get_selected_srtp_profile(SSL *s)
 {
     return s->srtp_profile;
 }

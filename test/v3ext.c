@@ -24,16 +24,16 @@ static int test_pathlen(void)
     long pathlen;
     int ret = 0;
 
-    if (!TEST_ptr(b = BIO_new_file(infile, "r"))
-            || !TEST_ptr(x = PEM_read_bio_X509(b, NULL, NULL, NULL))
-            || !TEST_int_eq(pathlen = X509_get_pathlen(x), 6))
+    if (!TEST_ptr(b = VR_BIO_new_file(infile, "r"))
+            || !TEST_ptr(x = VR_PEM_read_bio_X509(b, NULL, NULL, NULL))
+            || !TEST_int_eq(pathlen = VR_X509_get_pathlen(x), 6))
         goto end;
 
     ret = 1;
 
 end:
-    BIO_free(b);
-    X509_free(x);
+    VR_BIO_free(b);
+    VR_X509_free(x);
     return ret;
 }
 

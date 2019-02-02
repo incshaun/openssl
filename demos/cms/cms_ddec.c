@@ -27,45 +27,45 @@ int main(int argc, char **argv)
     ERR_load_crypto_strings();
 
     /* Read in recipient certificate and private key */
-    tbio = BIO_new_file("signer.pem", "r");
+    tbio = VR_BIO_new_file("signer.pem", "r");
 
     if (!tbio)
         goto err;
 
-    rcert = PEM_read_bio_X509(tbio, NULL, 0, NULL);
+    rcert = VR_PEM_read_bio_X509(tbio, NULL, 0, NULL);
 
     BIO_reset(tbio);
 
-    rkey = PEM_read_bio_PrivateKey(tbio, NULL, 0, NULL);
+    rkey = VR_PEM_read_bio_PrivateKey(tbio, NULL, 0, NULL);
 
     if (!rcert || !rkey)
         goto err;
 
     /* Open PEM file containing enveloped data */
 
-    in = BIO_new_file("smencr.pem", "r");
+    in = VR_BIO_new_file("smencr.pem", "r");
 
     if (!in)
         goto err;
 
     /* Parse PEM content */
-    cms = PEM_read_bio_CMS(in, NULL, 0, NULL);
+    cms = VR_PEM_read_bio_CMS(in, NULL, 0, NULL);
 
     if (!cms)
         goto err;
 
     /* Open file containing detached content */
-    dcont = BIO_new_file("smencr.out", "rb");
+    dcont = VR_BIO_new_file("smencr.out", "rb");
 
     if (!in)
         goto err;
 
-    out = BIO_new_file("encrout.txt", "w");
+    out = VR_BIO_new_file("encrout.txt", "w");
     if (!out)
         goto err;
 
     /* Decrypt S/MIME message */
-    if (!CMS_decrypt(cms, rkey, rcert, dcont, out, 0))
+    if (!VR_CMS_decrypt(cms, rkey, rcert, dcont, out, 0))
         goto err;
 
     ret = 0;
@@ -74,15 +74,15 @@ int main(int argc, char **argv)
 
     if (ret) {
         fprintf(stderr, "Error Decrypting Data\n");
-        ERR_print_errors_fp(stderr);
+        VR_ERR_print_errors_fp(stderr);
     }
 
-    CMS_ContentInfo_free(cms);
-    X509_free(rcert);
-    EVP_PKEY_free(rkey);
-    BIO_free(in);
-    BIO_free(out);
-    BIO_free(tbio);
-    BIO_free(dcont);
+    VR_CMS_ContentInfo_free(cms);
+    VR_X509_free(rcert);
+    VR_EVP_PKEY_free(rkey);
+    VR_BIO_free(in);
+    VR_BIO_free(out);
+    VR_BIO_free(tbio);
+    VR_BIO_free(dcont);
     return ret;
 }

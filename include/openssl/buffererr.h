@@ -14,7 +14,7 @@
 # ifdef  __cplusplus
 extern "C"
 # endif
-int ERR_load_BUF_strings(void);
+int VR_ERR_load_BUF_strings(void);
 
 /*
  * BUF function codes.

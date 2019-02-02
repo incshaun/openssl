@@ -34,13 +34,13 @@ struct dso_st {
     CRYPTO_EX_DATA ex_data;
     /*
      * If this callback function pointer is set to non-NULL, then it will be
-     * used in DSO_load() in place of meth->dso_name_converter. NB: This
+     * used in VR_DSO_load() in place of meth->dso_name_converter. NB: This
      * should normally set using DSO_set_name_converter().
      */
     DSO_NAME_CONVERTER_FUNC name_converter;
     /*
      * If this callback function pointer is set to non-NULL, then it will be
-     * used in DSO_load() in place of meth->dso_merger. NB: This should
+     * used in VR_DSO_load() in place of meth->dso_merger. NB: This should
      * normally set using DSO_set_merger().
      */
     DSO_MERGER_FUNC merger;
@@ -69,7 +69,7 @@ struct dso_meth_st {
     /*
      * Loads a shared library, NB: new DSO_METHODs must ensure that a
      * successful load populates the loaded_filename field, and likewise a
-     * successful unload OPENSSL_frees and NULLs it out.
+     * successful unload OPENVR_SSL_frees and NULLs it out.
      */
     int (*dso_load) (DSO *dso);
     /* Unloads a shared library */

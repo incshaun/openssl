@@ -38,37 +38,37 @@ typedef struct SHAstate_st {
     unsigned int num;
 } SHA_CTX;
 
-int SHA1_Init(SHA_CTX *c);
-int SHA1_Update(SHA_CTX *c, const void *data, size_t len);
-int SHA1_Final(unsigned char *md, SHA_CTX *c);
-unsigned char *SHA1(const unsigned char *d, size_t n, unsigned char *md);
-void SHA1_Transform(SHA_CTX *c, const unsigned char *data);
+int VR_SHA1_Init(SHA_CTX *c);
+int VR_SHA1_Update(SHA_CTX *c, const void *data, size_t len);
+int VR_SHA1_Final(unsigned char *md, SHA_CTX *c);
+unsigned char *VR_SHA1(const unsigned char *d, size_t n, unsigned char *md);
+void VR_SHA1_Transform(SHA_CTX *c, const unsigned char *data);
 
-# define SHA256_CBLOCK   (SHA_LBLOCK*4)/* SHA-256 treats input data as a
+# define VR_SHA256_CBLOCK   (SHA_LBLOCK*4)/* SHA-256 treats input data as a
                                         * contiguous array of 32 bit wide
                                         * big-endian values. */
 
-typedef struct SHA256state_st {
+typedef struct VR_SHA256state_st {
     SHA_LONG h[8];
     SHA_LONG Nl, Nh;
     SHA_LONG data[SHA_LBLOCK];
     unsigned int num, md_len;
-} SHA256_CTX;
+} VR_SHA256_CTX;
 
-int SHA224_Init(SHA256_CTX *c);
-int SHA224_Update(SHA256_CTX *c, const void *data, size_t len);
-int SHA224_Final(unsigned char *md, SHA256_CTX *c);
-unsigned char *SHA224(const unsigned char *d, size_t n, unsigned char *md);
-int SHA256_Init(SHA256_CTX *c);
-int SHA256_Update(SHA256_CTX *c, const void *data, size_t len);
-int SHA256_Final(unsigned char *md, SHA256_CTX *c);
-unsigned char *SHA256(const unsigned char *d, size_t n, unsigned char *md);
-void SHA256_Transform(SHA256_CTX *c, const unsigned char *data);
+int VR_SHA224_Init(VR_SHA256_CTX *c);
+int VR_SHA224_Update(VR_SHA256_CTX *c, const void *data, size_t len);
+int VR_SHA224_Final(unsigned char *md, VR_SHA256_CTX *c);
+unsigned char *VR_SHA224(const unsigned char *d, size_t n, unsigned char *md);
+int VR_SHA256_Init(VR_SHA256_CTX *c);
+int VR_SHA256_Update(VR_SHA256_CTX *c, const void *data, size_t len);
+int VR_SHA256_Final(unsigned char *md, VR_SHA256_CTX *c);
+unsigned char *VR_SHA256(const unsigned char *d, size_t n, unsigned char *md);
+void VR_SHA256_Transform(VR_SHA256_CTX *c, const unsigned char *data);
 
-# define SHA224_DIGEST_LENGTH    28
-# define SHA256_DIGEST_LENGTH    32
-# define SHA384_DIGEST_LENGTH    48
-# define SHA512_DIGEST_LENGTH    64
+# define VR_SHA224_DIGEST_LENGTH    28
+# define VR_SHA256_DIGEST_LENGTH    32
+# define VR_SHA384_DIGEST_LENGTH    48
+# define VR_SHA512_DIGEST_LENGTH    64
 
 /*
  * Unlike 32-bit digest algorithms, SHA-512 *relies* on SHA_LONG64
@@ -80,7 +80,7 @@ void SHA256_Transform(SHA256_CTX *c, const unsigned char *data);
  * contiguous array of 64 bit
  * wide big-endian values.
  */
-# define SHA512_CBLOCK   (SHA_LBLOCK*8)
+# define VR_SHA512_CBLOCK   (SHA_LBLOCK*8)
 # if (defined(_WIN32) || defined(_WIN64)) && !defined(__MINGW32__)
 #  define SHA_LONG64 unsigned __int64
 #  define U64(C)     C##UI64
@@ -92,25 +92,25 @@ void SHA256_Transform(SHA256_CTX *c, const unsigned char *data);
 #  define U64(C)     C##ULL
 # endif
 
-typedef struct SHA512state_st {
+typedef struct VR_SHA512state_st {
     SHA_LONG64 h[8];
     SHA_LONG64 Nl, Nh;
     union {
         SHA_LONG64 d[SHA_LBLOCK];
-        unsigned char p[SHA512_CBLOCK];
+        unsigned char p[VR_SHA512_CBLOCK];
     } u;
     unsigned int num, md_len;
-} SHA512_CTX;
+} VR_SHA512_CTX;
 
-int SHA384_Init(SHA512_CTX *c);
-int SHA384_Update(SHA512_CTX *c, const void *data, size_t len);
-int SHA384_Final(unsigned char *md, SHA512_CTX *c);
-unsigned char *SHA384(const unsigned char *d, size_t n, unsigned char *md);
-int SHA512_Init(SHA512_CTX *c);
-int SHA512_Update(SHA512_CTX *c, const void *data, size_t len);
-int SHA512_Final(unsigned char *md, SHA512_CTX *c);
-unsigned char *SHA512(const unsigned char *d, size_t n, unsigned char *md);
-void SHA512_Transform(SHA512_CTX *c, const unsigned char *data);
+int VR_SHA384_Init(VR_SHA512_CTX *c);
+int VR_SHA384_Update(VR_SHA512_CTX *c, const void *data, size_t len);
+int VR_SHA384_Final(unsigned char *md, VR_SHA512_CTX *c);
+unsigned char *VR_SHA384(const unsigned char *d, size_t n, unsigned char *md);
+int VR_SHA512_Init(VR_SHA512_CTX *c);
+int VR_SHA512_Update(VR_SHA512_CTX *c, const void *data, size_t len);
+int VR_SHA512_Final(unsigned char *md, VR_SHA512_CTX *c);
+unsigned char *VR_SHA512(const unsigned char *d, size_t n, unsigned char *md);
+void VR_SHA512_Transform(VR_SHA512_CTX *c, const unsigned char *data);
 
 #ifdef  __cplusplus
 }

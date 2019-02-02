@@ -16,10 +16,10 @@
 
 typedef struct siphash_st SIPHASH;
 
-size_t SipHash_ctx_size(void);
-size_t SipHash_hash_size(SIPHASH *ctx);
-int SipHash_set_hash_size(SIPHASH *ctx, size_t hash_size);
-int SipHash_Init(SIPHASH *ctx, const unsigned char *k,
+size_t VR_SipHash_ctx_size(void);
+size_t VR_SipHash_hash_size(SIPHASH *ctx);
+int VR_SipHash_set_hash_size(SIPHASH *ctx, size_t hash_size);
+int VR_SipHash_Init(SIPHASH *ctx, const unsigned char *k,
                  int crounds, int drounds);
-void SipHash_Update(SIPHASH *ctx, const unsigned char *in, size_t inlen);
-int SipHash_Final(SIPHASH *ctx, unsigned char *out, size_t outlen);
+void VR_SipHash_Update(SIPHASH *ctx, const unsigned char *in, size_t inlen);
+int VR_SipHash_Final(SIPHASH *ctx, unsigned char *out, size_t outlen);

@@ -26,38 +26,38 @@
                         *((c)++)=(unsigned char)(((l)>>16L)&0xff), \
                         *((c)++)=(unsigned char)(((l)>>24L)&0xff))
 
-static void mdc2_body(MDC2_CTX *c, const unsigned char *in, size_t len);
-int MDC2_Init(MDC2_CTX *c)
+static void mdc2_body(VR_MDC2_CTX *c, const unsigned char *in, size_t len);
+int VR_MDC2_Init(VR_MDC2_CTX *c)
 {
     c->num = 0;
     c->pad_type = 1;
-    memset(&(c->h[0]), 0x52, MDC2_BLOCK);
-    memset(&(c->hh[0]), 0x25, MDC2_BLOCK);
+    memset(&(c->h[0]), 0x52, VR_MDC2_BLOCK);
+    memset(&(c->hh[0]), 0x25, VR_MDC2_BLOCK);
     return 1;
 }
 
-int MDC2_Update(MDC2_CTX *c, const unsigned char *in, size_t len)
+int VR_MDC2_Update(VR_MDC2_CTX *c, const unsigned char *in, size_t len)
 {
     size_t i, j;
 
     i = c->num;
     if (i != 0) {
-        if (len < MDC2_BLOCK - i) {
+        if (len < VR_MDC2_BLOCK - i) {
             /* partial block */
             memcpy(&(c->data[i]), in, len);
             c->num += (int)len;
             return 1;
         } else {
             /* filled one */
-            j = MDC2_BLOCK - i;
+            j = VR_MDC2_BLOCK - i;
             memcpy(&(c->data[i]), in, j);
             len -= j;
             in += j;
             c->num = 0;
-            mdc2_body(c, &(c->data[0]), MDC2_BLOCK);
+            mdc2_body(c, &(c->data[0]), VR_MDC2_BLOCK);
         }
     }
-    i = len & ~((size_t)MDC2_BLOCK - 1);
+    i = len & ~((size_t)VR_MDC2_BLOCK - 1);
     if (i > 0)
         mdc2_body(c, in, i);
     j = len - i;
@@ -68,12 +68,12 @@ int MDC2_Update(MDC2_CTX *c, const unsigned char *in, size_t len)
     return 1;
 }
 
-static void mdc2_body(MDC2_CTX *c, const unsigned char *in, size_t len)
+static void mdc2_body(VR_MDC2_CTX *c, const unsigned char *in, size_t len)
 {
     register DES_LONG tin0, tin1;
     register DES_LONG ttin0, ttin1;
     DES_LONG d[2], dd[2];
-    DES_key_schedule k;
+    VR_DES_key_schedule k;
     unsigned char *p;
     size_t i;
 
@@ -85,13 +85,13 @@ static void mdc2_body(MDC2_CTX *c, const unsigned char *in, size_t len)
         c->h[0] = (c->h[0] & 0x9f) | 0x40;
         c->hh[0] = (c->hh[0] & 0x9f) | 0x20;
 
-        DES_set_odd_parity(&c->h);
-        DES_set_key_unchecked(&c->h, &k);
-        DES_encrypt1(d, &k, 1);
+        VR_DES_set_odd_parity(&c->h);
+        VR_DES_set_key_unchecked(&c->h, &k);
+        VR_DES_encrypt1(d, &k, 1);
 
-        DES_set_odd_parity(&c->hh);
-        DES_set_key_unchecked(&c->hh, &k);
-        DES_encrypt1(dd, &k, 1);
+        VR_DES_set_odd_parity(&c->hh);
+        VR_DES_set_key_unchecked(&c->hh, &k);
+        VR_DES_encrypt1(dd, &k, 1);
 
         ttin0 = tin0 ^ dd[0];
         ttin1 = tin1 ^ dd[1];
@@ -107,7 +107,7 @@ static void mdc2_body(MDC2_CTX *c, const unsigned char *in, size_t len)
     }
 }
 
-int MDC2_Final(unsigned char *md, MDC2_CTX *c)
+int VR_MDC2_Final(unsigned char *md, VR_MDC2_CTX *c)
 {
     unsigned int i;
     int j;
@@ -117,10 +117,10 @@ int MDC2_Final(unsigned char *md, MDC2_CTX *c)
     if ((i > 0) || (j == 2)) {
         if (j == 2)
             c->data[i++] = 0x80;
-        memset(&(c->data[i]), 0, MDC2_BLOCK - i);
-        mdc2_body(c, c->data, MDC2_BLOCK);
+        memset(&(c->data[i]), 0, VR_MDC2_BLOCK - i);
+        mdc2_body(c, c->data, VR_MDC2_BLOCK);
     }
-    memcpy(md, (char *)c->h, MDC2_BLOCK);
-    memcpy(&(md[MDC2_BLOCK]), (char *)c->hh, MDC2_BLOCK);
+    memcpy(md, (char *)c->h, VR_MDC2_BLOCK);
+    memcpy(&(md[VR_MDC2_BLOCK]), (char *)c->hh, VR_MDC2_BLOCK);
     return 1;
 }

@@ -21,7 +21,7 @@ ASN1_SEQUENCE(DSA_SIG) = {
 
 IMPLEMENT_ASN1_ENCODE_FUNCTIONS_const_fname(DSA_SIG, DSA_SIG, DSA_SIG)
 
-DSA_SIG *DSA_SIG_new(void)
+DSA_SIG *VR_DSA_SIG_new(void)
 {
     DSA_SIG *sig = OPENSSL_zalloc(sizeof(*sig));
     if (sig == NULL)
@@ -29,16 +29,16 @@ DSA_SIG *DSA_SIG_new(void)
     return sig;
 }
 
-void DSA_SIG_free(DSA_SIG *sig)
+void VR_DSA_SIG_free(DSA_SIG *sig)
 {
     if (sig == NULL)
         return;
-    BN_clear_free(sig->r);
-    BN_clear_free(sig->s);
-    OPENSSL_free(sig);
+    VR_BN_clear_free(sig->r);
+    VR_BN_clear_free(sig->s);
+    OPENVR_SSL_free(sig);
 }
 
-void DSA_SIG_get0(const DSA_SIG *sig, const BIGNUM **pr, const BIGNUM **ps)
+void VR_DSA_SIG_get0(const DSA_SIG *sig, const BIGNUM **pr, const BIGNUM **ps)
 {
     if (pr != NULL)
         *pr = sig->r;
@@ -46,12 +46,12 @@ void DSA_SIG_get0(const DSA_SIG *sig, const BIGNUM **pr, const BIGNUM **ps)
         *ps = sig->s;
 }
 
-int DSA_SIG_set0(DSA_SIG *sig, BIGNUM *r, BIGNUM *s)
+int VR_DSA_SIG_set0(DSA_SIG *sig, BIGNUM *r, BIGNUM *s)
 {
     if (r == NULL || s == NULL)
         return 0;
-    BN_clear_free(sig->r);
-    BN_clear_free(sig->s);
+    VR_BN_clear_free(sig->r);
+    VR_BN_clear_free(sig->s);
     sig->r = r;
     sig->s = s;
     return 1;
@@ -62,12 +62,12 @@ static int dsa_cb(int operation, ASN1_VALUE **pval, const ASN1_ITEM *it,
                   void *exarg)
 {
     if (operation == ASN1_OP_NEW_PRE) {
-        *pval = (ASN1_VALUE *)DSA_new();
+        *pval = (ASN1_VALUE *)VR_DSA_new();
         if (*pval != NULL)
             return 2;
         return 0;
     } else if (operation == ASN1_OP_FREE_PRE) {
-        DSA_free((DSA *)*pval);
+        VR_DSA_free((DSA *)*pval);
         *pval = NULL;
         return 2;
     }
@@ -102,23 +102,23 @@ ASN1_SEQUENCE_cb(DSAPublicKey, dsa_cb) = {
 
 IMPLEMENT_ASN1_ENCODE_FUNCTIONS_const_fname(DSA, DSAPublicKey, DSAPublicKey)
 
-DSA *DSAparams_dup(DSA *dsa)
+DSA *VR_DSAparams_dup(DSA *dsa)
 {
-    return ASN1_item_dup(ASN1_ITEM_rptr(DSAparams), dsa);
+    return VR_ASN1_item_dup(ASN1_ITEM_rptr(DSAparams), dsa);
 }
 
-int DSA_sign(int type, const unsigned char *dgst, int dlen,
+int VR_DSA_sign(int type, const unsigned char *dgst, int dlen,
              unsigned char *sig, unsigned int *siglen, DSA *dsa)
 {
     DSA_SIG *s;
 
-    s = DSA_do_sign(dgst, dlen, dsa);
+    s = VR_DSA_do_sign(dgst, dlen, dsa);
     if (s == NULL) {
         *siglen = 0;
         return 0;
     }
-    *siglen = i2d_DSA_SIG(s, &sig);
-    DSA_SIG_free(s);
+    *siglen = VR_i2d_DSA_SIG(s, &sig);
+    VR_DSA_SIG_free(s);
     return 1;
 }
 
@@ -129,7 +129,7 @@ int DSA_sign(int type, const unsigned char *dgst, int dlen,
  *      0: incorrect signature
  *     -1: error
  */
-int DSA_verify(int type, const unsigned char *dgst, int dgst_len,
+int VR_DSA_verify(int type, const unsigned char *dgst, int dgst_len,
                const unsigned char *sigbuf, int siglen, DSA *dsa)
 {
     DSA_SIG *s;
@@ -138,18 +138,18 @@ int DSA_verify(int type, const unsigned char *dgst, int dgst_len,
     int derlen = -1;
     int ret = -1;
 
-    s = DSA_SIG_new();
+    s = VR_DSA_SIG_new();
     if (s == NULL)
         return ret;
-    if (d2i_DSA_SIG(&s, &p, siglen) == NULL)
+    if (VR_d2i_DSA_SIG(&s, &p, siglen) == NULL)
         goto err;
     /* Ensure signature uses DER and doesn't have trailing garbage */
-    derlen = i2d_DSA_SIG(s, &der);
+    derlen = VR_i2d_DSA_SIG(s, &der);
     if (derlen != siglen || memcmp(sigbuf, der, derlen))
         goto err;
-    ret = DSA_do_verify(dgst, dgst_len, s, dsa);
+    ret = VR_DSA_do_verify(dgst, dgst_len, s, dsa);
  err:
-    OPENSSL_clear_free(der, derlen);
-    DSA_SIG_free(s);
+    OPENVR_SSL_clear_free(der, derlen);
+    VR_DSA_SIG_free(s);
     return ret;
 }

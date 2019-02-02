@@ -13,7 +13,7 @@
 #include "bf_locl.h"
 #include "bf_pi.h"
 
-void BF_set_key(BF_KEY *key, int len, const unsigned char *data)
+void VR_BF_set_key(BF_KEY *key, int len, const unsigned char *data)
 {
     int i;
     BF_LONG *p, ri, in[2];
@@ -53,14 +53,14 @@ void BF_set_key(BF_KEY *key, int len, const unsigned char *data)
     in[0] = 0L;
     in[1] = 0L;
     for (i = 0; i < (BF_ROUNDS + 2); i += 2) {
-        BF_encrypt(in, key);
+        VR_BF_encrypt(in, key);
         p[i] = in[0];
         p[i + 1] = in[1];
     }
 
     p = key->S;
     for (i = 0; i < 4 * 256; i += 2) {
-        BF_encrypt(in, key);
+        VR_BF_encrypt(in, key);
         p[i] = in[0];
         p[i + 1] = in[1];
     }

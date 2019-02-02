@@ -15,7 +15,7 @@
  * The extra state information to record how much of the 64bit block we have
  * used is contained in *num;
  */
-void IDEA_ofb64_encrypt(const unsigned char *in, unsigned char *out,
+void VR_IDEA_ofb64_encrypt(const unsigned char *in, unsigned char *out,
                         long length, IDEA_KEY_SCHEDULE *schedule,
                         unsigned char *ivec, int *num)
 {
@@ -38,7 +38,7 @@ void IDEA_ofb64_encrypt(const unsigned char *in, unsigned char *out,
     l2n(v1, dp);
     while (l--) {
         if (n == 0) {
-            IDEA_encrypt((unsigned long *)ti, schedule);
+            VR_IDEA_encrypt((unsigned long *)ti, schedule);
             dp = (char *)d;
             t = ti[0];
             l2n(t, dp);

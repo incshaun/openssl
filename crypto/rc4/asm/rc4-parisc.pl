@@ -14,7 +14,7 @@
 # details see http://www.openssl.org/~appro/cryptogams/.
 # ====================================================================
 
-# RC4 for PA-RISC.
+# VR_RC4 for PA-RISC.
 
 # June 2009.
 #
@@ -53,10 +53,10 @@ if ($flavour =~ /64/) {
 
 $FRAME=4*$SIZE_T+$FRAME_MARKER;	# 4 saved regs + frame marker
 				#                [+ argument transfer]
-$SZ=1;				# defaults to RC4_CHAR
+$SZ=1;				# defaults to VR_RC4_CHAR
 if (open CONF,"<${dir}../../opensslconf.h") {
     while(<CONF>) {
-	if (m/#\s*define\s+RC4_INT\s+(.*)/) {
+	if (m/#\s*define\s+VR_RC4_INT\s+(.*)/) {
 	    $SZ = ($1=~/char$/) ? 1 : 4;
 	    last;
 	}
@@ -64,12 +64,12 @@ if (open CONF,"<${dir}../../opensslconf.h") {
     close CONF;
 }
 
-if ($SZ==1) {	# RC4_CHAR
+if ($SZ==1) {	# VR_RC4_CHAR
     $LD="ldb";
     $LDX="ldbx";
     $MKX="addl";
     $ST="stb";
-} else {	# RC4_INT (~5% faster than RC4_CHAR on PA-7100LC)
+} else {	# VR_RC4_INT (~5% faster than VR_RC4_CHAR on PA-7100LC)
     $LD="ldw";
     $LDX="ldwx,s";
     $MKX="sh2addl";
@@ -147,8 +147,8 @@ $code=<<___;
 	.SPACE	\$TEXT\$
 	.SUBSPA	\$CODE\$,QUAD=0,ALIGN=8,ACCESS=0x2C,CODE_ONLY
 
-	.EXPORT	RC4,ENTRY,ARGW0=GR,ARGW1=GR,ARGW2=GR,ARGW3=GR
-RC4
+	.EXPORT	VR_RC4,ENTRY,ARGW0=GR,ARGW1=GR,ARGW2=GR,ARGW3=GR
+VR_RC4
 	.PROC
 	.CALLINFO	FRAME=`$FRAME-4*$SIZE_T`,NO_CALLS,SAVE_RP,ENTRY_GR=6
 	.ENTRY
@@ -250,9 +250,9 @@ ___
 
 $code.=<<___;
 
-	.EXPORT	RC4_set_key,ENTRY,ARGW0=GR,ARGW1=GR,ARGW2=GR
+	.EXPORT	VR_RC4_set_key,ENTRY,ARGW0=GR,ARGW1=GR,ARGW2=GR
 	.ALIGN	8
-RC4_set_key
+VR_RC4_set_key
 	.PROC
 	.CALLINFO	NO_CALLS
 	.ENTRY
@@ -294,9 +294,9 @@ L\$2nd
 	nop
 	.PROCEND
 
-	.EXPORT	RC4_options,ENTRY
+	.EXPORT	VR_RC4_options,ENTRY
 	.ALIGN	8
-RC4_options
+VR_RC4_options
 	.PROC
 	.CALLINFO	NO_CALLS
 	.ENTRY
@@ -311,7 +311,7 @@ L\$pic
 	.ALIGN	8
 L\$opts
 	.STRINGZ "rc4(4x,`$SZ==1?"char":"int"`)"
-	.STRINGZ "RC4 for PA-RISC, CRYPTOGAMS by <appro\@openssl.org>"
+	.STRINGZ "VR_RC4 for PA-RISC, CRYPTOGAMS by <appro\@openssl.org>"
 ___
 
 if (`$ENV{CC} -Wa,-v -c -o /dev/null -x assembler /dev/null 2>&1`

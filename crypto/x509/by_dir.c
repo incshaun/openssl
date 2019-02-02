@@ -59,7 +59,7 @@ static X509_LOOKUP_METHOD x509_dir_lookup = {
     NULL,                       /* get_by_alias */
 };
 
-X509_LOOKUP_METHOD *X509_LOOKUP_hash_dir(void)
+X509_LOOKUP_METHOD *VR_X509_LOOKUP_hash_dir(void)
 {
     return &x509_dir_lookup;
 }
@@ -73,12 +73,12 @@ static int dir_ctrl(X509_LOOKUP *ctx, int cmd, const char *argp, long argl,
     switch (cmd) {
     case X509_L_ADD_DIR:
         if (argl == X509_FILETYPE_DEFAULT) {
-            const char *dir = ossl_safe_getenv(X509_get_default_cert_dir_env());
+            const char *dir = VR_ossl_safe_getenv(VR_X509_get_default_cert_dir_env());
 
             if (dir)
                 ret = add_cert_dir(ld, dir, X509_FILETYPE_PEM);
             else
-                ret = add_cert_dir(ld, X509_get_default_cert_dir(),
+                ret = add_cert_dir(ld, VR_X509_get_default_cert_dir(),
                                    X509_FILETYPE_PEM);
             if (!ret) {
                 X509err(X509_F_DIR_CTRL, X509_R_LOADING_CERT_DIR);
@@ -99,14 +99,14 @@ static int new_dir(X509_LOOKUP *lu)
         return 0;
     }
 
-    if ((a->buffer = BUF_MEM_new()) == NULL) {
+    if ((a->buffer = VR_BUF_MEM_new()) == NULL) {
         X509err(X509_F_NEW_DIR, ERR_R_MALLOC_FAILURE);
         goto err;
     }
     a->dirs = NULL;
-    a->lock = CRYPTO_THREAD_lock_new();
+    a->lock = VR_CRYPTO_THREAD_lock_new();
     if (a->lock == NULL) {
-        BUF_MEM_free(a->buffer);
+        VR_BUF_MEM_free(a->buffer);
         X509err(X509_F_NEW_DIR, ERR_R_MALLOC_FAILURE);
         goto err;
     }
@@ -114,13 +114,13 @@ static int new_dir(X509_LOOKUP *lu)
     return 1;
 
  err:
-    OPENSSL_free(a);
+    OPENVR_SSL_free(a);
     return 0;
 }
 
 static void by_dir_hash_free(BY_DIR_HASH *hash)
 {
-    OPENSSL_free(hash);
+    OPENVR_SSL_free(hash);
 }
 
 static int by_dir_hash_cmp(const BY_DIR_HASH *const *a,
@@ -135,19 +135,19 @@ static int by_dir_hash_cmp(const BY_DIR_HASH *const *a,
 
 static void by_dir_entry_free(BY_DIR_ENTRY *ent)
 {
-    OPENSSL_free(ent->dir);
-    sk_BY_DIR_HASH_pop_free(ent->hashes, by_dir_hash_free);
-    OPENSSL_free(ent);
+    OPENVR_SSL_free(ent->dir);
+    sk_VR_BY_DIR_HASH_pop_free(ent->hashes, by_dir_hash_free);
+    OPENVR_SSL_free(ent);
 }
 
 static void free_dir(X509_LOOKUP *lu)
 {
     BY_DIR *a = (BY_DIR *)lu->method_data;
 
-    sk_BY_DIR_ENTRY_pop_free(a->dirs, by_dir_entry_free);
-    BUF_MEM_free(a->buffer);
-    CRYPTO_THREAD_lock_free(a->lock);
-    OPENSSL_free(a);
+    sk_VR_BY_DIR_ENTRY_pop_free(a->dirs, by_dir_entry_free);
+    VR_BUF_MEM_free(a->buffer);
+    VR_CRYPTO_THREAD_lock_free(a->lock);
+    OPENVR_SSL_free(a);
 }
 
 static int add_cert_dir(BY_DIR *ctx, const char *dir, int type)
@@ -180,7 +180,7 @@ static int add_cert_dir(BY_DIR *ctx, const char *dir, int type)
             if (j < sk_BY_DIR_ENTRY_num(ctx->dirs))
                 continue;
             if (ctx->dirs == NULL) {
-                ctx->dirs = sk_BY_DIR_ENTRY_new_null();
+                ctx->dirs = sk_VR_BY_DIR_ENTRY_new_null();
                 if (!ctx->dirs) {
                     X509err(X509_F_ADD_CERT_DIR, ERR_R_MALLOC_FAILURE);
                     return 0;
@@ -192,13 +192,13 @@ static int add_cert_dir(BY_DIR *ctx, const char *dir, int type)
                 return 0;
             }
             ent->dir_type = type;
-            ent->hashes = sk_BY_DIR_HASH_new(by_dir_hash_cmp);
+            ent->hashes = sk_VR_BY_DIR_HASH_new(by_dir_hash_cmp);
             ent->dir = OPENSSL_strndup(ss, len);
             if (ent->dir == NULL || ent->hashes == NULL) {
                 by_dir_entry_free(ent);
                 return 0;
             }
-            if (!sk_BY_DIR_ENTRY_push(ctx->dirs, ent)) {
+            if (!sk_VR_BY_DIR_ENTRY_push(ctx->dirs, ent)) {
                 by_dir_entry_free(ent);
                 X509err(X509_F_ADD_CERT_DIR, ERR_R_MALLOC_FAILURE);
                 return 0;
@@ -240,14 +240,14 @@ static int get_cert_by_subject(X509_LOOKUP *xl, X509_LOOKUP_TYPE type,
         goto finish;
     }
 
-    if ((b = BUF_MEM_new()) == NULL) {
+    if ((b = VR_BUF_MEM_new()) == NULL) {
         X509err(X509_F_GET_CERT_BY_SUBJECT, ERR_R_BUF_LIB);
         goto finish;
     }
 
     ctx = (BY_DIR *)xl->method_data;
 
-    h = X509_NAME_hash(name);
+    h = VR_X509_NAME_hash(name);
     for (i = 0; i < sk_BY_DIR_ENTRY_num(ctx->dirs); i++) {
         BY_DIR_ENTRY *ent;
         int idx;
@@ -255,14 +255,14 @@ static int get_cert_by_subject(X509_LOOKUP *xl, X509_LOOKUP_TYPE type,
 
         ent = sk_BY_DIR_ENTRY_value(ctx->dirs, i);
         j = strlen(ent->dir) + 1 + 8 + 6 + 1 + 1;
-        if (!BUF_MEM_grow(b, j)) {
+        if (!VR_BUF_MEM_grow(b, j)) {
             X509err(X509_F_GET_CERT_BY_SUBJECT, ERR_R_MALLOC_FAILURE);
             goto finish;
         }
         if (type == X509_LU_CRL && ent->hashes) {
             htmp.hash = h;
-            CRYPTO_THREAD_read_lock(ctx->lock);
-            idx = sk_BY_DIR_HASH_find(ent->hashes, &htmp);
+            VR_CRYPTO_THREAD_read_lock(ctx->lock);
+            idx = sk_VR_BY_DIR_HASH_find(ent->hashes, &htmp);
             if (idx >= 0) {
                 hent = sk_BY_DIR_HASH_value(ent->hashes, idx);
                 k = hent->suffix;
@@ -270,7 +270,7 @@ static int get_cert_by_subject(X509_LOOKUP *xl, X509_LOOKUP_TYPE type,
                 hent = NULL;
                 k = 0;
             }
-            CRYPTO_THREAD_unlock(ctx->lock);
+            VR_CRYPTO_THREAD_unlock(ctx->lock);
         } else {
             k = 0;
             hent = NULL;
@@ -296,10 +296,10 @@ static int get_cert_by_subject(X509_LOOKUP *xl, X509_LOOKUP_TYPE type,
                  * This is special.  When c == '\0', no directory separator
                  * should be added.
                  */
-                BIO_snprintf(b->data, b->max,
+                VR_BIO_snprintf(b->data, b->max,
                              "%s%08lx.%s%d", ent->dir, h, postfix, k);
             } else {
-                BIO_snprintf(b->data, b->max,
+                VR_BIO_snprintf(b->data, b->max,
                              "%s%c%08lx.%s%d", ent->dir, c, h, postfix, k);
             }
 #ifndef OPENSSL_NO_POSIX_IO
@@ -314,10 +314,10 @@ static int get_cert_by_subject(X509_LOOKUP *xl, X509_LOOKUP_TYPE type,
 #endif
             /* found one. */
             if (type == X509_LU_X509) {
-                if ((X509_load_cert_file(xl, b->data, ent->dir_type)) == 0)
+                if ((VR_X509_load_cert_file(xl, b->data, ent->dir_type)) == 0)
                     break;
             } else if (type == X509_LU_CRL) {
-                if ((X509_load_crl_file(xl, b->data, ent->dir_type)) == 0)
+                if ((VR_X509_load_crl_file(xl, b->data, ent->dir_type)) == 0)
                     break;
             }
             /* else case will caught higher up */
@@ -327,37 +327,37 @@ static int get_cert_by_subject(X509_LOOKUP *xl, X509_LOOKUP_TYPE type,
         /*
          * we have added it to the cache so now pull it out again
          */
-        CRYPTO_THREAD_write_lock(ctx->lock);
-        j = sk_X509_OBJECT_find(xl->store_ctx->objs, &stmp);
+        VR_CRYPTO_THREAD_write_lock(ctx->lock);
+        j = sk_VR_X509_OBJECT_find(xl->store_ctx->objs, &stmp);
         tmp = sk_X509_OBJECT_value(xl->store_ctx->objs, j);
-        CRYPTO_THREAD_unlock(ctx->lock);
+        VR_CRYPTO_THREAD_unlock(ctx->lock);
 
         /* If a CRL, update the last file suffix added for this */
 
         if (type == X509_LU_CRL) {
-            CRYPTO_THREAD_write_lock(ctx->lock);
+            VR_CRYPTO_THREAD_write_lock(ctx->lock);
             /*
              * Look for entry again in case another thread added an entry
              * first.
              */
             if (hent == NULL) {
                 htmp.hash = h;
-                idx = sk_BY_DIR_HASH_find(ent->hashes, &htmp);
+                idx = sk_VR_BY_DIR_HASH_find(ent->hashes, &htmp);
                 hent = sk_BY_DIR_HASH_value(ent->hashes, idx);
             }
             if (hent == NULL) {
                 hent = OPENSSL_malloc(sizeof(*hent));
                 if (hent == NULL) {
-                    CRYPTO_THREAD_unlock(ctx->lock);
+                    VR_CRYPTO_THREAD_unlock(ctx->lock);
                     X509err(X509_F_GET_CERT_BY_SUBJECT, ERR_R_MALLOC_FAILURE);
                     ok = 0;
                     goto finish;
                 }
                 hent->hash = h;
                 hent->suffix = k;
-                if (!sk_BY_DIR_HASH_push(ent->hashes, hent)) {
-                    CRYPTO_THREAD_unlock(ctx->lock);
-                    OPENSSL_free(hent);
+                if (!sk_VR_BY_DIR_HASH_push(ent->hashes, hent)) {
+                    VR_CRYPTO_THREAD_unlock(ctx->lock);
+                    OPENVR_SSL_free(hent);
                     X509err(X509_F_GET_CERT_BY_SUBJECT, ERR_R_MALLOC_FAILURE);
                     ok = 0;
                     goto finish;
@@ -366,7 +366,7 @@ static int get_cert_by_subject(X509_LOOKUP *xl, X509_LOOKUP_TYPE type,
                 hent->suffix = k;
             }
 
-            CRYPTO_THREAD_unlock(ctx->lock);
+            VR_CRYPTO_THREAD_unlock(ctx->lock);
 
         }
 
@@ -379,12 +379,12 @@ static int get_cert_by_subject(X509_LOOKUP *xl, X509_LOOKUP_TYPE type,
              * Clear any errors that might have been raised processing empty
              * or malformed files.
              */
-            ERR_clear_error();
+            VR_ERR_clear_error();
 
             goto finish;
         }
     }
  finish:
-    BUF_MEM_free(b);
+    VR_BUF_MEM_free(b);
     return ok;
 }

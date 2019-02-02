@@ -44,7 +44,7 @@ static int rsa_param_encode(const EVP_PKEY *pkey,
         return 1;
     }
     /* Encode PSS parameters */
-    if (ASN1_item_pack(rsa->pss, ASN1_ITEM_rptr(RSA_PSS_PARAMS), pstr) == NULL)
+    if (VR_ASN1_item_pack(rsa->pss, ASN1_ITEM_rptr(RSA_PSS_PARAMS), pstr) == NULL)
         return 0;
 
     *pstrtype = V_ASN1_SEQUENCE;
@@ -57,8 +57,8 @@ static int rsa_param_decode(RSA *rsa, const X509_ALGOR *alg)
     const void *algp;
     int algptype;
 
-    X509_ALGOR_get0(&algoid, &algptype, &algp, alg);
-    if (OBJ_obj2nid(algoid) != EVP_PKEY_RSA_PSS)
+    VR_X509_ALGOR_get0(&algoid, &algptype, &algp, alg);
+    if (VR_OBJ_obj2nid(algoid) != EVP_PKEY_RSA_PSS)
         return 1;
     if (algptype == V_ASN1_UNDEF)
         return 1;
@@ -81,14 +81,14 @@ static int rsa_pub_encode(X509_PUBKEY *pk, const EVP_PKEY *pkey)
 
     if (!rsa_param_encode(pkey, &str, &strtype))
         return 0;
-    penclen = i2d_RSAPublicKey(pkey->pkey.rsa, &penc);
+    penclen = VR_i2d_RSAPublicKey(pkey->pkey.rsa, &penc);
     if (penclen <= 0)
         return 0;
-    if (X509_PUBKEY_set0_param(pk, OBJ_nid2obj(pkey->ameth->pkey_id),
+    if (VR_X509_PUBKEY_set0_param(pk, VR_OBJ_nid2obj(pkey->ameth->pkey_id),
                                strtype, str, penc, penclen))
         return 1;
 
-    OPENSSL_free(penc);
+    OPENVR_SSL_free(penc);
     return 0;
 }
 
@@ -99,18 +99,18 @@ static int rsa_pub_decode(EVP_PKEY *pkey, X509_PUBKEY *pubkey)
     X509_ALGOR *alg;
     RSA *rsa = NULL;
 
-    if (!X509_PUBKEY_get0_param(NULL, &p, &pklen, &alg, pubkey))
+    if (!VR_X509_PUBKEY_get0_param(NULL, &p, &pklen, &alg, pubkey))
         return 0;
-    if ((rsa = d2i_RSAPublicKey(NULL, &p, pklen)) == NULL) {
+    if ((rsa = VR_d2i_RSAPublicKey(NULL, &p, pklen)) == NULL) {
         RSAerr(RSA_F_RSA_PUB_DECODE, ERR_R_RSA_LIB);
         return 0;
     }
     if (!rsa_param_decode(rsa, alg)) {
-        RSA_free(rsa);
+        VR_RSA_free(rsa);
         return 0;
     }
-    if (!EVP_PKEY_assign(pkey, pkey->ameth->pkey_id, rsa)) {
-        RSA_free(rsa);
+    if (!VR_EVP_PKEY_assign(pkey, pkey->ameth->pkey_id, rsa)) {
+        VR_RSA_free(rsa);
         return 0;
     }
     return 1;
@@ -118,8 +118,8 @@ static int rsa_pub_decode(EVP_PKEY *pkey, X509_PUBKEY *pubkey)
 
 static int rsa_pub_cmp(const EVP_PKEY *a, const EVP_PKEY *b)
 {
-    if (BN_cmp(b->pkey.rsa->n, a->pkey.rsa->n) != 0
-        || BN_cmp(b->pkey.rsa->e, a->pkey.rsa->e) != 0)
+    if (VR_BN_cmp(b->pkey.rsa->n, a->pkey.rsa->n) != 0
+        || VR_BN_cmp(b->pkey.rsa->e, a->pkey.rsa->e) != 0)
         return 0;
     return 1;
 }
@@ -129,17 +129,17 @@ static int old_rsa_priv_decode(EVP_PKEY *pkey,
 {
     RSA *rsa;
 
-    if ((rsa = d2i_RSAPrivateKey(NULL, pder, derlen)) == NULL) {
+    if ((rsa = VR_d2i_RSAPrivateKey(NULL, pder, derlen)) == NULL) {
         RSAerr(RSA_F_OLD_RSA_PRIV_DECODE, ERR_R_RSA_LIB);
         return 0;
     }
-    EVP_PKEY_assign(pkey, pkey->ameth->pkey_id, rsa);
+    VR_EVP_PKEY_assign(pkey, pkey->ameth->pkey_id, rsa);
     return 1;
 }
 
 static int old_rsa_priv_encode(const EVP_PKEY *pkey, unsigned char **pder)
 {
-    return i2d_RSAPrivateKey(pkey->pkey.rsa, pder);
+    return VR_i2d_RSAPrivateKey(pkey->pkey.rsa, pder);
 }
 
 static int rsa_priv_encode(PKCS8_PRIV_KEY_INFO *p8, const EVP_PKEY *pkey)
@@ -151,18 +151,18 @@ static int rsa_priv_encode(PKCS8_PRIV_KEY_INFO *p8, const EVP_PKEY *pkey)
 
     if (!rsa_param_encode(pkey, &str, &strtype))
         return 0;
-    rklen = i2d_RSAPrivateKey(pkey->pkey.rsa, &rk);
+    rklen = VR_i2d_RSAPrivateKey(pkey->pkey.rsa, &rk);
 
     if (rklen <= 0) {
         RSAerr(RSA_F_RSA_PRIV_ENCODE, ERR_R_MALLOC_FAILURE);
-        ASN1_STRING_free(str);
+        VR_ASN1_STRING_free(str);
         return 0;
     }
 
-    if (!PKCS8_pkey_set0(p8, OBJ_nid2obj(pkey->ameth->pkey_id), 0,
+    if (!VR_PKCS8_pkey_set0(p8, VR_OBJ_nid2obj(pkey->ameth->pkey_id), 0,
                          strtype, str, rk, rklen)) {
         RSAerr(RSA_F_RSA_PRIV_ENCODE, ERR_R_MALLOC_FAILURE);
-        ASN1_STRING_free(str);
+        VR_ASN1_STRING_free(str);
         return 0;
     }
 
@@ -176,46 +176,46 @@ static int rsa_priv_decode(EVP_PKEY *pkey, const PKCS8_PRIV_KEY_INFO *p8)
     int pklen;
     const X509_ALGOR *alg;
 
-    if (!PKCS8_pkey_get0(NULL, &p, &pklen, &alg, p8))
+    if (!VR_PKCS8_pkey_get0(NULL, &p, &pklen, &alg, p8))
         return 0;
-    rsa = d2i_RSAPrivateKey(NULL, &p, pklen);
+    rsa = VR_d2i_RSAPrivateKey(NULL, &p, pklen);
     if (rsa == NULL) {
         RSAerr(RSA_F_RSA_PRIV_DECODE, ERR_R_RSA_LIB);
         return 0;
     }
     if (!rsa_param_decode(rsa, alg)) {
-        RSA_free(rsa);
+        VR_RSA_free(rsa);
         return 0;
     }
-    EVP_PKEY_assign(pkey, pkey->ameth->pkey_id, rsa);
+    VR_EVP_PKEY_assign(pkey, pkey->ameth->pkey_id, rsa);
     return 1;
 }
 
 static int int_rsa_size(const EVP_PKEY *pkey)
 {
-    return RSA_size(pkey->pkey.rsa);
+    return VR_RSA_size(pkey->pkey.rsa);
 }
 
 static int rsa_bits(const EVP_PKEY *pkey)
 {
-    return BN_num_bits(pkey->pkey.rsa->n);
+    return VR_BN_num_bits(pkey->pkey.rsa->n);
 }
 
 static int rsa_security_bits(const EVP_PKEY *pkey)
 {
-    return RSA_security_bits(pkey->pkey.rsa);
+    return VR_RSA_security_bits(pkey->pkey.rsa);
 }
 
 static void int_rsa_free(EVP_PKEY *pkey)
 {
-    RSA_free(pkey->pkey.rsa);
+    VR_RSA_free(pkey->pkey.rsa);
 }
 
 static X509_ALGOR *rsa_mgf1_decode(X509_ALGOR *alg)
 {
-    if (OBJ_obj2nid(alg->algorithm) != NID_mgf1)
+    if (VR_OBJ_obj2nid(alg->algorithm) != NID_mgf1)
         return NULL;
-    return ASN1_TYPE_unpack_sequence(ASN1_ITEM_rptr(X509_ALGOR),
+    return VR_ASN1_TYPE_unpack_sequence(ASN1_ITEM_rptr(X509_ALGOR),
                                      alg->parameter);
 }
 
@@ -225,91 +225,91 @@ static int rsa_pss_param_print(BIO *bp, int pss_key, RSA_PSS_PARAMS *pss,
     int rv = 0;
     X509_ALGOR *maskHash = NULL;
 
-    if (!BIO_indent(bp, indent, 128))
+    if (!VR_BIO_indent(bp, indent, 128))
         goto err;
     if (pss_key) {
         if (pss == NULL) {
-            if (BIO_puts(bp, "No PSS parameter restrictions\n") <= 0)
+            if (VR_BIO_puts(bp, "No PSS parameter restrictions\n") <= 0)
                 return 0;
             return 1;
         } else {
-            if (BIO_puts(bp, "PSS parameter restrictions:") <= 0)
+            if (VR_BIO_puts(bp, "PSS parameter restrictions:") <= 0)
                 return 0;
         }
     } else if (pss == NULL) {
-        if (BIO_puts(bp,"(INVALID PSS PARAMETERS)\n") <= 0)
+        if (VR_BIO_puts(bp,"(INVALID PSS PARAMETERS)\n") <= 0)
             return 0;
         return 1;
     }
-    if (BIO_puts(bp, "\n") <= 0)
+    if (VR_BIO_puts(bp, "\n") <= 0)
         goto err;
     if (pss_key)
         indent += 2;
-    if (!BIO_indent(bp, indent, 128))
+    if (!VR_BIO_indent(bp, indent, 128))
         goto err;
-    if (BIO_puts(bp, "Hash Algorithm: ") <= 0)
+    if (VR_BIO_puts(bp, "Hash Algorithm: ") <= 0)
         goto err;
 
     if (pss->hashAlgorithm) {
-        if (i2a_ASN1_OBJECT(bp, pss->hashAlgorithm->algorithm) <= 0)
+        if (VR_i2a_ASN1_OBJECT(bp, pss->hashAlgorithm->algorithm) <= 0)
             goto err;
-    } else if (BIO_puts(bp, "sha1 (default)") <= 0) {
+    } else if (VR_BIO_puts(bp, "sha1 (default)") <= 0) {
         goto err;
     }
 
-    if (BIO_puts(bp, "\n") <= 0)
+    if (VR_BIO_puts(bp, "\n") <= 0)
         goto err;
 
-    if (!BIO_indent(bp, indent, 128))
+    if (!VR_BIO_indent(bp, indent, 128))
         goto err;
 
-    if (BIO_puts(bp, "Mask Algorithm: ") <= 0)
+    if (VR_BIO_puts(bp, "Mask Algorithm: ") <= 0)
         goto err;
     if (pss->maskGenAlgorithm) {
-        if (i2a_ASN1_OBJECT(bp, pss->maskGenAlgorithm->algorithm) <= 0)
+        if (VR_i2a_ASN1_OBJECT(bp, pss->maskGenAlgorithm->algorithm) <= 0)
             goto err;
-        if (BIO_puts(bp, " with ") <= 0)
+        if (VR_BIO_puts(bp, " with ") <= 0)
             goto err;
         maskHash = rsa_mgf1_decode(pss->maskGenAlgorithm);
         if (maskHash != NULL) {
-            if (i2a_ASN1_OBJECT(bp, maskHash->algorithm) <= 0)
+            if (VR_i2a_ASN1_OBJECT(bp, maskHash->algorithm) <= 0)
                 goto err;
-        } else if (BIO_puts(bp, "INVALID") <= 0) {
+        } else if (VR_BIO_puts(bp, "INVALID") <= 0) {
             goto err;
         }
-    } else if (BIO_puts(bp, "mgf1 with sha1 (default)") <= 0) {
+    } else if (VR_BIO_puts(bp, "mgf1 with sha1 (default)") <= 0) {
         goto err;
     }
-    BIO_puts(bp, "\n");
+    VR_BIO_puts(bp, "\n");
 
-    if (!BIO_indent(bp, indent, 128))
+    if (!VR_BIO_indent(bp, indent, 128))
         goto err;
-    if (BIO_printf(bp, "%s Salt Length: 0x", pss_key ? "Minimum" : "") <= 0)
+    if (VR_BIO_printf(bp, "%s Salt Length: 0x", pss_key ? "Minimum" : "") <= 0)
         goto err;
     if (pss->saltLength) {
-        if (i2a_ASN1_INTEGER(bp, pss->saltLength) <= 0)
+        if (VR_i2a_ASN1_INTEGER(bp, pss->saltLength) <= 0)
             goto err;
-    } else if (BIO_puts(bp, "14 (default)") <= 0) {
+    } else if (VR_BIO_puts(bp, "14 (default)") <= 0) {
         goto err;
     }
-    BIO_puts(bp, "\n");
+    VR_BIO_puts(bp, "\n");
 
-    if (!BIO_indent(bp, indent, 128))
+    if (!VR_BIO_indent(bp, indent, 128))
         goto err;
-    if (BIO_puts(bp, "Trailer Field: 0x") <= 0)
+    if (VR_BIO_puts(bp, "Trailer Field: 0x") <= 0)
         goto err;
     if (pss->trailerField) {
-        if (i2a_ASN1_INTEGER(bp, pss->trailerField) <= 0)
+        if (VR_i2a_ASN1_INTEGER(bp, pss->trailerField) <= 0)
             goto err;
-    } else if (BIO_puts(bp, "BC (default)") <= 0) {
+    } else if (VR_BIO_puts(bp, "BC (default)") <= 0) {
         goto err;
     }
-    BIO_puts(bp, "\n");
+    VR_BIO_puts(bp, "\n");
 
     rv = 1;
 
  err:
-    X509_ALGOR_free(maskHash);
+    VR_X509_ALGOR_free(maskHash);
     return rv;
 
 }
@@ -322,45 +322,45 @@ static int pkey_rsa_print(BIO *bp, const EVP_PKEY *pkey, int off, int priv)
     int ret = 0, mod_len = 0, ex_primes;
 
     if (x->n != NULL)
-        mod_len = BN_num_bits(x->n);
+        mod_len = VR_BN_num_bits(x->n);
     ex_primes = sk_RSA_PRIME_INFO_num(x->prime_infos);
 
-    if (!BIO_indent(bp, off, 128))
+    if (!VR_BIO_indent(bp, off, 128))
         goto err;
 
-    if (BIO_printf(bp, "%s ", pkey_is_pss(pkey) ?  "RSA-PSS" : "RSA") <= 0)
+    if (VR_BIO_printf(bp, "%s ", pkey_is_pss(pkey) ?  "RSA-PSS" : "RSA") <= 0)
         goto err;
 
     if (priv && x->d) {
-        if (BIO_printf(bp, "Private-Key: (%d bit, %d primes)\n",
+        if (VR_BIO_printf(bp, "Private-Key: (%d bit, %d primes)\n",
                        mod_len, ex_primes <= 0 ? 2 : ex_primes + 2) <= 0)
             goto err;
         str = "modulus:";
         s = "publicExponent:";
     } else {
-        if (BIO_printf(bp, "Public-Key: (%d bit)\n", mod_len) <= 0)
+        if (VR_BIO_printf(bp, "Public-Key: (%d bit)\n", mod_len) <= 0)
             goto err;
         str = "Modulus:";
         s = "Exponent:";
     }
-    if (!ASN1_bn_print(bp, str, x->n, NULL, off))
+    if (!VR_ASN1_bn_print(bp, str, x->n, NULL, off))
         goto err;
-    if (!ASN1_bn_print(bp, s, x->e, NULL, off))
+    if (!VR_ASN1_bn_print(bp, s, x->e, NULL, off))
         goto err;
     if (priv) {
         int i;
 
-        if (!ASN1_bn_print(bp, "privateExponent:", x->d, NULL, off))
+        if (!VR_ASN1_bn_print(bp, "privateExponent:", x->d, NULL, off))
             goto err;
-        if (!ASN1_bn_print(bp, "prime1:", x->p, NULL, off))
+        if (!VR_ASN1_bn_print(bp, "prime1:", x->p, NULL, off))
             goto err;
-        if (!ASN1_bn_print(bp, "prime2:", x->q, NULL, off))
+        if (!VR_ASN1_bn_print(bp, "prime2:", x->q, NULL, off))
             goto err;
-        if (!ASN1_bn_print(bp, "exponent1:", x->dmp1, NULL, off))
+        if (!VR_ASN1_bn_print(bp, "exponent1:", x->dmp1, NULL, off))
             goto err;
-        if (!ASN1_bn_print(bp, "exponent2:", x->dmq1, NULL, off))
+        if (!VR_ASN1_bn_print(bp, "exponent2:", x->dmq1, NULL, off))
             goto err;
-        if (!ASN1_bn_print(bp, "coefficient:", x->iqmp, NULL, off))
+        if (!VR_ASN1_bn_print(bp, "coefficient:", x->iqmp, NULL, off))
             goto err;
         for (i = 0; i < sk_RSA_PRIME_INFO_num(x->prime_infos); i++) {
             /* print multi-prime info */
@@ -370,28 +370,28 @@ static int pkey_rsa_print(BIO *bp, const EVP_PKEY *pkey, int off, int priv)
 
             pinfo = sk_RSA_PRIME_INFO_value(x->prime_infos, i);
             for (j = 0; j < 3; j++) {
-                if (!BIO_indent(bp, off, 128))
+                if (!VR_BIO_indent(bp, off, 128))
                     goto err;
                 switch (j) {
                 case 0:
-                    if (BIO_printf(bp, "prime%d:", i + 3) <= 0)
+                    if (VR_BIO_printf(bp, "prime%d:", i + 3) <= 0)
                         goto err;
                     bn = pinfo->r;
                     break;
                 case 1:
-                    if (BIO_printf(bp, "exponent%d:", i + 3) <= 0)
+                    if (VR_BIO_printf(bp, "exponent%d:", i + 3) <= 0)
                         goto err;
                     bn = pinfo->d;
                     break;
                 case 2:
-                    if (BIO_printf(bp, "coefficient%d:", i + 3) <= 0)
+                    if (VR_BIO_printf(bp, "coefficient%d:", i + 3) <= 0)
                         goto err;
                     bn = pinfo->t;
                     break;
                 default:
                     break;
                 }
-                if (!ASN1_bn_print(bp, "", bn, NULL, off))
+                if (!VR_ASN1_bn_print(bp, "", bn, NULL, off))
                     goto err;
             }
         }
@@ -419,7 +419,7 @@ static RSA_PSS_PARAMS *rsa_pss_decode(const X509_ALGOR *alg)
 {
     RSA_PSS_PARAMS *pss;
 
-    pss = ASN1_TYPE_unpack_sequence(ASN1_ITEM_rptr(RSA_PSS_PARAMS),
+    pss = VR_ASN1_TYPE_unpack_sequence(ASN1_ITEM_rptr(RSA_PSS_PARAMS),
                                     alg->parameter);
 
     if (pss == NULL)
@@ -428,7 +428,7 @@ static RSA_PSS_PARAMS *rsa_pss_decode(const X509_ALGOR *alg)
     if (pss->maskGenAlgorithm != NULL) {
         pss->maskHash = rsa_mgf1_decode(pss->maskGenAlgorithm);
         if (pss->maskHash == NULL) {
-            RSA_PSS_PARAMS_free(pss);
+            VR_RSA_PSS_PARAMS_free(pss);
             return NULL;
         }
     }
@@ -439,19 +439,19 @@ static RSA_PSS_PARAMS *rsa_pss_decode(const X509_ALGOR *alg)
 static int rsa_sig_print(BIO *bp, const X509_ALGOR *sigalg,
                          const ASN1_STRING *sig, int indent, ASN1_PCTX *pctx)
 {
-    if (OBJ_obj2nid(sigalg->algorithm) == EVP_PKEY_RSA_PSS) {
+    if (VR_OBJ_obj2nid(sigalg->algorithm) == EVP_PKEY_RSA_PSS) {
         int rv;
         RSA_PSS_PARAMS *pss = rsa_pss_decode(sigalg);
 
         rv = rsa_pss_param_print(bp, 0, pss, indent);
-        RSA_PSS_PARAMS_free(pss);
+        VR_RSA_PSS_PARAMS_free(pss);
         if (!rv)
             return 0;
-    } else if (!sig && BIO_puts(bp, "\n") <= 0) {
+    } else if (!sig && VR_BIO_puts(bp, "\n") <= 0) {
         return 0;
     }
     if (sig)
-        return X509_signature_dump(bp, sig, indent);
+        return VR_X509_signature_dump(bp, sig, indent);
     return 1;
 }
 
@@ -463,14 +463,14 @@ static int rsa_pkey_ctrl(EVP_PKEY *pkey, int op, long arg1, void *arg2)
 
     case ASN1_PKEY_CTRL_PKCS7_SIGN:
         if (arg1 == 0)
-            PKCS7_SIGNER_INFO_get0_algs(arg2, NULL, NULL, &alg);
+            VR_PKCS7_SIGNER_INFO_get0_algs(arg2, NULL, NULL, &alg);
         break;
 
     case ASN1_PKEY_CTRL_PKCS7_ENCRYPT:
         if (pkey_is_pss(pkey))
             return -2;
         if (arg1 == 0)
-            PKCS7_RECIP_INFO_get0_alg(arg2, &alg);
+            VR_PKCS7_RECIP_INFO_get0_alg(arg2, &alg);
         break;
 #ifndef OPENSSL_NO_CMS
     case ASN1_PKEY_CTRL_CMS_SIGN:
@@ -506,21 +506,21 @@ static int rsa_pkey_ctrl(EVP_PKEY *pkey, int op, long arg1, void *arg2)
     }
 
     if (alg)
-        X509_ALGOR_set0(alg, OBJ_nid2obj(NID_rsaEncryption), V_ASN1_NULL, 0);
+        VR_X509_ALGOR_set0(alg, VR_OBJ_nid2obj(NID_rsaEncryption), V_ASN1_NULL, 0);
 
     return 1;
 
 }
 
-/* allocate and set algorithm ID from EVP_MD, default SHA1 */
+/* allocate and set algorithm ID from EVP_MD, default VR_SHA1 */
 static int rsa_md_to_algor(X509_ALGOR **palg, const EVP_MD *md)
 {
-    if (md == NULL || EVP_MD_type(md) == NID_sha1)
+    if (md == NULL || VR_EVP_MD_type(md) == NID_sha1)
         return 1;
-    *palg = X509_ALGOR_new();
+    *palg = VR_X509_ALGOR_new();
     if (*palg == NULL)
         return 0;
-    X509_ALGOR_set_md(*palg, md);
+    VR_X509_ALGOR_set_md(*palg, md);
     return 1;
 }
 
@@ -531,33 +531,33 @@ static int rsa_md_to_mgf1(X509_ALGOR **palg, const EVP_MD *mgf1md)
     ASN1_STRING *stmp = NULL;
 
     *palg = NULL;
-    if (mgf1md == NULL || EVP_MD_type(mgf1md) == NID_sha1)
+    if (mgf1md == NULL || VR_EVP_MD_type(mgf1md) == NID_sha1)
         return 1;
     /* need to embed algorithm ID inside another */
     if (!rsa_md_to_algor(&algtmp, mgf1md))
         goto err;
-    if (ASN1_item_pack(algtmp, ASN1_ITEM_rptr(X509_ALGOR), &stmp) == NULL)
+    if (VR_ASN1_item_pack(algtmp, ASN1_ITEM_rptr(X509_ALGOR), &stmp) == NULL)
          goto err;
-    *palg = X509_ALGOR_new();
+    *palg = VR_X509_ALGOR_new();
     if (*palg == NULL)
         goto err;
-    X509_ALGOR_set0(*palg, OBJ_nid2obj(NID_mgf1), V_ASN1_SEQUENCE, stmp);
+    VR_X509_ALGOR_set0(*palg, VR_OBJ_nid2obj(NID_mgf1), V_ASN1_SEQUENCE, stmp);
     stmp = NULL;
  err:
-    ASN1_STRING_free(stmp);
-    X509_ALGOR_free(algtmp);
+    VR_ASN1_STRING_free(stmp);
+    VR_X509_ALGOR_free(algtmp);
     if (*palg)
         return 1;
     return 0;
 }
 
-/* convert algorithm ID to EVP_MD, default SHA1 */
+/* convert algorithm ID to EVP_MD, default VR_SHA1 */
 static const EVP_MD *rsa_algor_to_md(X509_ALGOR *alg)
 {
     const EVP_MD *md;
 
     if (!alg)
-        return EVP_sha1();
+        return VR_EVP_sha1();
     md = EVP_get_digestbyobj(alg->algorithm);
     if (md == NULL)
         RSAerr(RSA_F_RSA_ALGOR_TO_MD, RSA_R_UNKNOWN_DIGEST);
@@ -572,7 +572,7 @@ static const EVP_MD *rsa_algor_to_md(X509_ALGOR *alg)
 static RSA_PSS_PARAMS *rsa_ctx_to_pss(EVP_PKEY_CTX *pkctx)
 {
     const EVP_MD *sigmd, *mgf1md;
-    EVP_PKEY *pk = EVP_PKEY_CTX_get0_pkey(pkctx);
+    EVP_PKEY *pk = VR_EVP_PKEY_CTX_get0_pkey(pkctx);
     int saltlen;
 
     if (EVP_PKEY_CTX_get_signature_md(pkctx, &sigmd) <= 0)
@@ -582,28 +582,28 @@ static RSA_PSS_PARAMS *rsa_ctx_to_pss(EVP_PKEY_CTX *pkctx)
     if (!EVP_PKEY_CTX_get_rsa_pss_saltlen(pkctx, &saltlen))
         return NULL;
     if (saltlen == -1) {
-        saltlen = EVP_MD_size(sigmd);
+        saltlen = VR_EVP_MD_size(sigmd);
     } else if (saltlen == -2) {
-        saltlen = EVP_PKEY_size(pk) - EVP_MD_size(sigmd) - 2;
-        if ((EVP_PKEY_bits(pk) & 0x7) == 1)
+        saltlen = VR_EVP_PKEY_size(pk) - VR_EVP_MD_size(sigmd) - 2;
+        if ((VR_EVP_PKEY_bits(pk) & 0x7) == 1)
             saltlen--;
     }
 
-    return rsa_pss_params_create(sigmd, mgf1md, saltlen);
+    return VR_rsa_pss_params_create(sigmd, mgf1md, saltlen);
 }
 
-RSA_PSS_PARAMS *rsa_pss_params_create(const EVP_MD *sigmd,
+RSA_PSS_PARAMS *VR_rsa_pss_params_create(const EVP_MD *sigmd,
                                       const EVP_MD *mgf1md, int saltlen)
 {
-    RSA_PSS_PARAMS *pss = RSA_PSS_PARAMS_new();
+    RSA_PSS_PARAMS *pss = VR_RSA_PSS_PARAMS_new();
 
     if (pss == NULL)
         goto err;
     if (saltlen != 20) {
-        pss->saltLength = ASN1_INTEGER_new();
+        pss->saltLength = VR_ASN1_INTEGER_new();
         if (pss->saltLength == NULL)
             goto err;
-        if (!ASN1_INTEGER_set(pss->saltLength, saltlen))
+        if (!VR_ASN1_INTEGER_set(pss->saltLength, saltlen))
             goto err;
     }
     if (!rsa_md_to_algor(&pss->hashAlgorithm, sigmd))
@@ -616,7 +616,7 @@ RSA_PSS_PARAMS *rsa_pss_params_create(const EVP_MD *sigmd,
         goto err;
     return pss;
  err:
-    RSA_PSS_PARAMS_free(pss);
+    VR_RSA_PSS_PARAMS_free(pss);
     return NULL;
 }
 
@@ -628,8 +628,8 @@ static ASN1_STRING *rsa_ctx_to_pss_string(EVP_PKEY_CTX *pkctx)
     if (pss == NULL)
         return NULL;
 
-    os = ASN1_item_pack(pss, ASN1_ITEM_rptr(RSA_PSS_PARAMS), NULL);
-    RSA_PSS_PARAMS_free(pss);
+    os = VR_ASN1_item_pack(pss, ASN1_ITEM_rptr(RSA_PSS_PARAMS), NULL);
+    VR_RSA_PSS_PARAMS_free(pss);
     return os;
 }
 
@@ -648,27 +648,27 @@ static int rsa_pss_to_ctx(EVP_MD_CTX *ctx, EVP_PKEY_CTX *pkctx,
     RSA_PSS_PARAMS *pss;
 
     /* Sanity check: make sure it is PSS */
-    if (OBJ_obj2nid(sigalg->algorithm) != EVP_PKEY_RSA_PSS) {
+    if (VR_OBJ_obj2nid(sigalg->algorithm) != EVP_PKEY_RSA_PSS) {
         RSAerr(RSA_F_RSA_PSS_TO_CTX, RSA_R_UNSUPPORTED_SIGNATURE_TYPE);
         return -1;
     }
     /* Decode PSS parameters */
     pss = rsa_pss_decode(sigalg);
 
-    if (!rsa_pss_get_param(pss, &md, &mgf1md, &saltlen)) {
+    if (!VR_rsa_pss_get_param(pss, &md, &mgf1md, &saltlen)) {
         RSAerr(RSA_F_RSA_PSS_TO_CTX, RSA_R_INVALID_PSS_PARAMETERS);
         goto err;
     }
 
     /* We have all parameters now set up context */
     if (pkey) {
-        if (!EVP_DigestVerifyInit(ctx, &pkctx, md, NULL, pkey))
+        if (!VR_EVP_DigestVerifyInit(ctx, &pkctx, md, NULL, pkey))
             goto err;
     } else {
         const EVP_MD *checkmd;
         if (EVP_PKEY_CTX_get_signature_md(pkctx, &checkmd) <= 0)
             goto err;
-        if (EVP_MD_type(md) != EVP_MD_type(checkmd)) {
+        if (VR_EVP_MD_type(md) != VR_EVP_MD_type(checkmd)) {
             RSAerr(RSA_F_RSA_PSS_TO_CTX, RSA_R_DIGEST_DOES_NOT_MATCH);
             goto err;
         }
@@ -686,11 +686,11 @@ static int rsa_pss_to_ctx(EVP_MD_CTX *ctx, EVP_PKEY_CTX *pkctx,
     rv = 1;
 
  err:
-    RSA_PSS_PARAMS_free(pss);
+    VR_RSA_PSS_PARAMS_free(pss);
     return rv;
 }
 
-int rsa_pss_get_param(const RSA_PSS_PARAMS *pss, const EVP_MD **pmd,
+int VR_rsa_pss_get_param(const RSA_PSS_PARAMS *pss, const EVP_MD **pmd,
                       const EVP_MD **pmgf1md, int *psaltlen)
 {
     if (pss == NULL)
@@ -702,7 +702,7 @@ int rsa_pss_get_param(const RSA_PSS_PARAMS *pss, const EVP_MD **pmd,
     if (*pmgf1md == NULL)
         return 0;
     if (pss->saltLength) {
-        *psaltlen = ASN1_INTEGER_get(pss->saltLength);
+        *psaltlen = VR_ASN1_INTEGER_get(pss->saltLength);
         if (*psaltlen < 0) {
             RSAerr(RSA_F_RSA_PSS_GET_PARAM, RSA_R_INVALID_SALT_LENGTH);
             return 0;
@@ -715,7 +715,7 @@ int rsa_pss_get_param(const RSA_PSS_PARAMS *pss, const EVP_MD **pmd,
      * low-level routines support only trailer field 0xbc (value 1) and
      * PKCS#1 says we should reject any other value anyway.
      */
-    if (pss->trailerField && ASN1_INTEGER_get(pss->trailerField) != 1) {
+    if (pss->trailerField && VR_ASN1_INTEGER_get(pss->trailerField) != 1) {
         RSAerr(RSA_F_RSA_PSS_GET_PARAM, RSA_R_INVALID_TRAILER);
         return 0;
     }
@@ -728,10 +728,10 @@ static int rsa_cms_verify(CMS_SignerInfo *si)
 {
     int nid, nid2;
     X509_ALGOR *alg;
-    EVP_PKEY_CTX *pkctx = CMS_SignerInfo_get0_pkey_ctx(si);
+    EVP_PKEY_CTX *pkctx = VR_CMS_SignerInfo_get0_pkey_ctx(si);
 
-    CMS_SignerInfo_get0_algs(si, NULL, NULL, NULL, &alg);
-    nid = OBJ_obj2nid(alg->algorithm);
+    VR_CMS_SignerInfo_get0_algs(si, NULL, NULL, NULL, &alg);
+    nid = VR_OBJ_obj2nid(alg->algorithm);
     if (nid == EVP_PKEY_RSA_PSS)
         return rsa_pss_to_ctx(NULL, pkctx, alg, NULL);
     /* Only PSS allowed for PSS keys */
@@ -742,7 +742,7 @@ static int rsa_cms_verify(CMS_SignerInfo *si)
     if (nid == NID_rsaEncryption)
         return 1;
     /* Workaround for some implementation that use a signature OID */
-    if (OBJ_find_sigid_algs(nid, NULL, &nid2)) {
+    if (VR_OBJ_find_sigid_algs(nid, NULL, &nid2)) {
         if (nid2 == NID_rsaEncryption)
             return 1;
     }
@@ -760,7 +760,7 @@ static int rsa_item_verify(EVP_MD_CTX *ctx, const ASN1_ITEM *it, void *asn,
                            EVP_PKEY *pkey)
 {
     /* Sanity check: make sure it is PSS */
-    if (OBJ_obj2nid(sigalg->algorithm) != EVP_PKEY_RSA_PSS) {
+    if (VR_OBJ_obj2nid(sigalg->algorithm) != EVP_PKEY_RSA_PSS) {
         RSAerr(RSA_F_RSA_ITEM_VERIFY, RSA_R_UNSUPPORTED_SIGNATURE_TYPE);
         return -1;
     }
@@ -776,16 +776,16 @@ static int rsa_cms_sign(CMS_SignerInfo *si)
 {
     int pad_mode = RSA_PKCS1_PADDING;
     X509_ALGOR *alg;
-    EVP_PKEY_CTX *pkctx = CMS_SignerInfo_get0_pkey_ctx(si);
+    EVP_PKEY_CTX *pkctx = VR_CMS_SignerInfo_get0_pkey_ctx(si);
     ASN1_STRING *os = NULL;
 
-    CMS_SignerInfo_get0_algs(si, NULL, NULL, NULL, &alg);
+    VR_CMS_SignerInfo_get0_algs(si, NULL, NULL, NULL, &alg);
     if (pkctx) {
         if (EVP_PKEY_CTX_get_rsa_padding(pkctx, &pad_mode) <= 0)
             return 0;
     }
     if (pad_mode == RSA_PKCS1_PADDING) {
-        X509_ALGOR_set0(alg, OBJ_nid2obj(NID_rsaEncryption), V_ASN1_NULL, 0);
+        VR_X509_ALGOR_set0(alg, VR_OBJ_nid2obj(NID_rsaEncryption), V_ASN1_NULL, 0);
         return 1;
     }
     /* We don't support it */
@@ -794,7 +794,7 @@ static int rsa_cms_sign(CMS_SignerInfo *si)
     os = rsa_ctx_to_pss_string(pkctx);
     if (!os)
         return 0;
-    X509_ALGOR_set0(alg, OBJ_nid2obj(EVP_PKEY_RSA_PSS), V_ASN1_SEQUENCE, os);
+    VR_X509_ALGOR_set0(alg, VR_OBJ_nid2obj(EVP_PKEY_RSA_PSS), V_ASN1_SEQUENCE, os);
     return 1;
 }
 #endif
@@ -804,7 +804,7 @@ static int rsa_item_sign(EVP_MD_CTX *ctx, const ASN1_ITEM *it, void *asn,
                          ASN1_BIT_STRING *sig)
 {
     int pad_mode;
-    EVP_PKEY_CTX *pkctx = EVP_MD_CTX_pkey_ctx(ctx);
+    EVP_PKEY_CTX *pkctx = VR_EVP_MD_CTX_pkey_ctx(ctx);
 
     if (EVP_PKEY_CTX_get_rsa_padding(pkctx, &pad_mode) <= 0)
         return 0;
@@ -817,15 +817,15 @@ static int rsa_item_sign(EVP_MD_CTX *ctx, const ASN1_ITEM *it, void *asn,
             return 0;
         /* Duplicate parameters if we have to */
         if (alg2) {
-            ASN1_STRING *os2 = ASN1_STRING_dup(os1);
+            ASN1_STRING *os2 = VR_ASN1_STRING_dup(os1);
             if (!os2) {
-                ASN1_STRING_free(os1);
+                VR_ASN1_STRING_free(os1);
                 return 0;
             }
-            X509_ALGOR_set0(alg2, OBJ_nid2obj(EVP_PKEY_RSA_PSS),
+            VR_X509_ALGOR_set0(alg2, VR_OBJ_nid2obj(EVP_PKEY_RSA_PSS),
                             V_ASN1_SEQUENCE, os2);
         }
-        X509_ALGOR_set0(alg1, OBJ_nid2obj(EVP_PKEY_RSA_PSS),
+        VR_X509_ALGOR_set0(alg1, VR_OBJ_nid2obj(EVP_PKEY_RSA_PSS),
                         V_ASN1_SEQUENCE, os1);
         return 3;
     }
@@ -842,28 +842,28 @@ static int rsa_sig_info_set(X509_SIG_INFO *siginf, const X509_ALGOR *sigalg,
     RSA_PSS_PARAMS *pss;
 
     /* Sanity check: make sure it is PSS */
-    if (OBJ_obj2nid(sigalg->algorithm) != EVP_PKEY_RSA_PSS)
+    if (VR_OBJ_obj2nid(sigalg->algorithm) != EVP_PKEY_RSA_PSS)
         return 0;
     /* Decode PSS parameters */
     pss = rsa_pss_decode(sigalg);
-    if (!rsa_pss_get_param(pss, &md, &mgf1md, &saltlen))
+    if (!VR_rsa_pss_get_param(pss, &md, &mgf1md, &saltlen))
         goto err;
-    mdnid = EVP_MD_type(md);
+    mdnid = VR_EVP_MD_type(md);
     /*
-     * For TLS need SHA256, SHA384 or SHA512, digest and MGF1 digest must
+     * For TLS need VR_SHA256, VR_SHA384 or VR_SHA512, digest and MGF1 digest must
      * match and salt length must equal digest size
      */
     if ((mdnid == NID_sha256 || mdnid == NID_sha384 || mdnid == NID_sha512)
-            && mdnid == EVP_MD_type(mgf1md) && saltlen == EVP_MD_size(md))
+            && mdnid == VR_EVP_MD_type(mgf1md) && saltlen == VR_EVP_MD_size(md))
         flags = X509_SIG_INFO_TLS;
     else
         flags = 0;
     /* Note: security bits half number of digest bits */
-    X509_SIG_INFO_set(siginf, mdnid, EVP_PKEY_RSA_PSS, EVP_MD_size(md) * 4,
+    VR_X509_SIG_INFO_set(siginf, mdnid, EVP_PKEY_RSA_PSS, VR_EVP_MD_size(md) * 4,
                       flags);
     rv = 1;
     err:
-    RSA_PSS_PARAMS_free(pss);
+    VR_RSA_PSS_PARAMS_free(pss);
     return rv;
 }
 
@@ -872,7 +872,7 @@ static RSA_OAEP_PARAMS *rsa_oaep_decode(const X509_ALGOR *alg)
 {
     RSA_OAEP_PARAMS *oaep;
 
-    oaep = ASN1_TYPE_unpack_sequence(ASN1_ITEM_rptr(RSA_OAEP_PARAMS),
+    oaep = VR_ASN1_TYPE_unpack_sequence(ASN1_ITEM_rptr(RSA_OAEP_PARAMS),
                                      alg->parameter);
 
     if (oaep == NULL)
@@ -881,7 +881,7 @@ static RSA_OAEP_PARAMS *rsa_oaep_decode(const X509_ALGOR *alg)
     if (oaep->maskGenFunc != NULL) {
         oaep->maskHash = rsa_mgf1_decode(oaep->maskGenFunc);
         if (oaep->maskHash == NULL) {
-            RSA_OAEP_PARAMS_free(oaep);
+            VR_RSA_OAEP_PARAMS_free(oaep);
             return NULL;
         }
     }
@@ -899,12 +899,12 @@ static int rsa_cms_decrypt(CMS_RecipientInfo *ri)
     const EVP_MD *mgf1md = NULL, *md = NULL;
     RSA_OAEP_PARAMS *oaep;
 
-    pkctx = CMS_RecipientInfo_get0_pkey_ctx(ri);
+    pkctx = VR_CMS_RecipientInfo_get0_pkey_ctx(ri);
     if (pkctx == NULL)
         return 0;
-    if (!CMS_RecipientInfo_ktri_get0_algs(ri, NULL, NULL, &cmsalg))
+    if (!VR_CMS_RecipientInfo_ktri_get0_algs(ri, NULL, NULL, &cmsalg))
         return -1;
-    nid = OBJ_obj2nid(cmsalg->algorithm);
+    nid = VR_OBJ_obj2nid(cmsalg->algorithm);
     if (nid == NID_rsaEncryption)
         return 1;
     if (nid != NID_rsaesOaep) {
@@ -929,7 +929,7 @@ static int rsa_cms_decrypt(CMS_RecipientInfo *ri)
     if (oaep->pSourceFunc != NULL) {
         X509_ALGOR *plab = oaep->pSourceFunc;
 
-        if (OBJ_obj2nid(plab->algorithm) != NID_pSpecified) {
+        if (VR_OBJ_obj2nid(plab->algorithm) != NID_pSpecified) {
             RSAerr(RSA_F_RSA_CMS_DECRYPT, RSA_R_UNSUPPORTED_LABEL_SOURCE);
             goto err;
         }
@@ -956,7 +956,7 @@ static int rsa_cms_decrypt(CMS_RecipientInfo *ri)
     rv = 1;
 
  err:
-    RSA_OAEP_PARAMS_free(oaep);
+    VR_RSA_OAEP_PARAMS_free(oaep);
     return rv;
 }
 
@@ -966,18 +966,18 @@ static int rsa_cms_encrypt(CMS_RecipientInfo *ri)
     RSA_OAEP_PARAMS *oaep = NULL;
     ASN1_STRING *os = NULL;
     X509_ALGOR *alg;
-    EVP_PKEY_CTX *pkctx = CMS_RecipientInfo_get0_pkey_ctx(ri);
+    EVP_PKEY_CTX *pkctx = VR_CMS_RecipientInfo_get0_pkey_ctx(ri);
     int pad_mode = RSA_PKCS1_PADDING, rv = 0, labellen;
     unsigned char *label;
 
-    if (CMS_RecipientInfo_ktri_get0_algs(ri, NULL, NULL, &alg) <= 0)
+    if (VR_CMS_RecipientInfo_ktri_get0_algs(ri, NULL, NULL, &alg) <= 0)
         return 0;
     if (pkctx) {
         if (EVP_PKEY_CTX_get_rsa_padding(pkctx, &pad_mode) <= 0)
             return 0;
     }
     if (pad_mode == RSA_PKCS1_PADDING) {
-        X509_ALGOR_set0(alg, OBJ_nid2obj(NID_rsaEncryption), V_ASN1_NULL, 0);
+        VR_X509_ALGOR_set0(alg, VR_OBJ_nid2obj(NID_rsaEncryption), V_ASN1_NULL, 0);
         return 1;
     }
     /* Not supported */
@@ -990,7 +990,7 @@ static int rsa_cms_encrypt(CMS_RecipientInfo *ri)
     labellen = EVP_PKEY_CTX_get0_rsa_oaep_label(pkctx, &label);
     if (labellen < 0)
         goto err;
-    oaep = RSA_OAEP_PARAMS_new();
+    oaep = VR_RSA_OAEP_PARAMS_new();
     if (oaep == NULL)
         goto err;
     if (!rsa_md_to_algor(&oaep->hashFunc, md))
@@ -999,35 +999,35 @@ static int rsa_cms_encrypt(CMS_RecipientInfo *ri)
         goto err;
     if (labellen > 0) {
         ASN1_OCTET_STRING *los;
-        oaep->pSourceFunc = X509_ALGOR_new();
+        oaep->pSourceFunc = VR_X509_ALGOR_new();
         if (oaep->pSourceFunc == NULL)
             goto err;
-        los = ASN1_OCTET_STRING_new();
+        los = VR_ASN1_OCTET_STRING_new();
         if (los == NULL)
             goto err;
-        if (!ASN1_OCTET_STRING_set(los, label, labellen)) {
-            ASN1_OCTET_STRING_free(los);
+        if (!VR_ASN1_OCTET_STRING_set(los, label, labellen)) {
+            VR_ASN1_OCTET_STRING_free(los);
             goto err;
         }
-        X509_ALGOR_set0(oaep->pSourceFunc, OBJ_nid2obj(NID_pSpecified),
+        VR_X509_ALGOR_set0(oaep->pSourceFunc, VR_OBJ_nid2obj(NID_pSpecified),
                         V_ASN1_OCTET_STRING, los);
     }
     /* create string with pss parameter encoding. */
-    if (!ASN1_item_pack(oaep, ASN1_ITEM_rptr(RSA_OAEP_PARAMS), &os))
+    if (!VR_ASN1_item_pack(oaep, ASN1_ITEM_rptr(RSA_OAEP_PARAMS), &os))
          goto err;
-    X509_ALGOR_set0(alg, OBJ_nid2obj(NID_rsaesOaep), V_ASN1_SEQUENCE, os);
+    VR_X509_ALGOR_set0(alg, VR_OBJ_nid2obj(NID_rsaesOaep), V_ASN1_SEQUENCE, os);
     os = NULL;
     rv = 1;
  err:
-    RSA_OAEP_PARAMS_free(oaep);
-    ASN1_STRING_free(os);
+    VR_RSA_OAEP_PARAMS_free(oaep);
+    VR_ASN1_STRING_free(os);
     return rv;
 }
 #endif
 
 static int rsa_pkey_check(const EVP_PKEY *pkey)
 {
-    return RSA_check_key_ex(pkey->pkey.rsa, NULL);
+    return VR_RSA_check_key_ex(pkey->pkey.rsa, NULL);
 }
 
 const EVP_PKEY_ASN1_METHOD rsa_asn1_meths[2] = {

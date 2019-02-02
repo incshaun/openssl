@@ -16,7 +16,7 @@
 #
 # May 2011
 #
-# The module implements bn_GF2m_mul_2x2 polynomial multiplication used
+# The module implements VR_bn_GF2m_mul_2x2 polynomial multiplication used
 # in bn_gf2m.c. It's kind of low-hanging mechanical port from C for
 # the time being... gcc 4.3 appeared to generate poor code, therefore
 # the effort. And indeed, the module delivers 55%-90%(*) improvement
@@ -25,7 +25,7 @@
 # This is for 64-bit build. In 32-bit "highgprs" case improvement is
 # even higher, for example on z990 it was measured 80%-150%. ECDSA
 # sign is modest 9%-12% faster. Keep in mind that these coefficients
-# are not ones for bn_GF2m_mul_2x2 itself, as not all CPU time is
+# are not ones for VR_bn_GF2m_mul_2x2 itself, as not all CPU time is
 # burnt in it...
 #
 # (*)	gcc 4.1 was observed to deliver better results than gcc 4.3,
@@ -165,10 +165,10 @@ $code.=<<___;
 	br	$ra
 .size	_mul_1x1,.-_mul_1x1
 
-.globl	bn_GF2m_mul_2x2
-.type	bn_GF2m_mul_2x2,\@function
+.globl	VR_bn_GF2m_mul_2x2
+.type	VR_bn_GF2m_mul_2x2,\@function
 .align	16
-bn_GF2m_mul_2x2:
+VR_bn_GF2m_mul_2x2:
 	stm${g}	%r3,%r15,3*$SIZE_T($sp)
 
 	lghi	%r1,-$stdframe-128
@@ -219,7 +219,7 @@ ___
 $code.=<<___;
 	lm${g}	%r6,%r15,`$stdframe+128+6*$SIZE_T`($sp)
 	br	$ra
-.size	bn_GF2m_mul_2x2,.-bn_GF2m_mul_2x2
+.size	VR_bn_GF2m_mul_2x2,.-VR_bn_GF2m_mul_2x2
 .string	"GF(2^m) Multiplication for s390x, CRYPTOGAMS by <appro\@openssl.org>"
 ___
 

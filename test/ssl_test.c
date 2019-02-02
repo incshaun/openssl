@@ -25,7 +25,7 @@ static CONF *conf = NULL;
 
 static const char *print_alert(int alert)
 {
-    return alert ? SSL_alert_desc_string_long(alert) : "no alert";
+    return alert ? VR_SSL_alert_desc_string_long(alert) : "no alert";
 }
 
 static int check_result(HANDSHAKE_RESULT *result, SSL_TEST_CTX *test_ctx)
@@ -223,8 +223,8 @@ static int check_nid(const char *name, int expected_nid, int nid)
     if (expected_nid == 0 || expected_nid == nid)
         return 1;
     TEST_error("%s type mismatch, %s vs %s\n",
-               name, OBJ_nid2ln(expected_nid),
-               nid == NID_undef ? "absent" : OBJ_nid2ln(nid));
+               name, VR_OBJ_nid2ln(expected_nid),
+               nid == NID_undef ? "absent" : VR_OBJ_nid2ln(nid));
     return 0;
 }
 
@@ -237,9 +237,9 @@ static void print_ca_names(STACK_OF(X509_NAME) *names)
         return;
     }
     for (i = 0; i < sk_X509_NAME_num(names); i++) {
-        X509_NAME_print_ex(bio_err, sk_X509_NAME_value(names, i), 4,
+        VR_X509_NAME_print_ex(bio_err, sk_X509_NAME_value(names, i), 4,
                            XN_FLAG_ONELINE);
-        BIO_puts(bio_err, "\n");
+        VR_BIO_puts(bio_err, "\n");
     }
 }
 
@@ -259,7 +259,7 @@ static int check_ca_names(const char *name,
     if (sk_X509_NAME_num(names) != sk_X509_NAME_num(expected_names))
         goto err;
     for (i = 0; i < sk_X509_NAME_num(names); i++) {
-        if (!TEST_int_eq(X509_NAME_cmp(sk_X509_NAME_value(names, i),
+        if (!TEST_int_eq(VR_X509_NAME_cmp(sk_X509_NAME_value(names, i),
                                        sk_X509_NAME_value(expected_names, i)),
                          0)) {
             goto err;
@@ -397,7 +397,7 @@ static int test_handshake(int idx)
     HANDSHAKE_RESULT *result = NULL;
     char test_app[MAX_TESTCASE_NAME_LENGTH];
 
-    BIO_snprintf(test_app, sizeof(test_app), "test-%d", idx);
+    VR_BIO_snprintf(test_app, sizeof(test_app), "test-%d", idx);
 
     test_ctx = SSL_TEST_CTX_create(conf, test_app);
     if (!TEST_ptr(test_ctx))
@@ -405,22 +405,22 @@ static int test_handshake(int idx)
 
 #ifndef OPENSSL_NO_DTLS
     if (test_ctx->method == SSL_TEST_METHOD_DTLS) {
-        server_ctx = SSL_CTX_new(DTLS_server_method());
+        server_ctx = VR_SSL_CTX_new(VR_DTLS_server_method());
         if (!TEST_true(SSL_CTX_set_max_proto_version(server_ctx, 0)))
             goto err;
         if (test_ctx->extra.server.servername_callback !=
             SSL_TEST_SERVERNAME_CB_NONE) {
-            if (!TEST_ptr(server2_ctx = SSL_CTX_new(DTLS_server_method())))
+            if (!TEST_ptr(server2_ctx = VR_SSL_CTX_new(VR_DTLS_server_method())))
                 goto err;
         }
-        client_ctx = SSL_CTX_new(DTLS_client_method());
+        client_ctx = VR_SSL_CTX_new(VR_DTLS_client_method());
         if (!TEST_true(SSL_CTX_set_max_proto_version(client_ctx, 0)))
             goto err;
         if (test_ctx->handshake_mode == SSL_TEST_HANDSHAKE_RESUME) {
-            resume_server_ctx = SSL_CTX_new(DTLS_server_method());
+            resume_server_ctx = VR_SSL_CTX_new(VR_DTLS_server_method());
             if (!TEST_true(SSL_CTX_set_max_proto_version(resume_server_ctx, 0)))
                 goto err;
-            resume_client_ctx = SSL_CTX_new(DTLS_client_method());
+            resume_client_ctx = VR_SSL_CTX_new(VR_DTLS_client_method());
             if (!TEST_true(SSL_CTX_set_max_proto_version(resume_client_ctx, 0)))
                 goto err;
             if (!TEST_ptr(resume_server_ctx)
@@ -430,26 +430,26 @@ static int test_handshake(int idx)
     }
 #endif
     if (test_ctx->method == SSL_TEST_METHOD_TLS) {
-        server_ctx = SSL_CTX_new(TLS_server_method());
+        server_ctx = VR_SSL_CTX_new(VR_TLS_server_method());
         if (!TEST_true(SSL_CTX_set_max_proto_version(server_ctx, 0)))
             goto err;
         /* SNI on resumption isn't supported/tested yet. */
         if (test_ctx->extra.server.servername_callback !=
             SSL_TEST_SERVERNAME_CB_NONE) {
-            if (!TEST_ptr(server2_ctx = SSL_CTX_new(TLS_server_method())))
+            if (!TEST_ptr(server2_ctx = VR_SSL_CTX_new(VR_TLS_server_method())))
                 goto err;
             if (!TEST_true(SSL_CTX_set_max_proto_version(server2_ctx, 0)))
                 goto err;
         }
-        client_ctx = SSL_CTX_new(TLS_client_method());
+        client_ctx = VR_SSL_CTX_new(VR_TLS_client_method());
         if (!TEST_true(SSL_CTX_set_max_proto_version(client_ctx, 0)))
             goto err;
 
         if (test_ctx->handshake_mode == SSL_TEST_HANDSHAKE_RESUME) {
-            resume_server_ctx = SSL_CTX_new(TLS_server_method());
+            resume_server_ctx = VR_SSL_CTX_new(VR_TLS_server_method());
             if (!TEST_true(SSL_CTX_set_max_proto_version(resume_server_ctx, 0)))
                 goto err;
-            resume_client_ctx = SSL_CTX_new(TLS_client_method());
+            resume_client_ctx = VR_SSL_CTX_new(VR_TLS_client_method());
             if (!TEST_true(SSL_CTX_set_max_proto_version(resume_client_ctx, 0)))
                 goto err;
             if (!TEST_ptr(resume_server_ctx)
@@ -459,27 +459,27 @@ static int test_handshake(int idx)
     }
 
 #ifdef OPENSSL_NO_AUTOLOAD_CONFIG
-    if (!TEST_true(OPENSSL_init_ssl(OPENSSL_INIT_LOAD_CONFIG, NULL)))
+    if (!TEST_true(VR_OPENSSL_init_ssl(OPENSSL_INIT_LOAD_CONFIG, NULL)))
         goto err;
 #endif
 
     if (!TEST_ptr(server_ctx)
             || !TEST_ptr(client_ctx)
-            || !TEST_int_gt(CONF_modules_load(conf, test_app, 0),  0))
+            || !TEST_int_gt(VR_CONF_modules_load(conf, test_app, 0),  0))
         goto err;
 
-    if (!SSL_CTX_config(server_ctx, "server")
-        || !SSL_CTX_config(client_ctx, "client")) {
+    if (!VR_SSL_CTX_config(server_ctx, "server")
+        || !VR_SSL_CTX_config(client_ctx, "client")) {
         goto err;
     }
 
-    if (server2_ctx != NULL && !SSL_CTX_config(server2_ctx, "server2"))
+    if (server2_ctx != NULL && !VR_SSL_CTX_config(server2_ctx, "server2"))
         goto err;
     if (resume_server_ctx != NULL
-        && !SSL_CTX_config(resume_server_ctx, "resume-server"))
+        && !VR_SSL_CTX_config(resume_server_ctx, "resume-server"))
         goto err;
     if (resume_client_ctx != NULL
-        && !SSL_CTX_config(resume_client_ctx, "resume-client"))
+        && !VR_SSL_CTX_config(resume_client_ctx, "resume-client"))
         goto err;
 
     result = do_handshake(server_ctx, server2_ctx, client_ctx,
@@ -489,12 +489,12 @@ static int test_handshake(int idx)
         ret = check_test(result, test_ctx);
 
 err:
-    CONF_modules_unload(0);
-    SSL_CTX_free(server_ctx);
-    SSL_CTX_free(server2_ctx);
-    SSL_CTX_free(client_ctx);
-    SSL_CTX_free(resume_server_ctx);
-    SSL_CTX_free(resume_client_ctx);
+    VR_CONF_modules_unload(0);
+    VR_SSL_CTX_free(server_ctx);
+    VR_SSL_CTX_free(server2_ctx);
+    VR_SSL_CTX_free(client_ctx);
+    VR_SSL_CTX_free(resume_server_ctx);
+    VR_SSL_CTX_free(resume_client_ctx);
     SSL_TEST_CTX_free(test_ctx);
     HANDSHAKE_RESULT_free(result);
     return ret;
@@ -504,10 +504,10 @@ int setup_tests(void)
 {
     long num_tests;
 
-    if (!TEST_ptr(conf = NCONF_new(NULL))
+    if (!TEST_ptr(conf = VR_NCONF_new(NULL))
             /* argv[1] should point to the test conf file */
-            || !TEST_int_gt(NCONF_load(conf, test_get_argument(0), NULL), 0)
-            || !TEST_int_ne(NCONF_get_number_e(conf, NULL, "num_tests",
+            || !TEST_int_gt(VR_NCONF_load(conf, test_get_argument(0), NULL), 0)
+            || !TEST_int_ne(VR_NCONF_get_number_e(conf, NULL, "num_tests",
                                                &num_tests), 0))
         return 0;
 
@@ -517,5 +517,5 @@ int setup_tests(void)
 
 void cleanup_tests(void)
 {
-    NCONF_free(conf);
+    VR_NCONF_free(conf);
 }

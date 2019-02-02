@@ -45,9 +45,9 @@ static STACK_OF(CONF_VALUE) *i2v_POLICY_CONSTRAINTS(const X509V3_EXT_METHOD
                                                     *extlist)
 {
     POLICY_CONSTRAINTS *pcons = a;
-    X509V3_add_value_int("Require Explicit Policy",
+    VR_X509V3_add_value_int("Require Explicit Policy",
                          pcons->requireExplicitPolicy, &extlist);
-    X509V3_add_value_int("Inhibit Policy Mapping",
+    VR_X509V3_add_value_int("Inhibit Policy Mapping",
                          pcons->inhibitPolicyMapping, &extlist);
     return extlist;
 }
@@ -60,17 +60,17 @@ static void *v2i_POLICY_CONSTRAINTS(const X509V3_EXT_METHOD *method,
     CONF_VALUE *val;
     int i;
 
-    if ((pcons = POLICY_CONSTRAINTS_new()) == NULL) {
+    if ((pcons = VR_POLICY_CONSTRAINTS_new()) == NULL) {
         X509V3err(X509V3_F_V2I_POLICY_CONSTRAINTS, ERR_R_MALLOC_FAILURE);
         return NULL;
     }
     for (i = 0; i < sk_CONF_VALUE_num(values); i++) {
         val = sk_CONF_VALUE_value(values, i);
         if (strcmp(val->name, "requireExplicitPolicy") == 0) {
-            if (!X509V3_get_value_int(val, &pcons->requireExplicitPolicy))
+            if (!VR_X509V3_get_value_int(val, &pcons->requireExplicitPolicy))
                 goto err;
         } else if (strcmp(val->name, "inhibitPolicyMapping") == 0) {
-            if (!X509V3_get_value_int(val, &pcons->inhibitPolicyMapping))
+            if (!VR_X509V3_get_value_int(val, &pcons->inhibitPolicyMapping))
                 goto err;
         } else {
             X509V3err(X509V3_F_V2I_POLICY_CONSTRAINTS, X509V3_R_INVALID_NAME);
@@ -86,6 +86,6 @@ static void *v2i_POLICY_CONSTRAINTS(const X509V3_EXT_METHOD *method,
 
     return pcons;
  err:
-    POLICY_CONSTRAINTS_free(pcons);
+    VR_POLICY_CONSTRAINTS_free(pcons);
     return NULL;
 }

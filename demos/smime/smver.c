@@ -26,41 +26,41 @@ int main(int argc, char **argv)
 
     /* Set up trusted CA certificate store */
 
-    st = X509_STORE_new();
+    st = VR_X509_STORE_new();
 
     /* Read in signer certificate and private key */
-    tbio = BIO_new_file("cacert.pem", "r");
+    tbio = VR_BIO_new_file("cacert.pem", "r");
 
     if (!tbio)
         goto err;
 
-    cacert = PEM_read_bio_X509(tbio, NULL, 0, NULL);
+    cacert = VR_PEM_read_bio_X509(tbio, NULL, 0, NULL);
 
     if (!cacert)
         goto err;
 
-    if (!X509_STORE_add_cert(st, cacert))
+    if (!VR_X509_STORE_add_cert(st, cacert))
         goto err;
 
     /* Open content being signed */
 
-    in = BIO_new_file("smout.txt", "r");
+    in = VR_BIO_new_file("smout.txt", "r");
 
     if (!in)
         goto err;
 
     /* Sign content */
-    p7 = SMIME_read_PKCS7(in, &cont);
+    p7 = VR_SMIME_read_PKCS7(in, &cont);
 
     if (!p7)
         goto err;
 
     /* File to output verified content to */
-    out = BIO_new_file("smver.txt", "w");
+    out = VR_BIO_new_file("smver.txt", "w");
     if (!out)
         goto err;
 
-    if (!PKCS7_verify(p7, NULL, st, cont, out, 0)) {
+    if (!VR_PKCS7_verify(p7, NULL, st, cont, out, 0)) {
         fprintf(stderr, "Verification Failure\n");
         goto err;
     }
@@ -72,12 +72,12 @@ int main(int argc, char **argv)
  err:
     if (ret) {
         fprintf(stderr, "Error Verifying Data\n");
-        ERR_print_errors_fp(stderr);
+        VR_ERR_print_errors_fp(stderr);
     }
-    PKCS7_free(p7);
-    X509_free(cacert);
-    BIO_free(in);
-    BIO_free(out);
-    BIO_free(tbio);
+    VR_PKCS7_free(p7);
+    VR_X509_free(cacert);
+    VR_BIO_free(in);
+    VR_BIO_free(out);
+    VR_BIO_free(tbio);
     return ret;
 }

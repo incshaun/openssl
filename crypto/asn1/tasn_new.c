@@ -24,17 +24,17 @@ static int asn1_template_new(ASN1_VALUE **pval, const ASN1_TEMPLATE *tt);
 static void asn1_template_clear(ASN1_VALUE **pval, const ASN1_TEMPLATE *tt);
 static void asn1_primitive_clear(ASN1_VALUE **pval, const ASN1_ITEM *it);
 
-ASN1_VALUE *ASN1_item_new(const ASN1_ITEM *it)
+ASN1_VALUE *VR_ASN1_item_new(const ASN1_ITEM *it)
 {
     ASN1_VALUE *ret = NULL;
-    if (ASN1_item_ex_new(&ret, it) > 0)
+    if (VR_ASN1_item_ex_new(&ret, it) > 0)
         return ret;
     return NULL;
 }
 
 /* Allocate an ASN1 structure */
 
-int ASN1_item_ex_new(ASN1_VALUE **pval, const ASN1_ITEM *it)
+int VR_ASN1_item_ex_new(ASN1_VALUE **pval, const ASN1_ITEM *it)
 {
     return asn1_item_embed_new(pval, it, 0);
 }
@@ -98,7 +98,7 @@ int asn1_item_embed_new(ASN1_VALUE **pval, const ASN1_ITEM *it, int embed)
             if (*pval == NULL)
                 goto memerr;
         }
-        asn1_set_choice_selector(pval, -1, it);
+        VR_asn1_set_choice_selector(pval, -1, it);
         if (asn1_cb && !asn1_cb(ASN1_OP_NEW_POST, pval, it, NULL))
             goto auxerr2;
         break;
@@ -124,16 +124,16 @@ int asn1_item_embed_new(ASN1_VALUE **pval, const ASN1_ITEM *it, int embed)
                 goto memerr;
         }
         /* 0 : init. lock */
-        if (asn1_do_lock(pval, 0, it) < 0) {
+        if (VR_asn1_do_lock(pval, 0, it) < 0) {
             if (!embed) {
-                OPENSSL_free(*pval);
+                OPENVR_SSL_free(*pval);
                 *pval = NULL;
             }
             goto memerr;
         }
-        asn1_enc_init(pval, it);
+        VR_asn1_enc_init(pval, it);
         for (i = 0, tt = it->templates; i < it->tcount; tt++, i++) {
-            pseqval = asn1_get_field_ptr(pval, tt);
+            pseqval = VR_asn1_get_field_ptr(pval, tt);
             if (!asn1_template_new(pseqval, tt))
                 goto memerr2;
         }
@@ -147,7 +147,7 @@ int asn1_item_embed_new(ASN1_VALUE **pval, const ASN1_ITEM *it, int embed)
     return 1;
 
  memerr2:
-    asn1_item_embed_free(pval, it, embed);
+    VR_asn1_item_embed_free(pval, it, embed);
  memerr:
     ASN1err(ASN1_F_ASN1_ITEM_EMBED_NEW, ERR_R_MALLOC_FAILURE);
 #ifndef OPENSSL_NO_CRYPTO_MDEBUG
@@ -156,7 +156,7 @@ int asn1_item_embed_new(ASN1_VALUE **pval, const ASN1_ITEM *it, int embed)
     return 0;
 
  auxerr2:
-    asn1_item_embed_free(pval, it, embed);
+    VR_asn1_item_embed_free(pval, it, embed);
  auxerr:
     ASN1err(ASN1_F_ASN1_ITEM_EMBED_NEW, ASN1_R_AUX_ERROR);
 #ifndef OPENSSL_NO_CRYPTO_MDEBUG
@@ -226,7 +226,7 @@ static int asn1_template_new(ASN1_VALUE **pval, const ASN1_TEMPLATE *tt)
     /* If SET OF or SEQUENCE OF, its a STACK */
     if (tt->flags & ASN1_TFLG_SK_MASK) {
         STACK_OF(ASN1_VALUE) *skval;
-        skval = sk_ASN1_VALUE_new_null();
+        skval = sk_VR_ASN1_VALUE_new_null();
         if (!skval) {
             ASN1err(ASN1_F_ASN1_TEMPLATE_NEW, ERR_R_MALLOC_FAILURE);
             ret = 0;
@@ -287,7 +287,7 @@ static int asn1_primitive_new(ASN1_VALUE **pval, const ASN1_ITEM *it,
         utype = it->utype;
     switch (utype) {
     case V_ASN1_OBJECT:
-        *pval = (ASN1_VALUE *)OBJ_nid2obj(NID_undef);
+        *pval = (ASN1_VALUE *)VR_OBJ_nid2obj(NID_undef);
         return 1;
 
     case V_ASN1_BOOLEAN:
@@ -315,7 +315,7 @@ static int asn1_primitive_new(ASN1_VALUE **pval, const ASN1_ITEM *it,
             str->type = utype;
             str->flags = ASN1_STRING_FLAG_EMBED;
         } else {
-            str = ASN1_STRING_type_new(utype);
+            str = VR_ASN1_STRING_type_new(utype);
             *pval = (ASN1_VALUE *)str;
         }
         if (it->itype == ASN1_ITYPE_MSTRING && str)

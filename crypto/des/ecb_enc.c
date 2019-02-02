@@ -12,23 +12,23 @@
 #include <openssl/bio.h>
 
 
-const char *DES_options(void)
+const char *VR_DES_options(void)
 {
     static int init = 1;
     static char buf[12];
 
     if (init) {
         if (sizeof(DES_LONG) != sizeof(long))
-            OPENSSL_strlcpy(buf, "des(int)", sizeof(buf));
+            VR_OPENSSL_strlcpy(buf, "des(int)", sizeof(buf));
         else
-            OPENSSL_strlcpy(buf, "des(long)", sizeof(buf));
+            VR_OPENSSL_strlcpy(buf, "des(long)", sizeof(buf));
         init = 0;
     }
     return buf;
 }
 
-void DES_ecb_encrypt(const_DES_cblock *input, DES_cblock *output,
-                     DES_key_schedule *ks, int enc)
+void VR_DES_ecb_encrypt(const_DES_cblock *input, DES_cblock *output,
+                     VR_DES_key_schedule *ks, int enc)
 {
     register DES_LONG l;
     DES_LONG ll[2];
@@ -39,7 +39,7 @@ void DES_ecb_encrypt(const_DES_cblock *input, DES_cblock *output,
     ll[0] = l;
     c2l(in, l);
     ll[1] = l;
-    DES_encrypt1(ll, ks, enc);
+    VR_DES_encrypt1(ll, ks, enc);
     l = ll[0];
     l2c(l, out);
     l = ll[1];

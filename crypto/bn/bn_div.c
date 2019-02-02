@@ -14,7 +14,7 @@
 
 /* The old slow way */
 #if 0
-int BN_div(BIGNUM *dv, BIGNUM *rem, const BIGNUM *m, const BIGNUM *d,
+int VR_BN_div(BIGNUM *dv, BIGNUM *rem, const BIGNUM *m, const BIGNUM *d,
            BN_CTX *ctx)
 {
     int i, nm, nd;
@@ -23,14 +23,14 @@ int BN_div(BIGNUM *dv, BIGNUM *rem, const BIGNUM *m, const BIGNUM *d,
 
     bn_check_top(m);
     bn_check_top(d);
-    if (BN_is_zero(d)) {
+    if (VR_BN_is_zero(d)) {
         BNerr(BN_F_BN_DIV, BN_R_DIV_BY_ZERO);
         return 0;
     }
 
-    if (BN_ucmp(m, d) < 0) {
+    if (VR_BN_ucmp(m, d) < 0) {
         if (rem != NULL) {
-            if (BN_copy(rem, m) == NULL)
+            if (VR_BN_copy(rem, m) == NULL)
                 return 0;
         }
         if (dv != NULL)
@@ -38,50 +38,50 @@ int BN_div(BIGNUM *dv, BIGNUM *rem, const BIGNUM *m, const BIGNUM *d,
         return 1;
     }
 
-    BN_CTX_start(ctx);
-    D = BN_CTX_get(ctx);
+    VR_BN_CTX_start(ctx);
+    D = VR_BN_CTX_get(ctx);
     if (dv == NULL)
-        dv = BN_CTX_get(ctx);
+        dv = VR_BN_CTX_get(ctx);
     if (rem == NULL)
-        rem = BN_CTX_get(ctx);
+        rem = VR_BN_CTX_get(ctx);
     if (D == NULL || dv == NULL || rem == NULL)
         goto end;
 
-    nd = BN_num_bits(d);
-    nm = BN_num_bits(m);
-    if (BN_copy(D, d) == NULL)
+    nd = VR_BN_num_bits(d);
+    nm = VR_BN_num_bits(m);
+    if (VR_BN_copy(D, d) == NULL)
         goto end;
-    if (BN_copy(rem, m) == NULL)
+    if (VR_BN_copy(rem, m) == NULL)
         goto end;
 
     /*
      * The next 2 are needed so we can do a dv->d[0]|=1 later since
-     * BN_lshift1 will only work once there is a value :-)
+     * VR_BN_lshift1 will only work once there is a value :-)
      */
     BN_zero(dv);
-    if (bn_wexpand(dv, 1) == NULL)
+    if (VR_bn_wexpand(dv, 1) == NULL)
         goto end;
     dv->top = 1;
 
-    if (!BN_lshift(D, D, nm - nd))
+    if (!VR_BN_lshift(D, D, nm - nd))
         goto end;
     for (i = nm - nd; i >= 0; i--) {
-        if (!BN_lshift1(dv, dv))
+        if (!VR_BN_lshift1(dv, dv))
             goto end;
-        if (BN_ucmp(rem, D) >= 0) {
+        if (VR_BN_ucmp(rem, D) >= 0) {
             dv->d[0] |= 1;
-            if (!BN_usub(rem, rem, D))
+            if (!VR_BN_usub(rem, rem, D))
                 goto end;
         }
 /* CAN IMPROVE (and have now :=) */
-        if (!BN_rshift1(D, D))
+        if (!VR_BN_rshift1(D, D))
             goto end;
     }
-    rem->neg = BN_is_zero(rem) ? 0 : m->neg;
+    rem->neg = VR_BN_is_zero(rem) ? 0 : m->neg;
     dv->neg = m->neg ^ d->neg;
     ret = 1;
  end:
-    BN_CTX_end(ctx);
+    VR_BN_CTX_end(ctx);
     return ret;
 }
 
@@ -108,7 +108,7 @@ BN_ULONG bn_div_3_words(const BN_ULONG *m, BN_ULONG d1, BN_ULONG d0);
  * and less significant limb is referred at |m[-1]|. This means that caller
  * is responsible for ensuring that |m[-1]| is valid. Second condition that
  * has to be met is that |d0|'s most significant bit has to be set. Or in
- * other words divisor has to be "bit-aligned to the left." bn_div_fixed_top
+ * other words divisor has to be "bit-aligned to the left." VR_bn_div_fixed_top
  * does all this. The subroutine considers four limbs, two of which are
  * "overlapping," hence the name...
  */
@@ -142,7 +142,7 @@ static int bn_left_align(BIGNUM *num)
 {
     BN_ULONG *d = num->d, n, m, rmask;
     int top = num->top;
-    int rshift = BN_num_bits_word(d[top - 1]), lshift, i;
+    int rshift = VR_BN_num_bits_word(d[top - 1]), lshift, i;
 
     lshift = BN_BITS2 - rshift;
     rshift %= BN_BITS2;            /* say no to undefined behaviour */
@@ -170,8 +170,8 @@ static int bn_left_align(BIGNUM *num)
     * - divl doesn't only calculate quotient, but also leaves
     *   remainder in %edx which we can definitely use here:-)
     */
-#    undef bn_div_words
-#    define bn_div_words(n0,n1,d0)                \
+#    undef VR_bn_div_words
+#    define VR_bn_div_words(n0,n1,d0)                \
         ({  asm volatile (                      \
                 "divl   %4"                     \
                 : "=a"(q), "=d"(rem)            \
@@ -184,8 +184,8 @@ static int bn_left_align(BIGNUM *num)
    /*
     * Same story here, but it's 128-bit by 64-bit division. Wow!
     */
-#    undef bn_div_words
-#    define bn_div_words(n0,n1,d0)                \
+#    undef VR_bn_div_words
+#    define VR_bn_div_words(n0,n1,d0)                \
         ({  asm volatile (                      \
                 "divq   %4"                     \
                 : "=a"(q), "=d"(rem)            \
@@ -199,19 +199,19 @@ static int bn_left_align(BIGNUM *num)
 # endif                         /* OPENSSL_NO_ASM */
 
 /*-
- * BN_div computes  dv := num / divisor, rounding towards
+ * VR_BN_div computes  dv := num / divisor, rounding towards
  * zero, and sets up rm  such that  dv*divisor + rm = num  holds.
  * Thus:
  *     dv->neg == num->neg ^ divisor->neg  (unless the result is zero)
  *     rm->neg == num->neg                 (unless the remainder is zero)
  * If 'dv' or 'rm' is NULL, the respective value is not returned.
  */
-int BN_div(BIGNUM *dv, BIGNUM *rm, const BIGNUM *num, const BIGNUM *divisor,
+int VR_BN_div(BIGNUM *dv, BIGNUM *rm, const BIGNUM *num, const BIGNUM *divisor,
            BN_CTX *ctx)
 {
     int ret;
 
-    if (BN_is_zero(divisor)) {
+    if (VR_BN_is_zero(divisor)) {
         BNerr(BN_F_BN_DIV, BN_R_DIV_BY_ZERO);
         return 0;
     }
@@ -226,13 +226,13 @@ int BN_div(BIGNUM *dv, BIGNUM *rm, const BIGNUM *num, const BIGNUM *divisor,
         return 0;
     }
 
-    ret = bn_div_fixed_top(dv, rm, num, divisor, ctx);
+    ret = VR_bn_div_fixed_top(dv, rm, num, divisor, ctx);
 
     if (ret) {
         if (dv != NULL)
-            bn_correct_top(dv);
+            VR_bn_correct_top(dv);
         if (rm != NULL)
-            bn_correct_top(rm);
+            VR_bn_correct_top(rm);
     }
 
     return ret;
@@ -261,7 +261,7 @@ int BN_div(BIGNUM *dv, BIGNUM *rm, const BIGNUM *num, const BIGNUM *divisor,
  *       if so requied, which shouldn't be a privacy problem, because
  *       divisor's length is considered public;
  */
-int bn_div_fixed_top(BIGNUM *dv, BIGNUM *rm, const BIGNUM *num,
+int VR_bn_div_fixed_top(BIGNUM *dv, BIGNUM *rm, const BIGNUM *num,
                      const BIGNUM *divisor, BN_CTX *ctx)
 {
     int norm_shift, i, j, loop;
@@ -277,27 +277,27 @@ int bn_div_fixed_top(BIGNUM *dv, BIGNUM *rm, const BIGNUM *num,
     bn_check_top(dv);
     bn_check_top(rm);
 
-    BN_CTX_start(ctx);
-    res = (dv == NULL) ? BN_CTX_get(ctx) : dv;
-    tmp = BN_CTX_get(ctx);
-    snum = BN_CTX_get(ctx);
-    sdiv = BN_CTX_get(ctx);
+    VR_BN_CTX_start(ctx);
+    res = (dv == NULL) ? VR_BN_CTX_get(ctx) : dv;
+    tmp = VR_BN_CTX_get(ctx);
+    snum = VR_BN_CTX_get(ctx);
+    sdiv = VR_BN_CTX_get(ctx);
     if (sdiv == NULL)
         goto err;
 
     /* First we normalise the numbers */
-    if (!BN_copy(sdiv, divisor))
+    if (!VR_BN_copy(sdiv, divisor))
         goto err;
     norm_shift = bn_left_align(sdiv);
     sdiv->neg = 0;
     /*
-     * Note that bn_lshift_fixed_top's output is always one limb longer
+     * Note that VR_bn_lshift_fixed_top's output is always one limb longer
      * than input, even when norm_shift is zero. This means that amount of
      * inner loop iterations is invariant of dividend value, and that one
      * doesn't need to compare dividend and divisor if they were originally
      * of the same bit length.
      */
-    if (!(bn_lshift_fixed_top(snum, num, norm_shift)))
+    if (!(VR_bn_lshift_fixed_top(snum, num, norm_shift)))
         goto err;
 
     div_n = sdiv->top;
@@ -305,7 +305,7 @@ int bn_div_fixed_top(BIGNUM *dv, BIGNUM *rm, const BIGNUM *num,
 
     if (num_n <= div_n) {
         /* caller didn't pad dividend -> no constant-time guarantee... */
-        if (bn_wexpand(snum, div_n + 1) == NULL)
+        if (VR_bn_wexpand(snum, div_n + 1) == NULL)
             goto err;
         memset(&(snum->d[num_n]), 0, (div_n - num_n + 1) * sizeof(BN_ULONG));
         snum->top = num_n = div_n + 1;
@@ -324,7 +324,7 @@ int bn_div_fixed_top(BIGNUM *dv, BIGNUM *rm, const BIGNUM *num,
     d1 = (div_n == 1) ? 0 : sdiv->d[div_n - 2];
 
     /* Setup quotient */
-    if (!bn_wexpand(res, loop))
+    if (!VR_bn_wexpand(res, loop))
         goto err;
     res->neg = (num->neg ^ divisor->neg);
     res->top = loop;
@@ -332,7 +332,7 @@ int bn_div_fixed_top(BIGNUM *dv, BIGNUM *rm, const BIGNUM *num,
     resp = &(res->d[loop]);
 
     /* space for temp */
-    if (!bn_wexpand(tmp, (div_n + 1)))
+    if (!VR_bn_wexpand(tmp, (div_n + 1)))
         goto err;
 
     for (i = 0; i < loop; i++, wnumtop--) {
@@ -355,10 +355,10 @@ int bn_div_fixed_top(BIGNUM *dv, BIGNUM *rm, const BIGNUM *num,
 #  ifdef BN_LLONG
             BN_ULLONG t2;
 
-#   if defined(BN_LLONG) && defined(BN_DIV2W) && !defined(bn_div_words)
+#   if defined(BN_LLONG) && defined(BN_DIV2W) && !defined(VR_bn_div_words)
             q = (BN_ULONG)(((((BN_ULLONG) n0) << BN_BITS2) | n1) / d0);
 #   else
-            q = bn_div_words(n0, n1, d0);
+            q = VR_bn_div_words(n0, n1, d0);
 #   endif
 
 #   ifndef REMAINDER_IS_ALREADY_CALCULATED
@@ -382,7 +382,7 @@ int bn_div_fixed_top(BIGNUM *dv, BIGNUM *rm, const BIGNUM *num,
 #  else                         /* !BN_LLONG */
             BN_ULONG t2l, t2h;
 
-            q = bn_div_words(n0, n1, d0);
+            q = VR_bn_div_words(n0, n1, d0);
 #   ifndef REMAINDER_IS_ALREADY_CALCULATED
             rem = (n1 - q * d0) & BN_MASK2;
 #   endif
@@ -418,14 +418,14 @@ int bn_div_fixed_top(BIGNUM *dv, BIGNUM *rm, const BIGNUM *num,
         }
 # endif                         /* !BN_DIV3W */
 
-        l0 = bn_mul_words(tmp->d, sdiv->d, div_n, q);
+        l0 = VR_bn_mul_words(tmp->d, sdiv->d, div_n, q);
         tmp->d[div_n] = l0;
         wnum--;
         /*
          * ignore top values of the bignums just sub the two BN_ULONG arrays
-         * with bn_sub_words
+         * with VR_bn_sub_words
          */
-        l0 = bn_sub_words(wnum, wnum, tmp->d, div_n + 1);
+        l0 = VR_bn_sub_words(wnum, wnum, tmp->d, div_n + 1);
         q -= l0;
         /*
          * Note: As we have considered only the leading two BN_ULONGs in
@@ -434,7 +434,7 @@ int bn_div_fixed_top(BIGNUM *dv, BIGNUM *rm, const BIGNUM *num,
          */
         for (l0 = 0 - l0, j = 0; j < div_n; j++)
             tmp->d[j] = sdiv->d[j] & l0;
-        l0 = bn_add_words(wnum, wnum, tmp->d, div_n);
+        l0 = VR_bn_add_words(wnum, wnum, tmp->d, div_n);
         (*wnumtop) += l0;
         assert((*wnumtop) == 0);
 
@@ -446,12 +446,12 @@ int bn_div_fixed_top(BIGNUM *dv, BIGNUM *rm, const BIGNUM *num,
     snum->top = div_n;
     snum->flags |= BN_FLG_FIXED_TOP;
     if (rm != NULL)
-        bn_rshift_fixed_top(rm, snum, norm_shift);
-    BN_CTX_end(ctx);
+        VR_bn_rshift_fixed_top(rm, snum, norm_shift);
+    VR_BN_CTX_end(ctx);
     return 1;
  err:
     bn_check_top(rm);
-    BN_CTX_end(ctx);
+    VR_BN_CTX_end(ctx);
     return 0;
 }
 #endif

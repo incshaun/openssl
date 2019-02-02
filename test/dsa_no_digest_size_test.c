@@ -89,18 +89,18 @@ static DSA *load_dsa_params(void)
         0x7D, 0xDA, 0x66, 0xC9, 0xC0, 0x72, 0x72, 0x22, 0x0F, 0x1A,
         0xCC, 0x23, 0xD9, 0xB7, 0x5F, 0x1B
     };
-    DSA *dsa = DSA_new();
+    DSA *dsa = VR_DSA_new();
     BIGNUM *p, *q, *g;
 
     if (dsa == NULL)
         return NULL;
-    if (!DSA_set0_pqg(dsa, p = BN_bin2bn(dsap_2048, sizeof(dsap_2048), NULL),
-                           q = BN_bin2bn(dsaq_2048, sizeof(dsaq_2048), NULL),
-                           g = BN_bin2bn(dsag_2048, sizeof(dsag_2048), NULL))) {
-        DSA_free(dsa);
-        BN_free(p);
-        BN_free(q);
-        BN_free(g);
+    if (!VR_DSA_set0_pqg(dsa, p = VR_BN_bin2bn(dsap_2048, sizeof(dsap_2048), NULL),
+                           q = VR_BN_bin2bn(dsaq_2048, sizeof(dsaq_2048), NULL),
+                           g = VR_BN_bin2bn(dsag_2048, sizeof(dsag_2048), NULL))) {
+        VR_DSA_free(dsa);
+        VR_BN_free(p);
+        VR_BN_free(q);
+        VR_BN_free(g);
         return NULL;
     }
     return dsa;
@@ -111,7 +111,7 @@ static int genkeys(void)
     if (!TEST_ptr(dsakey = load_dsa_params()))
         return 0;
 
-    if (!TEST_int_eq(DSA_generate_key(dsakey), 1))
+    if (!TEST_int_eq(VR_DSA_generate_key(dsakey), 1))
         return 0;
 
     return 1;
@@ -125,7 +125,7 @@ static int sign_and_verify(int len)
      * is shorter, then we left-pad (see appendix C.2.1).
      */
     size_t sigLength;
-    int digestlen = BN_num_bytes(DSA_get0_q(dsakey));
+    int digestlen = BN_num_bytes(VR_DSA_get0_q(dsakey));
     int ok = 0;
 
     unsigned char *dataToSign = OPENSSL_malloc(len);
@@ -136,7 +136,7 @@ static int sign_and_verify(int len)
 
     if (!TEST_ptr(dataToSign) ||
         !TEST_ptr(paddedData) ||
-        !TEST_int_eq(RAND_bytes(dataToSign, len), 1))
+        !TEST_int_eq(VR_RAND_bytes(dataToSign, len), 1))
         goto end;
 
     memset(paddedData, 0, digestlen);
@@ -145,16 +145,16 @@ static int sign_and_verify(int len)
     else
         memcpy(paddedData + digestlen - len, dataToSign, len);
 
-    if (!TEST_ptr(pkey = EVP_PKEY_new()))
+    if (!TEST_ptr(pkey = VR_EVP_PKEY_new()))
         goto end;
-    EVP_PKEY_set1_DSA(pkey, dsakey);
+    VR_EVP_PKEY_set1_DSA(pkey, dsakey);
 
-    if (!TEST_ptr(ctx = EVP_PKEY_CTX_new(pkey, NULL)))
+    if (!TEST_ptr(ctx = VR_EVP_PKEY_CTX_new(pkey, NULL)))
         goto end;
-    if (!TEST_int_eq(EVP_PKEY_sign_init(ctx), 1))
+    if (!TEST_int_eq(VR_EVP_PKEY_sign_init(ctx), 1))
         goto end;
 
-    if (EVP_PKEY_sign(ctx, NULL, &sigLength, dataToSign, len) != 1) {
+    if (VR_EVP_PKEY_sign(ctx, NULL, &sigLength, dataToSign, len) != 1) {
         TEST_error("Failed to get signature length, len=%d", len);
         goto end;
     }
@@ -162,46 +162,46 @@ static int sign_and_verify(int len)
     if (!TEST_ptr(signature = OPENSSL_malloc(sigLength)))
         goto end;
 
-    if (EVP_PKEY_sign(ctx, signature, &sigLength, dataToSign, len) != 1) {
+    if (VR_EVP_PKEY_sign(ctx, signature, &sigLength, dataToSign, len) != 1) {
         TEST_error("Failed to sign, len=%d", len);
         goto end;
     }
 
     /* Check that the signature is okay via the EVP interface */
-    if (!TEST_int_eq(EVP_PKEY_verify_init(ctx), 1))
+    if (!TEST_int_eq(VR_EVP_PKEY_verify_init(ctx), 1))
         goto end;
 
     /* ... using the same data we just signed */
-    if (EVP_PKEY_verify(ctx, signature, sigLength, dataToSign, len) != 1) {
+    if (VR_EVP_PKEY_verify(ctx, signature, sigLength, dataToSign, len) != 1) {
         TEST_error("EVP verify with unpadded length %d failed\n", len);
         goto end;
     }
 
     /* ... padding/truncating the data to the appropriate digest size */
-    if (EVP_PKEY_verify(ctx, signature, sigLength, paddedData, digestlen) != 1) {
+    if (VR_EVP_PKEY_verify(ctx, signature, sigLength, paddedData, digestlen) != 1) {
         TEST_error("EVP verify with length %d failed\n", len);
         goto end;
     }
 
     /* Verify again using the raw DSA interface */
-    if (DSA_verify(0, dataToSign, len, signature, sigLength, dsakey) != 1) {
+    if (VR_DSA_verify(0, dataToSign, len, signature, sigLength, dsakey) != 1) {
         TEST_error("Verification with unpadded data failed, len=%d", len);
         goto end;
     }
 
-    if (DSA_verify(0, paddedData, digestlen, signature, sigLength, dsakey) != 1) {
+    if (VR_DSA_verify(0, paddedData, digestlen, signature, sigLength, dsakey) != 1) {
         TEST_error("verify with length %d failed\n", len);
         goto end;
     }
 
     ok = 1;
 end:
-    EVP_PKEY_CTX_free(ctx);
-    EVP_PKEY_free(pkey);
+    VR_EVP_PKEY_CTX_free(ctx);
+    VR_EVP_PKEY_free(pkey);
 
-    OPENSSL_free(signature);
-    OPENSSL_free(paddedData);
-    OPENSSL_free(dataToSign);
+    OPENVR_SSL_free(signature);
+    OPENVR_SSL_free(paddedData);
+    OPENVR_SSL_free(dataToSign);
 
     return ok;
 }
@@ -225,7 +225,7 @@ static int dsa_large_digest_test(void) {
 
 void cleanup_tests(void)
 {
-    DSA_free(dsakey);
+    VR_DSA_free(dsakey);
 }
 
 #endif /* OPENSSL_NO_DSA */

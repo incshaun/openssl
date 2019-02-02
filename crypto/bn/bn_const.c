@@ -18,7 +18,7 @@
  * RFC2412 specifies a generator of of 22.
  */
 
-BIGNUM *BN_get_rfc2409_prime_768(BIGNUM *bn)
+BIGNUM *VR_BN_get_rfc2409_prime_768(BIGNUM *bn)
 {
     static const unsigned char RFC2409_PRIME_768[] = {
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -34,7 +34,7 @@ BIGNUM *BN_get_rfc2409_prime_768(BIGNUM *bn)
         0xF4, 0x4C, 0x42, 0xE9, 0xA6, 0x3A, 0x36, 0x20,
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
     };
-    return BN_bin2bn(RFC2409_PRIME_768, sizeof(RFC2409_PRIME_768), bn);
+    return VR_BN_bin2bn(RFC2409_PRIME_768, sizeof(RFC2409_PRIME_768), bn);
 }
 
 /*-
@@ -46,7 +46,7 @@ BIGNUM *BN_get_rfc2409_prime_768(BIGNUM *bn)
  * RFC2412 specifies a generator of 22.
  */
 
-BIGNUM *BN_get_rfc2409_prime_1024(BIGNUM *bn)
+BIGNUM *VR_BN_get_rfc2409_prime_1024(BIGNUM *bn)
 {
     static const unsigned char RFC2409_PRIME_1024[] = {
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -66,7 +66,7 @@ BIGNUM *BN_get_rfc2409_prime_1024(BIGNUM *bn)
         0x49, 0x28, 0x66, 0x51, 0xEC, 0xE6, 0x53, 0x81,
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
     };
-    return BN_bin2bn(RFC2409_PRIME_1024, sizeof(RFC2409_PRIME_1024), bn);
+    return VR_BN_bin2bn(RFC2409_PRIME_1024, sizeof(RFC2409_PRIME_1024), bn);
 }
 
 /*-
@@ -78,7 +78,7 @@ BIGNUM *BN_get_rfc2409_prime_1024(BIGNUM *bn)
  * RFC2312 specifies a generator of 22.
  */
 
-BIGNUM *BN_get_rfc3526_prime_1536(BIGNUM *bn)
+BIGNUM *VR_BN_get_rfc3526_prime_1536(BIGNUM *bn)
 {
     static const unsigned char RFC3526_PRIME_1536[] = {
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -106,7 +106,7 @@ BIGNUM *BN_get_rfc3526_prime_1536(BIGNUM *bn)
         0xF1, 0x74, 0x6C, 0x08, 0xCA, 0x23, 0x73, 0x27,
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
     };
-    return BN_bin2bn(RFC3526_PRIME_1536, sizeof(RFC3526_PRIME_1536), bn);
+    return VR_BN_bin2bn(RFC3526_PRIME_1536, sizeof(RFC3526_PRIME_1536), bn);
 }
 
 /*-
@@ -117,7 +117,7 @@ BIGNUM *BN_get_rfc3526_prime_1536(BIGNUM *bn)
  * RFC3526 specifies a generator of 2.
  */
 
-BIGNUM *BN_get_rfc3526_prime_2048(BIGNUM *bn)
+BIGNUM *VR_BN_get_rfc3526_prime_2048(BIGNUM *bn)
 {
     static const unsigned char RFC3526_PRIME_2048[] = {
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -153,7 +153,7 @@ BIGNUM *BN_get_rfc3526_prime_2048(BIGNUM *bn)
         0x15, 0x72, 0x8E, 0x5A, 0x8A, 0xAC, 0xAA, 0x68,
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
     };
-    return BN_bin2bn(RFC3526_PRIME_2048, sizeof(RFC3526_PRIME_2048), bn);
+    return VR_BN_bin2bn(RFC3526_PRIME_2048, sizeof(RFC3526_PRIME_2048), bn);
 }
 
 /*-
@@ -164,7 +164,7 @@ BIGNUM *BN_get_rfc3526_prime_2048(BIGNUM *bn)
  * RFC3526 specifies a generator of 2.
  */
 
-BIGNUM *BN_get_rfc3526_prime_3072(BIGNUM *bn)
+BIGNUM *VR_BN_get_rfc3526_prime_3072(BIGNUM *bn)
 {
     static const unsigned char RFC3526_PRIME_3072[] = {
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -216,7 +216,7 @@ BIGNUM *BN_get_rfc3526_prime_3072(BIGNUM *bn)
         0x4B, 0x82, 0xD1, 0x20, 0xA9, 0x3A, 0xD2, 0xCA,
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
     };
-    return BN_bin2bn(RFC3526_PRIME_3072, sizeof(RFC3526_PRIME_3072), bn);
+    return VR_BN_bin2bn(RFC3526_PRIME_3072, sizeof(RFC3526_PRIME_3072), bn);
 }
 
 /*-
@@ -227,7 +227,7 @@ BIGNUM *BN_get_rfc3526_prime_3072(BIGNUM *bn)
  * RFC3526 specifies a generator of 2.
  */
 
-BIGNUM *BN_get_rfc3526_prime_4096(BIGNUM *bn)
+BIGNUM *VR_BN_get_rfc3526_prime_4096(BIGNUM *bn)
 {
     static const unsigned char RFC3526_PRIME_4096[] = {
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -295,7 +295,7 @@ BIGNUM *BN_get_rfc3526_prime_4096(BIGNUM *bn)
         0x4D, 0xF4, 0x35, 0xC9, 0x34, 0x06, 0x31, 0x99,
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
     };
-    return BN_bin2bn(RFC3526_PRIME_4096, sizeof(RFC3526_PRIME_4096), bn);
+    return VR_BN_bin2bn(RFC3526_PRIME_4096, sizeof(RFC3526_PRIME_4096), bn);
 }
 
 /*-
@@ -306,7 +306,7 @@ BIGNUM *BN_get_rfc3526_prime_4096(BIGNUM *bn)
  * RFC3526 specifies a generator of 2.
  */
 
-BIGNUM *BN_get_rfc3526_prime_6144(BIGNUM *bn)
+BIGNUM *VR_BN_get_rfc3526_prime_6144(BIGNUM *bn)
 {
     static const unsigned char RFC3526_PRIME_6144[] = {
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -406,7 +406,7 @@ BIGNUM *BN_get_rfc3526_prime_6144(BIGNUM *bn)
         0xE6, 0x94, 0xF9, 0x1E, 0x6D, 0xCC, 0x40, 0x24,
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
     };
-    return BN_bin2bn(RFC3526_PRIME_6144, sizeof(RFC3526_PRIME_6144), bn);
+    return VR_BN_bin2bn(RFC3526_PRIME_6144, sizeof(RFC3526_PRIME_6144), bn);
 }
 
 /*-
@@ -417,7 +417,7 @@ BIGNUM *BN_get_rfc3526_prime_6144(BIGNUM *bn)
  * RFC3526 specifies a generator of 2.
  */
 
-BIGNUM *BN_get_rfc3526_prime_8192(BIGNUM *bn)
+BIGNUM *VR_BN_get_rfc3526_prime_8192(BIGNUM *bn)
 {
     static const unsigned char RFC3526_PRIME_8192[] = {
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -549,5 +549,5 @@ BIGNUM *BN_get_rfc3526_prime_8192(BIGNUM *bn)
         0x60, 0xC9, 0x80, 0xDD, 0x98, 0xED, 0xD3, 0xDF,
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
     };
-    return BN_bin2bn(RFC3526_PRIME_8192, sizeof(RFC3526_PRIME_8192), bn);
+    return VR_BN_bin2bn(RFC3526_PRIME_8192, sizeof(RFC3526_PRIME_8192), bn);
 }

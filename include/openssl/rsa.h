@@ -93,13 +93,13 @@ extern "C" {
 # endif
 
 # define EVP_PKEY_CTX_set_rsa_padding(ctx, pad) \
-        RSA_pkey_ctx_ctrl(ctx, -1, EVP_PKEY_CTRL_RSA_PADDING, pad, NULL)
+        VR_RSA_pkey_ctx_ctrl(ctx, -1, EVP_PKEY_CTRL_RSA_PADDING, pad, NULL)
 
 # define EVP_PKEY_CTX_get_rsa_padding(ctx, ppad) \
-        RSA_pkey_ctx_ctrl(ctx, -1, EVP_PKEY_CTRL_GET_RSA_PADDING, 0, ppad)
+        VR_RSA_pkey_ctx_ctrl(ctx, -1, EVP_PKEY_CTRL_GET_RSA_PADDING, 0, ppad)
 
 # define EVP_PKEY_CTX_set_rsa_pss_saltlen(ctx, len) \
-        RSA_pkey_ctx_ctrl(ctx, (EVP_PKEY_OP_SIGN|EVP_PKEY_OP_VERIFY), \
+        VR_RSA_pkey_ctx_ctrl(ctx, (EVP_PKEY_OP_SIGN|EVP_PKEY_OP_VERIFY), \
                           EVP_PKEY_CTRL_RSA_PSS_SALTLEN, len, NULL)
 /* Salt length matches digest */
 # define RSA_PSS_SALTLEN_DIGEST -1
@@ -111,55 +111,55 @@ extern "C" {
 # define RSA_PSS_SALTLEN_MAX_SIGN    -2
 
 # define EVP_PKEY_CTX_set_rsa_pss_keygen_saltlen(ctx, len) \
-        EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_RSA_PSS, EVP_PKEY_OP_KEYGEN, \
+        VR_EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_RSA_PSS, EVP_PKEY_OP_KEYGEN, \
                           EVP_PKEY_CTRL_RSA_PSS_SALTLEN, len, NULL)
 
 # define EVP_PKEY_CTX_get_rsa_pss_saltlen(ctx, plen) \
-        RSA_pkey_ctx_ctrl(ctx, (EVP_PKEY_OP_SIGN|EVP_PKEY_OP_VERIFY), \
+        VR_RSA_pkey_ctx_ctrl(ctx, (EVP_PKEY_OP_SIGN|EVP_PKEY_OP_VERIFY), \
                           EVP_PKEY_CTRL_GET_RSA_PSS_SALTLEN, 0, plen)
 
 # define EVP_PKEY_CTX_set_rsa_keygen_bits(ctx, bits) \
-        RSA_pkey_ctx_ctrl(ctx, EVP_PKEY_OP_KEYGEN, \
+        VR_RSA_pkey_ctx_ctrl(ctx, EVP_PKEY_OP_KEYGEN, \
                           EVP_PKEY_CTRL_RSA_KEYGEN_BITS, bits, NULL)
 
 # define EVP_PKEY_CTX_set_rsa_keygen_pubexp(ctx, pubexp) \
-        RSA_pkey_ctx_ctrl(ctx, EVP_PKEY_OP_KEYGEN, \
+        VR_RSA_pkey_ctx_ctrl(ctx, EVP_PKEY_OP_KEYGEN, \
                           EVP_PKEY_CTRL_RSA_KEYGEN_PUBEXP, 0, pubexp)
 
 # define EVP_PKEY_CTX_set_rsa_keygen_primes(ctx, primes) \
-        RSA_pkey_ctx_ctrl(ctx, EVP_PKEY_OP_KEYGEN, \
+        VR_RSA_pkey_ctx_ctrl(ctx, EVP_PKEY_OP_KEYGEN, \
                           EVP_PKEY_CTRL_RSA_KEYGEN_PRIMES, primes, NULL)
 
 # define  EVP_PKEY_CTX_set_rsa_mgf1_md(ctx, md) \
-        RSA_pkey_ctx_ctrl(ctx, EVP_PKEY_OP_TYPE_SIG | EVP_PKEY_OP_TYPE_CRYPT, \
+        VR_RSA_pkey_ctx_ctrl(ctx, EVP_PKEY_OP_TYPE_SIG | EVP_PKEY_OP_TYPE_CRYPT, \
                           EVP_PKEY_CTRL_RSA_MGF1_MD, 0, (void *)(md))
 
 # define  EVP_PKEY_CTX_set_rsa_pss_keygen_mgf1_md(ctx, md) \
-        EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_RSA_PSS, EVP_PKEY_OP_KEYGEN, \
+        VR_EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_RSA_PSS, EVP_PKEY_OP_KEYGEN, \
                           EVP_PKEY_CTRL_RSA_MGF1_MD, 0, (void *)(md))
 
 # define  EVP_PKEY_CTX_set_rsa_oaep_md(ctx, md) \
-        EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_RSA, EVP_PKEY_OP_TYPE_CRYPT,  \
+        VR_EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_RSA, EVP_PKEY_OP_TYPE_CRYPT,  \
                           EVP_PKEY_CTRL_RSA_OAEP_MD, 0, (void *)(md))
 
 # define  EVP_PKEY_CTX_get_rsa_mgf1_md(ctx, pmd) \
-        RSA_pkey_ctx_ctrl(ctx, EVP_PKEY_OP_TYPE_SIG | EVP_PKEY_OP_TYPE_CRYPT, \
+        VR_RSA_pkey_ctx_ctrl(ctx, EVP_PKEY_OP_TYPE_SIG | EVP_PKEY_OP_TYPE_CRYPT, \
                           EVP_PKEY_CTRL_GET_RSA_MGF1_MD, 0, (void *)(pmd))
 
 # define  EVP_PKEY_CTX_get_rsa_oaep_md(ctx, pmd) \
-        EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_RSA, EVP_PKEY_OP_TYPE_CRYPT,  \
+        VR_EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_RSA, EVP_PKEY_OP_TYPE_CRYPT,  \
                           EVP_PKEY_CTRL_GET_RSA_OAEP_MD, 0, (void *)(pmd))
 
 # define  EVP_PKEY_CTX_set0_rsa_oaep_label(ctx, l, llen) \
-        EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_RSA, EVP_PKEY_OP_TYPE_CRYPT,  \
+        VR_EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_RSA, EVP_PKEY_OP_TYPE_CRYPT,  \
                           EVP_PKEY_CTRL_RSA_OAEP_LABEL, llen, (void *)(l))
 
 # define  EVP_PKEY_CTX_get0_rsa_oaep_label(ctx, l) \
-        EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_RSA, EVP_PKEY_OP_TYPE_CRYPT,  \
+        VR_EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_RSA, EVP_PKEY_OP_TYPE_CRYPT,  \
                           EVP_PKEY_CTRL_GET_RSA_OAEP_LABEL, 0, (void *)(l))
 
 # define  EVP_PKEY_CTX_set_rsa_pss_keygen_md(ctx, md) \
-        EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_RSA_PSS,  \
+        VR_EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_RSA_PSS,  \
                           EVP_PKEY_OP_KEYGEN, EVP_PKEY_CTRL_MD,  \
                           0, (void *)(md))
 
@@ -192,89 +192,89 @@ extern "C" {
 
 # define RSA_PKCS1_PADDING_SIZE  11
 
-# define RSA_set_app_data(s,arg)         RSA_set_ex_data(s,0,arg)
-# define RSA_get_app_data(s)             RSA_get_ex_data(s,0)
+# define RSA_set_app_data(s,arg)         VR_RSA_set_ex_data(s,0,arg)
+# define RSA_get_app_data(s)             VR_RSA_get_ex_data(s,0)
 
-RSA *RSA_new(void);
-RSA *RSA_new_method(ENGINE *engine);
-int RSA_bits(const RSA *rsa);
-int RSA_size(const RSA *rsa);
-int RSA_security_bits(const RSA *rsa);
+RSA *VR_RSA_new(void);
+RSA *VR_RSA_new_method(ENGINE *engine);
+int VR_RSA_bits(const RSA *rsa);
+int VR_RSA_size(const RSA *rsa);
+int VR_RSA_security_bits(const RSA *rsa);
 
-int RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d);
-int RSA_set0_factors(RSA *r, BIGNUM *p, BIGNUM *q);
-int RSA_set0_crt_params(RSA *r,BIGNUM *dmp1, BIGNUM *dmq1, BIGNUM *iqmp);
-int RSA_set0_multi_prime_params(RSA *r, BIGNUM *primes[], BIGNUM *exps[],
+int VR_RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d);
+int VR_RSA_set0_factors(RSA *r, BIGNUM *p, BIGNUM *q);
+int VR_RSA_set0_crt_params(RSA *r,BIGNUM *dmp1, BIGNUM *dmq1, BIGNUM *iqmp);
+int VR_RSA_set0_multi_prime_params(RSA *r, BIGNUM *primes[], BIGNUM *exps[],
                                 BIGNUM *coeffs[], int pnum);
-void RSA_get0_key(const RSA *r,
+void VR_RSA_get0_key(const RSA *r,
                   const BIGNUM **n, const BIGNUM **e, const BIGNUM **d);
-void RSA_get0_factors(const RSA *r, const BIGNUM **p, const BIGNUM **q);
-int RSA_get_multi_prime_extra_count(const RSA *r);
-int RSA_get0_multi_prime_factors(const RSA *r, const BIGNUM *primes[]);
-void RSA_get0_crt_params(const RSA *r,
+void VR_RSA_get0_factors(const RSA *r, const BIGNUM **p, const BIGNUM **q);
+int VR_RSA_get_multi_prime_extra_count(const RSA *r);
+int VR_RSA_get0_multi_prime_factors(const RSA *r, const BIGNUM *primes[]);
+void VR_RSA_get0_crt_params(const RSA *r,
                          const BIGNUM **dmp1, const BIGNUM **dmq1,
                          const BIGNUM **iqmp);
-int RSA_get0_multi_prime_crt_params(const RSA *r, const BIGNUM *exps[],
+int VR_RSA_get0_multi_prime_crt_params(const RSA *r, const BIGNUM *exps[],
                                     const BIGNUM *coeffs[]);
-const BIGNUM *RSA_get0_n(const RSA *d);
-const BIGNUM *RSA_get0_e(const RSA *d);
-const BIGNUM *RSA_get0_d(const RSA *d);
-const BIGNUM *RSA_get0_p(const RSA *d);
-const BIGNUM *RSA_get0_q(const RSA *d);
-const BIGNUM *RSA_get0_dmp1(const RSA *r);
-const BIGNUM *RSA_get0_dmq1(const RSA *r);
-const BIGNUM *RSA_get0_iqmp(const RSA *r);
-void RSA_clear_flags(RSA *r, int flags);
-int RSA_test_flags(const RSA *r, int flags);
-void RSA_set_flags(RSA *r, int flags);
-int RSA_get_version(RSA *r);
-ENGINE *RSA_get0_engine(const RSA *r);
+const BIGNUM *VR_RSA_get0_n(const RSA *d);
+const BIGNUM *VR_RSA_get0_e(const RSA *d);
+const BIGNUM *VR_RSA_get0_d(const RSA *d);
+const BIGNUM *VR_RSA_get0_p(const RSA *d);
+const BIGNUM *VR_RSA_get0_q(const RSA *d);
+const BIGNUM *VR_RSA_get0_dmp1(const RSA *r);
+const BIGNUM *VR_RSA_get0_dmq1(const RSA *r);
+const BIGNUM *VR_RSA_get0_iqmp(const RSA *r);
+void VR_RSA_clear_flags(RSA *r, int flags);
+int VR_RSA_test_flags(const RSA *r, int flags);
+void VR_RSA_set_flags(RSA *r, int flags);
+int VR_RSA_get_version(RSA *r);
+ENGINE *VR_RSA_get0_engine(const RSA *r);
 
 /* Deprecated version */
-DEPRECATEDIN_0_9_8(RSA *RSA_generate_key(int bits, unsigned long e, void
+DEPRECATEDIN_0_9_8(RSA *VR_RSA_generate_key(int bits, unsigned long e, void
                                          (*callback) (int, int, void *),
                                          void *cb_arg))
 
 /* New version */
-int RSA_generate_key_ex(RSA *rsa, int bits, BIGNUM *e, BN_GENCB *cb);
+int VR_RSA_generate_key_ex(RSA *rsa, int bits, BIGNUM *e, BN_GENCB *cb);
 /* Multi-prime version */
-int RSA_generate_multi_prime_key(RSA *rsa, int bits, int primes,
+int VR_RSA_generate_multi_prime_key(RSA *rsa, int bits, int primes,
                                  BIGNUM *e, BN_GENCB *cb);
 
-int RSA_X931_derive_ex(RSA *rsa, BIGNUM *p1, BIGNUM *p2, BIGNUM *q1,
+int VR_RSA_X931_derive_ex(RSA *rsa, BIGNUM *p1, BIGNUM *p2, BIGNUM *q1,
                        BIGNUM *q2, const BIGNUM *Xp1, const BIGNUM *Xp2,
                        const BIGNUM *Xp, const BIGNUM *Xq1, const BIGNUM *Xq2,
                        const BIGNUM *Xq, const BIGNUM *e, BN_GENCB *cb);
-int RSA_X931_generate_key_ex(RSA *rsa, int bits, const BIGNUM *e,
+int VR_RSA_X931_generate_key_ex(RSA *rsa, int bits, const BIGNUM *e,
                              BN_GENCB *cb);
 
-int RSA_check_key(const RSA *);
-int RSA_check_key_ex(const RSA *, BN_GENCB *cb);
+int VR_RSA_check_key(const RSA *);
+int VR_RSA_check_key_ex(const RSA *, BN_GENCB *cb);
         /* next 4 return -1 on error */
-int RSA_public_encrypt(int flen, const unsigned char *from,
+int VR_RSA_public_encrypt(int flen, const unsigned char *from,
                        unsigned char *to, RSA *rsa, int padding);
-int RSA_private_encrypt(int flen, const unsigned char *from,
+int VR_RSA_private_encrypt(int flen, const unsigned char *from,
                         unsigned char *to, RSA *rsa, int padding);
-int RSA_public_decrypt(int flen, const unsigned char *from,
+int VR_RSA_public_decrypt(int flen, const unsigned char *from,
                        unsigned char *to, RSA *rsa, int padding);
-int RSA_private_decrypt(int flen, const unsigned char *from,
+int VR_RSA_private_decrypt(int flen, const unsigned char *from,
                         unsigned char *to, RSA *rsa, int padding);
-void RSA_free(RSA *r);
+void VR_RSA_free(RSA *r);
 /* "up" the RSA object's reference count */
-int RSA_up_ref(RSA *r);
+int VR_RSA_up_ref(RSA *r);
 
-int RSA_flags(const RSA *r);
+int VR_RSA_flags(const RSA *r);
 
-void RSA_set_default_method(const RSA_METHOD *meth);
-const RSA_METHOD *RSA_get_default_method(void);
-const RSA_METHOD *RSA_null_method(void);
-const RSA_METHOD *RSA_get_method(const RSA *rsa);
-int RSA_set_method(RSA *rsa, const RSA_METHOD *meth);
+void VR_RSA_set_default_method(const RSA_METHOD *meth);
+const RSA_METHOD *VR_RSA_get_default_method(void);
+const RSA_METHOD *VR_RSA_null_method(void);
+const RSA_METHOD *VR_RSA_get_method(const RSA *rsa);
+int VR_RSA_set_method(RSA *rsa, const RSA_METHOD *meth);
 
 /* these are the actual RSA functions */
-const RSA_METHOD *RSA_PKCS1_OpenSSL(void);
+const RSA_METHOD *VR_RSA_PKCS1_OpenSSL(void);
 
-int RSA_pkey_ctx_ctrl(EVP_PKEY_CTX *ctx, int optype, int cmd, int p1, void *p2);
+int VR_RSA_pkey_ctx_ctrl(EVP_PKEY_CTX *ctx, int optype, int cmd, int p1, void *p2);
 
 DECLARE_ASN1_ENCODE_FUNCTIONS_const(RSA, RSAPublicKey)
 DECLARE_ASN1_ENCODE_FUNCTIONS_const(RSA, RSAPrivateKey)
@@ -301,100 +301,100 @@ typedef struct rsa_oaep_params_st {
 DECLARE_ASN1_FUNCTIONS(RSA_OAEP_PARAMS)
 
 # ifndef OPENSSL_NO_STDIO
-int RSA_print_fp(FILE *fp, const RSA *r, int offset);
+int VR_RSA_print_fp(FILE *fp, const RSA *r, int offset);
 # endif
 
-int RSA_print(BIO *bp, const RSA *r, int offset);
+int VR_RSA_print(BIO *bp, const RSA *r, int offset);
 
 /*
  * The following 2 functions sign and verify a X509_SIG ASN1 object inside
  * PKCS#1 padded RSA encryption
  */
-int RSA_sign(int type, const unsigned char *m, unsigned int m_length,
+int VR_RSA_sign(int type, const unsigned char *m, unsigned int m_length,
              unsigned char *sigret, unsigned int *siglen, RSA *rsa);
-int RSA_verify(int type, const unsigned char *m, unsigned int m_length,
+int VR_RSA_verify(int type, const unsigned char *m, unsigned int m_length,
                const unsigned char *sigbuf, unsigned int siglen, RSA *rsa);
 
 /*
  * The following 2 function sign and verify a ASN1_OCTET_STRING object inside
  * PKCS#1 padded RSA encryption
  */
-int RSA_sign_ASN1_OCTET_STRING(int type,
+int VR_RSA_sign_ASN1_OCTET_STRING(int type,
                                const unsigned char *m, unsigned int m_length,
                                unsigned char *sigret, unsigned int *siglen,
                                RSA *rsa);
-int RSA_verify_ASN1_OCTET_STRING(int type, const unsigned char *m,
+int VR_RSA_verify_ASN1_OCTET_STRING(int type, const unsigned char *m,
                                  unsigned int m_length, unsigned char *sigbuf,
                                  unsigned int siglen, RSA *rsa);
 
-int RSA_blinding_on(RSA *rsa, BN_CTX *ctx);
-void RSA_blinding_off(RSA *rsa);
-BN_BLINDING *RSA_setup_blinding(RSA *rsa, BN_CTX *ctx);
+int VR_RSA_blinding_on(RSA *rsa, BN_CTX *ctx);
+void VR_RSA_blinding_off(RSA *rsa);
+BN_BLINDING *VR_RSA_setup_blinding(RSA *rsa, BN_CTX *ctx);
 
-int RSA_padding_add_PKCS1_type_1(unsigned char *to, int tlen,
+int VR_RSA_padding_add_PKCS1_type_1(unsigned char *to, int tlen,
                                  const unsigned char *f, int fl);
-int RSA_padding_check_PKCS1_type_1(unsigned char *to, int tlen,
+int VR_RSA_padding_check_PKCS1_type_1(unsigned char *to, int tlen,
                                    const unsigned char *f, int fl,
                                    int rsa_len);
-int RSA_padding_add_PKCS1_type_2(unsigned char *to, int tlen,
+int VR_RSA_padding_add_PKCS1_type_2(unsigned char *to, int tlen,
                                  const unsigned char *f, int fl);
-int RSA_padding_check_PKCS1_type_2(unsigned char *to, int tlen,
+int VR_RSA_padding_check_PKCS1_type_2(unsigned char *to, int tlen,
                                    const unsigned char *f, int fl,
                                    int rsa_len);
-int PKCS1_MGF1(unsigned char *mask, long len, const unsigned char *seed,
+int VR_PKCS1_MGF1(unsigned char *mask, long len, const unsigned char *seed,
                long seedlen, const EVP_MD *dgst);
-int RSA_padding_add_PKCS1_OAEP(unsigned char *to, int tlen,
+int VR_RSA_padding_add_PKCS1_OAEP(unsigned char *to, int tlen,
                                const unsigned char *f, int fl,
                                const unsigned char *p, int pl);
-int RSA_padding_check_PKCS1_OAEP(unsigned char *to, int tlen,
+int VR_RSA_padding_check_PKCS1_OAEP(unsigned char *to, int tlen,
                                  const unsigned char *f, int fl, int rsa_len,
                                  const unsigned char *p, int pl);
-int RSA_padding_add_PKCS1_OAEP_mgf1(unsigned char *to, int tlen,
+int VR_RSA_padding_add_PKCS1_OAEP_mgf1(unsigned char *to, int tlen,
                                     const unsigned char *from, int flen,
                                     const unsigned char *param, int plen,
                                     const EVP_MD *md, const EVP_MD *mgf1md);
-int RSA_padding_check_PKCS1_OAEP_mgf1(unsigned char *to, int tlen,
+int VR_RSA_padding_check_PKCS1_OAEP_mgf1(unsigned char *to, int tlen,
                                       const unsigned char *from, int flen,
                                       int num, const unsigned char *param,
                                       int plen, const EVP_MD *md,
                                       const EVP_MD *mgf1md);
-int RSA_padding_add_SSLv23(unsigned char *to, int tlen,
+int VR_RSA_padding_add_SSLv23(unsigned char *to, int tlen,
                            const unsigned char *f, int fl);
-int RSA_padding_check_SSLv23(unsigned char *to, int tlen,
+int VR_RSA_padding_check_SSLv23(unsigned char *to, int tlen,
                              const unsigned char *f, int fl, int rsa_len);
-int RSA_padding_add_none(unsigned char *to, int tlen, const unsigned char *f,
+int VR_RSA_padding_add_none(unsigned char *to, int tlen, const unsigned char *f,
                          int fl);
-int RSA_padding_check_none(unsigned char *to, int tlen,
+int VR_RSA_padding_check_none(unsigned char *to, int tlen,
                            const unsigned char *f, int fl, int rsa_len);
-int RSA_padding_add_X931(unsigned char *to, int tlen, const unsigned char *f,
+int VR_RSA_padding_add_X931(unsigned char *to, int tlen, const unsigned char *f,
                          int fl);
-int RSA_padding_check_X931(unsigned char *to, int tlen,
+int VR_RSA_padding_check_X931(unsigned char *to, int tlen,
                            const unsigned char *f, int fl, int rsa_len);
-int RSA_X931_hash_id(int nid);
+int VR_RSA_X931_hash_id(int nid);
 
-int RSA_verify_PKCS1_PSS(RSA *rsa, const unsigned char *mHash,
+int VR_RSA_verify_PKCS1_PSS(RSA *rsa, const unsigned char *mHash,
                          const EVP_MD *Hash, const unsigned char *EM,
                          int sLen);
-int RSA_padding_add_PKCS1_PSS(RSA *rsa, unsigned char *EM,
+int VR_RSA_padding_add_PKCS1_PSS(RSA *rsa, unsigned char *EM,
                               const unsigned char *mHash, const EVP_MD *Hash,
                               int sLen);
 
-int RSA_verify_PKCS1_PSS_mgf1(RSA *rsa, const unsigned char *mHash,
+int VR_RSA_verify_PKCS1_PSS_mgf1(RSA *rsa, const unsigned char *mHash,
                               const EVP_MD *Hash, const EVP_MD *mgf1Hash,
                               const unsigned char *EM, int sLen);
 
-int RSA_padding_add_PKCS1_PSS_mgf1(RSA *rsa, unsigned char *EM,
+int VR_RSA_padding_add_PKCS1_PSS_mgf1(RSA *rsa, unsigned char *EM,
                                    const unsigned char *mHash,
                                    const EVP_MD *Hash, const EVP_MD *mgf1Hash,
                                    int sLen);
 
 #define RSA_get_ex_new_index(l, p, newf, dupf, freef) \
-    CRYPTO_get_ex_new_index(CRYPTO_EX_INDEX_RSA, l, p, newf, dupf, freef)
-int RSA_set_ex_data(RSA *r, int idx, void *arg);
-void *RSA_get_ex_data(const RSA *r, int idx);
+    VR_CRYPTO_get_ex_new_index(CRYPTO_EX_INDEX_RSA, l, p, newf, dupf, freef)
+int VR_RSA_set_ex_data(RSA *r, int idx, void *arg);
+void *VR_RSA_get_ex_data(const RSA *r, int idx);
 
-RSA *RSAPublicKey_dup(RSA *rsa);
-RSA *RSAPrivateKey_dup(RSA *rsa);
+RSA *VR_RSAPublicKey_dup(RSA *rsa);
+RSA *VR_RSAPrivateKey_dup(RSA *rsa);
 
 /*
  * If this flag is set the RSA method is FIPS compliant and can be used in
@@ -418,89 +418,89 @@ RSA *RSAPrivateKey_dup(RSA *rsa);
  */
 # define RSA_FLAG_CHECKED                        0x0800
 
-RSA_METHOD *RSA_meth_new(const char *name, int flags);
-void RSA_meth_free(RSA_METHOD *meth);
-RSA_METHOD *RSA_meth_dup(const RSA_METHOD *meth);
-const char *RSA_meth_get0_name(const RSA_METHOD *meth);
-int RSA_meth_set1_name(RSA_METHOD *meth, const char *name);
-int RSA_meth_get_flags(const RSA_METHOD *meth);
-int RSA_meth_set_flags(RSA_METHOD *meth, int flags);
-void *RSA_meth_get0_app_data(const RSA_METHOD *meth);
-int RSA_meth_set0_app_data(RSA_METHOD *meth, void *app_data);
-int (*RSA_meth_get_pub_enc(const RSA_METHOD *meth))
+RSA_METHOD *VR_RSA_meth_new(const char *name, int flags);
+void VR_RSA_meth_free(RSA_METHOD *meth);
+RSA_METHOD *VR_RSA_meth_dup(const RSA_METHOD *meth);
+const char *VR_RSA_meth_get0_name(const RSA_METHOD *meth);
+int VR_RSA_meth_set1_name(RSA_METHOD *meth, const char *name);
+int VR_RSA_meth_get_flags(const RSA_METHOD *meth);
+int VR_RSA_meth_set_flags(RSA_METHOD *meth, int flags);
+void *VR_RSA_meth_get0_app_data(const RSA_METHOD *meth);
+int VR_RSA_meth_set0_app_data(RSA_METHOD *meth, void *app_data);
+int (*VR_RSA_meth_get_pub_enc(const RSA_METHOD *meth))
     (int flen, const unsigned char *from,
      unsigned char *to, RSA *rsa, int padding);
-int RSA_meth_set_pub_enc(RSA_METHOD *rsa,
+int VR_RSA_meth_set_pub_enc(RSA_METHOD *rsa,
                          int (*pub_enc) (int flen, const unsigned char *from,
                                          unsigned char *to, RSA *rsa,
                                          int padding));
-int (*RSA_meth_get_pub_dec(const RSA_METHOD *meth))
+int (*VR_RSA_meth_get_pub_dec(const RSA_METHOD *meth))
     (int flen, const unsigned char *from,
      unsigned char *to, RSA *rsa, int padding);
-int RSA_meth_set_pub_dec(RSA_METHOD *rsa,
+int VR_RSA_meth_set_pub_dec(RSA_METHOD *rsa,
                          int (*pub_dec) (int flen, const unsigned char *from,
                                          unsigned char *to, RSA *rsa,
                                          int padding));
-int (*RSA_meth_get_priv_enc(const RSA_METHOD *meth))
+int (*VR_RSA_meth_get_priv_enc(const RSA_METHOD *meth))
     (int flen, const unsigned char *from,
      unsigned char *to, RSA *rsa, int padding);
-int RSA_meth_set_priv_enc(RSA_METHOD *rsa,
+int VR_RSA_meth_set_priv_enc(RSA_METHOD *rsa,
                           int (*priv_enc) (int flen, const unsigned char *from,
                                            unsigned char *to, RSA *rsa,
                                            int padding));
-int (*RSA_meth_get_priv_dec(const RSA_METHOD *meth))
+int (*VR_RSA_meth_get_priv_dec(const RSA_METHOD *meth))
     (int flen, const unsigned char *from,
      unsigned char *to, RSA *rsa, int padding);
-int RSA_meth_set_priv_dec(RSA_METHOD *rsa,
+int VR_RSA_meth_set_priv_dec(RSA_METHOD *rsa,
                           int (*priv_dec) (int flen, const unsigned char *from,
                                            unsigned char *to, RSA *rsa,
                                            int padding));
-int (*RSA_meth_get_mod_exp(const RSA_METHOD *meth))
+int (*VR_RSA_meth_get_mod_exp(const RSA_METHOD *meth))
     (BIGNUM *r0, const BIGNUM *i, RSA *rsa, BN_CTX *ctx);
-int RSA_meth_set_mod_exp(RSA_METHOD *rsa,
+int VR_RSA_meth_set_mod_exp(RSA_METHOD *rsa,
                          int (*mod_exp) (BIGNUM *r0, const BIGNUM *i, RSA *rsa,
                                          BN_CTX *ctx));
-int (*RSA_meth_get_bn_mod_exp(const RSA_METHOD *meth))
+int (*VR_RSA_meth_get_bn_mod_exp(const RSA_METHOD *meth))
     (BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
      const BIGNUM *m, BN_CTX *ctx, BN_MONT_CTX *m_ctx);
-int RSA_meth_set_bn_mod_exp(RSA_METHOD *rsa,
+int VR_RSA_meth_set_bn_mod_exp(RSA_METHOD *rsa,
                             int (*bn_mod_exp) (BIGNUM *r,
                                                const BIGNUM *a,
                                                const BIGNUM *p,
                                                const BIGNUM *m,
                                                BN_CTX *ctx,
                                                BN_MONT_CTX *m_ctx));
-int (*RSA_meth_get_init(const RSA_METHOD *meth)) (RSA *rsa);
-int RSA_meth_set_init(RSA_METHOD *rsa, int (*init) (RSA *rsa));
-int (*RSA_meth_get_finish(const RSA_METHOD *meth)) (RSA *rsa);
-int RSA_meth_set_finish(RSA_METHOD *rsa, int (*finish) (RSA *rsa));
-int (*RSA_meth_get_sign(const RSA_METHOD *meth))
+int (*VR_RSA_meth_get_init(const RSA_METHOD *meth)) (RSA *rsa);
+int VR_RSA_meth_set_init(RSA_METHOD *rsa, int (*init) (RSA *rsa));
+int (*VR_RSA_meth_get_finish(const RSA_METHOD *meth)) (RSA *rsa);
+int VR_RSA_meth_set_finish(RSA_METHOD *rsa, int (*finish) (RSA *rsa));
+int (*VR_RSA_meth_get_sign(const RSA_METHOD *meth))
     (int type,
      const unsigned char *m, unsigned int m_length,
      unsigned char *sigret, unsigned int *siglen,
      const RSA *rsa);
-int RSA_meth_set_sign(RSA_METHOD *rsa,
+int VR_RSA_meth_set_sign(RSA_METHOD *rsa,
                       int (*sign) (int type, const unsigned char *m,
                                    unsigned int m_length,
                                    unsigned char *sigret, unsigned int *siglen,
                                    const RSA *rsa));
-int (*RSA_meth_get_verify(const RSA_METHOD *meth))
+int (*VR_RSA_meth_get_verify(const RSA_METHOD *meth))
     (int dtype, const unsigned char *m,
      unsigned int m_length, const unsigned char *sigbuf,
      unsigned int siglen, const RSA *rsa);
-int RSA_meth_set_verify(RSA_METHOD *rsa,
+int VR_RSA_meth_set_verify(RSA_METHOD *rsa,
                         int (*verify) (int dtype, const unsigned char *m,
                                        unsigned int m_length,
                                        const unsigned char *sigbuf,
                                        unsigned int siglen, const RSA *rsa));
-int (*RSA_meth_get_keygen(const RSA_METHOD *meth))
+int (*VR_RSA_meth_get_keygen(const RSA_METHOD *meth))
     (RSA *rsa, int bits, BIGNUM *e, BN_GENCB *cb);
-int RSA_meth_set_keygen(RSA_METHOD *rsa,
+int VR_RSA_meth_set_keygen(RSA_METHOD *rsa,
                         int (*keygen) (RSA *rsa, int bits, BIGNUM *e,
                                        BN_GENCB *cb));
-int (*RSA_meth_get_multi_prime_keygen(const RSA_METHOD *meth))
+int (*VR_RSA_meth_get_multi_prime_keygen(const RSA_METHOD *meth))
     (RSA *rsa, int bits, int primes, BIGNUM *e, BN_GENCB *cb);
-int RSA_meth_set_multi_prime_keygen(RSA_METHOD *meth,
+int VR_RSA_meth_set_multi_prime_keygen(RSA_METHOD *meth,
                                     int (*keygen) (RSA *rsa, int bits,
                                                    int primes, BIGNUM *e,
                                                    BN_GENCB *cb));

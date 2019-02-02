@@ -27,19 +27,19 @@
         ll=(c)->h4; (void)HOST_l2c(ll,(s));     \
         } while (0)
 
-#define HASH_UPDATE                     SHA1_Update
-#define HASH_TRANSFORM                  SHA1_Transform
-#define HASH_FINAL                      SHA1_Final
-#define HASH_INIT                       SHA1_Init
-#define HASH_BLOCK_DATA_ORDER           sha1_block_data_order
+#define HASH_UPDATE                     VR_SHA1_Update
+#define HASH_TRANSFORM                  VR_SHA1_Transform
+#define HASH_FINAL                      VR_SHA1_Final
+#define HASH_INIT                       VR_SHA1_Init
+#define HASH_BLOCK_DATA_ORDER           VR_sha1_block_data_order
 #define Xupdate(a,ix,ia,ib,ic,id)       ( (a)=(ia^ib^ic^id),    \
                                           ix=(a)=ROTATE((a),1)  \
                                         )
 
-#ifndef SHA1_ASM
-static void sha1_block_data_order(SHA_CTX *c, const void *p, size_t num);
+#ifndef VR_SHA1_ASM
+static void VR_sha1_block_data_order(SHA_CTX *c, const void *p, size_t num);
 #else
-void sha1_block_data_order(SHA_CTX *c, const void *p, size_t num);
+void VR_sha1_block_data_order(SHA_CTX *c, const void *p, size_t num);
 #endif
 
 #include "internal/md32_common.h"
@@ -132,7 +132,7 @@ int HASH_INIT(SHA_CTX *c)
 #  define X(i)   XX[i]
 # endif
 
-# if !defined(SHA1_ASM)
+# if !defined(VR_SHA1_ASM)
 static void HASH_BLOCK_DATA_ORDER(SHA_CTX *c, const void *p, size_t num)
 {
     const unsigned char *data = p;
@@ -366,7 +366,7 @@ static void HASH_BLOCK_DATA_ORDER(SHA_CTX *c, const void *p, size_t num)
         E=D, D=C, C=ROTATE(B,30), B=A;  \
         A=ROTATE(A,5)+T+xa;         } while(0)
 
-# if !defined(SHA1_ASM)
+# if !defined(VR_SHA1_ASM)
 static void HASH_BLOCK_DATA_ORDER(SHA_CTX *c, const void *p, size_t num)
 {
     const unsigned char *data = p;

@@ -231,30 +231,30 @@ DSA *get_dsa(int dsa_bits)
         return NULL;
     }
 
-    if ((dsa = DSA_new()) == NULL)
+    if ((dsa = VR_DSA_new()) == NULL)
         return NULL;
-    priv_key = BN_bin2bn(dsa_t.priv, dsa_t.priv_l, NULL);
-    pub_key = BN_bin2bn(dsa_t.pub, dsa_t.pub_l, NULL);
-    p = BN_bin2bn(dsa_t.p, dsa_t.p_l, NULL);
-    q = BN_bin2bn(dsa_t.q, dsa_t.q_l, NULL);
-    g = BN_bin2bn(dsa_t.g, dsa_t.g_l, NULL);
+    priv_key = VR_BN_bin2bn(dsa_t.priv, dsa_t.priv_l, NULL);
+    pub_key = VR_BN_bin2bn(dsa_t.pub, dsa_t.pub_l, NULL);
+    p = VR_BN_bin2bn(dsa_t.p, dsa_t.p_l, NULL);
+    q = VR_BN_bin2bn(dsa_t.q, dsa_t.q_l, NULL);
+    g = VR_BN_bin2bn(dsa_t.g, dsa_t.g_l, NULL);
     if ((priv_key == NULL) || (pub_key == NULL) || (p == NULL) || (q == NULL)
          || (g == NULL)) {
         goto err;
     }
-    if (!DSA_set0_pqg(dsa, p, q, g))
+    if (!VR_DSA_set0_pqg(dsa, p, q, g))
         goto err;
 
-    if (!DSA_set0_key(dsa, pub_key, priv_key))
+    if (!VR_DSA_set0_key(dsa, pub_key, priv_key))
         goto err;
 
     return dsa;
  err:
-    DSA_free(dsa);
-    BN_free(priv_key);
-    BN_free(pub_key);
-    BN_free(p);
-    BN_free(q);
-    BN_free(g);
+    VR_DSA_free(dsa);
+    VR_BN_free(priv_key);
+    VR_BN_free(pub_key);
+    VR_BN_free(p);
+    VR_BN_free(q);
+    VR_BN_free(g);
     return NULL;
 }

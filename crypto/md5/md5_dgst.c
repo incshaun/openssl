@@ -12,7 +12,7 @@
 #include <openssl/opensslv.h>
 
 /*
- * Implemented from RFC1321 The MD5 Message-Digest Algorithm
+ * Implemented from RFC1321 The VR_MD5 Message-Digest Algorithm
  */
 
 #define INIT_DATA_A (unsigned long)0x67452301L
@@ -20,7 +20,7 @@
 #define INIT_DATA_C (unsigned long)0x98badcfeL
 #define INIT_DATA_D (unsigned long)0x10325476L
 
-int MD5_Init(MD5_CTX *c)
+int VR_MD5_Init(VR_MD5_CTX *c)
 {
     memset(c, 0, sizeof(*c));
     c->A = INIT_DATA_A;
@@ -30,11 +30,11 @@ int MD5_Init(MD5_CTX *c)
     return 1;
 }
 
-#ifndef md5_block_data_order
+#ifndef VR_md5_block_data_order
 # ifdef X
 #  undef X
 # endif
-void md5_block_data_order(MD5_CTX *c, const void *data_, size_t num)
+void VR_md5_block_data_order(VR_MD5_CTX *c, const void *data_, size_t num)
 {
     const unsigned char *data = data_;
     register unsigned MD32_REG_T A, B, C, D, l;
@@ -44,7 +44,7 @@ void md5_block_data_order(MD5_CTX *c, const void *data_, size_t num)
         XX8, XX9, XX10, XX11, XX12, XX13, XX14, XX15;
 #  define X(i)   XX##i
 # else
-    MD5_LONG XX[MD5_LBLOCK];
+    VR_MD5_LONG XX[VR_MD5_LBLOCK];
 #  define X(i)   XX[i]
 # endif
 

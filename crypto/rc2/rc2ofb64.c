@@ -15,7 +15,7 @@
  * The extra state information to record how much of the 64bit block we have
  * used is contained in *num;
  */
-void RC2_ofb64_encrypt(const unsigned char *in, unsigned char *out,
+void VR_RC2_ofb64_encrypt(const unsigned char *in, unsigned char *out,
                        long length, RC2_KEY *schedule, unsigned char *ivec,
                        int *num)
 {
@@ -38,7 +38,7 @@ void RC2_ofb64_encrypt(const unsigned char *in, unsigned char *out,
     l2c(v1, dp);
     while (l--) {
         if (n == 0) {
-            RC2_encrypt((unsigned long *)ti, schedule);
+            VR_RC2_encrypt((unsigned long *)ti, schedule);
             dp = (char *)d;
             t = ti[0];
             l2c(t, dp);

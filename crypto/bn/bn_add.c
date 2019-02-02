@@ -11,7 +11,7 @@
 #include "bn_lcl.h"
 
 /* signed add of b to a. */
-int BN_add(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
+int VR_BN_add(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
 {
     int ret, r_neg, cmp_res;
 
@@ -20,15 +20,15 @@ int BN_add(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
 
     if (a->neg == b->neg) {
         r_neg = a->neg;
-        ret = BN_uadd(r, a, b);
+        ret = VR_BN_uadd(r, a, b);
     } else {
-        cmp_res = BN_ucmp(a, b);
+        cmp_res = VR_BN_ucmp(a, b);
         if (cmp_res > 0) {
             r_neg = a->neg;
-            ret = BN_usub(r, a, b);
+            ret = VR_BN_usub(r, a, b);
         } else if (cmp_res < 0) {
             r_neg = b->neg;
-            ret = BN_usub(r, b, a);
+            ret = VR_BN_usub(r, b, a);
         } else {
             r_neg = 0;
             BN_zero(r);
@@ -42,7 +42,7 @@ int BN_add(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
 }
 
 /* signed sub of b from a. */
-int BN_sub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
+int VR_BN_sub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
 {
     int ret, r_neg, cmp_res;
 
@@ -51,15 +51,15 @@ int BN_sub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
 
     if (a->neg != b->neg) {
         r_neg = a->neg;
-        ret = BN_uadd(r, a, b);
+        ret = VR_BN_uadd(r, a, b);
     } else {
-        cmp_res = BN_ucmp(a, b);
+        cmp_res = VR_BN_ucmp(a, b);
         if (cmp_res > 0) {
             r_neg = a->neg;
-            ret = BN_usub(r, a, b);
+            ret = VR_BN_usub(r, a, b);
         } else if (cmp_res < 0) {
             r_neg = !b->neg;
-            ret = BN_usub(r, b, a);
+            ret = VR_BN_usub(r, b, a);
         } else {
             r_neg = 0;
             BN_zero(r);
@@ -73,7 +73,7 @@ int BN_sub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
 }
 
 /* unsigned add of b to a, r can be equal to a or b. */
-int BN_uadd(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
+int VR_BN_uadd(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
 {
     int max, min, dif;
     const BN_ULONG *ap, *bp;
@@ -93,7 +93,7 @@ int BN_uadd(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
     min = b->top;
     dif = max - min;
 
-    if (bn_wexpand(r, max + 1) == NULL)
+    if (VR_bn_wexpand(r, max + 1) == NULL)
         return 0;
 
     r->top = max;
@@ -102,7 +102,7 @@ int BN_uadd(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
     bp = b->d;
     rp = r->d;
 
-    carry = bn_add_words(rp, ap, bp, min);
+    carry = VR_bn_add_words(rp, ap, bp, min);
     rp += min;
     ap += min;
 
@@ -122,7 +122,7 @@ int BN_uadd(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
 }
 
 /* unsigned subtraction of b from a, a must be larger than b. */
-int BN_usub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
+int VR_BN_usub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
 {
     int max, min, dif;
     BN_ULONG t1, t2, borrow, *rp;
@@ -140,14 +140,14 @@ int BN_usub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
         return 0;
     }
 
-    if (bn_wexpand(r, max) == NULL)
+    if (VR_bn_wexpand(r, max) == NULL)
         return 0;
 
     ap = a->d;
     bp = b->d;
     rp = r->d;
 
-    borrow = bn_sub_words(rp, ap, bp, min);
+    borrow = VR_bn_sub_words(rp, ap, bp, min);
     ap += min;
     rp += min;
 

@@ -330,7 +330,7 @@ static void massage_JPI(ILE3 *items)
  */
 #define ENTROPY_FACTOR  20
 
-size_t rand_pool_acquire_entropy(RAND_POOL *pool)
+size_t VR_rand_pool_acquire_entropy(RAND_POOL *pool)
 {
     ILE3 JPI_items_64bit[OSSL_NELEM(JPI_item_data_64bit) + 1];
     ILE3 RMI_items_64bit[OSSL_NELEM(RMI_item_data_64bit) + 1];
@@ -351,8 +351,8 @@ size_t rand_pool_acquire_entropy(RAND_POOL *pool)
     } data;
     size_t total_elems = 0;
     size_t total_length = 0;
-    size_t bytes_needed = rand_pool_bytes_needed(pool, ENTROPY_FACTOR);
-    size_t bytes_remaining = rand_pool_bytes_remaining(pool);
+    size_t bytes_needed = VR_rand_pool_bytes_needed(pool, ENTROPY_FACTOR);
+    size_t bytes_remaining = VR_rand_pool_bytes_remaining(pool);
 
     /* Take all the 64-bit items first, to ensure proper alignment of data */
     total_elems +=
@@ -448,11 +448,11 @@ size_t rand_pool_acquire_entropy(RAND_POOL *pool)
         char neededstr[20];
         char availablestr[20];
 
-        BIO_snprintf(neededstr, sizeof(neededstr), "%zu", bytes_needed);
-        BIO_snprintf(availablestr, sizeof(availablestr), "%zu", total_length);
+        VR_BIO_snprintf(neededstr, sizeof(neededstr), "%zu", bytes_needed);
+        VR_BIO_snprintf(availablestr, sizeof(availablestr), "%zu", total_length);
         RANDerr(RAND_F_RAND_POOL_ACQUIRE_ENTROPY,
                 RAND_R_RANDOM_POOL_UNDERFLOW);
-        ERR_add_error_data(4, "Needed: ", neededstr, ", Available: ",
+        VR_ERR_add_error_data(4, "Needed: ", neededstr, ", Available: ",
                            availablestr);
         return 0;
     }
@@ -464,12 +464,12 @@ size_t rand_pool_acquire_entropy(RAND_POOL *pool)
         total_length = bytes_remaining;
 
     /* We give the pessimistic value for the amount of entropy */
-    rand_pool_add(pool, (unsigned char *)data.buffer, total_length,
+    VR_rand_pool_add(pool, (unsigned char *)data.buffer, total_length,
                   8 * total_length / ENTROPY_FACTOR);
-    return rand_pool_entropy_available(pool);
+    return VR_rand_pool_entropy_available(pool);
 }
 
-int rand_pool_add_nonce_data(RAND_POOL *pool)
+int VR_rand_pool_add_nonce_data(RAND_POOL *pool)
 {
     struct {
         pid_t pid;
@@ -484,17 +484,17 @@ int rand_pool_add_nonce_data(RAND_POOL *pool)
      * instances.
      */
     data.pid = getpid();
-    data.tid = CRYPTO_THREAD_get_current_id();
+    data.tid = VR_CRYPTO_THREAD_get_current_id();
 #if __CRTL_VER >= 80400000
     sys$gettim_prec(&data.time);
 #else
     sys$gettim((void*)&data.time);
 #endif
 
-    return rand_pool_add(pool, (unsigned char *)&data, sizeof(data), 0);
+    return VR_rand_pool_add(pool, (unsigned char *)&data, sizeof(data), 0);
 }
 
-int rand_pool_add_additional_data(RAND_POOL *pool)
+int VR_rand_pool_add_additional_data(RAND_POOL *pool)
 {
     struct {
         CRYPTO_THREAD_ID tid;
@@ -506,22 +506,22 @@ int rand_pool_add_additional_data(RAND_POOL *pool)
      * The thread id adds a little randomness if the drbg is accessed
      * concurrently (which is the case for the <master> drbg).
      */
-    data.tid = CRYPTO_THREAD_get_current_id();
+    data.tid = VR_CRYPTO_THREAD_get_current_id();
     sys$gettim_prec(&data.time);
 
-    return rand_pool_add(pool, (unsigned char *)&data, sizeof(data), 0);
+    return VR_rand_pool_add(pool, (unsigned char *)&data, sizeof(data), 0);
 }
 
-int rand_pool_init(void)
+int VR_rand_pool_init(void)
 {
     return 1;
 }
 
-void rand_pool_cleanup(void)
+void VR_rand_pool_cleanup(void)
 {
 }
 
-void rand_pool_keep_random_devices_open(int keep)
+void VR_rand_pool_keep_random_devices_open(int keep)
 {
 }
 

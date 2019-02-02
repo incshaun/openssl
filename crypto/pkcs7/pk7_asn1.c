@@ -38,18 +38,18 @@ static int pk7_cb(int operation, ASN1_VALUE **pval, const ASN1_ITEM *it,
     switch (operation) {
 
     case ASN1_OP_STREAM_PRE:
-        if (PKCS7_stream(&sarg->boundary, *pp7) <= 0)
+        if (VR_PKCS7_stream(&sarg->boundary, *pp7) <= 0)
             return 0;
         /* fall thru */
     case ASN1_OP_DETACHED_PRE:
-        sarg->ndef_bio = PKCS7_dataInit(*pp7, sarg->out);
+        sarg->ndef_bio = VR_PKCS7_dataInit(*pp7, sarg->out);
         if (!sarg->ndef_bio)
             return 0;
         break;
 
     case ASN1_OP_STREAM_POST:
     case ASN1_OP_DETACHED_POST:
-        if (PKCS7_dataFinal(*pp7, sarg->ndef_bio) <= 0)
+        if (VR_PKCS7_dataFinal(*pp7, sarg->ndef_bio) <= 0)
             return 0;
         break;
 
@@ -85,7 +85,7 @@ static int si_cb(int operation, ASN1_VALUE **pval, const ASN1_ITEM *it,
 {
     if (operation == ASN1_OP_FREE_POST) {
         PKCS7_SIGNER_INFO *si = (PKCS7_SIGNER_INFO *)*pval;
-        EVP_PKEY_free(si->pkey);
+        VR_EVP_PKEY_free(si->pkey);
     }
     return 1;
 }
@@ -128,7 +128,7 @@ static int ri_cb(int operation, ASN1_VALUE **pval, const ASN1_ITEM *it,
 {
     if (operation == ASN1_OP_FREE_POST) {
         PKCS7_RECIP_INFO *ri = (PKCS7_RECIP_INFO *)*pval;
-        X509_free(ri->cert);
+        VR_X509_free(ri->cert);
     }
     return 1;
 }

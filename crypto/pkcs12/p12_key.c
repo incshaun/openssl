@@ -27,7 +27,7 @@ void h__dump(unsigned char *p, int len);
 # define min(a,b) ((a) < (b) ? (a) : (b))
 #endif
 
-int PKCS12_key_gen_asc(const char *pass, int passlen, unsigned char *salt,
+int VR_PKCS12_key_gen_asc(const char *pass, int passlen, unsigned char *salt,
                        int saltlen, int id, int iter, int n,
                        unsigned char *out, const EVP_MD *md_type)
 {
@@ -38,19 +38,19 @@ int PKCS12_key_gen_asc(const char *pass, int passlen, unsigned char *salt,
     if (!pass) {
         unipass = NULL;
         uniplen = 0;
-    } else if (!OPENSSL_asc2uni(pass, passlen, &unipass, &uniplen)) {
+    } else if (!VR_OPENSSL_asc2uni(pass, passlen, &unipass, &uniplen)) {
         PKCS12err(PKCS12_F_PKCS12_KEY_GEN_ASC, ERR_R_MALLOC_FAILURE);
         return 0;
     }
-    ret = PKCS12_key_gen_uni(unipass, uniplen, salt, saltlen,
+    ret = VR_PKCS12_key_gen_uni(unipass, uniplen, salt, saltlen,
                              id, iter, n, out, md_type);
     if (ret <= 0)
         return 0;
-    OPENSSL_clear_free(unipass, uniplen);
+    OPENVR_SSL_clear_free(unipass, uniplen);
     return ret;
 }
 
-int PKCS12_key_gen_utf8(const char *pass, int passlen, unsigned char *salt,
+int VR_PKCS12_key_gen_utf8(const char *pass, int passlen, unsigned char *salt,
                         int saltlen, int id, int iter, int n,
                         unsigned char *out, const EVP_MD *md_type)
 {
@@ -61,19 +61,19 @@ int PKCS12_key_gen_utf8(const char *pass, int passlen, unsigned char *salt,
     if (!pass) {
         unipass = NULL;
         uniplen = 0;
-    } else if (!OPENSSL_utf82uni(pass, passlen, &unipass, &uniplen)) {
+    } else if (!VR_OPENSSL_utf82uni(pass, passlen, &unipass, &uniplen)) {
         PKCS12err(PKCS12_F_PKCS12_KEY_GEN_UTF8, ERR_R_MALLOC_FAILURE);
         return 0;
     }
-    ret = PKCS12_key_gen_uni(unipass, uniplen, salt, saltlen,
+    ret = VR_PKCS12_key_gen_uni(unipass, uniplen, salt, saltlen,
                              id, iter, n, out, md_type);
     if (ret <= 0)
         return 0;
-    OPENSSL_clear_free(unipass, uniplen);
+    OPENVR_SSL_clear_free(unipass, uniplen);
     return ret;
 }
 
-int PKCS12_key_gen_uni(unsigned char *pass, int passlen, unsigned char *salt,
+int VR_PKCS12_key_gen_uni(unsigned char *pass, int passlen, unsigned char *salt,
                        int saltlen, int id, int iter, int n,
                        unsigned char *out, const EVP_MD *md_type)
 {
@@ -87,7 +87,7 @@ int PKCS12_key_gen_uni(unsigned char *pass, int passlen, unsigned char *salt,
     int tmpn = n;
 #endif
 
-    ctx = EVP_MD_CTX_new();
+    ctx = VR_EVP_MD_CTX_new();
     if (ctx == NULL)
         goto err;
 
@@ -99,8 +99,8 @@ int PKCS12_key_gen_uni(unsigned char *pass, int passlen, unsigned char *salt,
     fprintf(stderr, "Salt (length %d):\n", saltlen);
     h__dump(salt, saltlen);
 #endif
-    v = EVP_MD_block_size(md_type);
-    u = EVP_MD_size(md_type);
+    v = VR_EVP_MD_block_size(md_type);
+    u = VR_EVP_MD_size(md_type);
     if (u < 0 || v <= 0)
         goto err;
     D = OPENSSL_malloc(v);
@@ -123,15 +123,15 @@ int PKCS12_key_gen_uni(unsigned char *pass, int passlen, unsigned char *salt,
     for (i = 0; i < Plen; i++)
         *p++ = pass[i % passlen];
     for (;;) {
-        if (!EVP_DigestInit_ex(ctx, md_type, NULL)
-            || !EVP_DigestUpdate(ctx, D, v)
-            || !EVP_DigestUpdate(ctx, I, Ilen)
-            || !EVP_DigestFinal_ex(ctx, Ai, NULL))
+        if (!VR_EVP_DigestInit_ex(ctx, md_type, NULL)
+            || !VR_EVP_DigestUpdate(ctx, D, v)
+            || !VR_EVP_DigestUpdate(ctx, I, Ilen)
+            || !VR_EVP_DigestFinal_ex(ctx, Ai, NULL))
             goto err;
         for (j = 1; j < iter; j++) {
-            if (!EVP_DigestInit_ex(ctx, md_type, NULL)
-                || !EVP_DigestUpdate(ctx, Ai, u)
-                || !EVP_DigestFinal_ex(ctx, Ai, NULL))
+            if (!VR_EVP_DigestInit_ex(ctx, md_type, NULL)
+                || !VR_EVP_DigestUpdate(ctx, Ai, u)
+                || !VR_EVP_DigestFinal_ex(ctx, Ai, NULL))
                 goto err;
         }
         memcpy(out, Ai, min(n, u));
@@ -165,11 +165,11 @@ int PKCS12_key_gen_uni(unsigned char *pass, int passlen, unsigned char *salt,
     PKCS12err(PKCS12_F_PKCS12_KEY_GEN_UNI, ERR_R_MALLOC_FAILURE);
 
  end:
-    OPENSSL_free(Ai);
-    OPENSSL_free(B);
-    OPENSSL_free(D);
-    OPENSSL_free(I);
-    EVP_MD_CTX_free(ctx);
+    OPENVR_SSL_free(Ai);
+    OPENVR_SSL_free(B);
+    OPENVR_SSL_free(D);
+    OPENVR_SSL_free(I);
+    VR_EVP_MD_CTX_free(ctx);
     return ret;
 }
 

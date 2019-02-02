@@ -14,12 +14,12 @@
 #include <assert.h>
 
 #include <openssl/bio.h>
-#include <openssl/dsa.h>         /* For d2i_DSAPrivateKey */
+#include <openssl/dsa.h>         /* For VR_d2i_DSAPrivateKey */
 #include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/pem.h>
 #include <openssl/pkcs12.h>      /* For the PKCS8 stuff o.O */
-#include <openssl/rsa.h>         /* For d2i_RSAPrivateKey */
+#include <openssl/rsa.h>         /* For VR_d2i_RSAPrivateKey */
 #include <openssl/safestack.h>
 #include <openssl/store.h>
 #include <openssl/ui.h>
@@ -47,7 +47,7 @@
 static char *file_get_pass(const UI_METHOD *ui_method, char *pass,
                            size_t maxsize, const char *prompt_info, void *data)
 {
-    UI *ui = UI_new();
+    UI *ui = VR_UI_new();
     char *prompt = NULL;
 
     if (ui == NULL) {
@@ -56,19 +56,19 @@ static char *file_get_pass(const UI_METHOD *ui_method, char *pass,
     }
 
     if (ui_method != NULL)
-        UI_set_method(ui, ui_method);
-    UI_add_user_data(ui, data);
+        VR_UI_set_method(ui, ui_method);
+    VR_UI_add_user_data(ui, data);
 
-    if ((prompt = UI_construct_prompt(ui, "pass phrase",
+    if ((prompt = VR_UI_construct_prompt(ui, "pass phrase",
                                       prompt_info)) == NULL) {
         OSSL_STOREerr(OSSL_STORE_F_FILE_GET_PASS, ERR_R_MALLOC_FAILURE);
         pass = NULL;
-    } else if (!UI_add_input_string(ui, prompt, UI_INPUT_FLAG_DEFAULT_PWD,
+    } else if (!VR_UI_add_input_string(ui, prompt, UI_INPUT_FLAG_DEFAULT_PWD,
                                     pass, 0, maxsize - 1)) {
         OSSL_STOREerr(OSSL_STORE_F_FILE_GET_PASS, ERR_R_UI_LIB);
         pass = NULL;
     } else {
-        switch (UI_process(ui)) {
+        switch (VR_UI_process(ui)) {
         case -2:
             OSSL_STOREerr(OSSL_STORE_F_FILE_GET_PASS,
                           OSSL_STORE_R_UI_PROCESS_INTERRUPTED_OR_CANCELLED);
@@ -83,8 +83,8 @@ static char *file_get_pass(const UI_METHOD *ui_method, char *pass,
         }
     }
 
-    OPENSSL_free(prompt);
-    UI_free(ui);
+    OPENVR_SSL_free(prompt);
+    VR_UI_free(ui);
     return pass;
 }
 
@@ -212,7 +212,7 @@ static OSSL_STORE_INFO *try_decode_PKCS12(const char *pem_name,
             /* No match, there is no PEM PKCS12 tag */
             return NULL;
 
-        if ((p12 = d2i_PKCS12(NULL, &blob, len)) != NULL) {
+        if ((p12 = VR_d2i_PKCS12(NULL, &blob, len)) != NULL) {
             char *pass = NULL;
             char tpass[PEM_BUFSIZE];
             EVP_PKEY *pkey = NULL;
@@ -221,8 +221,8 @@ static OSSL_STORE_INFO *try_decode_PKCS12(const char *pem_name,
 
             *matchcount = 1;
 
-            if (PKCS12_verify_mac(p12, "", 0)
-                || PKCS12_verify_mac(p12, NULL, 0)) {
+            if (VR_PKCS12_verify_mac(p12, "", 0)
+                || VR_PKCS12_verify_mac(p12, NULL, 0)) {
                 pass = "";
             } else {
                 if ((pass = file_get_pass(ui_method, tpass, PEM_BUFSIZE,
@@ -232,23 +232,23 @@ static OSSL_STORE_INFO *try_decode_PKCS12(const char *pem_name,
                                   OSSL_STORE_R_PASSPHRASE_CALLBACK_ERROR);
                     goto p12_end;
                 }
-                if (!PKCS12_verify_mac(p12, pass, strlen(pass))) {
+                if (!VR_PKCS12_verify_mac(p12, pass, strlen(pass))) {
                     OSSL_STOREerr(OSSL_STORE_F_TRY_DECODE_PKCS12,
                                   OSSL_STORE_R_ERROR_VERIFYING_PKCS12_MAC);
                     goto p12_end;
                 }
             }
 
-            if (PKCS12_parse(p12, pass, &pkey, &cert, &chain)) {
+            if (VR_PKCS12_parse(p12, pass, &pkey, &cert, &chain)) {
                 OSSL_STORE_INFO *osi_pkey = NULL;
                 OSSL_STORE_INFO *osi_cert = NULL;
                 OSSL_STORE_INFO *osi_ca = NULL;
 
-                if ((ctx = sk_OSSL_STORE_INFO_new_null()) != NULL
-                    && (osi_pkey = OSSL_STORE_INFO_new_PKEY(pkey)) != NULL
-                    && sk_OSSL_STORE_INFO_push(ctx, osi_pkey) != 0
-                    && (osi_cert = OSSL_STORE_INFO_new_CERT(cert)) != NULL
-                    && sk_OSSL_STORE_INFO_push(ctx, osi_cert) != 0) {
+                if ((ctx = sk_VR_OSSL_STORE_INFO_new_null()) != NULL
+                    && (osi_pkey = VR_OSSL_STORE_INFO_new_PKEY(pkey)) != NULL
+                    && sk_VR_OSSL_STORE_INFO_push(ctx, osi_pkey) != 0
+                    && (osi_cert = VR_OSSL_STORE_INFO_new_CERT(cert)) != NULL
+                    && sk_VR_OSSL_STORE_INFO_push(ctx, osi_cert) != 0) {
                     ok = 1;
                     osi_pkey = NULL;
                     osi_cert = NULL;
@@ -256,37 +256,37 @@ static OSSL_STORE_INFO *try_decode_PKCS12(const char *pem_name,
                     while(sk_X509_num(chain) > 0) {
                         X509 *ca = sk_X509_value(chain, 0);
 
-                        if ((osi_ca = OSSL_STORE_INFO_new_CERT(ca)) == NULL
-                            || sk_OSSL_STORE_INFO_push(ctx, osi_ca) == 0) {
+                        if ((osi_ca = VR_OSSL_STORE_INFO_new_CERT(ca)) == NULL
+                            || sk_VR_OSSL_STORE_INFO_push(ctx, osi_ca) == 0) {
                             ok = 0;
                             break;
                         }
                         osi_ca = NULL;
-                        (void)sk_X509_shift(chain);
+                        (void)sk_VR_X509_shift(chain);
                     }
                 }
                 if (!ok) {
-                    OSSL_STORE_INFO_free(osi_ca);
-                    OSSL_STORE_INFO_free(osi_cert);
-                    OSSL_STORE_INFO_free(osi_pkey);
-                    sk_OSSL_STORE_INFO_pop_free(ctx, OSSL_STORE_INFO_free);
-                    EVP_PKEY_free(pkey);
-                    X509_free(cert);
-                    sk_X509_pop_free(chain, X509_free);
+                    VR_OSSL_STORE_INFO_free(osi_ca);
+                    VR_OSSL_STORE_INFO_free(osi_cert);
+                    VR_OSSL_STORE_INFO_free(osi_pkey);
+                    sk_VR_OSSL_STORE_INFO_pop_free(ctx, VR_OSSL_STORE_INFO_free);
+                    VR_EVP_PKEY_free(pkey);
+                    VR_X509_free(cert);
+                    sk_VR_X509_pop_free(chain, VR_X509_free);
                     ctx = NULL;
                 }
                 *pctx = ctx;
             }
         }
      p12_end:
-        PKCS12_free(p12);
+        VR_PKCS12_free(p12);
         if (!ok)
             return NULL;
     }
 
     if (ctx != NULL) {
         *matchcount = 1;
-        store_info = sk_OSSL_STORE_INFO_shift(ctx);
+        store_info = sk_VR_OSSL_STORE_INFO_shift(ctx);
     }
 
     return store_info;
@@ -303,7 +303,7 @@ static void destroy_ctx_PKCS12(void **pctx)
 {
     STACK_OF(OSSL_STORE_INFO) *ctx = *pctx;
 
-    sk_OSSL_STORE_INFO_pop_free(ctx, OSSL_STORE_INFO_free);
+    sk_VR_OSSL_STORE_INFO_pop_free(ctx, VR_OSSL_STORE_INFO_free);
     *pctx = NULL;
 }
 
@@ -344,12 +344,12 @@ static OSSL_STORE_INFO *try_decode_PKCS8Encrypted(const char *pem_name,
         *matchcount = 1;
     }
 
-    if ((p8 = d2i_X509_SIG(NULL, &blob, len)) == NULL)
+    if ((p8 = VR_d2i_X509_SIG(NULL, &blob, len)) == NULL)
         return NULL;
 
     *matchcount = 1;
 
-    if ((mem = BUF_MEM_new()) == NULL) {
+    if ((mem = VR_BUF_MEM_new()) == NULL) {
         OSSL_STOREerr(OSSL_STORE_F_TRY_DECODE_PKCS8ENCRYPTED,
                       ERR_R_MALLOC_FAILURE);
         goto nop8;
@@ -362,16 +362,16 @@ static OSSL_STORE_INFO *try_decode_PKCS8Encrypted(const char *pem_name,
         goto nop8;
     }
 
-    X509_SIG_get0(p8, &dalg, &doct);
-    if (!PKCS12_pbe_crypt(dalg, pass, strlen(pass), doct->data, doct->length,
+    VR_X509_SIG_get0(p8, &dalg, &doct);
+    if (!VR_PKCS12_pbe_crypt(dalg, pass, strlen(pass), doct->data, doct->length,
                           &new_data, &new_data_len, 0))
         goto nop8;
 
     mem->data = (char *)new_data;
     mem->max = mem->length = (size_t)new_data_len;
-    X509_SIG_free(p8);
+    VR_X509_SIG_free(p8);
 
-    store_info = ossl_store_info_new_EMBEDDED(PEM_STRING_PKCS8INF, mem);
+    store_info = VR_ossl_store_info_new_EMBEDDED(PEM_STRING_PKCS8INF, mem);
     if (store_info == NULL) {
         OSSL_STOREerr(OSSL_STORE_F_TRY_DECODE_PKCS8ENCRYPTED,
                       ERR_R_MALLOC_FAILURE);
@@ -380,8 +380,8 @@ static OSSL_STORE_INFO *try_decode_PKCS8Encrypted(const char *pem_name,
 
     return store_info;
  nop8:
-    X509_SIG_free(p8);
-    BUF_MEM_free(mem);
+    VR_X509_SIG_free(p8);
+    VR_BUF_MEM_free(mem);
     return NULL;
 }
 
@@ -395,7 +395,7 @@ static FILE_HANDLER PKCS8Encrypted_handler = {
  * encoded ones and old style PEM ones (with the key type is encoded into
  * the PEM name).
  */
-int pem_check_suffix(const char *pem_str, const char *suffix);
+int VR_pem_check_suffix(const char *pem_str, const char *suffix);
 static OSSL_STORE_INFO *try_decode_PrivateKey(const char *pem_name,
                                               const char *pem_header,
                                               const unsigned char *blob,
@@ -411,37 +411,37 @@ static OSSL_STORE_INFO *try_decode_PrivateKey(const char *pem_name,
     if (pem_name != NULL) {
         if (strcmp(pem_name, PEM_STRING_PKCS8INF) == 0) {
             PKCS8_PRIV_KEY_INFO *p8inf =
-                d2i_PKCS8_PRIV_KEY_INFO(NULL, &blob, len);
+                VR_d2i_PKCS8_PRIV_KEY_INFO(NULL, &blob, len);
 
             *matchcount = 1;
             if (p8inf != NULL)
-                pkey = EVP_PKCS82PKEY(p8inf);
-            PKCS8_PRIV_KEY_INFO_free(p8inf);
+                pkey = VR_EVP_PKCS82PKEY(p8inf);
+            VR_PKCS8_PRIV_KEY_INFO_free(p8inf);
         } else {
             int slen;
 
-            if ((slen = pem_check_suffix(pem_name, "PRIVATE KEY")) > 0
-                && (ameth = EVP_PKEY_asn1_find_str(NULL, pem_name,
+            if ((slen = VR_pem_check_suffix(pem_name, "PRIVATE KEY")) > 0
+                && (ameth = VR_EVP_PKEY_asn1_find_str(NULL, pem_name,
                                                    slen)) != NULL) {
                 *matchcount = 1;
-                pkey = d2i_PrivateKey(ameth->pkey_id, NULL, &blob, len);
+                pkey = VR_d2i_PrivateKey(ameth->pkey_id, NULL, &blob, len);
             }
         }
     } else {
         int i;
 
-        for (i = 0; i < EVP_PKEY_asn1_get_count(); i++) {
+        for (i = 0; i < VR_EVP_PKEY_asn1_get_count(); i++) {
             EVP_PKEY *tmp_pkey = NULL;
             const unsigned char *tmp_blob = blob;
 
-            ameth = EVP_PKEY_asn1_get0(i);
+            ameth = VR_EVP_PKEY_asn1_get0(i);
             if (ameth->pkey_flags & ASN1_PKEY_ALIAS)
                 continue;
 
-            tmp_pkey = d2i_PrivateKey(ameth->pkey_id, NULL, &tmp_blob, len);
+            tmp_pkey = VR_d2i_PrivateKey(ameth->pkey_id, NULL, &tmp_blob, len);
             if (tmp_pkey != NULL) {
                 if (pkey != NULL)
-                    EVP_PKEY_free(tmp_pkey);
+                    VR_EVP_PKEY_free(tmp_pkey);
                 else
                     pkey = tmp_pkey;
                 (*matchcount)++;
@@ -449,7 +449,7 @@ static OSSL_STORE_INFO *try_decode_PrivateKey(const char *pem_name,
         }
 
         if (*matchcount > 1) {
-            EVP_PKEY_free(pkey);
+            VR_EVP_PKEY_free(pkey);
             pkey = NULL;
         }
     }
@@ -457,9 +457,9 @@ static OSSL_STORE_INFO *try_decode_PrivateKey(const char *pem_name,
         /* No match */
         return NULL;
 
-    store_info = OSSL_STORE_INFO_new_PKEY(pkey);
+    store_info = VR_OSSL_STORE_INFO_new_PKEY(pkey);
     if (store_info == NULL)
-        EVP_PKEY_free(pkey);
+        VR_EVP_PKEY_free(pkey);
 
     return store_info;
 }
@@ -490,9 +490,9 @@ static OSSL_STORE_INFO *try_decode_PUBKEY(const char *pem_name,
         *matchcount = 1;
     }
 
-    if ((pkey = d2i_PUBKEY(NULL, &blob, len)) != NULL) {
+    if ((pkey = VR_d2i_PUBKEY(NULL, &blob, len)) != NULL) {
         *matchcount = 1;
-        store_info = OSSL_STORE_INFO_new_PKEY(pkey);
+        store_info = VR_OSSL_STORE_INFO_new_PKEY(pkey);
     }
 
     return store_info;
@@ -521,20 +521,20 @@ static OSSL_STORE_INFO *try_decode_params(const char *pem_name,
     int ok = 0;
 
     if (pem_name != NULL) {
-        if ((slen = pem_check_suffix(pem_name, "PARAMETERS")) == 0)
+        if ((slen = VR_pem_check_suffix(pem_name, "PARAMETERS")) == 0)
             return NULL;
         *matchcount = 1;
     }
 
     if (slen > 0) {
-        if ((pkey = EVP_PKEY_new()) == NULL) {
+        if ((pkey = VR_EVP_PKEY_new()) == NULL) {
             OSSL_STOREerr(OSSL_STORE_F_TRY_DECODE_PARAMS, ERR_R_EVP_LIB);
             return NULL;
         }
 
 
-        if (EVP_PKEY_set_type_str(pkey, pem_name, slen)
-            && (ameth = EVP_PKEY_get0_asn1(pkey)) != NULL
+        if (VR_EVP_PKEY_set_type_str(pkey, pem_name, slen)
+            && (ameth = VR_EVP_PKEY_get0_asn1(pkey)) != NULL
             && ameth->param_decode != NULL
             && ameth->param_decode(pkey, &blob, len))
             ok = 1;
@@ -542,24 +542,24 @@ static OSSL_STORE_INFO *try_decode_params(const char *pem_name,
         int i;
         EVP_PKEY *tmp_pkey = NULL;
 
-        for (i = 0; i < EVP_PKEY_asn1_get_count(); i++) {
+        for (i = 0; i < VR_EVP_PKEY_asn1_get_count(); i++) {
             const unsigned char *tmp_blob = blob;
 
-            if (tmp_pkey == NULL && (tmp_pkey = EVP_PKEY_new()) == NULL) {
+            if (tmp_pkey == NULL && (tmp_pkey = VR_EVP_PKEY_new()) == NULL) {
                 OSSL_STOREerr(OSSL_STORE_F_TRY_DECODE_PARAMS, ERR_R_EVP_LIB);
                 break;
             }
 
-            ameth = EVP_PKEY_asn1_get0(i);
+            ameth = VR_EVP_PKEY_asn1_get0(i);
             if (ameth->pkey_flags & ASN1_PKEY_ALIAS)
                 continue;
 
-            if (EVP_PKEY_set_type(tmp_pkey, ameth->pkey_id)
-                && (ameth = EVP_PKEY_get0_asn1(tmp_pkey)) != NULL
+            if (VR_EVP_PKEY_set_type(tmp_pkey, ameth->pkey_id)
+                && (ameth = VR_EVP_PKEY_get0_asn1(tmp_pkey)) != NULL
                 && ameth->param_decode != NULL
                 && ameth->param_decode(tmp_pkey, &tmp_blob, len)) {
                 if (pkey != NULL)
-                    EVP_PKEY_free(tmp_pkey);
+                    VR_EVP_PKEY_free(tmp_pkey);
                 else
                     pkey = tmp_pkey;
                 tmp_pkey = NULL;
@@ -567,16 +567,16 @@ static OSSL_STORE_INFO *try_decode_params(const char *pem_name,
             }
         }
 
-        EVP_PKEY_free(tmp_pkey);
+        VR_EVP_PKEY_free(tmp_pkey);
         if (*matchcount == 1) {
             ok = 1;
         }
     }
 
     if (ok)
-        store_info = OSSL_STORE_INFO_new_PARAMS(pkey);
+        store_info = VR_OSSL_STORE_INFO_new_PARAMS(pkey);
     if (store_info == NULL)
-        EVP_PKEY_free(pkey);
+        VR_EVP_PKEY_free(pkey);
 
     return store_info;
 }
@@ -619,14 +619,14 @@ static OSSL_STORE_INFO *try_decode_X509Certificate(const char *pem_name,
         *matchcount = 1;
     }
 
-    if ((cert = d2i_X509_AUX(NULL, &blob, len)) != NULL
-        || (ignore_trusted && (cert = d2i_X509(NULL, &blob, len)) != NULL)) {
+    if ((cert = VR_d2i_X509_AUX(NULL, &blob, len)) != NULL
+        || (ignore_trusted && (cert = VR_d2i_X509(NULL, &blob, len)) != NULL)) {
         *matchcount = 1;
-        store_info = OSSL_STORE_INFO_new_CERT(cert);
+        store_info = VR_OSSL_STORE_INFO_new_CERT(cert);
     }
 
     if (store_info == NULL)
-        X509_free(cert);
+        VR_X509_free(cert);
 
     return store_info;
 }
@@ -657,13 +657,13 @@ static OSSL_STORE_INFO *try_decode_X509CRL(const char *pem_name,
         *matchcount = 1;
     }
 
-    if ((crl = d2i_X509_CRL(NULL, &blob, len)) != NULL) {
+    if ((crl = VR_d2i_X509_CRL(NULL, &blob, len)) != NULL) {
         *matchcount = 1;
-        store_info = OSSL_STORE_INFO_new_CRL(crl);
+        store_info = VR_OSSL_STORE_INFO_new_CRL(crl);
     }
 
     if (store_info == NULL)
-        X509_CRL_free(crl);
+        VR_X509_CRL_free(crl);
 
     return store_info;
 }
@@ -741,7 +741,7 @@ struct ossl_store_loader_ctx_st {
 static void OSSL_STORE_LOADER_CTX_free(OSSL_STORE_LOADER_CTX *ctx)
 {
     if (ctx->type == is_dir) {
-        OPENSSL_free(ctx->_.dir.uri);
+        OPENVR_SSL_free(ctx->_.dir.uri);
     } else {
         if (ctx->_.file.last_handler != NULL) {
             ctx->_.file.last_handler->destroy_ctx(&ctx->_.file.last_handler_ctx);
@@ -749,7 +749,7 @@ static void OSSL_STORE_LOADER_CTX_free(OSSL_STORE_LOADER_CTX *ctx)
             ctx->_.file.last_handler = NULL;
         }
     }
-    OPENSSL_free(ctx);
+    OPENVR_SSL_free(ctx);
 }
 
 static OSSL_STORE_LOADER_CTX *file_open(const OSSL_STORE_LOADER *loader,
@@ -798,7 +798,7 @@ static OSSL_STORE_LOADER_CTX *file_open(const OSSL_STORE_LOADER *loader,
 #ifdef _WIN32
         /* Windows file: URIs with a drive letter start with a / */
         if (p[0] == '/' && p[2] == ':' && p[3] == '/') {
-            char c = ossl_tolower(p[1]);
+            char c = VR_ossl_tolower(p[1]);
 
             if (c >= 'a' && c <= 'z') {
                 p++;
@@ -819,13 +819,13 @@ static OSSL_STORE_LOADER_CTX *file_open(const OSSL_STORE_LOADER *loader,
         if (path_data[i].check_absolute && path_data[i].path[0] != '/') {
             OSSL_STOREerr(OSSL_STORE_F_FILE_OPEN,
                           OSSL_STORE_R_PATH_MUST_BE_ABSOLUTE);
-            ERR_add_error_data(1, path_data[i].path);
+            VR_ERR_add_error_data(1, path_data[i].path);
             return NULL;
         }
 
         if (stat(path_data[i].path, &st) < 0) {
             SYSerr(SYS_F_STAT, errno);
-            ERR_add_error_data(1, path_data[i].path);
+            VR_ERR_add_error_data(1, path_data[i].path);
         } else {
             path = path_data[i].path;
         }
@@ -835,7 +835,7 @@ static OSSL_STORE_LOADER_CTX *file_open(const OSSL_STORE_LOADER *loader,
     }
 
     /* Successfully found a working path, clear possible collected errors */
-    ERR_clear_error();
+    VR_ERR_clear_error();
 
     ctx = OPENSSL_zalloc(sizeof(*ctx));
     if (ctx == NULL) {
@@ -855,15 +855,15 @@ static OSSL_STORE_LOADER_CTX *file_open(const OSSL_STORE_LOADER *loader,
         if (ctx->_.dir.uri == NULL)
             goto err;
 
-        ctx->_.dir.last_entry = OPENSSL_DIR_read(&ctx->_.dir.ctx, path);
+        ctx->_.dir.last_entry = VR_OPENSSL_DIR_read(&ctx->_.dir.ctx, path);
         ctx->_.dir.last_errno = errno;
         if (ctx->_.dir.last_entry == NULL) {
             if (ctx->_.dir.last_errno != 0) {
                 char errbuf[256];
                 errno = ctx->_.dir.last_errno;
-                openssl_strerror_r(errno, errbuf, sizeof(errbuf));
+                VR_openssl_strerror_r(errno, errbuf, sizeof(errbuf));
                 OSSL_STOREerr(OSSL_STORE_F_FILE_OPEN, ERR_R_SYS_LIB);
-                ERR_add_error_data(1, errbuf);
+                VR_ERR_add_error_data(1, errbuf);
                 goto err;
             }
             ctx->_.dir.end_reached = 1;
@@ -872,13 +872,13 @@ static OSSL_STORE_LOADER_CTX *file_open(const OSSL_STORE_LOADER *loader,
         BIO *buff = NULL;
         char peekbuf[4096] = { 0, };
 
-        if ((buff = BIO_new(BIO_f_buffer())) == NULL
-            || (ctx->_.file.file = BIO_new_file(path, "rb")) == NULL) {
-            BIO_free_all(buff);
+        if ((buff = VR_BIO_new(VR_BIO_f_buffer())) == NULL
+            || (ctx->_.file.file = VR_BIO_new_file(path, "rb")) == NULL) {
+            VR_BIO_free_all(buff);
             goto err;
         }
 
-        ctx->_.file.file = BIO_push(buff, ctx->_.file.file);
+        ctx->_.file.file = VR_BIO_push(buff, ctx->_.file.file);
         if (BIO_buffer_peek(ctx->_.file.file, peekbuf, sizeof(peekbuf) - 1) > 0) {
             peekbuf[sizeof(peekbuf) - 1] = '\0';
             if (strstr(peekbuf, "-----BEGIN ") != NULL)
@@ -936,7 +936,7 @@ static int file_find(OSSL_STORE_LOADER_CTX *ctx, OSSL_STORE_SEARCH *search)
      * the given search type.
      */
 
-    if (OSSL_STORE_SEARCH_get_type(search) == OSSL_STORE_SEARCH_BY_NAME) {
+    if (VR_OSSL_STORE_SEARCH_get_type(search) == OSSL_STORE_SEARCH_BY_NAME) {
         unsigned long hash = 0;
 
         if (ctx == NULL)
@@ -948,8 +948,8 @@ static int file_find(OSSL_STORE_LOADER_CTX *ctx, OSSL_STORE_SEARCH *search)
             return 0;
         }
 
-        hash = X509_NAME_hash(OSSL_STORE_SEARCH_get0_name(search));
-        BIO_snprintf(ctx->_.dir.search_name, sizeof(ctx->_.dir.search_name),
+        hash = VR_X509_NAME_hash(VR_OSSL_STORE_SEARCH_get0_name(search));
+        VR_BIO_snprintf(ctx->_.dir.search_name, sizeof(ctx->_.dir.search_name),
                      "%08lx", hash);
         return 1;
     }
@@ -961,7 +961,7 @@ static int file_find(OSSL_STORE_LOADER_CTX *ctx, OSSL_STORE_SEARCH *search)
 }
 
 /* Internal function to decode an already opened PEM file */
-OSSL_STORE_LOADER_CTX *ossl_store_file_attach_pem_bio_int(BIO *bp)
+OSSL_STORE_LOADER_CTX *VR_ossl_store_file_attach_pem_bio_int(BIO *bp)
 {
     OSSL_STORE_LOADER_CTX *ctx = OPENSSL_zalloc(sizeof(*ctx));
 
@@ -1023,8 +1023,8 @@ static OSSL_STORE_INFO *file_load_try_decode(OSSL_STORE_LOADER_CTX *ctx,
 
                 if ((*matchcount += try_matchcount) > 1) {
                     /* more than one match => ambiguous, kill any result */
-                    OSSL_STORE_INFO_free(result);
-                    OSSL_STORE_INFO_free(tmp_result);
+                    VR_OSSL_STORE_INFO_free(result);
+                    VR_OSSL_STORE_INFO_free(tmp_result);
                     if (handler->destroy_ctx != NULL)
                         handler->destroy_ctx(&handler_ctx);
                     handler_ctx = NULL;
@@ -1041,27 +1041,27 @@ static OSSL_STORE_INFO *file_load_try_decode(OSSL_STORE_LOADER_CTX *ctx,
             ctx->_.file.last_handler_ctx = handler_ctx;
         }
 
-        OPENSSL_free(matching_handlers);
+        OPENVR_SSL_free(matching_handlers);
     }
 
  err:
-    OPENSSL_free(new_pem_name);
-    BUF_MEM_free(new_mem);
+    OPENVR_SSL_free(new_pem_name);
+    VR_BUF_MEM_free(new_mem);
 
     if (result != NULL
-        && (t = OSSL_STORE_INFO_get_type(result)) == OSSL_STORE_INFO_EMBEDDED) {
+        && (t = VR_OSSL_STORE_INFO_get_type(result)) == OSSL_STORE_INFO_EMBEDDED) {
         pem_name = new_pem_name =
-            ossl_store_info_get0_EMBEDDED_pem_name(result);
-        new_mem = ossl_store_info_get0_EMBEDDED_buffer(result);
+            VR_ossl_store_info_get0_EMBEDDED_pem_name(result);
+        new_mem = VR_ossl_store_info_get0_EMBEDDED_buffer(result);
         data = (unsigned char *)new_mem->data;
         len = new_mem->length;
-        OPENSSL_free(result);
+        OPENVR_SSL_free(result);
         result = NULL;
         goto again;
     }
 
     if (result != NULL)
-        ERR_clear_error();
+        VR_ERR_clear_error();
 
     return result;
 }
@@ -1094,7 +1094,7 @@ static void pem_free_flag(void *pem_data, int secure, size_t num)
     if (secure)
         OPENSSL_secure_clear_free(pem_data, num);
     else
-        OPENSSL_free(pem_data);
+        OPENVR_SSL_free(pem_data);
 }
 static int file_read_pem(BIO *bp, char **pem_name, char **pem_header,
                          unsigned char **data, long *len,
@@ -1102,16 +1102,16 @@ static int file_read_pem(BIO *bp, char **pem_name, char **pem_header,
                          void *ui_data, int secure)
 {
     int i = secure
-        ? PEM_read_bio_ex(bp, pem_name, pem_header, data, len,
+        ? VR_PEM_read_bio_ex(bp, pem_name, pem_header, data, len,
                           PEM_FLAG_SECURE | PEM_FLAG_EAY_COMPATIBLE)
-        : PEM_read_bio(bp, pem_name, pem_header, data, len);
+        : VR_PEM_read_bio(bp, pem_name, pem_header, data, len);
 
     if (i <= 0)
         return 0;
 
     /*
      * 10 is the number of characters in "Proc-Type:", which
-     * PEM_get_EVP_CIPHER_INFO() requires to be present.
+     * VR_PEM_get_EVP_CIPHER_INFO() requires to be present.
      * If the PEM header has less characters than that, it's
      * not worth spending cycles on it.
      */
@@ -1119,9 +1119,9 @@ static int file_read_pem(BIO *bp, char **pem_name, char **pem_header,
         EVP_CIPHER_INFO cipher;
         struct pem_pass_data pass_data;
 
-        if (!PEM_get_EVP_CIPHER_INFO(*pem_header, &cipher)
+        if (!VR_PEM_get_EVP_CIPHER_INFO(*pem_header, &cipher)
             || !file_fill_pem_pass_data(&pass_data, "PEM", ui_method, ui_data)
-            || !PEM_do_header(&cipher, *data, len, file_get_pem_pass,
+            || !VR_PEM_do_header(&cipher, *data, len, file_get_pem_pass,
                               &pass_data)) {
             return 0;
         }
@@ -1133,12 +1133,12 @@ static int file_read_asn1(BIO *bp, unsigned char **data, long *len)
 {
     BUF_MEM *mem = NULL;
 
-    if (asn1_d2i_read_bio(bp, &mem) < 0)
+    if (VR_asn1_d2i_read_bio(bp, &mem) < 0)
         return 0;
 
     *data = (unsigned char *)mem->data;
     *len = (long)mem->length;
-    OPENSSL_free(mem);
+    OPENVR_SSL_free(mem);
 
     return 1;
 }
@@ -1173,9 +1173,9 @@ static int file_name_to_uri(OSSL_STORE_LOADER_CTX *ctx, const char *name,
             return 0;
         }
 
-        OPENSSL_strlcat(*data, ctx->_.dir.uri, calculated_length);
-        OPENSSL_strlcat(*data, pathsep, calculated_length);
-        OPENSSL_strlcat(*data, name, calculated_length);
+        VR_OPENSSL_strlcat(*data, ctx->_.dir.uri, calculated_length);
+        VR_OPENSSL_strlcat(*data, pathsep, calculated_length);
+        VR_OPENSSL_strlcat(*data, name, calculated_length);
     }
     return 1;
 }
@@ -1250,7 +1250,7 @@ static OSSL_STORE_INFO *file_load(OSSL_STORE_LOADER_CTX *ctx,
     OSSL_STORE_INFO *result = NULL;
 
     ctx->errcnt = 0;
-    ERR_clear_error();
+    VR_ERR_clear_error();
 
     if (ctx->type == is_dir) {
         do {
@@ -1262,9 +1262,9 @@ static OSSL_STORE_INFO *file_load(OSSL_STORE_LOADER_CTX *ctx,
                     assert(ctx->_.dir.last_errno != 0);
                     errno = ctx->_.dir.last_errno;
                     ctx->errcnt++;
-                    openssl_strerror_r(errno, errbuf, sizeof(errbuf));
+                    VR_openssl_strerror_r(errno, errbuf, sizeof(errbuf));
                     OSSL_STOREerr(OSSL_STORE_F_FILE_LOAD, ERR_R_SYS_LIB);
-                    ERR_add_error_data(1, errbuf);
+                    VR_ERR_add_error_data(1, errbuf);
                 }
                 return NULL;
             }
@@ -1275,20 +1275,20 @@ static OSSL_STORE_INFO *file_load(OSSL_STORE_LOADER_CTX *ctx,
                 return NULL;
 
             /*
-             * On the first call (with a NULL context), OPENSSL_DIR_read()
+             * On the first call (with a NULL context), VR_OPENSSL_DIR_read()
              * cares about the second argument.  On the following calls, it
              * only cares that it isn't NULL.  Therefore, we can safely give
              * it our URI here.
              */
-            ctx->_.dir.last_entry = OPENSSL_DIR_read(&ctx->_.dir.ctx,
+            ctx->_.dir.last_entry = VR_OPENSSL_DIR_read(&ctx->_.dir.ctx,
                                                      ctx->_.dir.uri);
             ctx->_.dir.last_errno = errno;
             if (ctx->_.dir.last_entry == NULL && ctx->_.dir.last_errno == 0)
                 ctx->_.dir.end_reached = 1;
 
             if (newname != NULL
-                && (result = OSSL_STORE_INFO_new_NAME(newname)) == NULL) {
-                OPENSSL_free(newname);
+                && (result = VR_OSSL_STORE_INFO_new_NAME(newname)) == NULL) {
+                OPENVR_SSL_free(newname);
                 OSSL_STOREerr(OSSL_STORE_F_FILE_LOAD, ERR_R_OSSL_STORE_LIB);
                 return NULL;
             }
@@ -1348,11 +1348,11 @@ static OSSL_STORE_INFO *file_load(OSSL_STORE_LOADER_CTX *ctx,
                  * If there are other errors on the stack, they already show
                  * what the problem is.
                  */
-                if (ERR_peek_error() == 0) {
+                if (VR_ERR_peek_error() == 0) {
                     OSSL_STOREerr(OSSL_STORE_F_FILE_LOAD,
                                   OSSL_STORE_R_UNSUPPORTED_CONTENT_TYPE);
                     if (pem_name != NULL)
-                        ERR_add_error_data(3, "PEM type is '", pem_name, "'");
+                        VR_ERR_add_error_data(3, "PEM type is '", pem_name, "'");
                 }
             }
             if (matchcount > 0)
@@ -1370,8 +1370,8 @@ static OSSL_STORE_INFO *file_load(OSSL_STORE_LOADER_CTX *ctx,
 
         if (result != NULL
             && ctx->expected_type != 0
-            && ctx->expected_type != OSSL_STORE_INFO_get_type(result)) {
-            OSSL_STORE_INFO_free(result);
+            && ctx->expected_type != VR_OSSL_STORE_INFO_get_type(result)) {
+            VR_OSSL_STORE_INFO_free(result);
             goto again;
         }
     }
@@ -1398,15 +1398,15 @@ static int file_eof(OSSL_STORE_LOADER_CTX *ctx)
 static int file_close(OSSL_STORE_LOADER_CTX *ctx)
 {
     if (ctx->type == is_dir) {
-        OPENSSL_DIR_end(&ctx->_.dir.ctx);
+        VR_OPENSSL_DIR_end(&ctx->_.dir.ctx);
     } else {
-        BIO_free_all(ctx->_.file.file);
+        VR_BIO_free_all(ctx->_.file.file);
     }
     OSSL_STORE_LOADER_CTX_free(ctx);
     return 1;
 }
 
-int ossl_store_file_detach_pem_bio_int(OSSL_STORE_LOADER_CTX *ctx)
+int VR_ossl_store_file_detach_pem_bio_int(OSSL_STORE_LOADER_CTX *ctx)
 {
     OSSL_STORE_LOADER_CTX_free(ctx);
     return 1;
@@ -1428,13 +1428,13 @@ static OSSL_STORE_LOADER file_loader =
 
 static void store_file_loader_deinit(void)
 {
-    ossl_store_unregister_loader_int(file_loader.scheme);
+    VR_ossl_store_unregister_loader_int(file_loader.scheme);
 }
 
-int ossl_store_file_loader_init(void)
+int VR_ossl_store_file_loader_init(void)
 {
-    int ret = ossl_store_register_loader_int(&file_loader);
+    int ret = VR_ossl_store_register_loader_int(&file_loader);
 
-    OPENSSL_atexit(store_file_loader_deinit);
+    VR_OPENSSL_atexit(store_file_loader_deinit);
     return ret;
 }

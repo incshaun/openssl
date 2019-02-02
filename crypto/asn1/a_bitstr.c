@@ -13,12 +13,12 @@
 #include <openssl/asn1.h>
 #include "asn1_locl.h"
 
-int ASN1_BIT_STRING_set(ASN1_BIT_STRING *x, unsigned char *d, int len)
+int VR_ASN1_BIT_STRING_set(ASN1_BIT_STRING *x, unsigned char *d, int len)
 {
-    return ASN1_STRING_set(x, d, len);
+    return VR_ASN1_STRING_set(x, d, len);
 }
 
-int i2c_ASN1_BIT_STRING(ASN1_BIT_STRING *a, unsigned char **pp)
+int VR_i2c_ASN1_BIT_STRING(ASN1_BIT_STRING *a, unsigned char **pp)
 {
     int ret, j, bits, len;
     unsigned char *p, *d;
@@ -76,7 +76,7 @@ int i2c_ASN1_BIT_STRING(ASN1_BIT_STRING *a, unsigned char **pp)
     return ret;
 }
 
-ASN1_BIT_STRING *c2i_ASN1_BIT_STRING(ASN1_BIT_STRING **a,
+ASN1_BIT_STRING *VR_c2i_ASN1_BIT_STRING(ASN1_BIT_STRING **a,
                                      const unsigned char **pp, long len)
 {
     ASN1_BIT_STRING *ret = NULL;
@@ -95,7 +95,7 @@ ASN1_BIT_STRING *c2i_ASN1_BIT_STRING(ASN1_BIT_STRING **a,
     }
 
     if ((a == NULL) || ((*a) == NULL)) {
-        if ((ret = ASN1_BIT_STRING_new()) == NULL)
+        if ((ret = VR_ASN1_BIT_STRING_new()) == NULL)
             return NULL;
     } else
         ret = (*a);
@@ -126,7 +126,7 @@ ASN1_BIT_STRING *c2i_ASN1_BIT_STRING(ASN1_BIT_STRING **a,
         s = NULL;
 
     ret->length = (int)len;
-    OPENSSL_free(ret->data);
+    OPENVR_SSL_free(ret->data);
     ret->data = s;
     ret->type = V_ASN1_BIT_STRING;
     if (a != NULL)
@@ -136,14 +136,14 @@ ASN1_BIT_STRING *c2i_ASN1_BIT_STRING(ASN1_BIT_STRING **a,
  err:
     ASN1err(ASN1_F_C2I_ASN1_BIT_STRING, i);
     if ((a == NULL) || (*a != ret))
-        ASN1_BIT_STRING_free(ret);
+        VR_ASN1_BIT_STRING_free(ret);
     return NULL;
 }
 
 /*
  * These next 2 functions from Goetz Babin-Ebell.
  */
-int ASN1_BIT_STRING_set_bit(ASN1_BIT_STRING *a, int n, int value)
+int VR_ASN1_BIT_STRING_set_bit(ASN1_BIT_STRING *a, int n, int value)
 {
     int w, v, iv;
     unsigned char *c;
@@ -162,7 +162,7 @@ int ASN1_BIT_STRING_set_bit(ASN1_BIT_STRING *a, int n, int value)
     if ((a->length < (w + 1)) || (a->data == NULL)) {
         if (!value)
             return 1;         /* Don't need to set */
-        c = OPENSSL_clear_realloc(a->data, a->length, w + 1);
+        c = OPENVR_SSL_clear_realloc(a->data, a->length, w + 1);
         if (c == NULL) {
             ASN1err(ASN1_F_ASN1_BIT_STRING_SET_BIT, ERR_R_MALLOC_FAILURE);
             return 0;
@@ -178,7 +178,7 @@ int ASN1_BIT_STRING_set_bit(ASN1_BIT_STRING *a, int n, int value)
     return 1;
 }
 
-int ASN1_BIT_STRING_get_bit(const ASN1_BIT_STRING *a, int n)
+int VR_ASN1_BIT_STRING_get_bit(const ASN1_BIT_STRING *a, int n)
 {
     int w, v;
 
@@ -195,7 +195,7 @@ int ASN1_BIT_STRING_get_bit(const ASN1_BIT_STRING *a, int n)
  * which is not specified in 'flags', 1 otherwise.
  * 'len' is the length of 'flags'.
  */
-int ASN1_BIT_STRING_check(const ASN1_BIT_STRING *a,
+int VR_ASN1_BIT_STRING_check(const ASN1_BIT_STRING *a,
                           const unsigned char *flags, int flags_len)
 {
     int i, ok;

@@ -196,7 +196,7 @@ static RECORD_DATA refdata[] = {
 };
 
 /*
- * Same thing as OPENSSL_hexstr2buf() but enables us to pass the string in
+ * Same thing as VR_OPENSSL_hexstr2buf() but enables us to pass the string in
  * 3 chunks
  */
 static unsigned char *multihexstr2buf(const char *str[3], size_t *len)
@@ -221,11 +221,11 @@ static unsigned char *multihexstr2buf(const char *str[3], size_t *len)
         for (inner = 0; str[outer][inner] != 0; inner += 2) {
             int hi, lo;
 
-            hi = OPENSSL_hexchar2int(str[outer][inner]);
-            lo = OPENSSL_hexchar2int(str[outer][inner + 1]);
+            hi = VR_OPENSSL_hexchar2int(str[outer][inner]);
+            lo = VR_OPENSSL_hexchar2int(str[outer][inner + 1]);
 
             if (hi < 0 || lo < 0) {
-                OPENSSL_free(outbuf);
+                OPENVR_SSL_free(outbuf);
                 return NULL;
             }
             outbuf[curr++] = (hi << 4) | lo;
@@ -242,9 +242,9 @@ static int load_record(SSL3_RECORD *rec, RECORD_DATA *recd, unsigned char **key,
     unsigned char *pt = NULL, *sq = NULL, *ivtmp = NULL;
     size_t ptlen;
 
-    *key = OPENSSL_hexstr2buf(recd->key, NULL);
-    ivtmp = OPENSSL_hexstr2buf(recd->iv, NULL);
-    sq = OPENSSL_hexstr2buf(recd->seq, NULL);
+    *key = VR_OPENSSL_hexstr2buf(recd->key, NULL);
+    ivtmp = VR_OPENSSL_hexstr2buf(recd->iv, NULL);
+    sq = VR_OPENSSL_hexstr2buf(recd->seq, NULL);
     pt = multihexstr2buf(recd->plaintext, &ptlen);
 
     if (*key == NULL || ivtmp == NULL || sq == NULL || pt == NULL)
@@ -257,19 +257,19 @@ static int load_record(SSL3_RECORD *rec, RECORD_DATA *recd, unsigned char **key,
 
     rec->length = ptlen;
     memcpy(rec->data, pt, ptlen);
-    OPENSSL_free(pt);
+    OPENVR_SSL_free(pt);
     memcpy(seq, sq, SEQ_NUM_SIZE);
-    OPENSSL_free(sq);
+    OPENVR_SSL_free(sq);
     memcpy(iv, ivtmp, ivlen);
-    OPENSSL_free(ivtmp);
+    OPENVR_SSL_free(ivtmp);
 
     return 1;
  err:
-    OPENSSL_free(*key);
+    OPENVR_SSL_free(*key);
     *key = NULL;
-    OPENSSL_free(ivtmp);
-    OPENSSL_free(sq);
-    OPENSSL_free(pt);
+    OPENVR_SSL_free(ivtmp);
+    OPENVR_SSL_free(sq);
+    OPENVR_SSL_free(pt);
     return 0;
 }
 
@@ -295,19 +295,19 @@ static int test_record(SSL3_RECORD *rec, RECORD_DATA *recd, int enc)
     ret = 1;
 
  err:
-    OPENSSL_free(refd);
+    OPENVR_SSL_free(refd);
     return ret;
 }
 
-#define TLS13_AES_128_GCM_SHA256_BYTES  ((const unsigned char *)"\x13\x01")
+#define TLS13_AES_128_GCM_VR_SHA256_BYTES  ((const unsigned char *)"\x13\x01")
 
-static int test_tls13_encryption(void)
+static int test_VR_tls13_encryption(void)
 {
     SSL_CTX *ctx = NULL;
     SSL *s = NULL;
     SSL3_RECORD rec;
     unsigned char *key = NULL, *iv = NULL, *seq = NULL;
-    const EVP_CIPHER *ciph = EVP_aes_128_gcm();
+    const EVP_CIPHER *ciph = VR_EVP_aes_128_gcm();
     int ret = 0;
     size_t ivlen, ctr;
 
@@ -319,27 +319,27 @@ static int test_tls13_encryption(void)
     rec.type = SSL3_RT_APPLICATION_DATA;
     rec.rec_version = TLS1_2_VERSION;
 
-    ctx = SSL_CTX_new(TLS_method());
+    ctx = VR_SSL_CTX_new(VR_TLS_method());
     if (!TEST_ptr(ctx)) {
         TEST_info("Failed creating SSL_CTX");
         goto err;
     }
 
-    s = SSL_new(ctx);
+    s = VR_SSL_new(ctx);
     if (!TEST_ptr(s)) {
         TEST_info("Failed creating SSL");
         goto err;
     }
 
-    s->enc_read_ctx = EVP_CIPHER_CTX_new();
+    s->enc_read_ctx = VR_EVP_CIPHER_CTX_new();
     if (!TEST_ptr(s->enc_read_ctx))
         goto err;
 
-    s->enc_write_ctx = EVP_CIPHER_CTX_new();
+    s->enc_write_ctx = VR_EVP_CIPHER_CTX_new();
     if (!TEST_ptr(s->enc_write_ctx))
         goto err;
 
-    s->s3->tmp.new_cipher = SSL_CIPHER_find(s, TLS13_AES_128_GCM_SHA256_BYTES);
+    s->s3->tmp.new_cipher = VR_SSL_CIPHER_find(s, TLS13_AES_128_GCM_VR_SHA256_BYTES);
     if (!TEST_ptr(s->s3->tmp.new_cipher)) {
         TEST_info("Failed to find cipher");
         goto err;
@@ -347,7 +347,7 @@ static int test_tls13_encryption(void)
 
     for (ctr = 0; ctr < OSSL_NELEM(refdata); ctr++) {
         /* Load the record */
-        ivlen = EVP_CIPHER_iv_length(ciph);
+        ivlen = VR_EVP_CIPHER_iv_length(ciph);
         if (!load_record(&rec, &refdata[ctr], &key, s->read_iv, ivlen,
                          RECORD_LAYER_get_read_sequence(&s->rlayer))) {
             TEST_error("Failed loading key into EVP_CIPHER_CTX");
@@ -360,15 +360,15 @@ static int test_tls13_encryption(void)
         memcpy(s->write_iv, s->read_iv, ivlen);
 
         /* Load the key into the EVP_CIPHER_CTXs */
-        if (EVP_CipherInit_ex(s->enc_write_ctx, ciph, NULL, key, NULL, 1) <= 0
-                || EVP_CipherInit_ex(s->enc_read_ctx, ciph, NULL, key, NULL, 0)
+        if (VR_EVP_CipherInit_ex(s->enc_write_ctx, ciph, NULL, key, NULL, 1) <= 0
+                || VR_EVP_CipherInit_ex(s->enc_read_ctx, ciph, NULL, key, NULL, 0)
                    <= 0) {
             TEST_error("Failed loading key into EVP_CIPHER_CTX\n");
             goto err;
         }
 
         /* Encrypt it */
-        if (!TEST_size_t_eq(tls13_enc(s, &rec, 1, 1), 1)) {
+        if (!TEST_size_t_eq(VR_tls13_enc(s, &rec, 1, 1), 1)) {
             TEST_info("Failed to encrypt record %zu", ctr);
             goto err;
         }
@@ -378,7 +378,7 @@ static int test_tls13_encryption(void)
         }
 
         /* Decrypt it */
-        if (!TEST_int_eq(tls13_enc(s, &rec, 1, 0), 1)) {
+        if (!TEST_int_eq(VR_tls13_enc(s, &rec, 1, 0), 1)) {
             TEST_info("Failed to decrypt record %zu", ctr);
             goto err;
         }
@@ -387,10 +387,10 @@ static int test_tls13_encryption(void)
             goto err;
         }
 
-        OPENSSL_free(rec.data);
-        OPENSSL_free(key);
-        OPENSSL_free(iv);
-        OPENSSL_free(seq);
+        OPENVR_SSL_free(rec.data);
+        OPENVR_SSL_free(key);
+        OPENVR_SSL_free(iv);
+        OPENVR_SSL_free(seq);
         rec.data = NULL;
         key = NULL;
         iv = NULL;
@@ -401,17 +401,17 @@ static int test_tls13_encryption(void)
     ret = 1;
 
  err:
-    OPENSSL_free(rec.data);
-    OPENSSL_free(key);
-    OPENSSL_free(iv);
-    OPENSSL_free(seq);
-    SSL_free(s);
-    SSL_CTX_free(ctx);
+    OPENVR_SSL_free(rec.data);
+    OPENVR_SSL_free(key);
+    OPENVR_SSL_free(iv);
+    OPENVR_SSL_free(seq);
+    VR_SSL_free(s);
+    VR_SSL_CTX_free(ctx);
     return ret;
 }
 
 int setup_tests(void)
 {
-    ADD_TEST(test_tls13_encryption);
+    ADD_TEST(test_VR_tls13_encryption);
     return 1;
 }

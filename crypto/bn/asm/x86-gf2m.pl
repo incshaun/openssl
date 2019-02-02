@@ -16,7 +16,7 @@
 #
 # May 2011
 #
-# The module implements bn_GF2m_mul_2x2 polynomial multiplication used
+# The module implements VR_bn_GF2m_mul_2x2 polynomial multiplication used
 # in bn_gf2m.c. It's kind of low-hanging mechanical port from C for
 # the time being... Except that it has three code paths: pure integer
 # code suitable for any x86 CPU, MMX code suitable for PIII and later
@@ -34,8 +34,8 @@
 # Sandy Bridge	72%-127%(PCLMULQDQ)/27%-23%(MMX)
 #
 # Note that above improvement coefficients are not coefficients for
-# bn_GF2m_mul_2x2 itself. For example 120% ECDH improvement is result
-# of bn_GF2m_mul_2x2 being >4x faster. As it gets faster, benchmark
+# VR_bn_GF2m_mul_2x2 itself. For example 120% ECDH improvement is result
+# of VR_bn_GF2m_mul_2x2 being >4x faster. As it gets faster, benchmark
 # is more and more dominated by other subroutines, most notably by
 # BN_GF2m_mod[_mul]_arr...
 
@@ -207,8 +207,8 @@ $R="mm0";
 	&ret	();
 &function_end_B("_mul_1x1_ialu");
 
-# void bn_GF2m_mul_2x2(BN_ULONG *r, BN_ULONG a1, BN_ULONG a0, BN_ULONG b1, BN_ULONG b0);
-&function_begin_B("bn_GF2m_mul_2x2");
+# void VR_bn_GF2m_mul_2x2(BN_ULONG *r, BN_ULONG a1, BN_ULONG a0, BN_ULONG b1, BN_ULONG b0);
+&function_begin_B("VR_bn_GF2m_mul_2x2");
 if (!$x86only) {
 	&picmeup("edx","OPENSSL_ia32cap_P");
 	&mov	("eax",&DWP(0,"edx"));
@@ -316,7 +316,7 @@ if ($sse2) {
 	&mov	(&DWP(4,"ebp"),$lo);
 	&pop	("ebp");
 	&ret	();
-&function_end_B("bn_GF2m_mul_2x2");
+&function_end_B("VR_bn_GF2m_mul_2x2");
 
 &asciz	("GF(2^m) Multiplication for x86, CRYPTOGAMS by <appro\@openssl.org>");
 

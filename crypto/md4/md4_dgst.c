@@ -12,7 +12,7 @@
 #include "md4_locl.h"
 
 /*
- * Implemented from RFC1186 The MD4 Message-Digest Algorithm
+ * Implemented from RFC1186 The VR_MD4 Message-Digest Algorithm
  */
 
 #define INIT_DATA_A (unsigned long)0x67452301L
@@ -20,7 +20,7 @@
 #define INIT_DATA_C (unsigned long)0x98badcfeL
 #define INIT_DATA_D (unsigned long)0x10325476L
 
-int MD4_Init(MD4_CTX *c)
+int VR_MD4_Init(VR_MD4_CTX *c)
 {
     memset(c, 0, sizeof(*c));
     c->A = INIT_DATA_A;
@@ -30,11 +30,11 @@ int MD4_Init(MD4_CTX *c)
     return 1;
 }
 
-#ifndef md4_block_data_order
+#ifndef VR_md4_block_data_order
 # ifdef X
 #  undef X
 # endif
-void md4_block_data_order(MD4_CTX *c, const void *data_, size_t num)
+void VR_md4_block_data_order(VR_MD4_CTX *c, const void *data_, size_t num)
 {
     const unsigned char *data = data_;
     register unsigned MD32_REG_T A, B, C, D, l;
@@ -44,7 +44,7 @@ void md4_block_data_order(MD4_CTX *c, const void *data_, size_t num)
         XX8, XX9, XX10, XX11, XX12, XX13, XX14, XX15;
 #  define X(i)   XX##i
 # else
-    MD4_LONG XX[MD4_LBLOCK];
+    VR_MD4_LONG XX[VR_MD4_LBLOCK];
 #  define X(i)   XX[i]
 # endif
 

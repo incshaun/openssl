@@ -107,9 +107,9 @@ Zhi=r30;	Zlo=r31;
 
 .align	128
 .skip	16					// aligns loop body
-.global	gcm_gmult_4bit#
-.proc	gcm_gmult_4bit#
-gcm_gmult_4bit:
+.global	VR_gcm_gmult_4bit#
+.proc	VR_gcm_gmult_4bit#
+VR_gcm_gmult_4bit:
 	.prologue
 { .mmi;	.save	ar.pfs,prevfs
 	alloc	prevfs=ar.pfs,2,6,0,8
@@ -136,7 +136,7 @@ gcm_gmult_4bit:
 	mov	ar.ec=3
 	xor	Zlo=Zlo,Zlo		};;
 { .mii;	add	Hi[1]=Htbl,Hi[1]		// &Htbl[nlo].lo
-	add	rem_4bitp=rem_4bit#-gcm_gmult_4bit#,rem_4bitp
+	add	rem_4bitp=rem_4bit#-VR_gcm_gmult_4bit#,rem_4bitp
 	xor	Zhi=Zhi,Zhi		};;
 ___
 	&loop	(".Loop1",1);
@@ -152,7 +152,7 @@ $code.=<<___;
 { .mib;	st8	[Hhi]=Zhi
 	mov	ar.lc=prevlc
 	br.ret.sptk.many	b0	};;
-.endp	gcm_gmult_4bit#
+.endp	VR_gcm_gmult_4bit#
 ___
 
 ######################################################################
@@ -184,9 +184,9 @@ prevsp=r3;
 
 .align	32
 .skip	16					// aligns loop body
-.global	gcm_ghash_4bit#
-.proc	gcm_ghash_4bit#
-gcm_ghash_4bit:
+.global	VR_gcm_ghash_4bit#
+.proc	VR_gcm_ghash_4bit#
+VR_gcm_ghash_4bit:
 	.prologue
 { .mmi;	.save	ar.pfs,prevfs
 	alloc	prevfs=ar.pfs,4,2,0,0
@@ -253,7 +253,7 @@ $code.=<<___;
 	st8	[r15]=r`16+2*$i+1`,16		// Htable[`8+$i`].hi>>4
 	shrp	r`18+2*$i`=r`18+2*$i+1`,r`18+2*$i`,4	}
 { .mmi;	add	$Htbl=256,sp			// &Htable[0]
-	add	$rem_8bit=rem_8bit#-gcm_ghash_4bit#,$rem_8bit
+	add	$rem_8bit=rem_8bit#-VR_gcm_ghash_4bit#,$rem_8bit
 	shr.u	r`18+2*$i+1`=r`18+2*$i+1`,4	};;
 { .mmi;	st8	[r14]=r`18+2*$i`		// Htable[`8+$i`].lo>>4
 	st8	[r15]=r`18+2*$i+1`	}	// Htable[`8+$i`].hi>>4
@@ -414,7 +414,7 @@ $code.=<<___;	# (p19)
 	.restore	sp
 	mov	sp=prevsp
 	br.ret.sptk.many	b0	};;
-.endp	gcm_ghash_4bit#
+.endp	VR_gcm_ghash_4bit#
 ___
 $code.=<<___;
 .align	128

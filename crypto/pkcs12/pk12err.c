@@ -14,54 +14,54 @@
 #ifndef OPENSSL_NO_ERR
 
 static const ERR_STRING_DATA PKCS12_str_functs[] = {
-    {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_OPENSSL_ASC2UNI, 0), "OPENSSL_asc2uni"},
-    {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_OPENSSL_UNI2ASC, 0), "OPENSSL_uni2asc"},
+    {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_OPENSSL_ASC2UNI, 0), "VR_OPENSSL_asc2uni"},
+    {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_OPENSSL_UNI2ASC, 0), "VR_OPENSSL_uni2asc"},
     {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_OPENSSL_UNI2UTF8, 0),
-     "OPENSSL_uni2utf8"},
+     "VR_OPENSSL_uni2utf8"},
     {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_OPENSSL_UTF82UNI, 0),
-     "OPENSSL_utf82uni"},
-    {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_PKCS12_CREATE, 0), "PKCS12_create"},
-    {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_PKCS12_GEN_MAC, 0), "PKCS12_gen_mac"},
-    {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_PKCS12_INIT, 0), "PKCS12_init"},
+     "VR_OPENSSL_utf82uni"},
+    {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_PKCS12_CREATE, 0), "VR_PKCS12_create"},
+    {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_PKCS12_GEN_MAC, 0), "VR_PKCS12_gen_mac"},
+    {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_PKCS12_INIT, 0), "VR_PKCS12_init"},
     {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_PKCS12_ITEM_DECRYPT_D2I, 0),
-     "PKCS12_item_decrypt_d2i"},
+     "VR_PKCS12_item_decrypt_d2i"},
     {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_PKCS12_ITEM_I2D_ENCRYPT, 0),
-     "PKCS12_item_i2d_encrypt"},
+     "VR_PKCS12_item_i2d_encrypt"},
     {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_PKCS12_ITEM_PACK_SAFEBAG, 0),
-     "PKCS12_item_pack_safebag"},
+     "VR_PKCS12_item_pack_safebag"},
     {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_PKCS12_KEY_GEN_ASC, 0),
-     "PKCS12_key_gen_asc"},
+     "VR_PKCS12_key_gen_asc"},
     {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_PKCS12_KEY_GEN_UNI, 0),
-     "PKCS12_key_gen_uni"},
+     "VR_PKCS12_key_gen_uni"},
     {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_PKCS12_KEY_GEN_UTF8, 0),
-     "PKCS12_key_gen_utf8"},
-    {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_PKCS12_NEWPASS, 0), "PKCS12_newpass"},
+     "VR_PKCS12_key_gen_utf8"},
+    {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_PKCS12_NEWPASS, 0), "VR_PKCS12_newpass"},
     {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_PKCS12_PACK_P7DATA, 0),
-     "PKCS12_pack_p7data"},
+     "VR_PKCS12_pack_p7data"},
     {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_PKCS12_PACK_P7ENCDATA, 0),
-     "PKCS12_pack_p7encdata"},
-    {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_PKCS12_PARSE, 0), "PKCS12_parse"},
+     "VR_PKCS12_pack_p7encdata"},
+    {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_PKCS12_PARSE, 0), "VR_PKCS12_parse"},
     {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_PKCS12_PBE_CRYPT, 0),
-     "PKCS12_pbe_crypt"},
+     "VR_PKCS12_pbe_crypt"},
     {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_PKCS12_PBE_KEYIVGEN, 0),
-     "PKCS12_PBE_keyivgen"},
+     "VR_PKCS12_PBE_keyivgen"},
     {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_PKCS12_SAFEBAG_CREATE0_P8INF, 0),
-     "PKCS12_SAFEBAG_create0_p8inf"},
+     "VR_PKCS12_SAFEBAG_create0_p8inf"},
     {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_PKCS12_SAFEBAG_CREATE0_PKCS8, 0),
-     "PKCS12_SAFEBAG_create0_pkcs8"},
+     "VR_PKCS12_SAFEBAG_create0_pkcs8"},
     {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_PKCS12_SAFEBAG_CREATE_PKCS8_ENCRYPT, 0),
-     "PKCS12_SAFEBAG_create_pkcs8_encrypt"},
+     "VR_PKCS12_SAFEBAG_create_pkcs8_encrypt"},
     {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_PKCS12_SETUP_MAC, 0),
-     "PKCS12_setup_mac"},
-    {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_PKCS12_SET_MAC, 0), "PKCS12_set_mac"},
+     "VR_PKCS12_setup_mac"},
+    {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_PKCS12_SET_MAC, 0), "VR_PKCS12_set_mac"},
     {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_PKCS12_UNPACK_AUTHSAFES, 0),
-     "PKCS12_unpack_authsafes"},
+     "VR_PKCS12_unpack_authsafes"},
     {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_PKCS12_UNPACK_P7DATA, 0),
-     "PKCS12_unpack_p7data"},
+     "VR_PKCS12_unpack_p7data"},
     {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_PKCS12_VERIFY_MAC, 0),
-     "PKCS12_verify_mac"},
-    {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_PKCS8_ENCRYPT, 0), "PKCS8_encrypt"},
-    {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_PKCS8_SET0_PBE, 0), "PKCS8_set0_pbe"},
+     "VR_PKCS12_verify_mac"},
+    {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_PKCS8_ENCRYPT, 0), "VR_PKCS8_encrypt"},
+    {ERR_PACK(ERR_LIB_PKCS12, PKCS12_F_PKCS8_SET0_PBE, 0), "VR_PKCS8_set0_pbe"},
     {0, NULL}
 };
 
@@ -105,12 +105,12 @@ static const ERR_STRING_DATA PKCS12_str_reasons[] = {
 
 #endif
 
-int ERR_load_PKCS12_strings(void)
+int VR_ERR_load_PKCS12_strings(void)
 {
 #ifndef OPENSSL_NO_ERR
-    if (ERR_func_error_string(PKCS12_str_functs[0].error) == NULL) {
-        ERR_load_strings_const(PKCS12_str_functs);
-        ERR_load_strings_const(PKCS12_str_reasons);
+    if (VR_ERR_func_error_string(PKCS12_str_functs[0].error) == NULL) {
+        VR_ERR_load_strings_const(PKCS12_str_functs);
+        VR_ERR_load_strings_const(PKCS12_str_reasons);
     }
 #endif
     return 1;

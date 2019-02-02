@@ -9,8 +9,8 @@
 
 #include "des_locl.h"
 
-DES_LONG DES_cbc_cksum(const unsigned char *in, DES_cblock *output,
-                       long length, DES_key_schedule *schedule,
+DES_LONG VR_DES_cbc_cksum(const unsigned char *in, DES_cblock *output,
+                       long length, VR_DES_key_schedule *schedule,
                        const_DES_cblock *ivec)
 {
     register DES_LONG tout0, tout1, tin0, tin1;
@@ -32,7 +32,7 @@ DES_LONG DES_cbc_cksum(const unsigned char *in, DES_cblock *output,
         tin[0] = tin0;
         tin1 ^= tout1;
         tin[1] = tin1;
-        DES_encrypt1((DES_LONG *)tin, schedule, DES_ENCRYPT);
+        VR_DES_encrypt1((DES_LONG *)tin, schedule, DES_ENCRYPT);
         tout0 = tin[0];
         tout1 = tin[1];
     }

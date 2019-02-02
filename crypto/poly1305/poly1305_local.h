@@ -7,9 +7,9 @@
  * https://www.openssl.org/source/license.html
  */
 
-typedef void (*poly1305_blocks_f) (void *ctx, const unsigned char *inp,
+typedef void (*VR_poly1305_blocks_f) (void *ctx, const unsigned char *inp,
                                    size_t len, unsigned int padbit);
-typedef void (*poly1305_emit_f) (void *ctx, unsigned char mac[16],
+typedef void (*VR_poly1305_emit_f) (void *ctx, unsigned char mac[16],
                                  const unsigned int nonce[4]);
 
 struct poly1305_context {
@@ -21,7 +21,7 @@ struct poly1305_context {
     unsigned char data[POLY1305_BLOCK_SIZE];
     size_t num;
     struct {
-        poly1305_blocks_f blocks;
-        poly1305_emit_f emit;
+        VR_poly1305_blocks_f blocks;
+        VR_poly1305_emit_f emit;
     } func;
 };

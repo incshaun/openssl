@@ -45,15 +45,15 @@ struct async_ctrs {
 static const BIO_METHOD *bio_f_async_filter(void)
 {
     if (methods_async == NULL) {
-        methods_async = BIO_meth_new(BIO_TYPE_ASYNC_FILTER, "Async filter");
+        methods_async = VR_BIO_meth_new(BIO_TYPE_ASYNC_FILTER, "Async filter");
         if (   methods_async == NULL
-            || !BIO_meth_set_write(methods_async, async_write)
-            || !BIO_meth_set_read(methods_async, async_read)
-            || !BIO_meth_set_puts(methods_async, async_puts)
-            || !BIO_meth_set_gets(methods_async, async_gets)
-            || !BIO_meth_set_ctrl(methods_async, async_ctrl)
-            || !BIO_meth_set_create(methods_async, async_new)
-            || !BIO_meth_set_destroy(methods_async, async_free))
+            || !VR_BIO_meth_set_write(methods_async, async_write)
+            || !VR_BIO_meth_set_read(methods_async, async_read)
+            || !VR_BIO_meth_set_puts(methods_async, async_puts)
+            || !VR_BIO_meth_set_gets(methods_async, async_gets)
+            || !VR_BIO_meth_set_ctrl(methods_async, async_ctrl)
+            || !VR_BIO_meth_set_create(methods_async, async_new)
+            || !VR_BIO_meth_set_destroy(methods_async, async_free))
             return NULL;
     }
     return methods_async;
@@ -67,8 +67,8 @@ static int async_new(BIO *bio)
     if (ctrs == NULL)
         return 0;
 
-    BIO_set_data(bio, ctrs);
-    BIO_set_init(bio, 1);
+    VR_BIO_set_data(bio, ctrs);
+    VR_BIO_set_init(bio, 1);
     return 1;
 }
 
@@ -78,10 +78,10 @@ static int async_free(BIO *bio)
 
     if (bio == NULL)
         return 0;
-    ctrs = BIO_get_data(bio);
-    OPENSSL_free(ctrs);
-    BIO_set_data(bio, NULL);
-    BIO_set_init(bio, 0);
+    ctrs = VR_BIO_get_data(bio);
+    OPENVR_SSL_free(ctrs);
+    VR_BIO_set_data(bio, NULL);
+    VR_BIO_set_init(bio, 0);
 
     return 1;
 }
@@ -90,19 +90,19 @@ static int async_read(BIO *bio, char *out, int outl)
 {
     struct async_ctrs *ctrs;
     int ret = 0;
-    BIO *next = BIO_next(bio);
+    BIO *next = VR_BIO_next(bio);
 
     if (outl <= 0)
         return 0;
     if (next == NULL)
         return 0;
 
-    ctrs = BIO_get_data(bio);
+    ctrs = VR_BIO_get_data(bio);
 
     BIO_clear_retry_flags(bio);
 
     if (ctrs->rctr > 0) {
-        ret = BIO_read(next, out, 1);
+        ret = VR_BIO_read(next, out, 1);
         if (ret <= 0 && BIO_should_read(next))
             BIO_set_retry_read(bio);
         ctrs->rctr = 0;
@@ -126,14 +126,14 @@ static int async_write(BIO *bio, const char *in, int inl)
     struct async_ctrs *ctrs;
     int ret = 0;
     size_t written = 0;
-    BIO *next = BIO_next(bio);
+    BIO *next = VR_BIO_next(bio);
 
     if (inl <= 0)
         return 0;
     if (next == NULL)
         return 0;
 
-    ctrs = BIO_get_data(bio);
+    ctrs = VR_BIO_get_data(bio);
 
     BIO_clear_retry_flags(bio);
 
@@ -219,7 +219,7 @@ static int async_write(BIO *bio, const char *in, int inl)
                     smallrec[VERSIONHIPOS] = versionhi;
                     smallrec[VERSIONLOPOS] = versionlo;
                     smallrec[DATAPOS] = data;
-                    ret = BIO_write(next, smallrec, MIN_RECORD_LEN);
+                    ret = VR_BIO_write(next, smallrec, MIN_RECORD_LEN);
                     if (ret <= 0)
                         return -1;
                     written++;
@@ -239,7 +239,7 @@ static int async_write(BIO *bio, const char *in, int inl)
         /* Write any data we have left after fragmenting */
         ret = 0;
         if ((int)written < inl) {
-            ret = BIO_write(next, in + written, inl - written);
+            ret = VR_BIO_write(next, in + written, inl - written);
         }
 
         if (ret <= 0 && BIO_should_write(next))
@@ -257,7 +257,7 @@ static int async_write(BIO *bio, const char *in, int inl)
 static long async_ctrl(BIO *bio, int cmd, long num, void *ptr)
 {
     long ret;
-    BIO *next = BIO_next(bio);
+    BIO *next = VR_BIO_next(bio);
 
     if (next == NULL)
         return 0;
@@ -267,7 +267,7 @@ static long async_ctrl(BIO *bio, int cmd, long num, void *ptr)
         ret = 0L;
         break;
     default:
-        ret = BIO_ctrl(next, cmd, num, ptr);
+        ret = VR_BIO_ctrl(next, cmd, num, ptr);
         break;
     }
     return ret;
@@ -296,7 +296,7 @@ static int test_asyncio(int test)
     const char testdata[] = "Test data";
     char buf[sizeof(testdata)];
 
-    if (!TEST_true(create_ssl_ctx_pair(TLS_server_method(), TLS_client_method(),
+    if (!TEST_true(create_ssl_ctx_pair(VR_TLS_server_method(), VR_TLS_client_method(),
                                        TLS1_VERSION, 0,
                                        &serverctx, &clientctx, cert, privkey)))
         goto end;
@@ -311,12 +311,12 @@ static int test_asyncio(int test)
         fragment = 1;
 
 
-    s_to_c_fbio = BIO_new(bio_f_async_filter());
-    c_to_s_fbio = BIO_new(bio_f_async_filter());
+    s_to_c_fbio = VR_BIO_new(bio_f_async_filter());
+    c_to_s_fbio = VR_BIO_new(bio_f_async_filter());
     if (!TEST_ptr(s_to_c_fbio)
             || !TEST_ptr(c_to_s_fbio)) {
-        BIO_free(s_to_c_fbio);
-        BIO_free(c_to_s_fbio);
+        VR_BIO_free(s_to_c_fbio);
+        VR_BIO_free(c_to_s_fbio);
         goto end;
     }
 
@@ -340,12 +340,12 @@ static int test_asyncio(int test)
          */
         for (ret = -1, i = 0, len = 0; len != sizeof(testdata) && i < 2;
             i++) {
-            ret = SSL_write(clientssl, testdata + len,
+            ret = VR_SSL_write(clientssl, testdata + len,
                 sizeof(testdata) - len);
             if (ret > 0) {
                 len += ret;
             } else {
-                int ssl_error = SSL_get_error(clientssl, ret);
+                int ssl_error = VR_SSL_get_error(clientssl, ret);
 
                 if (!TEST_false(ssl_error == SSL_ERROR_SYSCALL ||
                                 ssl_error == SSL_ERROR_SSL))
@@ -362,11 +362,11 @@ static int test_asyncio(int test)
          */
         for (ret = -1, i = 0, len = 0; len != sizeof(testdata) &&
                 i < MAX_ATTEMPTS; i++) {
-            ret = SSL_read(serverssl, buf + len, sizeof(buf) - len);
+            ret = VR_SSL_read(serverssl, buf + len, sizeof(buf) - len);
             if (ret > 0) {
                 len += ret;
             } else {
-                int ssl_error = SSL_get_error(serverssl, ret);
+                int ssl_error = VR_SSL_get_error(serverssl, ret);
 
                 if (!TEST_false(ssl_error == SSL_ERROR_SYSCALL ||
                                 ssl_error == SSL_ERROR_SSL))
@@ -378,17 +378,17 @@ static int test_asyncio(int test)
     }
 
     /* Also frees the BIOs */
-    SSL_free(clientssl);
-    SSL_free(serverssl);
+    VR_SSL_free(clientssl);
+    VR_SSL_free(serverssl);
     clientssl = serverssl = NULL;
 
     testresult = 1;
 
  end:
-    SSL_free(clientssl);
-    SSL_free(serverssl);
-    SSL_CTX_free(clientctx);
-    SSL_CTX_free(serverctx);
+    VR_SSL_free(clientssl);
+    VR_SSL_free(serverssl);
+    VR_SSL_CTX_free(clientctx);
+    VR_SSL_CTX_free(serverctx);
 
     return testresult;
 }
@@ -405,5 +405,5 @@ int setup_tests(void)
 
 void cleanup_tests(void)
 {
-    BIO_meth_free(methods_async);
+    VR_BIO_meth_free(methods_async);
 }

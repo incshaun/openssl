@@ -156,16 +156,16 @@ $code.=<<___;
 ##  Fills register %r10 -> .aes_consts (so you can -fPIC)
 ##  and %xmm9-%xmm15 as specified below.
 ##
-.type	_vpaes_encrypt_preheat,%function
+.type	_VR_vpaes_encrypt_preheat,%function
 .align	4
-_vpaes_encrypt_preheat:
+_VR_vpaes_encrypt_preheat:
 	adr	x10, .Lk_inv
 	movi	v17.16b, #0x0f
 	ld1	{v18.2d-v19.2d}, [x10],#32	// .Lk_inv
 	ld1	{v20.2d-v23.2d}, [x10],#64	// .Lk_ipt, .Lk_sbo
 	ld1	{v24.2d-v27.2d}, [x10]		// .Lk_sb1, .Lk_sb2
 	ret
-.size	_vpaes_encrypt_preheat,.-_vpaes_encrypt_preheat
+.size	_VR_vpaes_encrypt_preheat,.-_VR_vpaes_encrypt_preheat
 
 ##
 ##  _aes_encrypt_core
@@ -182,9 +182,9 @@ _vpaes_encrypt_preheat:
 ##  Preserves %xmm6 - %xmm8 so you get some local vectors
 ##
 ##
-.type	_vpaes_encrypt_core,%function
+.type	_VR_vpaes_encrypt_core,%function
 .align 4
-_vpaes_encrypt_core:
+_VR_vpaes_encrypt_core:
 	mov	x9, $key
 	ldr	w8, [$key,#240]			// pull rounds
 	adr	x11, .Lk_mc_forward+16
@@ -249,27 +249,27 @@ _vpaes_encrypt_core:
 	eor	v0.16b, v0.16b, v4.16b		// vpxor	%xmm4,	%xmm0,	%xmm0	# 0 = A
 	tbl	v0.16b, {v0.16b}, v1.16b	// vpshufb	%xmm1,	%xmm0,	%xmm0
 	ret
-.size	_vpaes_encrypt_core,.-_vpaes_encrypt_core
+.size	_VR_vpaes_encrypt_core,.-_VR_vpaes_encrypt_core
 
-.globl	vpaes_encrypt
-.type	vpaes_encrypt,%function
+.globl	VR_vpaes_encrypt
+.type	VR_vpaes_encrypt,%function
 .align	4
-vpaes_encrypt:
+VR_vpaes_encrypt:
 	stp	x29,x30,[sp,#-16]!
 	add	x29,sp,#0
 
 	ld1	{v7.16b}, [$inp]
-	bl	_vpaes_encrypt_preheat
-	bl	_vpaes_encrypt_core
+	bl	_VR_vpaes_encrypt_preheat
+	bl	_VR_vpaes_encrypt_core
 	st1	{v0.16b}, [$out]
 
 	ldp	x29,x30,[sp],#16
 	ret
-.size	vpaes_encrypt,.-vpaes_encrypt
+.size	VR_vpaes_encrypt,.-VR_vpaes_encrypt
 
-.type	_vpaes_encrypt_2x,%function
+.type	_VR_vpaes_encrypt_2x,%function
 .align 4
-_vpaes_encrypt_2x:
+_VR_vpaes_encrypt_2x:
 	mov	x9, $key
 	ldr	w8, [$key,#240]			// pull rounds
 	adr	x11, .Lk_mc_forward+16
@@ -370,11 +370,11 @@ _vpaes_encrypt_2x:
 	tbl	v0.16b,  {v0.16b},v1.16b	// vpshufb	%xmm1,	%xmm0,	%xmm0
 	 tbl	v1.16b,  {v8.16b},v1.16b
 	ret
-.size	_vpaes_encrypt_2x,.-_vpaes_encrypt_2x
+.size	_VR_vpaes_encrypt_2x,.-_VR_vpaes_encrypt_2x
 
-.type	_vpaes_decrypt_preheat,%function
+.type	_VR_vpaes_decrypt_preheat,%function
 .align	4
-_vpaes_decrypt_preheat:
+_VR_vpaes_decrypt_preheat:
 	adr	x10, .Lk_inv
 	movi	v17.16b, #0x0f
 	adr	x11, .Lk_dipt
@@ -383,16 +383,16 @@ _vpaes_decrypt_preheat:
 	ld1	{v24.2d-v27.2d}, [x11],#64	// .Lk_dsb9, .Lk_dsbd
 	ld1	{v28.2d-v31.2d}, [x11]		// .Lk_dsbb, .Lk_dsbe
 	ret
-.size	_vpaes_decrypt_preheat,.-_vpaes_decrypt_preheat
+.size	_VR_vpaes_decrypt_preheat,.-_VR_vpaes_decrypt_preheat
 
 ##
 ##  Decryption core
 ##
 ##  Same API as encryption core.
 ##
-.type	_vpaes_decrypt_core,%function
+.type	_VR_vpaes_decrypt_core,%function
 .align	4
-_vpaes_decrypt_core:
+_VR_vpaes_decrypt_core:
 	mov	x9, $key
 	ldr	w8, [$key,#240]			// pull rounds
 
@@ -480,28 +480,28 @@ _vpaes_decrypt_core:
 	eor	v0.16b, v1.16b, v4.16b		// vpxor	%xmm4,	%xmm1,	%xmm0	# 0 = A
 	tbl	v0.16b, {v0.16b}, v2.16b	// vpshufb	%xmm2,	%xmm0,	%xmm0
 	ret
-.size	_vpaes_decrypt_core,.-_vpaes_decrypt_core
+.size	_VR_vpaes_decrypt_core,.-_VR_vpaes_decrypt_core
 
-.globl	vpaes_decrypt
-.type	vpaes_decrypt,%function
+.globl	VR_vpaes_decrypt
+.type	VR_vpaes_decrypt,%function
 .align	4
-vpaes_decrypt:
+VR_vpaes_decrypt:
 	stp	x29,x30,[sp,#-16]!
 	add	x29,sp,#0
 
 	ld1	{v7.16b}, [$inp]
-	bl	_vpaes_decrypt_preheat
-	bl	_vpaes_decrypt_core
+	bl	_VR_vpaes_decrypt_preheat
+	bl	_VR_vpaes_decrypt_core
 	st1	{v0.16b}, [$out]
 
 	ldp	x29,x30,[sp],#16
 	ret
-.size	vpaes_decrypt,.-vpaes_decrypt
+.size	VR_vpaes_decrypt,.-VR_vpaes_decrypt
 
 // v14-v15 input, v0-v1 output
-.type	_vpaes_decrypt_2x,%function
+.type	_VR_vpaes_decrypt_2x,%function
 .align	4
-_vpaes_decrypt_2x:
+_VR_vpaes_decrypt_2x:
 	mov	x9, $key
 	ldr	w8, [$key,#240]			// pull rounds
 
@@ -631,7 +631,7 @@ _vpaes_decrypt_2x:
 	tbl	v0.16b,  {v0.16b},v2.16b	// vpshufb	%xmm2,	%xmm0,	%xmm0
 	 tbl	v1.16b,  {v8.16b},v2.16b
 	ret
-.size	_vpaes_decrypt_2x,.-_vpaes_decrypt_2x
+.size	_VR_vpaes_decrypt_2x,.-_VR_vpaes_decrypt_2x
 ___
 }
 {
@@ -1037,10 +1037,10 @@ _vpaes_schedule_mangle:
 	ret
 .size	_vpaes_schedule_mangle,.-_vpaes_schedule_mangle
 
-.globl	vpaes_set_encrypt_key
-.type	vpaes_set_encrypt_key,%function
+.globl	VR_vpaes_set_encrypt_key
+.type	VR_vpaes_set_encrypt_key,%function
 .align	4
-vpaes_set_encrypt_key:
+VR_vpaes_set_encrypt_key:
 	stp	x29,x30,[sp,#-16]!
 	add	x29,sp,#0
 	stp	d8,d9,[sp,#-16]!	// ABI spec says so
@@ -1057,12 +1057,12 @@ vpaes_set_encrypt_key:
 	ldp	d8,d9,[sp],#16
 	ldp	x29,x30,[sp],#16
 	ret
-.size	vpaes_set_encrypt_key,.-vpaes_set_encrypt_key
+.size	VR_vpaes_set_encrypt_key,.-VR_vpaes_set_encrypt_key
 
-.globl	vpaes_set_decrypt_key
-.type	vpaes_set_decrypt_key,%function
+.globl	VR_vpaes_set_decrypt_key
+.type	VR_vpaes_set_decrypt_key,%function
 .align	4
-vpaes_set_decrypt_key:
+VR_vpaes_set_decrypt_key:
 	stp	x29,x30,[sp,#-16]!
 	add	x29,sp,#0
 	stp	d8,d9,[sp,#-16]!	// ABI spec says so
@@ -1083,17 +1083,17 @@ vpaes_set_decrypt_key:
 	ldp	d8,d9,[sp],#16
 	ldp	x29,x30,[sp],#16
 	ret
-.size	vpaes_set_decrypt_key,.-vpaes_set_decrypt_key
+.size	VR_vpaes_set_decrypt_key,.-VR_vpaes_set_decrypt_key
 ___
 }
 {
 my ($inp,$out,$len,$key,$ivec,$dir) = map("x$_",(0..5));
 
 $code.=<<___;
-.globl	vpaes_cbc_encrypt
-.type	vpaes_cbc_encrypt,%function
+.globl	VR_vpaes_cbc_encrypt
+.type	VR_vpaes_cbc_encrypt,%function
 .align	4
-vpaes_cbc_encrypt:
+VR_vpaes_cbc_encrypt:
 	cbz	$len, .Lcbc_abort
 	cmp	w5, #0			// check direction
 	b.eq	vpaes_cbc_decrypt
@@ -1105,14 +1105,14 @@ vpaes_cbc_encrypt:
 	mov	x2,  $key		// reassign
 
 	ld1	{v0.16b}, [$ivec]	// load ivec
-	bl	_vpaes_encrypt_preheat
+	bl	_VR_vpaes_encrypt_preheat
 	b	.Lcbc_enc_loop
 
 .align	4
 .Lcbc_enc_loop:
 	ld1	{v7.16b}, [$inp],#16	// load input
 	eor	v7.16b, v7.16b, v0.16b	// xor with ivec
-	bl	_vpaes_encrypt_core
+	bl	_VR_vpaes_encrypt_core
 	st1	{v0.16b}, [$out],#16	// save output
 	subs	x17, x17, #16
 	b.hi	.Lcbc_enc_loop
@@ -1122,7 +1122,7 @@ vpaes_cbc_encrypt:
 	ldp	x29,x30,[sp],#16
 .Lcbc_abort:
 	ret
-.size	vpaes_cbc_encrypt,.-vpaes_cbc_encrypt
+.size	VR_vpaes_cbc_encrypt,.-VR_vpaes_cbc_encrypt
 
 .type	vpaes_cbc_decrypt,%function
 .align	4
@@ -1137,12 +1137,12 @@ vpaes_cbc_decrypt:
 	mov	x17, $len		// reassign
 	mov	x2,  $key		// reassign
 	ld1	{v6.16b}, [$ivec]	// load ivec
-	bl	_vpaes_decrypt_preheat
+	bl	_VR_vpaes_decrypt_preheat
 	tst	x17, #16
 	b.eq	.Lcbc_dec_loop2x
 
 	ld1	{v7.16b}, [$inp], #16	// load input
-	bl	_vpaes_decrypt_core
+	bl	_VR_vpaes_decrypt_core
 	eor	v0.16b, v0.16b, v6.16b	// xor with ivec
 	orr	v6.16b, v7.16b, v7.16b	// next ivec value
 	st1	{v0.16b}, [$out], #16
@@ -1152,7 +1152,7 @@ vpaes_cbc_decrypt:
 .align	4
 .Lcbc_dec_loop2x:
 	ld1	{v14.16b,v15.16b}, [$inp], #32
-	bl	_vpaes_decrypt_2x
+	bl	_VR_vpaes_decrypt_2x
 	eor	v0.16b, v0.16b, v6.16b	// xor with ivec
 	eor	v1.16b, v1.16b, v14.16b
 	orr	v6.16b, v15.16b, v15.16b
@@ -1186,12 +1186,12 @@ vpaes_ecb_encrypt:
 
 	mov	x17, $len
 	mov	x2,  $key
-	bl	_vpaes_encrypt_preheat
+	bl	_VR_vpaes_encrypt_preheat
 	tst	x17, #16
 	b.eq	.Lecb_enc_loop
 
 	ld1	{v7.16b}, [$inp],#16
-	bl	_vpaes_encrypt_core
+	bl	_VR_vpaes_encrypt_core
 	st1	{v0.16b}, [$out],#16
 	subs	x17, x17, #16
 	b.ls	.Lecb_enc_done
@@ -1199,7 +1199,7 @@ vpaes_ecb_encrypt:
 .align	4
 .Lecb_enc_loop:
 	ld1	{v14.16b,v15.16b}, [$inp], #32
-	bl	_vpaes_encrypt_2x
+	bl	_VR_vpaes_encrypt_2x
 	st1	{v0.16b,v1.16b}, [$out], #32
 	subs	x17, x17, #32
 	b.hi	.Lecb_enc_loop
@@ -1226,12 +1226,12 @@ vpaes_ecb_decrypt:
 
 	mov	x17, $len
 	mov	x2,  $key
-	bl	_vpaes_decrypt_preheat
+	bl	_VR_vpaes_decrypt_preheat
 	tst	x17, #16
 	b.eq	.Lecb_dec_loop
 
 	ld1	{v7.16b}, [$inp],#16
-	bl	_vpaes_encrypt_core
+	bl	_VR_vpaes_encrypt_core
 	st1	{v0.16b}, [$out],#16
 	subs	x17, x17, #16
 	b.ls	.Lecb_dec_done
@@ -1239,7 +1239,7 @@ vpaes_ecb_decrypt:
 .align	4
 .Lecb_dec_loop:
 	ld1	{v14.16b,v15.16b}, [$inp], #32
-	bl	_vpaes_decrypt_2x
+	bl	_VR_vpaes_decrypt_2x
 	st1	{v0.16b,v1.16b}, [$out], #32
 	subs	x17, x17, #32
 	b.hi	.Lecb_dec_loop

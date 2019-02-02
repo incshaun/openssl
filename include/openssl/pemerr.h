@@ -14,7 +14,7 @@
 # ifdef  __cplusplus
 extern "C"
 # endif
-int ERR_load_PEM_strings(void);
+int VR_ERR_load_PEM_strings(void);
 
 /*
  * PEM function codes.

@@ -46,8 +46,8 @@ static STACK_OF(CONF_VALUE) *i2v_BASIC_CONSTRAINTS(X509V3_EXT_METHOD *method,
                                                    STACK_OF(CONF_VALUE)
                                                    *extlist)
 {
-    X509V3_add_value_bool("CA", bcons->ca, &extlist);
-    X509V3_add_value_int("pathlen", bcons->pathlen, &extlist);
+    VR_X509V3_add_value_bool("CA", bcons->ca, &extlist);
+    VR_X509V3_add_value_int("pathlen", bcons->pathlen, &extlist);
     return extlist;
 }
 
@@ -59,17 +59,17 @@ static BASIC_CONSTRAINTS *v2i_BASIC_CONSTRAINTS(X509V3_EXT_METHOD *method,
     CONF_VALUE *val;
     int i;
 
-    if ((bcons = BASIC_CONSTRAINTS_new()) == NULL) {
+    if ((bcons = VR_BASIC_CONSTRAINTS_new()) == NULL) {
         X509V3err(X509V3_F_V2I_BASIC_CONSTRAINTS, ERR_R_MALLOC_FAILURE);
         return NULL;
     }
     for (i = 0; i < sk_CONF_VALUE_num(values); i++) {
         val = sk_CONF_VALUE_value(values, i);
         if (strcmp(val->name, "CA") == 0) {
-            if (!X509V3_get_value_bool(val, &bcons->ca))
+            if (!VR_X509V3_get_value_bool(val, &bcons->ca))
                 goto err;
         } else if (strcmp(val->name, "pathlen") == 0) {
-            if (!X509V3_get_value_int(val, &bcons->pathlen))
+            if (!VR_X509V3_get_value_int(val, &bcons->pathlen))
                 goto err;
         } else {
             X509V3err(X509V3_F_V2I_BASIC_CONSTRAINTS, X509V3_R_INVALID_NAME);
@@ -79,6 +79,6 @@ static BASIC_CONSTRAINTS *v2i_BASIC_CONSTRAINTS(X509V3_EXT_METHOD *method,
     }
     return bcons;
  err:
-    BASIC_CONSTRAINTS_free(bcons);
+    VR_BASIC_CONSTRAINTS_free(bcons);
     return NULL;
 }

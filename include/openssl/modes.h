@@ -32,141 +32,141 @@ typedef void (*ccm128_f) (const unsigned char *in, unsigned char *out,
                           const unsigned char ivec[16],
                           unsigned char cmac[16]);
 
-void CRYPTO_cbc128_encrypt(const unsigned char *in, unsigned char *out,
+void VR_CRYPTO_cbc128_encrypt(const unsigned char *in, unsigned char *out,
                            size_t len, const void *key,
                            unsigned char ivec[16], block128_f block);
-void CRYPTO_cbc128_decrypt(const unsigned char *in, unsigned char *out,
+void VR_CRYPTO_cbc128_decrypt(const unsigned char *in, unsigned char *out,
                            size_t len, const void *key,
                            unsigned char ivec[16], block128_f block);
 
-void CRYPTO_ctr128_encrypt(const unsigned char *in, unsigned char *out,
+void VR_CRYPTO_ctr128_encrypt(const unsigned char *in, unsigned char *out,
                            size_t len, const void *key,
                            unsigned char ivec[16],
                            unsigned char ecount_buf[16], unsigned int *num,
                            block128_f block);
 
-void CRYPTO_ctr128_encrypt_ctr32(const unsigned char *in, unsigned char *out,
+void VR_CRYPTO_ctr128_encrypt_ctr32(const unsigned char *in, unsigned char *out,
                                  size_t len, const void *key,
                                  unsigned char ivec[16],
                                  unsigned char ecount_buf[16],
                                  unsigned int *num, ctr128_f ctr);
 
-void CRYPTO_ofb128_encrypt(const unsigned char *in, unsigned char *out,
+void VR_CRYPTO_ofb128_encrypt(const unsigned char *in, unsigned char *out,
                            size_t len, const void *key,
                            unsigned char ivec[16], int *num,
                            block128_f block);
 
-void CRYPTO_cfb128_encrypt(const unsigned char *in, unsigned char *out,
+void VR_CRYPTO_cfb128_encrypt(const unsigned char *in, unsigned char *out,
                            size_t len, const void *key,
                            unsigned char ivec[16], int *num,
                            int enc, block128_f block);
-void CRYPTO_cfb128_8_encrypt(const unsigned char *in, unsigned char *out,
+void VR_CRYPTO_cfb128_8_encrypt(const unsigned char *in, unsigned char *out,
                              size_t length, const void *key,
                              unsigned char ivec[16], int *num,
                              int enc, block128_f block);
-void CRYPTO_cfb128_1_encrypt(const unsigned char *in, unsigned char *out,
+void VR_CRYPTO_cfb128_1_encrypt(const unsigned char *in, unsigned char *out,
                              size_t bits, const void *key,
                              unsigned char ivec[16], int *num,
                              int enc, block128_f block);
 
-size_t CRYPTO_cts128_encrypt_block(const unsigned char *in,
+size_t VR_CRYPTO_cts128_encrypt_block(const unsigned char *in,
                                    unsigned char *out, size_t len,
                                    const void *key, unsigned char ivec[16],
                                    block128_f block);
-size_t CRYPTO_cts128_encrypt(const unsigned char *in, unsigned char *out,
+size_t VR_CRYPTO_cts128_encrypt(const unsigned char *in, unsigned char *out,
                              size_t len, const void *key,
                              unsigned char ivec[16], cbc128_f cbc);
-size_t CRYPTO_cts128_decrypt_block(const unsigned char *in,
+size_t VR_CRYPTO_cts128_decrypt_block(const unsigned char *in,
                                    unsigned char *out, size_t len,
                                    const void *key, unsigned char ivec[16],
                                    block128_f block);
-size_t CRYPTO_cts128_decrypt(const unsigned char *in, unsigned char *out,
+size_t VR_CRYPTO_cts128_decrypt(const unsigned char *in, unsigned char *out,
                              size_t len, const void *key,
                              unsigned char ivec[16], cbc128_f cbc);
 
-size_t CRYPTO_nistcts128_encrypt_block(const unsigned char *in,
+size_t VR_CRYPTO_nistcts128_encrypt_block(const unsigned char *in,
                                        unsigned char *out, size_t len,
                                        const void *key,
                                        unsigned char ivec[16],
                                        block128_f block);
-size_t CRYPTO_nistcts128_encrypt(const unsigned char *in, unsigned char *out,
+size_t VR_CRYPTO_nistcts128_encrypt(const unsigned char *in, unsigned char *out,
                                  size_t len, const void *key,
                                  unsigned char ivec[16], cbc128_f cbc);
-size_t CRYPTO_nistcts128_decrypt_block(const unsigned char *in,
+size_t VR_CRYPTO_nistcts128_decrypt_block(const unsigned char *in,
                                        unsigned char *out, size_t len,
                                        const void *key,
                                        unsigned char ivec[16],
                                        block128_f block);
-size_t CRYPTO_nistcts128_decrypt(const unsigned char *in, unsigned char *out,
+size_t VR_CRYPTO_nistcts128_decrypt(const unsigned char *in, unsigned char *out,
                                  size_t len, const void *key,
                                  unsigned char ivec[16], cbc128_f cbc);
 
 typedef struct gcm128_context GCM128_CONTEXT;
 
-GCM128_CONTEXT *CRYPTO_gcm128_new(void *key, block128_f block);
-void CRYPTO_gcm128_init(GCM128_CONTEXT *ctx, void *key, block128_f block);
-void CRYPTO_gcm128_setiv(GCM128_CONTEXT *ctx, const unsigned char *iv,
+GCM128_CONTEXT *VR_CRYPTO_gcm128_new(void *key, block128_f block);
+void VR_CRYPTO_gcm128_init(GCM128_CONTEXT *ctx, void *key, block128_f block);
+void VR_CRYPTO_gcm128_setiv(GCM128_CONTEXT *ctx, const unsigned char *iv,
                          size_t len);
-int CRYPTO_gcm128_aad(GCM128_CONTEXT *ctx, const unsigned char *aad,
+int VR_CRYPTO_gcm128_aad(GCM128_CONTEXT *ctx, const unsigned char *aad,
                       size_t len);
-int CRYPTO_gcm128_encrypt(GCM128_CONTEXT *ctx,
+int VR_CRYPTO_gcm128_encrypt(GCM128_CONTEXT *ctx,
                           const unsigned char *in, unsigned char *out,
                           size_t len);
-int CRYPTO_gcm128_decrypt(GCM128_CONTEXT *ctx,
+int VR_CRYPTO_gcm128_decrypt(GCM128_CONTEXT *ctx,
                           const unsigned char *in, unsigned char *out,
                           size_t len);
-int CRYPTO_gcm128_encrypt_ctr32(GCM128_CONTEXT *ctx,
+int VR_CRYPTO_gcm128_encrypt_ctr32(GCM128_CONTEXT *ctx,
                                 const unsigned char *in, unsigned char *out,
                                 size_t len, ctr128_f stream);
-int CRYPTO_gcm128_decrypt_ctr32(GCM128_CONTEXT *ctx,
+int VR_CRYPTO_gcm128_decrypt_ctr32(GCM128_CONTEXT *ctx,
                                 const unsigned char *in, unsigned char *out,
                                 size_t len, ctr128_f stream);
-int CRYPTO_gcm128_finish(GCM128_CONTEXT *ctx, const unsigned char *tag,
+int VR_CRYPTO_gcm128_finish(GCM128_CONTEXT *ctx, const unsigned char *tag,
                          size_t len);
-void CRYPTO_gcm128_tag(GCM128_CONTEXT *ctx, unsigned char *tag, size_t len);
-void CRYPTO_gcm128_release(GCM128_CONTEXT *ctx);
+void VR_CRYPTO_gcm128_tag(GCM128_CONTEXT *ctx, unsigned char *tag, size_t len);
+void VR_CRYPTO_gcm128_release(GCM128_CONTEXT *ctx);
 
 typedef struct ccm128_context CCM128_CONTEXT;
 
-void CRYPTO_ccm128_init(CCM128_CONTEXT *ctx,
+void VR_CRYPTO_ccm128_init(CCM128_CONTEXT *ctx,
                         unsigned int M, unsigned int L, void *key,
                         block128_f block);
-int CRYPTO_ccm128_setiv(CCM128_CONTEXT *ctx, const unsigned char *nonce,
+int VR_CRYPTO_ccm128_setiv(CCM128_CONTEXT *ctx, const unsigned char *nonce,
                         size_t nlen, size_t mlen);
-void CRYPTO_ccm128_aad(CCM128_CONTEXT *ctx, const unsigned char *aad,
+void VR_CRYPTO_ccm128_aad(CCM128_CONTEXT *ctx, const unsigned char *aad,
                        size_t alen);
-int CRYPTO_ccm128_encrypt(CCM128_CONTEXT *ctx, const unsigned char *inp,
+int VR_CRYPTO_ccm128_encrypt(CCM128_CONTEXT *ctx, const unsigned char *inp,
                           unsigned char *out, size_t len);
-int CRYPTO_ccm128_decrypt(CCM128_CONTEXT *ctx, const unsigned char *inp,
+int VR_CRYPTO_ccm128_decrypt(CCM128_CONTEXT *ctx, const unsigned char *inp,
                           unsigned char *out, size_t len);
-int CRYPTO_ccm128_encrypt_ccm64(CCM128_CONTEXT *ctx, const unsigned char *inp,
+int VR_CRYPTO_ccm128_encrypt_ccm64(CCM128_CONTEXT *ctx, const unsigned char *inp,
                                 unsigned char *out, size_t len,
                                 ccm128_f stream);
-int CRYPTO_ccm128_decrypt_ccm64(CCM128_CONTEXT *ctx, const unsigned char *inp,
+int VR_CRYPTO_ccm128_decrypt_ccm64(CCM128_CONTEXT *ctx, const unsigned char *inp,
                                 unsigned char *out, size_t len,
                                 ccm128_f stream);
-size_t CRYPTO_ccm128_tag(CCM128_CONTEXT *ctx, unsigned char *tag, size_t len);
+size_t VR_CRYPTO_ccm128_tag(CCM128_CONTEXT *ctx, unsigned char *tag, size_t len);
 
 typedef struct xts128_context XTS128_CONTEXT;
 
-int CRYPTO_xts128_encrypt(const XTS128_CONTEXT *ctx,
+int VR_CRYPTO_xts128_encrypt(const XTS128_CONTEXT *ctx,
                           const unsigned char iv[16],
                           const unsigned char *inp, unsigned char *out,
                           size_t len, int enc);
 
-size_t CRYPTO_128_wrap(void *key, const unsigned char *iv,
+size_t VR_CRYPTO_128_wrap(void *key, const unsigned char *iv,
                        unsigned char *out,
                        const unsigned char *in, size_t inlen,
                        block128_f block);
 
-size_t CRYPTO_128_unwrap(void *key, const unsigned char *iv,
+size_t VR_CRYPTO_128_unwrap(void *key, const unsigned char *iv,
                          unsigned char *out,
                          const unsigned char *in, size_t inlen,
                          block128_f block);
-size_t CRYPTO_128_wrap_pad(void *key, const unsigned char *icv,
+size_t VR_CRYPTO_128_wrap_pad(void *key, const unsigned char *icv,
                            unsigned char *out, const unsigned char *in,
                            size_t inlen, block128_f block);
-size_t CRYPTO_128_unwrap_pad(void *key, const unsigned char *icv,
+size_t VR_CRYPTO_128_unwrap_pad(void *key, const unsigned char *icv,
                              unsigned char *out, const unsigned char *in,
                              size_t inlen, block128_f block);
 
@@ -180,26 +180,26 @@ typedef void (*ocb128_f) (const unsigned char *in, unsigned char *out,
                           const unsigned char L_[][16],
                           unsigned char checksum[16]);
 
-OCB128_CONTEXT *CRYPTO_ocb128_new(void *keyenc, void *keydec,
+OCB128_CONTEXT *VR_CRYPTO_ocb128_new(void *keyenc, void *keydec,
                                   block128_f encrypt, block128_f decrypt,
                                   ocb128_f stream);
-int CRYPTO_ocb128_init(OCB128_CONTEXT *ctx, void *keyenc, void *keydec,
+int VR_CRYPTO_ocb128_init(OCB128_CONTEXT *ctx, void *keyenc, void *keydec,
                        block128_f encrypt, block128_f decrypt,
                        ocb128_f stream);
-int CRYPTO_ocb128_copy_ctx(OCB128_CONTEXT *dest, OCB128_CONTEXT *src,
+int VR_CRYPTO_ocb128_copy_ctx(OCB128_CONTEXT *dest, OCB128_CONTEXT *src,
                            void *keyenc, void *keydec);
-int CRYPTO_ocb128_setiv(OCB128_CONTEXT *ctx, const unsigned char *iv,
+int VR_CRYPTO_ocb128_setiv(OCB128_CONTEXT *ctx, const unsigned char *iv,
                         size_t len, size_t taglen);
-int CRYPTO_ocb128_aad(OCB128_CONTEXT *ctx, const unsigned char *aad,
+int VR_CRYPTO_ocb128_aad(OCB128_CONTEXT *ctx, const unsigned char *aad,
                       size_t len);
-int CRYPTO_ocb128_encrypt(OCB128_CONTEXT *ctx, const unsigned char *in,
+int VR_CRYPTO_ocb128_encrypt(OCB128_CONTEXT *ctx, const unsigned char *in,
                           unsigned char *out, size_t len);
-int CRYPTO_ocb128_decrypt(OCB128_CONTEXT *ctx, const unsigned char *in,
+int VR_CRYPTO_ocb128_decrypt(OCB128_CONTEXT *ctx, const unsigned char *in,
                           unsigned char *out, size_t len);
-int CRYPTO_ocb128_finish(OCB128_CONTEXT *ctx, const unsigned char *tag,
+int VR_CRYPTO_ocb128_finish(OCB128_CONTEXT *ctx, const unsigned char *tag,
                          size_t len);
-int CRYPTO_ocb128_tag(OCB128_CONTEXT *ctx, unsigned char *tag, size_t len);
-void CRYPTO_ocb128_cleanup(OCB128_CONTEXT *ctx);
+int VR_CRYPTO_ocb128_tag(OCB128_CONTEXT *ctx, unsigned char *tag, size_t len);
+void VR_CRYPTO_ocb128_cleanup(OCB128_CONTEXT *ctx);
 # endif                          /* OPENSSL_NO_OCB */
 
 # ifndef OPENSSL_NO_SIV
@@ -208,23 +208,23 @@ typedef struct siv128_context SIV128_CONTEXT;
 
 #  define SIV_LEN 16
 
-SIV128_CONTEXT *CRYPTO_siv128_new(const unsigned char *key, int klen, EVP_CIPHER* cbc, EVP_CIPHER* ctr);
-int CRYPTO_siv128_init(SIV128_CONTEXT *ctx, const unsigned char *key, int klen,
+SIV128_CONTEXT *VR_CRYPTO_siv128_new(const unsigned char *key, int klen, EVP_CIPHER* cbc, EVP_CIPHER* ctr);
+int VR_CRYPTO_siv128_init(SIV128_CONTEXT *ctx, const unsigned char *key, int klen,
                        const EVP_CIPHER* cbc, const EVP_CIPHER* ctr);
-int CRYPTO_siv128_copy_ctx(SIV128_CONTEXT *dest, SIV128_CONTEXT *src);
-int CRYPTO_siv128_aad(SIV128_CONTEXT *ctx, const unsigned char *aad,
+int VR_CRYPTO_siv128_copy_ctx(SIV128_CONTEXT *dest, SIV128_CONTEXT *src);
+int VR_CRYPTO_siv128_aad(SIV128_CONTEXT *ctx, const unsigned char *aad,
                       size_t len);
-int CRYPTO_siv128_encrypt(SIV128_CONTEXT *ctx,
+int VR_CRYPTO_siv128_encrypt(SIV128_CONTEXT *ctx,
                           const unsigned char *in, unsigned char *out,
                           size_t len);
-int CRYPTO_siv128_decrypt(SIV128_CONTEXT *ctx,
+int VR_CRYPTO_siv128_decrypt(SIV128_CONTEXT *ctx,
                           const unsigned char *in, unsigned char *out,
                           size_t len);
-int CRYPTO_siv128_finish(SIV128_CONTEXT *ctx);
-int CRYPTO_siv128_set_tag(SIV128_CONTEXT *ctx, const unsigned char *tag, size_t len);
-int CRYPTO_siv128_get_tag(SIV128_CONTEXT *ctx, unsigned char *tag, size_t len);
-int CRYPTO_siv128_cleanup(SIV128_CONTEXT *ctx);
-int CRYPTO_siv128_speed(SIV128_CONTEXT *ctx, int arg);
+int VR_CRYPTO_siv128_finish(SIV128_CONTEXT *ctx);
+int VR_CRYPTO_siv128_set_tag(SIV128_CONTEXT *ctx, const unsigned char *tag, size_t len);
+int VR_CRYPTO_siv128_get_tag(SIV128_CONTEXT *ctx, unsigned char *tag, size_t len);
+int VR_CRYPTO_siv128_cleanup(SIV128_CONTEXT *ctx);
+int VR_CRYPTO_siv128_speed(SIV128_CONTEXT *ctx, int arg);
 
 # endif                          /* OPENSSL_NO_SIV */
 

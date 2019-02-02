@@ -19,28 +19,28 @@
 
 #include "internal/evp_int.h"
 
-EVP_PKEY *d2i_PublicKey(int type, EVP_PKEY **a, const unsigned char **pp,
+EVP_PKEY *VR_d2i_PublicKey(int type, EVP_PKEY **a, const unsigned char **pp,
                         long length)
 {
     EVP_PKEY *ret;
 
     if ((a == NULL) || (*a == NULL)) {
-        if ((ret = EVP_PKEY_new()) == NULL) {
+        if ((ret = VR_EVP_PKEY_new()) == NULL) {
             ASN1err(ASN1_F_D2I_PUBLICKEY, ERR_R_EVP_LIB);
             return NULL;
         }
     } else
         ret = *a;
 
-    if (!EVP_PKEY_set_type(ret, type)) {
+    if (!VR_EVP_PKEY_set_type(ret, type)) {
         ASN1err(ASN1_F_D2I_PUBLICKEY, ERR_R_EVP_LIB);
         goto err;
     }
 
-    switch (EVP_PKEY_id(ret)) {
+    switch (VR_EVP_PKEY_id(ret)) {
 #ifndef OPENSSL_NO_RSA
     case EVP_PKEY_RSA:
-        if ((ret->pkey.rsa = d2i_RSAPublicKey(NULL, pp, length)) == NULL) {
+        if ((ret->pkey.rsa = VR_d2i_RSAPublicKey(NULL, pp, length)) == NULL) {
             ASN1err(ASN1_F_D2I_PUBLICKEY, ERR_R_ASN1_LIB);
             goto err;
         }
@@ -49,7 +49,7 @@ EVP_PKEY *d2i_PublicKey(int type, EVP_PKEY **a, const unsigned char **pp,
 #ifndef OPENSSL_NO_DSA
     case EVP_PKEY_DSA:
         /* TMP UGLY CAST */
-        if (!d2i_DSAPublicKey(&ret->pkey.dsa, pp, length)) {
+        if (!VR_d2i_DSAPublicKey(&ret->pkey.dsa, pp, length)) {
             ASN1err(ASN1_F_D2I_PUBLICKEY, ERR_R_ASN1_LIB);
             goto err;
         }
@@ -57,7 +57,7 @@ EVP_PKEY *d2i_PublicKey(int type, EVP_PKEY **a, const unsigned char **pp,
 #endif
 #ifndef OPENSSL_NO_EC
     case EVP_PKEY_EC:
-        if (!o2i_ECPublicKey(&ret->pkey.ec, pp, length)) {
+        if (!VR_o2i_ECPublicKey(&ret->pkey.ec, pp, length)) {
             ASN1err(ASN1_F_D2I_PUBLICKEY, ERR_R_ASN1_LIB);
             goto err;
         }
@@ -72,6 +72,6 @@ EVP_PKEY *d2i_PublicKey(int type, EVP_PKEY **a, const unsigned char **pp,
     return ret;
  err:
     if (a == NULL || *a != ret)
-        EVP_PKEY_free(ret);
+        VR_EVP_PKEY_free(ret);
     return NULL;
 }

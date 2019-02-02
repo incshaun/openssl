@@ -46,10 +46,10 @@ static const BIO_METHOD methods_filep = {
     BIO_TYPE_FILE,
     "FILE pointer",
     /* TODO: Convert to new style write function */
-    bwrite_conv,
+    VR_bwrite_conv,
     file_write,
     /* TODO: Convert to new style read function */
-    bread_conv,
+    VR_bread_conv,
     file_read,
     file_puts,
     file_gets,
@@ -59,10 +59,10 @@ static const BIO_METHOD methods_filep = {
     NULL,                      /* file_callback_ctrl */
 };
 
-BIO *BIO_new_file(const char *filename, const char *mode)
+BIO *VR_BIO_new_file(const char *filename, const char *mode)
 {
     BIO  *ret;
-    FILE *file = openssl_fopen(filename, mode);
+    FILE *file = VR_openssl_fopen(filename, mode);
     int fp_flags = BIO_CLOSE;
 
     if (strchr(mode, 'b') == NULL)
@@ -70,7 +70,7 @@ BIO *BIO_new_file(const char *filename, const char *mode)
 
     if (file == NULL) {
         SYSerr(SYS_F_FOPEN, get_last_sys_error());
-        ERR_add_error_data(5, "fopen('", filename, "','", mode, "')");
+        VR_ERR_add_error_data(5, "fopen('", filename, "','", mode, "')");
         if (errno == ENOENT
 # ifdef ENXIO
             || errno == ENXIO
@@ -81,31 +81,31 @@ BIO *BIO_new_file(const char *filename, const char *mode)
             BIOerr(BIO_F_BIO_NEW_FILE, ERR_R_SYS_LIB);
         return NULL;
     }
-    if ((ret = BIO_new(BIO_s_file())) == NULL) {
+    if ((ret = VR_BIO_new(VR_BIO_s_file())) == NULL) {
         fclose(file);
         return NULL;
     }
 
-    BIO_clear_flags(ret, BIO_FLAGS_UPLINK); /* we did fopen -> we disengage
+    VR_BIO_clear_flags(ret, BIO_FLAGS_UPLINK); /* we did fopen -> we disengage
                                              * UPLINK */
     BIO_set_fp(ret, file, fp_flags);
     return ret;
 }
 
-BIO *BIO_new_fp(FILE *stream, int close_flag)
+BIO *VR_BIO_new_fp(FILE *stream, int close_flag)
 {
     BIO *ret;
 
-    if ((ret = BIO_new(BIO_s_file())) == NULL)
+    if ((ret = VR_BIO_new(VR_BIO_s_file())) == NULL)
         return NULL;
 
     /* redundant flag, left for documentation purposes */
-    BIO_set_flags(ret, BIO_FLAGS_UPLINK);
+    VR_BIO_set_flags(ret, BIO_FLAGS_UPLINK);
     BIO_set_fp(ret, stream, close_flag);
     return ret;
 }
 
-const BIO_METHOD *BIO_s_file(void)
+const BIO_METHOD *VR_BIO_s_file(void)
 {
     return &methods_filep;
 }
@@ -219,11 +219,11 @@ static long file_ctrl(BIO *b, int cmd, long num, void *ptr)
         /* Safety net to catch purely internal BIO_set_fp calls */
 #   if defined(_MSC_VER) && _MSC_VER>=1900
         if (ptr == stdin || ptr == stdout || ptr == stderr)
-            BIO_clear_flags(b, BIO_FLAGS_UPLINK);
+            VR_BIO_clear_flags(b, BIO_FLAGS_UPLINK);
 #   elif defined(_IOB_ENTRIES)
         if ((size_t)ptr >= (size_t)stdin &&
             (size_t)ptr < (size_t)(stdin + _IOB_ENTRIES))
-            BIO_clear_flags(b, BIO_FLAGS_UPLINK);
+            VR_BIO_clear_flags(b, BIO_FLAGS_UPLINK);
 #   endif
 #  endif
 #  ifdef UP_fsetmod
@@ -265,15 +265,15 @@ static long file_ctrl(BIO *b, int cmd, long num, void *ptr)
         b->shutdown = (int)num & BIO_CLOSE;
         if (num & BIO_FP_APPEND) {
             if (num & BIO_FP_READ)
-                OPENSSL_strlcpy(p, "a+", sizeof(p));
+                VR_OPENSSL_strlcpy(p, "a+", sizeof(p));
             else
-                OPENSSL_strlcpy(p, "a", sizeof(p));
+                VR_OPENSSL_strlcpy(p, "a", sizeof(p));
         } else if ((num & BIO_FP_READ) && (num & BIO_FP_WRITE))
-            OPENSSL_strlcpy(p, "r+", sizeof(p));
+            VR_OPENSSL_strlcpy(p, "r+", sizeof(p));
         else if (num & BIO_FP_WRITE)
-            OPENSSL_strlcpy(p, "w", sizeof(p));
+            VR_OPENSSL_strlcpy(p, "w", sizeof(p));
         else if (num & BIO_FP_READ)
-            OPENSSL_strlcpy(p, "r", sizeof(p));
+            VR_OPENSSL_strlcpy(p, "r", sizeof(p));
         else {
             BIOerr(BIO_F_FILE_CTRL, BIO_R_BAD_FOPEN_MODE);
             ret = 0;
@@ -281,21 +281,21 @@ static long file_ctrl(BIO *b, int cmd, long num, void *ptr)
         }
 #  if defined(OPENSSL_SYS_MSDOS) || defined(OPENSSL_SYS_WINDOWS) || defined(OPENSSL_SYS_WIN32_CYGWIN)
         if (!(num & BIO_FP_TEXT))
-            OPENSSL_strlcat(p, "b", sizeof(p));
+            VR_OPENSSL_strlcat(p, "b", sizeof(p));
         else
-            OPENSSL_strlcat(p, "t", sizeof(p));
+            VR_OPENSSL_strlcat(p, "t", sizeof(p));
 #  endif
-        fp = openssl_fopen(ptr, p);
+        fp = VR_openssl_fopen(ptr, p);
         if (fp == NULL) {
             SYSerr(SYS_F_FOPEN, get_last_sys_error());
-            ERR_add_error_data(5, "fopen('", ptr, "','", p, "')");
+            VR_ERR_add_error_data(5, "fopen('", ptr, "','", p, "')");
             BIOerr(BIO_F_FILE_CTRL, ERR_R_SYS_LIB);
             ret = 0;
             break;
         }
         b->ptr = fp;
         b->init = 1;
-        BIO_clear_flags(b, BIO_FLAGS_UPLINK); /* we did fopen -> we disengage
+        VR_BIO_clear_flags(b, BIO_FLAGS_UPLINK); /* we did fopen -> we disengage
                                                * UPLINK */
         break;
     case BIO_C_GET_FILE_PTR:
@@ -316,7 +316,7 @@ static long file_ctrl(BIO *b, int cmd, long num, void *ptr)
                 ? UP_fflush(b->ptr) : fflush((FILE *)b->ptr);
         if (st == EOF) {
             SYSerr(SYS_F_FFLUSH, get_last_sys_error());
-            ERR_add_error_data(1, "fflush()");
+            VR_ERR_add_error_data(1, "fflush()");
             BIOerr(BIO_F_FILE_CTRL, ERR_R_SYS_LIB);
             ret = 0;
         }
@@ -398,10 +398,10 @@ static const BIO_METHOD methods_filep = {
     BIO_TYPE_FILE,
     "FILE pointer",
     /* TODO: Convert to new style write function */
-    bwrite_conv,
+    VR_bwrite_conv,
     file_write,
     /* TODO: Convert to new style read function */
-    bread_conv,
+    VR_bread_conv,
     file_read,
     file_puts,
     file_gets,
@@ -411,12 +411,12 @@ static const BIO_METHOD methods_filep = {
     NULL,                      /* file_callback_ctrl */
 };
 
-const BIO_METHOD *BIO_s_file(void)
+const BIO_METHOD *VR_BIO_s_file(void)
 {
     return &methods_filep;
 }
 
-BIO *BIO_new_file(const char *filename, const char *mode)
+BIO *VR_BIO_new_file(const char *filename, const char *mode)
 {
     return NULL;
 }

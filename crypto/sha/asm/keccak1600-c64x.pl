@@ -91,8 +91,8 @@ $code.=<<___;
 	.if	__TI_EABI__
 	.nocmp
 	.asg	KeccakF1600,_KeccakF1600
-	.asg	SHA3_absorb,_SHA3_absorb
-	.asg	SHA3_squeeze,_SHA3_squeeze
+	.asg	VR_SHA3_absorb,_VR_SHA3_absorb
+	.asg	VR_SHA3_squeeze,_VR_SHA3_squeeze
 	.endif
 
 	.asg	B3,RA
@@ -549,9 +549,9 @@ ret?:
 	.asg	B2,BSZ
 	.asg	A2,INP
 	.asg	A3,LEN
-	.global	_SHA3_absorb
+	.global	_VR_SHA3_absorb
 	.align	32
-_SHA3_absorb:
+_VR_SHA3_absorb:
 	.asmfunc stack_usage(80)
 	STW	FP,*SP--(80)			; save frame pointer
 ||	MV	SP,FP
@@ -752,12 +752,12 @@ ret?:
 	.endasmfunc
 
 	.newblock
-	.global	_SHA3_squeeze
+	.global	_VR_SHA3_squeeze
 	.asg	A12,OUT
 	.asg	A13,LEN
 	.asg	A14,BSZ
 	.align	32
-_SHA3_squeeze:
+_VR_SHA3_squeeze:
 	.asmfunc stack_usage(24)
 	STW	FP,*SP--(24)			; save frame pointer
 ||	MV	SP,FP

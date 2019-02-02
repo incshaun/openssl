@@ -56,13 +56,13 @@ $code.=<<___;
 .code	32
 #endif
 
-.globl	poly1305_emit
-.globl	poly1305_blocks
-.globl	poly1305_init
-.type	poly1305_init,%function
+.globl	VR_poly1305_emit
+.globl	VR_poly1305_blocks
+.globl	VR_poly1305_init
+.type	VR_poly1305_init,%function
 .align	5
-poly1305_init:
-.Lpoly1305_init:
+VR_poly1305_init:
+.LVR_poly1305_init:
 	stmdb	sp!,{r4-r11}
 
 	eor	r3,r3,r3
@@ -82,7 +82,7 @@ poly1305_init:
 	beq	.Lno_key
 
 #if	__ARM_MAX_ARCH__>=7
-	adr	r11,.Lpoly1305_init
+	adr	r11,.LVR_poly1305_init
 	ldr	r12,.LOPENSSL_armcap
 #endif
 	ldrb	r4,[$inp,#0]
@@ -117,14 +117,14 @@ poly1305_init:
 #if	__ARM_MAX_ARCH__>=7
 	tst	r12,#ARMV7_NEON		@ check for NEON
 # ifdef	__APPLE__
-	adr	r9,poly1305_blocks_neon
-	adr	r11,poly1305_blocks
+	adr	r9,VR_poly1305_blocks_neon
+	adr	r11,VR_poly1305_blocks
 #  ifdef __thumb2__
 	it	ne
 #  endif
 	movne	r11,r9
-	adr	r12,poly1305_emit
-	adr	r10,poly1305_emit_neon
+	adr	r12,VR_poly1305_emit
+	adr	r10,VR_poly1305_emit_neon
 #  ifdef __thumb2__
 	it	ne
 #  endif
@@ -133,10 +133,10 @@ poly1305_init:
 #  ifdef __thumb2__
 	itete	eq
 #  endif
-	addeq	r12,r11,#(poly1305_emit-.Lpoly1305_init)
-	addne	r12,r11,#(poly1305_emit_neon-.Lpoly1305_init)
-	addeq	r11,r11,#(poly1305_blocks-.Lpoly1305_init)
-	addne	r11,r11,#(poly1305_blocks_neon-.Lpoly1305_init)
+	addeq	r12,r11,#(VR_poly1305_emit-.LVR_poly1305_init)
+	addne	r12,r11,#(VR_poly1305_emit_neon-.LVR_poly1305_init)
+	addeq	r11,r11,#(VR_poly1305_blocks-.LVR_poly1305_init)
+	addne	r11,r11,#(VR_poly1305_blocks_neon-.LVR_poly1305_init)
 # endif
 # ifdef	__thumb2__
 	orr	r12,r12,#1	@ thumb-ify address
@@ -176,17 +176,17 @@ poly1305_init:
 	moveq	pc,lr			@ be binary compatible with V4, yet
 	bx	lr			@ interoperable with Thumb ISA:-)
 #endif
-.size	poly1305_init,.-poly1305_init
+.size	VR_poly1305_init,.-VR_poly1305_init
 ___
 {
 my ($h0,$h1,$h2,$h3,$h4,$r0,$r1,$r2,$r3)=map("r$_",(4..12));
 my ($s1,$s2,$s3)=($r1,$r2,$r3);
 
 $code.=<<___;
-.type	poly1305_blocks,%function
+.type	VR_poly1305_blocks,%function
 .align	5
-poly1305_blocks:
-.Lpoly1305_blocks:
+VR_poly1305_blocks:
+.LVR_poly1305_blocks:
 	stmdb	sp!,{r3-r11,lr}
 
 	ands	$len,$len,#-16
@@ -340,7 +340,7 @@ poly1305_blocks:
 	moveq	pc,lr			@ be binary compatible with V4, yet
 	bx	lr			@ interoperable with Thumb ISA:-)
 #endif
-.size	poly1305_blocks,.-poly1305_blocks
+.size	VR_poly1305_blocks,.-VR_poly1305_blocks
 ___
 }
 {
@@ -349,11 +349,11 @@ my ($h0,$h1,$h2,$h3,$h4,$g0,$g1,$g2,$g3)=map("r$_",(3..11));
 my $g4=$h4;
 
 $code.=<<___;
-.type	poly1305_emit,%function
+.type	VR_poly1305_emit,%function
 .align	5
-poly1305_emit:
+VR_poly1305_emit:
 	stmdb	sp!,{r4-r11}
-.Lpoly1305_emit_enter:
+.LVR_poly1305_emit_enter:
 
 	ldmia	$ctx,{$h0-$h4}
 	adds	$g0,$h0,#5		@ compare to modulus
@@ -441,7 +441,7 @@ poly1305_emit:
 	moveq	pc,lr			@ be binary compatible with V4, yet
 	bx	lr			@ interoperable with Thumb ISA:-)
 #endif
-.size	poly1305_emit,.-poly1305_emit
+.size	VR_poly1305_emit,.-VR_poly1305_emit
 ___
 {
 my ($R0,$R1,$S1,$R2,$S2,$R3,$S3,$R4,$S4) = map("d$_",(0..9));
@@ -454,9 +454,9 @@ $code.=<<___;
 #if	__ARM_MAX_ARCH__>=7
 .fpu	neon
 
-.type	poly1305_init_neon,%function
+.type	VR_poly1305_init_neon,%function
 .align	5
-poly1305_init_neon:
+VR_poly1305_init_neon:
 	ldr	r4,[$ctx,#20]		@ load key base 2^32
 	ldr	r5,[$ctx,#24]
 	ldr	r6,[$ctx,#28]
@@ -666,11 +666,11 @@ poly1305_init_neon:
 	vst1.32		{${S4}[1]},[$tbl1]
 
 	ret				@ bx	lr
-.size	poly1305_init_neon,.-poly1305_init_neon
+.size	VR_poly1305_init_neon,.-VR_poly1305_init_neon
 
-.type	poly1305_blocks_neon,%function
+.type	VR_poly1305_blocks_neon,%function
 .align	5
-poly1305_blocks_neon:
+VR_poly1305_blocks_neon:
 	ldr	ip,[$ctx,#36]		@ is_base2_26
 	ands	$len,$len,#-16
 	beq	.Lno_data_neon
@@ -678,7 +678,7 @@ poly1305_blocks_neon:
 	cmp	$len,#64
 	bhs	.Lenter_neon
 	tst	ip,ip			@ is_base2_26?
-	beq	.Lpoly1305_blocks
+	beq	.LVR_poly1305_blocks
 
 .Lenter_neon:
 	stmdb	sp!,{r4-r7}
@@ -688,7 +688,7 @@ poly1305_blocks_neon:
 	bne	.Lbase2_26_neon
 
 	stmdb	sp!,{r1-r3,lr}
-	bl	poly1305_init_neon
+	bl	VR_poly1305_init_neon
 
 	ldr	r4,[$ctx,#0]		@ load hash value base 2^32
 	ldr	r5,[$ctx,#4]
@@ -1152,17 +1152,17 @@ poly1305_blocks_neon:
 	ldmia	sp!,{r4-r7}
 .Lno_data_neon:
 	ret					@ bx	lr
-.size	poly1305_blocks_neon,.-poly1305_blocks_neon
+.size	VR_poly1305_blocks_neon,.-VR_poly1305_blocks_neon
 
-.type	poly1305_emit_neon,%function
+.type	VR_poly1305_emit_neon,%function
 .align	5
-poly1305_emit_neon:
+VR_poly1305_emit_neon:
 	ldr	ip,[$ctx,#36]		@ is_base2_26
 
 	stmdb	sp!,{r4-r11}
 
 	tst	ip,ip
-	beq	.Lpoly1305_emit_enter
+	beq	.LVR_poly1305_emit_enter
 
 	ldmia	$ctx,{$h0-$h4}
 	eor	$g0,$g0,$g0
@@ -1223,13 +1223,13 @@ poly1305_emit_neon:
 
 	ldmia	sp!,{r4-r11}
 	ret				@ bx	lr
-.size	poly1305_emit_neon,.-poly1305_emit_neon
+.size	VR_poly1305_emit_neon,.-VR_poly1305_emit_neon
 
 .align	5
 .Lzeros:
 .long	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 .LOPENSSL_armcap:
-.word	OPENSSL_armcap_P-.Lpoly1305_init
+.word	OPENSSL_armcap_P-.LVR_poly1305_init
 #endif
 ___
 }	}

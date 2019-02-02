@@ -15,9 +15,9 @@
  *
  * 1. Check a bunch of "(words+1)" type hacks in various bignum functions and
  * check they can be safely removed.
- *  - Check +1 and other ugliness in BN_from_montgomery()
+ *  - Check +1 and other ugliness in VR_BN_from_montgomery()
  *
- * 2. Consider allowing a BN_new_ex() that, at least, lets you specify an
+ * 2. Consider allowing a VR_BN_new_ex() that, at least, lets you specify an
  * appropriate 'block' size that will be honoured by bn_expand_internal() to
  * prevent piddly little reallocations. OTOH, profiling bignum expansions in
  * BN_CTX doesn't show this to be a big issue.
@@ -131,7 +131,7 @@ static void ctxdbg(BN_CTX *ctx)
 #endif
 
 
-BN_CTX *BN_CTX_new(void)
+BN_CTX *VR_BN_CTX_new(void)
 {
     BN_CTX *ret;
 
@@ -145,23 +145,23 @@ BN_CTX *BN_CTX_new(void)
     return ret;
 }
 
-BN_CTX *BN_CTX_secure_new(void)
+BN_CTX *VR_BN_CTX_secure_new(void)
 {
-    BN_CTX *ret = BN_CTX_new();
+    BN_CTX *ret = VR_BN_CTX_new();
 
     if (ret != NULL)
         ret->flags = BN_FLG_SECURE;
     return ret;
 }
 
-void BN_CTX_free(BN_CTX *ctx)
+void VR_BN_CTX_free(BN_CTX *ctx)
 {
     if (ctx == NULL)
         return;
 #ifdef BN_CTX_DEBUG
     {
         BN_POOL_ITEM *pool = ctx->pool.head;
-        fprintf(stderr, "BN_CTX_free, stack-size=%d, pool-bignums=%d\n",
+        fprintf(stderr, "VR_BN_CTX_free, stack-size=%d, pool-bignums=%d\n",
                 ctx->stack.size, ctx->pool.size);
         fprintf(stderr, "dmaxs: ");
         while (pool) {
@@ -175,12 +175,12 @@ void BN_CTX_free(BN_CTX *ctx)
 #endif
     BN_STACK_finish(&ctx->stack);
     BN_POOL_finish(&ctx->pool);
-    OPENSSL_free(ctx);
+    OPENVR_SSL_free(ctx);
 }
 
-void BN_CTX_start(BN_CTX *ctx)
+void VR_BN_CTX_start(BN_CTX *ctx)
 {
-    CTXDBG_ENTRY("BN_CTX_start", ctx);
+    CTXDBG_ENTRY("VR_BN_CTX_start", ctx);
     /* If we're already overflowing ... */
     if (ctx->err_stack || ctx->too_many)
         ctx->err_stack++;
@@ -192,9 +192,9 @@ void BN_CTX_start(BN_CTX *ctx)
     CTXDBG_EXIT(ctx);
 }
 
-void BN_CTX_end(BN_CTX *ctx)
+void VR_BN_CTX_end(BN_CTX *ctx)
 {
-    CTXDBG_ENTRY("BN_CTX_end", ctx);
+    CTXDBG_ENTRY("VR_BN_CTX_end", ctx);
     if (ctx->err_stack)
         ctx->err_stack--;
     else {
@@ -209,11 +209,11 @@ void BN_CTX_end(BN_CTX *ctx)
     CTXDBG_EXIT(ctx);
 }
 
-BIGNUM *BN_CTX_get(BN_CTX *ctx)
+BIGNUM *VR_BN_CTX_get(BN_CTX *ctx)
 {
     BIGNUM *ret;
 
-    CTXDBG_ENTRY("BN_CTX_get", ctx);
+    CTXDBG_ENTRY("VR_BN_CTX_get", ctx);
     if (ctx->err_stack || ctx->too_many)
         return NULL;
     if ((ret = BN_POOL_get(&ctx->pool, ctx->flags)) == NULL) {
@@ -244,7 +244,7 @@ static void BN_STACK_init(BN_STACK *st)
 
 static void BN_STACK_finish(BN_STACK *st)
 {
-    OPENSSL_free(st->indexes);
+    OPENVR_SSL_free(st->indexes);
     st->indexes = NULL;
 }
 
@@ -263,7 +263,7 @@ static int BN_STACK_push(BN_STACK *st, unsigned int idx)
         }
         if (st->depth)
             memcpy(newitems, st->indexes, sizeof(*newitems) * st->depth);
-        OPENSSL_free(st->indexes);
+        OPENVR_SSL_free(st->indexes);
         st->indexes = newitems;
         st->size = newsize;
     }
@@ -294,9 +294,9 @@ static void BN_POOL_finish(BN_POOL *p)
     while (p->head) {
         for (loop = 0, bn = p->head->vals; loop++ < BN_CTX_POOL_SIZE; bn++)
             if (bn->d)
-                BN_clear_free(bn);
+                VR_BN_clear_free(bn);
         p->current = p->head->next;
-        OPENSSL_free(p->head);
+        OPENVR_SSL_free(p->head);
         p->head = p->current;
     }
 }
@@ -316,9 +316,9 @@ static BIGNUM *BN_POOL_get(BN_POOL *p, int flag)
             return NULL;
         }
         for (loop = 0, bn = item->vals; loop++ < BN_CTX_POOL_SIZE; bn++) {
-            bn_init(bn);
+            VR_bn_init(bn);
             if ((flag & BN_FLG_SECURE) != 0)
-                BN_set_flags(bn, BN_FLG_SECURE);
+                VR_BN_set_flags(bn, BN_FLG_SECURE);
         }
         item->prev = p->tail;
         item->next = NULL;

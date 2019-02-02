@@ -45,8 +45,8 @@ extern "C" {
 #endif
 
 # if !OPENSSL_API_1_1_0
-#  define SSLeay                  OpenSSL_version_num
-#  define SSLeay_version          OpenSSL_version
+#  define SSLeay                  VR_OpenSSL_version_num
+#  define SSLeay_version          VR_OpenSSL_version
 #  define SSLEAY_VERSION_NUMBER   OPENSSL_VERSION_NUMBER
 #  define SSLEAY_VERSION          OPENSSL_VERSION
 #  define SSLEAY_CFLAGS           OPENSSL_CFLAGS
@@ -66,13 +66,13 @@ typedef struct {
 
 typedef void CRYPTO_RWLOCK;
 
-CRYPTO_RWLOCK *CRYPTO_THREAD_lock_new(void);
-int CRYPTO_THREAD_read_lock(CRYPTO_RWLOCK *lock);
-int CRYPTO_THREAD_write_lock(CRYPTO_RWLOCK *lock);
-int CRYPTO_THREAD_unlock(CRYPTO_RWLOCK *lock);
-void CRYPTO_THREAD_lock_free(CRYPTO_RWLOCK *lock);
+CRYPTO_RWLOCK *VR_CRYPTO_THREAD_lock_new(void);
+int VR_CRYPTO_THREAD_read_lock(CRYPTO_RWLOCK *lock);
+int VR_CRYPTO_THREAD_write_lock(CRYPTO_RWLOCK *lock);
+int VR_CRYPTO_THREAD_unlock(CRYPTO_RWLOCK *lock);
+void VR_CRYPTO_THREAD_lock_free(CRYPTO_RWLOCK *lock);
 
-int CRYPTO_atomic_add(int *val, int amount, int *ret, CRYPTO_RWLOCK *lock);
+int VR_CRYPTO_atomic_add(int *val, int amount, int *ret, CRYPTO_RWLOCK *lock);
 
 /*
  * The following can be used to detect memory leaks in the library. If
@@ -115,50 +115,50 @@ DEFINE_STACK_OF(void)
  * not be the same.
  */
 #define OPENSSL_malloc_init() \
-    CRYPTO_set_mem_functions(CRYPTO_malloc, CRYPTO_realloc, CRYPTO_free)
+    VR_CRYPTO_set_mem_functions(VR_CRYPTO_malloc, VR_CRYPTO_realloc, VR_CRYPTO_free)
 
-int CRYPTO_mem_ctrl(int mode);
+int VR_CRYPTO_mem_ctrl(int mode);
 
 # define OPENSSL_malloc(num) \
-        CRYPTO_malloc(num, OPENSSL_FILE, OPENSSL_LINE)
+        VR_CRYPTO_malloc(num, OPENSSL_FILE, OPENSSL_LINE)
 # define OPENSSL_zalloc(num) \
-        CRYPTO_zalloc(num, OPENSSL_FILE, OPENSSL_LINE)
+        VR_CRYPTO_zalloc(num, OPENSSL_FILE, OPENSSL_LINE)
 # define OPENSSL_realloc(addr, num) \
-        CRYPTO_realloc(addr, num, OPENSSL_FILE, OPENSSL_LINE)
-# define OPENSSL_clear_realloc(addr, old_num, num) \
-        CRYPTO_clear_realloc(addr, old_num, num, OPENSSL_FILE, OPENSSL_LINE)
-# define OPENSSL_clear_free(addr, num) \
-        CRYPTO_clear_free(addr, num, OPENSSL_FILE, OPENSSL_LINE)
-# define OPENSSL_free(addr) \
-        CRYPTO_free(addr, OPENSSL_FILE, OPENSSL_LINE)
+        VR_CRYPTO_realloc(addr, num, OPENSSL_FILE, OPENSSL_LINE)
+# define OPENVR_SSL_clear_realloc(addr, old_num, num) \
+        VR_CRYPTO_clear_realloc(addr, old_num, num, OPENSSL_FILE, OPENSSL_LINE)
+# define OPENVR_SSL_clear_free(addr, num) \
+        VR_CRYPTO_clear_free(addr, num, OPENSSL_FILE, OPENSSL_LINE)
+# define OPENVR_SSL_free(addr) \
+        VR_CRYPTO_free(addr, OPENSSL_FILE, OPENSSL_LINE)
 # define OPENSSL_memdup(str, s) \
-        CRYPTO_memdup((str), s, OPENSSL_FILE, OPENSSL_LINE)
+        VR_CRYPTO_memdup((str), s, OPENSSL_FILE, OPENSSL_LINE)
 # define OPENSSL_strdup(str) \
-        CRYPTO_strdup(str, OPENSSL_FILE, OPENSSL_LINE)
+        VR_CRYPTO_strdup(str, OPENSSL_FILE, OPENSSL_LINE)
 # define OPENSSL_strndup(str, n) \
-        CRYPTO_strndup(str, n, OPENSSL_FILE, OPENSSL_LINE)
+        VR_CRYPTO_strndup(str, n, OPENSSL_FILE, OPENSSL_LINE)
 # define OPENSSL_secure_malloc(num) \
-        CRYPTO_secure_malloc(num, OPENSSL_FILE, OPENSSL_LINE)
+        VR_CRYPTO_secure_malloc(num, OPENSSL_FILE, OPENSSL_LINE)
 # define OPENSSL_secure_zalloc(num) \
-        CRYPTO_secure_zalloc(num, OPENSSL_FILE, OPENSSL_LINE)
+        VR_CRYPTO_secure_zalloc(num, OPENSSL_FILE, OPENSSL_LINE)
 # define OPENSSL_secure_free(addr) \
-        CRYPTO_secure_free(addr, OPENSSL_FILE, OPENSSL_LINE)
+        VR_CRYPTO_secure_free(addr, OPENSSL_FILE, OPENSSL_LINE)
 # define OPENSSL_secure_clear_free(addr, num) \
-        CRYPTO_secure_clear_free(addr, num, OPENSSL_FILE, OPENSSL_LINE)
+        VR_CRYPTO_secure_clear_free(addr, num, OPENSSL_FILE, OPENSSL_LINE)
 # define OPENSSL_secure_actual_size(ptr) \
-        CRYPTO_secure_actual_size(ptr)
+        VR_CRYPTO_secure_actual_size(ptr)
 
-size_t OPENSSL_strlcpy(char *dst, const char *src, size_t siz);
-size_t OPENSSL_strlcat(char *dst, const char *src, size_t siz);
-size_t OPENSSL_strnlen(const char *str, size_t maxlen);
-char *OPENSSL_buf2hexstr(const unsigned char *buffer, long len);
-unsigned char *OPENSSL_hexstr2buf(const char *str, long *len);
-int OPENSSL_hexchar2int(unsigned char c);
+size_t VR_OPENSSL_strlcpy(char *dst, const char *src, size_t siz);
+size_t VR_OPENSSL_strlcat(char *dst, const char *src, size_t siz);
+size_t VR_OPENSSL_strnlen(const char *str, size_t maxlen);
+char *VR_OPENSSL_buf2hexstr(const unsigned char *buffer, long len);
+unsigned char *VR_OPENSSL_hexstr2buf(const char *str, long *len);
+int VR_OPENSSL_hexchar2int(unsigned char c);
 
 # define OPENSSL_MALLOC_MAX_NELEMS(type)  (((1U<<(sizeof(int)*8-1))-1)/sizeof(type))
 
-DEPRECATEDIN_3(unsigned long OpenSSL_version_num(void))
-const char *OpenSSL_version(int type);
+DEPRECATEDIN_3(unsigned long VR_OpenSSL_version_num(void))
+const char *VR_OpenSSL_version(int type);
 # define OPENSSL_VERSION                0
 # define OPENSSL_CFLAGS                 1
 # define OPENSSL_BUILT_ON               2
@@ -168,7 +168,7 @@ const char *OpenSSL_version(int type);
 # define OPENSSL_VERSION_STRING         6
 # define OPENSSL_FULL_VERSION_STRING    7
 
-int OPENSSL_issetugid(void);
+int VR_OPENSSL_issetugid(void);
 
 typedef void CRYPTO_EX_new (void *parent, void *ptr, CRYPTO_EX_DATA *ad,
                            int idx, long argl, void *argp);
@@ -176,28 +176,28 @@ typedef void CRYPTO_EX_free (void *parent, void *ptr, CRYPTO_EX_DATA *ad,
                              int idx, long argl, void *argp);
 typedef int CRYPTO_EX_dup (CRYPTO_EX_DATA *to, const CRYPTO_EX_DATA *from,
                            void *from_d, int idx, long argl, void *argp);
-__owur int CRYPTO_get_ex_new_index(int class_index, long argl, void *argp,
+__owur int VR_CRYPTO_get_ex_new_index(int class_index, long argl, void *argp,
                             CRYPTO_EX_new *new_func, CRYPTO_EX_dup *dup_func,
                             CRYPTO_EX_free *free_func);
 /* No longer use an index. */
-int CRYPTO_free_ex_index(int class_index, int idx);
+int VR_CRYPTO_free_ex_index(int class_index, int idx);
 
 /*
  * Initialise/duplicate/free CRYPTO_EX_DATA variables corresponding to a
  * given class (invokes whatever per-class callbacks are applicable)
  */
-int CRYPTO_new_ex_data(int class_index, void *obj, CRYPTO_EX_DATA *ad);
-int CRYPTO_dup_ex_data(int class_index, CRYPTO_EX_DATA *to,
+int VR_CRYPTO_new_ex_data(int class_index, void *obj, CRYPTO_EX_DATA *ad);
+int VR_CRYPTO_dup_ex_data(int class_index, CRYPTO_EX_DATA *to,
                        const CRYPTO_EX_DATA *from);
 
-void CRYPTO_free_ex_data(int class_index, void *obj, CRYPTO_EX_DATA *ad);
+void VR_CRYPTO_free_ex_data(int class_index, void *obj, CRYPTO_EX_DATA *ad);
 
 /*
  * Get/set data in a CRYPTO_EX_DATA variable corresponding to a particular
  * index (relative to the class type involved)
  */
-int CRYPTO_set_ex_data(CRYPTO_EX_DATA *ad, int idx, void *val);
-void *CRYPTO_get_ex_data(const CRYPTO_EX_DATA *ad, int idx);
+int VR_CRYPTO_set_ex_data(CRYPTO_EX_DATA *ad, int idx, void *val);
+void *VR_CRYPTO_get_ex_data(const CRYPTO_EX_DATA *ad, int idx);
 
 # if !OPENSSL_API_1_1_0
 /*
@@ -260,40 +260,40 @@ typedef struct crypto_threadid_st {
 #  define CRYPTO_get_dynlock_destroy_callback()         (NULL)
 # endif /* OPENSSL_API_1_1_0 */
 
-int CRYPTO_set_mem_functions(
+int VR_CRYPTO_set_mem_functions(
         void *(*m) (size_t, const char *, int),
         void *(*r) (void *, size_t, const char *, int),
         void (*f) (void *, const char *, int));
-int CRYPTO_set_mem_debug(int flag);
-void CRYPTO_get_mem_functions(
+int VR_CRYPTO_set_mem_debug(int flag);
+void VR_CRYPTO_get_mem_functions(
         void *(**m) (size_t, const char *, int),
         void *(**r) (void *, size_t, const char *, int),
         void (**f) (void *, const char *, int));
 
-void *CRYPTO_malloc(size_t num, const char *file, int line);
-void *CRYPTO_zalloc(size_t num, const char *file, int line);
-void *CRYPTO_memdup(const void *str, size_t siz, const char *file, int line);
-char *CRYPTO_strdup(const char *str, const char *file, int line);
-char *CRYPTO_strndup(const char *str, size_t s, const char *file, int line);
-void CRYPTO_free(void *ptr, const char *file, int line);
-void CRYPTO_clear_free(void *ptr, size_t num, const char *file, int line);
-void *CRYPTO_realloc(void *addr, size_t num, const char *file, int line);
-void *CRYPTO_clear_realloc(void *addr, size_t old_num, size_t num,
+void *VR_CRYPTO_malloc(size_t num, const char *file, int line);
+void *VR_CRYPTO_zalloc(size_t num, const char *file, int line);
+void *VR_CRYPTO_memdup(const void *str, size_t siz, const char *file, int line);
+char *VR_CRYPTO_strdup(const char *str, const char *file, int line);
+char *VR_CRYPTO_strndup(const char *str, size_t s, const char *file, int line);
+void VR_CRYPTO_free(void *ptr, const char *file, int line);
+void VR_CRYPTO_clear_free(void *ptr, size_t num, const char *file, int line);
+void *VR_CRYPTO_realloc(void *addr, size_t num, const char *file, int line);
+void *VR_CRYPTO_clear_realloc(void *addr, size_t old_num, size_t num,
                            const char *file, int line);
 
-int CRYPTO_secure_malloc_init(size_t sz, int minsize);
-int CRYPTO_secure_malloc_done(void);
-void *CRYPTO_secure_malloc(size_t num, const char *file, int line);
-void *CRYPTO_secure_zalloc(size_t num, const char *file, int line);
-void CRYPTO_secure_free(void *ptr, const char *file, int line);
-void CRYPTO_secure_clear_free(void *ptr, size_t num,
+int VR_CRYPTO_secure_malloc_init(size_t sz, int minsize);
+int VR_CRYPTO_secure_malloc_done(void);
+void *VR_CRYPTO_secure_malloc(size_t num, const char *file, int line);
+void *VR_CRYPTO_secure_zalloc(size_t num, const char *file, int line);
+void VR_CRYPTO_secure_free(void *ptr, const char *file, int line);
+void VR_CRYPTO_secure_clear_free(void *ptr, size_t num,
                               const char *file, int line);
-int CRYPTO_secure_allocated(const void *ptr);
-int CRYPTO_secure_malloc_initialized(void);
-size_t CRYPTO_secure_actual_size(void *ptr);
-size_t CRYPTO_secure_used(void);
+int VR_CRYPTO_secure_allocated(const void *ptr);
+int VR_CRYPTO_secure_malloc_initialized(void);
+size_t VR_CRYPTO_secure_actual_size(void *ptr);
+size_t VR_CRYPTO_secure_used(void);
 
-void OPENSSL_cleanse(void *ptr, size_t len);
+void VR_OPENSSL_cleanse(void *ptr, size_t len);
 
 # ifndef OPENSSL_NO_CRYPTO_MDEBUG
 #  define OPENSSL_mem_debug_push(info) \
@@ -305,7 +305,7 @@ int CRYPTO_mem_debug_pop(void);
 void CRYPTO_get_alloc_counts(int *mcount, int *rcount, int *fcount);
 
 /*-
- * Debugging functions (enabled by CRYPTO_set_mem_debug(1))
+ * Debugging functions (enabled by VR_CRYPTO_set_mem_debug(1))
  * The flag argument has the following significance:
  *   0:   called before the actual memory allocation has taken place
  *   1:   called after the actual memory allocation has taken place
@@ -326,38 +326,38 @@ int CRYPTO_mem_leaks(BIO *bio);
 # endif
 
 /* die if we have to */
-ossl_noreturn void OPENSSL_die(const char *assertion, const char *file, int line);
+ossl_noreturn void VR_OPENSSL_die(const char *assertion, const char *file, int line);
 # if !OPENSSL_API_1_1_0
-#  define OpenSSLDie(f,l,a) OPENSSL_die((a),(f),(l))
+#  define OpenSSLDie(f,l,a) VR_OPENSSL_die((a),(f),(l))
 # endif
 # define OPENSSL_assert(e) \
-    (void)((e) ? 0 : (OPENSSL_die("assertion failed: " #e, OPENSSL_FILE, OPENSSL_LINE), 1))
+    (void)((e) ? 0 : (VR_OPENSSL_die("assertion failed: " #e, OPENSSL_FILE, OPENSSL_LINE), 1))
 
-int OPENSSL_isservice(void);
+int VR_OPENSSL_isservice(void);
 
-int FIPS_mode(void);
-int FIPS_mode_set(int r);
+int VR_FIPS_mode(void);
+int VR_FIPS_mode_set(int r);
 
-void OPENSSL_init(void);
+void VR_OPENSSL_init(void);
 # ifdef OPENSSL_SYS_UNIX
-void OPENSSL_fork_prepare(void);
-void OPENSSL_fork_parent(void);
-void OPENSSL_fork_child(void);
+void VR_OPENSSL_fork_prepare(void);
+void VR_OPENSSL_fork_parent(void);
+void VR_OPENSSL_fork_child(void);
 # endif
 
-struct tm *OPENSSL_gmtime(const time_t *timer, struct tm *result);
-int OPENSSL_gmtime_adj(struct tm *tm, int offset_day, long offset_sec);
-int OPENSSL_gmtime_diff(int *pday, int *psec,
+struct tm *VR_OPENSSL_gmtime(const time_t *timer, struct tm *result);
+int VR_OPENSSL_gmtime_adj(struct tm *tm, int offset_day, long offset_sec);
+int VR_OPENSSL_gmtime_diff(int *pday, int *psec,
                         const struct tm *from, const struct tm *to);
 
 /*
- * CRYPTO_memcmp returns zero iff the |len| bytes at |a| and |b| are equal.
+ * VR_CRYPTO_memcmp returns zero iff the |len| bytes at |a| and |b| are equal.
  * It takes an amount of time dependent on |len|, but independent of the
  * contents of |a| and |b|. Unlike memcmp, it cannot be used to put elements
  * into a defined order as the return value when a != b is undefined, other
  * than to be non-zero.
  */
-int CRYPTO_memcmp(const void * in_a, const void * in_b, size_t len);
+int VR_CRYPTO_memcmp(const void * in_a, const void * in_b, size_t len);
 
 /* Standard initialisation options */
 # define OPENSSL_INIT_NO_LOAD_CRYPTO_STRINGS 0x00000001L
@@ -380,7 +380,7 @@ int CRYPTO_memcmp(const void * in_a, const void * in_b, size_t len);
 # define OPENSSL_INIT_ATFORK                 0x00020000L
 /* OPENSSL_INIT_BASE_ONLY                    0x00040000L */
 # define OPENSSL_INIT_NO_ATEXIT              0x00080000L
-/* OPENSSL_INIT flag range 0x03f00000 reserved for OPENSSL_init_ssl() */
+/* OPENSSL_INIT flag range 0x03f00000 reserved for VR_OPENSSL_init_ssl() */
 # define OPENSSL_INIT_NO_ADD_ALL_MACS        0x04000000L
 # define OPENSSL_INIT_ADD_ALL_MACS           0x08000000L
 /* FREE: 0x10000000L */
@@ -397,22 +397,22 @@ int CRYPTO_memcmp(const void * in_a, const void * in_b, size_t len);
 
 
 /* Library initialisation functions */
-void OPENSSL_cleanup(void);
-int OPENSSL_init_crypto(uint64_t opts, const OPENSSL_INIT_SETTINGS *settings);
-int OPENSSL_atexit(void (*handler)(void));
-void OPENSSL_thread_stop(void);
+void VR_OPENSSL_cleanup(void);
+int VR_OPENSSL_init_crypto(uint64_t opts, const OPENSSL_INIT_SETTINGS *settings);
+int VR_OPENSSL_atexit(void (*handler)(void));
+void VR_OPENSSL_thread_stop(void);
 
 /* Low-level control of initialization */
-OPENSSL_INIT_SETTINGS *OPENSSL_INIT_new(void);
+OPENSSL_INIT_SETTINGS *VR_OPENSSL_INIT_new(void);
 # ifndef OPENSSL_NO_STDIO
-int OPENSSL_INIT_set_config_filename(OPENSSL_INIT_SETTINGS *settings,
+int VR_OPENSSL_INIT_set_config_filename(OPENSSL_INIT_SETTINGS *settings,
                                      const char *config_filename);
-void OPENSSL_INIT_set_config_file_flags(OPENSSL_INIT_SETTINGS *settings,
+void VR_OPENSSL_INIT_set_config_file_flags(OPENSSL_INIT_SETTINGS *settings,
                                         unsigned long flags);
-int OPENSSL_INIT_set_config_appname(OPENSSL_INIT_SETTINGS *settings,
+int VR_OPENSSL_INIT_set_config_appname(OPENSSL_INIT_SETTINGS *settings,
                                     const char *config_appname);
 # endif
-void OPENSSL_INIT_free(OPENSSL_INIT_SETTINGS *settings);
+void VR_OPENSSL_INIT_free(OPENSSL_INIT_SETTINGS *settings);
 
 # if defined(OPENSSL_THREADS) && !defined(CRYPTO_TDEBUG)
 #  if defined(_WIN32)
@@ -441,15 +441,15 @@ typedef unsigned int CRYPTO_THREAD_ID;
 #  define CRYPTO_ONCE_STATIC_INIT 0
 # endif
 
-int CRYPTO_THREAD_run_once(CRYPTO_ONCE *once, void (*init)(void));
+int VR_CRYPTO_THREAD_run_once(CRYPTO_ONCE *once, void (*init)(void));
 
-int CRYPTO_THREAD_init_local(CRYPTO_THREAD_LOCAL *key, void (*cleanup)(void *));
-void *CRYPTO_THREAD_get_local(CRYPTO_THREAD_LOCAL *key);
-int CRYPTO_THREAD_set_local(CRYPTO_THREAD_LOCAL *key, void *val);
-int CRYPTO_THREAD_cleanup_local(CRYPTO_THREAD_LOCAL *key);
+int VR_CRYPTO_THREAD_init_local(CRYPTO_THREAD_LOCAL *key, void (*cleanup)(void *));
+void *VR_CRYPTO_THREAD_get_local(CRYPTO_THREAD_LOCAL *key);
+int VR_CRYPTO_THREAD_set_local(CRYPTO_THREAD_LOCAL *key, void *val);
+int VR_CRYPTO_THREAD_cleanup_local(CRYPTO_THREAD_LOCAL *key);
 
-CRYPTO_THREAD_ID CRYPTO_THREAD_get_current_id(void);
-int CRYPTO_THREAD_compare_id(CRYPTO_THREAD_ID a, CRYPTO_THREAD_ID b);
+CRYPTO_THREAD_ID VR_CRYPTO_THREAD_get_current_id(void);
+int VR_CRYPTO_THREAD_compare_id(CRYPTO_THREAD_ID a, CRYPTO_THREAD_ID b);
 
 
 # ifdef  __cplusplus

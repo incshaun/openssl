@@ -44,13 +44,13 @@ static int test_rc2(const int n)
     RC2_KEY key;
     unsigned char buf[8], buf2[8];
 
-    RC2_set_key(&key, 16, &(RC2key[n][0]), 0 /* or 1024 */ );
+    VR_RC2_set_key(&key, 16, &(RC2key[n][0]), 0 /* or 1024 */ );
 
-    RC2_ecb_encrypt(&RC2plain[n][0], buf, &key, RC2_ENCRYPT);
+    VR_RC2_ecb_encrypt(&RC2plain[n][0], buf, &key, RC2_ENCRYPT);
     if (!TEST_mem_eq(&RC2cipher[n][0], 8, buf, 8))
         testresult = 0;
 
-    RC2_ecb_encrypt(buf, buf2, &key, RC2_DECRYPT);
+    VR_RC2_ecb_encrypt(buf, buf2, &key, RC2_DECRYPT);
     if (!TEST_mem_eq(&RC2plain[n][0], 8, buf2, 8))
         testresult = 0;
 

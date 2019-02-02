@@ -64,16 +64,16 @@ static CT_TEST_FIXTURE *set_up(const char *const test_case_name)
         goto end;
     fixture->test_case_name = test_case_name;
     fixture->epoch_time_in_ms = 1473269626000; /* Sep 7 17:33:46 2016 GMT */
-    if (!TEST_ptr(fixture->ctlog_store = CTLOG_STORE_new())
+    if (!TEST_ptr(fixture->ctlog_store = VR_CTLOG_STORE_new())
             || !TEST_int_eq(
-                    CTLOG_STORE_load_default_file(fixture->ctlog_store), 1))
+                    VR_CTLOG_STORE_load_default_file(fixture->ctlog_store), 1))
         goto end;
     return fixture;
 
 end:
     if (fixture != NULL)
-        CTLOG_STORE_free(fixture->ctlog_store);
-    OPENSSL_free(fixture);
+        VR_CTLOG_STORE_free(fixture->ctlog_store);
+    OPENVR_SSL_free(fixture);
     TEST_error("Failed to setup");
     return NULL;
 }
@@ -81,10 +81,10 @@ end:
 static void tear_down(CT_TEST_FIXTURE *fixture)
 {
     if (fixture != NULL) {
-        CTLOG_STORE_free(fixture->ctlog_store);
-        SCT_LIST_free(fixture->sct_list);
+        VR_CTLOG_STORE_free(fixture->ctlog_store);
+        VR_SCT_LIST_free(fixture->sct_list);
     }
-    OPENSSL_free(fixture);
+    OPENVR_SSL_free(fixture);
 }
 
 static char *mk_file_path(const char *dir, const char *file)
@@ -98,9 +98,9 @@ static char *mk_file_path(const char *dir, const char *file)
     char *full_file = OPENSSL_zalloc(len);
 
     if (full_file != NULL) {
-        OPENSSL_strlcpy(full_file, dir, len);
-        OPENSSL_strlcat(full_file, sep, len);
-        OPENSSL_strlcat(full_file, file, len);
+        VR_OPENSSL_strlcpy(full_file, dir, len);
+        VR_OPENSSL_strlcat(full_file, sep, len);
+        VR_OPENSSL_strlcat(full_file, file, len);
     }
 
     return full_file;
@@ -112,14 +112,14 @@ static X509 *load_pem_cert(const char *dir, const char *file)
     char *file_path = mk_file_path(dir, file);
 
     if (file_path != NULL) {
-        BIO *cert_io = BIO_new_file(file_path, "r");
+        BIO *cert_io = VR_BIO_new_file(file_path, "r");
 
         if (cert_io != NULL)
-            cert = PEM_read_bio_X509(cert_io, NULL, NULL, NULL);
-        BIO_free(cert_io);
+            cert = VR_PEM_read_bio_X509(cert_io, NULL, NULL, NULL);
+        VR_BIO_free(cert_io);
     }
 
-    OPENSSL_free(file_path);
+    OPENVR_SSL_free(file_path);
     return cert;
 }
 
@@ -130,14 +130,14 @@ static int read_text_file(const char *dir, const char *file,
     char *file_path = mk_file_path(dir, file);
 
     if (file_path != NULL) {
-        BIO *file_io = BIO_new_file(file_path, "r");
+        BIO *file_io = VR_BIO_new_file(file_path, "r");
 
         if (file_io != NULL)
-            len = BIO_read(file_io, buffer, buffer_length);
-        BIO_free(file_io);
+            len = VR_BIO_read(file_io, buffer, buffer_length);
+        VR_BIO_free(file_io);
     }
 
-    OPENSSL_free(file_path);
+    OPENVR_SSL_free(file_path);
     return len;
 }
 
@@ -148,13 +148,13 @@ static int compare_sct_list_printout(STACK_OF(SCT) *sct,
     char *actual_output = NULL;
     int result = 0;
 
-    if (!TEST_ptr(text_buffer = BIO_new(BIO_s_mem())))
+    if (!TEST_ptr(text_buffer = VR_BIO_new(VR_BIO_s_mem())))
         goto end;
 
-    SCT_LIST_print(sct, text_buffer, 0, "\n", NULL);
+    VR_SCT_LIST_print(sct, text_buffer, 0, "\n", NULL);
 
     /* Append \0 because we're about to use the buffer contents as a string. */
-    if (!TEST_true(BIO_write(text_buffer, "\0", 1)))
+    if (!TEST_true(VR_BIO_write(text_buffer, "\0", 1)))
         goto end;
 
     BIO_get_mem_data(text_buffer, &actual_output);
@@ -163,7 +163,7 @@ static int compare_sct_list_printout(STACK_OF(SCT) *sct,
     result = 1;
 
 end:
-    BIO_free(text_buffer);
+    VR_BIO_free(text_buffer);
     return result;
 }
 
@@ -174,13 +174,13 @@ static int compare_extension_printout(X509_EXTENSION *extension,
     char *actual_output = NULL;
     int result = 0;
 
-    if (!TEST_ptr(text_buffer = BIO_new(BIO_s_mem()))
-            || !TEST_true(X509V3_EXT_print(text_buffer, extension,
+    if (!TEST_ptr(text_buffer = VR_BIO_new(VR_BIO_s_mem()))
+            || !TEST_true(VR_X509V3_EXT_print(text_buffer, extension,
                                            X509V3_EXT_DEFAULT, 0)))
         goto end;
 
     /* Append \0 because we're about to use the buffer contents as a string. */
-    if (!TEST_true(BIO_write(text_buffer, "\0", 1)))
+    if (!TEST_true(VR_BIO_write(text_buffer, "\0", 1)))
         goto end;
 
     BIO_get_mem_data(text_buffer, &actual_output);
@@ -190,7 +190,7 @@ static int compare_extension_printout(X509_EXTENSION *extension,
     result = 1;
 
 end:
-    BIO_free(text_buffer);
+    VR_BIO_free(text_buffer);
     return result;
 }
 
@@ -201,13 +201,13 @@ static int assert_validity(CT_TEST_FIXTURE *fixture, STACK_OF(SCT) *scts,
     int valid_sct_count = 0;
     int i;
 
-    if (!TEST_int_ge(SCT_LIST_validate(scts, policy_ctx), 0))
+    if (!TEST_int_ge(VR_SCT_LIST_validate(scts, policy_ctx), 0))
         return 0;
 
     for (i = 0; i < sk_SCT_num(scts); ++i) {
         SCT *sct_i = sk_SCT_value(scts, i);
 
-        switch (SCT_get_validation_status(sct_i)) {
+        switch (VR_SCT_get_validation_status(sct_i)) {
         case SCT_VALIDATION_STATUS_VALID:
             ++valid_sct_count;
             break;
@@ -245,7 +245,7 @@ static int execute_cert_test(CT_TEST_FIXTURE *fixture)
     int sct_text_len = 0;
     unsigned char *tls_sct_list = NULL;
     size_t tls_sct_list_len = 0;
-    CT_POLICY_EVAL_CTX *ct_policy_ctx = CT_POLICY_EVAL_CTX_new();
+    CT_POLICY_EVAL_CTX *ct_policy_ctx = VR_CT_POLICY_EVAL_CTX_new();
 
     if (fixture->sct_text_file != NULL) {
         sct_text_len = read_text_file(fixture->sct_dir, fixture->sct_text_file,
@@ -257,10 +257,10 @@ static int execute_cert_test(CT_TEST_FIXTURE *fixture)
         expected_sct_text[sct_text_len] = '\0';
     }
 
-    CT_POLICY_EVAL_CTX_set_shared_CTLOG_STORE(
+    VR_CT_POLICY_EVAL_CTX_set_shared_CTLOG_STORE(
             ct_policy_ctx, fixture->ctlog_store);
 
-    CT_POLICY_EVAL_CTX_set_time(ct_policy_ctx, fixture->epoch_time_in_ms);
+    VR_CT_POLICY_EVAL_CTX_set_time(ct_policy_ctx, fixture->epoch_time_in_ms);
 
     if (fixture->certificate_file != NULL) {
         int sct_extension_index;
@@ -271,18 +271,18 @@ static int execute_cert_test(CT_TEST_FIXTURE *fixture)
                                            fixture->certificate_file)))
             goto end;
 
-        CT_POLICY_EVAL_CTX_set1_cert(ct_policy_ctx, cert);
+        VR_CT_POLICY_EVAL_CTX_set1_cert(ct_policy_ctx, cert);
 
         if (fixture->issuer_file != NULL) {
             if (!TEST_ptr(issuer = load_pem_cert(fixture->certs_dir,
                                                  fixture->issuer_file)))
                 goto end;
-            CT_POLICY_EVAL_CTX_set1_issuer(ct_policy_ctx, issuer);
+            VR_CT_POLICY_EVAL_CTX_set1_issuer(ct_policy_ctx, issuer);
         }
 
         sct_extension_index =
-                X509_get_ext_by_NID(cert, NID_ct_precert_scts, -1);
-        sct_extension = X509_get_ext(cert, sct_extension_index);
+                VR_X509_get_ext_by_NID(cert, NID_ct_precert_scts, -1);
+        sct_extension = VR_X509_get_ext(cert, sct_extension_index);
         if (fixture->expected_sct_count > 0) {
             if (!TEST_ptr(sct_extension))
                 goto end;
@@ -292,11 +292,11 @@ static int execute_cert_test(CT_TEST_FIXTURE *fixture)
                                                expected_sct_text))
                     goto end;
 
-            scts = X509V3_EXT_d2i(sct_extension);
+            scts = VR_X509V3_EXT_d2i(sct_extension);
             for (i = 0; i < sk_SCT_num(scts); ++i) {
                 SCT *sct_i = sk_SCT_value(scts, i);
 
-                if (!TEST_int_eq(SCT_get_source(sct_i),
+                if (!TEST_int_eq(VR_SCT_get_source(sct_i),
                                  SCT_SOURCE_X509V3_EXTENSION)) {
                     goto end;
                 }
@@ -314,7 +314,7 @@ static int execute_cert_test(CT_TEST_FIXTURE *fixture)
     if (fixture->tls_sct_list != NULL) {
         const unsigned char *p = fixture->tls_sct_list;
 
-        if (!TEST_ptr(o2i_SCT_LIST(&scts, &p, fixture->tls_sct_list_len)))
+        if (!TEST_ptr(VR_o2i_SCT_LIST(&scts, &p, fixture->tls_sct_list_len)))
             goto end;
 
         if (fixture->test_validity && cert != NULL) {
@@ -327,7 +327,7 @@ static int execute_cert_test(CT_TEST_FIXTURE *fixture)
                 goto end;
         }
 
-        tls_sct_list_len = i2o_SCT_LIST(scts, &tls_sct_list);
+        tls_sct_list_len = VR_i2o_SCT_LIST(scts, &tls_sct_list);
         if (!TEST_mem_eq(fixture->tls_sct_list, fixture->tls_sct_list_len,
                          tls_sct_list, tls_sct_list_len))
             goto end;
@@ -335,12 +335,12 @@ static int execute_cert_test(CT_TEST_FIXTURE *fixture)
     success = 1;
 
 end:
-    X509_free(cert);
-    X509_free(issuer);
-    SCT_LIST_free(scts);
-    SCT_free(sct);
-    CT_POLICY_EVAL_CTX_free(ct_policy_ctx);
-    OPENSSL_free(tls_sct_list);
+    VR_X509_free(cert);
+    VR_X509_free(issuer);
+    VR_SCT_LIST_free(scts);
+    VR_SCT_free(sct);
+    VR_CT_POLICY_EVAL_CTX_free(ct_policy_ctx);
+    OPENVR_SSL_free(tls_sct_list);
     return success;
 }
 
@@ -478,14 +478,14 @@ static int test_encode_tls_sct(void)
     if (fixture == NULL)
         return 0;
 
-    fixture->sct_list = sk_SCT_new_null();
-    if (!TEST_ptr(sct = SCT_new_from_base64(SCT_VERSION_V1, log_id,
+    fixture->sct_list = sk_VR_SCT_new_null();
+    if (!TEST_ptr(sct = VR_SCT_new_from_base64(SCT_VERSION_V1, log_id,
                                             CT_LOG_ENTRY_TYPE_X509, timestamp,
                                             extensions, signature)))
 
         return 0;
 
-    sk_SCT_push(fixture->sct_list, sct);
+    sk_VR_SCT_push(fixture->sct_list, sct);
     fixture->sct_dir = ct_dir;
     fixture->sct_text_file = "tls1.sct";
     EXECUTE_CT_TEST();
@@ -499,9 +499,9 @@ static int test_encode_tls_sct(void)
 static int test_default_ct_policy_eval_ctx_time_is_now(void)
 {
     int success = 0;
-    CT_POLICY_EVAL_CTX *ct_policy_ctx = CT_POLICY_EVAL_CTX_new();
+    CT_POLICY_EVAL_CTX *ct_policy_ctx = VR_CT_POLICY_EVAL_CTX_new();
     const time_t default_time =
-        (time_t)(CT_POLICY_EVAL_CTX_get_time(ct_policy_ctx) / 1000);
+        (time_t)(VR_CT_POLICY_EVAL_CTX_get_time(ct_policy_ctx) / 1000);
     const time_t time_tolerance = 600;  /* 10 minutes */
 
     if (!TEST_time_t_le(abs((int)difftime(time(NULL), default_time)),
@@ -510,7 +510,7 @@ static int test_default_ct_policy_eval_ctx_time_is_now(void)
 
     success = 1;
 end:
-    CT_POLICY_EVAL_CTX_free(ct_policy_ctx);
+    VR_CT_POLICY_EVAL_CTX_free(ct_policy_ctx);
     return success;
 }
 
@@ -522,8 +522,8 @@ static int test_ctlog_from_base64(void)
     const char name[] = "name";
 
     /* We expect these to both fail! */
-    if (!TEST_true(!CTLOG_new_from_base64(&ctlogp, notb64, name))
-        || !TEST_true(!CTLOG_new_from_base64(&ctlogp, pad, name)))
+    if (!TEST_true(!VR_CTLOG_new_from_base64(&ctlogp, notb64, name))
+        || !TEST_true(!VR_CTLOG_new_from_base64(&ctlogp, pad, name)))
         return 0;
     return 1;
 }

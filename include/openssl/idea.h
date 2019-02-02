@@ -29,31 +29,31 @@ typedef struct idea_key_st {
     IDEA_INT data[9][6];
 } IDEA_KEY_SCHEDULE;
 
-const char *IDEA_options(void);
-void IDEA_ecb_encrypt(const unsigned char *in, unsigned char *out,
+const char *VR_IDEA_options(void);
+void VR_IDEA_ecb_encrypt(const unsigned char *in, unsigned char *out,
                       IDEA_KEY_SCHEDULE *ks);
-void IDEA_set_encrypt_key(const unsigned char *key, IDEA_KEY_SCHEDULE *ks);
-void IDEA_set_decrypt_key(IDEA_KEY_SCHEDULE *ek, IDEA_KEY_SCHEDULE *dk);
-void IDEA_cbc_encrypt(const unsigned char *in, unsigned char *out,
+void VR_IDEA_set_encrypt_key(const unsigned char *key, IDEA_KEY_SCHEDULE *ks);
+void VR_IDEA_set_decrypt_key(IDEA_KEY_SCHEDULE *ek, IDEA_KEY_SCHEDULE *dk);
+void VR_IDEA_cbc_encrypt(const unsigned char *in, unsigned char *out,
                       long length, IDEA_KEY_SCHEDULE *ks, unsigned char *iv,
                       int enc);
-void IDEA_cfb64_encrypt(const unsigned char *in, unsigned char *out,
+void VR_IDEA_cfb64_encrypt(const unsigned char *in, unsigned char *out,
                         long length, IDEA_KEY_SCHEDULE *ks, unsigned char *iv,
                         int *num, int enc);
-void IDEA_ofb64_encrypt(const unsigned char *in, unsigned char *out,
+void VR_IDEA_ofb64_encrypt(const unsigned char *in, unsigned char *out,
                         long length, IDEA_KEY_SCHEDULE *ks, unsigned char *iv,
                         int *num);
-void IDEA_encrypt(unsigned long *in, IDEA_KEY_SCHEDULE *ks);
+void VR_IDEA_encrypt(unsigned long *in, IDEA_KEY_SCHEDULE *ks);
 
 # if !OPENSSL_API_1_1_0
-#  define idea_options          IDEA_options
-#  define idea_ecb_encrypt      IDEA_ecb_encrypt
-#  define idea_set_encrypt_key  IDEA_set_encrypt_key
-#  define idea_set_decrypt_key  IDEA_set_decrypt_key
-#  define idea_cbc_encrypt      IDEA_cbc_encrypt
-#  define idea_cfb64_encrypt    IDEA_cfb64_encrypt
-#  define idea_ofb64_encrypt    IDEA_ofb64_encrypt
-#  define idea_encrypt          IDEA_encrypt
+#  define idea_options          VR_IDEA_options
+#  define idea_ecb_encrypt      VR_IDEA_ecb_encrypt
+#  define idea_set_encrypt_key  VR_IDEA_set_encrypt_key
+#  define idea_set_decrypt_key  VR_IDEA_set_decrypt_key
+#  define idea_cbc_encrypt      VR_IDEA_cbc_encrypt
+#  define idea_cfb64_encrypt    VR_IDEA_cfb64_encrypt
+#  define idea_ofb64_encrypt    VR_IDEA_ofb64_encrypt
+#  define idea_encrypt          VR_IDEA_encrypt
 # endif
 
 # ifdef  __cplusplus

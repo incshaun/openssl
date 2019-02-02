@@ -78,16 +78,16 @@ static BIO_METHOD *meth_mem = NULL;
 const BIO_METHOD *bio_f_tls_dump_filter(void)
 {
     if (method_tls_dump == NULL) {
-        method_tls_dump = BIO_meth_new(BIO_TYPE_TLS_DUMP_FILTER,
+        method_tls_dump = VR_BIO_meth_new(BIO_TYPE_TLS_DUMP_FILTER,
                                         "TLS dump filter");
         if (   method_tls_dump == NULL
-            || !BIO_meth_set_write(method_tls_dump, tls_dump_write)
-            || !BIO_meth_set_read(method_tls_dump, tls_dump_read)
-            || !BIO_meth_set_puts(method_tls_dump, tls_dump_puts)
-            || !BIO_meth_set_gets(method_tls_dump, tls_dump_gets)
-            || !BIO_meth_set_ctrl(method_tls_dump, tls_dump_ctrl)
-            || !BIO_meth_set_create(method_tls_dump, tls_dump_new)
-            || !BIO_meth_set_destroy(method_tls_dump, tls_dump_free))
+            || !VR_BIO_meth_set_write(method_tls_dump, tls_dump_write)
+            || !VR_BIO_meth_set_read(method_tls_dump, tls_dump_read)
+            || !VR_BIO_meth_set_puts(method_tls_dump, tls_dump_puts)
+            || !VR_BIO_meth_set_gets(method_tls_dump, tls_dump_gets)
+            || !VR_BIO_meth_set_ctrl(method_tls_dump, tls_dump_ctrl)
+            || !VR_BIO_meth_set_create(method_tls_dump, tls_dump_new)
+            || !VR_BIO_meth_set_destroy(method_tls_dump, tls_dump_free))
             return NULL;
     }
     return method_tls_dump;
@@ -95,18 +95,18 @@ const BIO_METHOD *bio_f_tls_dump_filter(void)
 
 void bio_f_tls_dump_filter_free(void)
 {
-    BIO_meth_free(method_tls_dump);
+    VR_BIO_meth_free(method_tls_dump);
 }
 
 static int tls_dump_new(BIO *bio)
 {
-    BIO_set_init(bio, 1);
+    VR_BIO_set_init(bio, 1);
     return 1;
 }
 
 static int tls_dump_free(BIO *bio)
 {
-    BIO_set_init(bio, 0);
+    VR_BIO_set_init(bio, 0);
 
     return 1;
 }
@@ -114,11 +114,11 @@ static int tls_dump_free(BIO *bio)
 static void copy_flags(BIO *bio)
 {
     int flags;
-    BIO *next = BIO_next(bio);
+    BIO *next = VR_BIO_next(bio);
 
-    flags = BIO_test_flags(next, BIO_FLAGS_SHOULD_RETRY | BIO_FLAGS_RWS);
-    BIO_clear_flags(bio, BIO_FLAGS_SHOULD_RETRY | BIO_FLAGS_RWS);
-    BIO_set_flags(bio, flags);
+    flags = VR_BIO_test_flags(next, BIO_FLAGS_SHOULD_RETRY | BIO_FLAGS_RWS);
+    VR_BIO_clear_flags(bio, BIO_FLAGS_SHOULD_RETRY | BIO_FLAGS_RWS);
+    VR_BIO_set_flags(bio, flags);
 }
 
 #define RECORD_CONTENT_TYPE     0
@@ -224,9 +224,9 @@ static void dump_data(const char *data, int len)
 static int tls_dump_read(BIO *bio, char *out, int outl)
 {
     int ret;
-    BIO *next = BIO_next(bio);
+    BIO *next = VR_BIO_next(bio);
 
-    ret = BIO_read(next, out, outl);
+    ret = VR_BIO_read(next, out, outl);
     copy_flags(bio);
 
     if (ret > 0) {
@@ -239,9 +239,9 @@ static int tls_dump_read(BIO *bio, char *out, int outl)
 static int tls_dump_write(BIO *bio, const char *in, int inl)
 {
     int ret;
-    BIO *next = BIO_next(bio);
+    BIO *next = VR_BIO_next(bio);
 
-    ret = BIO_write(next, in, inl);
+    ret = VR_BIO_write(next, in, inl);
     copy_flags(bio);
 
     return ret;
@@ -250,7 +250,7 @@ static int tls_dump_write(BIO *bio, const char *in, int inl)
 static long tls_dump_ctrl(BIO *bio, int cmd, long num, void *ptr)
 {
     long ret;
-    BIO *next = BIO_next(bio);
+    BIO *next = VR_BIO_next(bio);
 
     if (next == NULL)
         return 0;
@@ -260,7 +260,7 @@ static long tls_dump_ctrl(BIO *bio, int cmd, long num, void *ptr)
         ret = 0L;
         break;
     default:
-        ret = BIO_ctrl(next, cmd, num, ptr);
+        ret = VR_BIO_ctrl(next, cmd, num, ptr);
         break;
     }
     return ret;
@@ -288,8 +288,8 @@ struct mempacket_st {
 static void mempacket_free(MEMPACKET *pkt)
 {
     if (pkt->data != NULL)
-        OPENSSL_free(pkt->data);
-    OPENSSL_free(pkt);
+        OPENVR_SSL_free(pkt->data);
+    OPENVR_SSL_free(pkt);
 }
 
 typedef struct mempacket_test_ctx_st {
@@ -316,15 +316,15 @@ static int mempacket_test_puts(BIO *bp, const char *str);
 const BIO_METHOD *bio_s_mempacket_test(void)
 {
     if (meth_mem == NULL) {
-        if (!TEST_ptr(meth_mem = BIO_meth_new(BIO_TYPE_MEMPACKET_TEST,
+        if (!TEST_ptr(meth_mem = VR_BIO_meth_new(BIO_TYPE_MEMPACKET_TEST,
                                               "Mem Packet Test"))
-            || !TEST_true(BIO_meth_set_write(meth_mem, mempacket_test_write))
-            || !TEST_true(BIO_meth_set_read(meth_mem, mempacket_test_read))
-            || !TEST_true(BIO_meth_set_puts(meth_mem, mempacket_test_puts))
-            || !TEST_true(BIO_meth_set_gets(meth_mem, mempacket_test_gets))
-            || !TEST_true(BIO_meth_set_ctrl(meth_mem, mempacket_test_ctrl))
-            || !TEST_true(BIO_meth_set_create(meth_mem, mempacket_test_new))
-            || !TEST_true(BIO_meth_set_destroy(meth_mem, mempacket_test_free)))
+            || !TEST_true(VR_BIO_meth_set_write(meth_mem, mempacket_test_write))
+            || !TEST_true(VR_BIO_meth_set_read(meth_mem, mempacket_test_read))
+            || !TEST_true(VR_BIO_meth_set_puts(meth_mem, mempacket_test_puts))
+            || !TEST_true(VR_BIO_meth_set_gets(meth_mem, mempacket_test_gets))
+            || !TEST_true(VR_BIO_meth_set_ctrl(meth_mem, mempacket_test_ctrl))
+            || !TEST_true(VR_BIO_meth_set_create(meth_mem, mempacket_test_new))
+            || !TEST_true(VR_BIO_meth_set_destroy(meth_mem, mempacket_test_free)))
             return NULL;
     }
     return meth_mem;
@@ -332,7 +332,7 @@ const BIO_METHOD *bio_s_mempacket_test(void)
 
 void bio_s_mempacket_test_free(void)
 {
-    BIO_meth_free(meth_mem);
+    VR_BIO_meth_free(meth_mem);
 }
 
 static int mempacket_test_new(BIO *bio)
@@ -341,25 +341,25 @@ static int mempacket_test_new(BIO *bio)
 
     if (!TEST_ptr(ctx = OPENSSL_zalloc(sizeof(*ctx))))
         return 0;
-    if (!TEST_ptr(ctx->pkts = sk_MEMPACKET_new_null())) {
-        OPENSSL_free(ctx);
+    if (!TEST_ptr(ctx->pkts = sk_VR_MEMPACKET_new_null())) {
+        OPENVR_SSL_free(ctx);
         return 0;
     }
     ctx->dropepoch = 0;
     ctx->droprec = -1;
-    BIO_set_init(bio, 1);
-    BIO_set_data(bio, ctx);
+    VR_BIO_set_init(bio, 1);
+    VR_BIO_set_data(bio, ctx);
     return 1;
 }
 
 static int mempacket_test_free(BIO *bio)
 {
-    MEMPACKET_TEST_CTX *ctx = BIO_get_data(bio);
+    MEMPACKET_TEST_CTX *ctx = VR_BIO_get_data(bio);
 
-    sk_MEMPACKET_pop_free(ctx->pkts, mempacket_free);
-    OPENSSL_free(ctx);
-    BIO_set_data(bio, NULL);
-    BIO_set_init(bio, 0);
+    sk_VR_MEMPACKET_pop_free(ctx->pkts, mempacket_free);
+    OPENVR_SSL_free(ctx);
+    VR_BIO_set_data(bio, NULL);
+    VR_BIO_set_init(bio, 0);
     return 1;
 }
 
@@ -374,7 +374,7 @@ static int mempacket_test_free(BIO *bio)
 
 static int mempacket_test_read(BIO *bio, char *out, int outl)
 {
-    MEMPACKET_TEST_CTX *ctx = BIO_get_data(bio);
+    MEMPACKET_TEST_CTX *ctx = VR_BIO_get_data(bio);
     MEMPACKET *thispkt;
     unsigned char *rec;
     int rem;
@@ -387,7 +387,7 @@ static int mempacket_test_read(BIO *bio, char *out, int outl)
         BIO_set_retry_read(bio);
         return -1;
     }
-    (void)sk_MEMPACKET_shift(ctx->pkts);
+    (void)sk_VR_MEMPACKET_shift(ctx->pkts);
     ctx->currpkt++;
 
     if (outl > thispkt->len)
@@ -444,7 +444,7 @@ static int mempacket_test_read(BIO *bio, char *out, int outl)
 int mempacket_test_inject(BIO *bio, const char *in, int inl, int pktnum,
                           int type)
 {
-    MEMPACKET_TEST_CTX *ctx = BIO_get_data(bio);
+    MEMPACKET_TEST_CTX *ctx = VR_BIO_get_data(bio);
     MEMPACKET *thispkt = NULL, *looppkt, *nextpkt, *allpkts[3];
     int i, duprec;
     const unsigned char *inu = (const unsigned char *)in;
@@ -503,7 +503,7 @@ int mempacket_test_inject(BIO *bio, const char *in, int inl, int pktnum,
     for(i = 0; (looppkt = sk_MEMPACKET_value(ctx->pkts, i)) != NULL; i++) {
         /* Check if we found the right place to insert this packet */
         if (looppkt->num > thispkt->num) {
-            if (sk_MEMPACKET_insert(ctx->pkts, thispkt, i) == 0)
+            if (sk_VR_MEMPACKET_insert(ctx->pkts, thispkt, i) == 0)
                 goto err;
             /* If we're doing up front injection then we're done */
             if (pktnum >= 0)
@@ -537,7 +537,7 @@ int mempacket_test_inject(BIO *bio, const char *in, int inl, int pktnum,
      */
     for (i = 0; i < (duprec ? 3 : 1); i++) {
         thispkt = allpkts[i];
-        if (!sk_MEMPACKET_push(ctx->pkts, thispkt))
+        if (!sk_VR_MEMPACKET_push(ctx->pkts, thispkt))
             goto err;
 
         if (pktnum < 0)
@@ -560,7 +560,7 @@ static int mempacket_test_write(BIO *bio, const char *in, int inl)
 static long mempacket_test_ctrl(BIO *bio, int cmd, long num, void *ptr)
 {
     long ret = 1;
-    MEMPACKET_TEST_CTX *ctx = BIO_get_data(bio);
+    MEMPACKET_TEST_CTX *ctx = VR_BIO_get_data(bio);
     MEMPACKET *thispkt;
 
     switch (cmd) {
@@ -568,10 +568,10 @@ static long mempacket_test_ctrl(BIO *bio, int cmd, long num, void *ptr)
         ret = (long)(sk_MEMPACKET_num(ctx->pkts) == 0);
         break;
     case BIO_CTRL_GET_CLOSE:
-        ret = BIO_get_shutdown(bio);
+        ret = VR_BIO_get_shutdown(bio);
         break;
     case BIO_CTRL_SET_CLOSE:
-        BIO_set_shutdown(bio, (int)num);
+        VR_BIO_set_shutdown(bio, (int)num);
         break;
     case BIO_CTRL_WPENDING:
         ret = 0L;
@@ -628,8 +628,8 @@ int create_ssl_ctx_pair(const SSL_METHOD *sm, const SSL_METHOD *cm,
     SSL_CTX *serverctx = NULL;
     SSL_CTX *clientctx = NULL;
 
-    if (!TEST_ptr(serverctx = SSL_CTX_new(sm))
-            || (cctx != NULL && !TEST_ptr(clientctx = SSL_CTX_new(cm))))
+    if (!TEST_ptr(serverctx = VR_SSL_CTX_new(sm))
+            || (cctx != NULL && !TEST_ptr(clientctx = VR_SSL_CTX_new(cm))))
         goto err;
 
     if ((min_proto_version > 0
@@ -649,12 +649,12 @@ int create_ssl_ctx_pair(const SSL_METHOD *sm, const SSL_METHOD *cm,
         goto err;
 
     if (certfile != NULL && privkeyfile != NULL) {
-        if (!TEST_int_eq(SSL_CTX_use_certificate_file(serverctx, certfile,
+        if (!TEST_int_eq(VR_SSL_CTX_use_certificate_file(serverctx, certfile,
                                                       SSL_FILETYPE_PEM), 1)
-                || !TEST_int_eq(SSL_CTX_use_PrivateKey_file(serverctx,
+                || !TEST_int_eq(VR_SSL_CTX_use_PrivateKey_file(serverctx,
                                                             privkeyfile,
                                                             SSL_FILETYPE_PEM), 1)
-                || !TEST_int_eq(SSL_CTX_check_private_key(serverctx), 1))
+                || !TEST_int_eq(VR_SSL_CTX_check_private_key(serverctx), 1))
             goto err;
     }
 
@@ -668,8 +668,8 @@ int create_ssl_ctx_pair(const SSL_METHOD *sm, const SSL_METHOD *cm,
     return 1;
 
  err:
-    SSL_CTX_free(serverctx);
-    SSL_CTX_free(clientctx);
+    VR_SSL_CTX_free(serverctx);
+    VR_SSL_CTX_free(clientctx);
     return 0;
 }
 
@@ -757,28 +757,28 @@ int create_ssl_objects2(SSL_CTX *serverctx, SSL_CTX *clientctx, SSL **sssl,
 
     if (*sssl != NULL)
         serverssl = *sssl;
-    else if (!TEST_ptr(serverssl = SSL_new(serverctx)))
+    else if (!TEST_ptr(serverssl = VR_SSL_new(serverctx)))
         goto error;
     if (*cssl != NULL)
         clientssl = *cssl;
-    else if (!TEST_ptr(clientssl = SSL_new(clientctx)))
+    else if (!TEST_ptr(clientssl = VR_SSL_new(clientctx)))
         goto error;
 
-    if (!TEST_ptr(s_to_c_bio = BIO_new_socket(sfd, BIO_NOCLOSE))
-            || !TEST_ptr(c_to_s_bio = BIO_new_socket(cfd, BIO_NOCLOSE)))
+    if (!TEST_ptr(s_to_c_bio = VR_BIO_new_socket(sfd, BIO_NOCLOSE))
+            || !TEST_ptr(c_to_s_bio = VR_BIO_new_socket(cfd, BIO_NOCLOSE)))
         goto error;
 
-    SSL_set_bio(clientssl, c_to_s_bio, c_to_s_bio);
-    SSL_set_bio(serverssl, s_to_c_bio, s_to_c_bio);
+    VR_SSL_set_bio(clientssl, c_to_s_bio, c_to_s_bio);
+    VR_SSL_set_bio(serverssl, s_to_c_bio, s_to_c_bio);
     *sssl = serverssl;
     *cssl = clientssl;
     return 1;
 
  error:
-    SSL_free(serverssl);
-    SSL_free(clientssl);
-    BIO_free(s_to_c_bio);
-    BIO_free(c_to_s_bio);
+    VR_SSL_free(serverssl);
+    VR_SSL_free(clientssl);
+    VR_BIO_free(s_to_c_bio);
+    VR_BIO_free(c_to_s_bio);
     return 0;
 }
 #endif
@@ -794,28 +794,28 @@ int create_ssl_objects(SSL_CTX *serverctx, SSL_CTX *clientctx, SSL **sssl,
 
     if (*sssl != NULL)
         serverssl = *sssl;
-    else if (!TEST_ptr(serverssl = SSL_new(serverctx)))
+    else if (!TEST_ptr(serverssl = VR_SSL_new(serverctx)))
         goto error;
     if (*cssl != NULL)
         clientssl = *cssl;
-    else if (!TEST_ptr(clientssl = SSL_new(clientctx)))
+    else if (!TEST_ptr(clientssl = VR_SSL_new(clientctx)))
         goto error;
 
-    if (SSL_is_dtls(clientssl)) {
-        if (!TEST_ptr(s_to_c_bio = BIO_new(bio_s_mempacket_test()))
-                || !TEST_ptr(c_to_s_bio = BIO_new(bio_s_mempacket_test())))
+    if (VR_SSL_is_dtls(clientssl)) {
+        if (!TEST_ptr(s_to_c_bio = VR_BIO_new(bio_s_mempacket_test()))
+                || !TEST_ptr(c_to_s_bio = VR_BIO_new(bio_s_mempacket_test())))
             goto error;
     } else {
-        if (!TEST_ptr(s_to_c_bio = BIO_new(BIO_s_mem()))
-                || !TEST_ptr(c_to_s_bio = BIO_new(BIO_s_mem())))
+        if (!TEST_ptr(s_to_c_bio = VR_BIO_new(VR_BIO_s_mem()))
+                || !TEST_ptr(c_to_s_bio = VR_BIO_new(VR_BIO_s_mem())))
             goto error;
     }
 
     if (s_to_c_fbio != NULL
-            && !TEST_ptr(s_to_c_bio = BIO_push(s_to_c_fbio, s_to_c_bio)))
+            && !TEST_ptr(s_to_c_bio = VR_BIO_push(s_to_c_fbio, s_to_c_bio)))
         goto error;
     if (c_to_s_fbio != NULL
-            && !TEST_ptr(c_to_s_bio = BIO_push(c_to_s_fbio, c_to_s_bio)))
+            && !TEST_ptr(c_to_s_bio = VR_BIO_push(c_to_s_fbio, c_to_s_bio)))
         goto error;
 
     /* Set Non-blocking IO behaviour */
@@ -823,21 +823,21 @@ int create_ssl_objects(SSL_CTX *serverctx, SSL_CTX *clientctx, SSL **sssl,
     BIO_set_mem_eof_return(c_to_s_bio, -1);
 
     /* Up ref these as we are passing them to two SSL objects */
-    SSL_set_bio(serverssl, c_to_s_bio, s_to_c_bio);
-    BIO_up_ref(s_to_c_bio);
-    BIO_up_ref(c_to_s_bio);
-    SSL_set_bio(clientssl, s_to_c_bio, c_to_s_bio);
+    VR_SSL_set_bio(serverssl, c_to_s_bio, s_to_c_bio);
+    VR_BIO_up_ref(s_to_c_bio);
+    VR_BIO_up_ref(c_to_s_bio);
+    VR_SSL_set_bio(clientssl, s_to_c_bio, c_to_s_bio);
     *sssl = serverssl;
     *cssl = clientssl;
     return 1;
 
  error:
-    SSL_free(serverssl);
-    SSL_free(clientssl);
-    BIO_free(s_to_c_bio);
-    BIO_free(c_to_s_bio);
-    BIO_free(s_to_c_fbio);
-    BIO_free(c_to_s_fbio);
+    VR_SSL_free(serverssl);
+    VR_SSL_free(clientssl);
+    VR_BIO_free(s_to_c_bio);
+    VR_BIO_free(c_to_s_bio);
+    VR_BIO_free(s_to_c_fbio);
+    VR_BIO_free(c_to_s_fbio);
 
     return 0;
 }
@@ -845,7 +845,7 @@ int create_ssl_objects(SSL_CTX *serverctx, SSL_CTX *clientctx, SSL **sssl,
 /*
  * Create an SSL connection, but does not ready any post-handshake
  * NewSessionTicket messages.
- * If |read| is set and we're using DTLS then we will attempt to SSL_read on
+ * If |read| is set and we're using DTLS then we will attempt to VR_SSL_read on
  * the connection once we've completed one half of it, to ensure any retransmits
  * get triggered.
  */
@@ -854,18 +854,18 @@ int create_bare_ssl_connection(SSL *serverssl, SSL *clientssl, int want,
 {
     int retc = -1, rets = -1, err, abortctr = 0;
     int clienterr = 0, servererr = 0;
-    int isdtls = SSL_is_dtls(serverssl);
+    int isdtls = VR_SSL_is_dtls(serverssl);
 
     do {
         err = SSL_ERROR_WANT_WRITE;
         while (!clienterr && retc <= 0 && err == SSL_ERROR_WANT_WRITE) {
-            retc = SSL_connect(clientssl);
+            retc = VR_SSL_connect(clientssl);
             if (retc <= 0)
-                err = SSL_get_error(clientssl, retc);
+                err = VR_SSL_get_error(clientssl, retc);
         }
 
         if (!clienterr && retc <= 0 && err != SSL_ERROR_WANT_READ) {
-            TEST_info("SSL_connect() failed %d, %d", retc, err);
+            TEST_info("VR_SSL_connect() failed %d, %d", retc, err);
             clienterr = 1;
         }
         if (want != SSL_ERROR_NONE && err == want)
@@ -873,15 +873,15 @@ int create_bare_ssl_connection(SSL *serverssl, SSL *clientssl, int want,
 
         err = SSL_ERROR_WANT_WRITE;
         while (!servererr && rets <= 0 && err == SSL_ERROR_WANT_WRITE) {
-            rets = SSL_accept(serverssl);
+            rets = VR_SSL_accept(serverssl);
             if (rets <= 0)
-                err = SSL_get_error(serverssl, rets);
+                err = VR_SSL_get_error(serverssl, rets);
         }
 
         if (!servererr && rets <= 0
                 && err != SSL_ERROR_WANT_READ
                 && err != SSL_ERROR_WANT_X509_LOOKUP) {
-            TEST_info("SSL_accept() failed %d, %d", rets, err);
+            TEST_info("VR_SSL_accept() failed %d, %d", rets, err);
             servererr = 1;
         }
         if (want != SSL_ERROR_NONE && err == want)
@@ -893,16 +893,16 @@ int create_bare_ssl_connection(SSL *serverssl, SSL *clientssl, int want,
 
             /* Trigger any retransmits that may be appropriate */
             if (rets > 0 && retc <= 0) {
-                if (SSL_read(serverssl, buf, sizeof(buf)) > 0) {
+                if (VR_SSL_read(serverssl, buf, sizeof(buf)) > 0) {
                     /* We don't expect this to succeed! */
-                    TEST_info("Unexpected SSL_read() success!");
+                    TEST_info("Unexpected VR_SSL_read() success!");
                     return 0;
                 }
             }
             if (retc > 0 && rets <= 0) {
-                if (SSL_read(clientssl, buf, sizeof(buf)) > 0) {
+                if (VR_SSL_read(clientssl, buf, sizeof(buf)) > 0) {
                     /* We don't expect this to succeed! */
-                    TEST_info("Unexpected SSL_read() success!");
+                    TEST_info("Unexpected VR_SSL_read() success!");
                     return 0;
                 }
             }
@@ -943,10 +943,10 @@ int create_ssl_connection(SSL *serverssl, SSL *clientssl, int want)
      * appropriate. We do this twice because there are 2 NewSesionTickets.
      */
     for (i = 0; i < 2; i++) {
-        if (SSL_read_ex(clientssl, &buf, sizeof(buf), &readbytes) > 0) {
+        if (VR_SSL_read_ex(clientssl, &buf, sizeof(buf), &readbytes) > 0) {
             if (!TEST_ulong_eq(readbytes, 0))
                 return 0;
-        } else if (!TEST_int_eq(SSL_get_error(clientssl, 0),
+        } else if (!TEST_int_eq(VR_SSL_get_error(clientssl, 0),
                                 SSL_ERROR_WANT_READ)) {
             return 0;
         }
@@ -957,8 +957,8 @@ int create_ssl_connection(SSL *serverssl, SSL *clientssl, int want)
 
 void shutdown_ssl_connection(SSL *serverssl, SSL *clientssl)
 {
-    SSL_shutdown(clientssl);
-    SSL_shutdown(serverssl);
-    SSL_free(serverssl);
-    SSL_free(clientssl);
+    VR_SSL_shutdown(clientssl);
+    VR_SSL_shutdown(serverssl);
+    VR_SSL_free(serverssl);
+    VR_SSL_free(clientssl);
 }

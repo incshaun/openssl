@@ -263,10 +263,10 @@ $code=<<___;
 
 .set	noat
 .set	noreorder
-.globl	gcm_gmult_4bit
+.globl	VR_gcm_gmult_4bit
 .align	4
-.ent	gcm_gmult_4bit
-gcm_gmult_4bit:
+.ent	VR_gcm_gmult_4bit
+VR_gcm_gmult_4bit:
 	.frame	sp,0,ra
 	.prologue 0
 
@@ -322,17 +322,17 @@ $code.=<<___;
 	stq	$Xhi,0($Xi)
 
 	ret	(ra)
-.end	gcm_gmult_4bit
+.end	VR_gcm_gmult_4bit
 ___
 
 $inhi="s0";
 $inlo="s1";
 
 $code.=<<___;
-.globl	gcm_ghash_4bit
+.globl	VR_gcm_ghash_4bit
 .align	4
-.ent	gcm_ghash_4bit
-gcm_ghash_4bit:
+.ent	VR_gcm_ghash_4bit
+VR_gcm_ghash_4bit:
 	lda	sp,-32(sp)
 	stq	ra,0(sp)
 	stq	s0,8(sp)
@@ -440,7 +440,7 @@ $code.=<<___;
 	ldq	s1,16(sp)
 	lda	sp,32(sp)
 	ret	(ra)
-.end	gcm_ghash_4bit
+.end	VR_gcm_ghash_4bit
 
 .align	4
 .ent	picmeup

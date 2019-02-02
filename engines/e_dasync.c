@@ -43,18 +43,18 @@ static const char *engine_dasync_name = "Dummy Async engine support";
 
 /* Engine Lifetime functions */
 static int dasync_destroy(ENGINE *e);
-static int dasync_init(ENGINE *e);
+static int dVR_async_init(ENGINE *e);
 static int dasync_finish(ENGINE *e);
 void engine_load_dasync_int(void);
 
 
-/* Set up digests. Just SHA1 for now */
+/* Set up digests. Just VR_SHA1 for now */
 static int dasync_digests(ENGINE *e, const EVP_MD **digest,
                           const int **nids, int nid);
 
 static void dummy_pause_job(void);
 
-/* SHA1 */
+/* VR_SHA1 */
 static int dasync_sha1_init(EVP_MD_CTX *ctx);
 static int dasync_sha1_update(EVP_MD_CTX *ctx, const void *data,
                              size_t count);
@@ -71,7 +71,7 @@ static const EVP_MD *dasync_sha1(void)
 }
 static void destroy_digests(void)
 {
-    EVP_MD_meth_free(_hidden_sha1_md);
+    VR_EVP_MD_meth_free(_hidden_sha1_md);
     _hidden_sha1_md = NULL;
 }
 
@@ -84,7 +84,7 @@ static int dasync_digest_nids(const int **nids)
     if (!init) {
         const EVP_MD *md;
         if ((md = dasync_sha1()) != NULL)
-            digest_nids[pos++] = EVP_MD_type(md);
+            digest_nids[pos++] = VR_EVP_MD_type(md);
         digest_nids[pos] = 0;
         init = 1;
     }
@@ -165,8 +165,8 @@ static const EVP_CIPHER *dasync_aes_128_cbc_hmac_sha1(void)
 
 static void destroy_ciphers(void)
 {
-    EVP_CIPHER_meth_free(_hidden_aes_128_cbc);
-    EVP_CIPHER_meth_free(_hidden_aes_128_cbc_hmac_sha1);
+    VR_EVP_CIPHER_meth_free(_hidden_aes_128_cbc);
+    VR_EVP_CIPHER_meth_free(_hidden_aes_128_cbc_hmac_sha1);
     _hidden_aes_128_cbc = NULL;
     _hidden_aes_128_cbc_hmac_sha1 = NULL;
 }
@@ -183,15 +183,15 @@ static int dasync_cipher_nids[] = {
 static int bind_dasync(ENGINE *e)
 {
     /* Setup RSA_METHOD */
-    if ((dasync_rsa_method = RSA_meth_new("Dummy Async RSA method", 0)) == NULL
-        || RSA_meth_set_pub_enc(dasync_rsa_method, dasync_pub_enc) == 0
-        || RSA_meth_set_pub_dec(dasync_rsa_method, dasync_pub_dec) == 0
-        || RSA_meth_set_priv_enc(dasync_rsa_method, dasync_rsa_priv_enc) == 0
-        || RSA_meth_set_priv_dec(dasync_rsa_method, dasync_rsa_priv_dec) == 0
-        || RSA_meth_set_mod_exp(dasync_rsa_method, dasync_rsa_mod_exp) == 0
-        || RSA_meth_set_bn_mod_exp(dasync_rsa_method, BN_mod_exp_mont) == 0
-        || RSA_meth_set_init(dasync_rsa_method, dasync_rsa_init) == 0
-        || RSA_meth_set_finish(dasync_rsa_method, dasync_rsa_finish) == 0) {
+    if ((dasync_rsa_method = VR_RSA_meth_new("Dummy Async RSA method", 0)) == NULL
+        || VR_RSA_meth_set_pub_enc(dasync_rsa_method, dasync_pub_enc) == 0
+        || VR_RSA_meth_set_pub_dec(dasync_rsa_method, dasync_pub_dec) == 0
+        || VR_RSA_meth_set_priv_enc(dasync_rsa_method, dasync_rsa_priv_enc) == 0
+        || VR_RSA_meth_set_priv_dec(dasync_rsa_method, dasync_rsa_priv_dec) == 0
+        || VR_RSA_meth_set_mod_exp(dasync_rsa_method, dasync_rsa_mod_exp) == 0
+        || VR_RSA_meth_set_bn_mod_exp(dasync_rsa_method, VR_BN_mod_exp_mont) == 0
+        || VR_RSA_meth_set_init(dasync_rsa_method, dasync_rsa_init) == 0
+        || VR_RSA_meth_set_finish(dasync_rsa_method, dasync_rsa_finish) == 0) {
         DASYNCerr(DASYNC_F_BIND_DASYNC, DASYNC_R_INIT_FAILED);
         return 0;
     }
@@ -199,14 +199,14 @@ static int bind_dasync(ENGINE *e)
     /* Ensure the dasync error handling is set up */
     ERR_load_DASYNC_strings();
 
-    if (!ENGINE_set_id(e, engine_dasync_id)
-        || !ENGINE_set_name(e, engine_dasync_name)
-        || !ENGINE_set_RSA(e, dasync_rsa_method)
-        || !ENGINE_set_digests(e, dasync_digests)
-        || !ENGINE_set_ciphers(e, dasync_ciphers)
-        || !ENGINE_set_destroy_function(e, dasync_destroy)
-        || !ENGINE_set_init_function(e, dasync_init)
-        || !ENGINE_set_finish_function(e, dasync_finish)) {
+    if (!VR_ENGINE_set_id(e, engine_dasync_id)
+        || !VR_ENGINE_set_name(e, engine_dasync_name)
+        || !VR_ENGINE_set_RSA(e, dasync_rsa_method)
+        || !VR_ENGINE_set_digests(e, dasync_digests)
+        || !VR_ENGINE_set_ciphers(e, dasync_ciphers)
+        || !VR_ENGINE_set_destroy_function(e, dasync_destroy)
+        || !VR_ENGINE_set_init_function(e, dVR_async_init)
+        || !VR_ENGINE_set_finish_function(e, dasync_finish)) {
         DASYNCerr(DASYNC_F_BIND_DASYNC, DASYNC_R_INIT_FAILED);
         return 0;
     }
@@ -215,65 +215,65 @@ static int bind_dasync(ENGINE *e)
      * Set up the EVP_CIPHER and EVP_MD objects for the ciphers/digests
      * supplied by this engine
      */
-    _hidden_sha1_md = EVP_MD_meth_new(NID_sha1, NID_sha1WithRSAEncryption);
+    _hidden_sha1_md = VR_EVP_MD_meth_new(NID_sha1, NID_sha1WithRSAEncryption);
     if (_hidden_sha1_md == NULL
-        || !EVP_MD_meth_set_result_size(_hidden_sha1_md, SHA_DIGEST_LENGTH)
-        || !EVP_MD_meth_set_input_blocksize(_hidden_sha1_md, SHA_CBLOCK)
-        || !EVP_MD_meth_set_app_datasize(_hidden_sha1_md,
+        || !VR_EVP_MD_meth_set_result_size(_hidden_sha1_md, SHA_DIGEST_LENGTH)
+        || !VR_EVP_MD_meth_set_input_blocksize(_hidden_sha1_md, SHA_CBLOCK)
+        || !VR_EVP_MD_meth_set_app_datasize(_hidden_sha1_md,
                                          sizeof(EVP_MD *) + sizeof(SHA_CTX))
-        || !EVP_MD_meth_set_flags(_hidden_sha1_md, EVP_MD_FLAG_DIGALGID_ABSENT)
-        || !EVP_MD_meth_set_init(_hidden_sha1_md, dasync_sha1_init)
-        || !EVP_MD_meth_set_update(_hidden_sha1_md, dasync_sha1_update)
-        || !EVP_MD_meth_set_final(_hidden_sha1_md, dasync_sha1_final)) {
-        EVP_MD_meth_free(_hidden_sha1_md);
+        || !VR_EVP_MD_meth_set_flags(_hidden_sha1_md, EVP_MD_FLAG_DIGALGID_ABSENT)
+        || !VR_EVP_MD_meth_set_init(_hidden_sha1_md, dasync_sha1_init)
+        || !VR_EVP_MD_meth_set_update(_hidden_sha1_md, dasync_sha1_update)
+        || !VR_EVP_MD_meth_set_final(_hidden_sha1_md, dasync_sha1_final)) {
+        VR_EVP_MD_meth_free(_hidden_sha1_md);
         _hidden_sha1_md = NULL;
     }
 
-    _hidden_aes_128_cbc = EVP_CIPHER_meth_new(NID_aes_128_cbc,
+    _hidden_aes_128_cbc = VR_EVP_CIPHER_meth_new(NID_aes_128_cbc,
                                               16 /* block size */,
                                               16 /* key len */);
     if (_hidden_aes_128_cbc == NULL
-            || !EVP_CIPHER_meth_set_iv_length(_hidden_aes_128_cbc,16)
-            || !EVP_CIPHER_meth_set_flags(_hidden_aes_128_cbc,
+            || !VR_EVP_CIPHER_meth_set_iv_length(_hidden_aes_128_cbc,16)
+            || !VR_EVP_CIPHER_meth_set_flags(_hidden_aes_128_cbc,
                                           EVP_CIPH_FLAG_DEFAULT_ASN1
                                           | EVP_CIPH_CBC_MODE
                                           | EVP_CIPH_FLAG_PIPELINE)
-            || !EVP_CIPHER_meth_set_init(_hidden_aes_128_cbc,
+            || !VR_EVP_CIPHER_meth_set_init(_hidden_aes_128_cbc,
                                          dasync_aes128_init_key)
-            || !EVP_CIPHER_meth_set_do_cipher(_hidden_aes_128_cbc,
+            || !VR_EVP_CIPHER_meth_set_do_cipher(_hidden_aes_128_cbc,
                                               dasync_aes128_cbc_cipher)
-            || !EVP_CIPHER_meth_set_cleanup(_hidden_aes_128_cbc,
+            || !VR_EVP_CIPHER_meth_set_cleanup(_hidden_aes_128_cbc,
                                             dasync_aes128_cbc_cleanup)
-            || !EVP_CIPHER_meth_set_ctrl(_hidden_aes_128_cbc,
+            || !VR_EVP_CIPHER_meth_set_ctrl(_hidden_aes_128_cbc,
                                          dasync_aes128_cbc_ctrl)
-            || !EVP_CIPHER_meth_set_impl_ctx_size(_hidden_aes_128_cbc,
+            || !VR_EVP_CIPHER_meth_set_impl_ctx_size(_hidden_aes_128_cbc,
                                 sizeof(struct dasync_pipeline_ctx))) {
-        EVP_CIPHER_meth_free(_hidden_aes_128_cbc);
+        VR_EVP_CIPHER_meth_free(_hidden_aes_128_cbc);
         _hidden_aes_128_cbc = NULL;
     }
 
-    _hidden_aes_128_cbc_hmac_sha1 = EVP_CIPHER_meth_new(
+    _hidden_aes_128_cbc_hmac_sha1 = VR_EVP_CIPHER_meth_new(
                                                 NID_aes_128_cbc_hmac_sha1,
                                                 16 /* block size */,
                                                 16 /* key len */);
     if (_hidden_aes_128_cbc_hmac_sha1 == NULL
-            || !EVP_CIPHER_meth_set_iv_length(_hidden_aes_128_cbc_hmac_sha1,16)
-            || !EVP_CIPHER_meth_set_flags(_hidden_aes_128_cbc_hmac_sha1,
+            || !VR_EVP_CIPHER_meth_set_iv_length(_hidden_aes_128_cbc_hmac_sha1,16)
+            || !VR_EVP_CIPHER_meth_set_flags(_hidden_aes_128_cbc_hmac_sha1,
                                             EVP_CIPH_CBC_MODE
                                           | EVP_CIPH_FLAG_DEFAULT_ASN1
                                           | EVP_CIPH_FLAG_AEAD_CIPHER
                                           | EVP_CIPH_FLAG_PIPELINE)
-            || !EVP_CIPHER_meth_set_init(_hidden_aes_128_cbc_hmac_sha1,
+            || !VR_EVP_CIPHER_meth_set_init(_hidden_aes_128_cbc_hmac_sha1,
                                          dasync_aes128_cbc_hmac_sha1_init_key)
-            || !EVP_CIPHER_meth_set_do_cipher(_hidden_aes_128_cbc_hmac_sha1,
+            || !VR_EVP_CIPHER_meth_set_do_cipher(_hidden_aes_128_cbc_hmac_sha1,
                                             dasync_aes128_cbc_hmac_sha1_cipher)
-            || !EVP_CIPHER_meth_set_cleanup(_hidden_aes_128_cbc_hmac_sha1,
+            || !VR_EVP_CIPHER_meth_set_cleanup(_hidden_aes_128_cbc_hmac_sha1,
                                             dasync_aes128_cbc_hmac_sha1_cleanup)
-            || !EVP_CIPHER_meth_set_ctrl(_hidden_aes_128_cbc_hmac_sha1,
+            || !VR_EVP_CIPHER_meth_set_ctrl(_hidden_aes_128_cbc_hmac_sha1,
                                          dasync_aes128_cbc_hmac_sha1_ctrl)
-            || !EVP_CIPHER_meth_set_impl_ctx_size(_hidden_aes_128_cbc_hmac_sha1,
+            || !VR_EVP_CIPHER_meth_set_impl_ctx_size(_hidden_aes_128_cbc_hmac_sha1,
                                 sizeof(struct dasync_pipeline_ctx))) {
-        EVP_CIPHER_meth_free(_hidden_aes_128_cbc_hmac_sha1);
+        VR_EVP_CIPHER_meth_free(_hidden_aes_128_cbc_hmac_sha1);
         _hidden_aes_128_cbc_hmac_sha1 = NULL;
     }
 
@@ -296,11 +296,11 @@ IMPLEMENT_DYNAMIC_CHECK_FN()
 
 static ENGINE *engine_dasync(void)
 {
-    ENGINE *ret = ENGINE_new();
+    ENGINE *ret = VR_ENGINE_new();
     if (!ret)
         return NULL;
     if (!bind_dasync(ret)) {
-        ENGINE_free(ret);
+        VR_ENGINE_free(ret);
         return NULL;
     }
     return ret;
@@ -311,12 +311,12 @@ void engine_load_dasync_int(void)
     ENGINE *toadd = engine_dasync();
     if (!toadd)
         return;
-    ENGINE_add(toadd);
-    ENGINE_free(toadd);
-    ERR_clear_error();
+    VR_ENGINE_add(toadd);
+    VR_ENGINE_free(toadd);
+    VR_ERR_clear_error();
 }
 
-static int dasync_init(ENGINE *e)
+static int dVR_async_init(ENGINE *e)
 {
     return 1;
 }
@@ -332,7 +332,7 @@ static int dasync_destroy(ENGINE *e)
 {
     destroy_digests();
     destroy_ciphers();
-    RSA_meth_free(dasync_rsa_method);
+    VR_RSA_meth_free(dasync_rsa_method);
     ERR_unload_DASYNC_strings();
     return 1;
 }
@@ -395,7 +395,7 @@ static void wait_cleanup(ASYNC_WAIT_CTX *ctx, const void *key,
     close(readfd);
     close(*pwritefd);
 #endif
-    OPENSSL_free(pwritefd);
+    OPENVR_SSL_free(pwritefd);
 }
 
 #define DUMMY_CHAR 'X'
@@ -414,24 +414,24 @@ static void dummy_pause_job(void) {
     char buf = DUMMY_CHAR;
 #endif
 
-    if ((job = ASYNC_get_current_job()) == NULL)
+    if ((job = VR_ASYNC_get_current_job()) == NULL)
         return;
 
-    waitctx = ASYNC_get_wait_ctx(job);
+    waitctx = VR_ASYNC_get_wait_ctx(job);
 
-    if (ASYNC_WAIT_CTX_get_callback(waitctx, &callback, &callback_arg) && callback != NULL) {
+    if (VR_ASYNC_WAIT_CTX_get_callback(waitctx, &callback, &callback_arg) && callback != NULL) {
         /*
          * In the Dummy async engine we are cheating. We call the callback that the job
-         * is complete before the call to ASYNC_pause_job(). A real
+         * is complete before the call to VR_ASYNC_pause_job(). A real
          * async engine would only call the callback when the job was actually complete
          */
         (*callback)(callback_arg);
-        ASYNC_pause_job();
+        VR_ASYNC_pause_job();
         return;
     }
 
 
-    if (ASYNC_WAIT_CTX_get_fd(waitctx, engine_dasync_id, &pipefds[0],
+    if (VR_ASYNC_WAIT_CTX_get_fd(waitctx, engine_dasync_id, &pipefds[0],
                               (void **)&writefd)) {
         pipefds[1] = *writefd;
     } else {
@@ -440,18 +440,18 @@ static void dummy_pause_job(void) {
             return;
 #if defined(ASYNC_WIN)
         if (CreatePipe(&pipefds[0], &pipefds[1], NULL, 256) == 0) {
-            OPENSSL_free(writefd);
+            OPENVR_SSL_free(writefd);
             return;
         }
 #elif defined(ASYNC_POSIX)
         if (pipe(pipefds) != 0) {
-            OPENSSL_free(writefd);
+            OPENVR_SSL_free(writefd);
             return;
         }
 #endif
         *writefd = pipefds[1];
 
-        if (!ASYNC_WAIT_CTX_set_wait_fd(waitctx, engine_dasync_id, pipefds[0],
+        if (!VR_ASYNC_WAIT_CTX_set_wait_fd(waitctx, engine_dasync_id, pipefds[0],
                                         writefd, wait_cleanup)) {
             wait_cleanup(waitctx, engine_dasync_id, pipefds[0], writefd);
             return;
@@ -459,7 +459,7 @@ static void dummy_pause_job(void) {
     }
     /*
      * In the Dummy async engine we are cheating. We signal that the job
-     * is complete by waking it before the call to ASYNC_pause_job(). A real
+     * is complete by waking it before the call to VR_ASYNC_pause_job(). A real
      * async engine would only wake when the job was actually complete
      */
 #if defined(ASYNC_WIN)
@@ -470,7 +470,7 @@ static void dummy_pause_job(void) {
 #endif
 
     /* Ignore errors - we carry on anyway */
-    ASYNC_pause_job();
+    VR_ASYNC_pause_job();
 
     /* Clear the wake signal */
 #if defined(ASYNC_WIN)
@@ -482,16 +482,16 @@ static void dummy_pause_job(void) {
 }
 
 /*
- * SHA1 implementation. At the moment we just defer to the standard
+ * VR_SHA1 implementation. At the moment we just defer to the standard
  * implementation
  */
 #undef data
-#define data(ctx) ((SHA_CTX *)EVP_MD_CTX_md_data(ctx))
+#define data(ctx) ((SHA_CTX *)VR_EVP_MD_CTX_md_data(ctx))
 static int dasync_sha1_init(EVP_MD_CTX *ctx)
 {
     dummy_pause_job();
 
-    return SHA1_Init(data(ctx));
+    return VR_SHA1_Init(data(ctx));
 }
 
 static int dasync_sha1_update(EVP_MD_CTX *ctx, const void *data,
@@ -499,14 +499,14 @@ static int dasync_sha1_update(EVP_MD_CTX *ctx, const void *data,
 {
     dummy_pause_job();
 
-    return SHA1_Update(data(ctx), data, (size_t)count);
+    return VR_SHA1_Update(data(ctx), data, (size_t)count);
 }
 
 static int dasync_sha1_final(EVP_MD_CTX *ctx, unsigned char *md)
 {
     dummy_pause_job();
 
-    return SHA1_Final(md, data(ctx));
+    return VR_SHA1_Final(md, data(ctx));
 }
 
 /*
@@ -517,7 +517,7 @@ static int dasync_pub_enc(int flen, const unsigned char *from,
                     unsigned char *to, RSA *rsa, int padding) {
     /* Ignore errors - we carry on anyway */
     dummy_pause_job();
-    return RSA_meth_get_pub_enc(RSA_PKCS1_OpenSSL())
+    return VR_RSA_meth_get_pub_enc(VR_RSA_PKCS1_OpenSSL())
         (flen, from, to, rsa, padding);
 }
 
@@ -525,7 +525,7 @@ static int dasync_pub_dec(int flen, const unsigned char *from,
                     unsigned char *to, RSA *rsa, int padding) {
     /* Ignore errors - we carry on anyway */
     dummy_pause_job();
-    return RSA_meth_get_pub_dec(RSA_PKCS1_OpenSSL())
+    return VR_RSA_meth_get_pub_dec(VR_RSA_PKCS1_OpenSSL())
         (flen, from, to, rsa, padding);
 }
 
@@ -534,7 +534,7 @@ static int dasync_rsa_priv_enc(int flen, const unsigned char *from,
 {
     /* Ignore errors - we carry on anyway */
     dummy_pause_job();
-    return RSA_meth_get_priv_enc(RSA_PKCS1_OpenSSL())
+    return VR_RSA_meth_get_priv_enc(VR_RSA_PKCS1_OpenSSL())
         (flen, from, to, rsa, padding);
 }
 
@@ -543,7 +543,7 @@ static int dasync_rsa_priv_dec(int flen, const unsigned char *from,
 {
     /* Ignore errors - we carry on anyway */
     dummy_pause_job();
-    return RSA_meth_get_priv_dec(RSA_PKCS1_OpenSSL())
+    return VR_RSA_meth_get_priv_dec(VR_RSA_PKCS1_OpenSSL())
         (flen, from, to, rsa, padding);
 }
 
@@ -551,16 +551,16 @@ static int dasync_rsa_mod_exp(BIGNUM *r0, const BIGNUM *I, RSA *rsa, BN_CTX *ctx
 {
     /* Ignore errors - we carry on anyway */
     dummy_pause_job();
-    return RSA_meth_get_mod_exp(RSA_PKCS1_OpenSSL())(r0, I, rsa, ctx);
+    return VR_RSA_meth_get_mod_exp(VR_RSA_PKCS1_OpenSSL())(r0, I, rsa, ctx);
 }
 
 static int dasync_rsa_init(RSA *rsa)
 {
-    return RSA_meth_get_init(RSA_PKCS1_OpenSSL())(rsa);
+    return VR_RSA_meth_get_init(VR_RSA_PKCS1_OpenSSL())(rsa);
 }
 static int dasync_rsa_finish(RSA *rsa)
 {
-    return RSA_meth_get_finish(RSA_PKCS1_OpenSSL())(rsa);
+    return VR_RSA_meth_get_finish(VR_RSA_PKCS1_OpenSSL())(rsa);
 }
 
 /* Cipher helper functions */
@@ -570,7 +570,7 @@ static int dasync_cipher_ctrl_helper(EVP_CIPHER_CTX *ctx, int type, int arg,
 {
     int ret;
     struct dasync_pipeline_ctx *pipe_ctx =
-        (struct dasync_pipeline_ctx *)EVP_CIPHER_CTX_get_cipher_data(ctx);
+        (struct dasync_pipeline_ctx *)VR_EVP_CIPHER_CTX_get_cipher_data(ctx);
 
     if (pipe_ctx == NULL)
         return 0;
@@ -594,10 +594,10 @@ static int dasync_cipher_ctrl_helper(EVP_CIPHER_CTX *ctx, int type, int arg,
         case EVP_CTRL_AEAD_SET_MAC_KEY:
             if (!aeadcapable)
                 return -1;
-            EVP_CIPHER_CTX_set_cipher_data(ctx, pipe_ctx->inner_cipher_data);
-            ret = EVP_CIPHER_meth_get_ctrl(EVP_aes_128_cbc_hmac_sha1())
+            VR_EVP_CIPHER_CTX_set_cipher_data(ctx, pipe_ctx->inner_cipher_data);
+            ret = VR_EVP_CIPHER_meth_get_ctrl(VR_EVP_aes_128_cbc_hmac_sha1())
                                           (ctx, type, arg, ptr);
-            EVP_CIPHER_CTX_set_cipher_data(ctx, pipe_ctx);
+            VR_EVP_CIPHER_CTX_set_cipher_data(ctx, pipe_ctx);
             return ret;
 
         case EVP_CTRL_AEAD_TLS1_AAD:
@@ -645,12 +645,12 @@ static int dasync_cipher_init_key_helper(EVP_CIPHER_CTX *ctx,
 {
     int ret;
     struct dasync_pipeline_ctx *pipe_ctx =
-        (struct dasync_pipeline_ctx *)EVP_CIPHER_CTX_get_cipher_data(ctx);
+        (struct dasync_pipeline_ctx *)VR_EVP_CIPHER_CTX_get_cipher_data(ctx);
 
     if (pipe_ctx->inner_cipher_data == NULL
-            && EVP_CIPHER_impl_ctx_size(cipher) != 0) {
+            && VR_EVP_CIPHER_impl_ctx_size(cipher) != 0) {
         pipe_ctx->inner_cipher_data = OPENSSL_zalloc(
-            EVP_CIPHER_impl_ctx_size(cipher));
+            VR_EVP_CIPHER_impl_ctx_size(cipher));
         if (pipe_ctx->inner_cipher_data == NULL) {
             DASYNCerr(DASYNC_F_DASYNC_CIPHER_INIT_KEY_HELPER,
                         ERR_R_MALLOC_FAILURE);
@@ -661,9 +661,9 @@ static int dasync_cipher_init_key_helper(EVP_CIPHER_CTX *ctx,
     pipe_ctx->numpipes = 0;
     pipe_ctx->aadctr = 0;
 
-    EVP_CIPHER_CTX_set_cipher_data(ctx, pipe_ctx->inner_cipher_data);
-    ret = EVP_CIPHER_meth_get_init(cipher)(ctx, key, iv, enc);
-    EVP_CIPHER_CTX_set_cipher_data(ctx, pipe_ctx);
+    VR_EVP_CIPHER_CTX_set_cipher_data(ctx, pipe_ctx->inner_cipher_data);
+    ret = VR_EVP_CIPHER_meth_get_init(cipher)(ctx, key, iv, enc);
+    VR_EVP_CIPHER_CTX_set_cipher_data(ctx, pipe_ctx);
 
     return ret;
 }
@@ -675,39 +675,39 @@ static int dasync_cipher_helper(EVP_CIPHER_CTX *ctx, unsigned char *out,
     int ret = 1;
     unsigned int i, pipes;
     struct dasync_pipeline_ctx *pipe_ctx =
-        (struct dasync_pipeline_ctx *)EVP_CIPHER_CTX_get_cipher_data(ctx);
+        (struct dasync_pipeline_ctx *)VR_EVP_CIPHER_CTX_get_cipher_data(ctx);
 
     pipes = pipe_ctx->numpipes;
-    EVP_CIPHER_CTX_set_cipher_data(ctx, pipe_ctx->inner_cipher_data);
+    VR_EVP_CIPHER_CTX_set_cipher_data(ctx, pipe_ctx->inner_cipher_data);
     if (pipes == 0) {
         if (pipe_ctx->aadctr != 0) {
             if (pipe_ctx->aadctr != 1)
                 return -1;
-            EVP_CIPHER_meth_get_ctrl(cipher)
+            VR_EVP_CIPHER_meth_get_ctrl(cipher)
                                     (ctx, EVP_CTRL_AEAD_TLS1_AAD,
                                      EVP_AEAD_TLS1_AAD_LEN,
                                      pipe_ctx->tlsaad[0]);
         }
-        ret = EVP_CIPHER_meth_get_do_cipher(cipher)
+        ret = VR_EVP_CIPHER_meth_get_do_cipher(cipher)
                                            (ctx, out, in, inl);
     } else {
         if (pipe_ctx->aadctr > 0 && pipe_ctx->aadctr != pipes)
             return -1;
         for (i = 0; i < pipes; i++) {
             if (pipe_ctx->aadctr > 0) {
-                EVP_CIPHER_meth_get_ctrl(cipher)
+                VR_EVP_CIPHER_meth_get_ctrl(cipher)
                                         (ctx, EVP_CTRL_AEAD_TLS1_AAD,
                                          EVP_AEAD_TLS1_AAD_LEN,
                                          pipe_ctx->tlsaad[i]);
             }
-            ret = ret && EVP_CIPHER_meth_get_do_cipher(cipher)
+            ret = ret && VR_EVP_CIPHER_meth_get_do_cipher(cipher)
                                 (ctx, pipe_ctx->outbufs[i], pipe_ctx->inbufs[i],
                                  pipe_ctx->lens[i]);
         }
         pipe_ctx->numpipes = 0;
     }
     pipe_ctx->aadctr = 0;
-    EVP_CIPHER_CTX_set_cipher_data(ctx, pipe_ctx);
+    VR_EVP_CIPHER_CTX_set_cipher_data(ctx, pipe_ctx);
     return ret;
 }
 
@@ -715,10 +715,10 @@ static int dasync_cipher_cleanup_helper(EVP_CIPHER_CTX *ctx,
                                         const EVP_CIPHER *cipher)
 {
     struct dasync_pipeline_ctx *pipe_ctx =
-        (struct dasync_pipeline_ctx *)EVP_CIPHER_CTX_get_cipher_data(ctx);
+        (struct dasync_pipeline_ctx *)VR_EVP_CIPHER_CTX_get_cipher_data(ctx);
 
-    OPENSSL_clear_free(pipe_ctx->inner_cipher_data,
-                       EVP_CIPHER_impl_ctx_size(cipher));
+    OPENVR_SSL_clear_free(pipe_ctx->inner_cipher_data,
+                       VR_EVP_CIPHER_impl_ctx_size(cipher));
 
     return 1;
 }
@@ -736,23 +736,23 @@ static int dasync_aes128_cbc_ctrl(EVP_CIPHER_CTX *ctx, int type, int arg,
 static int dasync_aes128_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
                              const unsigned char *iv, int enc)
 {
-    return dasync_cipher_init_key_helper(ctx, key, iv, enc, EVP_aes_128_cbc());
+    return dasync_cipher_init_key_helper(ctx, key, iv, enc, VR_EVP_aes_128_cbc());
 }
 
 static int dasync_aes128_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                                const unsigned char *in, size_t inl)
 {
-    return dasync_cipher_helper(ctx, out, in, inl, EVP_aes_128_cbc());
+    return dasync_cipher_helper(ctx, out, in, inl, VR_EVP_aes_128_cbc());
 }
 
 static int dasync_aes128_cbc_cleanup(EVP_CIPHER_CTX *ctx)
 {
-    return dasync_cipher_cleanup_helper(ctx, EVP_aes_128_cbc());
+    return dasync_cipher_cleanup_helper(ctx, VR_EVP_aes_128_cbc());
 }
 
 
 /*
- * AES128 CBC HMAC SHA1 Implementation
+ * AES128 CBC VR_HMAC VR_SHA1 Implementation
  */
 
 static int dasync_aes128_cbc_hmac_sha1_ctrl(EVP_CIPHER_CTX *ctx, int type,
@@ -767,7 +767,7 @@ static int dasync_aes128_cbc_hmac_sha1_init_key(EVP_CIPHER_CTX *ctx,
                                                 int enc)
 {
     return dasync_cipher_init_key_helper(ctx, key, iv, enc,
-                                         EVP_aes_128_cbc_hmac_sha1());
+                                         VR_EVP_aes_128_cbc_hmac_sha1());
 }
 
 static int dasync_aes128_cbc_hmac_sha1_cipher(EVP_CIPHER_CTX *ctx,
@@ -775,10 +775,10 @@ static int dasync_aes128_cbc_hmac_sha1_cipher(EVP_CIPHER_CTX *ctx,
                                                const unsigned char *in,
                                                size_t inl)
 {
-    return dasync_cipher_helper(ctx, out, in, inl, EVP_aes_128_cbc_hmac_sha1());
+    return dasync_cipher_helper(ctx, out, in, inl, VR_EVP_aes_128_cbc_hmac_sha1());
 }
 
 static int dasync_aes128_cbc_hmac_sha1_cleanup(EVP_CIPHER_CTX *ctx)
 {
-    return dasync_cipher_cleanup_helper(ctx, EVP_aes_128_cbc_hmac_sha1());
+    return dasync_cipher_cleanup_helper(ctx, VR_EVP_aes_128_cbc_hmac_sha1());
 }

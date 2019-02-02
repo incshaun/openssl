@@ -52,7 +52,7 @@
 #
 # CFB and OFB results are far from the limit, because implementation
 # uses "generic" CRYPTO_[c|o]fb128_encrypt interfaces relying on
-# single-block aesni_encrypt, which is not the most optimal way to go.
+# single-block VR_aesni_encrypt, which is not the most optimal way to go.
 # CBC encrypt result is unexpectedly high and there is no documented
 # explanation for it. Seemingly there is a small penalty for feeding
 # the result back to AES unit the way it's done in CBC mode. There is
@@ -270,10 +270,10 @@ ___
 { my ($inp,$out,$key) = @_4args;
 
 $code.=<<___;
-.globl	${PREFIX}_encrypt
-.type	${PREFIX}_encrypt,\@abi-omnipotent
+.globl	VR_${PREFIX}_encrypt
+.type	VR_${PREFIX}_encrypt,\@abi-omnipotent
 .align	16
-${PREFIX}_encrypt:
+VR_${PREFIX}_encrypt:
 	movups	($inp),$inout0		# load input
 	mov	240($key),$rounds	# key->rounds
 ___
@@ -284,12 +284,12 @@ $code.=<<___;
 	movups	$inout0,($out)		# output
 	 pxor	$inout0,$inout0
 	ret
-.size	${PREFIX}_encrypt,.-${PREFIX}_encrypt
+.size	VR_${PREFIX}_encrypt,.-VR_${PREFIX}_encrypt
 
-.globl	${PREFIX}_decrypt
-.type	${PREFIX}_decrypt,\@abi-omnipotent
+.globl	VR_${PREFIX}_decrypt
+.type	VR_${PREFIX}_decrypt,\@abi-omnipotent
 .align	16
-${PREFIX}_decrypt:
+VR_${PREFIX}_decrypt:
 	movups	($inp),$inout0		# load input
 	mov	240($key),$rounds	# key->rounds
 ___
@@ -300,7 +300,7 @@ $code.=<<___;
 	movups	$inout0,($out)		# output
 	 pxor	$inout0,$inout0
 	ret
-.size	${PREFIX}_decrypt, .-${PREFIX}_decrypt
+.size	VR_${PREFIX}_decrypt, .-VR_${PREFIX}_decrypt
 ___
 }
 
@@ -590,14 +590,14 @@ ___
 
 if ($PREFIX eq "aesni") {
 ########################################################################
-# void aesni_ecb_encrypt (const void *in, void *out,
+# void VR_aesni_ecb_encrypt (const void *in, void *out,
 #			  size_t length, const AES_KEY *key,
 #			  int enc);
 $code.=<<___;
-.globl	aesni_ecb_encrypt
-.type	aesni_ecb_encrypt,\@function,5
+.globl	VR_aesni_ecb_encrypt
+.type	VR_aesni_ecb_encrypt,\@function,5
 .align	16
-aesni_ecb_encrypt:
+VR_aesni_ecb_encrypt:
 ___
 $code.=<<___ if ($win64);
 	lea	-0x58(%rsp),%rsp
@@ -943,7 +943,7 @@ $code.=<<___ if ($win64);
 ___
 $code.=<<___;
 	ret
-.size	aesni_ecb_encrypt,.-aesni_ecb_encrypt
+.size	VR_aesni_ecb_encrypt,.-VR_aesni_ecb_encrypt
 ___
 
 {
@@ -964,10 +964,10 @@ my $iv="%xmm6";
 my $bswap_mask="%xmm7";
 
 $code.=<<___;
-.globl	aesni_ccm64_encrypt_blocks
-.type	aesni_ccm64_encrypt_blocks,\@function,6
+.globl	VR_aesni_ccm64_encrypt_blocks
+.type	VR_aesni_ccm64_encrypt_blocks,\@function,6
 .align	16
-aesni_ccm64_encrypt_blocks:
+VR_aesni_ccm64_encrypt_blocks:
 ___
 $code.=<<___ if ($win64);
 	lea	-0x58(%rsp),%rsp
@@ -1050,14 +1050,14 @@ $code.=<<___ if ($win64);
 ___
 $code.=<<___;
 	ret
-.size	aesni_ccm64_encrypt_blocks,.-aesni_ccm64_encrypt_blocks
+.size	VR_aesni_ccm64_encrypt_blocks,.-VR_aesni_ccm64_encrypt_blocks
 ___
 ######################################################################
 $code.=<<___;
-.globl	aesni_ccm64_decrypt_blocks
-.type	aesni_ccm64_decrypt_blocks,\@function,6
+.globl	VR_aesni_ccm64_decrypt_blocks
+.type	VR_aesni_ccm64_decrypt_blocks,\@function,6
 .align	16
-aesni_ccm64_decrypt_blocks:
+VR_aesni_ccm64_decrypt_blocks:
 ___
 $code.=<<___ if ($win64);
 	lea	-0x58(%rsp),%rsp
@@ -1157,11 +1157,11 @@ $code.=<<___ if ($win64);
 ___
 $code.=<<___;
 	ret
-.size	aesni_ccm64_decrypt_blocks,.-aesni_ccm64_decrypt_blocks
+.size	VR_aesni_ccm64_decrypt_blocks,.-VR_aesni_ccm64_decrypt_blocks
 ___
 }
 ######################################################################
-# void aesni_ctr32_encrypt_blocks (const void *in, void *out,
+# void VR_aesni_ctr32_encrypt_blocks (const void *in, void *out,
 #                         size_t blocks, const AES_KEY *key,
 #                         const char *ivec);
 #
@@ -1178,10 +1178,10 @@ my ($key0,$ctr)=("%ebp","${ivp}d");
 my $frame_size = 0x80 + ($win64?160:0);
 
 $code.=<<___;
-.globl	aesni_ctr32_encrypt_blocks
-.type	aesni_ctr32_encrypt_blocks,\@function,5
+.globl	VR_aesni_ctr32_encrypt_blocks
+.type	VR_aesni_ctr32_encrypt_blocks,\@function,5
 .align	16
-aesni_ctr32_encrypt_blocks:
+VR_aesni_ctr32_encrypt_blocks:
 .cfi_startproc
 	cmp	\$1,$len
 	jne	.Lctr32_bulk
@@ -1733,7 +1733,7 @@ $code.=<<___;
 .Lctr32_epilogue:
 	ret
 .cfi_endproc
-.size	aesni_ctr32_encrypt_blocks,.-aesni_ctr32_encrypt_blocks
+.size	VR_aesni_ctr32_encrypt_blocks,.-VR_aesni_ctr32_encrypt_blocks
 ___
 }
 
@@ -1750,10 +1750,10 @@ my $frame_size = 0x70 + ($win64?160:0);
 my $key_ = "%rbp";	# override so that we can use %r11 as FP
 
 $code.=<<___;
-.globl	aesni_xts_encrypt
-.type	aesni_xts_encrypt,\@function,6
+.globl	VR_aesni_xts_encrypt
+.type	VR_aesni_xts_encrypt,\@function,6
 .align	16
-aesni_xts_encrypt:
+VR_aesni_xts_encrypt:
 .cfi_startproc
 	lea	(%rsp),%r11			# frame pointer
 .cfi_def_cfa_register	%r11
@@ -2229,14 +2229,14 @@ $code.=<<___;
 .Lxts_enc_epilogue:
 	ret
 .cfi_endproc
-.size	aesni_xts_encrypt,.-aesni_xts_encrypt
+.size	VR_aesni_xts_encrypt,.-VR_aesni_xts_encrypt
 ___
 
 $code.=<<___;
-.globl	aesni_xts_decrypt
-.type	aesni_xts_decrypt,\@function,6
+.globl	VR_aesni_xts_decrypt
+.type	VR_aesni_xts_decrypt,\@function,6
 .align	16
-aesni_xts_decrypt:
+VR_aesni_xts_decrypt:
 .cfi_startproc
 	lea	(%rsp),%r11			# frame pointer
 .cfi_def_cfa_register	%r11
@@ -2738,7 +2738,7 @@ $code.=<<___;
 .Lxts_dec_epilogue:
 	ret
 .cfi_endproc
-.size	aesni_xts_decrypt,.-aesni_xts_decrypt
+.size	VR_aesni_xts_decrypt,.-VR_aesni_xts_decrypt
 ___
 }
 
@@ -2758,10 +2758,10 @@ my $seventh_arg = $win64 ? 56 : 8;
 my $blocks = $len;
 
 $code.=<<___;
-.globl	aesni_ocb_encrypt
-.type	aesni_ocb_encrypt,\@function,6
+.globl	VR_aesni_ocb_encrypt
+.type	VR_aesni_ocb_encrypt,\@function,6
 .align	32
-aesni_ocb_encrypt:
+VR_aesni_ocb_encrypt:
 .cfi_startproc
 	lea	(%rsp),%rax
 	push	%rbx
@@ -3010,7 +3010,7 @@ $code.=<<___;
 .Locb_enc_epilogue:
 	ret
 .cfi_endproc
-.size	aesni_ocb_encrypt,.-aesni_ocb_encrypt
+.size	VR_aesni_ocb_encrypt,.-VR_aesni_ocb_encrypt
 
 .type	__ocb_encrypt6,\@abi-omnipotent
 .align	32
@@ -3218,10 +3218,10 @@ __ocb_encrypt1:
 	ret
 .size	__ocb_encrypt1,.-__ocb_encrypt1
 
-.globl	aesni_ocb_decrypt
-.type	aesni_ocb_decrypt,\@function,6
+.globl	VR_aesni_ocb_decrypt
+.type	VR_aesni_ocb_decrypt,\@function,6
 .align	32
-aesni_ocb_decrypt:
+VR_aesni_ocb_decrypt:
 .cfi_startproc
 	lea	(%rsp),%rax
 	push	%rbx
@@ -3492,7 +3492,7 @@ $code.=<<___;
 .Locb_dec_epilogue:
 	ret
 .cfi_endproc
-.size	aesni_ocb_decrypt,.-aesni_ocb_decrypt
+.size	VR_aesni_ocb_decrypt,.-VR_aesni_ocb_decrypt
 
 .type	__ocb_decrypt6,\@abi-omnipotent
 .align	32
@@ -3700,10 +3700,10 @@ my $frame_size = 0x10 + ($win64?0xa0:0);	# used in decrypt
 my ($iv,$in0,$in1,$in2,$in3,$in4)=map("%xmm$_",(10..15));
 
 $code.=<<___;
-.globl	${PREFIX}_cbc_encrypt
-.type	${PREFIX}_cbc_encrypt,\@function,6
+.globl	VR_${PREFIX}_cbc_encrypt
+.type	VR_${PREFIX}_cbc_encrypt,\@function,6
 .align	16
-${PREFIX}_cbc_encrypt:
+VR_${PREFIX}_cbc_encrypt:
 .cfi_startproc
 	test	$len,$len		# check length
 	jz	.Lcbc_ret
@@ -4232,7 +4232,7 @@ $code.=<<___;
 .Lcbc_ret:
 	ret
 .cfi_endproc
-.size	${PREFIX}_cbc_encrypt,.-${PREFIX}_cbc_encrypt
+.size	VR_${PREFIX}_cbc_encrypt,.-VR_${PREFIX}_cbc_encrypt
 ___
 } 
 # int ${PREFIX}_set_decrypt_key(const unsigned char *inp,
@@ -4248,10 +4248,10 @@ ___
   $bits =~ s/%r/%e/;
 
 $code.=<<___;
-.globl	${PREFIX}_set_decrypt_key
-.type	${PREFIX}_set_decrypt_key,\@abi-omnipotent
+.globl	VR_${PREFIX}_set_decrypt_key
+.type	VR_${PREFIX}_set_decrypt_key,\@abi-omnipotent
 .align	16
-${PREFIX}_set_decrypt_key:
+VR_${PREFIX}_set_decrypt_key:
 .cfi_startproc
 	.byte	0x48,0x83,0xEC,0x08	# sub rsp,8
 .cfi_adjust_cfa_offset	8
@@ -4291,7 +4291,7 @@ ${PREFIX}_set_decrypt_key:
 	ret
 .cfi_endproc
 .LSEH_end_set_decrypt_key:
-.size	${PREFIX}_set_decrypt_key,.-${PREFIX}_set_decrypt_key
+.size	VR_${PREFIX}_set_decrypt_key,.-VR_${PREFIX}_set_decrypt_key
 ___
 
 # This is based on submission from Intel by
@@ -4309,20 +4309,20 @@ ___
 #		$bits	$inp length in bits
 #		$key	pointer to key schedule
 # output:	%eax	0 denoting success, -1 or -2 - failure (see C)
-#		$bits	rounds-1 (used in aesni_set_decrypt_key)
+#		$bits	rounds-1 (used in VR_aesni_set_decrypt_key)
 #		*$key	key schedule
 #		$key	pointer to key schedule (used in
-#			aesni_set_decrypt_key)
+#			VR_aesni_set_decrypt_key)
 #
 # Subroutine is frame-less, which means that only volatile registers
 # are used. Note that it's declared "abi-omnipotent", which means that
 # amount of volatile registers is smaller on Windows.
 #
 $code.=<<___;
-.globl	${PREFIX}_set_encrypt_key
-.type	${PREFIX}_set_encrypt_key,\@abi-omnipotent
+.globl	VR_${PREFIX}_set_encrypt_key
+.type	VR_${PREFIX}_set_encrypt_key,\@abi-omnipotent
 .align	16
-${PREFIX}_set_encrypt_key:
+VR_${PREFIX}_set_encrypt_key:
 __aesni_set_encrypt_key:
 .cfi_startproc
 	.byte	0x48,0x83,0xEC,0x08	# sub rsp,8
@@ -4692,7 +4692,7 @@ __aesni_set_encrypt_key:
 	shufps	\$0b10101010,%xmm1,%xmm1	# critical path
 	xorps	%xmm1,%xmm2
 	ret
-.size	${PREFIX}_set_encrypt_key,.-${PREFIX}_set_encrypt_key
+.size	VR_${PREFIX}_set_encrypt_key,.-VR_${PREFIX}_set_encrypt_key
 .size	__aesni_set_encrypt_key,.-__aesni_set_encrypt_key
 ___
 }
@@ -4966,36 +4966,36 @@ cbc_se_handler:
 .align	4
 ___
 $code.=<<___ if ($PREFIX eq "aesni");
-	.rva	.LSEH_begin_aesni_ecb_encrypt
-	.rva	.LSEH_end_aesni_ecb_encrypt
+	.rva	.LSEH_begin_VR_aesni_ecb_encrypt
+	.rva	.LSEH_end_VR_aesni_ecb_encrypt
 	.rva	.LSEH_info_ecb
 
-	.rva	.LSEH_begin_aesni_ccm64_encrypt_blocks
-	.rva	.LSEH_end_aesni_ccm64_encrypt_blocks
+	.rva	.LSEH_begin_VR_aesni_ccm64_encrypt_blocks
+	.rva	.LSEH_end_VR_aesni_ccm64_encrypt_blocks
 	.rva	.LSEH_info_ccm64_enc
 
-	.rva	.LSEH_begin_aesni_ccm64_decrypt_blocks
-	.rva	.LSEH_end_aesni_ccm64_decrypt_blocks
+	.rva	.LSEH_begin_VR_aesni_ccm64_decrypt_blocks
+	.rva	.LSEH_end_VR_aesni_ccm64_decrypt_blocks
 	.rva	.LSEH_info_ccm64_dec
 
-	.rva	.LSEH_begin_aesni_ctr32_encrypt_blocks
-	.rva	.LSEH_end_aesni_ctr32_encrypt_blocks
+	.rva	.LSEH_begin_VR_aesni_ctr32_encrypt_blocks
+	.rva	.LSEH_end_VR_aesni_ctr32_encrypt_blocks
 	.rva	.LSEH_info_ctr32
 
-	.rva	.LSEH_begin_aesni_xts_encrypt
-	.rva	.LSEH_end_aesni_xts_encrypt
+	.rva	.LSEH_begin_VR_aesni_xts_encrypt
+	.rva	.LSEH_end_VR_aesni_xts_encrypt
 	.rva	.LSEH_info_xts_enc
 
-	.rva	.LSEH_begin_aesni_xts_decrypt
-	.rva	.LSEH_end_aesni_xts_decrypt
+	.rva	.LSEH_begin_VR_aesni_xts_decrypt
+	.rva	.LSEH_end_VR_aesni_xts_decrypt
 	.rva	.LSEH_info_xts_dec
 
-	.rva	.LSEH_begin_aesni_ocb_encrypt
-	.rva	.LSEH_end_aesni_ocb_encrypt
+	.rva	.LSEH_begin_VR_aesni_ocb_encrypt
+	.rva	.LSEH_end_VR_aesni_ocb_encrypt
 	.rva	.LSEH_info_ocb_enc
 
-	.rva	.LSEH_begin_aesni_ocb_decrypt
-	.rva	.LSEH_end_aesni_ocb_decrypt
+	.rva	.LSEH_begin_VR_aesni_ocb_decrypt
+	.rva	.LSEH_end_VR_aesni_ocb_decrypt
 	.rva	.LSEH_info_ocb_dec
 ___
 $code.=<<___;

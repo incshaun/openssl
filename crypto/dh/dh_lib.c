@@ -14,7 +14,7 @@
 #include "dh_locl.h"
 #include <openssl/engine.h>
 
-int DH_set_method(DH *dh, const DH_METHOD *meth)
+int VR_DH_set_method(DH *dh, const DH_METHOD *meth)
 {
     /*
      * NB: The caller is specifically setting a method, so it's not up to us
@@ -25,7 +25,7 @@ int DH_set_method(DH *dh, const DH_METHOD *meth)
     if (mtmp->finish)
         mtmp->finish(dh);
 #ifndef OPENSSL_NO_ENGINE
-    ENGINE_finish(dh->engine);
+    VR_ENGINE_finish(dh->engine);
     dh->engine = NULL;
 #endif
     dh->meth = meth;
@@ -34,12 +34,12 @@ int DH_set_method(DH *dh, const DH_METHOD *meth)
     return 1;
 }
 
-DH *DH_new(void)
+DH *VR_DH_new(void)
 {
-    return DH_new_method(NULL);
+    return VR_DH_new_method(NULL);
 }
 
-DH *DH_new_method(ENGINE *engine)
+DH *VR_DH_new_method(ENGINE *engine)
 {
     DH *ret = OPENSSL_zalloc(sizeof(*ret));
 
@@ -49,26 +49,26 @@ DH *DH_new_method(ENGINE *engine)
     }
 
     ret->references = 1;
-    ret->lock = CRYPTO_THREAD_lock_new();
+    ret->lock = VR_CRYPTO_THREAD_lock_new();
     if (ret->lock == NULL) {
         DHerr(DH_F_DH_NEW_METHOD, ERR_R_MALLOC_FAILURE);
-        OPENSSL_free(ret);
+        OPENVR_SSL_free(ret);
         return NULL;
     }
 
-    ret->meth = DH_get_default_method();
+    ret->meth = VR_DH_get_default_method();
 #ifndef OPENSSL_NO_ENGINE
     ret->flags = ret->meth->flags;  /* early default init */
     if (engine) {
-        if (!ENGINE_init(engine)) {
+        if (!VR_ENGINE_init(engine)) {
             DHerr(DH_F_DH_NEW_METHOD, ERR_R_ENGINE_LIB);
             goto err;
         }
         ret->engine = engine;
     } else
-        ret->engine = ENGINE_get_default_DH();
+        ret->engine = VR_ENGINE_get_default_DH();
     if (ret->engine) {
-        ret->meth = ENGINE_get_DH(ret->engine);
+        ret->meth = VR_ENGINE_get_DH(ret->engine);
         if (ret->meth == NULL) {
             DHerr(DH_F_DH_NEW_METHOD, ERR_R_ENGINE_LIB);
             goto err;
@@ -78,7 +78,7 @@ DH *DH_new_method(ENGINE *engine)
 
     ret->flags = ret->meth->flags;
 
-    if (!CRYPTO_new_ex_data(CRYPTO_EX_INDEX_DH, ret, &ret->ex_data))
+    if (!VR_CRYPTO_new_ex_data(CRYPTO_EX_INDEX_DH, ret, &ret->ex_data))
         goto err;
 
     if ((ret->meth->init != NULL) && !ret->meth->init(ret)) {
@@ -89,11 +89,11 @@ DH *DH_new_method(ENGINE *engine)
     return ret;
 
  err:
-    DH_free(ret);
+    VR_DH_free(ret);
     return NULL;
 }
 
-void DH_free(DH *r)
+void VR_DH_free(DH *r)
 {
     int i;
 
@@ -109,25 +109,25 @@ void DH_free(DH *r)
     if (r->meth != NULL && r->meth->finish != NULL)
         r->meth->finish(r);
 #ifndef OPENSSL_NO_ENGINE
-    ENGINE_finish(r->engine);
+    VR_ENGINE_finish(r->engine);
 #endif
 
-    CRYPTO_free_ex_data(CRYPTO_EX_INDEX_DH, r, &r->ex_data);
+    VR_CRYPTO_free_ex_data(CRYPTO_EX_INDEX_DH, r, &r->ex_data);
 
-    CRYPTO_THREAD_lock_free(r->lock);
+    VR_CRYPTO_THREAD_lock_free(r->lock);
 
-    BN_clear_free(r->p);
-    BN_clear_free(r->g);
-    BN_clear_free(r->q);
-    BN_clear_free(r->j);
-    OPENSSL_free(r->seed);
-    BN_clear_free(r->counter);
-    BN_clear_free(r->pub_key);
-    BN_clear_free(r->priv_key);
-    OPENSSL_free(r);
+    VR_BN_clear_free(r->p);
+    VR_BN_clear_free(r->g);
+    VR_BN_clear_free(r->q);
+    VR_BN_clear_free(r->j);
+    OPENVR_SSL_free(r->seed);
+    VR_BN_clear_free(r->counter);
+    VR_BN_clear_free(r->pub_key);
+    VR_BN_clear_free(r->priv_key);
+    OPENVR_SSL_free(r);
 }
 
-int DH_up_ref(DH *r)
+int VR_DH_up_ref(DH *r)
 {
     int i;
 
@@ -139,40 +139,40 @@ int DH_up_ref(DH *r)
     return ((i > 1) ? 1 : 0);
 }
 
-int DH_set_ex_data(DH *d, int idx, void *arg)
+int VR_DH_set_ex_data(DH *d, int idx, void *arg)
 {
-    return CRYPTO_set_ex_data(&d->ex_data, idx, arg);
+    return VR_CRYPTO_set_ex_data(&d->ex_data, idx, arg);
 }
 
-void *DH_get_ex_data(DH *d, int idx)
+void *VR_DH_get_ex_data(DH *d, int idx)
 {
-    return CRYPTO_get_ex_data(&d->ex_data, idx);
+    return VR_CRYPTO_get_ex_data(&d->ex_data, idx);
 }
 
-int DH_bits(const DH *dh)
+int VR_DH_bits(const DH *dh)
 {
-    return BN_num_bits(dh->p);
+    return VR_BN_num_bits(dh->p);
 }
 
-int DH_size(const DH *dh)
+int VR_DH_size(const DH *dh)
 {
     return BN_num_bytes(dh->p);
 }
 
-int DH_security_bits(const DH *dh)
+int VR_DH_security_bits(const DH *dh)
 {
     int N;
     if (dh->q)
-        N = BN_num_bits(dh->q);
+        N = VR_BN_num_bits(dh->q);
     else if (dh->length)
         N = dh->length;
     else
         N = -1;
-    return BN_security_bits(BN_num_bits(dh->p), N);
+    return VR_BN_security_bits(VR_BN_num_bits(dh->p), N);
 }
 
 
-void DH_get0_pqg(const DH *dh,
+void VR_DH_get0_pqg(const DH *dh,
                  const BIGNUM **p, const BIGNUM **q, const BIGNUM **g)
 {
     if (p != NULL)
@@ -183,7 +183,7 @@ void DH_get0_pqg(const DH *dh,
         *g = dh->g;
 }
 
-int DH_set0_pqg(DH *dh, BIGNUM *p, BIGNUM *q, BIGNUM *g)
+int VR_DH_set0_pqg(DH *dh, BIGNUM *p, BIGNUM *q, BIGNUM *g)
 {
     /* If the fields p and g in d are NULL, the corresponding input
      * parameters MUST be non-NULL.  q may remain NULL.
@@ -193,37 +193,37 @@ int DH_set0_pqg(DH *dh, BIGNUM *p, BIGNUM *q, BIGNUM *g)
         return 0;
 
     if (p != NULL) {
-        BN_free(dh->p);
+        VR_BN_free(dh->p);
         dh->p = p;
     }
     if (q != NULL) {
-        BN_free(dh->q);
+        VR_BN_free(dh->q);
         dh->q = q;
     }
     if (g != NULL) {
-        BN_free(dh->g);
+        VR_BN_free(dh->g);
         dh->g = g;
     }
 
     if (q != NULL) {
-        dh->length = BN_num_bits(q);
+        dh->length = VR_BN_num_bits(q);
     }
 
     return 1;
 }
 
-long DH_get_length(const DH *dh)
+long VR_DH_get_length(const DH *dh)
 {
     return dh->length;
 }
 
-int DH_set_length(DH *dh, long length)
+int VR_DH_set_length(DH *dh, long length)
 {
     dh->length = length;
     return 1;
 }
 
-void DH_get0_key(const DH *dh, const BIGNUM **pub_key, const BIGNUM **priv_key)
+void VR_DH_get0_key(const DH *dh, const BIGNUM **pub_key, const BIGNUM **priv_key)
 {
     if (pub_key != NULL)
         *pub_key = dh->pub_key;
@@ -231,61 +231,61 @@ void DH_get0_key(const DH *dh, const BIGNUM **pub_key, const BIGNUM **priv_key)
         *priv_key = dh->priv_key;
 }
 
-int DH_set0_key(DH *dh, BIGNUM *pub_key, BIGNUM *priv_key)
+int VR_DH_set0_key(DH *dh, BIGNUM *pub_key, BIGNUM *priv_key)
 {
     if (pub_key != NULL) {
-        BN_free(dh->pub_key);
+        VR_BN_free(dh->pub_key);
         dh->pub_key = pub_key;
     }
     if (priv_key != NULL) {
-        BN_free(dh->priv_key);
+        VR_BN_free(dh->priv_key);
         dh->priv_key = priv_key;
     }
 
     return 1;
 }
 
-const BIGNUM *DH_get0_p(const DH *dh)
+const BIGNUM *VR_DH_get0_p(const DH *dh)
 {
     return dh->p;
 }
 
-const BIGNUM *DH_get0_q(const DH *dh)
+const BIGNUM *VR_DH_get0_q(const DH *dh)
 {
     return dh->q;
 }
 
-const BIGNUM *DH_get0_g(const DH *dh)
+const BIGNUM *VR_DH_get0_g(const DH *dh)
 {
     return dh->g;
 }
 
-const BIGNUM *DH_get0_priv_key(const DH *dh)
+const BIGNUM *VR_DH_get0_priv_key(const DH *dh)
 {
     return dh->priv_key;
 }
 
-const BIGNUM *DH_get0_pub_key(const DH *dh)
+const BIGNUM *VR_DH_get0_pub_key(const DH *dh)
 {
     return dh->pub_key;
 }
 
-void DH_clear_flags(DH *dh, int flags)
+void VR_DH_clear_flags(DH *dh, int flags)
 {
     dh->flags &= ~flags;
 }
 
-int DH_test_flags(const DH *dh, int flags)
+int VR_DH_test_flags(const DH *dh, int flags)
 {
     return dh->flags & flags;
 }
 
-void DH_set_flags(DH *dh, int flags)
+void VR_DH_set_flags(DH *dh, int flags)
 {
     dh->flags |= flags;
 }
 
-ENGINE *DH_get0_engine(DH *dh)
+ENGINE *VR_DH_get0_engine(DH *dh)
 {
     return dh->engine;
 }

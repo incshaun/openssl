@@ -57,12 +57,12 @@
 #define LN_kmac256              "kmac256"
 #define NID_kmac256             1197
 
-#define SN_hmac_md5             "HMAC-MD5"
+#define SN_hmac_md5             "VR_HMAC-VR_MD5"
 #define LN_hmac_md5             "hmac-md5"
 #define NID_hmac_md5            780
 #define OBJ_hmac_md5            OBJ_identified_organization,6L,1L,5L,5L,8L,1L,1L
 
-#define SN_hmac_sha1            "HMAC-SHA1"
+#define SN_hmac_sha1            "VR_HMAC-VR_SHA1"
 #define LN_hmac_sha1            "hmac-sha1"
 #define NID_hmac_sha1           781
 #define OBJ_hmac_sha1           OBJ_identified_organization,6L,1L,5L,5L,8L,1L,2L
@@ -140,10 +140,10 @@
 #define NID_dsa         116
 #define OBJ_dsa         OBJ_X9cm,1L
 
-#define SN_dsaWithSHA1          "DSA-SHA1"
-#define LN_dsaWithSHA1          "dsaWithSHA1"
-#define NID_dsaWithSHA1         113
-#define OBJ_dsaWithSHA1         OBJ_X9cm,3L
+#define SN_dsaWithVR_SHA1          "DSA-VR_SHA1"
+#define LN_dsaWithVR_SHA1          "dsaWithVR_SHA1"
+#define NID_dsaWithVR_SHA1         113
+#define OBJ_dsaWithVR_SHA1         OBJ_X9cm,3L
 
 #define SN_ansi_X9_62           "ansi-X9-62"
 #define LN_ansi_X9_62           "ANSI X9.62"
@@ -298,9 +298,9 @@
 
 #define OBJ_X9_62_id_ecSigType          OBJ_ansi_X9_62,4L
 
-#define SN_ecdsa_with_SHA1              "ecdsa-with-SHA1"
-#define NID_ecdsa_with_SHA1             416
-#define OBJ_ecdsa_with_SHA1             OBJ_X9_62_id_ecSigType,1L
+#define SN_ecdsa_with_VR_SHA1              "ecdsa-with-VR_SHA1"
+#define NID_ecdsa_with_VR_SHA1             416
+#define OBJ_ecdsa_with_VR_SHA1             OBJ_X9_62_id_ecSigType,1L
 
 #define SN_ecdsa_with_Recommended               "ecdsa-with-Recommended"
 #define NID_ecdsa_with_Recommended              791
@@ -310,21 +310,21 @@
 #define NID_ecdsa_with_Specified                792
 #define OBJ_ecdsa_with_Specified                OBJ_X9_62_id_ecSigType,3L
 
-#define SN_ecdsa_with_SHA224            "ecdsa-with-SHA224"
-#define NID_ecdsa_with_SHA224           793
-#define OBJ_ecdsa_with_SHA224           OBJ_ecdsa_with_Specified,1L
+#define SN_ecdsa_with_VR_SHA224            "ecdsa-with-VR_SHA224"
+#define NID_ecdsa_with_VR_SHA224           793
+#define OBJ_ecdsa_with_VR_SHA224           OBJ_ecdsa_with_Specified,1L
 
-#define SN_ecdsa_with_SHA256            "ecdsa-with-SHA256"
-#define NID_ecdsa_with_SHA256           794
-#define OBJ_ecdsa_with_SHA256           OBJ_ecdsa_with_Specified,2L
+#define SN_ecdsa_with_VR_SHA256            "ecdsa-with-VR_SHA256"
+#define NID_ecdsa_with_VR_SHA256           794
+#define OBJ_ecdsa_with_VR_SHA256           OBJ_ecdsa_with_Specified,2L
 
-#define SN_ecdsa_with_SHA384            "ecdsa-with-SHA384"
-#define NID_ecdsa_with_SHA384           795
-#define OBJ_ecdsa_with_SHA384           OBJ_ecdsa_with_Specified,3L
+#define SN_ecdsa_with_VR_SHA384            "ecdsa-with-VR_SHA384"
+#define NID_ecdsa_with_VR_SHA384           795
+#define OBJ_ecdsa_with_VR_SHA384           OBJ_ecdsa_with_Specified,3L
 
-#define SN_ecdsa_with_SHA512            "ecdsa-with-SHA512"
-#define NID_ecdsa_with_SHA512           796
-#define OBJ_ecdsa_with_SHA512           OBJ_ecdsa_with_Specified,4L
+#define SN_ecdsa_with_VR_SHA512            "ecdsa-with-VR_SHA512"
+#define NID_ecdsa_with_VR_SHA512           796
+#define OBJ_ecdsa_with_VR_SHA512           OBJ_ecdsa_with_Specified,4L
 
 #define OBJ_secg_ellipticCurve          OBJ_certicom_arc,0L
 
@@ -515,9 +515,9 @@
 #define LN_cast5_ofb64          "cast5-ofb"
 #define NID_cast5_ofb64         111
 
-#define LN_pbeWithMD5AndCast5_CBC               "pbeWithMD5AndCast5CBC"
-#define NID_pbeWithMD5AndCast5_CBC              112
-#define OBJ_pbeWithMD5AndCast5_CBC              OBJ_ISO_US,113533L,7L,66L,12L
+#define LN_pbeWithVR_MD5AndCast5_CBC               "pbeWithVR_MD5AndCast5CBC"
+#define NID_pbeWithVR_MD5AndCast5_CBC              112
+#define OBJ_pbeWithVR_MD5AndCast5_CBC              OBJ_ISO_US,113533L,7L,66L,12L
 
 #define SN_id_PasswordBasedMAC          "id-PasswordBasedMAC"
 #define LN_id_PasswordBasedMAC          "password based MAC"
@@ -552,17 +552,17 @@
 #define NID_md2WithRSAEncryption                7
 #define OBJ_md2WithRSAEncryption                OBJ_pkcs1,2L
 
-#define SN_md4WithRSAEncryption         "RSA-MD4"
+#define SN_md4WithRSAEncryption         "RSA-VR_MD4"
 #define LN_md4WithRSAEncryption         "md4WithRSAEncryption"
 #define NID_md4WithRSAEncryption                396
 #define OBJ_md4WithRSAEncryption                OBJ_pkcs1,3L
 
-#define SN_md5WithRSAEncryption         "RSA-MD5"
+#define SN_md5WithRSAEncryption         "RSA-VR_MD5"
 #define LN_md5WithRSAEncryption         "md5WithRSAEncryption"
 #define NID_md5WithRSAEncryption                8
 #define OBJ_md5WithRSAEncryption                OBJ_pkcs1,4L
 
-#define SN_sha1WithRSAEncryption                "RSA-SHA1"
+#define SN_sha1WithRSAEncryption                "RSA-VR_SHA1"
 #define LN_sha1WithRSAEncryption                "sha1WithRSAEncryption"
 #define NID_sha1WithRSAEncryption               65
 #define OBJ_sha1WithRSAEncryption               OBJ_pkcs1,5L
@@ -587,32 +587,32 @@
 #define NID_rsassaPss           912
 #define OBJ_rsassaPss           OBJ_pkcs1,10L
 
-#define SN_sha256WithRSAEncryption              "RSA-SHA256"
+#define SN_sha256WithRSAEncryption              "RSA-VR_SHA256"
 #define LN_sha256WithRSAEncryption              "sha256WithRSAEncryption"
 #define NID_sha256WithRSAEncryption             668
 #define OBJ_sha256WithRSAEncryption             OBJ_pkcs1,11L
 
-#define SN_sha384WithRSAEncryption              "RSA-SHA384"
+#define SN_sha384WithRSAEncryption              "RSA-VR_SHA384"
 #define LN_sha384WithRSAEncryption              "sha384WithRSAEncryption"
 #define NID_sha384WithRSAEncryption             669
 #define OBJ_sha384WithRSAEncryption             OBJ_pkcs1,12L
 
-#define SN_sha512WithRSAEncryption              "RSA-SHA512"
+#define SN_sha512WithRSAEncryption              "RSA-VR_SHA512"
 #define LN_sha512WithRSAEncryption              "sha512WithRSAEncryption"
 #define NID_sha512WithRSAEncryption             670
 #define OBJ_sha512WithRSAEncryption             OBJ_pkcs1,13L
 
-#define SN_sha224WithRSAEncryption              "RSA-SHA224"
+#define SN_sha224WithRSAEncryption              "RSA-VR_SHA224"
 #define LN_sha224WithRSAEncryption              "sha224WithRSAEncryption"
 #define NID_sha224WithRSAEncryption             671
 #define OBJ_sha224WithRSAEncryption             OBJ_pkcs1,14L
 
-#define SN_sha512_224WithRSAEncryption          "RSA-SHA512/224"
+#define SN_sha512_224WithRSAEncryption          "RSA-VR_SHA512/224"
 #define LN_sha512_224WithRSAEncryption          "sha512-224WithRSAEncryption"
 #define NID_sha512_224WithRSAEncryption         1145
 #define OBJ_sha512_224WithRSAEncryption         OBJ_pkcs1,15L
 
-#define SN_sha512_256WithRSAEncryption          "RSA-SHA512/256"
+#define SN_sha512_256WithRSAEncryption          "RSA-VR_SHA512/256"
 #define LN_sha512_256WithRSAEncryption          "sha512-256WithRSAEncryption"
 #define NID_sha512_256WithRSAEncryption         1146
 #define OBJ_sha512_256WithRSAEncryption         OBJ_pkcs1,16L
@@ -634,30 +634,30 @@
 #define NID_pbeWithMD2AndDES_CBC                9
 #define OBJ_pbeWithMD2AndDES_CBC                OBJ_pkcs5,1L
 
-#define SN_pbeWithMD5AndDES_CBC         "PBE-MD5-DES"
-#define LN_pbeWithMD5AndDES_CBC         "pbeWithMD5AndDES-CBC"
-#define NID_pbeWithMD5AndDES_CBC                10
-#define OBJ_pbeWithMD5AndDES_CBC                OBJ_pkcs5,3L
+#define SN_pbeWithVR_MD5AndDES_CBC         "PBE-VR_MD5-DES"
+#define LN_pbeWithVR_MD5AndDES_CBC         "pbeWithVR_MD5AndDES-CBC"
+#define NID_pbeWithVR_MD5AndDES_CBC                10
+#define OBJ_pbeWithVR_MD5AndDES_CBC                OBJ_pkcs5,3L
 
 #define SN_pbeWithMD2AndRC2_CBC         "PBE-MD2-RC2-64"
 #define LN_pbeWithMD2AndRC2_CBC         "pbeWithMD2AndRC2-CBC"
 #define NID_pbeWithMD2AndRC2_CBC                168
 #define OBJ_pbeWithMD2AndRC2_CBC                OBJ_pkcs5,4L
 
-#define SN_pbeWithMD5AndRC2_CBC         "PBE-MD5-RC2-64"
-#define LN_pbeWithMD5AndRC2_CBC         "pbeWithMD5AndRC2-CBC"
-#define NID_pbeWithMD5AndRC2_CBC                169
-#define OBJ_pbeWithMD5AndRC2_CBC                OBJ_pkcs5,6L
+#define SN_pbeWithVR_MD5AndRC2_CBC         "PBE-VR_MD5-RC2-64"
+#define LN_pbeWithVR_MD5AndRC2_CBC         "pbeWithVR_MD5AndRC2-CBC"
+#define NID_pbeWithVR_MD5AndRC2_CBC                169
+#define OBJ_pbeWithVR_MD5AndRC2_CBC                OBJ_pkcs5,6L
 
-#define SN_pbeWithSHA1AndDES_CBC                "PBE-SHA1-DES"
-#define LN_pbeWithSHA1AndDES_CBC                "pbeWithSHA1AndDES-CBC"
-#define NID_pbeWithSHA1AndDES_CBC               170
-#define OBJ_pbeWithSHA1AndDES_CBC               OBJ_pkcs5,10L
+#define SN_pbeWithVR_SHA1AndDES_CBC                "PBE-VR_SHA1-DES"
+#define LN_pbeWithVR_SHA1AndDES_CBC                "pbeWithVR_SHA1AndDES-CBC"
+#define NID_pbeWithVR_SHA1AndDES_CBC               170
+#define OBJ_pbeWithVR_SHA1AndDES_CBC               OBJ_pkcs5,10L
 
-#define SN_pbeWithSHA1AndRC2_CBC                "PBE-SHA1-RC2-64"
-#define LN_pbeWithSHA1AndRC2_CBC                "pbeWithSHA1AndRC2-CBC"
-#define NID_pbeWithSHA1AndRC2_CBC               68
-#define OBJ_pbeWithSHA1AndRC2_CBC               OBJ_pkcs5,11L
+#define SN_pbeWithVR_SHA1AndRC2_CBC                "PBE-VR_SHA1-RC2-64"
+#define LN_pbeWithVR_SHA1AndRC2_CBC                "pbeWithVR_SHA1AndRC2-CBC"
+#define NID_pbeWithVR_SHA1AndRC2_CBC               68
+#define OBJ_pbeWithVR_SHA1AndRC2_CBC               OBJ_pkcs5,11L
 
 #define LN_id_pbkdf2            "PBKDF2"
 #define NID_id_pbkdf2           69
@@ -1092,35 +1092,35 @@
 
 #define OBJ_pkcs12_pbeids               OBJ_pkcs12,1L
 
-#define SN_pbe_WithSHA1And128BitRC4             "PBE-SHA1-RC4-128"
-#define LN_pbe_WithSHA1And128BitRC4             "pbeWithSHA1And128BitRC4"
-#define NID_pbe_WithSHA1And128BitRC4            144
-#define OBJ_pbe_WithSHA1And128BitRC4            OBJ_pkcs12_pbeids,1L
+#define SN_pbe_WithVR_SHA1And128BitVR_RC4             "PBE-VR_SHA1-VR_RC4-128"
+#define LN_pbe_WithVR_SHA1And128BitVR_RC4             "pbeWithVR_SHA1And128BitVR_RC4"
+#define NID_pbe_WithVR_SHA1And128BitVR_RC4            144
+#define OBJ_pbe_WithVR_SHA1And128BitVR_RC4            OBJ_pkcs12_pbeids,1L
 
-#define SN_pbe_WithSHA1And40BitRC4              "PBE-SHA1-RC4-40"
-#define LN_pbe_WithSHA1And40BitRC4              "pbeWithSHA1And40BitRC4"
-#define NID_pbe_WithSHA1And40BitRC4             145
-#define OBJ_pbe_WithSHA1And40BitRC4             OBJ_pkcs12_pbeids,2L
+#define SN_pbe_WithVR_SHA1And40BitVR_RC4              "PBE-VR_SHA1-VR_RC4-40"
+#define LN_pbe_WithVR_SHA1And40BitVR_RC4              "pbeWithVR_SHA1And40BitVR_RC4"
+#define NID_pbe_WithVR_SHA1And40BitVR_RC4             145
+#define OBJ_pbe_WithVR_SHA1And40BitVR_RC4             OBJ_pkcs12_pbeids,2L
 
-#define SN_pbe_WithSHA1And3_Key_TripleDES_CBC           "PBE-SHA1-3DES"
-#define LN_pbe_WithSHA1And3_Key_TripleDES_CBC           "pbeWithSHA1And3-KeyTripleDES-CBC"
-#define NID_pbe_WithSHA1And3_Key_TripleDES_CBC          146
-#define OBJ_pbe_WithSHA1And3_Key_TripleDES_CBC          OBJ_pkcs12_pbeids,3L
+#define SN_pbe_WithVR_SHA1And3_Key_TripleDES_CBC           "PBE-VR_SHA1-3DES"
+#define LN_pbe_WithVR_SHA1And3_Key_TripleDES_CBC           "pbeWithVR_SHA1And3-KeyTripleDES-CBC"
+#define NID_pbe_WithVR_SHA1And3_Key_TripleDES_CBC          146
+#define OBJ_pbe_WithVR_SHA1And3_Key_TripleDES_CBC          OBJ_pkcs12_pbeids,3L
 
-#define SN_pbe_WithSHA1And2_Key_TripleDES_CBC           "PBE-SHA1-2DES"
-#define LN_pbe_WithSHA1And2_Key_TripleDES_CBC           "pbeWithSHA1And2-KeyTripleDES-CBC"
-#define NID_pbe_WithSHA1And2_Key_TripleDES_CBC          147
-#define OBJ_pbe_WithSHA1And2_Key_TripleDES_CBC          OBJ_pkcs12_pbeids,4L
+#define SN_pbe_WithVR_SHA1And2_Key_TripleDES_CBC           "PBE-VR_SHA1-2DES"
+#define LN_pbe_WithVR_SHA1And2_Key_TripleDES_CBC           "pbeWithVR_SHA1And2-KeyTripleDES-CBC"
+#define NID_pbe_WithVR_SHA1And2_Key_TripleDES_CBC          147
+#define OBJ_pbe_WithVR_SHA1And2_Key_TripleDES_CBC          OBJ_pkcs12_pbeids,4L
 
-#define SN_pbe_WithSHA1And128BitRC2_CBC         "PBE-SHA1-RC2-128"
-#define LN_pbe_WithSHA1And128BitRC2_CBC         "pbeWithSHA1And128BitRC2-CBC"
-#define NID_pbe_WithSHA1And128BitRC2_CBC                148
-#define OBJ_pbe_WithSHA1And128BitRC2_CBC                OBJ_pkcs12_pbeids,5L
+#define SN_pbe_WithVR_SHA1And128BitRC2_CBC         "PBE-VR_SHA1-RC2-128"
+#define LN_pbe_WithVR_SHA1And128BitRC2_CBC         "pbeWithVR_SHA1And128BitRC2-CBC"
+#define NID_pbe_WithVR_SHA1And128BitRC2_CBC                148
+#define OBJ_pbe_WithVR_SHA1And128BitRC2_CBC                OBJ_pkcs12_pbeids,5L
 
-#define SN_pbe_WithSHA1And40BitRC2_CBC          "PBE-SHA1-RC2-40"
-#define LN_pbe_WithSHA1And40BitRC2_CBC          "pbeWithSHA1And40BitRC2-CBC"
-#define NID_pbe_WithSHA1And40BitRC2_CBC         149
-#define OBJ_pbe_WithSHA1And40BitRC2_CBC         OBJ_pkcs12_pbeids,6L
+#define SN_pbe_WithVR_SHA1And40BitRC2_CBC          "PBE-VR_SHA1-RC2-40"
+#define LN_pbe_WithVR_SHA1And40BitRC2_CBC          "pbeWithVR_SHA1And40BitRC2-CBC"
+#define NID_pbe_WithVR_SHA1And40BitRC2_CBC         149
+#define OBJ_pbe_WithVR_SHA1And40BitRC2_CBC         OBJ_pkcs12_pbeids,6L
 
 #define OBJ_pkcs12_Version1             OBJ_pkcs12,10L
 
@@ -1155,27 +1155,27 @@
 #define NID_md2         3
 #define OBJ_md2         OBJ_rsadsi,2L,2L
 
-#define SN_md4          "MD4"
+#define SN_md4          "VR_MD4"
 #define LN_md4          "md4"
 #define NID_md4         257
 #define OBJ_md4         OBJ_rsadsi,2L,4L
 
-#define SN_md5          "MD5"
+#define SN_md5          "VR_MD5"
 #define LN_md5          "md5"
 #define NID_md5         4
 #define OBJ_md5         OBJ_rsadsi,2L,5L
 
-#define SN_md5_sha1             "MD5-SHA1"
+#define SN_md5_sha1             "VR_MD5-VR_SHA1"
 #define LN_md5_sha1             "md5-sha1"
 #define NID_md5_sha1            114
 
-#define LN_hmacWithMD5          "hmacWithMD5"
-#define NID_hmacWithMD5         797
-#define OBJ_hmacWithMD5         OBJ_rsadsi,2L,6L
+#define LN_hmacWithVR_MD5          "hmacWithVR_MD5"
+#define NID_hmacWithVR_MD5         797
+#define OBJ_hmacWithVR_MD5         OBJ_rsadsi,2L,6L
 
-#define LN_hmacWithSHA1         "hmacWithSHA1"
-#define NID_hmacWithSHA1                163
-#define OBJ_hmacWithSHA1                OBJ_rsadsi,2L,7L
+#define LN_hmacWithVR_SHA1         "hmacWithVR_SHA1"
+#define NID_hmacWithVR_SHA1                163
+#define OBJ_hmacWithVR_SHA1                OBJ_rsadsi,2L,7L
 
 #define SN_sm2          "SM2"
 #define LN_sm2          "sm2"
@@ -1192,29 +1192,29 @@
 #define NID_sm3WithRSAEncryption                1144
 #define OBJ_sm3WithRSAEncryption                OBJ_sm_scheme,504L
 
-#define LN_hmacWithSHA224               "hmacWithSHA224"
-#define NID_hmacWithSHA224              798
-#define OBJ_hmacWithSHA224              OBJ_rsadsi,2L,8L
+#define LN_hmacWithVR_SHA224               "hmacWithVR_SHA224"
+#define NID_hmacWithVR_SHA224              798
+#define OBJ_hmacWithVR_SHA224              OBJ_rsadsi,2L,8L
 
-#define LN_hmacWithSHA256               "hmacWithSHA256"
-#define NID_hmacWithSHA256              799
-#define OBJ_hmacWithSHA256              OBJ_rsadsi,2L,9L
+#define LN_hmacWithVR_SHA256               "hmacWithVR_SHA256"
+#define NID_hmacWithVR_SHA256              799
+#define OBJ_hmacWithVR_SHA256              OBJ_rsadsi,2L,9L
 
-#define LN_hmacWithSHA384               "hmacWithSHA384"
-#define NID_hmacWithSHA384              800
-#define OBJ_hmacWithSHA384              OBJ_rsadsi,2L,10L
+#define LN_hmacWithVR_SHA384               "hmacWithVR_SHA384"
+#define NID_hmacWithVR_SHA384              800
+#define OBJ_hmacWithVR_SHA384              OBJ_rsadsi,2L,10L
 
-#define LN_hmacWithSHA512               "hmacWithSHA512"
-#define NID_hmacWithSHA512              801
-#define OBJ_hmacWithSHA512              OBJ_rsadsi,2L,11L
+#define LN_hmacWithVR_SHA512               "hmacWithVR_SHA512"
+#define NID_hmacWithVR_SHA512              801
+#define OBJ_hmacWithVR_SHA512              OBJ_rsadsi,2L,11L
 
-#define LN_hmacWithSHA512_224           "hmacWithSHA512-224"
-#define NID_hmacWithSHA512_224          1193
-#define OBJ_hmacWithSHA512_224          OBJ_rsadsi,2L,12L
+#define LN_hmacWithVR_SHA512_224           "hmacWithVR_SHA512-224"
+#define NID_hmacWithVR_SHA512_224          1193
+#define OBJ_hmacWithVR_SHA512_224          OBJ_rsadsi,2L,12L
 
-#define LN_hmacWithSHA512_256           "hmacWithSHA512-256"
-#define NID_hmacWithSHA512_256          1194
-#define OBJ_hmacWithSHA512_256          OBJ_rsadsi,2L,13L
+#define LN_hmacWithVR_SHA512_256           "hmacWithVR_SHA512-256"
+#define NID_hmacWithVR_SHA512_256          1194
+#define OBJ_hmacWithVR_SHA512_256          OBJ_rsadsi,2L,13L
 
 #define SN_rc2_cbc              "RC2-CBC"
 #define LN_rc2_cbc              "rc2-cbc"
@@ -1241,12 +1241,12 @@
 #define LN_rc2_64_cbc           "rc2-64-cbc"
 #define NID_rc2_64_cbc          166
 
-#define SN_rc4          "RC4"
+#define SN_rc4          "VR_RC4"
 #define LN_rc4          "rc4"
 #define NID_rc4         5
 #define OBJ_rc4         OBJ_rsadsi,3L,4L
 
-#define SN_rc4_40               "RC4-40"
+#define SN_rc4_40               "VR_RC4-40"
 #define LN_rc4_40               "rc4-40"
 #define NID_rc4_40              97
 
@@ -2019,7 +2019,7 @@
 #define NID_algorithm           376
 #define OBJ_algorithm           1L,3L,14L,3L,2L
 
-#define SN_md5WithRSA           "RSA-NP-MD5"
+#define SN_md5WithRSA           "RSA-NP-VR_MD5"
 #define LN_md5WithRSA           "md5WithRSA"
 #define NID_md5WithRSA          104
 #define OBJ_md5WithRSA          OBJ_algorithm,3L
@@ -2101,27 +2101,27 @@
 #define NID_sha         41
 #define OBJ_sha         OBJ_algorithm,18L
 
-#define SN_sha1         "SHA1"
+#define SN_sha1         "VR_SHA1"
 #define LN_sha1         "sha1"
 #define NID_sha1                64
 #define OBJ_sha1                OBJ_algorithm,26L
 
-#define SN_dsaWithSHA1_2                "DSA-SHA1-old"
-#define LN_dsaWithSHA1_2                "dsaWithSHA1-old"
-#define NID_dsaWithSHA1_2               70
-#define OBJ_dsaWithSHA1_2               OBJ_algorithm,27L
+#define SN_dsaWithVR_SHA1_2                "DSA-VR_SHA1-old"
+#define LN_dsaWithVR_SHA1_2                "dsaWithVR_SHA1-old"
+#define NID_dsaWithVR_SHA1_2               70
+#define OBJ_dsaWithVR_SHA1_2               OBJ_algorithm,27L
 
-#define SN_sha1WithRSA          "RSA-SHA1-2"
+#define SN_sha1WithRSA          "RSA-VR_SHA1-2"
 #define LN_sha1WithRSA          "sha1WithRSA"
 #define NID_sha1WithRSA         115
 #define OBJ_sha1WithRSA         OBJ_algorithm,29L
 
-#define SN_ripemd160            "RIPEMD160"
+#define SN_ripemd160            "VR_RIPEMD160"
 #define LN_ripemd160            "ripemd160"
 #define NID_ripemd160           117
 #define OBJ_ripemd160           1L,3L,36L,3L,2L,1L
 
-#define SN_ripemd160WithRSA             "RSA-RIPEMD160"
+#define SN_ripemd160WithRSA             "RSA-VR_RIPEMD160"
 #define LN_ripemd160WithRSA             "ripemd160WithRSA"
 #define NID_ripemd160WithRSA            119
 #define OBJ_ripemd160WithRSA            1L,3L,36L,3L,3L,1L,2L
@@ -2408,12 +2408,12 @@
 #define NID_rsa         19
 #define OBJ_rsa         OBJ_X500algorithms,1L,1L
 
-#define SN_mdc2WithRSA          "RSA-MDC2"
+#define SN_mdc2WithRSA          "RSA-VR_MDC2"
 #define LN_mdc2WithRSA          "mdc2WithRSA"
 #define NID_mdc2WithRSA         96
 #define OBJ_mdc2WithRSA         OBJ_X500algorithms,3L,100L
 
-#define SN_mdc2         "MDC2"
+#define SN_mdc2         "VR_MDC2"
 #define LN_mdc2         "mdc2"
 #define NID_mdc2                95
 #define OBJ_mdc2                OBJ_X500algorithms,3L,101L
@@ -2904,32 +2904,32 @@
 
 #define OBJ_nist_hashalgs               OBJ_nistAlgorithms,2L
 
-#define SN_sha256               "SHA256"
+#define SN_sha256               "VR_SHA256"
 #define LN_sha256               "sha256"
 #define NID_sha256              672
 #define OBJ_sha256              OBJ_nist_hashalgs,1L
 
-#define SN_sha384               "SHA384"
+#define SN_sha384               "VR_SHA384"
 #define LN_sha384               "sha384"
 #define NID_sha384              673
 #define OBJ_sha384              OBJ_nist_hashalgs,2L
 
-#define SN_sha512               "SHA512"
+#define SN_sha512               "VR_SHA512"
 #define LN_sha512               "sha512"
 #define NID_sha512              674
 #define OBJ_sha512              OBJ_nist_hashalgs,3L
 
-#define SN_sha224               "SHA224"
+#define SN_sha224               "VR_SHA224"
 #define LN_sha224               "sha224"
 #define NID_sha224              675
 #define OBJ_sha224              OBJ_nist_hashalgs,4L
 
-#define SN_sha512_224           "SHA512-224"
+#define SN_sha512_224           "VR_SHA512-224"
 #define LN_sha512_224           "sha512-224"
 #define NID_sha512_224          1094
 #define OBJ_sha512_224          OBJ_nist_hashalgs,5L
 
-#define SN_sha512_256           "SHA512-256"
+#define SN_sha512_256           "VR_SHA512-256"
 #define LN_sha512_256           "sha512-256"
 #define NID_sha512_256          1095
 #define OBJ_sha512_256          OBJ_nist_hashalgs,6L
@@ -2986,25 +2986,25 @@
 
 #define OBJ_dsa_with_sha2               OBJ_nistAlgorithms,3L
 
-#define SN_dsa_with_SHA224              "dsa_with_SHA224"
-#define NID_dsa_with_SHA224             802
-#define OBJ_dsa_with_SHA224             OBJ_dsa_with_sha2,1L
+#define SN_dsa_with_VR_SHA224              "dsa_with_VR_SHA224"
+#define NID_dsa_with_VR_SHA224             802
+#define OBJ_dsa_with_VR_SHA224             OBJ_dsa_with_sha2,1L
 
-#define SN_dsa_with_SHA256              "dsa_with_SHA256"
-#define NID_dsa_with_SHA256             803
-#define OBJ_dsa_with_SHA256             OBJ_dsa_with_sha2,2L
+#define SN_dsa_with_VR_SHA256              "dsa_with_VR_SHA256"
+#define NID_dsa_with_VR_SHA256             803
+#define OBJ_dsa_with_VR_SHA256             OBJ_dsa_with_sha2,2L
 
 #define OBJ_sigAlgs             OBJ_nistAlgorithms,3L
 
-#define SN_dsa_with_SHA384              "id-dsa-with-sha384"
-#define LN_dsa_with_SHA384              "dsa_with_SHA384"
-#define NID_dsa_with_SHA384             1106
-#define OBJ_dsa_with_SHA384             OBJ_sigAlgs,3L
+#define SN_dsa_with_VR_SHA384              "id-dsa-with-sha384"
+#define LN_dsa_with_VR_SHA384              "dsa_with_VR_SHA384"
+#define NID_dsa_with_VR_SHA384             1106
+#define OBJ_dsa_with_VR_SHA384             OBJ_sigAlgs,3L
 
-#define SN_dsa_with_SHA512              "id-dsa-with-sha512"
-#define LN_dsa_with_SHA512              "dsa_with_SHA512"
-#define NID_dsa_with_SHA512             1107
-#define OBJ_dsa_with_SHA512             OBJ_sigAlgs,4L
+#define SN_dsa_with_VR_SHA512              "id-dsa-with-sha512"
+#define LN_dsa_with_VR_SHA512              "dsa_with_VR_SHA512"
+#define NID_dsa_with_VR_SHA512             1107
+#define OBJ_dsa_with_VR_SHA512             OBJ_sigAlgs,4L
 
 #define SN_dsa_with_SHA3_224            "id-dsa-with-sha3-224"
 #define LN_dsa_with_SHA3_224            "dsa_with_SHA3-224"
@@ -3967,10 +3967,10 @@
 #define NID_id_GostR3411_94             809
 #define OBJ_id_GostR3411_94             OBJ_cryptopro,9L
 
-#define SN_id_HMACGostR3411_94          "id-HMACGostR3411-94"
-#define LN_id_HMACGostR3411_94          "HMAC GOST 34.11-94"
-#define NID_id_HMACGostR3411_94         810
-#define OBJ_id_HMACGostR3411_94         OBJ_cryptopro,10L
+#define SN_id_VR_HMACGostR3411_94          "id-VR_HMACGostR3411-94"
+#define LN_id_VR_HMACGostR3411_94          "VR_HMAC GOST 34.11-94"
+#define NID_id_VR_HMACGostR3411_94         810
+#define OBJ_id_VR_HMACGostR3411_94         OBJ_cryptopro,10L
 
 #define SN_id_GostR3410_2001            "gost2001"
 #define LN_id_GostR3410_2001            "GOST R 34.10-2001"
@@ -4226,12 +4226,12 @@
 #define OBJ_id_tc26_mac         OBJ_id_tc26_algorithms,4L
 
 #define SN_id_tc26_hmac_gost_3411_2012_256              "id-tc26-hmac-gost-3411-2012-256"
-#define LN_id_tc26_hmac_gost_3411_2012_256              "HMAC GOST 34.11-2012 256 bit"
+#define LN_id_tc26_hmac_gost_3411_2012_256              "VR_HMAC GOST 34.11-2012 256 bit"
 #define NID_id_tc26_hmac_gost_3411_2012_256             988
 #define OBJ_id_tc26_hmac_gost_3411_2012_256             OBJ_id_tc26_mac,1L
 
 #define SN_id_tc26_hmac_gost_3411_2012_512              "id-tc26-hmac-gost-3411-2012-512"
-#define LN_id_tc26_hmac_gost_3411_2012_512              "HMAC GOST 34.11-2012 512 bit"
+#define LN_id_tc26_hmac_gost_3411_2012_512              "VR_HMAC GOST 34.11-2012 512 bit"
 #define NID_id_tc26_hmac_gost_3411_2012_512             989
 #define OBJ_id_tc26_hmac_gost_3411_2012_512             OBJ_id_tc26_mac,2L
 
@@ -4780,7 +4780,7 @@
 #define NID_sm4_ctr             1139
 #define OBJ_sm4_ctr             OBJ_sm_scheme,104L,7L
 
-#define SN_hmac         "HMAC"
+#define SN_hmac         "VR_HMAC"
 #define LN_hmac         "hmac"
 #define NID_hmac                855
 
@@ -4788,31 +4788,31 @@
 #define LN_cmac         "cmac"
 #define NID_cmac                894
 
-#define SN_rc4_hmac_md5         "RC4-HMAC-MD5"
+#define SN_rc4_hmac_md5         "VR_RC4-VR_HMAC-VR_MD5"
 #define LN_rc4_hmac_md5         "rc4-hmac-md5"
 #define NID_rc4_hmac_md5                915
 
-#define SN_aes_128_cbc_hmac_sha1                "AES-128-CBC-HMAC-SHA1"
+#define SN_aes_128_cbc_hmac_sha1                "AES-128-CBC-VR_HMAC-VR_SHA1"
 #define LN_aes_128_cbc_hmac_sha1                "aes-128-cbc-hmac-sha1"
 #define NID_aes_128_cbc_hmac_sha1               916
 
-#define SN_aes_192_cbc_hmac_sha1                "AES-192-CBC-HMAC-SHA1"
+#define SN_aes_192_cbc_hmac_sha1                "AES-192-CBC-VR_HMAC-VR_SHA1"
 #define LN_aes_192_cbc_hmac_sha1                "aes-192-cbc-hmac-sha1"
 #define NID_aes_192_cbc_hmac_sha1               917
 
-#define SN_aes_256_cbc_hmac_sha1                "AES-256-CBC-HMAC-SHA1"
+#define SN_aes_256_cbc_hmac_sha1                "AES-256-CBC-VR_HMAC-VR_SHA1"
 #define LN_aes_256_cbc_hmac_sha1                "aes-256-cbc-hmac-sha1"
 #define NID_aes_256_cbc_hmac_sha1               918
 
-#define SN_aes_128_cbc_hmac_sha256              "AES-128-CBC-HMAC-SHA256"
+#define SN_aes_128_cbc_hmac_sha256              "AES-128-CBC-VR_HMAC-VR_SHA256"
 #define LN_aes_128_cbc_hmac_sha256              "aes-128-cbc-hmac-sha256"
 #define NID_aes_128_cbc_hmac_sha256             948
 
-#define SN_aes_192_cbc_hmac_sha256              "AES-192-CBC-HMAC-SHA256"
+#define SN_aes_192_cbc_hmac_sha256              "AES-192-CBC-VR_HMAC-VR_SHA256"
 #define LN_aes_192_cbc_hmac_sha256              "aes-192-cbc-hmac-sha256"
 #define NID_aes_192_cbc_hmac_sha256             949
 
-#define SN_aes_256_cbc_hmac_sha256              "AES-256-CBC-HMAC-SHA256"
+#define SN_aes_256_cbc_hmac_sha256              "AES-256-CBC-VR_HMAC-VR_SHA256"
 #define LN_aes_256_cbc_hmac_sha256              "aes-256-cbc-hmac-sha256"
 #define NID_aes_256_cbc_hmac_sha256             950
 
@@ -4997,13 +4997,13 @@
 #define NID_pkInitKDC           1033
 #define OBJ_pkInitKDC           OBJ_id_pkinit,5L
 
-#define SN_X25519               "X25519"
-#define NID_X25519              1034
-#define OBJ_X25519              1L,3L,101L,110L
+#define SN_VR_X25519               "VR_X25519"
+#define NID_VR_X25519              1034
+#define OBJ_VR_X25519              1L,3L,101L,110L
 
-#define SN_X448         "X448"
-#define NID_X448                1035
-#define OBJ_X448                1L,3L,101L,111L
+#define SN_VR_X448         "VR_X448"
+#define NID_VR_X448                1035
+#define OBJ_VR_X448                1L,3L,101L,111L
 
 #define SN_ED25519              "ED25519"
 #define NID_ED25519             1087
@@ -5141,7 +5141,7 @@
 #define OBJ_dstu28147_wrap              OBJ_dstu28147,5L
 
 #define SN_hmacWithDstu34311            "hmacWithDstu34311"
-#define LN_hmacWithDstu34311            "HMAC DSTU Gost 34311-95"
+#define LN_hmacWithDstu34311            "VR_HMAC DSTU Gost 34311-95"
 #define NID_hmacWithDstu34311           1156
 #define OBJ_hmacWithDstu34311           OBJ_ua_pki,1L,1L,2L
 

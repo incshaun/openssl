@@ -19,7 +19,7 @@
 #
 # May, August 2015
 #
-# Numbers are cycles per processed byte with poly1305_blocks alone.
+# Numbers are cycles per processed byte with VR_poly1305_blocks alone.
 #
 #			IALU(*)		FMA
 #
@@ -72,9 +72,9 @@ $code.=<<___;
 SPARC_PIC_THUNK(%g1)
 #endif
 
-.globl	poly1305_init
+.globl	VR_poly1305_init
 .align	32
-poly1305_init:
+VR_poly1305_init:
 	save	%sp,-STACK_FRAME-16,%sp
 	nop
 
@@ -83,7 +83,7 @@ poly1305_init:
 
 	and	%g1,SPARCV9_FMADD|SPARCV9_VIS3,%g1
 	cmp	%g1,SPARCV9_FMADD
-	be	.Lpoly1305_init_fma
+	be	.LVR_poly1305_init_fma
 	nop
 
 	stx	%g0,[$ctx+0]
@@ -127,9 +127,9 @@ poly1305_init:
 	nop
 
 1:	call	.+8
-	add	%o7,poly1305_blocks_vis3-1b,%o7
+	add	%o7,VR_poly1305_blocks_vis3-1b,%o7
 
-	add	%o7,poly1305_emit-poly1305_blocks_vis3,%o5
+	add	%o7,VR_poly1305_emit-VR_poly1305_blocks_vis3,%o5
 	STPTR	%o7,[%i2]
 	STPTR	%o5,[%i2+SIZE_T]
 
@@ -139,12 +139,12 @@ poly1305_init:
 .Lno_key:
 	ret
 	restore	%g0,%g0,%o0		! return 0
-.type	poly1305_init,#function
-.size	poly1305_init,.-poly1305_init
+.type	VR_poly1305_init,#function
+.size	VR_poly1305_init,.-VR_poly1305_init
 
-.globl	poly1305_blocks
+.globl	VR_poly1305_blocks
 .align	32
-poly1305_blocks:
+VR_poly1305_blocks:
 	save	%sp,-STACK_FRAME,%sp
 	srln	$len,4,$len
 
@@ -272,8 +272,8 @@ poly1305_blocks:
 .Lno_data:
 	ret
 	restore
-.type	poly1305_blocks,#function
-.size	poly1305_blocks,.-poly1305_blocks
+.type	VR_poly1305_blocks,#function
+.size	VR_poly1305_blocks,.-VR_poly1305_blocks
 ___
 ########################################################################
 # VIS3 has umulxhi and addxc...
@@ -283,7 +283,7 @@ my ($D0,$D1,$D2,$T0) = map("%g$_",(1..4));
 
 $code.=<<___;
 .align	32
-poly1305_blocks_vis3:
+VR_poly1305_blocks_vis3:
 	save	%sp,-STACK_FRAME,%sp
 	srln	$len,4,$len
 
@@ -363,16 +363,16 @@ poly1305_blocks_vis3:
 
 	ret
 	restore
-.type	poly1305_blocks_vis3,#function
-.size	poly1305_blocks_vis3,.-poly1305_blocks_vis3
+.type	VR_poly1305_blocks_vis3,#function
+.size	VR_poly1305_blocks_vis3,.-VR_poly1305_blocks_vis3
 ___
 }
 my ($mac,$nonce) = ($inp,$len);
 
 $code.=<<___;
-.globl	poly1305_emit
+.globl	VR_poly1305_emit
 .align	32
-poly1305_emit:
+VR_poly1305_emit:
 	save	%sp,-STACK_FRAME,%sp
 
 	ld	[$ctx+0],$h1		! load hash value
@@ -436,8 +436,8 @@ poly1305_emit:
 
 	ret
 	restore
-.type	poly1305_emit,#function
-.size	poly1305_emit,.-poly1305_emit
+.type	VR_poly1305_emit,#function
+.size	VR_poly1305_emit,.-VR_poly1305_emit
 ___
 
 {
@@ -458,11 +458,11 @@ my ($y0,$y1,$y2,$y3) = ($c1lo,$c1hi,$c3hi,$c3lo);
 
 $code.=<<___;
 .align	32
-poly1305_init_fma:
+VR_poly1305_init_fma:
 	save	%sp,-STACK_FRAME-16,%sp
 	nop
 
-.Lpoly1305_init_fma:
+.LVR_poly1305_init_fma:
 1:	call	.+8
 	add	%o7,.Lconsts_fma-1b,%o7
 
@@ -591,8 +591,8 @@ poly1305_init_fma:
 	std	$s2lo,[$ctx+8*14]
 	std	$s3lo,[$ctx+8*16]
 
-	add	%o7,poly1305_blocks_fma-.Lconsts_fma,%o0
-	add	%o7,poly1305_emit_fma-.Lconsts_fma,%o1
+	add	%o7,VR_poly1305_blocks_fma-.Lconsts_fma,%o0
+	add	%o7,VR_poly1305_emit_fma-.Lconsts_fma,%o1
 	STPTR	%o0,[%i2]
 	STPTR	%o1,[%i2+SIZE_T]
 
@@ -602,11 +602,11 @@ poly1305_init_fma:
 .Lno_key_fma:
 	ret
 	restore	%g0,%g0,%o0			! return 0
-.type	poly1305_init_fma,#function
-.size	poly1305_init_fma,.-poly1305_init_fma
+.type	VR_poly1305_init_fma,#function
+.size	VR_poly1305_init_fma,.-VR_poly1305_init_fma
 
 .align	32
-poly1305_blocks_fma:
+VR_poly1305_blocks_fma:
 	save	%sp,-STACK_FRAME-48,%sp
 	srln	$len,4,$len
 
@@ -910,8 +910,8 @@ poly1305_blocks_fma:
 .Labort:
 	ret
 	restore
-.type	poly1305_blocks_fma,#function
-.size	poly1305_blocks_fma,.-poly1305_blocks_fma
+.type	VR_poly1305_blocks_fma,#function
+.size	VR_poly1305_blocks_fma,.-VR_poly1305_blocks_fma
 ___
 {
 my ($mac,$nonce)=($inp,$len);
@@ -921,7 +921,7 @@ my ($h0,$h1,$h2,$h3,$h4, $d0,$d1,$d2,$d3, $mask
 
 $code.=<<___;
 .align	32
-poly1305_emit_fma:
+VR_poly1305_emit_fma:
 	save	%sp,-STACK_FRAME,%sp
 
 	ld	[$ctx+8*0+0],$d0		! load hash
@@ -1017,8 +1017,8 @@ poly1305_emit_fma:
 
 	ret
 	restore
-.type	poly1305_emit_fma,#function
-.size	poly1305_emit_fma,.-poly1305_emit_fma
+.type	VR_poly1305_emit_fma,#function
+.size	VR_poly1305_emit_fma,.-VR_poly1305_emit_fma
 ___
 }
 

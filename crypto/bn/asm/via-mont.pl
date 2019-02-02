@@ -16,7 +16,7 @@
 #
 # Wrapper around 'rep montmul', VIA-specific instruction accessing
 # PadLock Montgomery Multiplier. The wrapper is designed as drop-in
-# replacement for OpenSSL bn_mul_mont [first implemented in 0.9.9].
+# replacement for OpenSSL VR_bn_mul_mont [first implemented in 0.9.9].
 #
 # Below are interleaved outputs from 'openssl speed rsa dsa' for 4
 # different software configurations on 1.5GHz VIA Esther processor.
@@ -65,7 +65,7 @@
 # dsa 2048 bits 0.002884s 0.003352s    346.8    298.3	hardware this
 #
 # To give you some other reference point here is output for 2.4GHz P4
-# running hand-coded SSE2 bn_mul_mont found in 0.9.9, i.e. "software
+# running hand-coded SSE2 VR_bn_mul_mont found in 0.9.9, i.e. "software
 # SSE2" in above terms.
 #
 # rsa  512 bits 0.000407s 0.000047s   2454.2  21137.0
@@ -93,8 +93,8 @@ open STDOUT,">$output";
 
 &asm_init($ARGV[0]);
 
-# int bn_mul_mont(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp, const BN_ULONG *np,const BN_ULONG *n0, int num);
-$func="bn_mul_mont_padlock";
+# int VR_bn_mul_mont(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp, const BN_ULONG *np,const BN_ULONG *n0, int num);
+$func="VR_bn_mul_mont_padlock";
 
 $pad=16*1;	# amount of reserved bytes on top of every vector
 

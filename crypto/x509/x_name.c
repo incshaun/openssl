@@ -93,9 +93,9 @@ static int x509_name_ex_new(ASN1_VALUE **val, const ASN1_ITEM *it)
 
     if (ret == NULL)
         goto memerr;
-    if ((ret->entries = sk_X509_NAME_ENTRY_new_null()) == NULL)
+    if ((ret->entries = sk_VR_X509_NAME_ENTRY_new_null()) == NULL)
         goto memerr;
-    if ((ret->bytes = BUF_MEM_new()) == NULL)
+    if ((ret->bytes = VR_BUF_MEM_new()) == NULL)
         goto memerr;
     ret->modified = 1;
     *val = (ASN1_VALUE *)ret;
@@ -104,8 +104,8 @@ static int x509_name_ex_new(ASN1_VALUE **val, const ASN1_ITEM *it)
  memerr:
     ASN1err(ASN1_F_X509_NAME_EX_NEW, ERR_R_MALLOC_FAILURE);
     if (ret) {
-        sk_X509_NAME_ENTRY_free(ret->entries);
-        OPENSSL_free(ret);
+        sk_VR_X509_NAME_ENTRY_free(ret->entries);
+        OPENVR_SSL_free(ret);
     }
     return 0;
 }
@@ -118,21 +118,21 @@ static void x509_name_ex_free(ASN1_VALUE **pval, const ASN1_ITEM *it)
         return;
     a = (X509_NAME *)*pval;
 
-    BUF_MEM_free(a->bytes);
-    sk_X509_NAME_ENTRY_pop_free(a->entries, X509_NAME_ENTRY_free);
-    OPENSSL_free(a->canon_enc);
-    OPENSSL_free(a);
+    VR_BUF_MEM_free(a->bytes);
+    sk_VR_X509_NAME_ENTRY_pop_free(a->entries, VR_X509_NAME_ENTRY_free);
+    OPENVR_SSL_free(a->canon_enc);
+    OPENVR_SSL_free(a);
     *pval = NULL;
 }
 
-static void local_sk_X509_NAME_ENTRY_free(STACK_OF(X509_NAME_ENTRY) *ne)
+static void local_sk_VR_X509_NAME_ENTRY_free(STACK_OF(X509_NAME_ENTRY) *ne)
 {
-    sk_X509_NAME_ENTRY_free(ne);
+    sk_VR_X509_NAME_ENTRY_free(ne);
 }
 
-static void local_sk_X509_NAME_ENTRY_pop_free(STACK_OF(X509_NAME_ENTRY) *ne)
+static void local_sk_VR_X509_NAME_ENTRY_pop_free(STACK_OF(X509_NAME_ENTRY) *ne)
 {
-    sk_X509_NAME_ENTRY_pop_free(ne, X509_NAME_ENTRY_free);
+    sk_VR_X509_NAME_ENTRY_pop_free(ne, VR_X509_NAME_ENTRY_free);
 }
 
 static int x509_name_ex_d2i(ASN1_VALUE **val,
@@ -161,7 +161,7 @@ static int x509_name_ex_d2i(ASN1_VALUE **val,
     q = p;
 
     /* Get internal representation of Name */
-    ret = ASN1_item_ex_d2i(&intname.a,
+    ret = VR_ASN1_item_ex_d2i(&intname.a,
                            &p, len, ASN1_ITEM_rptr(X509_NAME_INTERNAL),
                            tag, aclass, opt, ctx);
 
@@ -173,7 +173,7 @@ static int x509_name_ex_d2i(ASN1_VALUE **val,
     if (!x509_name_ex_new(&nm.a, NULL))
         goto err;
     /* We've decoded it: now cache encoding */
-    if (!BUF_MEM_grow(nm.x->bytes, p - q))
+    if (!VR_BUF_MEM_grow(nm.x->bytes, p - q))
         goto err;
     memcpy(nm.x->bytes->data, q, p - q);
 
@@ -183,16 +183,16 @@ static int x509_name_ex_d2i(ASN1_VALUE **val,
         for (j = 0; j < sk_X509_NAME_ENTRY_num(entries); j++) {
             entry = sk_X509_NAME_ENTRY_value(entries, j);
             entry->set = i;
-            if (!sk_X509_NAME_ENTRY_push(nm.x->entries, entry))
+            if (!sk_VR_X509_NAME_ENTRY_push(nm.x->entries, entry))
                 goto err;
-            sk_X509_NAME_ENTRY_set(entries, j, NULL);
+            sk_VR_X509_NAME_ENTRY_set(entries, j, NULL);
         }
     }
     ret = x509_name_canon(nm.x);
     if (!ret)
         goto err;
-    sk_STACK_OF_X509_NAME_ENTRY_pop_free(intname.s,
-                                         local_sk_X509_NAME_ENTRY_free);
+    sk_VR_STACK_OF_X509_NAME_ENTRY_pop_free(intname.s,
+                                         local_sk_VR_X509_NAME_ENTRY_free);
     nm.x->modified = 0;
     *val = nm.a;
     *in = p;
@@ -200,9 +200,9 @@ static int x509_name_ex_d2i(ASN1_VALUE **val,
 
  err:
     if (nm.x != NULL)
-        X509_NAME_free(nm.x);
-    sk_STACK_OF_X509_NAME_ENTRY_pop_free(intname.s,
-                                         local_sk_X509_NAME_ENTRY_pop_free);
+        VR_X509_NAME_free(nm.x);
+    sk_VR_STACK_OF_X509_NAME_ENTRY_pop_free(intname.s,
+                                         local_sk_VR_X509_NAME_ENTRY_pop_free);
     ASN1err(ASN1_F_X509_NAME_EX_D2I, ERR_R_NESTED_ASN1_ERROR);
     return 0;
 }
@@ -241,38 +241,38 @@ static int x509_name_encode(X509_NAME *a)
     STACK_OF(X509_NAME_ENTRY) *entries = NULL;
     X509_NAME_ENTRY *entry;
     int i, set = -1;
-    intname.s = sk_STACK_OF_X509_NAME_ENTRY_new_null();
+    intname.s = sk_VR_STACK_OF_X509_NAME_ENTRY_new_null();
     if (!intname.s)
         goto memerr;
     for (i = 0; i < sk_X509_NAME_ENTRY_num(a->entries); i++) {
         entry = sk_X509_NAME_ENTRY_value(a->entries, i);
         if (entry->set != set) {
-            entries = sk_X509_NAME_ENTRY_new_null();
+            entries = sk_VR_X509_NAME_ENTRY_new_null();
             if (!entries)
                 goto memerr;
-            if (!sk_STACK_OF_X509_NAME_ENTRY_push(intname.s, entries)) {
-                sk_X509_NAME_ENTRY_free(entries);
+            if (!sk_VR_STACK_OF_X509_NAME_ENTRY_push(intname.s, entries)) {
+                sk_VR_X509_NAME_ENTRY_free(entries);
                 goto memerr;
             }
             set = entry->set;
         }
-        if (!sk_X509_NAME_ENTRY_push(entries, entry))
+        if (!sk_VR_X509_NAME_ENTRY_push(entries, entry))
             goto memerr;
     }
-    len = ASN1_item_ex_i2d(&intname.a, NULL,
+    len = VR_ASN1_item_ex_i2d(&intname.a, NULL,
                            ASN1_ITEM_rptr(X509_NAME_INTERNAL), -1, -1);
-    if (!BUF_MEM_grow(a->bytes, len))
+    if (!VR_BUF_MEM_grow(a->bytes, len))
         goto memerr;
     p = (unsigned char *)a->bytes->data;
-    ASN1_item_ex_i2d(&intname.a,
+    VR_ASN1_item_ex_i2d(&intname.a,
                      &p, ASN1_ITEM_rptr(X509_NAME_INTERNAL), -1, -1);
-    sk_STACK_OF_X509_NAME_ENTRY_pop_free(intname.s,
-                                         local_sk_X509_NAME_ENTRY_free);
+    sk_VR_STACK_OF_X509_NAME_ENTRY_pop_free(intname.s,
+                                         local_sk_VR_X509_NAME_ENTRY_free);
     a->modified = 0;
     return len;
  memerr:
-    sk_STACK_OF_X509_NAME_ENTRY_pop_free(intname.s,
-                                         local_sk_X509_NAME_ENTRY_free);
+    sk_VR_STACK_OF_X509_NAME_ENTRY_pop_free(intname.s,
+                                         local_sk_VR_X509_NAME_ENTRY_free);
     ASN1err(ASN1_F_X509_NAME_ENCODE, ERR_R_MALLOC_FAILURE);
     return -1;
 }
@@ -281,7 +281,7 @@ static int x509_name_ex_print(BIO *out, ASN1_VALUE **pval,
                               int indent,
                               const char *fname, const ASN1_PCTX *pctx)
 {
-    if (X509_NAME_print_ex(out, (const X509_NAME *)*pval,
+    if (VR_X509_NAME_print_ex(out, (const X509_NAME *)*pval,
                            indent, pctx->nm_flags) <= 0)
         return 0;
     return 2;
@@ -305,14 +305,14 @@ static int x509_name_canon(X509_NAME *a)
     X509_NAME_ENTRY *entry, *tmpentry = NULL;
     int i, set = -1, ret = 0, len;
 
-    OPENSSL_free(a->canon_enc);
+    OPENVR_SSL_free(a->canon_enc);
     a->canon_enc = NULL;
     /* Special case: empty X509_NAME => null encoding */
     if (sk_X509_NAME_ENTRY_num(a->entries) == 0) {
         a->canon_enclen = 0;
         return 1;
     }
-    intname = sk_STACK_OF_X509_NAME_ENTRY_new_null();
+    intname = sk_VR_STACK_OF_X509_NAME_ENTRY_new_null();
     if (intname == NULL) {
         X509err(X509_F_X509_NAME_CANON, ERR_R_MALLOC_FAILURE);
         goto err;
@@ -320,29 +320,29 @@ static int x509_name_canon(X509_NAME *a)
     for (i = 0; i < sk_X509_NAME_ENTRY_num(a->entries); i++) {
         entry = sk_X509_NAME_ENTRY_value(a->entries, i);
         if (entry->set != set) {
-            entries = sk_X509_NAME_ENTRY_new_null();
+            entries = sk_VR_X509_NAME_ENTRY_new_null();
             if (entries == NULL)
                 goto err;
-            if (!sk_STACK_OF_X509_NAME_ENTRY_push(intname, entries)) {
-                sk_X509_NAME_ENTRY_free(entries);
+            if (!sk_VR_STACK_OF_X509_NAME_ENTRY_push(intname, entries)) {
+                sk_VR_X509_NAME_ENTRY_free(entries);
                 X509err(X509_F_X509_NAME_CANON, ERR_R_MALLOC_FAILURE);
                 goto err;
             }
             set = entry->set;
         }
-        tmpentry = X509_NAME_ENTRY_new();
+        tmpentry = VR_X509_NAME_ENTRY_new();
         if (tmpentry == NULL) {
             X509err(X509_F_X509_NAME_CANON, ERR_R_MALLOC_FAILURE);
             goto err;
         }
-        tmpentry->object = OBJ_dup(entry->object);
+        tmpentry->object = VR_OBJ_dup(entry->object);
         if (tmpentry->object == NULL) {
             X509err(X509_F_X509_NAME_CANON, ERR_R_MALLOC_FAILURE);
             goto err;
         }
         if (!asn1_string_canon(tmpentry->value, entry->value))
             goto err;
-        if (!sk_X509_NAME_ENTRY_push(entries, tmpentry)) {
+        if (!sk_VR_X509_NAME_ENTRY_push(entries, tmpentry)) {
             X509err(X509_F_X509_NAME_CANON, ERR_R_MALLOC_FAILURE);
             goto err;
         }
@@ -368,9 +368,9 @@ static int x509_name_canon(X509_NAME *a)
     ret = 1;
 
  err:
-    X509_NAME_ENTRY_free(tmpentry);
-    sk_STACK_OF_X509_NAME_ENTRY_pop_free(intname,
-                                         local_sk_X509_NAME_ENTRY_pop_free);
+    VR_X509_NAME_ENTRY_free(tmpentry);
+    sk_VR_STACK_OF_X509_NAME_ENTRY_pop_free(intname,
+                                         local_sk_VR_X509_NAME_ENTRY_pop_free);
     return ret;
 }
 
@@ -387,14 +387,14 @@ static int asn1_string_canon(ASN1_STRING *out, const ASN1_STRING *in)
     int len, i;
 
     /* If type not in bitmask just copy string across */
-    if (!(ASN1_tag2bit(in->type) & ASN1_MASK_CANON)) {
-        if (!ASN1_STRING_copy(out, in))
+    if (!(VR_ASN1_tag2bit(in->type) & ASN1_MASK_CANON)) {
+        if (!VR_ASN1_STRING_copy(out, in))
             return 0;
         return 1;
     }
 
     out->type = V_ASN1_UTF8STRING;
-    out->length = ASN1_STRING_to_UTF8(&out->data, in);
+    out->length = VR_ASN1_STRING_to_UTF8(&out->data, in);
     if (out->length == -1)
         return 0;
 
@@ -448,7 +448,7 @@ static int asn1_string_canon(ASN1_STRING *out, const ASN1_STRING *in)
             }
             while (ossl_isspace(*from));
         } else {
-            *to++ = ossl_tolower(*from);
+            *to++ = VR_ossl_tolower(*from);
             from++;
             i++;
         }
@@ -470,7 +470,7 @@ static int i2d_name_canon(STACK_OF(STACK_OF_X509_NAME_ENTRY) * _intname,
     len = 0;
     for (i = 0; i < sk_ASN1_VALUE_num(intname); i++) {
         v = sk_ASN1_VALUE_value(intname, i);
-        ltmp = ASN1_item_ex_i2d(&v, in,
+        ltmp = VR_ASN1_item_ex_i2d(&v, in,
                                 ASN1_ITEM_rptr(X509_NAME_ENTRIES), -1, -1);
         if (ltmp < 0)
             return ltmp;
@@ -479,29 +479,29 @@ static int i2d_name_canon(STACK_OF(STACK_OF_X509_NAME_ENTRY) * _intname,
     return len;
 }
 
-int X509_NAME_set(X509_NAME **xn, X509_NAME *name)
+int VR_X509_NAME_set(X509_NAME **xn, X509_NAME *name)
 {
     if (*xn == name)
         return *xn != NULL;
-    if ((name = X509_NAME_dup(name)) == NULL)
+    if ((name = VR_X509_NAME_dup(name)) == NULL)
         return 0;
-    X509_NAME_free(*xn);
+    VR_X509_NAME_free(*xn);
     *xn = name;
     return 1;
 }
 
-int X509_NAME_print(BIO *bp, const X509_NAME *name, int obase)
+int VR_X509_NAME_print(BIO *bp, const X509_NAME *name, int obase)
 {
     char *s, *c, *b;
     int l, i;
 
     l = 80 - 2 - obase;
 
-    b = X509_NAME_oneline(name, NULL, 0);
+    b = VR_X509_NAME_oneline(name, NULL, 0);
     if (!b)
         return 0;
     if (!*b) {
-        OPENSSL_free(b);
+        OPENVR_SSL_free(b);
         return 1;
     }
     s = b + 1;                  /* skip the first slash */
@@ -514,11 +514,11 @@ int X509_NAME_print(BIO *bp, const X509_NAME *name, int obase)
               ))) || (*s == '\0'))
         {
             i = s - c;
-            if (BIO_write(bp, c, i) != i)
+            if (VR_BIO_write(bp, c, i) != i)
                 goto err;
             c = s + 1;          /* skip following slash */
             if (*s != '\0') {
-                if (BIO_write(bp, ", ", 2) != 2)
+                if (VR_BIO_write(bp, ", ", 2) != 2)
                     goto err;
             }
             l--;
@@ -529,19 +529,19 @@ int X509_NAME_print(BIO *bp, const X509_NAME *name, int obase)
         l--;
     }
 
-    OPENSSL_free(b);
+    OPENVR_SSL_free(b);
     return 1;
  err:
     X509err(X509_F_X509_NAME_PRINT, ERR_R_BUF_LIB);
-    OPENSSL_free(b);
+    OPENVR_SSL_free(b);
     return 0;
 }
 
-int X509_NAME_get0_der(X509_NAME *nm, const unsigned char **pder,
+int VR_X509_NAME_get0_der(X509_NAME *nm, const unsigned char **pder,
                        size_t *pderlen)
 {
     /* Make sure encoding is valid */
-    if (i2d_X509_NAME(nm, NULL) <= 0)
+    if (VR_i2d_X509_NAME(nm, NULL) <= 0)
         return 0;
     if (pder != NULL)
         *pder = (unsigned char *)nm->bytes->data;

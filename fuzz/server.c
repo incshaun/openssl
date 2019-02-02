@@ -489,13 +489,13 @@ int FuzzerInitialize(int *argc, char ***argv)
 {
     STACK_OF(SSL_COMP) *comp_methods;
 
-    OPENSSL_init_crypto(OPENSSL_INIT_LOAD_CRYPTO_STRINGS | OPENSSL_INIT_ASYNC, NULL);
-    OPENSSL_init_ssl(OPENSSL_INIT_LOAD_SSL_STRINGS, NULL);
-    ERR_get_state();
-    CRYPTO_free_ex_index(0, -1);
-    idx = SSL_get_ex_data_X509_STORE_CTX_idx();
+    VR_OPENSSL_init_crypto(OPENSSL_INIT_LOAD_CRYPTO_STRINGS | OPENSSL_INIT_ASYNC, NULL);
+    VR_OPENSSL_init_ssl(OPENSSL_INIT_LOAD_SSL_STRINGS, NULL);
+    VR_ERR_get_state();
+    VR_CRYPTO_free_ex_index(0, -1);
+    idx = VR_SSL_get_ex_data_X509_STORE_CTX_idx();
     FuzzerSetRand();
-    comp_methods = SSL_COMP_get_compression_methods();
+    comp_methods = VR_SSL_COMP_get_compression_methods();
     if (comp_methods != NULL)
         sk_SSL_COMP_sort(comp_methods);
 
@@ -532,115 +532,115 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
      */
 
     /* This only fuzzes the initial flow from the client so far. */
-    ctx = SSL_CTX_new(SSLv23_method());
+    ctx = VR_SSL_CTX_new(SSLv23_method());
 
     ret = SSL_CTX_set_min_proto_version(ctx, 0);
     OPENSSL_assert(ret == 1);
-    ret = SSL_CTX_set_cipher_list(ctx, "ALL:eNULL:@SECLEVEL=0");
+    ret = VR_SSL_CTX_set_cipher_list(ctx, "ALL:eNULL:@SECLEVEL=0");
     OPENSSL_assert(ret == 1);
 
     /* RSA */
     bufp = kRSAPrivateKeyDER;
-    privkey = d2i_RSAPrivateKey(NULL, &bufp, sizeof(kRSAPrivateKeyDER));
+    privkey = VR_d2i_RSAPrivateKey(NULL, &bufp, sizeof(kRSAPrivateKeyDER));
     OPENSSL_assert(privkey != NULL);
-    pkey = EVP_PKEY_new();
-    EVP_PKEY_assign_RSA(pkey, privkey);
-    ret = SSL_CTX_use_PrivateKey(ctx, pkey);
+    pkey = VR_EVP_PKEY_new();
+    VR_EVP_PKEY_assign_RSA(pkey, privkey);
+    ret = VR_SSL_CTX_use_PrivateKey(ctx, pkey);
     OPENSSL_assert(ret == 1);
-    EVP_PKEY_free(pkey);
+    VR_EVP_PKEY_free(pkey);
 
     bufp = kCertificateDER;
-    cert = d2i_X509(NULL, &bufp, sizeof(kCertificateDER));
+    cert = VR_d2i_X509(NULL, &bufp, sizeof(kCertificateDER));
     OPENSSL_assert(cert != NULL);
-    ret = SSL_CTX_use_certificate(ctx, cert);
+    ret = VR_SSL_CTX_use_certificate(ctx, cert);
     OPENSSL_assert(ret == 1);
-    X509_free(cert);
+    VR_X509_free(cert);
 
 #ifndef OPENSSL_NO_EC
     /* ECDSA */
-    bio_buf = BIO_new(BIO_s_mem());
-    OPENSSL_assert((size_t)BIO_write(bio_buf, ECDSAPrivateKeyPEM, sizeof(ECDSAPrivateKeyPEM)) == sizeof(ECDSAPrivateKeyPEM));
-    ecdsakey = PEM_read_bio_ECPrivateKey(bio_buf, NULL, NULL, NULL);
-    ERR_print_errors_fp(stderr);
+    bio_buf = VR_BIO_new(VR_BIO_s_mem());
+    OPENSSL_assert((size_t)VR_BIO_write(bio_buf, ECDSAPrivateKeyPEM, sizeof(ECDSAPrivateKeyPEM)) == sizeof(ECDSAPrivateKeyPEM));
+    ecdsakey = VR_PEM_read_bio_ECPrivateKey(bio_buf, NULL, NULL, NULL);
+    VR_ERR_print_errors_fp(stderr);
     OPENSSL_assert(ecdsakey != NULL);
-    BIO_free(bio_buf);
-    pkey = EVP_PKEY_new();
-    EVP_PKEY_assign_EC_KEY(pkey, ecdsakey);
-    ret = SSL_CTX_use_PrivateKey(ctx, pkey);
+    VR_BIO_free(bio_buf);
+    pkey = VR_EVP_PKEY_new();
+    VR_EVP_PKEY_assign_EC_KEY(pkey, ecdsakey);
+    ret = VR_SSL_CTX_use_PrivateKey(ctx, pkey);
     OPENSSL_assert(ret == 1);
-    EVP_PKEY_free(pkey);
+    VR_EVP_PKEY_free(pkey);
 
-    bio_buf = BIO_new(BIO_s_mem());
-    OPENSSL_assert((size_t)BIO_write(bio_buf, ECDSACertPEM, sizeof(ECDSACertPEM)) == sizeof(ECDSACertPEM));
-    cert = PEM_read_bio_X509(bio_buf, NULL, NULL, NULL);
+    bio_buf = VR_BIO_new(VR_BIO_s_mem());
+    OPENSSL_assert((size_t)VR_BIO_write(bio_buf, ECDSACertPEM, sizeof(ECDSACertPEM)) == sizeof(ECDSACertPEM));
+    cert = VR_PEM_read_bio_X509(bio_buf, NULL, NULL, NULL);
     OPENSSL_assert(cert != NULL);
-    BIO_free(bio_buf);
-    ret = SSL_CTX_use_certificate(ctx, cert);
+    VR_BIO_free(bio_buf);
+    ret = VR_SSL_CTX_use_certificate(ctx, cert);
     OPENSSL_assert(ret == 1);
-    X509_free(cert);
+    VR_X509_free(cert);
 #endif
 
 #ifndef OPENSSL_NO_DSA
     /* DSA */
-    bio_buf = BIO_new(BIO_s_mem());
-    OPENSSL_assert((size_t)BIO_write(bio_buf, DSAPrivateKeyPEM, sizeof(DSAPrivateKeyPEM)) == sizeof(DSAPrivateKeyPEM));
-    dsakey = PEM_read_bio_DSAPrivateKey(bio_buf, NULL, NULL, NULL);
-    ERR_print_errors_fp(stderr);
+    bio_buf = VR_BIO_new(VR_BIO_s_mem());
+    OPENSSL_assert((size_t)VR_BIO_write(bio_buf, DSAPrivateKeyPEM, sizeof(DSAPrivateKeyPEM)) == sizeof(DSAPrivateKeyPEM));
+    dsakey = VR_PEM_read_bio_DSAPrivateKey(bio_buf, NULL, NULL, NULL);
+    VR_ERR_print_errors_fp(stderr);
     OPENSSL_assert(dsakey != NULL);
-    BIO_free(bio_buf);
-    pkey = EVP_PKEY_new();
-    EVP_PKEY_assign_DSA(pkey, dsakey);
-    ret = SSL_CTX_use_PrivateKey(ctx, pkey);
+    VR_BIO_free(bio_buf);
+    pkey = VR_EVP_PKEY_new();
+    VR_EVP_PKEY_assign_DSA(pkey, dsakey);
+    ret = VR_SSL_CTX_use_PrivateKey(ctx, pkey);
     OPENSSL_assert(ret == 1);
-    EVP_PKEY_free(pkey);
+    VR_EVP_PKEY_free(pkey);
 
-    bio_buf = BIO_new(BIO_s_mem());
-    OPENSSL_assert((size_t)BIO_write(bio_buf, DSACertPEM, sizeof(DSACertPEM)) == sizeof(DSACertPEM));
-    cert = PEM_read_bio_X509(bio_buf, NULL, NULL, NULL);
+    bio_buf = VR_BIO_new(VR_BIO_s_mem());
+    OPENSSL_assert((size_t)VR_BIO_write(bio_buf, DSACertPEM, sizeof(DSACertPEM)) == sizeof(DSACertPEM));
+    cert = VR_PEM_read_bio_X509(bio_buf, NULL, NULL, NULL);
     OPENSSL_assert(cert != NULL);
-    BIO_free(bio_buf);
-    ret = SSL_CTX_use_certificate(ctx, cert);
+    VR_BIO_free(bio_buf);
+    ret = VR_SSL_CTX_use_certificate(ctx, cert);
     OPENSSL_assert(ret == 1);
-    X509_free(cert);
+    VR_X509_free(cert);
 #endif
 
     /* TODO: Set up support for SRP and PSK */
 
-    server = SSL_new(ctx);
-    in = BIO_new(BIO_s_mem());
-    out = BIO_new(BIO_s_mem());
-    SSL_set_bio(server, in, out);
-    SSL_set_accept_state(server);
+    server = VR_SSL_new(ctx);
+    in = VR_BIO_new(VR_BIO_s_mem());
+    out = VR_BIO_new(VR_BIO_s_mem());
+    VR_SSL_set_bio(server, in, out);
+    VR_SSL_set_accept_state(server);
 
     opt = (uint8_t)buf[len-1];
     len--;
 
-    OPENSSL_assert((size_t)BIO_write(in, buf, len) == len);
+    OPENSSL_assert((size_t)VR_BIO_write(in, buf, len) == len);
 
     if ((opt & 0x01) != 0)
     {
         do {
             char early_buf[16384];
             size_t early_len;
-            ret = SSL_read_early_data(server, early_buf, sizeof(early_buf), &early_len);
+            ret = VR_SSL_read_early_data(server, early_buf, sizeof(early_buf), &early_len);
 
             if (ret != SSL_READ_EARLY_DATA_SUCCESS)
                 break;
         } while (1);
     }
 
-    if (SSL_do_handshake(server) == 1) {
+    if (VR_SSL_do_handshake(server) == 1) {
         /* Keep reading application data until error or EOF. */
         uint8_t tmp[1024];
         for (;;) {
-            if (SSL_read(server, tmp, sizeof(tmp)) <= 0) {
+            if (VR_SSL_read(server, tmp, sizeof(tmp)) <= 0) {
                 break;
             }
         }
     }
-    SSL_free(server);
-    ERR_clear_error();
-    SSL_CTX_free(ctx);
+    VR_SSL_free(server);
+    VR_ERR_clear_error();
+    VR_SSL_CTX_free(ctx);
 
     return 0;
 }

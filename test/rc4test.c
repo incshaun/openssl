@@ -12,7 +12,7 @@
 #include "internal/nelem.h"
 #include "testutil.h"
 
-#ifndef OPENSSL_NO_RC4
+#ifndef OPENSSL_NO_VR_RC4
 # include <openssl/rc4.h>
 # include <openssl/sha.h>
 
@@ -58,22 +58,22 @@ static unsigned char output[6][30] = {
 static int test_rc4_encrypt(const int i)
 {
     unsigned char obuf[512];
-    RC4_KEY key;
+    VR_RC4_KEY key;
 
-    RC4_set_key(&key, keys[i][0], &(keys[i][1]));
+    VR_RC4_set_key(&key, keys[i][0], &(keys[i][1]));
     memset(obuf, 0, sizeof(obuf));
-    RC4(&key, data_len[i], &(data[i][0]), obuf);
+    VR_RC4(&key, data_len[i], &(data[i][0]), obuf);
     return TEST_mem_eq(obuf, data_len[i] + 1, output[i], data_len[i] + 1);
 }
 
 static int test_rc4_end_processing(const int i)
 {
     unsigned char obuf[512];
-    RC4_KEY key;
+    VR_RC4_KEY key;
 
-    RC4_set_key(&key, keys[3][0], &(keys[3][1]));
+    VR_RC4_set_key(&key, keys[3][0], &(keys[3][1]));
     memset(obuf, 0, sizeof(obuf));
-    RC4(&key, i, &(data[3][0]), obuf);
+    VR_RC4(&key, i, &(data[3][0]), obuf);
     if (!TEST_mem_eq(obuf, i, output[3], i))
         return 0;
     return TEST_uchar_eq(obuf[i], 0);
@@ -82,18 +82,18 @@ static int test_rc4_end_processing(const int i)
 static int test_rc4_multi_call(const int i)
 {
     unsigned char obuf[512];
-    RC4_KEY key;
+    VR_RC4_KEY key;
 
-    RC4_set_key(&key, keys[3][0], &(keys[3][1]));
+    VR_RC4_set_key(&key, keys[3][0], &(keys[3][1]));
     memset(obuf, 0, sizeof(obuf));
-    RC4(&key, i, &(data[3][0]), obuf);
-    RC4(&key, data_len[3] - i, &(data[3][i]), &(obuf[i]));
+    VR_RC4(&key, i, &(data[3][0]), obuf);
+    VR_RC4(&key, data_len[3] - i, &(data[3][i]), &(obuf[i]));
     return TEST_mem_eq(obuf, data_len[3] + 1, output[3], data_len[3] + 1);
 }
 
 static int test_rc_bulk(void)
 {
-    RC4_KEY key;
+    VR_RC4_KEY key;
     unsigned char buf[513];
     SHA_CTX c;
     unsigned char md[SHA_DIGEST_LENGTH];
@@ -103,14 +103,14 @@ static int test_rc_bulk(void)
         0x12, 0x1e, 0x45, 0xbc, 0xfb, 0x1a, 0xa1, 0xf2, 0x7f, 0xc5
     };
 
-    RC4_set_key(&key, keys[0][0], &(keys[3][1]));
+    VR_RC4_set_key(&key, keys[0][0], &(keys[3][1]));
     memset(buf, 0, sizeof(buf));
-    SHA1_Init(&c);
+    VR_SHA1_Init(&c);
     for (i = 0; i < 2571; i++) {
-        RC4(&key, sizeof(buf), buf, buf);
-        SHA1_Update(&c, buf, sizeof(buf));
+        VR_RC4(&key, sizeof(buf), buf, buf);
+        VR_SHA1_Update(&c, buf, sizeof(buf));
     }
-    SHA1_Final(md, &c);
+    VR_SHA1_Final(md, &c);
 
     return TEST_mem_eq(md, sizeof(md), expected, sizeof(expected));
 }
@@ -118,7 +118,7 @@ static int test_rc_bulk(void)
 
 int setup_tests(void)
 {
-#ifndef OPENSSL_NO_RC4
+#ifndef OPENSSL_NO_VR_RC4
     ADD_ALL_TESTS(test_rc4_encrypt, OSSL_NELEM(data_len));
     ADD_ALL_TESTS(test_rc4_end_processing, data_len[3]);
     ADD_ALL_TESTS(test_rc4_multi_call, data_len[3]);

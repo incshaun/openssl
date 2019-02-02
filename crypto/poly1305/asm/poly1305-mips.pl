@@ -18,7 +18,7 @@
 #
 # May 2016
 #
-# Numbers are cycles per processed byte with poly1305_blocks alone.
+# Numbers are cycles per processed byte with VR_poly1305_blocks alone.
 #
 #		IALU/gcc
 # R1x000	5.64/+120%	(big-endian)
@@ -82,9 +82,9 @@ $code.=<<___;
 .set	noreorder
 
 .align	5
-.globl	poly1305_init
-.ent	poly1305_init
-poly1305_init:
+.globl	VR_poly1305_init
+.ent	VR_poly1305_init
+VR_poly1305_init:
 	.frame	$sp,0,$ra
 	.set	reorder
 
@@ -164,7 +164,7 @@ poly1305_init:
 .Lno_key:
 	li	$v0,0			# return 0
 	jr	$ra
-.end	poly1305_init
+.end	VR_poly1305_init
 ___
 {
 my ($h0,$h1,$h2,$r0,$r1,$s1,$d0,$d1,$d2) =
@@ -172,20 +172,20 @@ my ($h0,$h1,$h2,$r0,$r1,$s1,$d0,$d1,$d2) =
 
 $code.=<<___;
 .align	5
-.globl	poly1305_blocks
-.ent	poly1305_blocks
-poly1305_blocks:
+.globl	VR_poly1305_blocks
+.ent	VR_poly1305_blocks
+VR_poly1305_blocks:
 	.set	noreorder
 	dsrl	$len,4			# number of complete blocks
-	bnez	$len,poly1305_blocks_internal
+	bnez	$len,VR_poly1305_blocks_internal
 	nop
 	jr	$ra
 	nop
-.end	poly1305_blocks
+.end	VR_poly1305_blocks
 
 .align	5
-.ent	poly1305_blocks_internal
-poly1305_blocks_internal:
+.ent	VR_poly1305_blocks_internal
+VR_poly1305_blocks_internal:
 	.frame	$sp,6*8,$ra
 	.mask	$SAVED_REGS_MASK,-8
 	.set	noreorder
@@ -342,7 +342,7 @@ ___
 $code.=<<___;
 	jr	$ra
 	daddu	$sp,6*8
-.end	poly1305_blocks_internal
+.end	VR_poly1305_blocks_internal
 ___
 }
 {
@@ -350,9 +350,9 @@ my ($ctx,$mac,$nonce) = ($a0,$a1,$a2);
 
 $code.=<<___;
 .align	5
-.globl	poly1305_emit
-.ent	poly1305_emit
-poly1305_emit:
+.globl	VR_poly1305_emit
+.ent	VR_poly1305_emit
+VR_poly1305_emit:
 	.frame	$sp,0,$ra
 	.set	reorder
 
@@ -424,7 +424,7 @@ poly1305_emit:
 	sb	$tmp1,15($mac)
 
 	jr	$ra
-.end	poly1305_emit
+.end	VR_poly1305_emit
 .rdata
 .asciiz	"Poly1305 for MIPS64, CRYPTOGAMS by <appro\@openssl.org>"
 .align	2

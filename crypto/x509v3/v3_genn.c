@@ -50,15 +50,15 @@ ASN1_ITEM_TEMPLATE_END(GENERAL_NAMES)
 
 IMPLEMENT_ASN1_FUNCTIONS(GENERAL_NAMES)
 
-GENERAL_NAME *GENERAL_NAME_dup(GENERAL_NAME *a)
+GENERAL_NAME *VR_GENERAL_NAME_dup(GENERAL_NAME *a)
 {
-    return (GENERAL_NAME *)ASN1_dup((i2d_of_void *)i2d_GENERAL_NAME,
-                                    (d2i_of_void *)d2i_GENERAL_NAME,
+    return (GENERAL_NAME *)VR_ASN1_dup((i2d_of_void *)VR_i2d_GENERAL_NAME,
+                                    (d2i_of_void *)VR_d2i_GENERAL_NAME,
                                     (char *)a);
 }
 
 /* Returns 0 if they are equal, != 0 otherwise. */
-int GENERAL_NAME_cmp(GENERAL_NAME *a, GENERAL_NAME *b)
+int VR_GENERAL_NAME_cmp(GENERAL_NAME *a, GENERAL_NAME *b)
 {
     int result = -1;
 
@@ -67,50 +67,50 @@ int GENERAL_NAME_cmp(GENERAL_NAME *a, GENERAL_NAME *b)
     switch (a->type) {
     case GEN_X400:
     case GEN_EDIPARTY:
-        result = ASN1_TYPE_cmp(a->d.other, b->d.other);
+        result = VR_ASN1_TYPE_cmp(a->d.other, b->d.other);
         break;
 
     case GEN_OTHERNAME:
-        result = OTHERNAME_cmp(a->d.otherName, b->d.otherName);
+        result = VR_OTHERNAME_cmp(a->d.otherName, b->d.otherName);
         break;
 
     case GEN_EMAIL:
     case GEN_DNS:
     case GEN_URI:
-        result = ASN1_STRING_cmp(a->d.ia5, b->d.ia5);
+        result = VR_ASN1_STRING_cmp(a->d.ia5, b->d.ia5);
         break;
 
     case GEN_DIRNAME:
-        result = X509_NAME_cmp(a->d.dirn, b->d.dirn);
+        result = VR_X509_NAME_cmp(a->d.dirn, b->d.dirn);
         break;
 
     case GEN_IPADD:
-        result = ASN1_OCTET_STRING_cmp(a->d.ip, b->d.ip);
+        result = VR_ASN1_OCTET_STRING_cmp(a->d.ip, b->d.ip);
         break;
 
     case GEN_RID:
-        result = OBJ_cmp(a->d.rid, b->d.rid);
+        result = VR_OBJ_cmp(a->d.rid, b->d.rid);
         break;
     }
     return result;
 }
 
 /* Returns 0 if they are equal, != 0 otherwise. */
-int OTHERNAME_cmp(OTHERNAME *a, OTHERNAME *b)
+int VR_OTHERNAME_cmp(OTHERNAME *a, OTHERNAME *b)
 {
     int result = -1;
 
     if (!a || !b)
         return -1;
     /* Check their type first. */
-    if ((result = OBJ_cmp(a->type_id, b->type_id)) != 0)
+    if ((result = VR_OBJ_cmp(a->type_id, b->type_id)) != 0)
         return result;
     /* Check the value. */
-    result = ASN1_TYPE_cmp(a->value, b->value);
+    result = VR_ASN1_TYPE_cmp(a->value, b->value);
     return result;
 }
 
-void GENERAL_NAME_set0_value(GENERAL_NAME *a, int type, void *value)
+void VR_GENERAL_NAME_set0_value(GENERAL_NAME *a, int type, void *value)
 {
     switch (type) {
     case GEN_X400:
@@ -143,7 +143,7 @@ void GENERAL_NAME_set0_value(GENERAL_NAME *a, int type, void *value)
     a->type = type;
 }
 
-void *GENERAL_NAME_get0_value(GENERAL_NAME *a, int *ptype)
+void *VR_GENERAL_NAME_get0_value(GENERAL_NAME *a, int *ptype)
 {
     if (ptype)
         *ptype = a->type;
@@ -174,21 +174,21 @@ void *GENERAL_NAME_get0_value(GENERAL_NAME *a, int *ptype)
     }
 }
 
-int GENERAL_NAME_set0_othername(GENERAL_NAME *gen,
+int VR_GENERAL_NAME_set0_othername(GENERAL_NAME *gen,
                                 ASN1_OBJECT *oid, ASN1_TYPE *value)
 {
     OTHERNAME *oth;
-    oth = OTHERNAME_new();
+    oth = VR_OTHERNAME_new();
     if (oth == NULL)
         return 0;
-    ASN1_TYPE_free(oth->value);
+    VR_ASN1_TYPE_free(oth->value);
     oth->type_id = oid;
     oth->value = value;
-    GENERAL_NAME_set0_value(gen, GEN_OTHERNAME, oth);
+    VR_GENERAL_NAME_set0_value(gen, GEN_OTHERNAME, oth);
     return 1;
 }
 
-int GENERAL_NAME_get0_otherName(GENERAL_NAME *gen,
+int VR_GENERAL_NAME_get0_otherName(GENERAL_NAME *gen,
                                 ASN1_OBJECT **poid, ASN1_TYPE **pvalue)
 {
     if (gen->type != GEN_OTHERNAME)

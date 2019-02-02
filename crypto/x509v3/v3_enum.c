@@ -32,22 +32,22 @@ static ENUMERATED_NAMES crl_reasons[] = {
 const X509V3_EXT_METHOD v3_crl_reason = {
     NID_crl_reason, 0, ASN1_ITEM_ref(ASN1_ENUMERATED),
     0, 0, 0, 0,
-    (X509V3_EXT_I2S)i2s_ASN1_ENUMERATED_TABLE,
+    (X509V3_EXT_I2S)VR_i2s_ASN1_ENUMERATED_TABLE,
     0,
     0, 0, 0, 0,
     crl_reasons
 };
 
-char *i2s_ASN1_ENUMERATED_TABLE(X509V3_EXT_METHOD *method,
+char *VR_i2s_ASN1_ENUMERATED_TABLE(X509V3_EXT_METHOD *method,
                                 const ASN1_ENUMERATED *e)
 {
     ENUMERATED_NAMES *enam;
     long strval;
 
-    strval = ASN1_ENUMERATED_get(e);
+    strval = VR_ASN1_ENUMERATED_get(e);
     for (enam = method->usr_data; enam->lname; enam++) {
         if (strval == enam->bitnum)
             return OPENSSL_strdup(enam->lname);
     }
-    return i2s_ASN1_ENUMERATED(method, e);
+    return VR_i2s_ASN1_ENUMERATED(method, e);
 }

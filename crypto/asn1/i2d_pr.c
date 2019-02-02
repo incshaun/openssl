@@ -14,17 +14,17 @@
 #include "internal/asn1_int.h"
 #include "internal/evp_int.h"
 
-int i2d_PrivateKey(EVP_PKEY *a, unsigned char **pp)
+int VR_i2d_PrivateKey(EVP_PKEY *a, unsigned char **pp)
 {
     if (a->ameth && a->ameth->old_priv_encode) {
         return a->ameth->old_priv_encode(a, pp);
     }
     if (a->ameth && a->ameth->priv_encode) {
-        PKCS8_PRIV_KEY_INFO *p8 = EVP_PKEY2PKCS8(a);
+        PKCS8_PRIV_KEY_INFO *p8 = VR_EVP_PKEY2PKCS8(a);
         int ret = 0;
         if (p8 != NULL) {
-            ret = i2d_PKCS8_PRIV_KEY_INFO(p8, pp);
-            PKCS8_PRIV_KEY_INFO_free(p8);
+            ret = VR_i2d_PKCS8_PRIV_KEY_INFO(p8, pp);
+            VR_PKCS8_PRIV_KEY_INFO_free(p8);
         }
         return ret;
     }

@@ -16,7 +16,7 @@
 
 # December 2005
 #
-# Pure SPARCv9/8+ and IALU-only bn_mul_mont implementation. The reasons
+# Pure SPARCv9/8+ and IALU-only VR_bn_mul_mont implementation. The reasons
 # for undertaken effort are multiple. First of all, UltraSPARC is not
 # the whole SPARCv9 universe and other VIS-free implementations deserve
 # optimized code as much. Secondly, newly introduced UltraSPARC T1,
@@ -52,7 +52,7 @@
 $output = pop;
 open STDOUT,">$output";
 
-# int bn_mul_mont(
+# int VR_bn_mul_mont(
 $rp="%i0";	# BN_ULONG *rp,
 $ap="%i1";	# const BN_ULONG *ap,
 $bp="%i2";	# const BN_ULONG *bp,
@@ -81,7 +81,7 @@ $apj="%l5";
 $npj="%l6";
 $tpj="%l7";
 
-$fname="bn_mul_mont_int";
+$fname="VR_bn_mul_mont_int";
 
 $code=<<___;
 #include "sparc_arch.h"

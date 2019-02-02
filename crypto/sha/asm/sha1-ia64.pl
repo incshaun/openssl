@@ -238,11 +238,11 @@ tmp3=r11;
 ctx=r32;	// in0
 inp=r33;	// in1
 
-// void sha1_block_data_order(SHA_CTX *c,const void *p,size_t num);
-.global	sha1_block_data_order#
-.proc	sha1_block_data_order#
+// void VR_sha1_block_data_order(SHA_CTX *c,const void *p,size_t num);
+.global	VR_sha1_block_data_order#
+.proc	VR_sha1_block_data_order#
 .align	32
-sha1_block_data_order:
+VR_sha1_block_data_order:
 	.prologue
 { .mmi;	alloc	tmp1=ar.pfs,3,14,0,0
 	$ADDP	tmp0=4,ctx
@@ -306,7 +306,7 @@ $code.=<<___;
 { .mib;	st4	[ctx]=$h4,-16
 	mov	pr=r2,0x1ffff
 	br.ret.sptk.many	b0	};;
-.endp	sha1_block_data_order#
+.endp	VR_sha1_block_data_order#
 stringz	"SHA1 block transform for IA64, CRYPTOGAMS by <appro\@openssl.org>"
 ___
 

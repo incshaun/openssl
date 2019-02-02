@@ -73,7 +73,7 @@ if (!$avx && `$ENV{CC} -v 2>&1` =~ /((?:^clang|LLVM) version|.*based on LLVM) ([
 open OUT,"| \"$^X\" \"$xlate\" $flavour \"$output\"";
 *STDOUT=*OUT;
 
-# void sha1_multi_block (
+# void VR_sha1_multi_block (
 #     struct {	unsigned int A[8];
 #		unsigned int B[8];
 #		unsigned int C[8];
@@ -359,10 +359,10 @@ $code.=<<___;
 
 .extern	OPENSSL_ia32cap_P
 
-.globl	sha1_multi_block
-.type	sha1_multi_block,\@function,3
+.globl	VR_sha1_multi_block
+.type	VR_sha1_multi_block,\@function,3
 .align	32
-sha1_multi_block:
+VR_sha1_multi_block:
 .cfi_startproc
 	mov	OPENSSL_ia32cap_P+4(%rip),%rcx
 	bt	\$61,%rcx			# check SHA bit
@@ -516,7 +516,7 @@ $code.=<<___;
 .Lepilogue:
 	ret
 .cfi_endproc
-.size	sha1_multi_block,.-sha1_multi_block
+.size	VR_sha1_multi_block,.-VR_sha1_multi_block
 ___
 						{{{
 my ($ABCD0,$E0,$E0_,$BSWAP,$ABCD1,$E1,$E1_)=map("%xmm$_",(0..3,8..10));
@@ -524,9 +524,9 @@ my @MSG0=map("%xmm$_",(4..7));
 my @MSG1=map("%xmm$_",(11..14));
 
 $code.=<<___;
-.type	sha1_multi_block_shaext,\@function,3
+.type	VR_sha1_multi_block_shaext,\@function,3
 .align	32
-sha1_multi_block_shaext:
+VR_sha1_multi_block_shaext:
 .cfi_startproc
 _shaext_shortcut:
 	mov	%rsp,%rax
@@ -778,7 +778,7 @@ $code.=<<___;
 .Lepilogue_shaext:
 	ret
 .cfi_endproc
-.size	sha1_multi_block_shaext,.-sha1_multi_block_shaext
+.size	VR_sha1_multi_block_shaext,.-VR_sha1_multi_block_shaext
 ___
 						}}}
 
@@ -1017,9 +1017,9 @@ push(@Xi,shift(@Xi));
 }
 
 $code.=<<___;
-.type	sha1_multi_block_avx,\@function,3
+.type	VR_sha1_multi_block_avx,\@function,3
 .align	32
-sha1_multi_block_avx:
+VR_sha1_multi_block_avx:
 .cfi_startproc
 _avx_shortcut:
 ___
@@ -1173,7 +1173,7 @@ $code.=<<___;
 .Lepilogue_avx:
 	ret
 .cfi_endproc
-.size	sha1_multi_block_avx,.-sha1_multi_block_avx
+.size	VR_sha1_multi_block_avx,.-VR_sha1_multi_block_avx
 ___
 
 						if ($avx>1) {
@@ -1189,9 +1189,9 @@ $REG_SZ=32;
 $K="%ymm15";
 
 $code.=<<___;
-.type	sha1_multi_block_avx2,\@function,3
+.type	VR_sha1_multi_block_avx2,\@function,3
 .align	32
-sha1_multi_block_avx2:
+VR_sha1_multi_block_avx2:
 .cfi_startproc
 _avx2_shortcut:
 	mov	%rsp,%rax
@@ -1350,7 +1350,7 @@ $code.=<<___;
 .Lepilogue_avx2:
 	ret
 .cfi_endproc
-.size	sha1_multi_block_avx2,.-sha1_multi_block_avx2
+.size	VR_sha1_multi_block_avx2,.-VR_sha1_multi_block_avx2
 ___
 						}	}}}
 $code.=<<___;
@@ -1524,43 +1524,43 @@ ___
 $code.=<<___;
 .section	.pdata
 .align	4
-	.rva	.LSEH_begin_sha1_multi_block
-	.rva	.LSEH_end_sha1_multi_block
-	.rva	.LSEH_info_sha1_multi_block
-	.rva	.LSEH_begin_sha1_multi_block_shaext
-	.rva	.LSEH_end_sha1_multi_block_shaext
-	.rva	.LSEH_info_sha1_multi_block_shaext
+	.rva	.LSEH_begin_VR_sha1_multi_block
+	.rva	.LSEH_end_VR_sha1_multi_block
+	.rva	.LSEH_info_VR_sha1_multi_block
+	.rva	.LSEH_begin_VR_sha1_multi_block_shaext
+	.rva	.LSEH_end_VR_sha1_multi_block_shaext
+	.rva	.LSEH_info_VR_sha1_multi_block_shaext
 ___
 $code.=<<___ if ($avx);
-	.rva	.LSEH_begin_sha1_multi_block_avx
-	.rva	.LSEH_end_sha1_multi_block_avx
-	.rva	.LSEH_info_sha1_multi_block_avx
+	.rva	.LSEH_begin_VR_sha1_multi_block_avx
+	.rva	.LSEH_end_VR_sha1_multi_block_avx
+	.rva	.LSEH_info_VR_sha1_multi_block_avx
 ___
 $code.=<<___ if ($avx>1);
-	.rva	.LSEH_begin_sha1_multi_block_avx2
-	.rva	.LSEH_end_sha1_multi_block_avx2
-	.rva	.LSEH_info_sha1_multi_block_avx2
+	.rva	.LSEH_begin_VR_sha1_multi_block_avx2
+	.rva	.LSEH_end_VR_sha1_multi_block_avx2
+	.rva	.LSEH_info_VR_sha1_multi_block_avx2
 ___
 $code.=<<___;
 .section	.xdata
 .align	8
-.LSEH_info_sha1_multi_block:
+.LSEH_info_VR_sha1_multi_block:
 	.byte	9,0,0,0
 	.rva	se_handler
 	.rva	.Lbody,.Lepilogue			# HandlerData[]
-.LSEH_info_sha1_multi_block_shaext:
+.LSEH_info_VR_sha1_multi_block_shaext:
 	.byte	9,0,0,0
 	.rva	se_handler
 	.rva	.Lbody_shaext,.Lepilogue_shaext	# HandlerData[]
 ___
 $code.=<<___ if ($avx);
-.LSEH_info_sha1_multi_block_avx:
+.LSEH_info_VR_sha1_multi_block_avx:
 	.byte	9,0,0,0
 	.rva	se_handler
 	.rva	.Lbody_avx,.Lepilogue_avx		# HandlerData[]
 ___
 $code.=<<___ if ($avx>1);
-.LSEH_info_sha1_multi_block_avx2:
+.LSEH_info_VR_sha1_multi_block_avx2:
 	.byte	9,0,0,0
 	.rva	avx2_handler
 	.rva	.Lbody_avx2,.Lepilogue_avx2		# HandlerData[]

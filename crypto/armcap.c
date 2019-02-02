@@ -20,11 +20,11 @@
 unsigned int OPENSSL_armcap_P = 0;
 
 #if __ARM_MAX_ARCH__<7
-void OPENSSL_cpuid_setup(void)
+void VR_OPENSSL_cpuid_setup(void)
 {
 }
 
-uint32_t OPENSSL_rdtsc(void)
+uint32_t VR_OPENSSL_rdtsc(void)
 {
     return 0;
 }
@@ -51,7 +51,7 @@ void _armv8_sha512_probe(void);
 # endif
 uint32_t _armv7_tick(void);
 
-uint32_t OPENSSL_rdtsc(void)
+uint32_t VR_OPENSSL_rdtsc(void)
 {
     if (OPENSSL_armcap_P & ARMV7_TICK)
         return _armv7_tick();
@@ -60,7 +60,7 @@ uint32_t OPENSSL_rdtsc(void)
 }
 
 # if defined(__GNUC__) && __GNUC__>=2
-void OPENSSL_cpuid_setup(void) __attribute__ ((constructor));
+void VR_OPENSSL_cpuid_setup(void) __attribute__ ((constructor));
 # endif
 
 # if defined(__GLIBC__) && defined(__GLIBC_PREREQ)
@@ -83,8 +83,8 @@ void OPENSSL_cpuid_setup(void) __attribute__ ((constructor));
                                   /* AT_HWCAP2 */
 #  define HWCAP_CE_AES           (1 << 0)
 #  define HWCAP_CE_PMULL         (1 << 1)
-#  define HWCAP_CE_SHA1          (1 << 2)
-#  define HWCAP_CE_SHA256        (1 << 3)
+#  define HWCAP_CE_VR_SHA1          (1 << 2)
+#  define HWCAP_CE_VR_SHA256        (1 << 3)
 # elif defined(__aarch64__)
 #  define HWCAP                  16
                                   /* AT_HWCAP */
@@ -93,12 +93,12 @@ void OPENSSL_cpuid_setup(void) __attribute__ ((constructor));
 #  define HWCAP_CE               HWCAP
 #  define HWCAP_CE_AES           (1 << 3)
 #  define HWCAP_CE_PMULL         (1 << 4)
-#  define HWCAP_CE_SHA1          (1 << 5)
-#  define HWCAP_CE_SHA256        (1 << 6)
-#  define HWCAP_CE_SHA512        (1 << 21)
+#  define HWCAP_CE_VR_SHA1          (1 << 5)
+#  define HWCAP_CE_VR_SHA256        (1 << 6)
+#  define HWCAP_CE_VR_SHA512        (1 << 21)
 # endif
 
-void OPENSSL_cpuid_setup(void)
+void VR_OPENSSL_cpuid_setup(void)
 {
     const char *e;
     struct sigaction ill_oact, ill_act;
@@ -146,15 +146,15 @@ void OPENSSL_cpuid_setup(void)
         if (hwcap & HWCAP_CE_PMULL)
             OPENSSL_armcap_P |= ARMV8_PMULL;
 
-        if (hwcap & HWCAP_CE_SHA1)
-            OPENSSL_armcap_P |= ARMV8_SHA1;
+        if (hwcap & HWCAP_CE_VR_SHA1)
+            OPENSSL_armcap_P |= ARMV8_VR_SHA1;
 
-        if (hwcap & HWCAP_CE_SHA256)
-            OPENSSL_armcap_P |= ARMV8_SHA256;
+        if (hwcap & HWCAP_CE_VR_SHA256)
+            OPENSSL_armcap_P |= ARMV8_VR_SHA256;
 
 #  ifdef __aarch64__
-        if (hwcap & HWCAP_CE_SHA512)
-            OPENSSL_armcap_P |= ARMV8_SHA512;
+        if (hwcap & HWCAP_CE_VR_SHA512)
+            OPENSSL_armcap_P |= ARMV8_VR_SHA512;
 #  endif
     }
 # endif
@@ -187,16 +187,16 @@ void OPENSSL_cpuid_setup(void)
         }
         if (sigsetjmp(ill_jmp, 1) == 0) {
             _armv8_sha1_probe();
-            OPENSSL_armcap_P |= ARMV8_SHA1;
+            OPENSSL_armcap_P |= ARMV8_VR_SHA1;
         }
         if (sigsetjmp(ill_jmp, 1) == 0) {
             _armv8_sha256_probe();
-            OPENSSL_armcap_P |= ARMV8_SHA256;
+            OPENSSL_armcap_P |= ARMV8_VR_SHA256;
         }
 #  if defined(__aarch64__) && !defined(__APPLE__)
         if (sigsetjmp(ill_jmp, 1) == 0) {
             _armv8_sha512_probe();
-            OPENSSL_armcap_P |= ARMV8_SHA512;
+            OPENSSL_armcap_P |= ARMV8_VR_SHA512;
         }
 #  endif
     }

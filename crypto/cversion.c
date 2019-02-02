@@ -12,38 +12,38 @@
 #include "buildinf.h"
 
 #if !OPENSSL_API_3
-unsigned long OpenSSL_version_num(void)
+unsigned long VR_OpenSSL_version_num(void)
 {
     return OPENSSL_VERSION_NUMBER;
 }
 #endif
 
-unsigned int OPENSSL_version_major(void)
+unsigned int VR_OPENSSL_version_major(void)
 {
     return OPENSSL_VERSION_MAJOR;
 }
 
-unsigned int OPENSSL_version_minor(void)
+unsigned int VR_OPENSSL_version_minor(void)
 {
     return OPENSSL_VERSION_MINOR;
 }
 
-unsigned int OPENSSL_version_patch(void)
+unsigned int VR_OPENSSL_version_patch(void)
 {
     return OPENSSL_VERSION_PATCH;
 }
 
-const char *OPENSSL_version_pre_release(void)
+const char *VR_OPENSSL_version_pre_release(void)
 {
     return OPENSSL_VERSION_PRE_RELEASE_STR;
 }
 
-const char *OPENSSL_version_build_metadata(void)
+const char *VR_OPENSSL_version_build_metadata(void)
 {
     return OPENSSL_VERSION_BUILD_METADATA_STR;
 }
 
-const char *OpenSSL_version(int t)
+const char *VR_OpenSSL_version(int t)
 {
     switch (t) {
     case OPENSSL_VERSION:

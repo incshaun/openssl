@@ -13,38 +13,38 @@ static EVP_PKEY *privkey = NULL;
 static int test_encrypt_decrypt(void)
 {
     int testresult = 0;
-    STACK_OF(X509) *certstack = sk_X509_new_null();
+    STACK_OF(X509) *certstack = sk_VR_X509_new_null();
     const char *msg = "Hello world";
-    BIO *msgbio = BIO_new_mem_buf(msg, strlen(msg));
-    BIO *outmsgbio = BIO_new(BIO_s_mem());
+    BIO *msgbio = VR_BIO_new_mem_buf(msg, strlen(msg));
+    BIO *outmsgbio = VR_BIO_new(VR_BIO_s_mem());
     CMS_ContentInfo* content = NULL;
     char buf[80];
 
     if (!TEST_ptr(certstack) || !TEST_ptr(msgbio) || !TEST_ptr(outmsgbio))
         goto end;
 
-    if (!TEST_int_gt(sk_X509_push(certstack, cert), 0))
+    if (!TEST_int_gt(sk_VR_X509_push(certstack, cert), 0))
         goto end;
 
-    content = CMS_encrypt(certstack, msgbio, EVP_aes_128_cbc(), CMS_TEXT);
+    content = VR_CMS_encrypt(certstack, msgbio, VR_EVP_aes_128_cbc(), CMS_TEXT);
     if (!TEST_ptr(content))
         goto end;
 
-    if (!TEST_true(CMS_decrypt(content, privkey, cert, NULL, outmsgbio,
+    if (!TEST_true(VR_CMS_decrypt(content, privkey, cert, NULL, outmsgbio,
                                CMS_TEXT)))
         goto end;
 
     /* Check we got the message we first started with */
-    if (!TEST_int_eq(BIO_gets(outmsgbio, buf, sizeof(buf)), strlen(msg))
+    if (!TEST_int_eq(VR_BIO_gets(outmsgbio, buf, sizeof(buf)), strlen(msg))
             || !TEST_int_eq(strcmp(buf, msg), 0))
         goto end;
 
     testresult = 1;
  end:
-    sk_X509_free(certstack);
-    BIO_free(msgbio);
-    BIO_free(outmsgbio);
-    CMS_ContentInfo_free(content);
+    sk_VR_X509_free(certstack);
+    VR_BIO_free(msgbio);
+    VR_BIO_free(outmsgbio);
+    VR_CMS_ContentInfo_free(content);
 
     return testresult;
 }
@@ -58,28 +58,28 @@ int setup_tests(void)
             || !TEST_ptr(privkeyin = test_get_argument(1)))
         return 0;
 
-    certbio = BIO_new_file(certin, "r");
+    certbio = VR_BIO_new_file(certin, "r");
     if (!TEST_ptr(certbio))
         return 0;
-    if (!TEST_true(PEM_read_bio_X509(certbio, &cert, NULL, NULL))) {
-        BIO_free(certbio);
+    if (!TEST_true(VR_PEM_read_bio_X509(certbio, &cert, NULL, NULL))) {
+        VR_BIO_free(certbio);
         return 0;
     }
-    BIO_free(certbio);
+    VR_BIO_free(certbio);
 
-    privkeybio = BIO_new_file(privkeyin, "r");
+    privkeybio = VR_BIO_new_file(privkeyin, "r");
     if (!TEST_ptr(privkeybio)) {
-        X509_free(cert);
+        VR_X509_free(cert);
         cert = NULL;
         return 0;
     }
-    if (!TEST_true(PEM_read_bio_PrivateKey(privkeybio, &privkey, NULL, NULL))) {
-        BIO_free(privkeybio);
-        X509_free(cert);
+    if (!TEST_true(VR_PEM_read_bio_PrivateKey(privkeybio, &privkey, NULL, NULL))) {
+        VR_BIO_free(privkeybio);
+        VR_X509_free(cert);
         cert = NULL;
         return 0;
     }
-    BIO_free(privkeybio);
+    VR_BIO_free(privkeybio);
 
     ADD_TEST(test_encrypt_decrypt);
 
@@ -88,6 +88,6 @@ int setup_tests(void)
 
 void cleanup_tests(void)
 {
-    X509_free(cert);
-    EVP_PKEY_free(privkey);
+    VR_X509_free(cert);
+    VR_EVP_PKEY_free(privkey);
 }

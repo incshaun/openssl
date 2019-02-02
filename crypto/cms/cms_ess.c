@@ -22,30 +22,30 @@ IMPLEMENT_ASN1_FUNCTIONS(CMS_ReceiptRequest)
 
 /* ESS services */
 
-int CMS_get1_ReceiptRequest(CMS_SignerInfo *si, CMS_ReceiptRequest **prr)
+int VR_CMS_get1_ReceiptRequest(CMS_SignerInfo *si, CMS_ReceiptRequest **prr)
 {
     ASN1_STRING *str;
     CMS_ReceiptRequest *rr = NULL;
     if (prr)
         *prr = NULL;
-    str = CMS_signed_get0_data_by_OBJ(si,
-                                      OBJ_nid2obj
+    str = VR_CMS_signed_get0_data_by_OBJ(si,
+                                      VR_OBJ_nid2obj
                                       (NID_id_smime_aa_receiptRequest), -3,
                                       V_ASN1_SEQUENCE);
     if (!str)
         return 0;
 
-    rr = ASN1_item_unpack(str, ASN1_ITEM_rptr(CMS_ReceiptRequest));
+    rr = VR_ASN1_item_unpack(str, ASN1_ITEM_rptr(CMS_ReceiptRequest));
     if (!rr)
         return -1;
     if (prr)
         *prr = rr;
     else
-        CMS_ReceiptRequest_free(rr);
+        VR_CMS_ReceiptRequest_free(rr);
     return 1;
 }
 
-CMS_ReceiptRequest *CMS_ReceiptRequest_create0(unsigned char *id, int idlen,
+CMS_ReceiptRequest *VR_CMS_ReceiptRequest_create0(unsigned char *id, int idlen,
                                                int allorfirst,
                                                STACK_OF(GENERAL_NAMES)
                                                *receiptList, STACK_OF(GENERAL_NAMES)
@@ -53,19 +53,19 @@ CMS_ReceiptRequest *CMS_ReceiptRequest_create0(unsigned char *id, int idlen,
 {
     CMS_ReceiptRequest *rr = NULL;
 
-    rr = CMS_ReceiptRequest_new();
+    rr = VR_CMS_ReceiptRequest_new();
     if (rr == NULL)
         goto merr;
     if (id)
-        ASN1_STRING_set0(rr->signedContentIdentifier, id, idlen);
+        VR_ASN1_STRING_set0(rr->signedContentIdentifier, id, idlen);
     else {
-        if (!ASN1_STRING_set(rr->signedContentIdentifier, NULL, 32))
+        if (!VR_ASN1_STRING_set(rr->signedContentIdentifier, NULL, 32))
             goto merr;
-        if (RAND_bytes(rr->signedContentIdentifier->data, 32) <= 0)
+        if (VR_RAND_bytes(rr->signedContentIdentifier->data, 32) <= 0)
             goto err;
     }
 
-    sk_GENERAL_NAMES_pop_free(rr->receiptsTo, GENERAL_NAMES_free);
+    sk_VR_GENERAL_NAMES_pop_free(rr->receiptsTo, VR_GENERAL_NAMES_free);
     rr->receiptsTo = receiptsTo;
 
     if (receiptList) {
@@ -82,21 +82,21 @@ CMS_ReceiptRequest *CMS_ReceiptRequest_create0(unsigned char *id, int idlen,
     CMSerr(CMS_F_CMS_RECEIPTREQUEST_CREATE0, ERR_R_MALLOC_FAILURE);
 
  err:
-    CMS_ReceiptRequest_free(rr);
+    VR_CMS_ReceiptRequest_free(rr);
     return NULL;
 
 }
 
-int CMS_add1_ReceiptRequest(CMS_SignerInfo *si, CMS_ReceiptRequest *rr)
+int VR_CMS_add1_ReceiptRequest(CMS_SignerInfo *si, CMS_ReceiptRequest *rr)
 {
     unsigned char *rrder = NULL;
     int rrderlen, r = 0;
 
-    rrderlen = i2d_CMS_ReceiptRequest(rr, &rrder);
+    rrderlen = VR_i2d_CMS_ReceiptRequest(rr, &rrder);
     if (rrderlen < 0)
         goto merr;
 
-    if (!CMS_signed_add1_attr_by_NID(si, NID_id_smime_aa_receiptRequest,
+    if (!VR_CMS_signed_add1_attr_by_NID(si, NID_id_smime_aa_receiptRequest,
                                      V_ASN1_SEQUENCE, rrder, rrderlen))
         goto merr;
 
@@ -106,13 +106,13 @@ int CMS_add1_ReceiptRequest(CMS_SignerInfo *si, CMS_ReceiptRequest *rr)
     if (!r)
         CMSerr(CMS_F_CMS_ADD1_RECEIPTREQUEST, ERR_R_MALLOC_FAILURE);
 
-    OPENSSL_free(rrder);
+    OPENVR_SSL_free(rrder);
 
     return r;
 
 }
 
-void CMS_ReceiptRequest_get0_values(CMS_ReceiptRequest *rr,
+void VR_CMS_ReceiptRequest_get0_values(CMS_ReceiptRequest *rr,
                                     ASN1_STRING **pcid,
                                     int *pallorfirst,
                                     STACK_OF(GENERAL_NAMES) **plist,
@@ -144,7 +144,7 @@ static int cms_msgSigDigest(CMS_SignerInfo *si,
     md = EVP_get_digestbyobj(si->digestAlgorithm->algorithm);
     if (md == NULL)
         return 0;
-    if (!ASN1_item_digest(ASN1_ITEM_rptr(CMS_Attributes_Verify), md,
+    if (!VR_ASN1_item_digest(ASN1_ITEM_rptr(CMS_Attributes_Verify), md,
                           si->signedAttrs, dig, diglen))
         return 0;
     return 1;
@@ -152,7 +152,7 @@ static int cms_msgSigDigest(CMS_SignerInfo *si,
 
 /* Add a msgSigDigest attribute to a SignerInfo */
 
-int cms_msgSigDigest_add1(CMS_SignerInfo *dest, CMS_SignerInfo *src)
+int VR_cms_msgSigDigest_add1(CMS_SignerInfo *dest, CMS_SignerInfo *src)
 {
     unsigned char dig[EVP_MAX_MD_SIZE];
     unsigned int diglen;
@@ -160,7 +160,7 @@ int cms_msgSigDigest_add1(CMS_SignerInfo *dest, CMS_SignerInfo *src)
         CMSerr(CMS_F_CMS_MSGSIGDIGEST_ADD1, CMS_R_MSGSIGDIGEST_ERROR);
         return 0;
     }
-    if (!CMS_signed_add1_attr_by_NID(dest, NID_id_smime_aa_msgSigDigest,
+    if (!VR_CMS_signed_add1_attr_by_NID(dest, NID_id_smime_aa_msgSigDigest,
                                      V_ASN1_OCTET_STRING, dig, diglen)) {
         CMSerr(CMS_F_CMS_MSGSIGDIGEST_ADD1, ERR_R_MALLOC_FAILURE);
         return 0;
@@ -170,7 +170,7 @@ int cms_msgSigDigest_add1(CMS_SignerInfo *dest, CMS_SignerInfo *src)
 
 /* Verify signed receipt after it has already passed normal CMS verify */
 
-int cms_Receipt_verify(CMS_ContentInfo *cms, CMS_ContentInfo *req_cms)
+int VR_cms_Receipt_verify(CMS_ContentInfo *cms, CMS_ContentInfo *req_cms)
 {
     int r = 0, i;
     CMS_ReceiptRequest *rr = NULL;
@@ -183,8 +183,8 @@ int cms_Receipt_verify(CMS_ContentInfo *cms, CMS_ContentInfo *req_cms)
     unsigned int diglen;
 
     /* Get SignerInfos, also checks SignedData content type */
-    osis = CMS_get0_SignerInfos(req_cms);
-    sis = CMS_get0_SignerInfos(cms);
+    osis = VR_CMS_get0_SignerInfos(req_cms);
+    sis = VR_CMS_get0_SignerInfos(cms);
     if (!osis || !sis)
         goto err;
 
@@ -194,19 +194,19 @@ int cms_Receipt_verify(CMS_ContentInfo *cms, CMS_ContentInfo *req_cms)
     }
 
     /* Check receipt content type */
-    if (OBJ_obj2nid(CMS_get0_eContentType(cms)) != NID_id_smime_ct_receipt) {
+    if (VR_OBJ_obj2nid(VR_CMS_get0_eContentType(cms)) != NID_id_smime_ct_receipt) {
         CMSerr(CMS_F_CMS_RECEIPT_VERIFY, CMS_R_NOT_A_SIGNED_RECEIPT);
         goto err;
     }
 
     /* Extract and decode receipt content */
-    pcont = CMS_get0_content(cms);
+    pcont = VR_CMS_get0_content(cms);
     if (!pcont || !*pcont) {
         CMSerr(CMS_F_CMS_RECEIPT_VERIFY, CMS_R_NO_CONTENT);
         goto err;
     }
 
-    rct = ASN1_item_unpack(*pcont, ASN1_ITEM_rptr(CMS_Receipt));
+    rct = VR_ASN1_item_unpack(*pcont, ASN1_ITEM_rptr(CMS_Receipt));
 
     if (!rct) {
         CMSerr(CMS_F_CMS_RECEIPT_VERIFY, CMS_R_RECEIPT_DECODE_ERROR);
@@ -217,7 +217,7 @@ int cms_Receipt_verify(CMS_ContentInfo *cms, CMS_ContentInfo *req_cms)
 
     for (i = 0; i < sk_CMS_SignerInfo_num(osis); i++) {
         osi = sk_CMS_SignerInfo_value(osis, i);
-        if (!ASN1_STRING_cmp(osi->signature, rct->originatorSignatureValue))
+        if (!VR_ASN1_STRING_cmp(osi->signature, rct->originatorSignatureValue))
             break;
     }
 
@@ -230,8 +230,8 @@ int cms_Receipt_verify(CMS_ContentInfo *cms, CMS_ContentInfo *req_cms)
 
     /* Get msgSigDigest value and compare */
 
-    msig = CMS_signed_get0_data_by_OBJ(si,
-                                       OBJ_nid2obj
+    msig = VR_CMS_signed_get0_data_by_OBJ(si,
+                                       VR_OBJ_nid2obj
                                        (NID_id_smime_aa_msgSigDigest), -3,
                                        V_ASN1_OCTET_STRING);
 
@@ -258,8 +258,8 @@ int cms_Receipt_verify(CMS_ContentInfo *cms, CMS_ContentInfo *req_cms)
 
     /* Compare content types */
 
-    octype = CMS_signed_get0_data_by_OBJ(osi,
-                                         OBJ_nid2obj(NID_pkcs9_contentType),
+    octype = VR_CMS_signed_get0_data_by_OBJ(osi,
+                                         VR_OBJ_nid2obj(NID_pkcs9_contentType),
                                          -3, V_ASN1_OBJECT);
     if (!octype) {
         CMSerr(CMS_F_CMS_RECEIPT_VERIFY, CMS_R_NO_CONTENT_TYPE);
@@ -268,19 +268,19 @@ int cms_Receipt_verify(CMS_ContentInfo *cms, CMS_ContentInfo *req_cms)
 
     /* Compare details in receipt request */
 
-    if (OBJ_cmp(octype, rct->contentType)) {
+    if (VR_OBJ_cmp(octype, rct->contentType)) {
         CMSerr(CMS_F_CMS_RECEIPT_VERIFY, CMS_R_CONTENT_TYPE_MISMATCH);
         goto err;
     }
 
     /* Get original receipt request details */
 
-    if (CMS_get1_ReceiptRequest(osi, &rr) <= 0) {
+    if (VR_CMS_get1_ReceiptRequest(osi, &rr) <= 0) {
         CMSerr(CMS_F_CMS_RECEIPT_VERIFY, CMS_R_NO_RECEIPT_REQUEST);
         goto err;
     }
 
-    if (ASN1_STRING_cmp(rr->signedContentIdentifier,
+    if (VR_ASN1_STRING_cmp(rr->signedContentIdentifier,
                         rct->signedContentIdentifier)) {
         CMSerr(CMS_F_CMS_RECEIPT_VERIFY, CMS_R_CONTENTIDENTIFIER_MISMATCH);
         goto err;
@@ -289,7 +289,7 @@ int cms_Receipt_verify(CMS_ContentInfo *cms, CMS_ContentInfo *req_cms)
     r = 1;
 
  err:
-    CMS_ReceiptRequest_free(rr);
+    VR_CMS_ReceiptRequest_free(rr);
     M_ASN1_free_of(rct, CMS_Receipt);
     return r;
 
@@ -300,7 +300,7 @@ int cms_Receipt_verify(CMS_ContentInfo *cms, CMS_ContentInfo *req_cms)
  * SignedData ContentInfo.
  */
 
-ASN1_OCTET_STRING *cms_encode_Receipt(CMS_SignerInfo *si)
+ASN1_OCTET_STRING *VR_cms_encode_Receipt(CMS_SignerInfo *si)
 {
     CMS_Receipt rct;
     CMS_ReceiptRequest *rr = NULL;
@@ -311,15 +311,15 @@ ASN1_OCTET_STRING *cms_encode_Receipt(CMS_SignerInfo *si)
 
     /* Get original receipt request details */
 
-    if (CMS_get1_ReceiptRequest(si, &rr) <= 0) {
+    if (VR_CMS_get1_ReceiptRequest(si, &rr) <= 0) {
         CMSerr(CMS_F_CMS_ENCODE_RECEIPT, CMS_R_NO_RECEIPT_REQUEST);
         goto err;
     }
 
     /* Get original content type */
 
-    ctype = CMS_signed_get0_data_by_OBJ(si,
-                                        OBJ_nid2obj(NID_pkcs9_contentType),
+    ctype = VR_CMS_signed_get0_data_by_OBJ(si,
+                                        VR_OBJ_nid2obj(NID_pkcs9_contentType),
                                         -3, V_ASN1_OBJECT);
     if (!ctype) {
         CMSerr(CMS_F_CMS_ENCODE_RECEIPT, CMS_R_NO_CONTENT_TYPE);
@@ -331,10 +331,10 @@ ASN1_OCTET_STRING *cms_encode_Receipt(CMS_SignerInfo *si)
     rct.signedContentIdentifier = rr->signedContentIdentifier;
     rct.originatorSignatureValue = si->signature;
 
-    os = ASN1_item_pack(&rct, ASN1_ITEM_rptr(CMS_Receipt), NULL);
+    os = VR_ASN1_item_pack(&rct, ASN1_ITEM_rptr(CMS_Receipt), NULL);
 
  err:
-    CMS_ReceiptRequest_free(rr);
+    VR_CMS_ReceiptRequest_free(rr);
     return os;
 }
 
@@ -343,7 +343,7 @@ ASN1_OCTET_STRING *cms_encode_Receipt(CMS_SignerInfo *si)
  * structure
  */
 
-int CMS_add1_signing_cert_v2(CMS_SignerInfo *si,
+int VR_CMS_add1_signing_cert_v2(CMS_SignerInfo *si,
                              ESS_SIGNING_CERT_V2 *sc)
 {
     ASN1_STRING *seq = NULL;
@@ -351,24 +351,24 @@ int CMS_add1_signing_cert_v2(CMS_SignerInfo *si,
     int len;
 
     /* Add SigningCertificateV2 signed attribute to the signer info. */
-    len = i2d_ESS_SIGNING_CERT_V2(sc, NULL);
+    len = VR_i2d_ESS_SIGNING_CERT_V2(sc, NULL);
     if ((pp = OPENSSL_malloc(len)) == NULL)
         goto err;
     p = pp;
-    i2d_ESS_SIGNING_CERT_V2(sc, &p);
-    if (!(seq = ASN1_STRING_new()) || !ASN1_STRING_set(seq, pp, len))
+    VR_i2d_ESS_SIGNING_CERT_V2(sc, &p);
+    if (!(seq = VR_ASN1_STRING_new()) || !VR_ASN1_STRING_set(seq, pp, len))
         goto err;
-    OPENSSL_free(pp);
+    OPENVR_SSL_free(pp);
     pp = NULL;
-    if (!CMS_signed_add1_attr_by_NID(si, NID_id_smime_aa_signingCertificateV2,
+    if (!VR_CMS_signed_add1_attr_by_NID(si, NID_id_smime_aa_signingCertificateV2,
                                      V_ASN1_SEQUENCE, seq, -1))
         goto err;
-    ASN1_STRING_free(seq);
+    VR_ASN1_STRING_free(seq);
     return 1;
  err:
     CMSerr(CMS_F_CMS_ADD1_SIGNING_CERT_V2, ERR_R_MALLOC_FAILURE);
-    ASN1_STRING_free(seq);
-    OPENSSL_free(pp);
+    VR_ASN1_STRING_free(seq);
+    OPENVR_SSL_free(pp);
     return 0;
 }
 
@@ -377,30 +377,30 @@ int CMS_add1_signing_cert_v2(CMS_SignerInfo *si,
  * structure
  */
 
-int CMS_add1_signing_cert(CMS_SignerInfo *si, ESS_SIGNING_CERT *sc)
+int VR_CMS_add1_signing_cert(CMS_SignerInfo *si, ESS_SIGNING_CERT *sc)
 {
     ASN1_STRING *seq = NULL;
     unsigned char *p, *pp;
     int len;
 
     /* Add SigningCertificate signed attribute to the signer info. */
-    len = i2d_ESS_SIGNING_CERT(sc, NULL);
+    len = VR_i2d_ESS_SIGNING_CERT(sc, NULL);
     if ((pp = OPENSSL_malloc(len)) == NULL)
         goto err;
     p = pp;
-    i2d_ESS_SIGNING_CERT(sc, &p);
-    if (!(seq = ASN1_STRING_new()) || !ASN1_STRING_set(seq, pp, len))
+    VR_i2d_ESS_SIGNING_CERT(sc, &p);
+    if (!(seq = VR_ASN1_STRING_new()) || !VR_ASN1_STRING_set(seq, pp, len))
         goto err;
-    OPENSSL_free(pp);
+    OPENVR_SSL_free(pp);
     pp = NULL;
-    if (!CMS_signed_add1_attr_by_NID(si, NID_id_smime_aa_signingCertificate,
+    if (!VR_CMS_signed_add1_attr_by_NID(si, NID_id_smime_aa_signingCertificate,
                                      V_ASN1_SEQUENCE, seq, -1))
         goto err;
-    ASN1_STRING_free(seq);
+    VR_ASN1_STRING_free(seq);
     return 1;
  err:
     CMSerr(CMS_F_CMS_ADD1_SIGNING_CERT, ERR_R_MALLOC_FAILURE);
-    ASN1_STRING_free(seq);
-    OPENSSL_free(pp);
+    VR_ASN1_STRING_free(seq);
+    OPENVR_SSL_free(pp);
     return 0;
 }

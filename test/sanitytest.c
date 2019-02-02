@@ -86,7 +86,7 @@ static int test_sanity_range(void)
 
 static int test_sanity_memcmp(void)
 {
-    return CRYPTO_memcmp("ab","cd",2);
+    return VR_CRYPTO_memcmp("ab","cd",2);
 }
 
 int setup_tests(void)

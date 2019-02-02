@@ -14,7 +14,7 @@
 # ifdef  __cplusplus
 extern "C"
 # endif
-int ERR_load_EVP_strings(void);
+int VR_ERR_load_EVP_strings(void);
 
 /*
  * EVP function codes.
@@ -63,8 +63,8 @@ int ERR_load_EVP_strings(void);
 # define EVP_F_EVP_PBE_ALG_ADD_TYPE                       160
 # define EVP_F_EVP_PBE_CIPHERINIT                         116
 # define EVP_F_EVP_PBE_SCRYPT                             181
-# define EVP_F_EVP_PKCS82PKEY                             111
-# define EVP_F_EVP_PKEY2PKCS8                             113
+# define EVP_F_VR_EVP_PKCS82PKEY                             111
+# define EVP_F_VR_EVP_PKEY2PKCS8                             113
 # define EVP_F_EVP_PKEY_ASN1_ADD0                         188
 # define EVP_F_EVP_PKEY_CHECK                             186
 # define EVP_F_EVP_PKEY_COPY_PARAMETERS                   103
@@ -84,7 +84,7 @@ int ERR_load_EVP_strings(void);
 # define EVP_F_EVP_PKEY_GET0_DH                           119
 # define EVP_F_EVP_PKEY_GET0_DSA                          120
 # define EVP_F_EVP_PKEY_GET0_EC_KEY                       131
-# define EVP_F_EVP_PKEY_GET0_HMAC                         183
+# define EVP_F_EVP_PKEY_GET0_VR_HMAC                         183
 # define EVP_F_EVP_PKEY_GET0_POLY1305                     184
 # define EVP_F_EVP_PKEY_GET0_RSA                          121
 # define EVP_F_EVP_PKEY_GET0_SIPHASH                      172
@@ -150,7 +150,7 @@ int ERR_load_EVP_strings(void);
 # define EVP_R_DIFFERENT_PARAMETERS                       153
 # define EVP_R_ERROR_LOADING_SECTION                      165
 # define EVP_R_ERROR_SETTING_FIPS_MODE                    166
-# define EVP_R_EXPECTING_AN_HMAC_KEY                      174
+# define EVP_R_EXPECTING_AN_VR_HMAC_KEY                      174
 # define EVP_R_EXPECTING_AN_RSA_KEY                       127
 # define EVP_R_EXPECTING_A_DH_KEY                         128
 # define EVP_R_EXPECTING_A_DSA_KEY                        129

@@ -58,7 +58,7 @@ static void salsa208_word_specification(uint32_t inout[16])
     }
     for (i = 0; i < 16; ++i)
         inout[i] += x[i];
-    OPENSSL_cleanse(x, sizeof(x));
+    VR_OPENSSL_cleanse(x, sizeof(x));
 }
 
 static void scryptBlockMix(uint32_t *B_, uint32_t *B, uint64_t r)
@@ -74,7 +74,7 @@ static void scryptBlockMix(uint32_t *B_, uint32_t *B, uint64_t r)
         salsa208_word_specification(X);
         memcpy(B_ + (i / 2 + (i & 1) * r) * 16, X, sizeof(X));
     }
-    OPENSSL_cleanse(X, sizeof(X));
+    VR_OPENSSL_cleanse(X, sizeof(X));
 }
 
 static void scryptROMix(unsigned char *B, uint64_t r, uint64_t N,
@@ -155,7 +155,7 @@ static void scryptROMix(unsigned char *B, uint64_t r, uint64_t N,
 # define SCRYPT_MAX_MEM  (1024 * 1024 * 32)
 #endif
 
-int EVP_PBE_scrypt(const char *pass, size_t passlen,
+int VR_EVP_PBE_scrypt(const char *pass, size_t passlen,
                    const unsigned char *salt, size_t saltlen,
                    uint64_t N, uint64_t r, uint64_t p, uint64_t maxmem,
                    unsigned char *key, size_t keylen)
@@ -196,8 +196,8 @@ int EVP_PBE_scrypt(const char *pass, size_t passlen,
      */
     Blen = p * 128 * r;
     /*
-     * Yet we pass it as integer to PKCS5_PBKDF2_HMAC... [This would
-     * have to be revised when/if PKCS5_PBKDF2_HMAC accepts size_t.]
+     * Yet we pass it as integer to VR_PKCS5_PBKDF2_HMAC... [This would
+     * have to be revised when/if VR_PKCS5_PBKDF2_HMAC accepts size_t.]
      */
     if (Blen > INT_MAX) {
         EVPerr(EVP_F_EVP_PBE_SCRYPT, EVP_R_MEMORY_LIMIT_EXCEEDED);
@@ -245,14 +245,14 @@ int EVP_PBE_scrypt(const char *pass, size_t passlen,
     X = (uint32_t *)(B + Blen);
     T = X + 32 * r;
     V = T + 32 * r;
-    if (PKCS5_PBKDF2_HMAC(pass, passlen, salt, saltlen, 1, EVP_sha256(),
+    if (VR_PKCS5_PBKDF2_HMAC(pass, passlen, salt, saltlen, 1, VR_EVP_sha256(),
                           (int)Blen, B) == 0)
         goto err;
 
     for (i = 0; i < p; i++)
         scryptROMix(B + 128 * r * i, r, N, X, T, V);
 
-    if (PKCS5_PBKDF2_HMAC(pass, passlen, B, (int)Blen, 1, EVP_sha256(),
+    if (VR_PKCS5_PBKDF2_HMAC(pass, passlen, B, (int)Blen, 1, VR_EVP_sha256(),
                           keylen, key) == 0)
         goto err;
     rv = 1;
@@ -260,7 +260,7 @@ int EVP_PBE_scrypt(const char *pass, size_t passlen,
     if (rv == 0)
         EVPerr(EVP_F_EVP_PBE_SCRYPT, EVP_R_PBKDF2_ERROR);
 
-    OPENSSL_clear_free(B, (size_t)(Blen + Vlen));
+    OPENVR_SSL_clear_free(B, (size_t)(Blen + Vlen));
     return rv;
 }
 #endif

@@ -26,7 +26,7 @@ enum drbg_flags {
     NA       = 0,
     USE_DF   = 1<<0,
     NO_DF    = 1<<1,
-    USE_HMAC = 1<<2
+    USE_VR_HMAC = 1<<2
 };
 
 struct drbg_kat_no_reseed {

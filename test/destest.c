@@ -300,16 +300,16 @@ static char *pt(const unsigned char *p, char buf[DATA_BUF_SIZE])
 
 static int test_des_ecb(int i)
 {
-    DES_key_schedule ks;
+    VR_DES_key_schedule ks;
     DES_cblock in, out, outin;
     char b1[DATA_BUF_SIZE], b2[DATA_BUF_SIZE];
 
-    DES_set_key_unchecked(&key_data[i], &ks);
+    VR_DES_set_key_unchecked(&key_data[i], &ks);
     memcpy(in, plain_data[i], 8);
     memset(out, 0, 8);
     memset(outin, 0, 8);
-    DES_ecb_encrypt(&in, &out, &ks, DES_ENCRYPT);
-    DES_ecb_encrypt(&out, &outin, &ks, DES_DECRYPT);
+    VR_DES_ecb_encrypt(&in, &out, &ks, DES_ENCRYPT);
+    VR_DES_ecb_encrypt(&out, &outin, &ks, DES_DECRYPT);
 
     if (!TEST_mem_eq(out, 8, cipher_data[i], 8)) {
         TEST_info("Encryption error %2d k=%s p=%s", i + 1,
@@ -327,17 +327,17 @@ static int test_des_ecb(int i)
 static int test_des_ede_ecb(int i)
 {
     DES_cblock in, out, outin;
-    DES_key_schedule ks, ks2, ks3;
+    VR_DES_key_schedule ks, ks2, ks3;
     char b1[DATA_BUF_SIZE], b2[DATA_BUF_SIZE];
 
-    DES_set_key_unchecked(&key_data[i], &ks);
-    DES_set_key_unchecked(&key_data[i + 1], &ks2);
-    DES_set_key_unchecked(&key_data[i + 2], &ks3);
+    VR_DES_set_key_unchecked(&key_data[i], &ks);
+    VR_DES_set_key_unchecked(&key_data[i + 1], &ks2);
+    VR_DES_set_key_unchecked(&key_data[i + 2], &ks3);
     memcpy(in, plain_data[i], 8);
     memset(out, 0, 8);
     memset(outin, 0, 8);
-    DES_ecb3_encrypt(&in, &out, &ks, &ks2, &ks, DES_ENCRYPT);
-    DES_ecb3_encrypt(&out, &outin, &ks, &ks2, &ks, DES_DECRYPT);
+    VR_DES_ecb3_encrypt(&in, &out, &ks, &ks2, &ks, DES_ENCRYPT);
+    VR_DES_ecb3_encrypt(&out, &outin, &ks, &ks2, &ks, DES_DECRYPT);
 
     if (!TEST_mem_eq(out, 8, cipher_ecb2[i], 8)) {
         TEST_info("Encryption error %2d k=%s p=%s", i + 1,
@@ -357,21 +357,21 @@ static int test_des_cbc(void)
     unsigned char cbc_in[40];
     unsigned char cbc_out[40];
     DES_cblock iv3;
-    DES_key_schedule ks;
+    VR_DES_key_schedule ks;
     const size_t cbc_data_len = strlen((char *)cbc_data);
 
-    if (!TEST_int_eq(DES_set_key_checked(&cbc_key, &ks), 0))
+    if (!TEST_int_eq(VR_DES_set_key_checked(&cbc_key, &ks), 0))
         return 0;
     memset(cbc_out, 0, sizeof(cbc_out));
     memset(cbc_in, 0, sizeof(cbc_in));
     memcpy(iv3, cbc_iv, sizeof(cbc_iv));
-    DES_ncbc_encrypt(cbc_data, cbc_out, cbc_data_len + 1, &ks,
+    VR_DES_ncbc_encrypt(cbc_data, cbc_out, cbc_data_len + 1, &ks,
                      &iv3, DES_ENCRYPT);
     if (!TEST_mem_eq(cbc_out, 32, cbc_ok, 32))
         return 0;
 
     memcpy(iv3, cbc_iv, sizeof(cbc_iv));
-    DES_ncbc_encrypt(cbc_out, cbc_in, cbc_data_len + 1, &ks,
+    VR_DES_ncbc_encrypt(cbc_out, cbc_in, cbc_data_len + 1, &ks,
                      &iv3, DES_DECRYPT);
     return TEST_mem_eq(cbc_in, cbc_data_len, cbc_data, cbc_data_len);
 }
@@ -379,22 +379,22 @@ static int test_des_cbc(void)
 static int test_des_ede_cbc(void)
 {
     DES_cblock iv3;
-    DES_key_schedule ks;
+    VR_DES_key_schedule ks;
     unsigned char cbc_in[40];
     unsigned char cbc_out[40];
     const size_t n = strlen((char *)cbc_data) + 1;
 
-    if (!TEST_int_eq(DES_set_key_checked(&cbc_key, &ks), 0))
+    if (!TEST_int_eq(VR_DES_set_key_checked(&cbc_key, &ks), 0))
         return 0;
     memset(cbc_out, 0, sizeof(cbc_out));
     memset(cbc_in, 0, sizeof(cbc_in));
     memcpy(iv3, cbc_iv, sizeof(cbc_iv));
-    DES_xcbc_encrypt(cbc_data, cbc_out, n, &ks, &iv3, &cbc2_key, &cbc3_key,
+    VR_DES_xcbc_encrypt(cbc_data, cbc_out, n, &ks, &iv3, &cbc2_key, &cbc3_key,
                      DES_ENCRYPT);
     if (!TEST_mem_eq(cbc_out, sizeof(xcbc_ok), xcbc_ok, sizeof(xcbc_ok)))
         return 0;
     memcpy(iv3, cbc_iv, sizeof(cbc_iv));
-    DES_xcbc_encrypt(cbc_out, cbc_in, n, &ks, &iv3, &cbc2_key, &cbc3_key,
+    VR_DES_xcbc_encrypt(cbc_out, cbc_in, n, &ks, &iv3, &cbc2_key, &cbc3_key,
                      DES_DECRYPT);
     return TEST_mem_eq(cbc_data, n, cbc_data, n);
 }
@@ -402,31 +402,31 @@ static int test_des_ede_cbc(void)
 static int test_ede_cbc(void)
 {
     DES_cblock iv3;
-    DES_key_schedule ks, ks2, ks3;
+    VR_DES_key_schedule ks, ks2, ks3;
     unsigned char cbc_in[40];
     unsigned char cbc_out[40];
     const size_t i = strlen((char *)cbc_data) + 1;
     const size_t n = (i + 7) / 8 * 8;
 
-    if (!TEST_int_eq(DES_set_key_checked(&cbc_key, &ks), 0))
+    if (!TEST_int_eq(VR_DES_set_key_checked(&cbc_key, &ks), 0))
         return 0;
-    if (!TEST_int_eq(DES_set_key_checked(&cbc2_key, &ks2), 0))
+    if (!TEST_int_eq(VR_DES_set_key_checked(&cbc2_key, &ks2), 0))
         return 0;
-    if (!TEST_int_eq(DES_set_key_checked(&cbc3_key, &ks3), 0))
+    if (!TEST_int_eq(VR_DES_set_key_checked(&cbc3_key, &ks3), 0))
         return 0;
     memset(cbc_out, 0, sizeof(cbc_out));
     memset(cbc_in, 0, sizeof(cbc_in));
     memcpy(iv3, cbc_iv, sizeof(cbc_iv));
 
-    DES_ede3_cbc_encrypt(cbc_data, cbc_out, 16L, &ks, &ks2, &ks3, &iv3,
+    VR_DES_ede3_cbc_encrypt(cbc_data, cbc_out, 16L, &ks, &ks2, &ks3, &iv3,
                          DES_ENCRYPT);
-    DES_ede3_cbc_encrypt(&cbc_data[16], &cbc_out[16], i - 16, &ks, &ks2,
+    VR_DES_ede3_cbc_encrypt(&cbc_data[16], &cbc_out[16], i - 16, &ks, &ks2,
                          &ks3, &iv3, DES_ENCRYPT);
     if (!TEST_mem_eq(cbc_out, n, cbc3_ok, n))
         return 0;
 
     memcpy(iv3, cbc_iv, sizeof(cbc_iv));
-    DES_ede3_cbc_encrypt(cbc_out, cbc_in, i, &ks, &ks2, &ks3, &iv3,
+    VR_DES_ede3_cbc_encrypt(cbc_out, cbc_in, i, &ks, &ks2, &ks3, &iv3,
                          DES_DECRYPT);
     return TEST_mem_eq(cbc_in, i, cbc_data, i);
 }
@@ -435,14 +435,14 @@ static int test_input_align(int i)
 {
     unsigned char cbc_out[40];
     DES_cblock iv;
-    DES_key_schedule ks;
+    VR_DES_key_schedule ks;
     const size_t n = strlen(i + (char *)cbc_data) + 1;
 
     memset(cbc_out, 0, sizeof(cbc_out));
     memcpy(iv, cbc_iv, sizeof(cbc_iv));
-    if (!TEST_int_eq(DES_set_key_checked(&cbc_key, &ks), 0))
+    if (!TEST_int_eq(VR_DES_set_key_checked(&cbc_key, &ks), 0))
         return 0;
-    DES_ncbc_encrypt(&cbc_data[i], cbc_out, n, &ks, &iv, DES_ENCRYPT);
+    VR_DES_ncbc_encrypt(&cbc_data[i], cbc_out, n, &ks, &iv, DES_ENCRYPT);
     return 1;
 }
 
@@ -450,29 +450,29 @@ static int test_output_align(int i)
 {
     unsigned char cbc_out[40];
     DES_cblock iv;
-    DES_key_schedule ks;
+    VR_DES_key_schedule ks;
     const size_t n = strlen((char *)cbc_data) + 1;
 
     memset(cbc_out, 0, sizeof(cbc_out));
     memcpy(iv, cbc_iv, sizeof(cbc_iv));
-    if (!TEST_int_eq(DES_set_key_checked(&cbc_key, &ks), 0))
+    if (!TEST_int_eq(VR_DES_set_key_checked(&cbc_key, &ks), 0))
         return 0;
-    DES_ncbc_encrypt(cbc_data, &cbc_out[i], n, &ks, &iv, DES_ENCRYPT);
+    VR_DES_ncbc_encrypt(cbc_data, &cbc_out[i], n, &ks, &iv, DES_ENCRYPT);
     return 1;
 }
 
 static int test_des_crypt(void)
 {
-    if (!TEST_str_eq("efGnQx2725bI2", DES_crypt("testing", "ef")))
+    if (!TEST_str_eq("efGnQx2725bI2", VR_DES_crypt("testing", "ef")))
         return 0;
-    if (!TEST_str_eq("yA1Rp/1hZXIJk", DES_crypt("bca76;23", "yA")))
+    if (!TEST_str_eq("yA1Rp/1hZXIJk", VR_DES_crypt("bca76;23", "yA")))
         return 0;
 
-    if (!TEST_ptr_null(DES_crypt("testing", "y\202")))
+    if (!TEST_ptr_null(VR_DES_crypt("testing", "y\202")))
         return 0;
-    if (!TEST_ptr_null(DES_crypt("testing", "\0A")))
+    if (!TEST_ptr_null(VR_DES_crypt("testing", "\0A")))
         return 0;
-    if (!TEST_ptr_null(DES_crypt("testing", "A")))
+    if (!TEST_ptr_null(VR_DES_crypt("testing", "A")))
         return 0;
     return 1;
 }
@@ -481,34 +481,34 @@ static int test_des_pcbc(void)
 {
     unsigned char cbc_in[40];
     unsigned char cbc_out[40];
-    DES_key_schedule ks;
+    VR_DES_key_schedule ks;
     const int n = strlen((char *)cbc_data) + 1;
 
-    if (!TEST_int_eq(DES_set_key_checked(&cbc_key, &ks), 0))
+    if (!TEST_int_eq(VR_DES_set_key_checked(&cbc_key, &ks), 0))
         return 0;
     memset(cbc_out, 0, sizeof(cbc_out));
     memset(cbc_in, 0, sizeof(cbc_in));
-    DES_pcbc_encrypt(cbc_data, cbc_out, n, &ks,
+    VR_DES_pcbc_encrypt(cbc_data, cbc_out, n, &ks,
                      &cbc_iv, DES_ENCRYPT);
     if (!TEST_mem_eq(cbc_out, sizeof(pcbc_ok), pcbc_ok, sizeof(pcbc_ok)))
         return 0;
-    DES_pcbc_encrypt(cbc_out, cbc_in, n, &ks,
+    VR_DES_pcbc_encrypt(cbc_out, cbc_in, n, &ks,
                      &cbc_iv, DES_DECRYPT);
     return TEST_mem_eq(cbc_in, n, cbc_data, n);
 }
 
 static int cfb_test(int bits, unsigned char *cfb_cipher)
 {
-    DES_key_schedule ks;
+    VR_DES_key_schedule ks;
 
-    DES_set_key_checked(&cfb_key, &ks);
+    VR_DES_set_key_checked(&cfb_key, &ks);
     memcpy(cfb_tmp, cfb_iv, sizeof(cfb_iv));
-    DES_cfb_encrypt(plain, cfb_buf1, bits, sizeof(plain), &ks, &cfb_tmp,
+    VR_DES_cfb_encrypt(plain, cfb_buf1, bits, sizeof(plain), &ks, &cfb_tmp,
                     DES_ENCRYPT);
     if (!TEST_mem_eq(cfb_cipher, sizeof(plain), cfb_buf1, sizeof(plain)))
         return 0;
     memcpy(cfb_tmp, cfb_iv, sizeof(cfb_iv));
-    DES_cfb_encrypt(cfb_buf1, cfb_buf2, bits, sizeof(plain), &ks, &cfb_tmp,
+    VR_DES_cfb_encrypt(cfb_buf1, cfb_buf2, bits, sizeof(plain), &ks, &cfb_tmp,
                     DES_DECRYPT);
     return TEST_mem_eq(plain, sizeof(plain), cfb_buf2, sizeof(plain));
 }
@@ -535,125 +535,125 @@ static int test_des_cfb48(void)
 
 static int test_des_cfb64(void)
 {
-    DES_key_schedule ks;
+    VR_DES_key_schedule ks;
     int n;
     size_t i;
 
     if (!cfb_test(64, cfb_cipher64))
         return 0;
 
-    DES_set_key_checked(&cfb_key, &ks);
+    VR_DES_set_key_checked(&cfb_key, &ks);
     memcpy(cfb_tmp, cfb_iv, sizeof(cfb_iv));
     n = 0;
-    DES_cfb64_encrypt(plain, cfb_buf1, 12, &ks, &cfb_tmp, &n, DES_ENCRYPT);
-    DES_cfb64_encrypt(&plain[12], &cfb_buf1[12], sizeof(plain) - 12, &ks,
+    VR_DES_cfb64_encrypt(plain, cfb_buf1, 12, &ks, &cfb_tmp, &n, DES_ENCRYPT);
+    VR_DES_cfb64_encrypt(&plain[12], &cfb_buf1[12], sizeof(plain) - 12, &ks,
                       &cfb_tmp, &n, DES_ENCRYPT);
     if (!TEST_mem_eq(cfb_cipher64, sizeof(plain), cfb_buf1, sizeof(plain)))
         return 0;
     memcpy(cfb_tmp, cfb_iv, sizeof(cfb_iv));
     n = 0;
-    DES_cfb64_encrypt(cfb_buf1, cfb_buf2, 17, &ks, &cfb_tmp, &n, DES_DECRYPT);
-    DES_cfb64_encrypt(&cfb_buf1[17], &cfb_buf2[17],
+    VR_DES_cfb64_encrypt(cfb_buf1, cfb_buf2, 17, &ks, &cfb_tmp, &n, DES_DECRYPT);
+    VR_DES_cfb64_encrypt(&cfb_buf1[17], &cfb_buf2[17],
                       sizeof(plain) - 17, &ks, &cfb_tmp, &n, DES_DECRYPT);
     if (!TEST_mem_eq(plain, sizeof(plain), cfb_buf2, sizeof(plain)))
         return 0;
 
     memcpy(cfb_tmp, cfb_iv, sizeof(cfb_iv));
     for (i = 0; i < sizeof(plain); i++)
-        DES_cfb_encrypt(&plain[i], &cfb_buf1[i], 8, 1, &ks, &cfb_tmp,
+        VR_DES_cfb_encrypt(&plain[i], &cfb_buf1[i], 8, 1, &ks, &cfb_tmp,
                         DES_ENCRYPT);
     if (!TEST_mem_eq(cfb_cipher8, sizeof(plain), cfb_buf1, sizeof(plain)))
         return 0;
 
     memcpy(cfb_tmp, cfb_iv, sizeof(cfb_iv));
     for (i = 0; i < sizeof(plain); i++)
-        DES_cfb_encrypt(&cfb_buf1[i], &cfb_buf2[i], 8, 1, &ks, &cfb_tmp,
+        VR_DES_cfb_encrypt(&cfb_buf1[i], &cfb_buf2[i], 8, 1, &ks, &cfb_tmp,
                         DES_DECRYPT);
     return TEST_mem_eq(plain, sizeof(plain), cfb_buf2, sizeof(plain));
 }
 
 static int test_des_ede_cfb64(void)
 {
-    DES_key_schedule ks;
+    VR_DES_key_schedule ks;
     int n;
 
-    DES_set_key_checked(&cfb_key, &ks);
+    VR_DES_set_key_checked(&cfb_key, &ks);
     memcpy(cfb_tmp, cfb_iv, sizeof(cfb_iv));
     n = 0;
-    DES_ede3_cfb64_encrypt(plain, cfb_buf1, 12, &ks, &ks, &ks, &cfb_tmp, &n,
+    VR_DES_ede3_cfb64_encrypt(plain, cfb_buf1, 12, &ks, &ks, &ks, &cfb_tmp, &n,
                            DES_ENCRYPT);
-    DES_ede3_cfb64_encrypt(&plain[12], &cfb_buf1[12], sizeof(plain) - 12, &ks,
+    VR_DES_ede3_cfb64_encrypt(&plain[12], &cfb_buf1[12], sizeof(plain) - 12, &ks,
                            &ks, &ks, &cfb_tmp, &n, DES_ENCRYPT);
     if (!TEST_mem_eq(cfb_cipher64, sizeof(plain), cfb_buf1, sizeof(plain)))
         return 0;
     memcpy(cfb_tmp, cfb_iv, sizeof(cfb_iv));
     n = 0;
-    DES_ede3_cfb64_encrypt(cfb_buf1, cfb_buf2, (long)17, &ks, &ks, &ks,
+    VR_DES_ede3_cfb64_encrypt(cfb_buf1, cfb_buf2, (long)17, &ks, &ks, &ks,
                            &cfb_tmp, &n, DES_DECRYPT);
-    DES_ede3_cfb64_encrypt(&cfb_buf1[17], &cfb_buf2[17], sizeof(plain) - 17,
+    VR_DES_ede3_cfb64_encrypt(&cfb_buf1[17], &cfb_buf2[17], sizeof(plain) - 17,
                            &ks, &ks, &ks, &cfb_tmp, &n, DES_DECRYPT);
     return TEST_mem_eq(plain, sizeof(plain), cfb_buf2, sizeof(plain));
 }
 
 static int test_des_ofb(void)
 {
-    DES_key_schedule ks;
+    VR_DES_key_schedule ks;
 
-    DES_set_key_checked(&ofb_key, &ks);
+    VR_DES_set_key_checked(&ofb_key, &ks);
     memcpy(ofb_tmp, ofb_iv, sizeof(ofb_iv));
-    DES_ofb_encrypt(plain, ofb_buf1, 64, sizeof(plain) / 8, &ks, &ofb_tmp);
+    VR_DES_ofb_encrypt(plain, ofb_buf1, 64, sizeof(plain) / 8, &ks, &ofb_tmp);
     if (!TEST_mem_eq(ofb_cipher, sizeof(ofb_buf1), ofb_buf1, sizeof(ofb_buf1)))
         return 0;
 
     memcpy(ofb_tmp, ofb_iv, sizeof(ofb_iv));
-    DES_ofb_encrypt(ofb_buf1, ofb_buf2, 64, sizeof(ofb_buf1) / 8, &ks,
+    VR_DES_ofb_encrypt(ofb_buf1, ofb_buf2, 64, sizeof(ofb_buf1) / 8, &ks,
                     &ofb_tmp);
     return TEST_mem_eq(plain, sizeof(ofb_buf2), ofb_buf2, sizeof(ofb_buf2));
 }
 
 static int test_des_ofb64(void)
 {
-    DES_key_schedule ks;
+    VR_DES_key_schedule ks;
     int num;
     size_t i;
 
-    DES_set_key_checked(&ofb_key, &ks);
+    VR_DES_set_key_checked(&ofb_key, &ks);
     memcpy(ofb_tmp, ofb_iv, sizeof(ofb_iv));
     memset(ofb_buf1, 0, sizeof(ofb_buf1));
     memset(ofb_buf2, 0, sizeof(ofb_buf1));
     num = 0;
     for (i = 0; i < sizeof(plain); i++) {
-        DES_ofb64_encrypt(&plain[i], &ofb_buf1[i], 1, &ks, &ofb_tmp, &num);
+        VR_DES_ofb64_encrypt(&plain[i], &ofb_buf1[i], 1, &ks, &ofb_tmp, &num);
     }
     if (!TEST_mem_eq(ofb_cipher, sizeof(ofb_buf1), ofb_buf1, sizeof(ofb_buf1)))
         return 0;
     memcpy(ofb_tmp, ofb_iv, sizeof(ofb_iv));
     num = 0;
-    DES_ofb64_encrypt(ofb_buf1, ofb_buf2, sizeof(ofb_buf1), &ks, &ofb_tmp,
+    VR_DES_ofb64_encrypt(ofb_buf1, ofb_buf2, sizeof(ofb_buf1), &ks, &ofb_tmp,
                       &num);
     return TEST_mem_eq(plain, sizeof(ofb_buf2), ofb_buf2, sizeof(ofb_buf2));
 }
 
 static int test_des_ede_ofb64(void)
 {
-    DES_key_schedule ks;
+    VR_DES_key_schedule ks;
     int num;
     size_t i;
 
-    DES_set_key_checked(&ofb_key, &ks);
+    VR_DES_set_key_checked(&ofb_key, &ks);
     memcpy(ofb_tmp, ofb_iv, sizeof(ofb_iv));
     memset(ofb_buf1, 0, sizeof(ofb_buf1));
     memset(ofb_buf2, 0, sizeof(ofb_buf1));
     num = 0;
     for (i = 0; i < sizeof(plain); i++) {
-        DES_ede3_ofb64_encrypt(&plain[i], &ofb_buf1[i], 1, &ks, &ks,
+        VR_DES_ede3_ofb64_encrypt(&plain[i], &ofb_buf1[i], 1, &ks, &ks,
                                &ks, &ofb_tmp, &num);
     }
     if (!TEST_mem_eq(ofb_cipher, sizeof(ofb_buf1), ofb_buf1, sizeof(ofb_buf1)))
         return 0;
     memcpy(ofb_tmp, ofb_iv, sizeof(ofb_iv));
     num = 0;
-    DES_ede3_ofb64_encrypt(ofb_buf1, ofb_buf2, sizeof(ofb_buf1), &ks, &ks, &ks,
+    VR_DES_ede3_ofb64_encrypt(ofb_buf1, ofb_buf2, sizeof(ofb_buf1), &ks, &ks, &ks,
                            &ofb_tmp, &num);
     return TEST_mem_eq(plain, sizeof(ofb_buf2), ofb_buf2, sizeof(ofb_buf2));
 }
@@ -661,11 +661,11 @@ static int test_des_ede_ofb64(void)
 static int test_des_cbc_cksum(void)
 {
     DES_LONG cs;
-    DES_key_schedule ks;
+    VR_DES_key_schedule ks;
     unsigned char cret[8];
 
-    DES_set_key_checked(&cbc_key, &ks);
-    cs = DES_cbc_cksum(cbc_data, &cret, strlen((char *)cbc_data), &ks,
+    VR_DES_set_key_checked(&cbc_key, &ks);
+    cs = VR_DES_cbc_cksum(cbc_data, &cret, strlen((char *)cbc_data), &ks,
                        &cbc_iv);
     if (!TEST_cs_eq(cs, cbc_cksum_ret))
         return 0;
@@ -676,7 +676,7 @@ static int test_des_quad_cksum(void)
 {
     DES_LONG cs, lqret[4];
 
-    cs = DES_quad_cksum(cbc_data, (DES_cblock *)lqret,
+    cs = VR_DES_quad_cksum(cbc_data, (DES_cblock *)lqret,
                         (long)strlen((char *)cbc_data), 2,
                         (DES_cblock *)cbc_iv);
     if (!TEST_cs_eq(cs, 0x70d7a63aL))

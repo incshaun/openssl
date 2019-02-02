@@ -206,10 +206,10 @@ static int close_console(UI *ui);
  */
 static int write_string(UI *ui, UI_STRING *uis)
 {
-    switch (UI_get_string_type(uis)) {
+    switch (VR_UI_get_string_type(uis)) {
     case UIT_ERROR:
     case UIT_INFO:
-        fputs(UI_get0_output_string(uis), tty_out);
+        fputs(VR_UI_get0_output_string(uis), tty_out);
         fflush(tty_out);
         break;
     case UIT_NONE:
@@ -225,28 +225,28 @@ static int read_string(UI *ui, UI_STRING *uis)
 {
     int ok = 0;
 
-    switch (UI_get_string_type(uis)) {
+    switch (VR_UI_get_string_type(uis)) {
     case UIT_BOOLEAN:
-        fputs(UI_get0_output_string(uis), tty_out);
-        fputs(UI_get0_action_string(uis), tty_out);
+        fputs(VR_UI_get0_output_string(uis), tty_out);
+        fputs(VR_UI_get0_action_string(uis), tty_out);
         fflush(tty_out);
         return read_string_inner(ui, uis,
-                                 UI_get_input_flags(uis) & UI_INPUT_FLAG_ECHO,
+                                 VR_UI_get_input_flags(uis) & UI_INPUT_FLAG_ECHO,
                                  0);
     case UIT_PROMPT:
-        fputs(UI_get0_output_string(uis), tty_out);
+        fputs(VR_UI_get0_output_string(uis), tty_out);
         fflush(tty_out);
         return read_string_inner(ui, uis,
-                                 UI_get_input_flags(uis) & UI_INPUT_FLAG_ECHO,
+                                 VR_UI_get_input_flags(uis) & UI_INPUT_FLAG_ECHO,
                                  1);
     case UIT_VERIFY:
-        fprintf(tty_out, "Verifying - %s", UI_get0_output_string(uis));
+        fprintf(tty_out, "Verifying - %s", VR_UI_get0_output_string(uis));
         fflush(tty_out);
         if ((ok = read_string_inner(ui, uis,
-                                    UI_get_input_flags(uis) &
+                                    VR_UI_get_input_flags(uis) &
                                     UI_INPUT_FLAG_ECHO, 1)) <= 0)
             return ok;
-        if (strcmp(UI_get0_result_string(uis), UI_get0_test_string(uis)) != 0) {
+        if (strcmp(VR_UI_get0_result_string(uis), VR_UI_get0_test_string(uis)) != 0) {
             fprintf(tty_out, "Verify failure\n");
             fflush(tty_out);
             return 0;
@@ -319,7 +319,7 @@ static int read_string_inner(UI *ui, UI_STRING *uis, int echo, int strip_nl)
                                         result, sizeof(result), NULL, 0) > 0)
                     p = result;
 
-                OPENSSL_cleanse(wresult, sizeof(wresult));
+                VR_OPENSSL_cleanse(wresult, sizeof(wresult));
             }
         } else
 #   endif
@@ -352,7 +352,7 @@ static int read_string_inner(UI *ui, UI_STRING *uis, int echo, int strip_nl)
             *p = '\0';
     } else if (!read_till_nl(tty_in))
         goto error;
-    if (UI_set_result(ui, uis, result) >= 0)
+    if (VR_UI_set_result(ui, uis, result) >= 0)
         ok = 1;
 
  error:
@@ -369,14 +369,14 @@ static int read_string_inner(UI *ui, UI_STRING *uis, int echo, int strip_nl)
     ok = 1;
 # endif
 
-    OPENSSL_cleanse(result, BUFSIZ);
+    VR_OPENSSL_cleanse(result, BUFSIZ);
     return ok;
 }
 
 /* Internal functions to open, handle and close a channel to the console.  */
 static int open_console(UI *ui)
 {
-    CRYPTO_THREAD_write_lock(ui->lock);
+    VR_CRYPTO_THREAD_write_lock(ui->lock);
     is_a_tty = 1;
 
 # if defined(OPENSSL_SYS_VXWORKS)
@@ -450,9 +450,9 @@ static int open_console(UI *ui)
 #  endif
             {
                 char tmp_num[10];
-                BIO_snprintf(tmp_num, sizeof(tmp_num) - 1, "%d", errno);
+                VR_BIO_snprintf(tmp_num, sizeof(tmp_num) - 1, "%d", errno);
                 UIerr(UI_F_OPEN_CONSOLE, UI_R_UNKNOWN_TTYGET_ERRNO_VALUE);
-                ERR_add_error_data(2, "errno=", tmp_num);
+                VR_ERR_add_error_data(2, "errno=", tmp_num);
 
                 return 0;
             }
@@ -465,9 +465,9 @@ static int open_console(UI *ui)
     if (status != SS$_NORMAL) {
         char tmp_num[12];
 
-        BIO_snprintf(tmp_num, sizeof(tmp_num) - 1, "%%X%08X", status);
+        VR_BIO_snprintf(tmp_num, sizeof(tmp_num) - 1, "%%X%08X", status);
         UIerr(UI_F_OPEN_CONSOLE, UI_R_SYSASSIGN_ERROR);
-        ERR_add_error_data(2, "status=", tmp_num);
+        VR_ERR_add_error_data(2, "status=", tmp_num);
         return 0;
     }
 
@@ -502,12 +502,12 @@ static int noecho_console(UI *ui)
         if ((status != SS$_NORMAL) || (iosb.iosb$w_value != SS$_NORMAL)) {
             char tmp_num[2][12];
 
-            BIO_snprintf(tmp_num[0], sizeof(tmp_num[0]) - 1, "%%X%08X",
+            VR_BIO_snprintf(tmp_num[0], sizeof(tmp_num[0]) - 1, "%%X%08X",
                          status);
-            BIO_snprintf(tmp_num[1], sizeof(tmp_num[1]) - 1, "%%X%08X",
+            VR_BIO_snprintf(tmp_num[1], sizeof(tmp_num[1]) - 1, "%%X%08X",
                          iosb.iosb$w_value);
             UIerr(UI_F_NOECHO_CONSOLE, UI_R_SYSQIOW_ERROR);
-            ERR_add_error_data(5, "status=", tmp_num[0],
+            VR_ERR_add_error_data(5, "status=", tmp_num[0],
                                ",", "iosb.iosb$w_value=", tmp_num[1]);
             return 0;
         }
@@ -540,12 +540,12 @@ static int echo_console(UI *ui)
         if ((status != SS$_NORMAL) || (iosb.iosb$w_value != SS$_NORMAL)) {
             char tmp_num[2][12];
 
-            BIO_snprintf(tmp_num[0], sizeof(tmp_num[0]) - 1, "%%X%08X",
+            VR_BIO_snprintf(tmp_num[0], sizeof(tmp_num[0]) - 1, "%%X%08X",
                          status);
-            BIO_snprintf(tmp_num[1], sizeof(tmp_num[1]) - 1, "%%X%08X",
+            VR_BIO_snprintf(tmp_num[1], sizeof(tmp_num[1]) - 1, "%%X%08X",
                          iosb.iosb$w_value);
             UIerr(UI_F_ECHO_CONSOLE, UI_R_SYSQIOW_ERROR);
-            ERR_add_error_data(5, "status=", tmp_num[0],
+            VR_ERR_add_error_data(5, "status=", tmp_num[0],
                                ",", "iosb.iosb$w_value=", tmp_num[1]);
             return 0;
         }
@@ -571,13 +571,13 @@ static int close_console(UI *ui)
     if (status != SS$_NORMAL) {
         char tmp_num[12];
 
-        BIO_snprintf(tmp_num, sizeof(tmp_num) - 1, "%%X%08X", status);
+        VR_BIO_snprintf(tmp_num, sizeof(tmp_num) - 1, "%%X%08X", status);
         UIerr(UI_F_CLOSE_CONSOLE, UI_R_SYSDASSGN_ERROR);
-        ERR_add_error_data(2, "status=", tmp_num);
+        VR_ERR_add_error_data(2, "status=", tmp_num);
         return 0;
     }
 # endif
-    CRYPTO_THREAD_unlock(ui->lock);
+    VR_CRYPTO_THREAD_unlock(ui->lock);
 
     return 1;
 }
@@ -720,7 +720,7 @@ static UI_METHOD ui_openssl = {
 };
 
 /* The method with all the built-in console thingies */
-UI_METHOD *UI_OpenSSL(void)
+UI_METHOD *VR_UI_OpenSSL(void)
 {
     return &ui_openssl;
 }
@@ -733,12 +733,12 @@ static const UI_METHOD *default_UI_meth = NULL;
 
 #endif
 
-void UI_set_default_method(const UI_METHOD *meth)
+void VR_UI_set_default_method(const UI_METHOD *meth)
 {
     default_UI_meth = meth;
 }
 
-const UI_METHOD *UI_get_default_method(void)
+const UI_METHOD *VR_UI_get_default_method(void)
 {
     return default_UI_meth;
 }

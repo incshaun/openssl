@@ -17,17 +17,17 @@
 #include "internal/evp_int.h"
 #include "rsa_locl.h"
 
-RSA *RSA_new(void)
+RSA *VR_RSA_new(void)
 {
-    return RSA_new_method(NULL);
+    return VR_RSA_new_method(NULL);
 }
 
-const RSA_METHOD *RSA_get_method(const RSA *rsa)
+const RSA_METHOD *VR_RSA_get_method(const RSA *rsa)
 {
     return rsa->meth;
 }
 
-int RSA_set_method(RSA *rsa, const RSA_METHOD *meth)
+int VR_RSA_set_method(RSA *rsa, const RSA_METHOD *meth)
 {
     /*
      * NB: The caller is specifically setting a method, so it's not up to us
@@ -38,7 +38,7 @@ int RSA_set_method(RSA *rsa, const RSA_METHOD *meth)
     if (mtmp->finish)
         mtmp->finish(rsa);
 #ifndef OPENSSL_NO_ENGINE
-    ENGINE_finish(rsa->engine);
+    VR_ENGINE_finish(rsa->engine);
     rsa->engine = NULL;
 #endif
     rsa->meth = meth;
@@ -47,7 +47,7 @@ int RSA_set_method(RSA *rsa, const RSA_METHOD *meth)
     return 1;
 }
 
-RSA *RSA_new_method(ENGINE *engine)
+RSA *VR_RSA_new_method(ENGINE *engine)
 {
     RSA *ret = OPENSSL_zalloc(sizeof(*ret));
 
@@ -57,27 +57,27 @@ RSA *RSA_new_method(ENGINE *engine)
     }
 
     ret->references = 1;
-    ret->lock = CRYPTO_THREAD_lock_new();
+    ret->lock = VR_CRYPTO_THREAD_lock_new();
     if (ret->lock == NULL) {
         RSAerr(RSA_F_RSA_NEW_METHOD, ERR_R_MALLOC_FAILURE);
-        OPENSSL_free(ret);
+        OPENVR_SSL_free(ret);
         return NULL;
     }
 
-    ret->meth = RSA_get_default_method();
+    ret->meth = VR_RSA_get_default_method();
 #ifndef OPENSSL_NO_ENGINE
     ret->flags = ret->meth->flags & ~RSA_FLAG_NON_FIPS_ALLOW;
     if (engine) {
-        if (!ENGINE_init(engine)) {
+        if (!VR_ENGINE_init(engine)) {
             RSAerr(RSA_F_RSA_NEW_METHOD, ERR_R_ENGINE_LIB);
             goto err;
         }
         ret->engine = engine;
     } else {
-        ret->engine = ENGINE_get_default_RSA();
+        ret->engine = VR_ENGINE_get_default_RSA();
     }
     if (ret->engine) {
-        ret->meth = ENGINE_get_RSA(ret->engine);
+        ret->meth = VR_ENGINE_get_RSA(ret->engine);
         if (ret->meth == NULL) {
             RSAerr(RSA_F_RSA_NEW_METHOD, ERR_R_ENGINE_LIB);
             goto err;
@@ -86,7 +86,7 @@ RSA *RSA_new_method(ENGINE *engine)
 #endif
 
     ret->flags = ret->meth->flags & ~RSA_FLAG_NON_FIPS_ALLOW;
-    if (!CRYPTO_new_ex_data(CRYPTO_EX_INDEX_RSA, ret, &ret->ex_data)) {
+    if (!VR_CRYPTO_new_ex_data(CRYPTO_EX_INDEX_RSA, ret, &ret->ex_data)) {
         goto err;
     }
 
@@ -98,11 +98,11 @@ RSA *RSA_new_method(ENGINE *engine)
     return ret;
 
  err:
-    RSA_free(ret);
+    VR_RSA_free(ret);
     return NULL;
 }
 
-void RSA_free(RSA *r)
+void VR_RSA_free(RSA *r)
 {
     int i;
 
@@ -118,30 +118,30 @@ void RSA_free(RSA *r)
     if (r->meth != NULL && r->meth->finish != NULL)
         r->meth->finish(r);
 #ifndef OPENSSL_NO_ENGINE
-    ENGINE_finish(r->engine);
+    VR_ENGINE_finish(r->engine);
 #endif
 
-    CRYPTO_free_ex_data(CRYPTO_EX_INDEX_RSA, r, &r->ex_data);
+    VR_CRYPTO_free_ex_data(CRYPTO_EX_INDEX_RSA, r, &r->ex_data);
 
-    CRYPTO_THREAD_lock_free(r->lock);
+    VR_CRYPTO_THREAD_lock_free(r->lock);
 
-    BN_free(r->n);
-    BN_free(r->e);
-    BN_clear_free(r->d);
-    BN_clear_free(r->p);
-    BN_clear_free(r->q);
-    BN_clear_free(r->dmp1);
-    BN_clear_free(r->dmq1);
-    BN_clear_free(r->iqmp);
-    RSA_PSS_PARAMS_free(r->pss);
-    sk_RSA_PRIME_INFO_pop_free(r->prime_infos, rsa_multip_info_free);
-    BN_BLINDING_free(r->blinding);
-    BN_BLINDING_free(r->mt_blinding);
-    OPENSSL_free(r->bignum_data);
-    OPENSSL_free(r);
+    VR_BN_free(r->n);
+    VR_BN_free(r->e);
+    VR_BN_clear_free(r->d);
+    VR_BN_clear_free(r->p);
+    VR_BN_clear_free(r->q);
+    VR_BN_clear_free(r->dmp1);
+    VR_BN_clear_free(r->dmq1);
+    VR_BN_clear_free(r->iqmp);
+    VR_RSA_PSS_PARAMS_free(r->pss);
+    sk_VR_RSA_PRIME_INFO_pop_free(r->prime_infos, VR_rsa_multip_info_free);
+    VR_BN_BLINDING_free(r->blinding);
+    VR_BN_BLINDING_free(r->mt_blinding);
+    OPENVR_SSL_free(r->bignum_data);
+    OPENVR_SSL_free(r);
 }
 
-int RSA_up_ref(RSA *r)
+int VR_RSA_up_ref(RSA *r)
 {
     int i;
 
@@ -153,14 +153,14 @@ int RSA_up_ref(RSA *r)
     return i > 1 ? 1 : 0;
 }
 
-int RSA_set_ex_data(RSA *r, int idx, void *arg)
+int VR_RSA_set_ex_data(RSA *r, int idx, void *arg)
 {
-    return CRYPTO_set_ex_data(&r->ex_data, idx, arg);
+    return VR_CRYPTO_set_ex_data(&r->ex_data, idx, arg);
 }
 
-void *RSA_get_ex_data(const RSA *r, int idx)
+void *VR_RSA_get_ex_data(const RSA *r, int idx)
 {
-    return CRYPTO_get_ex_data(&r->ex_data, idx);
+    return VR_CRYPTO_get_ex_data(&r->ex_data, idx);
 }
 
 /*
@@ -290,21 +290,21 @@ static uint16_t rsa_compute_security_bits(int n)
     return (y + 4) & ~7;
 }
 
-int RSA_security_bits(const RSA *rsa)
+int VR_RSA_security_bits(const RSA *rsa)
 {
-    int bits = BN_num_bits(rsa->n);
+    int bits = VR_BN_num_bits(rsa->n);
 
     if (rsa->version == RSA_ASN1_VERSION_MULTI) {
         /* This ought to mean that we have private key at hand. */
         int ex_primes = sk_RSA_PRIME_INFO_num(rsa->prime_infos);
 
-        if (ex_primes <= 0 || (ex_primes + 2) > rsa_multip_cap(bits))
+        if (ex_primes <= 0 || (ex_primes + 2) > VR_rsa_multip_cap(bits))
             return 0;
     }
     return rsa_compute_security_bits(bits);
 }
 
-int RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d)
+int VR_RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d)
 {
     /* If the fields n and e in r are NULL, the corresponding input
      * parameters MUST be non-NULL for n and e.  d may be
@@ -315,22 +315,22 @@ int RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d)
         return 0;
 
     if (n != NULL) {
-        BN_free(r->n);
+        VR_BN_free(r->n);
         r->n = n;
     }
     if (e != NULL) {
-        BN_free(r->e);
+        VR_BN_free(r->e);
         r->e = e;
     }
     if (d != NULL) {
-        BN_clear_free(r->d);
+        VR_BN_clear_free(r->d);
         r->d = d;
     }
 
     return 1;
 }
 
-int RSA_set0_factors(RSA *r, BIGNUM *p, BIGNUM *q)
+int VR_RSA_set0_factors(RSA *r, BIGNUM *p, BIGNUM *q)
 {
     /* If the fields p and q in r are NULL, the corresponding input
      * parameters MUST be non-NULL.
@@ -340,18 +340,18 @@ int RSA_set0_factors(RSA *r, BIGNUM *p, BIGNUM *q)
         return 0;
 
     if (p != NULL) {
-        BN_clear_free(r->p);
+        VR_BN_clear_free(r->p);
         r->p = p;
     }
     if (q != NULL) {
-        BN_clear_free(r->q);
+        VR_BN_clear_free(r->q);
         r->q = q;
     }
 
     return 1;
 }
 
-int RSA_set0_crt_params(RSA *r, BIGNUM *dmp1, BIGNUM *dmq1, BIGNUM *iqmp)
+int VR_RSA_set0_crt_params(RSA *r, BIGNUM *dmp1, BIGNUM *dmq1, BIGNUM *iqmp)
 {
     /* If the fields dmp1, dmq1 and iqmp in r are NULL, the corresponding input
      * parameters MUST be non-NULL.
@@ -362,15 +362,15 @@ int RSA_set0_crt_params(RSA *r, BIGNUM *dmp1, BIGNUM *dmq1, BIGNUM *iqmp)
         return 0;
 
     if (dmp1 != NULL) {
-        BN_clear_free(r->dmp1);
+        VR_BN_clear_free(r->dmp1);
         r->dmp1 = dmp1;
     }
     if (dmq1 != NULL) {
-        BN_clear_free(r->dmq1);
+        VR_BN_clear_free(r->dmq1);
         r->dmq1 = dmq1;
     }
     if (iqmp != NULL) {
-        BN_clear_free(r->iqmp);
+        VR_BN_clear_free(r->iqmp);
         r->iqmp = iqmp;
     }
 
@@ -381,7 +381,7 @@ int RSA_set0_crt_params(RSA *r, BIGNUM *dmp1, BIGNUM *dmq1, BIGNUM *iqmp)
  * Is it better to export RSA_PRIME_INFO structure
  * and related functions to let user pass a triplet?
  */
-int RSA_set0_multi_prime_params(RSA *r, BIGNUM *primes[], BIGNUM *exps[],
+int VR_RSA_set0_multi_prime_params(RSA *r, BIGNUM *primes[], BIGNUM *exps[],
                                 BIGNUM *coeffs[], int pnum)
 {
     STACK_OF(RSA_PRIME_INFO) *prime_infos, *old = NULL;
@@ -391,7 +391,7 @@ int RSA_set0_multi_prime_params(RSA *r, BIGNUM *primes[], BIGNUM *exps[],
     if (primes == NULL || exps == NULL || coeffs == NULL || pnum == 0)
         return 0;
 
-    prime_infos = sk_RSA_PRIME_INFO_new_reserve(NULL, pnum);
+    prime_infos = sk_VR_RSA_PRIME_INFO_new_reserve(NULL, pnum);
     if (prime_infos == NULL)
         return 0;
 
@@ -399,26 +399,26 @@ int RSA_set0_multi_prime_params(RSA *r, BIGNUM *primes[], BIGNUM *exps[],
         old = r->prime_infos;
 
     for (i = 0; i < pnum; i++) {
-        pinfo = rsa_multip_info_new();
+        pinfo = VR_rsa_multip_info_new();
         if (pinfo == NULL)
             goto err;
         if (primes[i] != NULL && exps[i] != NULL && coeffs[i] != NULL) {
-            BN_free(pinfo->r);
-            BN_free(pinfo->d);
-            BN_free(pinfo->t);
+            VR_BN_free(pinfo->r);
+            VR_BN_free(pinfo->d);
+            VR_BN_free(pinfo->t);
             pinfo->r = primes[i];
             pinfo->d = exps[i];
             pinfo->t = coeffs[i];
         } else {
-            rsa_multip_info_free(pinfo);
+            VR_rsa_multip_info_free(pinfo);
             goto err;
         }
-        (void)sk_RSA_PRIME_INFO_push(prime_infos, pinfo);
+        (void)sk_VR_RSA_PRIME_INFO_push(prime_infos, pinfo);
     }
 
     r->prime_infos = prime_infos;
 
-    if (!rsa_multip_calc_product(r)) {
+    if (!VR_rsa_multip_calc_product(r)) {
         r->prime_infos = old;
         goto err;
     }
@@ -430,7 +430,7 @@ int RSA_set0_multi_prime_params(RSA *r, BIGNUM *primes[], BIGNUM *exps[],
          * be freed in that case. So currently, stay consistent
          * with other *set0* functions: just free it...
          */
-        sk_RSA_PRIME_INFO_pop_free(old, rsa_multip_info_free);
+        sk_VR_RSA_PRIME_INFO_pop_free(old, VR_rsa_multip_info_free);
     }
 
     r->version = RSA_ASN1_VERSION_MULTI;
@@ -438,11 +438,11 @@ int RSA_set0_multi_prime_params(RSA *r, BIGNUM *primes[], BIGNUM *exps[],
     return 1;
  err:
     /* r, d, t should not be freed */
-    sk_RSA_PRIME_INFO_pop_free(prime_infos, rsa_multip_info_free_ex);
+    sk_VR_RSA_PRIME_INFO_pop_free(prime_infos, VR_rsa_multip_info_free_ex);
     return 0;
 }
 
-void RSA_get0_key(const RSA *r,
+void VR_RSA_get0_key(const RSA *r,
                   const BIGNUM **n, const BIGNUM **e, const BIGNUM **d)
 {
     if (n != NULL)
@@ -453,7 +453,7 @@ void RSA_get0_key(const RSA *r,
         *d = r->d;
 }
 
-void RSA_get0_factors(const RSA *r, const BIGNUM **p, const BIGNUM **q)
+void VR_RSA_get0_factors(const RSA *r, const BIGNUM **p, const BIGNUM **q)
 {
     if (p != NULL)
         *p = r->p;
@@ -461,7 +461,7 @@ void RSA_get0_factors(const RSA *r, const BIGNUM **p, const BIGNUM **q)
         *q = r->q;
 }
 
-int RSA_get_multi_prime_extra_count(const RSA *r)
+int VR_RSA_get_multi_prime_extra_count(const RSA *r)
 {
     int pnum;
 
@@ -471,12 +471,12 @@ int RSA_get_multi_prime_extra_count(const RSA *r)
     return pnum;
 }
 
-int RSA_get0_multi_prime_factors(const RSA *r, const BIGNUM *primes[])
+int VR_RSA_get0_multi_prime_factors(const RSA *r, const BIGNUM *primes[])
 {
     int pnum, i;
     RSA_PRIME_INFO *pinfo;
 
-    if ((pnum = RSA_get_multi_prime_extra_count(r)) == 0)
+    if ((pnum = VR_RSA_get_multi_prime_extra_count(r)) == 0)
         return 0;
 
     /*
@@ -491,7 +491,7 @@ int RSA_get0_multi_prime_factors(const RSA *r, const BIGNUM *primes[])
     return 1;
 }
 
-void RSA_get0_crt_params(const RSA *r,
+void VR_RSA_get0_crt_params(const RSA *r,
                          const BIGNUM **dmp1, const BIGNUM **dmq1,
                          const BIGNUM **iqmp)
 {
@@ -503,12 +503,12 @@ void RSA_get0_crt_params(const RSA *r,
         *iqmp = r->iqmp;
 }
 
-int RSA_get0_multi_prime_crt_params(const RSA *r, const BIGNUM *exps[],
+int VR_RSA_get0_multi_prime_crt_params(const RSA *r, const BIGNUM *exps[],
                                     const BIGNUM *coeffs[])
 {
     int pnum;
 
-    if ((pnum = RSA_get_multi_prime_extra_count(r)) == 0)
+    if ((pnum = VR_RSA_get_multi_prime_extra_count(r)) == 0)
         return 0;
 
     /* return other primes */
@@ -529,78 +529,78 @@ int RSA_get0_multi_prime_crt_params(const RSA *r, const BIGNUM *exps[],
     return 1;
 }
 
-const BIGNUM *RSA_get0_n(const RSA *r)
+const BIGNUM *VR_RSA_get0_n(const RSA *r)
 {
     return r->n;
 }
 
-const BIGNUM *RSA_get0_e(const RSA *r)
+const BIGNUM *VR_RSA_get0_e(const RSA *r)
 {
     return r->e;
 }
 
-const BIGNUM *RSA_get0_d(const RSA *r)
+const BIGNUM *VR_RSA_get0_d(const RSA *r)
 {
     return r->d;
 }
 
-const BIGNUM *RSA_get0_p(const RSA *r)
+const BIGNUM *VR_RSA_get0_p(const RSA *r)
 {
     return r->p;
 }
 
-const BIGNUM *RSA_get0_q(const RSA *r)
+const BIGNUM *VR_RSA_get0_q(const RSA *r)
 {
     return r->q;
 }
 
-const BIGNUM *RSA_get0_dmp1(const RSA *r)
+const BIGNUM *VR_RSA_get0_dmp1(const RSA *r)
 {
     return r->dmp1;
 }
 
-const BIGNUM *RSA_get0_dmq1(const RSA *r)
+const BIGNUM *VR_RSA_get0_dmq1(const RSA *r)
 {
     return r->dmq1;
 }
 
-const BIGNUM *RSA_get0_iqmp(const RSA *r)
+const BIGNUM *VR_RSA_get0_iqmp(const RSA *r)
 {
     return r->iqmp;
 }
 
-void RSA_clear_flags(RSA *r, int flags)
+void VR_RSA_clear_flags(RSA *r, int flags)
 {
     r->flags &= ~flags;
 }
 
-int RSA_test_flags(const RSA *r, int flags)
+int VR_RSA_test_flags(const RSA *r, int flags)
 {
     return r->flags & flags;
 }
 
-void RSA_set_flags(RSA *r, int flags)
+void VR_RSA_set_flags(RSA *r, int flags)
 {
     r->flags |= flags;
 }
 
-int RSA_get_version(RSA *r)
+int VR_RSA_get_version(RSA *r)
 {
     /* { two-prime(0), multi(1) } */
     return r->version;
 }
 
-ENGINE *RSA_get0_engine(const RSA *r)
+ENGINE *VR_RSA_get0_engine(const RSA *r)
 {
     return r->engine;
 }
 
-int RSA_pkey_ctx_ctrl(EVP_PKEY_CTX *ctx, int optype, int cmd, int p1, void *p2)
+int VR_RSA_pkey_ctx_ctrl(EVP_PKEY_CTX *ctx, int optype, int cmd, int p1, void *p2)
 {
     /* If key type not RSA or RSA-PSS return error */
     if (ctx != NULL && ctx->pmeth != NULL
         && ctx->pmeth->pkey_id != EVP_PKEY_RSA
         && ctx->pmeth->pkey_id != EVP_PKEY_RSA_PSS)
         return -1;
-     return EVP_PKEY_CTX_ctrl(ctx, -1, optype, cmd, p1, p2);
+     return VR_EVP_PKEY_CTX_ctrl(ctx, -1, optype, cmd, p1, p2);
 }

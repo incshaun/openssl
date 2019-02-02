@@ -66,7 +66,7 @@ int genpkey_main(int argc, char **argv)
         case OPT_EOF:
         case OPT_ERR:
  opthelp:
-            BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
+            VR_BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
             ret = 0;
@@ -97,14 +97,14 @@ int genpkey_main(int argc, char **argv)
             break;
         case OPT_PKEYOPT:
             if (ctx == NULL) {
-                BIO_printf(bio_err, "%s: No keytype specified.\n", prog);
+                VR_BIO_printf(bio_err, "%s: No keytype specified.\n", prog);
                 goto opthelp;
             }
             if (pkey_ctrl_string(ctx, opt_arg()) <= 0) {
-                BIO_printf(bio_err,
+                VR_BIO_printf(bio_err,
                            "%s: Error setting %s parameter:\n",
                            prog, opt_arg());
-                ERR_print_errors(bio_err);
+                VR_ERR_print_errors(bio_err);
                 goto end;
             }
             break;
@@ -124,7 +124,7 @@ int genpkey_main(int argc, char **argv)
                 EVP_CIPHER_mode(cipher) == EVP_CIPH_CCM_MODE ||
                 EVP_CIPHER_mode(cipher) == EVP_CIPH_XTS_MODE ||
                 EVP_CIPHER_mode(cipher) == EVP_CIPH_OCB_MODE) {
-                BIO_printf(bio_err, "%s: cipher mode not supported\n", prog);
+                VR_BIO_printf(bio_err, "%s: cipher mode not supported\n", prog);
                 goto end;
             }
         }
@@ -139,7 +139,7 @@ int genpkey_main(int argc, char **argv)
         goto opthelp;
 
     if (!app_passwd(passarg, NULL, &pass, NULL)) {
-        BIO_puts(bio_err, "Error getting password\n");
+        VR_BIO_puts(bio_err, "Error getting password\n");
         goto end;
     }
 
@@ -147,62 +147,62 @@ int genpkey_main(int argc, char **argv)
     if (out == NULL)
         goto end;
 
-    EVP_PKEY_CTX_set_cb(ctx, genpkey_cb);
-    EVP_PKEY_CTX_set_app_data(ctx, bio_err);
+    VR_EVP_PKEY_CTX_set_cb(ctx, genpkey_cb);
+    VR_EVP_PKEY_CTX_set_app_data(ctx, bio_err);
 
     if (do_param) {
-        if (EVP_PKEY_paramgen(ctx, &pkey) <= 0) {
-            BIO_puts(bio_err, "Error generating parameters\n");
-            ERR_print_errors(bio_err);
+        if (VR_EVP_PKEY_paramgen(ctx, &pkey) <= 0) {
+            VR_BIO_puts(bio_err, "Error generating parameters\n");
+            VR_ERR_print_errors(bio_err);
             goto end;
         }
     } else {
-        if (EVP_PKEY_keygen(ctx, &pkey) <= 0) {
-            BIO_puts(bio_err, "Error generating key\n");
-            ERR_print_errors(bio_err);
+        if (VR_EVP_PKEY_keygen(ctx, &pkey) <= 0) {
+            VR_BIO_puts(bio_err, "Error generating key\n");
+            VR_ERR_print_errors(bio_err);
             goto end;
         }
     }
 
     if (do_param) {
-        rv = PEM_write_bio_Parameters(out, pkey);
+        rv = VR_PEM_write_bio_Parameters(out, pkey);
     } else if (outformat == FORMAT_PEM) {
         assert(private);
-        rv = PEM_write_bio_PrivateKey(out, pkey, cipher, NULL, 0, NULL, pass);
+        rv = VR_PEM_write_bio_PrivateKey(out, pkey, cipher, NULL, 0, NULL, pass);
     } else if (outformat == FORMAT_ASN1) {
         assert(private);
-        rv = i2d_PrivateKey_bio(out, pkey);
+        rv = VR_i2d_PrivateKey_bio(out, pkey);
     } else {
-        BIO_printf(bio_err, "Bad format specified for key\n");
+        VR_BIO_printf(bio_err, "Bad format specified for key\n");
         goto end;
     }
 
     if (rv <= 0) {
-        BIO_puts(bio_err, "Error writing key\n");
-        ERR_print_errors(bio_err);
+        VR_BIO_puts(bio_err, "Error writing key\n");
+        VR_ERR_print_errors(bio_err);
     }
 
     if (text) {
         if (do_param)
-            rv = EVP_PKEY_print_params(out, pkey, 0, NULL);
+            rv = VR_EVP_PKEY_print_params(out, pkey, 0, NULL);
         else
-            rv = EVP_PKEY_print_private(out, pkey, 0, NULL);
+            rv = VR_EVP_PKEY_print_private(out, pkey, 0, NULL);
 
         if (rv <= 0) {
-            BIO_puts(bio_err, "Error printing key\n");
-            ERR_print_errors(bio_err);
+            VR_BIO_puts(bio_err, "Error printing key\n");
+            VR_ERR_print_errors(bio_err);
         }
     }
 
     ret = 0;
 
  end:
-    EVP_PKEY_free(pkey);
-    EVP_PKEY_CTX_free(ctx);
-    BIO_free_all(out);
-    BIO_free(in);
+    VR_EVP_PKEY_free(pkey);
+    VR_EVP_PKEY_CTX_free(ctx);
+    VR_BIO_free_all(out);
+    VR_BIO_free(in);
     release_engine(e);
-    OPENSSL_free(pass);
+    OPENVR_SSL_free(pass);
     return ret;
 }
 
@@ -212,38 +212,38 @@ static int init_keygen_file(EVP_PKEY_CTX **pctx, const char *file, ENGINE *e)
     EVP_PKEY *pkey = NULL;
     EVP_PKEY_CTX *ctx = NULL;
     if (*pctx) {
-        BIO_puts(bio_err, "Parameters already set!\n");
+        VR_BIO_puts(bio_err, "Parameters already set!\n");
         return 0;
     }
 
-    pbio = BIO_new_file(file, "r");
+    pbio = VR_BIO_new_file(file, "r");
     if (!pbio) {
-        BIO_printf(bio_err, "Can't open parameter file %s\n", file);
+        VR_BIO_printf(bio_err, "Can't open parameter file %s\n", file);
         return 0;
     }
 
-    pkey = PEM_read_bio_Parameters(pbio, NULL);
-    BIO_free(pbio);
+    pkey = VR_PEM_read_bio_Parameters(pbio, NULL);
+    VR_BIO_free(pbio);
 
     if (!pkey) {
-        BIO_printf(bio_err, "Error reading parameter file %s\n", file);
+        VR_BIO_printf(bio_err, "Error reading parameter file %s\n", file);
         return 0;
     }
 
-    ctx = EVP_PKEY_CTX_new(pkey, e);
+    ctx = VR_EVP_PKEY_CTX_new(pkey, e);
     if (ctx == NULL)
         goto err;
-    if (EVP_PKEY_keygen_init(ctx) <= 0)
+    if (VR_EVP_PKEY_keygen_init(ctx) <= 0)
         goto err;
-    EVP_PKEY_free(pkey);
+    VR_EVP_PKEY_free(pkey);
     *pctx = ctx;
     return 1;
 
  err:
-    BIO_puts(bio_err, "Error initializing context\n");
-    ERR_print_errors(bio_err);
-    EVP_PKEY_CTX_free(ctx);
-    EVP_PKEY_free(pkey);
+    VR_BIO_puts(bio_err, "Error initializing context\n");
+    VR_ERR_print_errors(bio_err);
+    VR_EVP_PKEY_CTX_free(ctx);
+    VR_EVP_PKEY_free(pkey);
     return 0;
 
 }
@@ -257,37 +257,37 @@ int init_gen_str(EVP_PKEY_CTX **pctx,
     int pkey_id;
 
     if (*pctx) {
-        BIO_puts(bio_err, "Algorithm already set!\n");
+        VR_BIO_puts(bio_err, "Algorithm already set!\n");
         return 0;
     }
 
-    ameth = EVP_PKEY_asn1_find_str(&tmpeng, algname, -1);
+    ameth = VR_EVP_PKEY_asn1_find_str(&tmpeng, algname, -1);
 
 #ifndef OPENSSL_NO_ENGINE
     if (!ameth && e)
-        ameth = ENGINE_get_pkey_asn1_meth_str(e, algname, -1);
+        ameth = VR_ENGINE_get_pkey_asn1_meth_str(e, algname, -1);
 #endif
 
     if (!ameth) {
-        BIO_printf(bio_err, "Algorithm %s not found\n", algname);
+        VR_BIO_printf(bio_err, "Algorithm %s not found\n", algname);
         return 0;
     }
 
-    ERR_clear_error();
+    VR_ERR_clear_error();
 
-    EVP_PKEY_asn1_get0_info(&pkey_id, NULL, NULL, NULL, NULL, ameth);
+    VR_EVP_PKEY_asn1_get0_info(&pkey_id, NULL, NULL, NULL, NULL, ameth);
 #ifndef OPENSSL_NO_ENGINE
-    ENGINE_finish(tmpeng);
+    VR_ENGINE_finish(tmpeng);
 #endif
-    ctx = EVP_PKEY_CTX_new_id(pkey_id, e);
+    ctx = VR_EVP_PKEY_CTX_new_id(pkey_id, e);
 
     if (!ctx)
         goto err;
     if (do_param) {
-        if (EVP_PKEY_paramgen_init(ctx) <= 0)
+        if (VR_EVP_PKEY_paramgen_init(ctx) <= 0)
             goto err;
     } else {
-        if (EVP_PKEY_keygen_init(ctx) <= 0)
+        if (VR_EVP_PKEY_keygen_init(ctx) <= 0)
             goto err;
     }
 
@@ -295,9 +295,9 @@ int init_gen_str(EVP_PKEY_CTX **pctx,
     return 1;
 
  err:
-    BIO_printf(bio_err, "Error initializing %s context\n", algname);
-    ERR_print_errors(bio_err);
-    EVP_PKEY_CTX_free(ctx);
+    VR_BIO_printf(bio_err, "Error initializing %s context\n", algname);
+    VR_ERR_print_errors(bio_err);
+    VR_EVP_PKEY_CTX_free(ctx);
     return 0;
 
 }
@@ -305,9 +305,9 @@ int init_gen_str(EVP_PKEY_CTX **pctx,
 static int genpkey_cb(EVP_PKEY_CTX *ctx)
 {
     char c = '*';
-    BIO *b = EVP_PKEY_CTX_get_app_data(ctx);
+    BIO *b = VR_EVP_PKEY_CTX_get_app_data(ctx);
     int p;
-    p = EVP_PKEY_CTX_get_keygen_info(ctx, 0);
+    p = VR_EVP_PKEY_CTX_get_keygen_info(ctx, 0);
     if (p == 0)
         c = '.';
     if (p == 1)
@@ -316,7 +316,7 @@ static int genpkey_cb(EVP_PKEY_CTX *ctx)
         c = '*';
     if (p == 3)
         c = '\n';
-    BIO_write(b, &c, 1);
+    VR_BIO_write(b, &c, 1);
     (void)BIO_flush(b);
     return 1;
 }

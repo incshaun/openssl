@@ -65,7 +65,7 @@ if (!$addx && `$ENV{CC} -v 2>&1` =~ /((?:^clang|LLVM) version|.*based on LLVM) (
 	$addx = ($ver>=3.03);
 }
 
-# int bn_mul_mont_gather5(
+# int VR_bn_mul_mont_gather5(
 $rp="%rdi";	# BN_ULONG *rp,
 $ap="%rsi";	# const BN_ULONG *ap,
 $bp="%rdx";	# const BN_ULONG *bp,
@@ -89,10 +89,10 @@ $code=<<___;
 
 .extern	OPENSSL_ia32cap_P
 
-.globl	bn_mul_mont_gather5
-.type	bn_mul_mont_gather5,\@function,6
+.globl	VR_bn_mul_mont_gather5
+.type	VR_bn_mul_mont_gather5,\@function,6
 .align	64
-bn_mul_mont_gather5:
+VR_bn_mul_mont_gather5:
 .cfi_startproc
 	mov	${num}d,${num}d
 	mov	%rsp,%rax
@@ -461,7 +461,7 @@ $code.=<<___;
 .Lmul_epilogue:
 	ret
 .cfi_endproc
-.size	bn_mul_mont_gather5,.-bn_mul_mont_gather5
+.size	VR_bn_mul_mont_gather5,.-VR_bn_mul_mont_gather5
 ___
 {{{
 my @A=("%r10","%r11");
@@ -506,7 +506,7 @@ $code.=<<___;
 	# modulo 4096, which covers ret[num], am[num] and n[num]
 	# (see bn_exp.c). This is done to allow memory disambiguation
 	# logic do its magic. [Extra [num] is allocated in order
-	# to align with bn_power5's frame, which is cleansed after
+	# to align with VR_bn_power5's frame, which is cleansed after
 	# completing exponentiation. Extra 256 bytes is for power mask
 	# calculated from 7th argument, the index.]
 	#
@@ -1079,7 +1079,7 @@ ___
 }}}
 {{{
 ######################################################################
-# void bn_power5(
+# void VR_bn_power5(
 my $rptr="%rdi";	# BN_ULONG *rptr,
 my $aptr="%rsi";	# const BN_ULONG *aptr,
 my $bptr="%rdx";	# const void *table,
@@ -1094,10 +1094,10 @@ my @A1=("%r12","%r13");
 my ($a0,$a1,$ai)=("%r14","%r15","%rbx");
 
 $code.=<<___;
-.globl	bn_power5
-.type	bn_power5,\@function,6
+.globl	VR_bn_power5
+.type	VR_bn_power5,\@function,6
 .align	32
-bn_power5:
+VR_bn_power5:
 .cfi_startproc
 	mov	%rsp,%rax
 .cfi_def_cfa_register	%rax
@@ -1192,15 +1192,15 @@ $code.=<<___;
 	movq	%r10, %xmm3		# -$num, used in sqr8x
 	movq	$bptr,%xmm4
 
-	call	__bn_sqr8x_internal
+	call	__VR_bn_sqr8x_internal
 	call	__bn_post4x_internal
-	call	__bn_sqr8x_internal
+	call	__VR_bn_sqr8x_internal
 	call	__bn_post4x_internal
-	call	__bn_sqr8x_internal
+	call	__VR_bn_sqr8x_internal
 	call	__bn_post4x_internal
-	call	__bn_sqr8x_internal
+	call	__VR_bn_sqr8x_internal
 	call	__bn_post4x_internal
-	call	__bn_sqr8x_internal
+	call	__VR_bn_sqr8x_internal
 	call	__bn_post4x_internal
 
 	movq	%xmm2,$nptr
@@ -1231,14 +1231,14 @@ $code.=<<___;
 .Lpower5_epilogue:
 	ret
 .cfi_endproc
-.size	bn_power5,.-bn_power5
+.size	VR_bn_power5,.-VR_bn_power5
 
-.globl	bn_sqr8x_internal
-.hidden	bn_sqr8x_internal
-.type	bn_sqr8x_internal,\@abi-omnipotent
+.globl	VR_bn_sqr8x_internal
+.hidden	VR_bn_sqr8x_internal
+.type	VR_bn_sqr8x_internal,\@abi-omnipotent
 .align	32
-bn_sqr8x_internal:
-__bn_sqr8x_internal:
+VR_bn_sqr8x_internal:
+__VR_bn_sqr8x_internal:
 	##############################################################
 	# Squaring part:
 	#
@@ -2030,7 +2030,7 @@ __bn_sqr8x_reduction:
 	cmp	%rdx,$tptr		# end of t[]?
 	jb	.L8x_reduction_loop
 	ret
-.size	bn_sqr8x_internal,.-bn_sqr8x_internal
+.size	VR_bn_sqr8x_internal,.-VR_bn_sqr8x_internal
 ___
 }
 ##############################################################
@@ -2097,15 +2097,15 @@ ___
 }
 {
 $code.=<<___;
-.globl	bn_from_montgomery
-.type	bn_from_montgomery,\@abi-omnipotent
+.globl	VR_bn_from_montgomery
+.type	VR_bn_from_montgomery,\@abi-omnipotent
 .align	32
-bn_from_montgomery:
+VR_bn_from_montgomery:
 	testl	\$7,`($win64?"48(%rsp)":"%r9d")`
 	jz	bn_from_mont8x
 	xor	%eax,%eax
 	ret
-.size	bn_from_montgomery,.-bn_from_montgomery
+.size	VR_bn_from_montgomery,.-VR_bn_from_montgomery
 
 .type	bn_from_mont8x,\@function,6
 .align	32
@@ -2137,7 +2137,7 @@ bn_from_mont8x:
 	# Ensure that stack frame doesn't alias with $rptr+3*$num
 	# modulo 4096, which covers ret[num], am[num] and n[num]
 	# (see bn_exp.c). The stack is allocated to aligned with
-	# bn_power5's frame, and as bn_from_montgomery happens to be
+	# VR_bn_power5's frame, and as VR_bn_from_montgomery happens to be
 	# last operation, we use the opportunity to cleanse it.
 	#
 	lea	-320(%rsp,$num,2),%r11
@@ -2317,7 +2317,7 @@ bn_mulx4x_mont_gather5:
 	# modulo 4096, which covers ret[num], am[num] and n[num]
 	# (see bn_exp.c). This is done to allow memory disambiguation
 	# logic do its magic. [Extra [num] is allocated in order
-	# to align with bn_power5's frame, which is cleansed after
+	# to align with VR_bn_power5's frame, which is cleansed after
 	# completing exponentiation. Extra 256 bytes is for power mask
 	# calculated from 7th argument, the index.]
 	#
@@ -2754,7 +2754,7 @@ $code.=<<___;
 ___
 }{
 ######################################################################
-# void bn_power5(
+# void VR_bn_power5(
 my $rptr="%rdi";	# BN_ULONG *rptr,
 my $aptr="%rsi";	# const BN_ULONG *aptr,
 my $bptr="%rdx";	# const void *table,
@@ -2862,15 +2862,15 @@ bn_powerx5:
 .cfi_cfa_expression	%rsp+40,deref,+8
 .Lpowerx5_body:
 
-	call	__bn_sqrx8x_internal
+	call	__VR_bn_sqrx8x_internal
 	call	__bn_postx4x_internal
-	call	__bn_sqrx8x_internal
+	call	__VR_bn_sqrx8x_internal
 	call	__bn_postx4x_internal
-	call	__bn_sqrx8x_internal
+	call	__VR_bn_sqrx8x_internal
 	call	__bn_postx4x_internal
-	call	__bn_sqrx8x_internal
+	call	__VR_bn_sqrx8x_internal
 	call	__bn_postx4x_internal
-	call	__bn_sqrx8x_internal
+	call	__VR_bn_sqrx8x_internal
 	call	__bn_postx4x_internal
 
 	mov	%r10,$num		# -num
@@ -2904,12 +2904,12 @@ bn_powerx5:
 .cfi_endproc
 .size	bn_powerx5,.-bn_powerx5
 
-.globl	bn_sqrx8x_internal
-.hidden	bn_sqrx8x_internal
-.type	bn_sqrx8x_internal,\@abi-omnipotent
+.globl	VR_bn_sqrx8x_internal
+.hidden	VR_bn_sqrx8x_internal
+.type	VR_bn_sqrx8x_internal,\@abi-omnipotent
 .align	32
-bn_sqrx8x_internal:
-__bn_sqrx8x_internal:
+VR_bn_sqrx8x_internal:
+__VR_bn_sqrx8x_internal:
 	##################################################################
 	# Squaring part:
 	#
@@ -3542,7 +3542,7 @@ __bn_sqrx8x_reduction:
 	cmp	8+8(%rsp),%r8		# end of t[]?
 	jb	.Lsqrx8x_reduction_loop
 	ret
-.size	bn_sqrx8x_internal,.-bn_sqrx8x_internal
+.size	VR_bn_sqrx8x_internal,.-VR_bn_sqrx8x_internal
 ___
 }
 ##############################################################
@@ -3612,10 +3612,10 @@ my $STRIDE=2**5*8;
 my $N=$STRIDE/4;
 
 $code.=<<___;
-.globl	bn_get_bits5
-.type	bn_get_bits5,\@abi-omnipotent
+.globl	VR_bn_get_bits5
+.type	VR_bn_get_bits5,\@abi-omnipotent
 .align	16
-bn_get_bits5:
+VR_bn_get_bits5:
 	lea	0($inp),%r10
 	lea	1($inp),%r11
 	mov	$num,%ecx
@@ -3629,12 +3629,12 @@ bn_get_bits5:
 	shrl	%cl,%eax
 	and	\$31,%eax
 	ret
-.size	bn_get_bits5,.-bn_get_bits5
+.size	VR_bn_get_bits5,.-VR_bn_get_bits5
 
-.globl	bn_scatter5
-.type	bn_scatter5,\@abi-omnipotent
+.globl	VR_bn_scatter5
+.type	VR_bn_scatter5,\@abi-omnipotent
 .align	16
-bn_scatter5:
+VR_bn_scatter5:
 	cmp	\$0, $num
 	jz	.Lscatter_epilogue
 	lea	($tbl,$idx,8),$tbl
@@ -3647,13 +3647,13 @@ bn_scatter5:
 	jnz	.Lscatter
 .Lscatter_epilogue:
 	ret
-.size	bn_scatter5,.-bn_scatter5
+.size	VR_bn_scatter5,.-VR_bn_scatter5
 
-.globl	bn_gather5
-.type	bn_gather5,\@abi-omnipotent
+.globl	VR_bn_gather5
+.type	VR_bn_gather5,\@abi-omnipotent
 .align	32
-bn_gather5:
-.LSEH_begin_bn_gather5:			# Win64 thing, but harmless in other cases
+VR_bn_gather5:
+.LSEH_begin_VR_bn_gather5:			# Win64 thing, but harmless in other cases
 	# I can't trust assembler to use specific encoding:-(
 	.byte	0x4c,0x8d,0x14,0x24			#lea    (%rsp),%r10
 	.byte	0x48,0x81,0xec,0x08,0x01,0x00,0x00	#sub	$0x108,%rsp
@@ -3737,8 +3737,8 @@ $code.=<<___;
 
 	lea	(%r10),%rsp
 	ret
-.LSEH_end_bn_gather5:
-.size	bn_gather5,.-bn_gather5
+.LSEH_end_VR_bn_gather5:
+.size	VR_bn_gather5,.-VR_bn_gather5
 ___
 }
 $code.=<<___;
@@ -3863,17 +3863,17 @@ mul_handler:
 
 .section	.pdata
 .align	4
-	.rva	.LSEH_begin_bn_mul_mont_gather5
-	.rva	.LSEH_end_bn_mul_mont_gather5
-	.rva	.LSEH_info_bn_mul_mont_gather5
+	.rva	.LSEH_begin_VR_bn_mul_mont_gather5
+	.rva	.LSEH_end_VR_bn_mul_mont_gather5
+	.rva	.LSEH_info_VR_bn_mul_mont_gather5
 
 	.rva	.LSEH_begin_bn_mul4x_mont_gather5
 	.rva	.LSEH_end_bn_mul4x_mont_gather5
 	.rva	.LSEH_info_bn_mul4x_mont_gather5
 
-	.rva	.LSEH_begin_bn_power5
-	.rva	.LSEH_end_bn_power5
-	.rva	.LSEH_info_bn_power5
+	.rva	.LSEH_begin_VR_bn_power5
+	.rva	.LSEH_end_VR_bn_power5
+	.rva	.LSEH_info_VR_bn_power5
 
 	.rva	.LSEH_begin_bn_from_mont8x
 	.rva	.LSEH_end_bn_from_mont8x
@@ -3889,13 +3889,13 @@ $code.=<<___ if ($addx);
 	.rva	.LSEH_info_bn_powerx5
 ___
 $code.=<<___;
-	.rva	.LSEH_begin_bn_gather5
-	.rva	.LSEH_end_bn_gather5
-	.rva	.LSEH_info_bn_gather5
+	.rva	.LSEH_begin_VR_bn_gather5
+	.rva	.LSEH_end_VR_bn_gather5
+	.rva	.LSEH_info_VR_bn_gather5
 
 .section	.xdata
 .align	8
-.LSEH_info_bn_mul_mont_gather5:
+.LSEH_info_VR_bn_mul_mont_gather5:
 	.byte	9,0,0,0
 	.rva	mul_handler
 	.rva	.Lmul_body,.Lmul_body,.Lmul_epilogue		# HandlerData[]
@@ -3905,7 +3905,7 @@ $code.=<<___;
 	.rva	mul_handler
 	.rva	.Lmul4x_prologue,.Lmul4x_body,.Lmul4x_epilogue		# HandlerData[]
 .align	8
-.LSEH_info_bn_power5:
+.LSEH_info_VR_bn_power5:
 	.byte	9,0,0,0
 	.rva	mul_handler
 	.rva	.Lpower5_prologue,.Lpower5_body,.Lpower5_epilogue	# HandlerData[]
@@ -3929,7 +3929,7 @@ $code.=<<___ if ($addx);
 ___
 $code.=<<___;
 .align	8
-.LSEH_info_bn_gather5:
+.LSEH_info_VR_bn_gather5:
 	.byte	0x01,0x0b,0x03,0x0a
 	.byte	0x0b,0x01,0x21,0x00	# sub	rsp,0x108
 	.byte	0x04,0xa3,0x00,0x00	# lea	r10,(rsp)

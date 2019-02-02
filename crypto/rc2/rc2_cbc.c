@@ -10,7 +10,7 @@
 #include <openssl/rc2.h>
 #include "rc2_locl.h"
 
-void RC2_cbc_encrypt(const unsigned char *in, unsigned char *out, long length,
+void VR_RC2_cbc_encrypt(const unsigned char *in, unsigned char *out, long length,
                      RC2_KEY *ks, unsigned char *iv, int encrypt)
 {
     register unsigned long tin0, tin1;
@@ -29,7 +29,7 @@ void RC2_cbc_encrypt(const unsigned char *in, unsigned char *out, long length,
             tin1 ^= tout1;
             tin[0] = tin0;
             tin[1] = tin1;
-            RC2_encrypt(tin, ks);
+            VR_RC2_encrypt(tin, ks);
             tout0 = tin[0];
             l2c(tout0, out);
             tout1 = tin[1];
@@ -41,7 +41,7 @@ void RC2_cbc_encrypt(const unsigned char *in, unsigned char *out, long length,
             tin1 ^= tout1;
             tin[0] = tin0;
             tin[1] = tin1;
-            RC2_encrypt(tin, ks);
+            VR_RC2_encrypt(tin, ks);
             tout0 = tin[0];
             l2c(tout0, out);
             tout1 = tin[1];
@@ -58,7 +58,7 @@ void RC2_cbc_encrypt(const unsigned char *in, unsigned char *out, long length,
             tin[0] = tin0;
             c2l(in, tin1);
             tin[1] = tin1;
-            RC2_decrypt(tin, ks);
+            VR_RC2_decrypt(tin, ks);
             tout0 = tin[0] ^ xor0;
             tout1 = tin[1] ^ xor1;
             l2c(tout0, out);
@@ -71,7 +71,7 @@ void RC2_cbc_encrypt(const unsigned char *in, unsigned char *out, long length,
             tin[0] = tin0;
             c2l(in, tin1);
             tin[1] = tin1;
-            RC2_decrypt(tin, ks);
+            VR_RC2_decrypt(tin, ks);
             tout0 = tin[0] ^ xor0;
             tout1 = tin[1] ^ xor1;
             l2cn(tout0, tout1, out, l + 8);
@@ -85,7 +85,7 @@ void RC2_cbc_encrypt(const unsigned char *in, unsigned char *out, long length,
     tin[0] = tin[1] = 0;
 }
 
-void RC2_encrypt(unsigned long *d, RC2_KEY *key)
+void VR_RC2_encrypt(unsigned long *d, RC2_KEY *key)
 {
     int i, n;
     register RC2_INT *p0, *p1;
@@ -131,7 +131,7 @@ void RC2_encrypt(unsigned long *d, RC2_KEY *key)
         (unsigned long)(x2 & 0xffff) | ((unsigned long)(x3 & 0xffff) << 16L);
 }
 
-void RC2_decrypt(unsigned long *d, RC2_KEY *key)
+void VR_RC2_decrypt(unsigned long *d, RC2_KEY *key)
 {
     int i, n;
     register RC2_INT *p0, *p1;

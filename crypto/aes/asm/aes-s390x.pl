@@ -53,7 +53,7 @@
 # This is done, because deferred key setup can't be made MT-safe, not
 # for keys longer than 128 bits.
 #
-# Add AES_cbc_encrypt, which gives incredible performance improvement,
+# Add VR_AES_cbc_encrypt, which gives incredible performance improvement,
 # it was measured to be ~6.6x. It's less than previously mentioned 8x,
 # because software implementation was optimized.
 
@@ -61,7 +61,7 @@
 #
 # Add AES_ctr32_encrypt. If hardware-assisted, it provides up to 4.3x
 # performance improvement over "generic" counter mode routine relying
-# on single-block, also hardware-assisted, AES_encrypt. "Up to" refers
+# on single-block, also hardware-assisted, VR_AES_encrypt. "Up to" refers
 # to the fact that exact throughput value depends on current stack
 # frame alignment within 4KB page. In worst case you get ~75% of the
 # maximum, but *on average* it would be as much as ~98%. Meaning that
@@ -243,11 +243,11 @@ $code.=<<___;
 .align	256
 .size	AES_Te,.-AES_Te
 
-# void AES_encrypt(const unsigned char *inp, unsigned char *out,
+# void VR_AES_encrypt(const unsigned char *inp, unsigned char *out,
 # 		 const AES_KEY *key) {
-.globl	AES_encrypt
-.type	AES_encrypt,\@function
-AES_encrypt:
+.globl	VR_AES_encrypt
+.type	VR_AES_encrypt,\@function
+VR_AES_encrypt:
 ___
 $code.=<<___ if (!$softonly);
 	l	%r0,240($key)
@@ -274,7 +274,7 @@ $code.=<<___;
 	llgf	$s3,12($inp)
 
 	larl	$tbl,AES_Te
-	bras	$ra,_s390x_AES_encrypt
+	bras	$ra,_s390x_VR_AES_encrypt
 
 	l${g}	$out,3*$SIZE_T($sp)
 	st	$s0,0($out)
@@ -284,11 +284,11 @@ $code.=<<___;
 
 	lm${g}	%r6,$ra,6*$SIZE_T($sp)
 	br	$ra
-.size	AES_encrypt,.-AES_encrypt
+.size	VR_AES_encrypt,.-VR_AES_encrypt
 
-.type   _s390x_AES_encrypt,\@function
+.type   _s390x_VR_AES_encrypt,\@function
 .align	16
-_s390x_AES_encrypt:
+_s390x_VR_AES_encrypt:
 	st${g}	$ra,15*$SIZE_T($sp)
 	x	$s0,0($key)
 	x	$s1,4($key)
@@ -460,7 +460,7 @@ _s390x_AES_encrypt:
 	x	$s3,28($key)
 
 	br	$ra
-.size	_s390x_AES_encrypt,.-_s390x_AES_encrypt
+.size	_s390x_VR_AES_encrypt,.-_s390x_VR_AES_encrypt
 ___
 
 $code.=<<___;
@@ -569,11 +569,11 @@ $code.=<<___;
 .byte	0xe1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0c, 0x7d
 .size	AES_Td,.-AES_Td
 
-# void AES_decrypt(const unsigned char *inp, unsigned char *out,
+# void VR_AES_decrypt(const unsigned char *inp, unsigned char *out,
 # 		 const AES_KEY *key) {
-.globl	AES_decrypt
-.type	AES_decrypt,\@function
-AES_decrypt:
+.globl	VR_AES_decrypt
+.type	VR_AES_decrypt,\@function
+VR_AES_decrypt:
 ___
 $code.=<<___ if (!$softonly);
 	l	%r0,240($key)
@@ -600,7 +600,7 @@ $code.=<<___;
 	llgf	$s3,12($inp)
 
 	larl	$tbl,AES_Td
-	bras	$ra,_s390x_AES_decrypt
+	bras	$ra,_s390x_VR_AES_decrypt
 
 	l${g}	$out,3*$SIZE_T($sp)
 	st	$s0,0($out)
@@ -610,11 +610,11 @@ $code.=<<___;
 
 	lm${g}	%r6,$ra,6*$SIZE_T($sp)
 	br	$ra
-.size	AES_decrypt,.-AES_decrypt
+.size	VR_AES_decrypt,.-VR_AES_decrypt
 
-.type   _s390x_AES_decrypt,\@function
+.type   _s390x_VR_AES_decrypt,\@function
 .align	16
-_s390x_AES_decrypt:
+_s390x_VR_AES_decrypt:
 	st${g}	$ra,15*$SIZE_T($sp)
 	x	$s0,0($key)
 	x	$s1,4($key)
@@ -782,17 +782,17 @@ _s390x_AES_decrypt:
 	x	$s3,28($key)
 
 	br	$ra
-.size	_s390x_AES_decrypt,.-_s390x_AES_decrypt
+.size	_s390x_VR_AES_decrypt,.-_s390x_VR_AES_decrypt
 ___
 
 $code.=<<___;
-# void AES_set_encrypt_key(const unsigned char *in, int bits,
+# void VR_AES_set_encrypt_key(const unsigned char *in, int bits,
 # 		 AES_KEY *key) {
-.globl	AES_set_encrypt_key
-.type	AES_set_encrypt_key,\@function
+.globl	VR_AES_set_encrypt_key
+.type	VR_AES_set_encrypt_key,\@function
 .align	16
-AES_set_encrypt_key:
-_s390x_AES_set_encrypt_key:
+VR_AES_set_encrypt_key:
+_s390x_VR_AES_set_encrypt_key:
 	lghi	$t0,0
 	cl${g}r	$inp,$t0
 	je	.Lminus1
@@ -1065,17 +1065,17 @@ $code.=<<___;
 .Lminus1:
 	lghi	%r2,-1
 	br	$ra
-.size	AES_set_encrypt_key,.-AES_set_encrypt_key
+.size	VR_AES_set_encrypt_key,.-VR_AES_set_encrypt_key
 
-# void AES_set_decrypt_key(const unsigned char *in, int bits,
+# void VR_AES_set_decrypt_key(const unsigned char *in, int bits,
 # 		 AES_KEY *key) {
-.globl	AES_set_decrypt_key
-.type	AES_set_decrypt_key,\@function
+.globl	VR_AES_set_decrypt_key
+.type	VR_AES_set_decrypt_key,\@function
 .align	16
-AES_set_decrypt_key:
-	#st${g}	$key,4*$SIZE_T($sp)	# I rely on AES_set_encrypt_key to
+VR_AES_set_decrypt_key:
+	#st${g}	$key,4*$SIZE_T($sp)	# I rely on VR_AES_set_encrypt_key to
 	st${g}	$ra,14*$SIZE_T($sp)	# save non-volatile registers and $key!
-	bras	$ra,_s390x_AES_set_encrypt_key
+	bras	$ra,_s390x_VR_AES_set_encrypt_key
 	#l${g}	$key,4*$SIZE_T($sp)
 	l${g}	$ra,14*$SIZE_T($sp)
 	ltgr	%r2,%r2
@@ -1169,14 +1169,14 @@ $code.=<<___;
 	la	$key,4($key)
 	brct	$rounds,.Lmix
 
-	lm${g}	%r6,%r13,6*$SIZE_T($sp)# as was saved by AES_set_encrypt_key!
+	lm${g}	%r6,%r13,6*$SIZE_T($sp)# as was saved by VR_AES_set_encrypt_key!
 	lghi	%r2,0
 	br	$ra
-.size	AES_set_decrypt_key,.-AES_set_decrypt_key
+.size	VR_AES_set_decrypt_key,.-VR_AES_set_decrypt_key
 ___
 
 ########################################################################
-# void AES_cbc_encrypt(const unsigned char *in, unsigned char *out,
+# void VR_AES_cbc_encrypt(const unsigned char *in, unsigned char *out,
 #                     size_t length, const AES_KEY *key,
 #                     unsigned char *ivec, const int enc)
 {
@@ -1187,10 +1187,10 @@ my $key="%r5";
 my $ivp="%r6";
 
 $code.=<<___;
-.globl	AES_cbc_encrypt
-.type	AES_cbc_encrypt,\@function
+.globl	VR_AES_cbc_encrypt
+.type	VR_AES_cbc_encrypt,\@function
 .align	16
-AES_cbc_encrypt:
+VR_AES_cbc_encrypt:
 	xgr	%r3,%r4		# flip %r3 and %r4, out and len
 	xgr	%r4,%r3
 	xgr	%r3,%r4
@@ -1276,7 +1276,7 @@ $code.=<<___;
 	x	$s3,12($inp)
 	lgr	%r4,$key
 
-	bras	$ra,_s390x_AES_encrypt
+	bras	$ra,_s390x_VR_AES_encrypt
 
 	lm${g}	$inp,$key,2*$SIZE_T($sp)
 	st	$s0,0($out)
@@ -1332,7 +1332,7 @@ $code.=<<___;
 	llgf	$s3,12($inp)
 	lgr	%r4,$key
 
-	bras	$ra,_s390x_AES_decrypt
+	bras	$ra,_s390x_VR_AES_decrypt
 
 	lm${g}	$inp,$key,2*$SIZE_T($sp)
 	sllg	$s0,$s0,32
@@ -1374,7 +1374,7 @@ $code.=<<___;
 	mvc	0(1,$out),16*$SIZE_T($sp)
 4:	ex	$len,0($s1)
 	j	.Lcbc_dec_exit
-.size	AES_cbc_encrypt,.-AES_cbc_encrypt
+.size	VR_AES_cbc_encrypt,.-VR_AES_cbc_encrypt
 ___
 }
 ########################################################################
@@ -1602,7 +1602,7 @@ $code.=<<___;
 	st	$t1,16*$SIZE_T($sp)
 	lgr	%r4,$key
 
-	bras	$ra,_s390x_AES_encrypt
+	bras	$ra,_s390x_VR_AES_encrypt
 
 	lm${g}	$inp,$ivp,2*$SIZE_T($sp)
 	llgf	$t1,16*$SIZE_T($sp)
@@ -1893,7 +1893,7 @@ $code.=<<___;
 	stm${g}	%r2,%r5,2*$SIZE_T($sp)
 	la	$key,0($key2)
 	larl	$tbl,AES_Te
-	bras	$ra,_s390x_AES_encrypt	# generate the tweak
+	bras	$ra,_s390x_VR_AES_encrypt	# generate the tweak
 	lm${g}	%r2,%r5,2*$SIZE_T($sp)
 	stm	$s0,$s3,$tweak($sp)	# save the tweak
 	j	.Lxts_enc_enter
@@ -1924,7 +1924,7 @@ $code.=<<___;
 	x	$s3,12($inp)
 	stm${g}	%r2,%r3,2*$SIZE_T($sp)	# only two registers are changing
 	la	$key,0($key1)
-	bras	$ra,_s390x_AES_encrypt
+	bras	$ra,_s390x_VR_AES_encrypt
 	lm${g}	%r2,%r5,2*$SIZE_T($sp)
 	x	$s0,$tweak+0($sp)	# ^=tweak
 	x	$s1,$tweak+4($sp)
@@ -1974,7 +1974,7 @@ $code.=<<___;
 	x	$s3,12($out)
 	st${g}	$out,4*$SIZE_T($sp)
 	la	$key,0($key1)
-	bras	$ra,_s390x_AES_encrypt
+	bras	$ra,_s390x_VR_AES_encrypt
 	l${g}	$out,4*$SIZE_T($sp)
 	x	$s0,`$tweak+0`($sp)	# ^=tweak
 	x	$s1,`$tweak+4`($sp)
@@ -2133,7 +2133,7 @@ $code.=<<___;
 	stm${g}	%r2,%r5,2*$SIZE_T($sp)
 	la	$key,0($key2)
 	larl	$tbl,AES_Te
-	bras	$ra,_s390x_AES_encrypt	# generate the tweak
+	bras	$ra,_s390x_VR_AES_encrypt	# generate the tweak
 	lm${g}	%r2,%r5,2*$SIZE_T($sp)
 	larl	$tbl,AES_Td
 	lt${g}r	$len,$len
@@ -2166,7 +2166,7 @@ $code.=<<___;
 	x	$s3,12($inp)
 	stm${g}	%r2,%r3,2*$SIZE_T($sp)	# only two registers are changing
 	la	$key,0($key1)
-	bras	$ra,_s390x_AES_decrypt
+	bras	$ra,_s390x_VR_AES_decrypt
 	lm${g}	%r2,%r5,2*$SIZE_T($sp)
 	x	$s0,$tweak+0($sp)	# ^=tweak
 	x	$s1,$tweak+4($sp)
@@ -2225,7 +2225,7 @@ $code.=<<___;
 	x	$s3,12($inp)
 	stm${g}	%r2,%r3,2*$SIZE_T($sp)
 	la	$key,0($key1)
-	bras	$ra,_s390x_AES_decrypt
+	bras	$ra,_s390x_VR_AES_decrypt
 	lm${g}	%r2,%r5,2*$SIZE_T($sp)
 	x	$s0,$tweak-16+0($sp)	# ^=tweak_the_2nd
 	x	$s1,$tweak-16+4($sp)
@@ -2253,7 +2253,7 @@ $code.=<<___;
 	x	$s3,12($out)
 	st${g}	$out,4*$SIZE_T($sp)
 	la	$key,0($key1)
-	bras	$ra,_s390x_AES_decrypt
+	bras	$ra,_s390x_VR_AES_decrypt
 	l${g}	$out,4*$SIZE_T($sp)
 	x	$s0,$tweak+0($sp)	# ^=tweak
 	x	$s1,$tweak+4($sp)

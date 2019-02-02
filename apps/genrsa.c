@@ -57,10 +57,10 @@ const OPTIONS genrsa_options[] = {
 
 int genrsa_main(int argc, char **argv)
 {
-    BN_GENCB *cb = BN_GENCB_new();
+    BN_GENCB *cb = VR_BN_GENCB_new();
     PW_CB_DATA cb_data;
     ENGINE *eng = NULL;
-    BIGNUM *bn = BN_new();
+    BIGNUM *bn = VR_BN_new();
     BIO *out = NULL;
     const BIGNUM *e;
     RSA *rsa = NULL;
@@ -74,7 +74,7 @@ int genrsa_main(int argc, char **argv)
     if (bn == NULL || cb == NULL)
         goto end;
 
-    BN_GENCB_set(cb, genrsa_cb, bio_err);
+    VR_BN_GENCB_set(cb, genrsa_cb, bio_err);
 
     prog = opt_init(argc, argv, genrsa_options);
     while ((o = opt_next()) != OPT_EOF) {
@@ -82,7 +82,7 @@ int genrsa_main(int argc, char **argv)
         case OPT_EOF:
         case OPT_ERR:
 opthelp:
-            BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
+            VR_BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
             ret = 0;
@@ -124,18 +124,18 @@ opthelp:
         if (!opt_int(argv[0], &num) || num <= 0)
             goto end;
         if (num > OPENSSL_RSA_MAX_MODULUS_BITS)
-            BIO_printf(bio_err,
+            VR_BIO_printf(bio_err,
                        "Warning: It is not recommended to use more than %d bit for RSA keys.\n"
                        "         Your key size is %d! Larger key size may behave not as expected.\n",
                        OPENSSL_RSA_MAX_MODULUS_BITS, num);
     } else if (argc > 0) {
-        BIO_printf(bio_err, "Extra arguments given.\n");
+        VR_BIO_printf(bio_err, "Extra arguments given.\n");
         goto opthelp;
     }
 
     private = 1;
     if (!app_passwd(NULL, passoutarg, NULL, &passout)) {
-        BIO_printf(bio_err, "Error getting password\n");
+        VR_BIO_printf(bio_err, "Error getting password\n");
         goto end;
     }
 
@@ -143,42 +143,42 @@ opthelp:
     if (out == NULL)
         goto end;
 
-    BIO_printf(bio_err, "Generating RSA private key, %d bit long modulus (%d primes)\n",
+    VR_BIO_printf(bio_err, "Generating RSA private key, %d bit long modulus (%d primes)\n",
                num, primes);
-    rsa = eng ? RSA_new_method(eng) : RSA_new();
+    rsa = eng ? VR_RSA_new_method(eng) : VR_RSA_new();
     if (rsa == NULL)
         goto end;
 
-    if (!BN_set_word(bn, f4)
-        || !RSA_generate_multi_prime_key(rsa, num, primes, bn, cb))
+    if (!VR_BN_set_word(bn, f4)
+        || !VR_RSA_generate_multi_prime_key(rsa, num, primes, bn, cb))
         goto end;
 
-    RSA_get0_key(rsa, NULL, &e, NULL);
-    hexe = BN_bn2hex(e);
-    dece = BN_bn2dec(e);
+    VR_RSA_get0_key(rsa, NULL, &e, NULL);
+    hexe = VR_BN_bn2hex(e);
+    dece = VR_BN_bn2dec(e);
     if (hexe && dece) {
-        BIO_printf(bio_err, "e is %s (0x%s)\n", dece, hexe);
+        VR_BIO_printf(bio_err, "e is %s (0x%s)\n", dece, hexe);
     }
-    OPENSSL_free(hexe);
-    OPENSSL_free(dece);
+    OPENVR_SSL_free(hexe);
+    OPENVR_SSL_free(dece);
     cb_data.password = passout;
     cb_data.prompt_info = outfile;
     assert(private);
-    if (!PEM_write_bio_RSAPrivateKey(out, rsa, enc, NULL, 0,
+    if (!VR_PEM_write_bio_RSAPrivateKey(out, rsa, enc, NULL, 0,
                                      (pem_password_cb *)password_callback,
                                      &cb_data))
         goto end;
 
     ret = 0;
  end:
-    BN_free(bn);
-    BN_GENCB_free(cb);
-    RSA_free(rsa);
-    BIO_free_all(out);
+    VR_BN_free(bn);
+    VR_BN_GENCB_free(cb);
+    VR_RSA_free(rsa);
+    VR_BIO_free_all(out);
     release_engine(eng);
-    OPENSSL_free(passout);
+    OPENVR_SSL_free(passout);
     if (ret != 0)
-        ERR_print_errors(bio_err);
+        VR_ERR_print_errors(bio_err);
     return ret;
 }
 
@@ -194,8 +194,8 @@ static int genrsa_cb(int p, int n, BN_GENCB *cb)
         c = '*';
     if (p == 3)
         c = '\n';
-    BIO_write(BN_GENCB_get_arg(cb), &c, 1);
-    (void)BIO_flush(BN_GENCB_get_arg(cb));
+    VR_BIO_write(VR_BN_GENCB_get_arg(cb), &c, 1);
+    (void)BIO_flush(VR_BN_GENCB_get_arg(cb));
     return 1;
 }
 #endif

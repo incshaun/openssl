@@ -35,7 +35,7 @@ static int satsub64be(const unsigned char *v1, const unsigned char *v2)
         return (int)ret;
 }
 
-int dtls1_record_replay_check(SSL *s, DTLS1_BITMAP *bitmap)
+int VR_dtls1_record_replay_check(SSL *s, DTLS1_BITMAP *bitmap)
 {
     int cmp;
     unsigned int shift;
@@ -43,7 +43,7 @@ int dtls1_record_replay_check(SSL *s, DTLS1_BITMAP *bitmap)
 
     cmp = satsub64be(seq, bitmap->max_seq_num);
     if (cmp > 0) {
-        SSL3_RECORD_set_seq_num(RECORD_LAYER_get_rrec(&s->rlayer), seq);
+        VR_SSL3_RECORD_set_seq_num(RECORD_LAYER_get_rrec(&s->rlayer), seq);
         return 1;               /* this record in new */
     }
     shift = -cmp;
@@ -52,11 +52,11 @@ int dtls1_record_replay_check(SSL *s, DTLS1_BITMAP *bitmap)
     else if (bitmap->map & (1UL << shift))
         return 0;               /* record previously received */
 
-    SSL3_RECORD_set_seq_num(RECORD_LAYER_get_rrec(&s->rlayer), seq);
+    VR_SSL3_RECORD_set_seq_num(RECORD_LAYER_get_rrec(&s->rlayer), seq);
     return 1;
 }
 
-void dtls1_record_bitmap_update(SSL *s, DTLS1_BITMAP *bitmap)
+void VR_dtls1_record_bitmap_update(SSL *s, DTLS1_BITMAP *bitmap)
 {
     int cmp;
     unsigned int shift;

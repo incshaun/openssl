@@ -14,7 +14,7 @@
 
 #if defined(BN_LLONG) || defined(BN_UMULT_HIGH)
 
-BN_ULONG bn_mul_add_words(BN_ULONG *rp, const BN_ULONG *ap, int num,
+BN_ULONG VR_bn_mul_add_words(BN_ULONG *rp, const BN_ULONG *ap, int num,
                           BN_ULONG w)
 {
     BN_ULONG c1 = 0;
@@ -44,7 +44,7 @@ BN_ULONG bn_mul_add_words(BN_ULONG *rp, const BN_ULONG *ap, int num,
     return c1;
 }
 
-BN_ULONG bn_mul_words(BN_ULONG *rp, const BN_ULONG *ap, int num, BN_ULONG w)
+BN_ULONG VR_bn_mul_words(BN_ULONG *rp, const BN_ULONG *ap, int num, BN_ULONG w)
 {
     BN_ULONG c1 = 0;
 
@@ -72,7 +72,7 @@ BN_ULONG bn_mul_words(BN_ULONG *rp, const BN_ULONG *ap, int num, BN_ULONG w)
     return c1;
 }
 
-void bn_sqr_words(BN_ULONG *r, const BN_ULONG *a, int n)
+void VR_bn_sqr_words(BN_ULONG *r, const BN_ULONG *a, int n)
 {
     assert(n >= 0);
     if (n <= 0)
@@ -100,7 +100,7 @@ void bn_sqr_words(BN_ULONG *r, const BN_ULONG *a, int n)
 #else                           /* !(defined(BN_LLONG) ||
                                  * defined(BN_UMULT_HIGH)) */
 
-BN_ULONG bn_mul_add_words(BN_ULONG *rp, const BN_ULONG *ap, int num,
+BN_ULONG VR_bn_mul_add_words(BN_ULONG *rp, const BN_ULONG *ap, int num,
                           BN_ULONG w)
 {
     BN_ULONG c = 0;
@@ -133,7 +133,7 @@ BN_ULONG bn_mul_add_words(BN_ULONG *rp, const BN_ULONG *ap, int num,
     return c;
 }
 
-BN_ULONG bn_mul_words(BN_ULONG *rp, const BN_ULONG *ap, int num, BN_ULONG w)
+BN_ULONG VR_bn_mul_words(BN_ULONG *rp, const BN_ULONG *ap, int num, BN_ULONG w)
 {
     BN_ULONG carry = 0;
     BN_ULONG bl, bh;
@@ -165,7 +165,7 @@ BN_ULONG bn_mul_words(BN_ULONG *rp, const BN_ULONG *ap, int num, BN_ULONG w)
     return carry;
 }
 
-void bn_sqr_words(BN_ULONG *r, const BN_ULONG *a, int n)
+void VR_bn_sqr_words(BN_ULONG *r, const BN_ULONG *a, int n)
 {
     assert(n >= 0);
     if (n <= 0)
@@ -195,7 +195,7 @@ void bn_sqr_words(BN_ULONG *r, const BN_ULONG *a, int n)
 
 #if defined(BN_LLONG) && defined(BN_DIV2W)
 
-BN_ULONG bn_div_words(BN_ULONG h, BN_ULONG l, BN_ULONG d)
+BN_ULONG VR_bn_div_words(BN_ULONG h, BN_ULONG l, BN_ULONG d)
 {
     return ((BN_ULONG)(((((BN_ULLONG) h) << BN_BITS2) | l) / (BN_ULLONG) d));
 }
@@ -204,7 +204,7 @@ BN_ULONG bn_div_words(BN_ULONG h, BN_ULONG l, BN_ULONG d)
 
 /* Divide h,l by d and return the result. */
 /* I need to test this some more :-( */
-BN_ULONG bn_div_words(BN_ULONG h, BN_ULONG l, BN_ULONG d)
+BN_ULONG VR_bn_div_words(BN_ULONG h, BN_ULONG l, BN_ULONG d)
 {
     BN_ULONG dh, dl, q, ret = 0, th, tl, t;
     int i, count = 2;
@@ -212,7 +212,7 @@ BN_ULONG bn_div_words(BN_ULONG h, BN_ULONG l, BN_ULONG d)
     if (d == 0)
         return BN_MASK2;
 
-    i = BN_num_bits_word(d);
+    i = VR_BN_num_bits_word(d);
     assert((i == BN_BITS2) || (h <= (BN_ULONG)1 << i));
 
     i = BN_BITS2 - i;
@@ -269,7 +269,7 @@ BN_ULONG bn_div_words(BN_ULONG h, BN_ULONG l, BN_ULONG d)
 #endif                          /* !defined(BN_LLONG) && defined(BN_DIV2W) */
 
 #ifdef BN_LLONG
-BN_ULONG bn_add_words(BN_ULONG *r, const BN_ULONG *a, const BN_ULONG *b,
+BN_ULONG VR_bn_add_words(BN_ULONG *r, const BN_ULONG *a, const BN_ULONG *b,
                       int n)
 {
     BN_ULLONG ll = 0;
@@ -310,7 +310,7 @@ BN_ULONG bn_add_words(BN_ULONG *r, const BN_ULONG *a, const BN_ULONG *b,
     return (BN_ULONG)ll;
 }
 #else                           /* !BN_LLONG */
-BN_ULONG bn_add_words(BN_ULONG *r, const BN_ULONG *a, const BN_ULONG *b,
+BN_ULONG VR_bn_add_words(BN_ULONG *r, const BN_ULONG *a, const BN_ULONG *b,
                       int n)
 {
     BN_ULONG c, l, t;
@@ -368,7 +368,7 @@ BN_ULONG bn_add_words(BN_ULONG *r, const BN_ULONG *a, const BN_ULONG *b,
 }
 #endif                          /* !BN_LLONG */
 
-BN_ULONG bn_sub_words(BN_ULONG *r, const BN_ULONG *a, const BN_ULONG *b,
+BN_ULONG VR_bn_sub_words(BN_ULONG *r, const BN_ULONG *a, const BN_ULONG *b,
                       int n)
 {
     BN_ULONG t1, t2;
@@ -422,10 +422,10 @@ BN_ULONG bn_sub_words(BN_ULONG *r, const BN_ULONG *a, const BN_ULONG *b,
 
 #if defined(BN_MUL_COMBA) && !defined(OPENSSL_SMALL_FOOTPRINT)
 
-# undef bn_mul_comba8
-# undef bn_mul_comba4
-# undef bn_sqr_comba8
-# undef bn_sqr_comba4
+# undef VR_bn_mul_comba8
+# undef VR_bn_mul_comba4
+# undef VR_bn_sqr_comba8
+# undef VR_bn_sqr_comba4
 
 /* mul_add_c(a,b,c0,c1,c2)  -- c+=a*b for three word number c=(c2,c1,c0) */
 /* mul_add_c2(a,b,c0,c1,c2) -- c+=2*a*b for three word number c=(c2,c1,c0) */
@@ -578,7 +578,7 @@ BN_ULONG bn_sub_words(BN_ULONG *r, const BN_ULONG *a, const BN_ULONG *b,
         mul_add_c2((a)[i],(a)[j],c0,c1,c2)
 # endif                         /* !BN_LLONG */
 
-void bn_mul_comba8(BN_ULONG *r, BN_ULONG *a, BN_ULONG *b)
+void VR_bn_mul_comba8(BN_ULONG *r, BN_ULONG *a, BN_ULONG *b)
 {
     BN_ULONG c1, c2, c3;
 
@@ -681,7 +681,7 @@ void bn_mul_comba8(BN_ULONG *r, BN_ULONG *a, BN_ULONG *b)
     r[15] = c1;
 }
 
-void bn_mul_comba4(BN_ULONG *r, BN_ULONG *a, BN_ULONG *b)
+void VR_bn_mul_comba4(BN_ULONG *r, BN_ULONG *a, BN_ULONG *b)
 {
     BN_ULONG c1, c2, c3;
 
@@ -720,7 +720,7 @@ void bn_mul_comba4(BN_ULONG *r, BN_ULONG *a, BN_ULONG *b)
     r[7] = c2;
 }
 
-void bn_sqr_comba8(BN_ULONG *r, const BN_ULONG *a)
+void VR_bn_sqr_comba8(BN_ULONG *r, const BN_ULONG *a)
 {
     BN_ULONG c1, c2, c3;
 
@@ -795,7 +795,7 @@ void bn_sqr_comba8(BN_ULONG *r, const BN_ULONG *a)
     r[15] = c1;
 }
 
-void bn_sqr_comba4(BN_ULONG *r, const BN_ULONG *a)
+void VR_bn_sqr_comba4(BN_ULONG *r, const BN_ULONG *a)
 {
     BN_ULONG c1, c2, c3;
 
@@ -844,7 +844,7 @@ void bn_sqr_comba4(BN_ULONG *r, const BN_ULONG *a)
  * versions. Assembler vs. assembler improvement coefficients can
  * [and are known to] differ and are to be documented elsewhere.
  */
-int bn_mul_mont(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
+int VR_bn_mul_mont(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
                 const BN_ULONG *np, const BN_ULONG *n0p, int num)
 {
     BN_ULONG c0, c1, ml, *tp, n0;
@@ -920,7 +920,7 @@ int bn_mul_mont(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
     }
 
     if (tp[num] != 0 || tp[num - 1] >= np[num - 1]) {
-        c0 = bn_sub_words(rp, tp, np, num);
+        c0 = VR_bn_sub_words(rp, tp, np, num);
         if (tp[num] != 0 || c0 == 0) {
             for (i = 0; i < num + 2; i++)
                 vp[i] = 0;
@@ -939,7 +939,7 @@ int bn_mul_mont(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
  * performed to signal the caller to fall down to alternative/original
  * code-path.
  */
-int bn_mul_mont(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
+int VR_bn_mul_mont(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
                 const BN_ULONG *np, const BN_ULONG *n0, int num)
 {
     return 0;
@@ -950,44 +950,44 @@ int bn_mul_mont(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
 #else                           /* !BN_MUL_COMBA */
 
 /* hmm... is it faster just to do a multiply? */
-# undef bn_sqr_comba4
-# undef bn_sqr_comba8
-void bn_sqr_comba4(BN_ULONG *r, const BN_ULONG *a)
+# undef VR_bn_sqr_comba4
+# undef VR_bn_sqr_comba8
+void VR_bn_sqr_comba4(BN_ULONG *r, const BN_ULONG *a)
 {
     BN_ULONG t[8];
-    bn_sqr_normal(r, a, 4, t);
+    VR_bn_sqr_normal(r, a, 4, t);
 }
 
-void bn_sqr_comba8(BN_ULONG *r, const BN_ULONG *a)
+void VR_bn_sqr_comba8(BN_ULONG *r, const BN_ULONG *a)
 {
     BN_ULONG t[16];
-    bn_sqr_normal(r, a, 8, t);
+    VR_bn_sqr_normal(r, a, 8, t);
 }
 
-void bn_mul_comba4(BN_ULONG *r, BN_ULONG *a, BN_ULONG *b)
+void VR_bn_mul_comba4(BN_ULONG *r, BN_ULONG *a, BN_ULONG *b)
 {
-    r[4] = bn_mul_words(&(r[0]), a, 4, b[0]);
-    r[5] = bn_mul_add_words(&(r[1]), a, 4, b[1]);
-    r[6] = bn_mul_add_words(&(r[2]), a, 4, b[2]);
-    r[7] = bn_mul_add_words(&(r[3]), a, 4, b[3]);
+    r[4] = VR_bn_mul_words(&(r[0]), a, 4, b[0]);
+    r[5] = VR_bn_mul_add_words(&(r[1]), a, 4, b[1]);
+    r[6] = VR_bn_mul_add_words(&(r[2]), a, 4, b[2]);
+    r[7] = VR_bn_mul_add_words(&(r[3]), a, 4, b[3]);
 }
 
-void bn_mul_comba8(BN_ULONG *r, BN_ULONG *a, BN_ULONG *b)
+void VR_bn_mul_comba8(BN_ULONG *r, BN_ULONG *a, BN_ULONG *b)
 {
-    r[8] = bn_mul_words(&(r[0]), a, 8, b[0]);
-    r[9] = bn_mul_add_words(&(r[1]), a, 8, b[1]);
-    r[10] = bn_mul_add_words(&(r[2]), a, 8, b[2]);
-    r[11] = bn_mul_add_words(&(r[3]), a, 8, b[3]);
-    r[12] = bn_mul_add_words(&(r[4]), a, 8, b[4]);
-    r[13] = bn_mul_add_words(&(r[5]), a, 8, b[5]);
-    r[14] = bn_mul_add_words(&(r[6]), a, 8, b[6]);
-    r[15] = bn_mul_add_words(&(r[7]), a, 8, b[7]);
+    r[8] = VR_bn_mul_words(&(r[0]), a, 8, b[0]);
+    r[9] = VR_bn_mul_add_words(&(r[1]), a, 8, b[1]);
+    r[10] = VR_bn_mul_add_words(&(r[2]), a, 8, b[2]);
+    r[11] = VR_bn_mul_add_words(&(r[3]), a, 8, b[3]);
+    r[12] = VR_bn_mul_add_words(&(r[4]), a, 8, b[4]);
+    r[13] = VR_bn_mul_add_words(&(r[5]), a, 8, b[5]);
+    r[14] = VR_bn_mul_add_words(&(r[6]), a, 8, b[6]);
+    r[15] = VR_bn_mul_add_words(&(r[7]), a, 8, b[7]);
 }
 
 # ifdef OPENSSL_NO_ASM
 #  ifdef OPENSSL_BN_ASM_MONT
 #   include <alloca.h>
-int bn_mul_mont(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
+int VR_bn_mul_mont(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
                 const BN_ULONG *np, const BN_ULONG *n0p, int num)
 {
     BN_ULONG c0, c1, *tp, n0 = *n0p;
@@ -1000,12 +1000,12 @@ int bn_mul_mont(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
         tp[i] = 0;
 
     for (i = 0; i < num; i++) {
-        c0 = bn_mul_add_words(tp, ap, num, bp[i]);
+        c0 = VR_bn_mul_add_words(tp, ap, num, bp[i]);
         c1 = (tp[num] + c0) & BN_MASK2;
         tp[num] = c1;
         tp[num + 1] = (c1 < c0 ? 1 : 0);
 
-        c0 = bn_mul_add_words(tp, np, num, tp[0] * n0);
+        c0 = VR_bn_mul_add_words(tp, np, num, tp[0] * n0);
         c1 = (tp[num] + c0) & BN_MASK2;
         tp[num] = c1;
         tp[num + 1] += (c1 < c0 ? 1 : 0);
@@ -1014,7 +1014,7 @@ int bn_mul_mont(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
     }
 
     if (tp[num] != 0 || tp[num - 1] >= np[num - 1]) {
-        c0 = bn_sub_words(rp, tp, np, num);
+        c0 = VR_bn_sub_words(rp, tp, np, num);
         if (tp[num] != 0 || c0 == 0) {
             for (i = 0; i < num + 2; i++)
                 vp[i] = 0;
@@ -1028,7 +1028,7 @@ int bn_mul_mont(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
     return 1;
 }
 #  else
-int bn_mul_mont(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
+int VR_bn_mul_mont(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
                 const BN_ULONG *np, const BN_ULONG *n0, int num)
 {
     return 0;

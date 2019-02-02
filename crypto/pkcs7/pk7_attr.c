@@ -17,104 +17,104 @@
 #include <openssl/x509.h>
 #include <openssl/err.h>
 
-int PKCS7_add_attrib_smimecap(PKCS7_SIGNER_INFO *si,
+int VR_PKCS7_add_attrib_smimecap(PKCS7_SIGNER_INFO *si,
                               STACK_OF(X509_ALGOR) *cap)
 {
     ASN1_STRING *seq;
 
-    if ((seq = ASN1_STRING_new()) == NULL) {
+    if ((seq = VR_ASN1_STRING_new()) == NULL) {
         PKCS7err(PKCS7_F_PKCS7_ADD_ATTRIB_SMIMECAP, ERR_R_MALLOC_FAILURE);
         return 0;
     }
-    seq->length = ASN1_item_i2d((ASN1_VALUE *)cap, &seq->data,
+    seq->length = VR_ASN1_item_i2d((ASN1_VALUE *)cap, &seq->data,
                                 ASN1_ITEM_rptr(X509_ALGORS));
-    return PKCS7_add_signed_attribute(si, NID_SMIMECapabilities,
+    return VR_PKCS7_add_signed_attribute(si, NID_SMIMECapabilities,
                                       V_ASN1_SEQUENCE, seq);
 }
 
-STACK_OF(X509_ALGOR) *PKCS7_get_smimecap(PKCS7_SIGNER_INFO *si)
+STACK_OF(X509_ALGOR) *VR_PKCS7_get_smimecap(PKCS7_SIGNER_INFO *si)
 {
     ASN1_TYPE *cap;
     const unsigned char *p;
 
-    cap = PKCS7_get_signed_attribute(si, NID_SMIMECapabilities);
+    cap = VR_PKCS7_get_signed_attribute(si, NID_SMIMECapabilities);
     if (cap == NULL || (cap->type != V_ASN1_SEQUENCE))
         return NULL;
     p = cap->value.sequence->data;
     return (STACK_OF(X509_ALGOR) *)
-        ASN1_item_d2i(NULL, &p, cap->value.sequence->length,
+        VR_ASN1_item_d2i(NULL, &p, cap->value.sequence->length,
                       ASN1_ITEM_rptr(X509_ALGORS));
 }
 
 /* Basic smime-capabilities OID and optional integer arg */
-int PKCS7_simple_smimecap(STACK_OF(X509_ALGOR) *sk, int nid, int arg)
+int VR_PKCS7_simple_smimecap(STACK_OF(X509_ALGOR) *sk, int nid, int arg)
 {
     ASN1_INTEGER *nbit = NULL;
     X509_ALGOR *alg;
 
-    if ((alg = X509_ALGOR_new()) == NULL) {
+    if ((alg = VR_X509_ALGOR_new()) == NULL) {
         PKCS7err(PKCS7_F_PKCS7_SIMPLE_SMIMECAP, ERR_R_MALLOC_FAILURE);
         return 0;
     }
-    ASN1_OBJECT_free(alg->algorithm);
-    alg->algorithm = OBJ_nid2obj(nid);
+    VR_ASN1_OBJECT_free(alg->algorithm);
+    alg->algorithm = VR_OBJ_nid2obj(nid);
     if (arg > 0) {
-        if ((alg->parameter = ASN1_TYPE_new()) == NULL) {
+        if ((alg->parameter = VR_ASN1_TYPE_new()) == NULL) {
             goto err;
         }
-        if ((nbit = ASN1_INTEGER_new()) == NULL) {
+        if ((nbit = VR_ASN1_INTEGER_new()) == NULL) {
             goto err;
         }
-        if (!ASN1_INTEGER_set(nbit, arg)) {
+        if (!VR_ASN1_INTEGER_set(nbit, arg)) {
             goto err;
         }
         alg->parameter->value.integer = nbit;
         alg->parameter->type = V_ASN1_INTEGER;
         nbit = NULL;
     }
-    if (!sk_X509_ALGOR_push(sk, alg)) {
+    if (!sk_VR_X509_ALGOR_push(sk, alg)) {
         goto err;
     }
     return 1;
 err:
     PKCS7err(PKCS7_F_PKCS7_SIMPLE_SMIMECAP, ERR_R_MALLOC_FAILURE);
-    ASN1_INTEGER_free(nbit);
-    X509_ALGOR_free(alg);
+    VR_ASN1_INTEGER_free(nbit);
+    VR_X509_ALGOR_free(alg);
     return 0;
 }
 
-int PKCS7_add_attrib_content_type(PKCS7_SIGNER_INFO *si, ASN1_OBJECT *coid)
+int VR_PKCS7_add_attrib_content_type(PKCS7_SIGNER_INFO *si, ASN1_OBJECT *coid)
 {
-    if (PKCS7_get_signed_attribute(si, NID_pkcs9_contentType))
+    if (VR_PKCS7_get_signed_attribute(si, NID_pkcs9_contentType))
         return 0;
     if (!coid)
-        coid = OBJ_nid2obj(NID_pkcs7_data);
-    return PKCS7_add_signed_attribute(si, NID_pkcs9_contentType,
+        coid = VR_OBJ_nid2obj(NID_pkcs7_data);
+    return VR_PKCS7_add_signed_attribute(si, NID_pkcs9_contentType,
                                       V_ASN1_OBJECT, coid);
 }
 
-int PKCS7_add0_attrib_signing_time(PKCS7_SIGNER_INFO *si, ASN1_TIME *t)
+int VR_PKCS7_add0_attrib_signing_time(PKCS7_SIGNER_INFO *si, ASN1_TIME *t)
 {
-    if (t == NULL && (t = X509_gmtime_adj(NULL, 0)) == NULL) {
+    if (t == NULL && (t = VR_X509_gmtime_adj(NULL, 0)) == NULL) {
         PKCS7err(PKCS7_F_PKCS7_ADD0_ATTRIB_SIGNING_TIME,
                  ERR_R_MALLOC_FAILURE);
         return 0;
     }
-    return PKCS7_add_signed_attribute(si, NID_pkcs9_signingTime,
+    return VR_PKCS7_add_signed_attribute(si, NID_pkcs9_signingTime,
                                       V_ASN1_UTCTIME, t);
 }
 
-int PKCS7_add1_attrib_digest(PKCS7_SIGNER_INFO *si,
+int VR_PKCS7_add1_attrib_digest(PKCS7_SIGNER_INFO *si,
                              const unsigned char *md, int mdlen)
 {
     ASN1_OCTET_STRING *os;
-    os = ASN1_OCTET_STRING_new();
+    os = VR_ASN1_OCTET_STRING_new();
     if (os == NULL)
         return 0;
-    if (!ASN1_STRING_set(os, md, mdlen)
-        || !PKCS7_add_signed_attribute(si, NID_pkcs9_messageDigest,
+    if (!VR_ASN1_STRING_set(os, md, mdlen)
+        || !VR_PKCS7_add_signed_attribute(si, NID_pkcs9_messageDigest,
                                        V_ASN1_OCTET_STRING, os)) {
-        ASN1_OCTET_STRING_free(os);
+        VR_ASN1_OCTET_STRING_free(os);
         return 0;
     }
     return 1;

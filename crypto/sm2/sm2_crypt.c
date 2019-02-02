@@ -11,7 +11,7 @@
 
 #include "internal/sm2.h"
 #include "internal/sm2err.h"
-#include "internal/ec_int.h" /* ecdh_KDF_X9_63() */
+#include "internal/ec_int.h" /* VR_ecdh_KDF_X9_63() */
 #include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/bn.h>
@@ -41,31 +41,31 @@ IMPLEMENT_ASN1_FUNCTIONS(SM2_Ciphertext)
 static size_t ec_field_size(const EC_GROUP *group)
 {
     /* Is there some simpler way to do this? */
-    BIGNUM *p = BN_new();
-    BIGNUM *a = BN_new();
-    BIGNUM *b = BN_new();
+    BIGNUM *p = VR_BN_new();
+    BIGNUM *a = VR_BN_new();
+    BIGNUM *b = VR_BN_new();
     size_t field_size = 0;
 
     if (p == NULL || a == NULL || b == NULL)
        goto done;
 
-    if (!EC_GROUP_get_curve(group, p, a, b, NULL))
+    if (!VR_EC_GROUP_get_curve(group, p, a, b, NULL))
         goto done;
-    field_size = (BN_num_bits(p) + 7) / 8;
+    field_size = (VR_BN_num_bits(p) + 7) / 8;
 
  done:
-    BN_free(p);
-    BN_free(a);
-    BN_free(b);
+    VR_BN_free(p);
+    VR_BN_free(a);
+    VR_BN_free(b);
 
     return field_size;
 }
 
-int sm2_plaintext_size(const EC_KEY *key, const EVP_MD *digest, size_t msg_len,
+int VR_sm2_plaintext_size(const EC_KEY *key, const EVP_MD *digest, size_t msg_len,
                        size_t *pt_size)
 {
-    const size_t field_size = ec_field_size(EC_KEY_get0_group(key));
-    const int md_size = EVP_MD_size(digest);
+    const size_t field_size = ec_field_size(VR_EC_KEY_get0_group(key));
+    const int md_size = VR_EVP_MD_size(digest);
     size_t overhead;
 
     if (md_size < 0) {
@@ -87,27 +87,27 @@ int sm2_plaintext_size(const EC_KEY *key, const EVP_MD *digest, size_t msg_len,
     return 1;
 }
 
-int sm2_ciphertext_size(const EC_KEY *key, const EVP_MD *digest, size_t msg_len,
+int VR_sm2_ciphertext_size(const EC_KEY *key, const EVP_MD *digest, size_t msg_len,
                         size_t *ct_size)
 {
-    const size_t field_size = ec_field_size(EC_KEY_get0_group(key));
-    const int md_size = EVP_MD_size(digest);
+    const size_t field_size = ec_field_size(VR_EC_KEY_get0_group(key));
+    const int md_size = VR_EVP_MD_size(digest);
     size_t sz;
 
     if (field_size == 0 || md_size < 0)
         return 0;
 
     /* Integer and string are simple type; set constructed = 0, means primitive and definite length encoding. */
-    sz = 2 * ASN1_object_size(0, field_size + 1, V_ASN1_INTEGER)
-         + ASN1_object_size(0, md_size, V_ASN1_OCTET_STRING)
-         + ASN1_object_size(0, msg_len, V_ASN1_OCTET_STRING);
+    sz = 2 * VR_ASN1_object_size(0, field_size + 1, V_ASN1_INTEGER)
+         + VR_ASN1_object_size(0, md_size, V_ASN1_OCTET_STRING)
+         + VR_ASN1_object_size(0, msg_len, V_ASN1_OCTET_STRING);
     /* Sequence is structured type; set constructed = 1, means constructed and definite length encoding. */
-    *ct_size = ASN1_object_size(1, sz, V_ASN1_SEQUENCE);
+    *ct_size = VR_ASN1_object_size(1, sz, V_ASN1_SEQUENCE);
 
     return 1;
 }
 
-int sm2_encrypt(const EC_KEY *key,
+int VR_sm2_encrypt(const EC_KEY *key,
                 const EVP_MD *digest,
                 const uint8_t *msg,
                 size_t msg_len, uint8_t *ciphertext_buf, size_t *ciphertext_len)
@@ -120,18 +120,18 @@ int sm2_encrypt(const EC_KEY *key,
     BIGNUM *y1 = NULL;
     BIGNUM *x2 = NULL;
     BIGNUM *y2 = NULL;
-    EVP_MD_CTX *hash = EVP_MD_CTX_new();
+    EVP_MD_CTX *hash = VR_EVP_MD_CTX_new();
     struct SM2_Ciphertext_st ctext_struct;
-    const EC_GROUP *group = EC_KEY_get0_group(key);
-    const BIGNUM *order = EC_GROUP_get0_order(group);
-    const EC_POINT *P = EC_KEY_get0_public_key(key);
+    const EC_GROUP *group = VR_EC_KEY_get0_group(key);
+    const BIGNUM *order = VR_EC_GROUP_get0_order(group);
+    const EC_POINT *P = VR_EC_KEY_get0_public_key(key);
     EC_POINT *kG = NULL;
     EC_POINT *kP = NULL;
     uint8_t *msg_mask = NULL;
     uint8_t *x2y2 = NULL;
     uint8_t *C3 = NULL;
     size_t field_size;
-    const int C3_size = EVP_MD_size(digest);
+    const int C3_size = VR_EVP_MD_size(digest);
 
     /* NULL these before any "goto done" */
     ctext_struct.C2 = NULL;
@@ -148,20 +148,20 @@ int sm2_encrypt(const EC_KEY *key,
         goto done;
     }
 
-    kG = EC_POINT_new(group);
-    kP = EC_POINT_new(group);
-    ctx = BN_CTX_new();
+    kG = VR_EC_POINT_new(group);
+    kP = VR_EC_POINT_new(group);
+    ctx = VR_BN_CTX_new();
     if (kG == NULL || kP == NULL || ctx == NULL) {
         SM2err(SM2_F_SM2_ENCRYPT, ERR_R_MALLOC_FAILURE);
         goto done;
     }
 
-    BN_CTX_start(ctx);
-    k = BN_CTX_get(ctx);
-    x1 = BN_CTX_get(ctx);
-    x2 = BN_CTX_get(ctx);
-    y1 = BN_CTX_get(ctx);
-    y2 = BN_CTX_get(ctx);
+    VR_BN_CTX_start(ctx);
+    k = VR_BN_CTX_get(ctx);
+    x1 = VR_BN_CTX_get(ctx);
+    x2 = VR_BN_CTX_get(ctx);
+    y1 = VR_BN_CTX_get(ctx);
+    y2 = VR_BN_CTX_get(ctx);
 
     if (y2 == NULL) {
         SM2err(SM2_F_SM2_ENCRYPT, ERR_R_BN_LIB);
@@ -178,21 +178,21 @@ int sm2_encrypt(const EC_KEY *key,
 
     memset(ciphertext_buf, 0, *ciphertext_len);
 
-    if (!BN_priv_rand_range(k, order)) {
+    if (!VR_BN_priv_rand_range(k, order)) {
         SM2err(SM2_F_SM2_ENCRYPT, ERR_R_INTERNAL_ERROR);
         goto done;
     }
 
-    if (!EC_POINT_mul(group, kG, k, NULL, NULL, ctx)
-            || !EC_POINT_get_affine_coordinates(group, kG, x1, y1, ctx)
-            || !EC_POINT_mul(group, kP, NULL, P, k, ctx)
-            || !EC_POINT_get_affine_coordinates(group, kP, x2, y2, ctx)) {
+    if (!VR_EC_POINT_mul(group, kG, k, NULL, NULL, ctx)
+            || !VR_EC_POINT_get_affine_coordinates(group, kG, x1, y1, ctx)
+            || !VR_EC_POINT_mul(group, kP, NULL, P, k, ctx)
+            || !VR_EC_POINT_get_affine_coordinates(group, kP, x2, y2, ctx)) {
         SM2err(SM2_F_SM2_ENCRYPT, ERR_R_EC_LIB);
         goto done;
     }
 
-    if (BN_bn2binpad(x2, x2y2, field_size) < 0
-            || BN_bn2binpad(y2, x2y2 + field_size, field_size) < 0) {
+    if (VR_BN_bn2binpad(x2, x2y2, field_size) < 0
+            || VR_BN_bn2binpad(y2, x2y2 + field_size, field_size) < 0) {
         SM2err(SM2_F_SM2_ENCRYPT, ERR_R_INTERNAL_ERROR);
         goto done;
     }
@@ -204,7 +204,7 @@ int sm2_encrypt(const EC_KEY *key,
    }
 
     /* X9.63 with no salt happens to match the KDF used in SM2 */
-    if (!ecdh_KDF_X9_63(msg_mask, msg_len, x2y2, 2 * field_size, NULL, 0,
+    if (!VR_ecdh_KDF_X9_63(msg_mask, msg_len, x2y2, 2 * field_size, NULL, 0,
                         digest)) {
         SM2err(SM2_F_SM2_ENCRYPT, ERR_R_EVP_LIB);
         goto done;
@@ -213,31 +213,31 @@ int sm2_encrypt(const EC_KEY *key,
     for (i = 0; i != msg_len; ++i)
         msg_mask[i] ^= msg[i];
 
-    if (EVP_DigestInit(hash, digest) == 0
-            || EVP_DigestUpdate(hash, x2y2, field_size) == 0
-            || EVP_DigestUpdate(hash, msg, msg_len) == 0
-            || EVP_DigestUpdate(hash, x2y2 + field_size, field_size) == 0
-            || EVP_DigestFinal(hash, C3, NULL) == 0) {
+    if (VR_EVP_DigestInit(hash, digest) == 0
+            || VR_EVP_DigestUpdate(hash, x2y2, field_size) == 0
+            || VR_EVP_DigestUpdate(hash, msg, msg_len) == 0
+            || VR_EVP_DigestUpdate(hash, x2y2 + field_size, field_size) == 0
+            || VR_EVP_DigestFinal(hash, C3, NULL) == 0) {
         SM2err(SM2_F_SM2_ENCRYPT, ERR_R_EVP_LIB);
         goto done;
     }
 
     ctext_struct.C1x = x1;
     ctext_struct.C1y = y1;
-    ctext_struct.C3 = ASN1_OCTET_STRING_new();
-    ctext_struct.C2 = ASN1_OCTET_STRING_new();
+    ctext_struct.C3 = VR_ASN1_OCTET_STRING_new();
+    ctext_struct.C2 = VR_ASN1_OCTET_STRING_new();
 
     if (ctext_struct.C3 == NULL || ctext_struct.C2 == NULL) {
        SM2err(SM2_F_SM2_ENCRYPT, ERR_R_MALLOC_FAILURE);
        goto done;
     }
-    if (!ASN1_OCTET_STRING_set(ctext_struct.C3, C3, C3_size)
-            || !ASN1_OCTET_STRING_set(ctext_struct.C2, msg_mask, msg_len)) {
+    if (!VR_ASN1_OCTET_STRING_set(ctext_struct.C3, C3, C3_size)
+            || !VR_ASN1_OCTET_STRING_set(ctext_struct.C2, msg_mask, msg_len)) {
         SM2err(SM2_F_SM2_ENCRYPT, ERR_R_INTERNAL_ERROR);
         goto done;
     }
 
-    ciphertext_leni = i2d_SM2_Ciphertext(&ctext_struct, &ciphertext_buf);
+    ciphertext_leni = VR_i2d_SM2_Ciphertext(&ctext_struct, &ciphertext_buf);
     /* Ensure cast to size_t is safe */
     if (ciphertext_leni < 0) {
         SM2err(SM2_F_SM2_ENCRYPT, ERR_R_INTERNAL_ERROR);
@@ -248,19 +248,19 @@ int sm2_encrypt(const EC_KEY *key,
     rc = 1;
 
  done:
-    ASN1_OCTET_STRING_free(ctext_struct.C2);
-    ASN1_OCTET_STRING_free(ctext_struct.C3);
-    OPENSSL_free(msg_mask);
-    OPENSSL_free(x2y2);
-    OPENSSL_free(C3);
-    EVP_MD_CTX_free(hash);
-    BN_CTX_free(ctx);
-    EC_POINT_free(kG);
-    EC_POINT_free(kP);
+    VR_ASN1_OCTET_STRING_free(ctext_struct.C2);
+    VR_ASN1_OCTET_STRING_free(ctext_struct.C3);
+    OPENVR_SSL_free(msg_mask);
+    OPENVR_SSL_free(x2y2);
+    OPENVR_SSL_free(C3);
+    VR_EVP_MD_CTX_free(hash);
+    VR_BN_CTX_free(ctx);
+    VR_EC_POINT_free(kG);
+    VR_EC_POINT_free(kP);
     return rc;
 }
 
-int sm2_decrypt(const EC_KEY *key,
+int VR_sm2_decrypt(const EC_KEY *key,
                 const EVP_MD *digest,
                 const uint8_t *ciphertext,
                 size_t ciphertext_len, uint8_t *ptext_buf, size_t *ptext_len)
@@ -268,7 +268,7 @@ int sm2_decrypt(const EC_KEY *key,
     int rc = 0;
     int i;
     BN_CTX *ctx = NULL;
-    const EC_GROUP *group = EC_KEY_get0_group(key);
+    const EC_GROUP *group = VR_EC_KEY_get0_group(key);
     EC_POINT *C1 = NULL;
     struct SM2_Ciphertext_st *sm2_ctext = NULL;
     BIGNUM *x2 = NULL;
@@ -276,7 +276,7 @@ int sm2_decrypt(const EC_KEY *key,
     uint8_t *x2y2 = NULL;
     uint8_t *computed_C3 = NULL;
     const size_t field_size = ec_field_size(group);
-    const int hash_size = EVP_MD_size(digest);
+    const int hash_size = VR_EVP_MD_size(digest);
     uint8_t *msg_mask = NULL;
     const uint8_t *C2 = NULL;
     const uint8_t *C3 = NULL;
@@ -288,7 +288,7 @@ int sm2_decrypt(const EC_KEY *key,
 
     memset(ptext_buf, 0xFF, *ptext_len);
 
-    sm2_ctext = d2i_SM2_Ciphertext(NULL, &ciphertext, ciphertext_len);
+    sm2_ctext = VR_d2i_SM2_Ciphertext(NULL, &ciphertext, ciphertext_len);
 
     if (sm2_ctext == NULL) {
         SM2err(SM2_F_SM2_DECRYPT, SM2_R_ASN1_ERROR);
@@ -304,15 +304,15 @@ int sm2_decrypt(const EC_KEY *key,
     C3 = sm2_ctext->C3->data;
     msg_len = sm2_ctext->C2->length;
 
-    ctx = BN_CTX_new();
+    ctx = VR_BN_CTX_new();
     if (ctx == NULL) {
         SM2err(SM2_F_SM2_DECRYPT, ERR_R_MALLOC_FAILURE);
         goto done;
     }
 
-    BN_CTX_start(ctx);
-    x2 = BN_CTX_get(ctx);
-    y2 = BN_CTX_get(ctx);
+    VR_BN_CTX_start(ctx);
+    x2 = VR_BN_CTX_get(ctx);
+    y2 = VR_BN_CTX_get(ctx);
 
     if (y2 == NULL) {
         SM2err(SM2_F_SM2_DECRYPT, ERR_R_BN_LIB);
@@ -328,24 +328,24 @@ int sm2_decrypt(const EC_KEY *key,
         goto done;
     }
 
-    C1 = EC_POINT_new(group);
+    C1 = VR_EC_POINT_new(group);
     if (C1 == NULL) {
         SM2err(SM2_F_SM2_DECRYPT, ERR_R_MALLOC_FAILURE);
         goto done;
     }
 
-    if (!EC_POINT_set_affine_coordinates(group, C1, sm2_ctext->C1x,
+    if (!VR_EC_POINT_set_affine_coordinates(group, C1, sm2_ctext->C1x,
                                          sm2_ctext->C1y, ctx)
-            || !EC_POINT_mul(group, C1, NULL, C1, EC_KEY_get0_private_key(key),
+            || !VR_EC_POINT_mul(group, C1, NULL, C1, VR_EC_KEY_get0_private_key(key),
                              ctx)
-            || !EC_POINT_get_affine_coordinates(group, C1, x2, y2, ctx)) {
+            || !VR_EC_POINT_get_affine_coordinates(group, C1, x2, y2, ctx)) {
         SM2err(SM2_F_SM2_DECRYPT, ERR_R_EC_LIB);
         goto done;
     }
 
-    if (BN_bn2binpad(x2, x2y2, field_size) < 0
-            || BN_bn2binpad(y2, x2y2 + field_size, field_size) < 0
-            || !ecdh_KDF_X9_63(msg_mask, msg_len, x2y2, 2 * field_size, NULL, 0,
+    if (VR_BN_bn2binpad(x2, x2y2, field_size) < 0
+            || VR_BN_bn2binpad(y2, x2y2 + field_size, field_size) < 0
+            || !VR_ecdh_KDF_X9_63(msg_mask, msg_len, x2y2, 2 * field_size, NULL, 0,
                                digest)) {
         SM2err(SM2_F_SM2_DECRYPT, ERR_R_INTERNAL_ERROR);
         goto done;
@@ -354,22 +354,22 @@ int sm2_decrypt(const EC_KEY *key,
     for (i = 0; i != msg_len; ++i)
         ptext_buf[i] = C2[i] ^ msg_mask[i];
 
-    hash = EVP_MD_CTX_new();
+    hash = VR_EVP_MD_CTX_new();
     if (hash == NULL) {
         SM2err(SM2_F_SM2_DECRYPT, ERR_R_MALLOC_FAILURE);
         goto done;
     }
 
-    if (!EVP_DigestInit(hash, digest)
-            || !EVP_DigestUpdate(hash, x2y2, field_size)
-            || !EVP_DigestUpdate(hash, ptext_buf, msg_len)
-            || !EVP_DigestUpdate(hash, x2y2 + field_size, field_size)
-            || !EVP_DigestFinal(hash, computed_C3, NULL)) {
+    if (!VR_EVP_DigestInit(hash, digest)
+            || !VR_EVP_DigestUpdate(hash, x2y2, field_size)
+            || !VR_EVP_DigestUpdate(hash, ptext_buf, msg_len)
+            || !VR_EVP_DigestUpdate(hash, x2y2 + field_size, field_size)
+            || !VR_EVP_DigestFinal(hash, computed_C3, NULL)) {
         SM2err(SM2_F_SM2_DECRYPT, ERR_R_EVP_LIB);
         goto done;
     }
 
-    if (CRYPTO_memcmp(computed_C3, C3, hash_size) != 0) {
+    if (VR_CRYPTO_memcmp(computed_C3, C3, hash_size) != 0) {
         SM2err(SM2_F_SM2_DECRYPT, SM2_R_INVALID_DIGEST);
         goto done;
     }
@@ -381,13 +381,13 @@ int sm2_decrypt(const EC_KEY *key,
     if (rc == 0)
         memset(ptext_buf, 0, *ptext_len);
 
-    OPENSSL_free(msg_mask);
-    OPENSSL_free(x2y2);
-    OPENSSL_free(computed_C3);
-    EC_POINT_free(C1);
-    BN_CTX_free(ctx);
-    SM2_Ciphertext_free(sm2_ctext);
-    EVP_MD_CTX_free(hash);
+    OPENVR_SSL_free(msg_mask);
+    OPENVR_SSL_free(x2y2);
+    OPENVR_SSL_free(computed_C3);
+    VR_EC_POINT_free(C1);
+    VR_BN_CTX_free(ctx);
+    VR_SM2_Ciphertext_free(sm2_ctext);
+    VR_EVP_MD_CTX_free(hash);
 
     return rc;
 }

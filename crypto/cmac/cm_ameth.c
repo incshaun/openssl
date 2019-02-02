@@ -24,8 +24,8 @@ static int cmac_size(const EVP_PKEY *pkey)
 
 static void cmac_key_free(EVP_PKEY *pkey)
 {
-    EVP_MAC_CTX *cmctx = EVP_PKEY_get0(pkey);
-    EVP_MAC_CTX_free(cmctx);
+    EVP_MAC_CTX *cmctx = VR_EVP_PKEY_get0(pkey);
+    VR_EVP_MAC_CTX_free(cmctx);
 }
 
 const EVP_PKEY_ASN1_METHOD cmac_asn1_meth = {

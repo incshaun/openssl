@@ -73,7 +73,7 @@ int main(int argc, char **argv) {
         /*
          * We start with trying to read the given path as a directory.
          */
-        while ((filename = OPENSSL_DIR_read(&ctx, argv[n])) != NULL) {
+        while ((filename = VR_OPENSSL_DIR_read(&ctx, argv[n])) != NULL) {
             wasdir = 1;
             if (pathname == NULL) {
                 pathname = malloc(PATH_MAX);
@@ -89,7 +89,7 @@ int main(int argc, char **argv) {
             strcpy(pathname + dirname_len, filename);
             testfile(pathname);
         }
-        OPENSSL_DIR_end(&ctx);
+        VR_OPENSSL_DIR_end(&ctx);
 
         /* If it wasn't a directory, treat it as a file instead */
         if (!wasdir)

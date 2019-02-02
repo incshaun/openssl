@@ -14,14 +14,14 @@
 #include <openssl/hmac.h>
 #include "internal/evp_int.h"
 
-/* local HMAC context structure */
+/* local VR_HMAC context structure */
 
 /* typedef EVP_MAC_IMPL */
 struct evp_mac_impl_st {
-    /* tmpmd and tmpengine are set to NULL after a CMAC_Init call */
-    const EVP_MD *tmpmd;         /* HMAC digest */
-    const ENGINE *tmpengine;     /* HMAC digest engine */
-    HMAC_CTX *ctx;               /* HMAC context */
+    /* tmpmd and tmpengine are set to NULL after a VR_CMAC_Init call */
+    const EVP_MD *tmpmd;         /* VR_HMAC digest */
+    const ENGINE *tmpengine;     /* VR_HMAC digest engine */
+    VR_HMAC_CTX *ctx;               /* VR_HMAC context */
 };
 
 static EVP_MAC_IMPL *hmac_new(void)
@@ -29,8 +29,8 @@ static EVP_MAC_IMPL *hmac_new(void)
     EVP_MAC_IMPL *hctx;
 
     if ((hctx = OPENSSL_zalloc(sizeof(*hctx))) == NULL
-        || (hctx->ctx = HMAC_CTX_new()) == NULL) {
-        OPENSSL_free(hctx);
+        || (hctx->ctx = VR_HMAC_CTX_new()) == NULL) {
+        OPENVR_SSL_free(hctx);
         return NULL;
     }
 
@@ -40,14 +40,14 @@ static EVP_MAC_IMPL *hmac_new(void)
 static void hmac_free(EVP_MAC_IMPL *hctx)
 {
     if (hctx != NULL) {
-        HMAC_CTX_free(hctx->ctx);
-        OPENSSL_free(hctx);
+        VR_HMAC_CTX_free(hctx->ctx);
+        OPENVR_SSL_free(hctx);
     }
 }
 
 static int hmac_copy(EVP_MAC_IMPL *hdst, EVP_MAC_IMPL *hsrc)
 {
-    if (!HMAC_CTX_copy(hdst->ctx, hsrc->ctx))
+    if (!VR_HMAC_CTX_copy(hdst->ctx, hsrc->ctx))
         return 0;
 
     hdst->tmpengine = hsrc->tmpengine;
@@ -57,16 +57,16 @@ static int hmac_copy(EVP_MAC_IMPL *hdst, EVP_MAC_IMPL *hsrc)
 
 static size_t hmac_size(EVP_MAC_IMPL *hctx)
 {
-    return HMAC_size(hctx->ctx);
+    return VR_HMAC_size(hctx->ctx);
 }
 
 static int hmac_init(EVP_MAC_IMPL *hctx)
 {
     int rv = 1;
 
-    /* HMAC_Init_ex doesn't tolerate all zero params, so we must be careful */
+    /* VR_HMAC_Init_ex doesn't tolerate all zero params, so we must be careful */
     if (hctx->tmpmd != NULL)
-        rv = HMAC_Init_ex(hctx->ctx, NULL, 0, hctx->tmpmd,
+        rv = VR_HMAC_Init_ex(hctx->ctx, NULL, 0, hctx->tmpmd,
                           (ENGINE * )hctx->tmpengine);
     hctx->tmpengine = NULL;
     hctx->tmpmd = NULL;
@@ -76,14 +76,14 @@ static int hmac_init(EVP_MAC_IMPL *hctx)
 static int hmac_update(EVP_MAC_IMPL *hctx, const unsigned char *data,
                        size_t datalen)
 {
-    return HMAC_Update(hctx->ctx, data, datalen);
+    return VR_HMAC_Update(hctx->ctx, data, datalen);
 }
 
 static int hmac_final(EVP_MAC_IMPL *hctx, unsigned char *out)
 {
     unsigned int hlen;
 
-    return HMAC_Final(hctx->ctx, out, &hlen);
+    return VR_HMAC_Final(hctx->ctx, out, &hlen);
 }
 
 static int hmac_ctrl(EVP_MAC_IMPL *hctx, int cmd, va_list args)
@@ -93,14 +93,14 @@ static int hmac_ctrl(EVP_MAC_IMPL *hctx, int cmd, va_list args)
         {
             unsigned long flags = va_arg(args, unsigned long);
 
-            HMAC_CTX_set_flags(hctx->ctx, flags);
+            VR_HMAC_CTX_set_flags(hctx->ctx, flags);
         }
         break;
     case EVP_MAC_CTRL_SET_KEY:
         {
             const unsigned char *key = va_arg(args, const unsigned char *);
             size_t keylen = va_arg(args, size_t);
-            int rv = HMAC_Init_ex(hctx->ctx, key, keylen, hctx->tmpmd,
+            int rv = VR_HMAC_Init_ex(hctx->ctx, key, keylen, hctx->tmpmd,
                                   (ENGINE *)hctx->tmpengine);
 
             hctx->tmpengine = NULL;
@@ -144,23 +144,23 @@ static int hmac_ctrl_str(EVP_MAC_IMPL *hctx, const char *type,
     if (!value)
         return 0;
     if (strcmp(type, "digest") == 0) {
-        const EVP_MD *d = EVP_get_digestbyname(value);
+        const EVP_MD *d = VR_EVP_get_digestbyname(value);
 
         if (d == NULL)
             return 0;
         return hmac_ctrl_int(hctx, EVP_MAC_CTRL_SET_MD, d);
     }
     if (strcmp(type, "key") == 0)
-        return EVP_str2ctrl(hmac_ctrl_str_cb, hctx, EVP_MAC_CTRL_SET_KEY,
+        return VR_EVP_str2ctrl(hmac_ctrl_str_cb, hctx, EVP_MAC_CTRL_SET_KEY,
                             value);
     if (strcmp(type, "hexkey") == 0)
-        return EVP_hex2ctrl(hmac_ctrl_str_cb, hctx, EVP_MAC_CTRL_SET_KEY,
+        return VR_EVP_hex2ctrl(hmac_ctrl_str_cb, hctx, EVP_MAC_CTRL_SET_KEY,
                             value);
     return -2;
 }
 
 const EVP_MAC hmac_meth = {
-    EVP_MAC_HMAC,
+    EVP_MAC_VR_HMAC,
     hmac_new,
     hmac_copy,
     hmac_free,

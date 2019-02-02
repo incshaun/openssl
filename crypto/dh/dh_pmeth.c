@@ -70,9 +70,9 @@ static void pkey_dh_cleanup(EVP_PKEY_CTX *ctx)
 {
     DH_PKEY_CTX *dctx = ctx->data;
     if (dctx != NULL) {
-        OPENSSL_free(dctx->kdf_ukm);
-        ASN1_OBJECT_free(dctx->kdf_oid);
-        OPENSSL_free(dctx);
+        OPENVR_SSL_free(dctx->kdf_ukm);
+        VR_ASN1_OBJECT_free(dctx->kdf_oid);
+        OPENVR_SSL_free(dctx);
     }
 }
 
@@ -94,7 +94,7 @@ static int pkey_dh_copy(EVP_PKEY_CTX *dst, EVP_PKEY_CTX *src)
     dctx->param_nid = sctx->param_nid;
 
     dctx->kdf_type = sctx->kdf_type;
-    dctx->kdf_oid = OBJ_dup(sctx->kdf_oid);
+    dctx->kdf_oid = VR_OBJ_dup(sctx->kdf_oid);
     if (dctx->kdf_oid == NULL)
         return 0;
     dctx->kdf_md = sctx->kdf_md;
@@ -167,7 +167,7 @@ static int pkey_dh_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2)
 #ifdef OPENSSL_NO_CMS
         if (p1 != EVP_PKEY_DH_KDF_NONE)
 #else
-        if (p1 != EVP_PKEY_DH_KDF_NONE && p1 != EVP_PKEY_DH_KDF_X9_42)
+        if (p1 != EVP_PKEY_DH_KDF_NONE && p1 != EVP_PKEY_VR_DH_KDF_X9_42)
 #endif
             return -2;
         dctx->kdf_type = p1;
@@ -192,7 +192,7 @@ static int pkey_dh_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2)
         return 1;
 
     case EVP_PKEY_CTRL_DH_KDF_UKM:
-        OPENSSL_free(dctx->kdf_ukm);
+        OPENVR_SSL_free(dctx->kdf_ukm);
         dctx->kdf_ukm = p2;
         if (p2)
             dctx->kdf_ukmlen = p1;
@@ -205,7 +205,7 @@ static int pkey_dh_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2)
         return dctx->kdf_ukmlen;
 
     case EVP_PKEY_CTRL_DH_KDF_OID:
-        ASN1_OBJECT_free(dctx->kdf_oid);
+        VR_ASN1_OBJECT_free(dctx->kdf_oid);
         dctx->kdf_oid = p2;
         return 1;
 
@@ -238,7 +238,7 @@ static int pkey_dh_ctrl_str(EVP_PKEY_CTX *ctx,
     }
     if (strcmp(type, "dh_param") == 0) {
         DH_PKEY_CTX *dctx = ctx->data;
-        int nid = OBJ_sn2nid(value);
+        int nid = VR_OBJ_sn2nid(value);
 
         if (nid == NID_undef) {
             DHerr(DH_F_PKEY_DH_CTRL_STR, DH_R_INVALID_PARAMETER_NAME);
@@ -272,13 +272,13 @@ static int pkey_dh_ctrl_str(EVP_PKEY_CTX *ctx,
 
 #ifndef OPENSSL_NO_DSA
 
-extern int dsa_builtin_paramgen(DSA *ret, size_t bits, size_t qbits,
+extern int VR_dsa_builtin_paramgen(DSA *ret, size_t bits, size_t qbits,
                                 const EVP_MD *evpmd,
                                 const unsigned char *seed_in, size_t seed_len,
                                 unsigned char *seed_out, int *counter_ret,
                                 unsigned long *h_ret, BN_GENCB *cb);
 
-extern int dsa_builtin_paramgen2(DSA *ret, size_t L, size_t N,
+extern int VR_dsa_builtin_paramgen2(DSA *ret, size_t L, size_t N,
                                  const EVP_MD *evpmd,
                                  const unsigned char *seed_in,
                                  size_t seed_len, int idx,
@@ -294,7 +294,7 @@ static DSA *dsa_dh_generate(DH_PKEY_CTX *dctx, BN_GENCB *pcb)
     const EVP_MD *md = dctx->md;
     if (dctx->use_dsa > 2)
         return NULL;
-    ret = DSA_new();
+    ret = VR_DSA_new();
     if (ret == NULL)
         return NULL;
     if (subprime_len == -1) {
@@ -305,18 +305,18 @@ static DSA *dsa_dh_generate(DH_PKEY_CTX *dctx, BN_GENCB *pcb)
     }
     if (md == NULL) {
         if (prime_len >= 2048)
-            md = EVP_sha256();
+            md = VR_EVP_sha256();
         else
-            md = EVP_sha1();
+            md = VR_EVP_sha1();
     }
     if (dctx->use_dsa == 1)
-        rv = dsa_builtin_paramgen(ret, prime_len, subprime_len, md,
+        rv = VR_dsa_builtin_paramgen(ret, prime_len, subprime_len, md,
                                   NULL, 0, NULL, NULL, NULL, pcb);
     else if (dctx->use_dsa == 2)
-        rv = dsa_builtin_paramgen2(ret, prime_len, subprime_len, md,
+        rv = VR_dsa_builtin_paramgen2(ret, prime_len, subprime_len, md,
                                    NULL, 0, -1, NULL, NULL, NULL, pcb);
     if (rv <= 0) {
-        DSA_free(ret);
+        VR_DSA_free(ret);
         return NULL;
     }
     return ret;
@@ -333,65 +333,65 @@ static int pkey_dh_paramgen(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey)
     if (dctx->rfc5114_param) {
         switch (dctx->rfc5114_param) {
         case 1:
-            dh = DH_get_1024_160();
+            dh = VR_DH_get_1024_160();
             break;
 
         case 2:
-            dh = DH_get_2048_224();
+            dh = VR_DH_get_2048_224();
             break;
 
         case 3:
-            dh = DH_get_2048_256();
+            dh = VR_DH_get_2048_256();
             break;
 
         default:
             return -2;
         }
-        EVP_PKEY_assign(pkey, EVP_PKEY_DHX, dh);
+        VR_EVP_PKEY_assign(pkey, EVP_PKEY_DHX, dh);
         return 1;
     }
 
     if (dctx->param_nid != 0) {
-        if ((dh = DH_new_by_nid(dctx->param_nid)) == NULL)
+        if ((dh = VR_DH_new_by_nid(dctx->param_nid)) == NULL)
             return 0;
-        EVP_PKEY_assign(pkey, EVP_PKEY_DH, dh);
+        VR_EVP_PKEY_assign(pkey, EVP_PKEY_DH, dh);
         return 1;
     }
 
     if (ctx->pkey_gencb) {
-        pcb = BN_GENCB_new();
+        pcb = VR_BN_GENCB_new();
         if (pcb == NULL)
             return 0;
-        evp_pkey_set_cb_translate(pcb, ctx);
+        VR_evp_pkey_set_cb_translate(pcb, ctx);
     } else
         pcb = NULL;
 #ifndef OPENSSL_NO_DSA
     if (dctx->use_dsa) {
         DSA *dsa_dh;
         dsa_dh = dsa_dh_generate(dctx, pcb);
-        BN_GENCB_free(pcb);
+        VR_BN_GENCB_free(pcb);
         if (dsa_dh == NULL)
             return 0;
-        dh = DSA_dup_DH(dsa_dh);
-        DSA_free(dsa_dh);
+        dh = VR_DSA_dup_DH(dsa_dh);
+        VR_DSA_free(dsa_dh);
         if (!dh)
             return 0;
-        EVP_PKEY_assign(pkey, EVP_PKEY_DHX, dh);
+        VR_EVP_PKEY_assign(pkey, EVP_PKEY_DHX, dh);
         return 1;
     }
 #endif
-    dh = DH_new();
+    dh = VR_DH_new();
     if (dh == NULL) {
-        BN_GENCB_free(pcb);
+        VR_BN_GENCB_free(pcb);
         return 0;
     }
-    ret = DH_generate_parameters_ex(dh,
+    ret = VR_DH_generate_parameters_ex(dh,
                                     dctx->prime_len, dctx->generator, pcb);
-    BN_GENCB_free(pcb);
+    VR_BN_GENCB_free(pcb);
     if (ret)
-        EVP_PKEY_assign_DH(pkey, dh);
+        VR_EVP_PKEY_assign_DH(pkey, dh);
     else
-        DH_free(dh);
+        VR_DH_free(dh);
     return ret;
 }
 
@@ -405,16 +405,16 @@ static int pkey_dh_keygen(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey)
         return 0;
     }
     if (dctx->param_nid != 0)
-        dh = DH_new_by_nid(dctx->param_nid);
+        dh = VR_DH_new_by_nid(dctx->param_nid);
     else
-        dh = DH_new();
+        dh = VR_DH_new();
     if (dh == NULL)
         return 0;
-    EVP_PKEY_assign(pkey, ctx->pmeth->pkey_id, dh);
+    VR_EVP_PKEY_assign(pkey, ctx->pmeth->pkey_id, dh);
     /* Note: if error return, pkey is freed by parent routine */
-    if (ctx->pkey != NULL && !EVP_PKEY_copy_parameters(pkey, ctx->pkey))
+    if (ctx->pkey != NULL && !VR_EVP_PKEY_copy_parameters(pkey, ctx->pkey))
         return 0;
-    return DH_generate_key(pkey->pkey.dh);
+    return VR_DH_generate_key(pkey->pkey.dh);
 }
 
 static int pkey_dh_derive(EVP_PKEY_CTX *ctx, unsigned char *key,
@@ -432,20 +432,20 @@ static int pkey_dh_derive(EVP_PKEY_CTX *ctx, unsigned char *key,
     dhpub = ctx->peerkey->pkey.dh->pub_key;
     if (dctx->kdf_type == EVP_PKEY_DH_KDF_NONE) {
         if (key == NULL) {
-            *keylen = DH_size(dh);
+            *keylen = VR_DH_size(dh);
             return 1;
         }
         if (dctx->pad)
-            ret = DH_compute_key_padded(key, dhpub, dh);
+            ret = VR_DH_compute_key_padded(key, dhpub, dh);
         else
-            ret = DH_compute_key(key, dhpub, dh);
+            ret = VR_DH_compute_key(key, dhpub, dh);
         if (ret < 0)
             return ret;
         *keylen = ret;
         return 1;
     }
 #ifndef OPENSSL_NO_CMS
-    else if (dctx->kdf_type == EVP_PKEY_DH_KDF_X9_42) {
+    else if (dctx->kdf_type == EVP_PKEY_VR_DH_KDF_X9_42) {
 
         unsigned char *Z = NULL;
         size_t Zlen = 0;
@@ -458,20 +458,20 @@ static int pkey_dh_derive(EVP_PKEY_CTX *ctx, unsigned char *key,
         if (*keylen != dctx->kdf_outlen)
             return 0;
         ret = 0;
-        Zlen = DH_size(dh);
+        Zlen = VR_DH_size(dh);
         Z = OPENSSL_malloc(Zlen);
         if (Z == NULL) {
             goto err;
         }
-        if (DH_compute_key_padded(Z, dhpub, dh) <= 0)
+        if (VR_DH_compute_key_padded(Z, dhpub, dh) <= 0)
             goto err;
-        if (!DH_KDF_X9_42(key, *keylen, Z, Zlen, dctx->kdf_oid,
+        if (!VR_DH_KDF_X9_42(key, *keylen, Z, Zlen, dctx->kdf_oid,
                           dctx->kdf_ukm, dctx->kdf_ukmlen, dctx->kdf_md))
             goto err;
         *keylen = dctx->kdf_outlen;
         ret = 1;
  err:
-        OPENSSL_clear_free(Z, Zlen);
+        OPENVR_SSL_clear_free(Z, Zlen);
         return ret;
     }
 #endif

@@ -16,7 +16,7 @@
 #include <openssl/sha.h>
 #include <openssl/opensslv.h>
 
-int SHA224_Init(SHA256_CTX *c)
+int VR_SHA224_Init(VR_SHA256_CTX *c)
 {
     memset(c, 0, sizeof(*c));
     c->h[0] = 0xc1059ed8UL;
@@ -27,11 +27,11 @@ int SHA224_Init(SHA256_CTX *c)
     c->h[5] = 0x68581511UL;
     c->h[6] = 0x64f98fa7UL;
     c->h[7] = 0xbefa4fa4UL;
-    c->md_len = SHA224_DIGEST_LENGTH;
+    c->md_len = VR_SHA224_DIGEST_LENGTH;
     return 1;
 }
 
-int SHA256_Init(SHA256_CTX *c)
+int VR_SHA256_Init(VR_SHA256_CTX *c)
 {
     memset(c, 0, sizeof(*c));
     c->h[0] = 0x6a09e667UL;
@@ -42,52 +42,52 @@ int SHA256_Init(SHA256_CTX *c)
     c->h[5] = 0x9b05688cUL;
     c->h[6] = 0x1f83d9abUL;
     c->h[7] = 0x5be0cd19UL;
-    c->md_len = SHA256_DIGEST_LENGTH;
+    c->md_len = VR_SHA256_DIGEST_LENGTH;
     return 1;
 }
 
-unsigned char *SHA224(const unsigned char *d, size_t n, unsigned char *md)
+unsigned char *VR_SHA224(const unsigned char *d, size_t n, unsigned char *md)
 {
-    SHA256_CTX c;
-    static unsigned char m[SHA224_DIGEST_LENGTH];
+    VR_SHA256_CTX c;
+    static unsigned char m[VR_SHA224_DIGEST_LENGTH];
 
     if (md == NULL)
         md = m;
-    SHA224_Init(&c);
-    SHA256_Update(&c, d, n);
-    SHA256_Final(md, &c);
-    OPENSSL_cleanse(&c, sizeof(c));
+    VR_SHA224_Init(&c);
+    VR_SHA256_Update(&c, d, n);
+    VR_SHA256_Final(md, &c);
+    VR_OPENSSL_cleanse(&c, sizeof(c));
     return md;
 }
 
-unsigned char *SHA256(const unsigned char *d, size_t n, unsigned char *md)
+unsigned char *VR_SHA256(const unsigned char *d, size_t n, unsigned char *md)
 {
-    SHA256_CTX c;
-    static unsigned char m[SHA256_DIGEST_LENGTH];
+    VR_SHA256_CTX c;
+    static unsigned char m[VR_SHA256_DIGEST_LENGTH];
 
     if (md == NULL)
         md = m;
-    SHA256_Init(&c);
-    SHA256_Update(&c, d, n);
-    SHA256_Final(md, &c);
-    OPENSSL_cleanse(&c, sizeof(c));
+    VR_SHA256_Init(&c);
+    VR_SHA256_Update(&c, d, n);
+    VR_SHA256_Final(md, &c);
+    VR_OPENSSL_cleanse(&c, sizeof(c));
     return md;
 }
 
-int SHA224_Update(SHA256_CTX *c, const void *data, size_t len)
+int VR_SHA224_Update(VR_SHA256_CTX *c, const void *data, size_t len)
 {
-    return SHA256_Update(c, data, len);
+    return VR_SHA256_Update(c, data, len);
 }
 
-int SHA224_Final(unsigned char *md, SHA256_CTX *c)
+int VR_SHA224_Final(unsigned char *md, VR_SHA256_CTX *c)
 {
-    return SHA256_Final(md, c);
+    return VR_SHA256_Final(md, c);
 }
 
 #define DATA_ORDER_IS_BIG_ENDIAN
 
 #define HASH_LONG               SHA_LONG
-#define HASH_CTX                SHA256_CTX
+#define HASH_CTX                VR_SHA256_CTX
 #define HASH_CBLOCK             SHA_CBLOCK
 
 /*
@@ -102,16 +102,16 @@ int SHA224_Final(unsigned char *md, SHA256_CTX *c)
         unsigned long ll;               \
         unsigned int  nn;               \
         switch ((c)->md_len)            \
-        {   case SHA224_DIGEST_LENGTH:  \
-                for (nn=0;nn<SHA224_DIGEST_LENGTH/4;nn++)       \
+        {   case VR_SHA224_DIGEST_LENGTH:  \
+                for (nn=0;nn<VR_SHA224_DIGEST_LENGTH/4;nn++)       \
                 {   ll=(c)->h[nn]; (void)HOST_l2c(ll,(s));   }  \
                 break;                  \
-            case SHA256_DIGEST_LENGTH:  \
-                for (nn=0;nn<SHA256_DIGEST_LENGTH/4;nn++)       \
+            case VR_SHA256_DIGEST_LENGTH:  \
+                for (nn=0;nn<VR_SHA256_DIGEST_LENGTH/4;nn++)       \
                 {   ll=(c)->h[nn]; (void)HOST_l2c(ll,(s));   }  \
                 break;                  \
             default:                    \
-                if ((c)->md_len > SHA256_DIGEST_LENGTH) \
+                if ((c)->md_len > VR_SHA256_DIGEST_LENGTH) \
                     return 0;                           \
                 for (nn=0;nn<(c)->md_len/4;nn++)                \
                 {   ll=(c)->h[nn]; (void)HOST_l2c(ll,(s));   }  \
@@ -119,18 +119,18 @@ int SHA224_Final(unsigned char *md, SHA256_CTX *c)
         }                               \
         } while (0)
 
-#define HASH_UPDATE             SHA256_Update
-#define HASH_TRANSFORM          SHA256_Transform
-#define HASH_FINAL              SHA256_Final
-#define HASH_BLOCK_DATA_ORDER   sha256_block_data_order
-#ifndef SHA256_ASM
+#define HASH_UPDATE             VR_SHA256_Update
+#define HASH_TRANSFORM          VR_SHA256_Transform
+#define HASH_FINAL              VR_SHA256_Final
+#define HASH_BLOCK_DATA_ORDER   VR_sha256_block_data_order
+#ifndef VR_SHA256_ASM
 static
 #endif
-void sha256_block_data_order(SHA256_CTX *ctx, const void *in, size_t num);
+void VR_sha256_block_data_order(VR_SHA256_CTX *ctx, const void *in, size_t num);
 
 #include "internal/md32_common.h"
 
-#ifndef SHA256_ASM
+#ifndef VR_SHA256_ASM
 static const SHA_LONG K256[64] = {
     0x428a2f98UL, 0x71374491UL, 0xb5c0fbcfUL, 0xe9b5dba5UL,
     0x3956c25bUL, 0x59f111f1UL, 0x923f82a4UL, 0xab1c5ed5UL,
@@ -165,7 +165,7 @@ static const SHA_LONG K256[64] = {
 
 # ifdef OPENSSL_SMALL_FOOTPRINT
 
-static void sha256_block_data_order(SHA256_CTX *ctx, const void *in,
+static void VR_sha256_block_data_order(VR_SHA256_CTX *ctx, const void *in,
                                     size_t num)
 {
     unsigned MD32_REG_T a, b, c, d, e, f, g, h, s0, s1, T1, T2;
@@ -243,7 +243,7 @@ static void sha256_block_data_order(SHA256_CTX *ctx, const void *in,
         T1 = X[(i)&0x0f] += s0 + s1 + X[(i+9)&0x0f];    \
         ROUND_00_15(i,a,b,c,d,e,f,g,h);         } while (0)
 
-static void sha256_block_data_order(SHA256_CTX *ctx, const void *in,
+static void VR_sha256_block_data_order(VR_SHA256_CTX *ctx, const void *in,
                                     size_t num)
 {
     unsigned MD32_REG_T a, b, c, d, e, f, g, h, s0, s1, T1;
@@ -305,7 +305,7 @@ static void sha256_block_data_order(SHA256_CTX *ctx, const void *in,
             T1 = X[15] = W[15];
             ROUND_00_15(15, b, c, d, e, f, g, h, a);
 
-            data += SHA256_CBLOCK;
+            data += VR_SHA256_CBLOCK;
         } else {
             SHA_LONG l;
 
@@ -383,4 +383,4 @@ static void sha256_block_data_order(SHA256_CTX *ctx, const void *in,
 }
 
 # endif
-#endif                         /* SHA256_ASM */
+#endif                         /* VR_SHA256_ASM */

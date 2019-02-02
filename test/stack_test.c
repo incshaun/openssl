@@ -80,12 +80,12 @@ static int test_int_stack(int reserve)
         { 8,    5   }
     };
     const int n_exfinds = OSSL_NELEM(exfinds);
-    STACK_OF(sint) *s = sk_sint_new_null();
+    STACK_OF(sint) *s = sk_VR_sint_new_null();
     int i;
     int testresult = 0;
 
     if (!TEST_ptr(s)
-        || (reserve > 0 && !TEST_true(sk_sint_reserve(s, 5 * reserve))))
+        || (reserve > 0 && !TEST_true(sk_VR_sint_reserve(s, 5 * reserve))))
         goto end;
 
     /* Check push and num */
@@ -94,7 +94,7 @@ static int test_int_stack(int reserve)
             TEST_info("int stack size %d", i);
             goto end;
         }
-        sk_sint_push(s, v + i);
+        sk_VR_sint_push(s, v + i);
     }
     if (!TEST_int_eq(sk_sint_num(s), n))
         goto end;
@@ -111,7 +111,7 @@ static int test_int_stack(int reserve)
         int *val = (finds[i].unsorted == -1) ? &notpresent
                                              : v + finds[i].unsorted;
 
-        if (!TEST_int_eq(sk_sint_find(s, val), finds[i].unsorted)) {
+        if (!TEST_int_eq(sk_VR_sint_find(s, val), finds[i].unsorted)) {
             TEST_info("int unsorted find %d", i);
             goto end;
         }
@@ -129,16 +129,16 @@ static int test_int_stack(int reserve)
     }
 
     /* sorting */
-    if (!TEST_false(sk_sint_is_sorted(s)))
+    if (!TEST_false(sk_VR_sint_is_sorted(s)))
         goto end;
-    sk_sint_set_cmp_func(s, &int_compare);
+    sk_VR_sint_set_cmp_func(s, &int_compare);
     sk_sint_sort(s);
-    if (!TEST_true(sk_sint_is_sorted(s)))
+    if (!TEST_true(sk_VR_sint_is_sorted(s)))
         goto end;
 
     /* find sorted -- the value is matched so we don't need to locate it */
     for (i = 0; i < n_finds; i++)
-        if (!TEST_int_eq(sk_sint_find(s, &finds[i].value), finds[i].sorted)) {
+        if (!TEST_int_eq(sk_VR_sint_find(s, &finds[i].value), finds[i].sorted)) {
             TEST_info("int sorted find %d", i);
             goto end;
         }
@@ -156,12 +156,12 @@ static int test_int_stack(int reserve)
         }
 
     /* shift */
-    if (!TEST_ptr_eq(sk_sint_shift(s), v + 6))
+    if (!TEST_ptr_eq(sk_VR_sint_shift(s), v + 6))
         goto end;
 
     testresult = 1;
 end:
-    sk_sint_free(s);
+    sk_VR_sint_free(s);
     return testresult;
 }
 
@@ -175,12 +175,12 @@ static int test_uchar_stack(int reserve)
 {
     static const unsigned char v[] = { 1, 3, 7, 5, 255, 0 };
     const int n = OSSL_NELEM(v);
-    STACK_OF(uchar) *s = sk_uchar_new(&uchar_compare), *r = NULL;
+    STACK_OF(uchar) *s = sk_VR_uchar_new(&uchar_compare), *r = NULL;
     int i;
     int testresult = 0;
 
     if (!TEST_ptr(s)
-        || (reserve > 0 && !TEST_true(sk_uchar_reserve(s, 5 * reserve))))
+        || (reserve > 0 && !TEST_true(sk_VR_uchar_reserve(s, 5 * reserve))))
         goto end;
 
     /* unshift and num */
@@ -189,26 +189,26 @@ static int test_uchar_stack(int reserve)
             TEST_info("uchar stack size %d", i);
             goto end;
         }
-        sk_uchar_unshift(s, v + i);
+        sk_VR_uchar_unshift(s, v + i);
     }
     if (!TEST_int_eq(sk_uchar_num(s), n))
         goto end;
 
     /* dup */
-    r = sk_uchar_dup(s);
+    r = sk_VR_uchar_dup(s);
     if (!TEST_int_eq(sk_uchar_num(r), n))
         goto end;
     sk_uchar_sort(r);
 
     /* pop */
     for (i = 0; i < n; i++)
-        if (!TEST_ptr_eq(sk_uchar_pop(s), v + i)) {
+        if (!TEST_ptr_eq(sk_VR_uchar_pop(s), v + i)) {
             TEST_info("uchar pop %d", i);
             goto end;
         }
 
     /* free -- we rely on the debug malloc to detect leakage here */
-    sk_uchar_free(s);
+    sk_VR_uchar_free(s);
     s = NULL;
 
     /* dup again */
@@ -216,14 +216,14 @@ static int test_uchar_stack(int reserve)
         goto end;
 
     /* zero */
-    sk_uchar_zero(r);
+    sk_VR_uchar_zero(r);
     if (!TEST_int_eq(sk_uchar_num(r), 0))
         goto end;
 
     /* insert */
-    sk_uchar_insert(r, v, 0);
-    sk_uchar_insert(r, v + 2, -1);
-    sk_uchar_insert(r, v + 1, 1);
+    sk_VR_uchar_insert(r, v, 0);
+    sk_VR_uchar_insert(r, v + 2, -1);
+    sk_VR_uchar_insert(r, v + 1, 1);
     for (i = 0; i < 3; i++)
         if (!TEST_ptr_eq(sk_uchar_value(r, i), v + i)) {
             TEST_info("uchar insert %d", i);
@@ -237,7 +237,7 @@ static int test_uchar_stack(int reserve)
         goto end;
 
     /* set */
-    sk_uchar_set(r, 1, v + 1);
+    sk_VR_uchar_set(r, 1, v + 1);
     for (i = 0; i < 2; i++)
         if (!TEST_ptr_eq(sk_uchar_value(r, i), v + i)) {
             TEST_info("uchar set %d", i);
@@ -246,8 +246,8 @@ static int test_uchar_stack(int reserve)
 
     testresult = 1;
 end:
-    sk_uchar_free(r);
-    sk_uchar_free(s);
+    sk_VR_uchar_free(r);
+    sk_VR_uchar_free(s);
     return testresult;
 }
 
@@ -261,12 +261,12 @@ static SS *SS_copy(const SS *p)
 }
 
 static void SS_free(SS *p) {
-    OPENSSL_free(p);
+    OPENVR_SSL_free(p);
 }
 
 static int test_SS_stack(void)
 {
-    STACK_OF(SS) *s = sk_SS_new_null();
+    STACK_OF(SS) *s = sk_VR_SS_new_null();
     STACK_OF(SS) *r = NULL;
     SS *v[10], *p;
     const int n = OSSL_NELEM(v);
@@ -285,13 +285,13 @@ static int test_SS_stack(void)
             TEST_info("SS stack size %d", i);
             goto end;
         }
-        sk_SS_push(s, v[i]);
+        sk_VR_SS_push(s, v[i]);
     }
     if (!TEST_int_eq(sk_SS_num(s), n))
         goto end;
 
     /* deepcopy */
-    r = sk_SS_deep_copy(s, &SS_copy, &SS_free);
+    r = sk_VR_SS_deep_copy(s, &SS_copy, &SS_free);
     if (!TEST_ptr(r))
         goto end;
     for (i = 0; i < n; i++) {
@@ -311,7 +311,7 @@ static int test_SS_stack(void)
     }
 
     /* pop_free - we rely on the malloc debug to catch the leak */
-    sk_SS_pop_free(r, &SS_free);
+    sk_VR_SS_pop_free(r, &SS_free);
     r = NULL;
 
     /* delete_ptr */
@@ -329,14 +329,14 @@ static int test_SS_stack(void)
 
     testresult = 1;
 end:
-    sk_SS_pop_free(r, &SS_free);
-    sk_SS_pop_free(s, &SS_free);
+    sk_VR_SS_pop_free(r, &SS_free);
+    sk_VR_SS_pop_free(s, &SS_free);
     return testresult;
 }
 
 static int test_SU_stack(void)
 {
-    STACK_OF(SU) *s = sk_SU_new_null();
+    STACK_OF(SU) *s = sk_VR_SU_new_null();
     SU v[10];
     const int n = OSSL_NELEM(v);
     int i;
@@ -352,7 +352,7 @@ static int test_SU_stack(void)
             TEST_info("SU stack size %d", i);
             goto end;
         }
-        sk_SU_push(s, v + i);
+        sk_VR_SU_push(s, v + i);
     }
     if (!TEST_int_eq(sk_SU_num(s), n))
         goto end;
@@ -366,7 +366,7 @@ static int test_SU_stack(void)
 
     testresult = 1;
 end:
-    sk_SU_free(s);
+    sk_VR_SU_free(s);
     return testresult;
 }
 

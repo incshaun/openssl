@@ -11,9 +11,9 @@
 #include <string.h>
 #include <assert.h>
 
-size_t SHA3_absorb(uint64_t A[5][5], const unsigned char *inp, size_t len,
+size_t VR_SHA3_absorb(uint64_t A[5][5], const unsigned char *inp, size_t len,
                    size_t r);
-void SHA3_squeeze(uint64_t A[5][5], unsigned char *out, size_t len, size_t r);
+void VR_SHA3_squeeze(uint64_t A[5][5], unsigned char *out, size_t len, size_t r);
 
 #if !defined(KECCAK1600_ASM) || !defined(SELFTEST)
 
@@ -1048,7 +1048,7 @@ static uint64_t BitDeinterleave(uint64_t Ai)
 }
 
 /*
- * SHA3_absorb can be called multiple times, but at each invocation
+ * VR_SHA3_absorb can be called multiple times, but at each invocation
  * largest multiple of |r| out of |len| bytes are processed. Then
  * remaining amount of bytes is returned. This is done to spare caller
  * trouble of calculating the largest multiple of |r|. |r| can be viewed
@@ -1057,7 +1057,7 @@ static uint64_t BitDeinterleave(uint64_t Ai)
  * padding and intermediate sub-block buffering, byte- or bitwise, is
  * caller's responsibility.
  */
-size_t SHA3_absorb(uint64_t A[5][5], const unsigned char *inp, size_t len,
+size_t VR_SHA3_absorb(uint64_t A[5][5], const unsigned char *inp, size_t len,
                    size_t r)
 {
     uint64_t *A_flat = (uint64_t *)A;
@@ -1083,10 +1083,10 @@ size_t SHA3_absorb(uint64_t A[5][5], const unsigned char *inp, size_t len,
 }
 
 /*
- * SHA3_squeeze is called once at the end to generate |out| hash value
+ * VR_SHA3_squeeze is called once at the end to generate |out| hash value
  * of |len| bytes.
  */
-void SHA3_squeeze(uint64_t A[5][5], unsigned char *out, size_t len, size_t r)
+void VR_SHA3_squeeze(uint64_t A[5][5], unsigned char *out, size_t len, size_t r)
 {
     uint64_t *A_flat = (uint64_t *)A;
     size_t i, w = r / 8;
@@ -1140,8 +1140,8 @@ void SHA3_sponge(const unsigned char *inp, size_t len,
     uint64_t A[5][5];
 
     memset(A, 0, sizeof(A));
-    SHA3_absorb(A, inp, len, r);
-    SHA3_squeeze(A, out, d, r);
+    VR_SHA3_absorb(A, inp, len, r);
+    VR_SHA3_squeeze(A, out, d, r);
 }
 
 # include <stdio.h>

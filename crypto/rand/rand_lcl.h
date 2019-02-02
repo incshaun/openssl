@@ -49,9 +49,9 @@
 /*
  * Maximum allocation size for RANDOM_POOL buffers
  *
- * The max_len value for the buffer provided to the rand_drbg_get_entropy()
+ * The max_len value for the buffer provided to the VR_rand_drbg_get_entropy()
  * callback is currently 2^31 bytes (2 gigabytes), if a derivation function
- * is used. Since this is much too large to be allocated, the rand_pool_new()
+ * is used. Since this is much too large to be allocated, the VR_rand_pool_new()
  * function chooses more modest values as default pool length, bounded
  * by RAND_POOL_MIN_LENGTH and RAND_POOL_MAX_LENGTH
  *
@@ -82,7 +82,7 @@ typedef enum drbg_status_e {
 
 
 /* instantiate */
-typedef int (*RAND_DRBG_instantiate_fn)(RAND_DRBG *ctx,
+typedef int (*VR_RAND_DRBG_instantiate_fn)(RAND_DRBG *ctx,
                                         const unsigned char *ent,
                                         size_t entlen,
                                         const unsigned char *nonce,
@@ -90,19 +90,19 @@ typedef int (*RAND_DRBG_instantiate_fn)(RAND_DRBG *ctx,
                                         const unsigned char *pers,
                                         size_t perslen);
 /* reseed */
-typedef int (*RAND_DRBG_reseed_fn)(RAND_DRBG *ctx,
+typedef int (*VR_RAND_DRBG_reseed_fn)(RAND_DRBG *ctx,
                                    const unsigned char *ent,
                                    size_t entlen,
                                    const unsigned char *adin,
                                    size_t adinlen);
 /* generate output */
-typedef int (*RAND_DRBG_generate_fn)(RAND_DRBG *ctx,
+typedef int (*VR_RAND_DRBG_generate_fn)(RAND_DRBG *ctx,
                                      unsigned char *out,
                                      size_t outlen,
                                      const unsigned char *adin,
                                      size_t adinlen);
 /* uninstantiate */
-typedef int (*RAND_DRBG_uninstantiate_fn)(RAND_DRBG *ctx);
+typedef int (*VR_RAND_DRBG_uninstantiate_fn)(RAND_DRBG *ctx);
 
 
 /*
@@ -110,10 +110,10 @@ typedef int (*RAND_DRBG_uninstantiate_fn)(RAND_DRBG *ctx);
  */
 
 typedef struct rand_drbg_method_st {
-    RAND_DRBG_instantiate_fn instantiate;
-    RAND_DRBG_reseed_fn reseed;
-    RAND_DRBG_generate_fn generate;
-    RAND_DRBG_uninstantiate_fn uninstantiate;
+    VR_RAND_DRBG_instantiate_fn instantiate;
+    VR_RAND_DRBG_reseed_fn reseed;
+    VR_RAND_DRBG_generate_fn generate;
+    VR_RAND_DRBG_uninstantiate_fn uninstantiate;
 } RAND_DRBG_METHOD;
 
 /* 888 bits from SP800-90Ar1 10.1 table 2 */
@@ -131,11 +131,11 @@ typedef struct rand_drbg_hash_st {
 
 typedef struct rand_drbg_hmac_st {
     const EVP_MD *md;
-    HMAC_CTX *ctx;
+    VR_HMAC_CTX *ctx;
     size_t blocklen;
     unsigned char K[EVP_MAX_MD_SIZE];
     unsigned char V[EVP_MAX_MD_SIZE];
-} RAND_DRBG_HMAC;
+} RAND_DRBG_VR_HMAC;
 
 /*
  * The state of a DRBG AES-CTR.
@@ -157,7 +157,7 @@ typedef struct rand_drbg_ctr_st {
 /*
  * The 'random pool' acts as a dumb container for collecting random
  * input from various entropy sources. The pool has no knowledge about
- * whether its randomness is fed into a legacy RAND_METHOD via RAND_add()
+ * whether its randomness is fed into a legacy RAND_METHOD via VR_RAND_add()
  * or into a new style RAND_DRBG. It is the callers duty to 1) initialize the
  * random pool, 2) pass it to the polling callbacks, 3) seed the RNG, and
  * 4) cleanup the random pool again.
@@ -187,17 +187,17 @@ struct rand_drbg_st {
     int secure; /* 1: allocated on the secure heap, 0: otherwise */
     int type; /* the nid of the underlying algorithm */
     /*
-     * Stores the value of the rand_fork_count global as of when we last
+     * Stores the value of the VR_rand_fork_count global as of when we last
      * reseeded.  The DRBG reseeds automatically whenever drbg->fork_count !=
-     * rand_fork_count.  Used to provide fork-safety and reseed this DRBG in
+     * VR_rand_fork_count.  Used to provide fork-safety and reseed this DRBG in
      * the child process.
      */
     int fork_count;
     unsigned short flags; /* various external flags */
 
     /*
-     * The random_data is used by RAND_add()/drbg_add() to attach random
-     * data to the global drbg, such that the rand_drbg_get_entropy() callback
+     * The random_data is used by VR_RAND_add()/drbg_add() to attach random
+     * data to the global drbg, such that the VR_rand_drbg_get_entropy() callback
      * can pull it during instantiation and reseeding. This is necessary to
      * reconcile the different philosophies of the RAND and the RAND_DRBG
      * with respect to how randomness is added to the RNG during reseeding
@@ -214,9 +214,9 @@ struct rand_drbg_st {
      * The following parameters are setup by the per-type "init" function.
      *
      * The supported types and their init functions are:
-     *    (1) CTR_DRBG:  drbg_ctr_init().
-     *    (2) HMAC_DRBG: drbg_hmac_init().
-     *    (3) HASH_DRBG: drbg_hash_init().
+     *    (1) CTR_DRBG:  VR_drbg_ctr_init().
+     *    (2) VR_HMAC_DRBG: VR_drbg_hmac_init().
+     *    (3) HASH_DRBG: VR_drbg_hash_init().
      *
      * The parameters are closely related to the ones described in
      * section '10.2.1 CTR_DRBG' of [NIST SP 800-90Ar1], with one
@@ -261,8 +261,8 @@ struct rand_drbg_st {
      * This counter is used only for seed propagation from the <master> DRBG
      * to its two children, the <public> and <private> DRBG. This feature is
      * very special and its sole purpose is to ensure that any randomness which
-     * is added by RAND_add() or RAND_seed() will have an immediate effect on
-     * the output of RAND_bytes() resp. RAND_priv_bytes().
+     * is added by VR_RAND_add() or VR_RAND_seed() will have an immediate effect on
+     * the output of VR_RAND_bytes() resp. VR_RAND_priv_bytes().
      */
     TSAN_QUALIFIER unsigned int reseed_prop_counter;
     unsigned int reseed_next_counter;
@@ -277,7 +277,7 @@ struct rand_drbg_st {
     union {
         RAND_DRBG_CTR ctr;
         RAND_DRBG_HASH hash;
-        RAND_DRBG_HMAC hmac;
+        RAND_DRBG_VR_HMAC hmac;
     } data;
 
     /* Implementation specific methods */
@@ -295,7 +295,7 @@ extern RAND_METHOD rand_meth;
 
 /*
  * A "generation count" of forks.  Incremented in the child process after a
- * fork.  Since rand_fork_count is increment-only, and only ever written to in
+ * fork.  Since VR_rand_fork_count is increment-only, and only ever written to in
  * the child process of the fork, which is guaranteed to be single-threaded, no
  * locking is needed for normal (read) accesses; the rest of pthread fork
  * processing is assumed to introduce the necessary memory barriers.  Sibling
@@ -304,21 +304,21 @@ extern RAND_METHOD rand_meth;
  * and/or other global sources, so the siblings will end up generating
  * different output streams.
  */
-extern int rand_fork_count;
+extern int VR_rand_fork_count;
 
 /* DRBG helpers */
-int rand_drbg_restart(RAND_DRBG *drbg,
+int VR_rand_drbg_restart(RAND_DRBG *drbg,
                       const unsigned char *buffer, size_t len, size_t entropy);
-size_t rand_drbg_seedlen(RAND_DRBG *drbg);
+size_t VR_rand_drbg_seedlen(RAND_DRBG *drbg);
 /* locking api */
-int rand_drbg_lock(RAND_DRBG *drbg);
-int rand_drbg_unlock(RAND_DRBG *drbg);
-int rand_drbg_enable_locking(RAND_DRBG *drbg);
+int VR_rand_drbg_lock(RAND_DRBG *drbg);
+int VR_rand_drbg_unlock(RAND_DRBG *drbg);
+int VR_rand_drbg_enable_locking(RAND_DRBG *drbg);
 
 
 /* initializes the DRBG implementation */
-int drbg_ctr_init(RAND_DRBG *drbg);
-int drbg_hash_init(RAND_DRBG *drbg);
-int drbg_hmac_init(RAND_DRBG *drbg);
+int VR_drbg_ctr_init(RAND_DRBG *drbg);
+int VR_drbg_hash_init(RAND_DRBG *drbg);
+int VR_drbg_hmac_init(RAND_DRBG *drbg);
 
 #endif

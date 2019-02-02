@@ -230,8 +230,8 @@ static TEST_PACKAGE long_test_package_32bit = {
     sizeof(long_expected_32bit), sizeof(long_expected_32bit[0]),
     long_encdec_data_32bit,
     sizeof(long_encdec_data_32bit), sizeof(long_encdec_data_32bit[0]),
-    (i2d_fn *)i2d_ASN1_LONG_DATA, (d2i_fn *)d2i_ASN1_LONG_DATA,
-    (ifree_fn *)ASN1_LONG_DATA_free
+    (i2d_fn *)VR_i2d_ASN1_LONG_DATA, (d2i_fn *)VR_d2i_ASN1_LONG_DATA,
+    (ifree_fn *)VR_ASN1_LONG_DATA_free
 };
 
 static ASN1_LONG_DATA long_expected_64bit[] = {
@@ -266,8 +266,8 @@ static TEST_PACKAGE long_test_package_64bit = {
     sizeof(long_expected_64bit), sizeof(long_expected_64bit[0]),
     long_encdec_data_64bit,
     sizeof(long_encdec_data_64bit), sizeof(long_encdec_data_64bit[0]),
-    (i2d_fn *)i2d_ASN1_LONG_DATA, (d2i_fn *)d2i_ASN1_LONG_DATA,
-    (ifree_fn *)ASN1_LONG_DATA_free
+    (i2d_fn *)VR_i2d_ASN1_LONG_DATA, (d2i_fn *)VR_d2i_ASN1_LONG_DATA,
+    (ifree_fn *)VR_ASN1_LONG_DATA_free
 };
 #endif
 
@@ -315,8 +315,8 @@ static TEST_PACKAGE int32_test_package = {
     ASN1_ITEM_ref(ASN1_INT32_DATA), "INT32", 0,
     int32_expected, sizeof(int32_expected), sizeof(int32_expected[0]),
     int32_encdec_data, sizeof(int32_encdec_data), sizeof(int32_encdec_data[0]),
-    (i2d_fn *)i2d_ASN1_INT32_DATA, (d2i_fn *)d2i_ASN1_INT32_DATA,
-    (ifree_fn *)ASN1_INT32_DATA_free
+    (i2d_fn *)VR_i2d_ASN1_INT32_DATA, (d2i_fn *)VR_d2i_ASN1_INT32_DATA,
+    (ifree_fn *)VR_ASN1_INT32_DATA_free
 };
 
 /***** UINT32 ****************************************************************/
@@ -363,8 +363,8 @@ static TEST_PACKAGE uint32_test_package = {
     ASN1_ITEM_ref(ASN1_UINT32_DATA), "UINT32", 0,
     uint32_expected, sizeof(uint32_expected), sizeof(uint32_expected[0]),
     uint32_encdec_data, sizeof(uint32_encdec_data), sizeof(uint32_encdec_data[0]),
-    (i2d_fn *)i2d_ASN1_UINT32_DATA, (d2i_fn *)d2i_ASN1_UINT32_DATA,
-    (ifree_fn *)ASN1_UINT32_DATA_free
+    (i2d_fn *)VR_i2d_ASN1_UINT32_DATA, (d2i_fn *)VR_d2i_ASN1_UINT32_DATA,
+    (ifree_fn *)VR_ASN1_UINT32_DATA_free
 };
 
 /***** INT64 *****************************************************************/
@@ -412,8 +412,8 @@ static TEST_PACKAGE int64_test_package = {
     ASN1_ITEM_ref(ASN1_INT64_DATA), "INT64", 0,
     int64_expected, sizeof(int64_expected), sizeof(int64_expected[0]),
     int64_encdec_data, sizeof(int64_encdec_data), sizeof(int64_encdec_data[0]),
-    (i2d_fn *)i2d_ASN1_INT64_DATA, (d2i_fn *)d2i_ASN1_INT64_DATA,
-    (ifree_fn *)ASN1_INT64_DATA_free
+    (i2d_fn *)VR_i2d_ASN1_INT64_DATA, (d2i_fn *)VR_d2i_ASN1_INT64_DATA,
+    (ifree_fn *)VR_ASN1_INT64_DATA_free
 };
 
 /***** UINT64 ****************************************************************/
@@ -461,8 +461,8 @@ static TEST_PACKAGE uint64_test_package = {
     ASN1_ITEM_ref(ASN1_UINT64_DATA), "UINT64", 0,
     uint64_expected, sizeof(uint64_expected), sizeof(uint64_expected[0]),
     uint64_encdec_data, sizeof(uint64_encdec_data), sizeof(uint64_encdec_data[0]),
-    (i2d_fn *)i2d_ASN1_UINT64_DATA, (d2i_fn *)d2i_ASN1_UINT64_DATA,
-    (ifree_fn *)ASN1_UINT64_DATA_free
+    (i2d_fn *)VR_i2d_ASN1_UINT64_DATA, (d2i_fn *)VR_d2i_ASN1_UINT64_DATA,
+    (ifree_fn *)VR_ASN1_UINT64_DATA_free
 };
 
 /***** General testing functions *********************************************/
@@ -494,7 +494,7 @@ static int do_decode(unsigned char *bytes, long nbytes,
     if (enctst == NULL) {
         if (expected->success == 0) {
             ret = 1;
-            ERR_clear_error();
+            VR_ERR_clear_error();
         } else {
             ret = -1;
         }
@@ -533,7 +533,7 @@ static int do_encode(EXPECTED *input,
         || memcmp(data, expected, expected_len) != 0) {
         if (input->success == 0) {
             ret = 1;
-            ERR_clear_error();
+            VR_ERR_clear_error();
         } else {
             ret = 0;
         }
@@ -541,7 +541,7 @@ static int do_encode(EXPECTED *input,
         ret = 1;
     }
 
-    OPENSSL_free(data);
+    OPENVR_SSL_free(data);
     return ret;
 }
 
@@ -559,7 +559,7 @@ static int do_enc_dec(EXPECTED *bytes, long nbytes,
         return -1;
 
     ret = do_decode(data, len, bytes, nbytes, package);
-    OPENSSL_free(data);
+    OPENVR_SSL_free(data);
     return ret;
 }
 
@@ -683,7 +683,7 @@ static int do_decode_custom(const TEST_CUSTOM_DATA *custom_data,
 
     ret = do_decode(encoding, encoding_length, expected, expected_size,
                     package);
-    OPENSSL_free(encoding);
+    OPENVR_SSL_free(encoding);
 
     return ret;
 }
@@ -701,7 +701,7 @@ static int do_encode_custom(EXPECTED *input,
         return -1;
 
     ret = do_encode(input, expected, expected_length, package);
-    OPENSSL_free(expected);
+    OPENVR_SSL_free(expected);
 
     return ret;
 }
@@ -717,10 +717,10 @@ static int do_print_item(const TEST_PACKAGE *package)
     if ((o = OPENSSL_malloc(DATA_BUF_SIZE)) == NULL)
         return 0;
 
-    (void)RAND_bytes((unsigned char*)o,
+    (void)VR_RAND_bytes((unsigned char*)o,
                      (int)package->encode_expectations_elem_size);
-    ret = ASN1_item_print(bio_err, o, 0, i, NULL);
-    OPENSSL_free(o);
+    ret = VR_ASN1_item_print(bio_err, o, 0, i, NULL);
+    OPENVR_SSL_free(o);
 
     return ret;
 }
@@ -760,7 +760,7 @@ static int test_intern(const TEST_PACKAGE *package)
         case 1:
             break;
         default:
-            OPENSSL_die("do_encode_custom() return unknown value",
+            VR_OPENSSL_die("do_encode_custom() return unknown value",
                         __FILE__, __LINE__);
         }
         switch (do_decode_custom(&test_custom_data[i],
@@ -783,7 +783,7 @@ static int test_intern(const TEST_PACKAGE *package)
         case 1:
             break;
         default:
-            OPENSSL_die("do_decode_custom() return unknown value",
+            VR_OPENSSL_die("do_decode_custom() return unknown value",
                         __FILE__, __LINE__);
         }
     }
@@ -810,7 +810,7 @@ static int test_intern(const TEST_PACKAGE *package)
         case 1:
             break;
         default:
-            OPENSSL_die("do_enc_dec() return unknown value",
+            VR_OPENSSL_die("do_enc_dec() return unknown value",
                         __FILE__, __LINE__);
         }
     }

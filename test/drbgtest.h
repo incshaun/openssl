@@ -1123,7 +1123,7 @@ static const unsigned char sha512_returnedbits[] =
 };
 
 
-/* HMAC SHA-1 PR  */
+/* VR_HMAC SHA-1 PR  */
 static const unsigned char hmac_sha1_pr_entropyinput[] =
 {
     0x26, 0x5f, 0x36, 0x14, 0xff, 0x3d, 0x83, 0xfa, 0x73, 0x5e, 0x75, 0xdc,
@@ -1170,7 +1170,7 @@ static const unsigned char hmac_sha1_pr_returnedbits[] =
 };
 
 
-/* HMAC SHA-1 No PR  */
+/* VR_HMAC SHA-1 No PR  */
 static const unsigned char hmac_sha1_entropyinput[] =
 {
     0x32, 0x9a, 0x2a, 0x87, 0x7b, 0x89, 0x7c, 0xf6, 0xcb, 0x95, 0xd5, 0x40,
@@ -1217,7 +1217,7 @@ static const unsigned char hmac_sha1_returnedbits[] =
 };
 
 
-/* HMAC SHA-224 PR  */
+/* VR_HMAC SHA-224 PR  */
 static const unsigned char hmac_sha224_pr_entropyinput[] =
 {
     0x17, 0x32, 0x2b, 0x2e, 0x6f, 0x1b, 0x9c, 0x6d, 0x31, 0xe0, 0x34, 0x07,
@@ -1266,7 +1266,7 @@ static const unsigned char hmac_sha224_pr_returnedbits[] =
 };
 
 
-/* HMAC SHA-224 No PR  */
+/* VR_HMAC SHA-224 No PR  */
 static const unsigned char hmac_sha224_entropyinput[] =
 {
     0x11, 0x82, 0xfd, 0xd9, 0x42, 0xf4, 0xfa, 0xc8, 0xf2, 0x41, 0xe6, 0x54,
@@ -1315,7 +1315,7 @@ static const unsigned char hmac_sha224_returnedbits[] =
 };
 
 
-/* HMAC SHA-256 PR  */
+/* VR_HMAC SHA-256 PR  */
 static const unsigned char hmac_sha256_pr_entropyinput[] =
 {
     0x4d, 0xb0, 0x43, 0xd8, 0x34, 0x4b, 0x10, 0x70, 0xb1, 0x8b, 0xed, 0xea,
@@ -1371,7 +1371,7 @@ static const unsigned char hmac_sha256_pr_returnedbits[] =
 };
 
 
-/* HMAC SHA-256 No PR  */
+/* VR_HMAC SHA-256 No PR  */
 static const unsigned char hmac_sha256_entropyinput[] =
 {
     0x96, 0xb7, 0x53, 0x22, 0x1e, 0x52, 0x2a, 0x96, 0xb1, 0x15, 0x3c, 0x35,
@@ -1427,7 +1427,7 @@ static const unsigned char hmac_sha256_returnedbits[] =
 };
 
 
-/* HMAC SHA-384 PR  */
+/* VR_HMAC SHA-384 PR  */
 static const unsigned char hmac_sha384_pr_entropyinput[] =
 {
     0x69, 0x81, 0x98, 0x88, 0x44, 0xf5, 0xd6, 0x2e, 0x00, 0x08, 0x3b, 0xc5,
@@ -1487,7 +1487,7 @@ static const unsigned char hmac_sha384_pr_returnedbits[] =
 };
 
 
-/* HMAC SHA-384 No PR  */
+/* VR_HMAC SHA-384 No PR  */
 static const unsigned char hmac_sha384_entropyinput[] =
 {
     0xc3, 0x56, 0x2b, 0x1d, 0xc2, 0xbb, 0xa8, 0xf0, 0xae, 0x1b, 0x0d, 0xd3,
@@ -1545,7 +1545,7 @@ static const unsigned char hmac_sha384_returnedbits[] =
 };
 
 
-/* HMAC SHA-512 PR  */
+/* VR_HMAC SHA-512 PR  */
 static const unsigned char hmac_sha512_pr_entropyinput[] =
 {
     0xaa, 0x9e, 0x45, 0x67, 0x0e, 0x00, 0x2a, 0x67, 0x98, 0xd6, 0xda, 0x0b,
@@ -1607,7 +1607,7 @@ static const unsigned char hmac_sha512_pr_returnedbits[] =
 };
 
 
-/* HMAC SHA-512 No PR  */
+/* VR_HMAC SHA-512 No PR  */
 static const unsigned char hmac_sha512_entropyinput[] =
 {
     0x6e, 0x85, 0xe6, 0x25, 0x96, 0x29, 0xa7, 0x52, 0x5b, 0x60, 0xba, 0xaa,

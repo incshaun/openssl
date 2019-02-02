@@ -56,11 +56,11 @@
     defined(__x86_64) || defined(_M_AMD64) || defined(_M_X64) || \
     defined(__s390__) || defined(__s390x__) || \
     defined(__aarch64__) || \
-    defined(SHA512_ASM)
-# define SHA512_BLOCK_CAN_MANAGE_UNALIGNED_DATA
+    defined(VR_SHA512_ASM)
+# define VR_SHA512_BLOCK_CAN_MANAGE_UNALIGNED_DATA
 #endif
 
-int sha512_224_init(SHA512_CTX *c)
+int VR_sha512_224_init(VR_SHA512_CTX *c)
 {
     c->h[0] = U64(0x8c3d37c819544da2);
     c->h[1] = U64(0x73e1996689dcd4d6);
@@ -74,11 +74,11 @@ int sha512_224_init(SHA512_CTX *c)
     c->Nl = 0;
     c->Nh = 0;
     c->num = 0;
-    c->md_len = SHA224_DIGEST_LENGTH;
+    c->md_len = VR_SHA224_DIGEST_LENGTH;
     return 1;
 }
 
-int sha512_256_init(SHA512_CTX *c)
+int VR_sha512_256_init(VR_SHA512_CTX *c)
 {
     c->h[0] = U64(0x22312194fc2bf72c);
     c->h[1] = U64(0x9f555fa3c84c64c2);
@@ -92,11 +92,11 @@ int sha512_256_init(SHA512_CTX *c)
     c->Nl = 0;
     c->Nh = 0;
     c->num = 0;
-    c->md_len = SHA256_DIGEST_LENGTH;
+    c->md_len = VR_SHA256_DIGEST_LENGTH;
     return 1;
 }
 
-int SHA384_Init(SHA512_CTX *c)
+int VR_SHA384_Init(VR_SHA512_CTX *c)
 {
     c->h[0] = U64(0xcbbb9d5dc1059ed8);
     c->h[1] = U64(0x629a292a367cd507);
@@ -110,11 +110,11 @@ int SHA384_Init(SHA512_CTX *c)
     c->Nl = 0;
     c->Nh = 0;
     c->num = 0;
-    c->md_len = SHA384_DIGEST_LENGTH;
+    c->md_len = VR_SHA384_DIGEST_LENGTH;
     return 1;
 }
 
-int SHA512_Init(SHA512_CTX *c)
+int VR_SHA512_Init(VR_SHA512_CTX *c)
 {
     c->h[0] = U64(0x6a09e667f3bcc908);
     c->h[1] = U64(0xbb67ae8584caa73b);
@@ -128,16 +128,16 @@ int SHA512_Init(SHA512_CTX *c)
     c->Nl = 0;
     c->Nh = 0;
     c->num = 0;
-    c->md_len = SHA512_DIGEST_LENGTH;
+    c->md_len = VR_SHA512_DIGEST_LENGTH;
     return 1;
 }
 
-#ifndef SHA512_ASM
+#ifndef VR_SHA512_ASM
 static
 #endif
-void sha512_block_data_order(SHA512_CTX *ctx, const void *in, size_t num);
+void VR_sha512_block_data_order(VR_SHA512_CTX *ctx, const void *in, size_t num);
 
-int SHA512_Final(unsigned char *md, SHA512_CTX *c)
+int VR_SHA512_Final(unsigned char *md, VR_SHA512_CTX *c)
 {
     unsigned char *p = (unsigned char *)c->u.p;
     size_t n = c->num;
@@ -147,7 +147,7 @@ int SHA512_Final(unsigned char *md, SHA512_CTX *c)
     if (n > (sizeof(c->u) - 16)) {
         memset(p + n, 0, sizeof(c->u) - n);
         n = 0;
-        sha512_block_data_order(c, p, 1);
+        VR_sha512_block_data_order(c, p, 1);
     }
 
     memset(p + n, 0, sizeof(c->u) - 16 - n);
@@ -173,15 +173,15 @@ int SHA512_Final(unsigned char *md, SHA512_CTX *c)
     p[sizeof(c->u) - 16] = (unsigned char)(c->Nh >> 56);
 #endif
 
-    sha512_block_data_order(c, p, 1);
+    VR_sha512_block_data_order(c, p, 1);
 
     if (md == 0)
         return 0;
 
     switch (c->md_len) {
     /* Let compiler decide if it's appropriate to unroll... */
-    case SHA224_DIGEST_LENGTH:
-        for (n = 0; n < SHA224_DIGEST_LENGTH / 8; n++) {
+    case VR_SHA224_DIGEST_LENGTH:
+        for (n = 0; n < VR_SHA224_DIGEST_LENGTH / 8; n++) {
             SHA_LONG64 t = c->h[n];
 
             *(md++) = (unsigned char)(t >> 56);
@@ -198,7 +198,7 @@ int SHA512_Final(unsigned char *md, SHA512_CTX *c)
          * processed separately.
          */
         {
-            SHA_LONG64 t = c->h[SHA224_DIGEST_LENGTH / 8];
+            SHA_LONG64 t = c->h[VR_SHA224_DIGEST_LENGTH / 8];
 
             *(md++) = (unsigned char)(t >> 56);
             *(md++) = (unsigned char)(t >> 48);
@@ -206,8 +206,8 @@ int SHA512_Final(unsigned char *md, SHA512_CTX *c)
             *(md++) = (unsigned char)(t >> 32);
         }
         break;
-    case SHA256_DIGEST_LENGTH:
-        for (n = 0; n < SHA256_DIGEST_LENGTH / 8; n++) {
+    case VR_SHA256_DIGEST_LENGTH:
+        for (n = 0; n < VR_SHA256_DIGEST_LENGTH / 8; n++) {
             SHA_LONG64 t = c->h[n];
 
             *(md++) = (unsigned char)(t >> 56);
@@ -220,8 +220,8 @@ int SHA512_Final(unsigned char *md, SHA512_CTX *c)
             *(md++) = (unsigned char)(t);
         }
         break;
-    case SHA384_DIGEST_LENGTH:
-        for (n = 0; n < SHA384_DIGEST_LENGTH / 8; n++) {
+    case VR_SHA384_DIGEST_LENGTH:
+        for (n = 0; n < VR_SHA384_DIGEST_LENGTH / 8; n++) {
             SHA_LONG64 t = c->h[n];
 
             *(md++) = (unsigned char)(t >> 56);
@@ -234,8 +234,8 @@ int SHA512_Final(unsigned char *md, SHA512_CTX *c)
             *(md++) = (unsigned char)(t);
         }
         break;
-    case SHA512_DIGEST_LENGTH:
-        for (n = 0; n < SHA512_DIGEST_LENGTH / 8; n++) {
+    case VR_SHA512_DIGEST_LENGTH:
+        for (n = 0; n < VR_SHA512_DIGEST_LENGTH / 8; n++) {
             SHA_LONG64 t = c->h[n];
 
             *(md++) = (unsigned char)(t >> 56);
@@ -256,12 +256,12 @@ int SHA512_Final(unsigned char *md, SHA512_CTX *c)
     return 1;
 }
 
-int SHA384_Final(unsigned char *md, SHA512_CTX *c)
+int VR_SHA384_Final(unsigned char *md, VR_SHA512_CTX *c)
 {
-    return SHA512_Final(md, c);
+    return VR_SHA512_Final(md, c);
 }
 
-int SHA512_Update(SHA512_CTX *c, const void *_data, size_t len)
+int VR_SHA512_Update(VR_SHA512_CTX *c, const void *_data, size_t len)
 {
     SHA_LONG64 l;
     unsigned char *p = c->u.p;
@@ -286,20 +286,20 @@ int SHA512_Update(SHA512_CTX *c, const void *_data, size_t len)
         } else {
             memcpy(p + c->num, data, n), c->num = 0;
             len -= n, data += n;
-            sha512_block_data_order(c, p, 1);
+            VR_sha512_block_data_order(c, p, 1);
         }
     }
 
     if (len >= sizeof(c->u)) {
-#ifndef SHA512_BLOCK_CAN_MANAGE_UNALIGNED_DATA
+#ifndef VR_SHA512_BLOCK_CAN_MANAGE_UNALIGNED_DATA
         if ((size_t)data % sizeof(c->u.d[0]) != 0)
             while (len >= sizeof(c->u))
                 memcpy(p, data, sizeof(c->u)),
-                sha512_block_data_order(c, p, 1),
+                VR_sha512_block_data_order(c, p, 1),
                 len -= sizeof(c->u), data += sizeof(c->u);
         else
 #endif
-            sha512_block_data_order(c, data, len / sizeof(c->u)),
+            VR_sha512_block_data_order(c, data, len / sizeof(c->u)),
             data += len, len %= sizeof(c->u), data -= len;
     }
 
@@ -309,49 +309,49 @@ int SHA512_Update(SHA512_CTX *c, const void *_data, size_t len)
     return 1;
 }
 
-int SHA384_Update(SHA512_CTX *c, const void *data, size_t len)
+int VR_SHA384_Update(VR_SHA512_CTX *c, const void *data, size_t len)
 {
-    return SHA512_Update(c, data, len);
+    return VR_SHA512_Update(c, data, len);
 }
 
-void SHA512_Transform(SHA512_CTX *c, const unsigned char *data)
+void VR_SHA512_Transform(VR_SHA512_CTX *c, const unsigned char *data)
 {
-#ifndef SHA512_BLOCK_CAN_MANAGE_UNALIGNED_DATA
+#ifndef VR_SHA512_BLOCK_CAN_MANAGE_UNALIGNED_DATA
     if ((size_t)data % sizeof(c->u.d[0]) != 0)
         memcpy(c->u.p, data, sizeof(c->u.p)), data = c->u.p;
 #endif
-    sha512_block_data_order(c, data, 1);
+    VR_sha512_block_data_order(c, data, 1);
 }
 
-unsigned char *SHA384(const unsigned char *d, size_t n, unsigned char *md)
+unsigned char *VR_SHA384(const unsigned char *d, size_t n, unsigned char *md)
 {
-    SHA512_CTX c;
-    static unsigned char m[SHA384_DIGEST_LENGTH];
+    VR_SHA512_CTX c;
+    static unsigned char m[VR_SHA384_DIGEST_LENGTH];
 
     if (md == NULL)
         md = m;
-    SHA384_Init(&c);
-    SHA512_Update(&c, d, n);
-    SHA512_Final(md, &c);
-    OPENSSL_cleanse(&c, sizeof(c));
+    VR_SHA384_Init(&c);
+    VR_SHA512_Update(&c, d, n);
+    VR_SHA512_Final(md, &c);
+    VR_OPENSSL_cleanse(&c, sizeof(c));
     return md;
 }
 
-unsigned char *SHA512(const unsigned char *d, size_t n, unsigned char *md)
+unsigned char *VR_SHA512(const unsigned char *d, size_t n, unsigned char *md)
 {
-    SHA512_CTX c;
-    static unsigned char m[SHA512_DIGEST_LENGTH];
+    VR_SHA512_CTX c;
+    static unsigned char m[VR_SHA512_DIGEST_LENGTH];
 
     if (md == NULL)
         md = m;
-    SHA512_Init(&c);
-    SHA512_Update(&c, d, n);
-    SHA512_Final(md, &c);
-    OPENSSL_cleanse(&c, sizeof(c));
+    VR_SHA512_Init(&c);
+    VR_SHA512_Update(&c, d, n);
+    VR_SHA512_Final(md, &c);
+    VR_OPENSSL_cleanse(&c, sizeof(c));
     return md;
 }
 
-#ifndef SHA512_ASM
+#ifndef VR_SHA512_ASM
 static const SHA_LONG64 K512[80] = {
     U64(0x428a2f98d728ae22), U64(0x7137449123ef65cd),
     U64(0xb5c0fbcfec4d3b2f), U64(0xe9b5dba58189dbbc),
@@ -498,7 +498,7 @@ static SHA_LONG64 __fastcall __pull64be(const void *x)
  * ~24 registers, both size and performance wise...
  */
 
-static void sha512_block_data_order(SHA512_CTX *ctx, const void *in,
+static void VR_sha512_block_data_order(VR_SHA512_CTX *ctx, const void *in,
                                     size_t num)
 {
     const SHA_LONG64 *W = in;
@@ -560,7 +560,7 @@ static void sha512_block_data_order(SHA512_CTX *ctx, const void *in,
 
 # elif defined(OPENSSL_SMALL_FOOTPRINT)
 
-static void sha512_block_data_order(SHA512_CTX *ctx, const void *in,
+static void VR_sha512_block_data_order(VR_SHA512_CTX *ctx, const void *in,
                                     size_t num)
 {
     const SHA_LONG64 *W = in;
@@ -641,7 +641,7 @@ static void sha512_block_data_order(SHA512_CTX *ctx, const void *in,
         T1 = X[(j)&0x0f] += s0 + s1 + X[(j+9)&0x0f];    \
         ROUND_00_15(i+j,a,b,c,d,e,f,g,h);               } while (0)
 
-static void sha512_block_data_order(SHA512_CTX *ctx, const void *in,
+static void VR_sha512_block_data_order(VR_SHA512_CTX *ctx, const void *in,
                                     size_t num)
 {
     const SHA_LONG64 *W = in;
@@ -762,4 +762,4 @@ static void sha512_block_data_order(SHA512_CTX *ctx, const void *in,
 
 # endif
 
-#endif                         /* SHA512_ASM */
+#endif                         /* VR_SHA512_ASM */

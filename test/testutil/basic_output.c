@@ -19,13 +19,13 @@ BIO *bio_err = NULL;
 
 void test_open_streams(void)
 {
-    bio_out = BIO_new_fp(stdout, BIO_NOCLOSE | BIO_FP_TEXT);
-    bio_err = BIO_new_fp(stderr, BIO_NOCLOSE | BIO_FP_TEXT);
+    bio_out = VR_BIO_new_fp(stdout, BIO_NOCLOSE | BIO_FP_TEXT);
+    bio_err = VR_BIO_new_fp(stderr, BIO_NOCLOSE | BIO_FP_TEXT);
 #ifdef __VMS
-    bio_out = BIO_push(BIO_new(BIO_f_linebuffer()), bio_out);
-    bio_err = BIO_push(BIO_new(BIO_f_linebuffer()), bio_err);
+    bio_out = VR_BIO_push(VR_BIO_new(VR_BIO_f_linebuffer()), bio_out);
+    bio_err = VR_BIO_push(VR_BIO_new(VR_BIO_f_linebuffer()), bio_err);
 #endif
-    bio_err = BIO_push(BIO_new(BIO_f_tap()), bio_err);
+    bio_err = VR_BIO_push(VR_BIO_new(BIO_f_tap()), bio_err);
 
     OPENSSL_assert(bio_out != NULL);
     OPENSSL_assert(bio_err != NULL);
@@ -33,18 +33,18 @@ void test_open_streams(void)
 
 void test_close_streams(void)
 {
-    BIO_free_all(bio_out);
-    BIO_free_all(bio_err);
+    VR_BIO_free_all(bio_out);
+    VR_BIO_free_all(bio_err);
 }
 
 int test_vprintf_stdout(const char *fmt, va_list ap)
 {
-    return BIO_vprintf(bio_out, fmt, ap);
+    return VR_BIO_vprintf(bio_out, fmt, ap);
 }
 
 int test_vprintf_stderr(const char *fmt, va_list ap)
 {
-    return BIO_vprintf(bio_err, fmt, ap);
+    return VR_BIO_vprintf(bio_err, fmt, ap);
 }
 
 int test_flush_stdout(void)

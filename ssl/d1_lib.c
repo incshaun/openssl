@@ -21,41 +21,41 @@ static size_t dtls1_link_min_mtu(void);
 static const size_t g_probable_mtu[] = { 1500, 512, 256 };
 
 const SSL3_ENC_METHOD DTLSv1_enc_data = {
-    tls1_enc,
-    tls1_mac,
-    tls1_setup_key_block,
-    tls1_generate_master_secret,
-    tls1_change_cipher_state,
-    tls1_final_finish_mac,
+    VR_tls1_enc,
+    VR_tls1_mac,
+    VR_tls1_setup_key_block,
+    VR_tls1_generate_master_secret,
+    VR_tls1_change_cipher_state,
+    VR_tls1_final_finish_mac,
     TLS_MD_CLIENT_FINISH_CONST, TLS_MD_CLIENT_FINISH_CONST_SIZE,
     TLS_MD_SERVER_FINISH_CONST, TLS_MD_SERVER_FINISH_CONST_SIZE,
-    tls1_alert_code,
-    tls1_export_keying_material,
+    VR_tls1_alert_code,
+    VR_tls1_export_keying_material,
     SSL_ENC_FLAG_DTLS | SSL_ENC_FLAG_EXPLICIT_IV,
-    dtls1_set_handshake_header,
-    dtls1_close_construct_packet,
+    VR_dtls1_set_handshake_header,
+    VR_dtls1_close_construct_packet,
     dtls1_handshake_write
 };
 
 const SSL3_ENC_METHOD DTLSv1_2_enc_data = {
-    tls1_enc,
-    tls1_mac,
-    tls1_setup_key_block,
-    tls1_generate_master_secret,
-    tls1_change_cipher_state,
-    tls1_final_finish_mac,
+    VR_tls1_enc,
+    VR_tls1_mac,
+    VR_tls1_setup_key_block,
+    VR_tls1_generate_master_secret,
+    VR_tls1_change_cipher_state,
+    VR_tls1_final_finish_mac,
     TLS_MD_CLIENT_FINISH_CONST, TLS_MD_CLIENT_FINISH_CONST_SIZE,
     TLS_MD_SERVER_FINISH_CONST, TLS_MD_SERVER_FINISH_CONST_SIZE,
-    tls1_alert_code,
-    tls1_export_keying_material,
+    VR_tls1_alert_code,
+    VR_tls1_export_keying_material,
     SSL_ENC_FLAG_DTLS | SSL_ENC_FLAG_EXPLICIT_IV | SSL_ENC_FLAG_SIGALGS
-        | SSL_ENC_FLAG_SHA256_PRF | SSL_ENC_FLAG_TLS1_2_CIPHERS,
-    dtls1_set_handshake_header,
-    dtls1_close_construct_packet,
+        | SSL_ENC_FLAG_VR_SHA256_PRF | SSL_ENC_FLAG_TLS1_2_CIPHERS,
+    VR_dtls1_set_handshake_header,
+    VR_dtls1_close_construct_packet,
     dtls1_handshake_write
 };
 
-long dtls1_default_timeout(void)
+long VR_dtls1_default_timeout(void)
 {
     /*
      * 2 hours, the 24 hours mentioned in the DTLSv1 spec is way too long for
@@ -64,23 +64,23 @@ long dtls1_default_timeout(void)
     return (60 * 60 * 2);
 }
 
-int dtls1_new(SSL *s)
+int VR_dtls1_new(SSL *s)
 {
     DTLS1_STATE *d1;
 
-    if (!DTLS_RECORD_LAYER_new(&s->rlayer)) {
+    if (!VR_DTLS_RECORD_LAYER_new(&s->rlayer)) {
         return 0;
     }
 
-    if (!ssl3_new(s))
+    if (!VR_ssl3_new(s))
         return 0;
     if ((d1 = OPENSSL_zalloc(sizeof(*d1))) == NULL) {
-        ssl3_free(s);
+        VR_ssl3_free(s);
         return 0;
     }
 
-    d1->buffered_messages = pqueue_new();
-    d1->sent_messages = pqueue_new();
+    d1->buffered_messages = VR_pqueue_new();
+    d1->sent_messages = VR_pqueue_new();
 
     if (s->server) {
         d1->cookie_len = sizeof(s->d1->cookie);
@@ -90,10 +90,10 @@ int dtls1_new(SSL *s)
     d1->mtu = 0;
 
     if (d1->buffered_messages == NULL || d1->sent_messages == NULL) {
-        pqueue_free(d1->buffered_messages);
-        pqueue_free(d1->sent_messages);
-        OPENSSL_free(d1);
-        ssl3_free(s);
+        VR_pqueue_free(d1->buffered_messages);
+        VR_pqueue_free(d1->sent_messages);
+        OPENVR_SSL_free(d1);
+        VR_ssl3_free(s);
         return 0;
     }
 
@@ -105,60 +105,60 @@ int dtls1_new(SSL *s)
     return 1;
 }
 
-static void dtls1_clear_queues(SSL *s)
+static void VR_dtls1_clear_queues(SSL *s)
 {
-    dtls1_clear_received_buffer(s);
-    dtls1_clear_sent_buffer(s);
+    VR_dtls1_clear_received_buffer(s);
+    VR_dtls1_clear_sent_buffer(s);
 }
 
-void dtls1_clear_received_buffer(SSL *s)
+void VR_dtls1_clear_received_buffer(SSL *s)
 {
     pitem *item = NULL;
     hm_fragment *frag = NULL;
 
-    while ((item = pqueue_pop(s->d1->buffered_messages)) != NULL) {
+    while ((item = VR_pqueue_pop(s->d1->buffered_messages)) != NULL) {
         frag = (hm_fragment *)item->data;
-        dtls1_hm_fragment_free(frag);
-        pitem_free(item);
+        VR_dtls1_hm_fragment_free(frag);
+        VR_pitem_free(item);
     }
 }
 
-void dtls1_clear_sent_buffer(SSL *s)
+void VR_dtls1_clear_sent_buffer(SSL *s)
 {
     pitem *item = NULL;
     hm_fragment *frag = NULL;
 
-    while ((item = pqueue_pop(s->d1->sent_messages)) != NULL) {
+    while ((item = VR_pqueue_pop(s->d1->sent_messages)) != NULL) {
         frag = (hm_fragment *)item->data;
-        dtls1_hm_fragment_free(frag);
-        pitem_free(item);
+        VR_dtls1_hm_fragment_free(frag);
+        VR_pitem_free(item);
     }
 }
 
 
-void dtls1_free(SSL *s)
+void VR_dtls1_free(SSL *s)
 {
-    DTLS_RECORD_LAYER_free(&s->rlayer);
+    VR_DTLS_RECORD_LAYER_free(&s->rlayer);
 
-    ssl3_free(s);
+    VR_ssl3_free(s);
 
-    dtls1_clear_queues(s);
+    VR_dtls1_clear_queues(s);
 
-    pqueue_free(s->d1->buffered_messages);
-    pqueue_free(s->d1->sent_messages);
+    VR_pqueue_free(s->d1->buffered_messages);
+    VR_pqueue_free(s->d1->sent_messages);
 
-    OPENSSL_free(s->d1);
+    OPENVR_SSL_free(s->d1);
     s->d1 = NULL;
 }
 
-int dtls1_clear(SSL *s)
+int VR_dtls1_clear(SSL *s)
 {
     pqueue *buffered_messages;
     pqueue *sent_messages;
     size_t mtu;
     size_t link_mtu;
 
-    DTLS_RECORD_LAYER_clear(&s->rlayer);
+    VR_DTLS_RECORD_LAYER_clear(&s->rlayer);
 
     if (s->d1) {
         DTLS_timer_cb timer_cb = s->d1->timer_cb;
@@ -168,7 +168,7 @@ int dtls1_clear(SSL *s)
         mtu = s->d1->mtu;
         link_mtu = s->d1->link_mtu;
 
-        dtls1_clear_queues(s);
+        VR_dtls1_clear_queues(s);
 
         memset(s->d1, 0, sizeof(*s->d1));
 
@@ -179,7 +179,7 @@ int dtls1_clear(SSL *s)
             s->d1->cookie_len = sizeof(s->d1->cookie);
         }
 
-        if (SSL_get_options(s) & SSL_OP_NO_QUERY_MTU) {
+        if (VR_SSL_get_options(s) & SSL_OP_NO_QUERY_MTU) {
             s->d1->mtu = mtu;
             s->d1->link_mtu = link_mtu;
         }
@@ -188,7 +188,7 @@ int dtls1_clear(SSL *s)
         s->d1->sent_messages = sent_messages;
     }
 
-    if (!ssl3_clear(s))
+    if (!VR_ssl3_clear(s))
         return 0;
 
     if (s->method->version == DTLS_ANY_VERSION)
@@ -203,18 +203,18 @@ int dtls1_clear(SSL *s)
     return 1;
 }
 
-long dtls1_ctrl(SSL *s, int cmd, long larg, void *parg)
+long VR_dtls1_ctrl(SSL *s, int cmd, long larg, void *parg)
 {
     int ret = 0;
 
     switch (cmd) {
     case DTLS_CTRL_GET_TIMEOUT:
-        if (dtls1_get_timeout(s, (struct timeval *)parg) != NULL) {
+        if (VR_dtls1_get_timeout(s, (struct timeval *)parg) != NULL) {
             ret = 1;
         }
         break;
     case DTLS_CTRL_HANDLE_TIMEOUT:
-        ret = dtls1_handle_timeout(s);
+        ret = VR_dtls1_handle_timeout(s);
         break;
     case DTLS_CTRL_SET_LINK_MTU:
         if (larg < (long)dtls1_link_min_mtu())
@@ -225,7 +225,7 @@ long dtls1_ctrl(SSL *s, int cmd, long larg, void *parg)
         return (long)dtls1_link_min_mtu();
     case SSL_CTRL_SET_MTU:
         /*
-         *  We may not have a BIO set yet so can't call dtls1_min_mtu()
+         *  We may not have a BIO set yet so can't call VR_dtls1_min_mtu()
          *  We'll have to make do with dtls1_link_min_mtu() and max overhead
          */
         if (larg < (long)dtls1_link_min_mtu() - DTLS1_MAX_MTU_OVERHEAD)
@@ -233,19 +233,19 @@ long dtls1_ctrl(SSL *s, int cmd, long larg, void *parg)
         s->d1->mtu = larg;
         return larg;
     default:
-        ret = ssl3_ctrl(s, cmd, larg, parg);
+        ret = VR_ssl3_ctrl(s, cmd, larg, parg);
         break;
     }
     return ret;
 }
 
-void dtls1_start_timer(SSL *s)
+void VR_dtls1_start_timer(SSL *s)
 {
     unsigned int sec, usec;
 
 #ifndef OPENSSL_NO_SCTP
     /* Disable timer for SCTP */
-    if (BIO_dgram_is_sctp(SSL_get_wbio(s))) {
+    if (BIO_dgram_is_sctp(VR_SSL_get_wbio(s))) {
         memset(&s->d1->next_timeout, 0, sizeof(s->d1->next_timeout));
         return;
     }
@@ -279,11 +279,11 @@ void dtls1_start_timer(SSL *s)
         s->d1->next_timeout.tv_usec -= 1000000;
     }
 
-    BIO_ctrl(SSL_get_rbio(s), BIO_CTRL_DGRAM_SET_NEXT_TIMEOUT, 0,
+    VR_BIO_ctrl(VR_SSL_get_rbio(s), BIO_CTRL_DGRAM_SET_NEXT_TIMEOUT, 0,
              &(s->d1->next_timeout));
 }
 
-struct timeval *dtls1_get_timeout(SSL *s, struct timeval *timeleft)
+struct timeval *VR_dtls1_get_timeout(SSL *s, struct timeval *timeleft)
 {
     struct timeval timenow;
 
@@ -323,12 +323,12 @@ struct timeval *dtls1_get_timeout(SSL *s, struct timeval *timeleft)
     return timeleft;
 }
 
-int dtls1_is_timer_expired(SSL *s)
+int VR_dtls1_is_timer_expired(SSL *s)
 {
     struct timeval timeleft;
 
     /* Get time left until timeout, return false if no timer running */
-    if (dtls1_get_timeout(s, &timeleft) == NULL) {
+    if (VR_dtls1_get_timeout(s, &timeleft) == NULL) {
         return 0;
     }
 
@@ -341,27 +341,27 @@ int dtls1_is_timer_expired(SSL *s)
     return 1;
 }
 
-void dtls1_double_timeout(SSL *s)
+void VR_dtls1_double_timeout(SSL *s)
 {
     s->d1->timeout_duration_us *= 2;
     if (s->d1->timeout_duration_us > 60000000)
         s->d1->timeout_duration_us = 60000000;
-    dtls1_start_timer(s);
+    VR_dtls1_start_timer(s);
 }
 
-void dtls1_stop_timer(SSL *s)
+void VR_dtls1_stop_timer(SSL *s)
 {
     /* Reset everything */
     memset(&s->d1->timeout, 0, sizeof(s->d1->timeout));
     memset(&s->d1->next_timeout, 0, sizeof(s->d1->next_timeout));
     s->d1->timeout_duration_us = 1000000;
-    BIO_ctrl(SSL_get_rbio(s), BIO_CTRL_DGRAM_SET_NEXT_TIMEOUT, 0,
+    VR_BIO_ctrl(VR_SSL_get_rbio(s), BIO_CTRL_DGRAM_SET_NEXT_TIMEOUT, 0,
              &(s->d1->next_timeout));
     /* Clear retransmission buffer */
-    dtls1_clear_sent_buffer(s);
+    VR_dtls1_clear_sent_buffer(s);
 }
 
-int dtls1_check_timeout_num(SSL *s)
+int VR_dtls1_check_timeout_num(SSL *s)
 {
     size_t mtu;
 
@@ -369,9 +369,9 @@ int dtls1_check_timeout_num(SSL *s)
 
     /* Reduce MTU after 2 unsuccessful retransmissions */
     if (s->d1->timeout.num_alerts > 2
-        && !(SSL_get_options(s) & SSL_OP_NO_QUERY_MTU)) {
+        && !(VR_SSL_get_options(s) & SSL_OP_NO_QUERY_MTU)) {
         mtu =
-            BIO_ctrl(SSL_get_wbio(s), BIO_CTRL_DGRAM_GET_FALLBACK_MTU, 0, NULL);
+            VR_BIO_ctrl(VR_SSL_get_wbio(s), BIO_CTRL_DGRAM_GET_FALLBACK_MTU, 0, NULL);
         if (mtu < s->d1->mtu)
             s->d1->mtu = mtu;
     }
@@ -386,19 +386,19 @@ int dtls1_check_timeout_num(SSL *s)
     return 0;
 }
 
-int dtls1_handle_timeout(SSL *s)
+int VR_dtls1_handle_timeout(SSL *s)
 {
     /* if no timer is expired, don't do anything */
-    if (!dtls1_is_timer_expired(s)) {
+    if (!VR_dtls1_is_timer_expired(s)) {
         return 0;
     }
 
     if (s->d1->timer_cb != NULL)
         s->d1->timeout_duration_us = s->d1->timer_cb(s, s->d1->timeout_duration_us);
     else
-        dtls1_double_timeout(s);
+        VR_dtls1_double_timeout(s);
 
-    if (dtls1_check_timeout_num(s) < 0) {
+    if (VR_dtls1_check_timeout_num(s) < 0) {
         /* SSLfatal() already called */
         return -1;
     }
@@ -408,9 +408,9 @@ int dtls1_handle_timeout(SSL *s)
         s->d1->timeout.read_timeouts = 1;
     }
 
-    dtls1_start_timer(s);
+    VR_dtls1_start_timer(s);
     /* Calls SSLfatal() if required */
-    return dtls1_retransmit_buffered_messages(s);
+    return VR_dtls1_retransmit_buffered_messages(s);
 }
 
 static void get_current_time(struct timeval *t)
@@ -443,7 +443,7 @@ static void get_current_time(struct timeval *t)
 #define LISTEN_SEND_VERIFY_REQUEST  1
 
 #ifndef OPENSSL_NO_SOCK
-int DTLSv1_listen(SSL *s, BIO_ADDR *client)
+int VR_DTLSv1_listen(SSL *s, BIO_ADDR *client)
 {
     int next, n, ret = 0;
     unsigned char cookie[DTLS1_COOKIE_LENGTH];
@@ -458,17 +458,17 @@ int DTLSv1_listen(SSL *s, BIO_ADDR *client)
 
     if (s->handshake_func == NULL) {
         /* Not properly initialized yet */
-        SSL_set_accept_state(s);
+        VR_SSL_set_accept_state(s);
     }
 
     /* Ensure there is no state left over from a previous invocation */
-    if (!SSL_clear(s))
+    if (!VR_SSL_clear(s))
         return -1;
 
-    ERR_clear_error();
+    VR_ERR_clear_error();
 
-    rbio = SSL_get_rbio(s);
-    wbio = SSL_get_wbio(s);
+    rbio = VR_SSL_get_rbio(s);
+    wbio = VR_SSL_get_wbio(s);
 
     if (!rbio || !wbio) {
         SSLerr(SSL_F_DTLSV1_LISTEN, SSL_R_BIO_NOT_SET);
@@ -478,16 +478,16 @@ int DTLSv1_listen(SSL *s, BIO_ADDR *client)
     /*
      * Note: This check deliberately excludes DTLS1_BAD_VER because that version
      * requires the MAC to be calculated *including* the first ClientHello
-     * (without the cookie). Since DTLSv1_listen is stateless that cannot be
+     * (without the cookie). Since VR_DTLSv1_listen is stateless that cannot be
      * supported. DTLS1_BAD_VER must use cookies in a stateful manner (e.g. via
-     * SSL_accept)
+     * VR_SSL_accept)
      */
     if ((s->version & 0xff00) != (DTLS1_VERSION & 0xff00)) {
         SSLerr(SSL_F_DTLSV1_LISTEN, SSL_R_UNSUPPORTED_SSL_VERSION);
         return -1;
     }
 
-    if (!ssl3_setup_buffers(s)) {
+    if (!VR_ssl3_setup_buffers(s)) {
         /* SSLerr already called */
         return -1;
     }
@@ -497,7 +497,7 @@ int DTLSv1_listen(SSL *s, BIO_ADDR *client)
 # if SSL3_ALIGN_PAYLOAD != 0
     /*
      * Using SSL3_RT_HEADER_LENGTH here instead of DTLS1_RT_HEADER_LENGTH for
-     * consistency with ssl3_read_n. In practice it should make no difference
+     * consistency with VR_ssl3_read_n. In practice it should make no difference
      * for sensible values of SSL3_ALIGN_PAYLOAD because the difference between
      * SSL3_RT_HEADER_LENGTH and DTLS1_RT_HEADER_LENGTH is exactly 8
      */
@@ -511,7 +511,7 @@ int DTLSv1_listen(SSL *s, BIO_ADDR *client)
         /* Get a packet */
 
         clear_sys_error();
-        n = BIO_read(rbio, buf, SSL3_RT_MAX_PLAIN_LENGTH
+        n = VR_BIO_read(rbio, buf, SSL3_RT_MAX_PLAIN_LENGTH
                                 + DTLS1_RT_HEADER_LENGTH);
         if (n <= 0) {
             if (BIO_should_retry(rbio)) {
@@ -711,9 +711,9 @@ int DTLSv1_listen(SSL *s, BIO_ADDR *client)
                                                                : s->version;
 
             /* Construct the record and message headers */
-            if (!WPACKET_init_static_len(&wpkt,
+            if (!VR_WPACKET_init_static_len(&wpkt,
                                          wbuf,
-                                         ssl_get_max_send_fragment(s)
+                                         VR_ssl_get_max_send_fragment(s)
                                          + DTLS1_RT_HEADER_LENGTH,
                                          0)
                     || !WPACKET_put_bytes_u8(&wpkt, SSL3_RT_HANDSHAKE)
@@ -722,9 +722,9 @@ int DTLSv1_listen(SSL *s, BIO_ADDR *client)
                         * Record sequence number is always the same as in the
                         * received ClientHello
                         */
-                    || !WPACKET_memcpy(&wpkt, seq, SEQ_NUM_SIZE)
+                    || !VR_WPACKET_memcpy(&wpkt, seq, SEQ_NUM_SIZE)
                        /* End of record, start sub packet for message */
-                    || !WPACKET_start_sub_packet_u16(&wpkt)
+                    || !VR_WPACKET_start_sub_packet_u16(&wpkt)
                        /* Message type */
                     || !WPACKET_put_bytes_u8(&wpkt,
                                              DTLS1_MT_HELLO_VERIFY_REQUEST)
@@ -751,17 +751,17 @@ int DTLSv1_listen(SSL *s, BIO_ADDR *client)
                         * can just start a sub-packet. No need to come back
                         * later for this one.
                         */
-                    || !WPACKET_start_sub_packet_u24(&wpkt)
+                    || !VR_WPACKET_start_sub_packet_u24(&wpkt)
                        /* Create the actual HelloVerifyRequest body */
-                    || !dtls_raw_hello_verify_request(&wpkt, cookie, cookielen)
+                    || !VR_dtls_raw_hello_verify_request(&wpkt, cookie, cookielen)
                        /* Close message body */
-                    || !WPACKET_close(&wpkt)
+                    || !VR_WPACKET_close(&wpkt)
                        /* Close record body */
-                    || !WPACKET_close(&wpkt)
-                    || !WPACKET_get_total_written(&wpkt, &wreclen)
-                    || !WPACKET_finish(&wpkt)) {
+                    || !VR_WPACKET_close(&wpkt)
+                    || !VR_WPACKET_get_total_written(&wpkt, &wreclen)
+                    || !VR_WPACKET_finish(&wpkt)) {
                 SSLerr(SSL_F_DTLSV1_LISTEN, ERR_R_INTERNAL_ERROR);
-                WPACKET_cleanup(&wpkt);
+                VR_WPACKET_cleanup(&wpkt);
                 /* This is fatal */
                 return -1;
             }
@@ -781,7 +781,7 @@ int DTLSv1_listen(SSL *s, BIO_ADDR *client)
                 s->msg_callback(1, 0, SSL3_RT_HEADER, buf,
                                 DTLS1_RT_HEADER_LENGTH, s, s->msg_callback_arg);
 
-            if ((tmpclient = BIO_ADDR_new()) == NULL) {
+            if ((tmpclient = VR_BIO_ADDR_new()) == NULL) {
                 SSLerr(SSL_F_DTLSV1_LISTEN, ERR_R_MALLOC_FAILURE);
                 goto end;
             }
@@ -794,11 +794,11 @@ int DTLSv1_listen(SSL *s, BIO_ADDR *client)
             if (BIO_dgram_get_peer(rbio, tmpclient) > 0) {
                 (void)BIO_dgram_set_peer(wbio, tmpclient);
             }
-            BIO_ADDR_free(tmpclient);
+            VR_BIO_ADDR_free(tmpclient);
             tmpclient = NULL;
 
             /* TODO(size_t): convert this call */
-            if (BIO_write(wbio, wbuf, wreclen) < (int)wreclen) {
+            if (VR_BIO_write(wbio, wbuf, wreclen) < (int)wreclen) {
                 if (BIO_should_retry(wbio)) {
                     /*
                      * Non-blocking IO...but we're stateless, so we're just
@@ -828,49 +828,49 @@ int DTLSv1_listen(SSL *s, BIO_ADDR *client)
     s->d1->handshake_read_seq = 1;
     s->d1->handshake_write_seq = 1;
     s->d1->next_handshake_write_seq = 1;
-    DTLS_RECORD_LAYER_set_write_sequence(&s->rlayer, seq);
+    VR_DTLS_RECORD_LAYER_set_write_sequence(&s->rlayer, seq);
 
     /*
      * We are doing cookie exchange, so make sure we set that option in the
      * SSL object
      */
-    SSL_set_options(s, SSL_OP_COOKIE_EXCHANGE);
+    VR_SSL_set_options(s, SSL_OP_COOKIE_EXCHANGE);
 
     /*
      * Tell the state machine that we've done the initial hello verify
      * exchange
      */
-    ossl_statem_set_hello_verify_done(s);
+    VR_ossl_statem_set_hello_verify_done(s);
 
     /*
      * Some BIOs may not support this. If we fail we clear the client address
      */
     if (BIO_dgram_get_peer(rbio, client) <= 0)
-        BIO_ADDR_clear(client);
+        VR_BIO_ADDR_clear(client);
 
     /* Buffer the record in the processed_rcds queue */
-    if (!dtls_buffer_listen_record(s, reclen, seq, align))
+    if (!VR_dtls_buffer_listen_record(s, reclen, seq, align))
         return -1;
 
     ret = 1;
  end:
-    BIO_ADDR_free(tmpclient);
+    VR_BIO_ADDR_free(tmpclient);
     return ret;
 }
 #endif
 
 static int dtls1_handshake_write(SSL *s)
 {
-    return dtls1_do_write(s, SSL3_RT_HANDSHAKE);
+    return VR_dtls1_do_write(s, SSL3_RT_HANDSHAKE);
 }
 
-int dtls1_shutdown(SSL *s)
+int VR_dtls1_shutdown(SSL *s)
 {
     int ret;
 #ifndef OPENSSL_NO_SCTP
     BIO *wbio;
 
-    wbio = SSL_get_wbio(s);
+    wbio = VR_SSL_get_wbio(s);
     if (wbio != NULL && BIO_dgram_is_sctp(wbio) &&
         !(s->shutdown & SSL_SENT_SHUTDOWN)) {
         ret = BIO_dgram_sctp_wait_for_dry(wbio);
@@ -878,39 +878,39 @@ int dtls1_shutdown(SSL *s)
             return -1;
 
         if (ret == 0)
-            BIO_ctrl(SSL_get_wbio(s), BIO_CTRL_DGRAM_SCTP_SAVE_SHUTDOWN, 1,
+            VR_BIO_ctrl(VR_SSL_get_wbio(s), BIO_CTRL_DGRAM_SCTP_SAVE_SHUTDOWN, 1,
                      NULL);
     }
 #endif
-    ret = ssl3_shutdown(s);
+    ret = VR_ssl3_shutdown(s);
 #ifndef OPENSSL_NO_SCTP
-    BIO_ctrl(SSL_get_wbio(s), BIO_CTRL_DGRAM_SCTP_SAVE_SHUTDOWN, 0, NULL);
+    VR_BIO_ctrl(VR_SSL_get_wbio(s), BIO_CTRL_DGRAM_SCTP_SAVE_SHUTDOWN, 0, NULL);
 #endif
     return ret;
 }
 
-int dtls1_query_mtu(SSL *s)
+int VR_dtls1_query_mtu(SSL *s)
 {
     if (s->d1->link_mtu) {
         s->d1->mtu =
-            s->d1->link_mtu - BIO_dgram_get_mtu_overhead(SSL_get_wbio(s));
+            s->d1->link_mtu - BIO_dgram_get_mtu_overhead(VR_SSL_get_wbio(s));
         s->d1->link_mtu = 0;
     }
 
     /* AHA!  Figure out the MTU, and stick to the right size */
-    if (s->d1->mtu < dtls1_min_mtu(s)) {
-        if (!(SSL_get_options(s) & SSL_OP_NO_QUERY_MTU)) {
+    if (s->d1->mtu < VR_dtls1_min_mtu(s)) {
+        if (!(VR_SSL_get_options(s) & SSL_OP_NO_QUERY_MTU)) {
             s->d1->mtu =
-                BIO_ctrl(SSL_get_wbio(s), BIO_CTRL_DGRAM_QUERY_MTU, 0, NULL);
+                VR_BIO_ctrl(VR_SSL_get_wbio(s), BIO_CTRL_DGRAM_QUERY_MTU, 0, NULL);
 
             /*
              * I've seen the kernel return bogus numbers when it doesn't know
              * (initial write), so just make sure we have a reasonable number
              */
-            if (s->d1->mtu < dtls1_min_mtu(s)) {
+            if (s->d1->mtu < VR_dtls1_min_mtu(s)) {
                 /* Set to min mtu */
-                s->d1->mtu = dtls1_min_mtu(s);
-                BIO_ctrl(SSL_get_wbio(s), BIO_CTRL_DGRAM_SET_MTU,
+                s->d1->mtu = VR_dtls1_min_mtu(s);
+                VR_BIO_ctrl(VR_SSL_get_wbio(s), BIO_CTRL_DGRAM_SET_MTU,
                          (long)s->d1->mtu, NULL);
             }
         } else
@@ -925,21 +925,21 @@ static size_t dtls1_link_min_mtu(void)
                             sizeof(g_probable_mtu[0])) - 1]);
 }
 
-size_t dtls1_min_mtu(SSL *s)
+size_t VR_dtls1_min_mtu(SSL *s)
 {
-    return dtls1_link_min_mtu() - BIO_dgram_get_mtu_overhead(SSL_get_wbio(s));
+    return dtls1_link_min_mtu() - BIO_dgram_get_mtu_overhead(VR_SSL_get_wbio(s));
 }
 
-size_t DTLS_get_data_mtu(const SSL *s)
+size_t VR_DTLS_get_data_mtu(const SSL *s)
 {
     size_t mac_overhead, int_overhead, blocksize, ext_overhead;
-    const SSL_CIPHER *ciph = SSL_get_current_cipher(s);
+    const SSL_CIPHER *ciph = VR_SSL_get_current_cipher(s);
     size_t mtu = s->d1->mtu;
 
     if (ciph == NULL)
         return 0;
 
-    if (!ssl_cipher_get_overhead(ciph, &mac_overhead, &int_overhead,
+    if (!VR_ssl_cipher_get_overhead(ciph, &mac_overhead, &int_overhead,
                                  &blocksize, &ext_overhead))
         return 0;
 
@@ -966,7 +966,7 @@ size_t DTLS_get_data_mtu(const SSL *s)
     return mtu;
 }
 
-void DTLS_set_timer_cb(SSL *s, DTLS_timer_cb cb)
+void VR_DTLS_set_timer_cb(SSL *s, DTLS_timer_cb cb)
 {
     s->d1->timer_cb = cb;
 }

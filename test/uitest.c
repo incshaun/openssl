@@ -22,7 +22,7 @@ char *default_config_file = NULL;
 /* Old style PEM password callback */
 static int test_pem_password_cb(char *buf, int size, int rwflag, void *userdata)
 {
-    OPENSSL_strlcpy(buf, (char *)userdata, (size_t)size);
+    VR_OPENSSL_strlcpy(buf, (char *)userdata, (size_t)size);
     return strlen(buf);
 }
 
@@ -39,18 +39,18 @@ static int test_old(void)
     int ok = 0;
 
     if (!TEST_ptr(ui_method =
-                  UI_UTIL_wrap_read_pem_callback( test_pem_password_cb, 0))
-            || !TEST_ptr(ui = UI_new_method(ui_method)))
+                  VR_UI_UTIL_wrap_read_pem_callback( test_pem_password_cb, 0))
+            || !TEST_ptr(ui = VR_UI_new_method(ui_method)))
         goto err;
 
     /* The wrapper passes the UI userdata as the callback userdata param */
-    UI_add_user_data(ui, defpass);
+    VR_UI_add_user_data(ui, defpass);
 
-    if (!UI_add_input_string(ui, "prompt", UI_INPUT_FLAG_DEFAULT_PWD,
+    if (!VR_UI_add_input_string(ui, "prompt", UI_INPUT_FLAG_DEFAULT_PWD,
                              pass, 0, sizeof(pass) - 1))
         goto err;
 
-    switch (UI_process(ui)) {
+    switch (VR_UI_process(ui)) {
     case -2:
         TEST_info("test_old: UI process interrupted or cancelled");
         /* fall through */
@@ -64,8 +64,8 @@ static int test_old(void)
         ok = 1;
 
  err:
-    UI_free(ui);
-    UI_destroy_method(ui_method);
+    VR_UI_free(ui);
+    VR_UI_destroy_method(ui_method);
 
     return ok;
 }

@@ -66,30 +66,30 @@ static CTLOG_STORE_LOAD_CTX *ctlog_store_load_ctx_new(void)
 
 static void ctlog_store_load_ctx_free(CTLOG_STORE_LOAD_CTX* ctx)
 {
-    OPENSSL_free(ctx);
+    OPENVR_SSL_free(ctx);
 }
 
-/* Converts a log's public key into a SHA256 log ID */
+/* Converts a log's public key into a VR_SHA256 log ID */
 static int ct_v1_log_id_from_pkey(EVP_PKEY *pkey,
                                   unsigned char log_id[CT_V1_HASHLEN])
 {
     int ret = 0;
     unsigned char *pkey_der = NULL;
-    int pkey_der_len = i2d_PUBKEY(pkey, &pkey_der);
+    int pkey_der_len = VR_i2d_PUBKEY(pkey, &pkey_der);
 
     if (pkey_der_len <= 0) {
         CTerr(CT_F_CT_V1_LOG_ID_FROM_PKEY, CT_R_LOG_KEY_INVALID);
         goto err;
     }
 
-    SHA256(pkey_der, pkey_der_len, log_id);
+    VR_SHA256(pkey_der, pkey_der_len, log_id);
     ret = 1;
 err:
-    OPENSSL_free(pkey_der);
+    OPENVR_SSL_free(pkey_der);
     return ret;
 }
 
-CTLOG_STORE *CTLOG_STORE_new(void)
+CTLOG_STORE *VR_CTLOG_STORE_new(void)
 {
     CTLOG_STORE *ret = OPENSSL_zalloc(sizeof(*ret));
 
@@ -98,27 +98,27 @@ CTLOG_STORE *CTLOG_STORE_new(void)
         return NULL;
     }
 
-    ret->logs = sk_CTLOG_new_null();
+    ret->logs = sk_VR_CTLOG_new_null();
     if (ret->logs == NULL)
         goto err;
 
     return ret;
 err:
-    OPENSSL_free(ret);
+    OPENVR_SSL_free(ret);
     return NULL;
 }
 
-void CTLOG_STORE_free(CTLOG_STORE *store)
+void VR_CTLOG_STORE_free(CTLOG_STORE *store)
 {
     if (store != NULL) {
-        sk_CTLOG_pop_free(store->logs, CTLOG_free);
-        OPENSSL_free(store);
+        sk_VR_CTLOG_pop_free(store->logs, VR_CTLOG_free);
+        OPENVR_SSL_free(store);
     }
 }
 
 static int ctlog_new_from_conf(CTLOG **ct_log, const CONF *conf, const char *section)
 {
-    const char *description = NCONF_get_string(conf, section, "description");
+    const char *description = VR_NCONF_get_string(conf, section, "description");
     char *pkey_base64;
 
     if (description == NULL) {
@@ -126,27 +126,27 @@ static int ctlog_new_from_conf(CTLOG **ct_log, const CONF *conf, const char *sec
         return 0;
     }
 
-    pkey_base64 = NCONF_get_string(conf, section, "key");
+    pkey_base64 = VR_NCONF_get_string(conf, section, "key");
     if (pkey_base64 == NULL) {
         CTerr(CT_F_CTLOG_NEW_FROM_CONF, CT_R_LOG_CONF_MISSING_KEY);
         return 0;
     }
 
-    return CTLOG_new_from_base64(ct_log, pkey_base64, description);
+    return VR_CTLOG_new_from_base64(ct_log, pkey_base64, description);
 }
 
-int CTLOG_STORE_load_default_file(CTLOG_STORE *store)
+int VR_CTLOG_STORE_load_default_file(CTLOG_STORE *store)
 {
-    const char *fpath = ossl_safe_getenv(CTLOG_FILE_EVP);
+    const char *fpath = VR_ossl_safe_getenv(CTLOG_FILE_EVP);
 
     if (fpath == NULL)
       fpath = CTLOG_FILE;
 
-    return CTLOG_STORE_load_file(store, fpath);
+    return VR_CTLOG_STORE_load_file(store, fpath);
 }
 
 /*
- * Called by CONF_parse_list, which stops if this returns <= 0,
+ * Called by VR_CONF_parse_list, which stops if this returns <= 0,
  * Otherwise, one bad log entry would stop loading of any of
  * the following log entries.
  * It may stop parsing and returns -1 on any internal (malloc) error.
@@ -169,7 +169,7 @@ static int ctlog_store_load_log(const char *log_name, int log_name_len,
         goto mem_err;
 
     ret = ctlog_new_from_conf(&ct_log, load_ctx->conf, tmp);
-    OPENSSL_free(tmp);
+    OPENVR_SSL_free(tmp);
 
     if (ret < 0) {
         /* Propagate any internal error */
@@ -181,18 +181,18 @@ static int ctlog_store_load_log(const char *log_name, int log_name_len,
         return 1;
     }
 
-    if (!sk_CTLOG_push(load_ctx->log_store->logs, ct_log)) {
+    if (!sk_VR_CTLOG_push(load_ctx->log_store->logs, ct_log)) {
         goto mem_err;
     }
     return 1;
 
 mem_err:
-    CTLOG_free(ct_log);
+    VR_CTLOG_free(ct_log);
     CTerr(CT_F_CTLOG_STORE_LOAD_LOG, ERR_R_MALLOC_FAILURE);
     return -1;
 }
 
-int CTLOG_STORE_load_file(CTLOG_STORE *store, const char *file)
+int VR_CTLOG_STORE_load_file(CTLOG_STORE *store, const char *file)
 {
     int ret = 0;
     char *enabled_logs;
@@ -201,22 +201,22 @@ int CTLOG_STORE_load_file(CTLOG_STORE *store, const char *file)
     if (load_ctx == NULL)
         return 0;
     load_ctx->log_store = store;
-    load_ctx->conf = NCONF_new(NULL);
+    load_ctx->conf = VR_NCONF_new(NULL);
     if (load_ctx->conf == NULL)
         goto end;
 
-    if (NCONF_load(load_ctx->conf, file, NULL) <= 0) {
+    if (VR_NCONF_load(load_ctx->conf, file, NULL) <= 0) {
         CTerr(CT_F_CTLOG_STORE_LOAD_FILE, CT_R_LOG_CONF_INVALID);
         goto end;
     }
 
-    enabled_logs = NCONF_get_string(load_ctx->conf, NULL, "enabled_logs");
+    enabled_logs = VR_NCONF_get_string(load_ctx->conf, NULL, "enabled_logs");
     if (enabled_logs == NULL) {
         CTerr(CT_F_CTLOG_STORE_LOAD_FILE, CT_R_LOG_CONF_INVALID);
         goto end;
     }
 
-    if (!CONF_parse_list(enabled_logs, ',', 1, ctlog_store_load_log, load_ctx) ||
+    if (!VR_CONF_parse_list(enabled_logs, ',', 1, ctlog_store_load_log, load_ctx) ||
         load_ctx->invalid_log_entries > 0) {
         CTerr(CT_F_CTLOG_STORE_LOAD_FILE, CT_R_LOG_CONF_INVALID);
         goto end;
@@ -224,7 +224,7 @@ int CTLOG_STORE_load_file(CTLOG_STORE *store, const char *file)
 
     ret = 1;
 end:
-    NCONF_free(load_ctx->conf);
+    VR_NCONF_free(load_ctx->conf);
     ctlog_store_load_ctx_free(load_ctx);
     return ret;
 }
@@ -234,7 +234,7 @@ end:
  * Takes ownership of the public key.
  * Copies the name.
  */
-CTLOG *CTLOG_new(EVP_PKEY *public_key, const char *name)
+CTLOG *VR_CTLOG_new(EVP_PKEY *public_key, const char *name)
 {
     CTLOG *ret = OPENSSL_zalloc(sizeof(*ret));
 
@@ -255,33 +255,33 @@ CTLOG *CTLOG_new(EVP_PKEY *public_key, const char *name)
     ret->public_key = public_key;
     return ret;
 err:
-    CTLOG_free(ret);
+    VR_CTLOG_free(ret);
     return NULL;
 }
 
 /* Frees CT log and associated structures */
-void CTLOG_free(CTLOG *log)
+void VR_CTLOG_free(CTLOG *log)
 {
     if (log != NULL) {
-        OPENSSL_free(log->name);
-        EVP_PKEY_free(log->public_key);
-        OPENSSL_free(log);
+        OPENVR_SSL_free(log->name);
+        VR_EVP_PKEY_free(log->public_key);
+        OPENVR_SSL_free(log);
     }
 }
 
-const char *CTLOG_get0_name(const CTLOG *log)
+const char *VR_CTLOG_get0_name(const CTLOG *log)
 {
     return log->name;
 }
 
-void CTLOG_get0_log_id(const CTLOG *log, const uint8_t **log_id,
+void VR_CTLOG_get0_log_id(const CTLOG *log, const uint8_t **log_id,
                        size_t *log_id_len)
 {
     *log_id = log->log_id;
     *log_id_len = CT_V1_HASHLEN;
 }
 
-EVP_PKEY *CTLOG_get0_public_key(const CTLOG *log)
+EVP_PKEY *VR_CTLOG_get0_public_key(const CTLOG *log)
 {
     return log->public_key;
 }
@@ -290,7 +290,7 @@ EVP_PKEY *CTLOG_get0_public_key(const CTLOG *log)
  * Given a log ID, finds the matching log.
  * Returns NULL if no match found.
  */
-const CTLOG *CTLOG_STORE_get0_log_by_id(const CTLOG_STORE *store,
+const CTLOG *VR_CTLOG_STORE_get0_log_by_id(const CTLOG_STORE *store,
                                         const uint8_t *log_id,
                                         size_t log_id_len)
 {

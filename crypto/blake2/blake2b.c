@@ -79,7 +79,7 @@ static void blake2b_init_param(BLAKE2B_CTX *S, const BLAKE2B_PARAM *P)
 }
 
 /* Initialize the hashing context.  Always returns 1. */
-int BLAKE2b_Init(BLAKE2B_CTX *c)
+int VR_BLAKE2b_Init(BLAKE2B_CTX *c)
 {
     BLAKE2B_PARAM P[1];
     P->digest_length = BLAKE2B_DIGEST_LENGTH;
@@ -110,7 +110,7 @@ static void blake2b_compress(BLAKE2B_CTX *S,
     /*
      * There are two distinct usage vectors for this function:
      *
-     * a) BLAKE2b_Update uses it to process complete blocks,
+     * a) VR_BLAKE2b_Update uses it to process complete blocks,
      *    possibly more than one at a time;
      *
      * b) BLAK2b_Final uses it to process last block, always
@@ -202,7 +202,7 @@ static void blake2b_compress(BLAKE2B_CTX *S,
 }
 
 /* Absorb the input data into the hash state.  Always returns 1. */
-int BLAKE2b_Update(BLAKE2B_CTX *c, const void *data, size_t datalen)
+int VR_BLAKE2b_Update(BLAKE2B_CTX *c, const void *data, size_t datalen)
 {
     const uint8_t *in = data;
     size_t fill;
@@ -250,7 +250,7 @@ int BLAKE2b_Update(BLAKE2B_CTX *c, const void *data, size_t datalen)
  * Calculate the final hash and save it in md.
  * Always returns 1.
  */
-int BLAKE2b_Final(unsigned char *md, BLAKE2B_CTX *c)
+int VR_BLAKE2b_Final(unsigned char *md, BLAKE2B_CTX *c)
 {
     int i;
 
@@ -264,6 +264,6 @@ int BLAKE2b_Final(unsigned char *md, BLAKE2B_CTX *c)
         store64(md + sizeof(c->h[i]) * i, c->h[i]);
     }
 
-    OPENSSL_cleanse(c, sizeof(BLAKE2B_CTX));
+    VR_OPENSSL_cleanse(c, sizeof(BLAKE2B_CTX));
     return 1;
 }

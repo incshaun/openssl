@@ -181,7 +181,7 @@ static void test_bignum_header_line(void)
 static const char *test_bignum_zero_null(const BIGNUM *bn)
 {
     if (bn != NULL)
-        return BN_is_negative(bn) ? "-0" : "0";
+        return VR_BN_is_negative(bn) ? "-0" : "0";
     return "NULL";
 }
 
@@ -208,7 +208,7 @@ static int convert_bn_memory(const unsigned char *in, size_t bytes,
     char *p = out, *q = NULL;
     const char *r;
 
-    if (bn != NULL && !BN_is_zero(bn)) {
+    if (bn != NULL && !VR_BN_is_zero(bn)) {
         hex_convert_memory(in, bytes, out, BN_OUTPUT_SIZE);
         if (*lz) {
             for (; *p == '0' || *p == ' '; p++)
@@ -222,14 +222,14 @@ static int convert_bn_memory(const unsigned char *in, size_t bytes,
                  * in[bytes] is defined because we're converting a non-zero
                  * number and we've not seen a non-zero yet.
                  */
-                if ((in[bytes] & 0xf0) != 0 && BN_is_negative(bn)) {
+                if ((in[bytes] & 0xf0) != 0 && VR_BN_is_negative(bn)) {
                     *lz = 0;
                     *q = '-';
                     n++;
                 }
             } else {
                 *lz = 0;
-                if (BN_is_negative(bn)) {
+                if (VR_BN_is_negative(bn)) {
                     /*
                      * This is valid because we always convert more digits than
                      * the number holds.
@@ -251,7 +251,7 @@ static int convert_bn_memory(const unsigned char *in, size_t bytes,
     if (bn == NULL)
         r = "NULL";
     else
-        r = BN_is_negative(bn) ? "-0" : "0";
+        r = VR_BN_is_negative(bn) ? "-0" : "0";
     strcpy(p - strlen(r), r);
     return 0;
 }
@@ -276,8 +276,8 @@ static void test_fail_bignum_common(const char *prefix, const char *file,
     unsigned char buffer[MEM_BUFFER_SIZE * 2], *bufp = buffer;
 
     test_fail_message_prefix(prefix, file, line, type, left, right, op);
-    l1 = bn1 == NULL ? 0 : (BN_num_bytes(bn1) + (BN_is_negative(bn1) ? 1 : 0));
-    l2 = bn2 == NULL ? 0 : (BN_num_bytes(bn2) + (BN_is_negative(bn2) ? 1 : 0));
+    l1 = bn1 == NULL ? 0 : (BN_num_bytes(bn1) + (VR_BN_is_negative(bn1) ? 1 : 0));
+    l2 = bn2 == NULL ? 0 : (BN_num_bytes(bn2) + (VR_BN_is_negative(bn2) ? 1 : 0));
     if (l1 == 0 && l2 == 0) {
         if ((bn1 == NULL) == (bn2 == NULL)) {
             test_bignum_header_line();
@@ -291,7 +291,7 @@ static void test_fail_bignum_common(const char *prefix, const char *file,
         goto fin;
     }
 
-    if (l1 != l2 || bn1 == NULL || bn2 == NULL || BN_cmp(bn1, bn2) != 0)
+    if (l1 != l2 || bn1 == NULL || bn2 == NULL || VR_BN_cmp(bn1, bn2) != 0)
         test_diff_header(left, right);
     test_bignum_header_line();
 
@@ -305,11 +305,11 @@ static void test_fail_bignum_common(const char *prefix, const char *file,
 
     if (bn1 != NULL) {
         m1 = bufp;
-        BN_bn2binpad(bn1, m1, len);
+        VR_BN_bn2binpad(bn1, m1, len);
     }
     if (bn2 != NULL) {
         m2 = bufp + len;
-        BN_bn2binpad(bn2, m2, len);
+        VR_BN_bn2binpad(bn2, m2, len);
     }
 
     while (len > 0) {
@@ -353,7 +353,7 @@ static void test_fail_bignum_common(const char *prefix, const char *file,
 fin:
     test_flush_stderr();
     if (bufp != buffer)
-        OPENSSL_free(bufp);
+        OPENVR_SSL_free(bufp);
 }
 
 /*
@@ -382,20 +382,20 @@ void test_fail_bignum_mono_message(const char *prefix, const char *file,
 
 void test_output_bignum(const char *name, const BIGNUM *bn)
 {
-    if (bn == NULL || BN_is_zero(bn)) {
+    if (bn == NULL || VR_BN_is_zero(bn)) {
         test_printf_stderr("bignum: '%s' = %s\n", name,
                            test_bignum_zero_null(bn));
     } else if (BN_num_bytes(bn) <= BN_OUTPUT_SIZE) {
         unsigned char buf[BN_OUTPUT_SIZE];
         char out[2 * sizeof(buf) + 1];
         char *p = out;
-        int n = BN_bn2bin(bn, buf);
+        int n = VR_BN_bn2bin(bn, buf);
 
         hex_convert_memory(buf, n, p, BN_OUTPUT_SIZE);
         while (*p == '0' && *++p != '\0')
             ;
         test_printf_stderr("bignum: '%s' = %s0x%s\n", name,
-                           BN_is_negative(bn) ? "-" : "", p);
+                           VR_BN_is_negative(bn) ? "-" : "", p);
     } else {
         test_fail_bignum_common("bignum", NULL, 0, NULL, NULL, NULL, name,
                                 bn, bn);

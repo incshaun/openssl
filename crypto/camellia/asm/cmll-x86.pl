@@ -123,12 +123,12 @@ my $t0=@T[($j)%4],$t1=@T[($j+1)%4],$t2=@T[($j+2)%4],$t3=@T[($j+3)%4];
 	&mov	(&DWP($frame+4*(($j+2)%4),"esp"),$t2);	# s2=t2
 }
 
-# void Camellia_EncryptBlock_Rounds(
+# void VR_Camellia_EncryptBlock_Rounds(
 #		int grandRounds,
 #		const Byte plaintext[],
 #		const KEY_TABLE_TYPE keyTable,
 #		Byte ciphertext[])
-&function_begin("Camellia_EncryptBlock_Rounds");
+&function_begin("VR_Camellia_EncryptBlock_Rounds");
 	&mov	("eax",&wparam(0));	# load grandRounds
 	&mov	($idx,&wparam(1));	# load plaintext pointer
 	&mov	($key,&wparam(2));	# load key schedule pointer
@@ -177,16 +177,16 @@ my $t0=@T[($j)%4],$t1=@T[($j+1)%4],$t2=@T[($j+2)%4],$t3=@T[($j+3)%4];
 	&mov	(&DWP(4,$idx),@T[1]);
 	&mov	(&DWP(8,$idx),@T[2]);
 	&mov	(&DWP(12,$idx),@T[3]);
-&function_end("Camellia_EncryptBlock_Rounds");
+&function_end("VR_Camellia_EncryptBlock_Rounds");
 # V1.x API
-&function_begin_B("Camellia_EncryptBlock");
+&function_begin_B("VR_Camellia_EncryptBlock");
 	&mov	("eax",128);
 	&sub	("eax",&wparam(0));	# load keyBitLength
 	&mov	("eax",3);
 	&adc	("eax",0);		# keyBitLength==128?3:4
 	&mov	(&wparam(0),"eax");
-	&jmp	(&label("Camellia_EncryptBlock_Rounds"));
-&function_end_B("Camellia_EncryptBlock");
+	&jmp	(&label("VR_Camellia_EncryptBlock_Rounds"));
+&function_end_B("VR_Camellia_EncryptBlock");
 
 if ($OPENSSL) {
 # void Camellia_encrypt(
@@ -298,12 +298,12 @@ if ($OPENSSL) {
 	&ret	();
 &function_end_B("_x86_Camellia_encrypt");
 
-# void Camellia_DecryptBlock_Rounds(
+# void VR_Camellia_DecryptBlock_Rounds(
 #		int grandRounds,
 #		const Byte ciphertext[],
 #		const KEY_TABLE_TYPE keyTable,
 #		Byte plaintext[])
-&function_begin("Camellia_DecryptBlock_Rounds");
+&function_begin("VR_Camellia_DecryptBlock_Rounds");
 	&mov	("eax",&wparam(0));	# load grandRounds
 	&mov	($idx,&wparam(1));	# load ciphertext pointer
 	&mov	($key,&wparam(2));	# load key schedule pointer
@@ -352,16 +352,16 @@ if ($OPENSSL) {
 	&mov	(&DWP(4,$idx),@T[1]);
 	&mov	(&DWP(8,$idx),@T[2]);
 	&mov	(&DWP(12,$idx),@T[3]);
-&function_end("Camellia_DecryptBlock_Rounds");
+&function_end("VR_Camellia_DecryptBlock_Rounds");
 # V1.x API
-&function_begin_B("Camellia_DecryptBlock");
+&function_begin_B("VR_Camellia_DecryptBlock");
 	&mov	("eax",128);
 	&sub	("eax",&wparam(0));	# load keyBitLength
 	&mov	("eax",3);
 	&adc	("eax",0);		# keyBitLength==128?3:4
 	&mov	(&wparam(0),"eax");
-	&jmp	(&label("Camellia_DecryptBlock_Rounds"));
-&function_end_B("Camellia_DecryptBlock");
+	&jmp	(&label("VR_Camellia_DecryptBlock_Rounds"));
+&function_end_B("VR_Camellia_DecryptBlock");
 
 if ($OPENSSL) {
 # void Camellia_decrypt(
@@ -550,11 +550,11 @@ my $bias=int(@T[0])?shift(@T):0;
 	&mov	(@T[3],&DWP($bias+$rnd*8+12,$key))	if ($#T>=3);
 }
 
-# void Camellia_Ekeygen(
+# void VR_Camellia_Ekeygen(
 #		const int keyBitLength,
 #		const Byte *rawKey,
 #		KEY_TABLE_TYPE keyTable)
-&function_begin("Camellia_Ekeygen");
+&function_begin("VR_Camellia_Ekeygen");
 { my $step=0;
 
 	&stack_push(4);				# place for s[0-3]
@@ -730,7 +730,7 @@ my $bias=int(@T[0])?shift(@T):0;
 	&lea	("edx",&DWP(272-128,$key));	# end of key schedule
 	&stack_pop(4);
 }
-&function_end("Camellia_Ekeygen");
+&function_end("VR_Camellia_Ekeygen");
 
 if ($OPENSSL) {
 # int Camellia_set_key (
@@ -761,7 +761,7 @@ if ($OPENSSL) {
 	&push	("edx");		# push arguments
 	&push	("ecx");
 	&push	("ebx");
-	&call	("Camellia_Ekeygen");
+	&call	("VR_Camellia_Ekeygen");
 	&stack_pop(3);
 
 	# eax holds grandRounds and edx points at where to put it
@@ -807,7 +807,7 @@ sub S3033 { my $i=shift; $i=@SBOX[$i]; $i=($i>>1|$i<<7)&0xff; return $i<<24|$i<<
 for ($i=0;$i<256;$i++) { &data_word(&S1110($i),&S4404($i)); }
 for ($i=0;$i<256;$i++) { &data_word(&S0222($i),&S3033($i)); }
 
-# void Camellia_cbc_encrypt (const void char *inp, unsigned char *out,
+# void VR_Camellia_cbc_encrypt (const void char *inp, unsigned char *out,
 #			size_t length, const CAMELLIA_KEY *key,
 #			unsigned char *ivp,const int enc);
 {
@@ -828,7 +828,7 @@ my $ivec=&DWP(44,"esp");	#ivec[16]
 my $_tmp=&DWP(44,"esp");	#volatile variable [yes, aliases with ivec]
 my ($s0,$s1,$s2,$s3) = @T;
 
-&function_begin("Camellia_cbc_encrypt");
+&function_begin("VR_Camellia_cbc_encrypt");
 	&mov	($s2 eq "ecx"? $s2 : "",&wparam(2));	# load len
 	&cmp	($s2,0);
 	&je	(&label("enc_out"));
@@ -1140,7 +1140,7 @@ my ($s0,$s1,$s2,$s3) = @T;
     &set_label("dec_out",4);
     &mov	("esp",$_esp);
     &popf	();
-&function_end("Camellia_cbc_encrypt");
+&function_end("VR_Camellia_cbc_encrypt");
 }
 
 &asciz("Camellia for x86 by <appro\@openssl.org>");

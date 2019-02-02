@@ -124,34 +124,34 @@ static unsigned char conv_ascii2bin(unsigned char a, const unsigned char *table)
 }
 #endif
 
-EVP_ENCODE_CTX *EVP_ENCODE_CTX_new(void)
+EVP_ENCODE_CTX *VR_EVP_ENCODE_CTX_new(void)
 {
     return OPENSSL_zalloc(sizeof(EVP_ENCODE_CTX));
 }
 
-void EVP_ENCODE_CTX_free(EVP_ENCODE_CTX *ctx)
+void VR_EVP_ENCODE_CTX_free(EVP_ENCODE_CTX *ctx)
 {
-    OPENSSL_free(ctx);
+    OPENVR_SSL_free(ctx);
 }
 
-int EVP_ENCODE_CTX_copy(EVP_ENCODE_CTX *dctx, EVP_ENCODE_CTX *sctx)
+int VR_EVP_ENCODE_CTX_copy(EVP_ENCODE_CTX *dctx, EVP_ENCODE_CTX *sctx)
 {
     memcpy(dctx, sctx, sizeof(EVP_ENCODE_CTX));
 
     return 1;
 }
 
-int EVP_ENCODE_CTX_num(EVP_ENCODE_CTX *ctx)
+int VR_EVP_ENCODE_CTX_num(EVP_ENCODE_CTX *ctx)
 {
     return ctx->num;
 }
 
-void evp_encode_ctx_set_flags(EVP_ENCODE_CTX *ctx, unsigned int flags)
+void VR_evp_encode_ctx_set_flags(EVP_ENCODE_CTX *ctx, unsigned int flags)
 {
     ctx->flags = flags;
 }
 
-void EVP_EncodeInit(EVP_ENCODE_CTX *ctx)
+void VR_EVP_EncodeInit(EVP_ENCODE_CTX *ctx)
 {
     ctx->length = 48;
     ctx->num = 0;
@@ -159,7 +159,7 @@ void EVP_EncodeInit(EVP_ENCODE_CTX *ctx)
     ctx->flags = 0;
 }
 
-int EVP_EncodeUpdate(EVP_ENCODE_CTX *ctx, unsigned char *out, int *outl,
+int VR_EVP_EncodeUpdate(EVP_ENCODE_CTX *ctx, unsigned char *out, int *outl,
                       const unsigned char *in, int inl)
 {
     int i, j;
@@ -214,7 +214,7 @@ int EVP_EncodeUpdate(EVP_ENCODE_CTX *ctx, unsigned char *out, int *outl,
     return 1;
 }
 
-void EVP_EncodeFinal(EVP_ENCODE_CTX *ctx, unsigned char *out, int *outl)
+void VR_EVP_EncodeFinal(EVP_ENCODE_CTX *ctx, unsigned char *out, int *outl)
 {
     unsigned int ret = 0;
 
@@ -266,12 +266,12 @@ static int evp_encodeblock_int(EVP_ENCODE_CTX *ctx, unsigned char *t,
     return ret;
 }
 
-int EVP_EncodeBlock(unsigned char *t, const unsigned char *f, int dlen)
+int VR_EVP_EncodeBlock(unsigned char *t, const unsigned char *f, int dlen)
 {
     return evp_encodeblock_int(NULL, t, f, dlen);
 }
 
-void EVP_DecodeInit(EVP_ENCODE_CTX *ctx)
+void VR_EVP_DecodeInit(EVP_ENCODE_CTX *ctx)
 {
     /* Only ctx->num and ctx->flags are used during decoding. */
     ctx->num = 0;
@@ -285,12 +285,12 @@ void EVP_DecodeInit(EVP_ENCODE_CTX *ctx)
  *  0 for last line
  *  1 for full line
  *
- * Note: even though EVP_DecodeUpdate attempts to detect and report end of
+ * Note: even though VR_EVP_DecodeUpdate attempts to detect and report end of
  * content, the context doesn't currently remember it and will accept more data
  * in the next call. Therefore, the caller is responsible for checking and
  * rejecting a 0 return value in the middle of content.
  *
- * Note: even though EVP_DecodeUpdate has historically tried to detect end of
+ * Note: even though VR_EVP_DecodeUpdate has historically tried to detect end of
  * content based on line length, this has never worked properly. Therefore,
  * we now return 0 when one of the following is true:
  *   - Padding or B64_EOF was detected and the last block is complete.
@@ -300,7 +300,7 @@ void EVP_DecodeInit(EVP_ENCODE_CTX *ctx)
  *   - There is extra trailing padding, or data after padding.
  *   - B64_EOF is detected after an incomplete base64 block.
  */
-int EVP_DecodeUpdate(EVP_ENCODE_CTX *ctx, unsigned char *out, int *outl,
+int VR_EVP_DecodeUpdate(EVP_ENCODE_CTX *ctx, unsigned char *out, int *outl,
                      const unsigned char *in, int inl)
 {
     int seof = 0, eof = 0, rv = -1, ret = 0, i, v, tmp, n, decoded_len;
@@ -383,7 +383,7 @@ int EVP_DecodeUpdate(EVP_ENCODE_CTX *ctx, unsigned char *out, int *outl,
     /*
      * Legacy behaviour: if the current line is a full base64-block (i.e., has
      * 0 mod 4 base64 characters), it is processed immediately. We keep this
-     * behaviour as applications may not be calling EVP_DecodeFinal properly.
+     * behaviour as applications may not be calling VR_EVP_DecodeFinal properly.
      */
 tail:
     if (n > 0) {
@@ -456,12 +456,12 @@ static int evp_decodeblock_int(EVP_ENCODE_CTX *ctx, unsigned char *t,
     return ret;
 }
 
-int EVP_DecodeBlock(unsigned char *t, const unsigned char *f, int n)
+int VR_EVP_DecodeBlock(unsigned char *t, const unsigned char *f, int n)
 {
     return evp_decodeblock_int(NULL, t, f, n);
 }
 
-int EVP_DecodeFinal(EVP_ENCODE_CTX *ctx, unsigned char *out, int *outl)
+int VR_EVP_DecodeFinal(EVP_ENCODE_CTX *ctx, unsigned char *out, int *outl)
 {
     int i;
 

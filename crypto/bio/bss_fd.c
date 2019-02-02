@@ -14,24 +14,24 @@
 
 #if defined(OPENSSL_NO_POSIX_IO)
 /*
- * Dummy placeholder for BIO_s_fd...
+ * Dummy placeholder for VR_BIO_s_fd...
  */
-BIO *BIO_new_fd(int fd, int close_flag)
+BIO *VR_BIO_new_fd(int fd, int close_flag)
 {
     return NULL;
 }
 
-int BIO_fd_non_fatal_error(int err)
+int VR_BIO_fd_non_fatal_error(int err)
 {
     return 0;
 }
 
-int BIO_fd_should_retry(int i)
+int VR_BIO_fd_should_retry(int i)
 {
     return 0;
 }
 
-const BIO_METHOD *BIO_s_fd(void)
+const BIO_METHOD *VR_BIO_s_fd(void)
 {
     return NULL;
 }
@@ -55,16 +55,16 @@ static int fd_gets(BIO *h, char *buf, int size);
 static long fd_ctrl(BIO *h, int cmd, long arg1, void *arg2);
 static int fd_new(BIO *h);
 static int fd_free(BIO *data);
-int BIO_fd_should_retry(int s);
+int VR_BIO_fd_should_retry(int s);
 
 static const BIO_METHOD methods_fdp = {
     BIO_TYPE_FD,
     "file descriptor",
     /* TODO: Convert to new style write function */
-    bwrite_conv,
+    VR_bwrite_conv,
     fd_write,
     /* TODO: Convert to new style read function */
-    bread_conv,
+    VR_bread_conv,
     fd_read,
     fd_puts,
     fd_gets,
@@ -74,15 +74,15 @@ static const BIO_METHOD methods_fdp = {
     NULL,                       /* fd_callback_ctrl */
 };
 
-const BIO_METHOD *BIO_s_fd(void)
+const BIO_METHOD *VR_BIO_s_fd(void)
 {
     return &methods_fdp;
 }
 
-BIO *BIO_new_fd(int fd, int close_flag)
+BIO *VR_BIO_new_fd(int fd, int close_flag)
 {
     BIO *ret;
-    ret = BIO_new(BIO_s_fd());
+    ret = VR_BIO_new(VR_BIO_s_fd());
     if (ret == NULL)
         return NULL;
     BIO_set_fd(ret, fd, close_flag);
@@ -121,7 +121,7 @@ static int fd_read(BIO *b, char *out, int outl)
         ret = UP_read(b->num, out, outl);
         BIO_clear_retry_flags(b);
         if (ret <= 0) {
-            if (BIO_fd_should_retry(ret))
+            if (VR_BIO_fd_should_retry(ret))
                 BIO_set_retry_read(b);
         }
     }
@@ -135,7 +135,7 @@ static int fd_write(BIO *b, const char *in, int inl)
     ret = UP_write(b->num, in, inl);
     BIO_clear_retry_flags(b);
     if (ret <= 0) {
-        if (BIO_fd_should_retry(ret))
+        if (VR_BIO_fd_should_retry(ret))
             BIO_set_retry_write(b);
     }
     return ret;
@@ -220,19 +220,19 @@ static int fd_gets(BIO *bp, char *buf, int size)
     return ret;
 }
 
-int BIO_fd_should_retry(int i)
+int VR_BIO_fd_should_retry(int i)
 {
     int err;
 
     if ((i == 0) || (i == -1)) {
         err = get_last_sys_error();
 
-        return BIO_fd_non_fatal_error(err);
+        return VR_BIO_fd_non_fatal_error(err);
     }
     return 0;
 }
 
-int BIO_fd_non_fatal_error(int err)
+int VR_BIO_fd_non_fatal_error(int err)
 {
     switch (err) {
 

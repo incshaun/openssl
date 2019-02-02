@@ -44,10 +44,10 @@ my ($ctx,$inp,$len,$padbit) = map("%r$_",(2..5));
 $code.=<<___;
 .text
 
-.globl	poly1305_init
-.type	poly1305_init,\@function
+.globl	VR_poly1305_init
+.type	VR_poly1305_init,\@function
 .align	16
-poly1305_init:
+VR_poly1305_init:
 	lghi	%r0,0
 	lghi	%r1,-1
 	stg	%r0,0($ctx)		# zero hash value
@@ -74,17 +74,17 @@ poly1305_init:
 .Lno_key:
 	lghi	%r2,0
 	br	%r14
-.size	poly1305_init,.-poly1305_init
+.size	VR_poly1305_init,.-VR_poly1305_init
 ___
 {
 my ($d0hi,$d0lo,$d1hi,$d1lo,$t0,$h0,$t1,$h1,$h2) = map("%r$_",(6..14));
 my ($r0,$r1,$s1) = map("%r$_",(0..2));
 
 $code.=<<___;
-.globl	poly1305_blocks
-.type	poly1305_blocks,\@function
+.globl	VR_poly1305_blocks
+.type	VR_poly1305_blocks,\@function
 .align	16
-poly1305_blocks:
+VR_poly1305_blocks:
 	srl${g}	$len,4			# fixed-up in 64-bit build
 	lghi	%r0,0
 	cl${g}r	$len,%r0
@@ -163,7 +163,7 @@ poly1305_blocks:
 	lm${g}	%r6,%r14,`6*$SIZE_T`($sp)
 .Lno_data:
 	br	%r14
-.size	poly1305_blocks,.-poly1305_blocks
+.size	VR_poly1305_blocks,.-VR_poly1305_blocks
 ___
 }
 {
@@ -171,10 +171,10 @@ my ($mac,$nonce)=($inp,$len);
 my ($h0,$h1,$h2,$d0,$d1)=map("%r$_",(5..9));
 
 $code.=<<___;
-.globl	poly1305_emit
-.type	poly1305_emit,\@function
+.globl	VR_poly1305_emit
+.type	VR_poly1305_emit,\@function
 .align	16
-poly1305_emit:
+VR_poly1305_emit:
 	stm${g}	%r6,%r9,`6*$SIZE_T`($sp)
 
 	lg	$h0,0($ctx)
@@ -214,7 +214,7 @@ poly1305_emit:
 
 	lm${g}	%r6,%r9,`6*$SIZE_T`($sp)
 	br	%r14
-.size	poly1305_emit,.-poly1305_emit
+.size	VR_poly1305_emit,.-VR_poly1305_emit
 
 .string	"Poly1305 for s390x, CRYPTOGAMS by <appro\@openssl.org>"
 ___

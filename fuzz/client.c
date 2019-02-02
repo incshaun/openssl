@@ -42,13 +42,13 @@ int FuzzerInitialize(int *argc, char ***argv)
 {
     STACK_OF(SSL_COMP) *comp_methods;
 
-    OPENSSL_init_crypto(OPENSSL_INIT_LOAD_CRYPTO_STRINGS | OPENSSL_INIT_ASYNC, NULL);
-    OPENSSL_init_ssl(OPENSSL_INIT_LOAD_SSL_STRINGS, NULL);
-    ERR_get_state();
-    CRYPTO_free_ex_index(0, -1);
-    idx = SSL_get_ex_data_X509_STORE_CTX_idx();
+    VR_OPENSSL_init_crypto(OPENSSL_INIT_LOAD_CRYPTO_STRINGS | OPENSSL_INIT_ASYNC, NULL);
+    VR_OPENSSL_init_ssl(OPENSSL_INIT_LOAD_SSL_STRINGS, NULL);
+    VR_ERR_get_state();
+    VR_CRYPTO_free_ex_index(0, -1);
+    idx = VR_SSL_get_ex_data_X509_STORE_CTX_idx();
     FuzzerSetRand();
-    comp_methods = SSL_COMP_get_compression_methods();
+    comp_methods = VR_SSL_COMP_get_compression_methods();
     if (comp_methods != NULL)
         sk_SSL_COMP_sort(comp_methods);
 
@@ -70,29 +70,29 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
      */
 
     /* This only fuzzes the initial flow from the client so far. */
-    ctx = SSL_CTX_new(SSLv23_method());
+    ctx = VR_SSL_CTX_new(SSLv23_method());
 
-    client = SSL_new(ctx);
+    client = VR_SSL_new(ctx);
     OPENSSL_assert(SSL_set_min_proto_version(client, 0) == 1);
-    OPENSSL_assert(SSL_set_cipher_list(client, "ALL:eNULL:@SECLEVEL=0") == 1);
+    OPENSSL_assert(VR_SSL_set_cipher_list(client, "ALL:eNULL:@SECLEVEL=0") == 1);
     SSL_set_tlsext_host_name(client, "localhost");
-    in = BIO_new(BIO_s_mem());
-    out = BIO_new(BIO_s_mem());
-    SSL_set_bio(client, in, out);
-    SSL_set_connect_state(client);
-    OPENSSL_assert((size_t)BIO_write(in, buf, len) == len);
-    if (SSL_do_handshake(client) == 1) {
+    in = VR_BIO_new(VR_BIO_s_mem());
+    out = VR_BIO_new(VR_BIO_s_mem());
+    VR_SSL_set_bio(client, in, out);
+    VR_SSL_set_connect_state(client);
+    OPENSSL_assert((size_t)VR_BIO_write(in, buf, len) == len);
+    if (VR_SSL_do_handshake(client) == 1) {
         /* Keep reading application data until error or EOF. */
         uint8_t tmp[1024];
         for (;;) {
-            if (SSL_read(client, tmp, sizeof(tmp)) <= 0) {
+            if (VR_SSL_read(client, tmp, sizeof(tmp)) <= 0) {
                 break;
             }
         }
     }
-    SSL_free(client);
-    ERR_clear_error();
-    SSL_CTX_free(ctx);
+    VR_SSL_free(client);
+    VR_ERR_clear_error();
+    VR_SSL_CTX_free(ctx);
 
     return 0;
 }

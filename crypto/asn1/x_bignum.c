@@ -64,7 +64,7 @@ ASN1_ITEM_end(CBIGNUM)
 
 static int bn_new(ASN1_VALUE **pval, const ASN1_ITEM *it)
 {
-    *pval = (ASN1_VALUE *)BN_new();
+    *pval = (ASN1_VALUE *)VR_BN_new();
     if (*pval != NULL)
         return 1;
     else
@@ -73,7 +73,7 @@ static int bn_new(ASN1_VALUE **pval, const ASN1_ITEM *it)
 
 static int bn_secure_new(ASN1_VALUE **pval, const ASN1_ITEM *it)
 {
-    *pval = (ASN1_VALUE *)BN_secure_new();
+    *pval = (ASN1_VALUE *)VR_BN_secure_new();
     if (*pval != NULL)
         return 1;
     else
@@ -85,9 +85,9 @@ static void bn_free(ASN1_VALUE **pval, const ASN1_ITEM *it)
     if (!*pval)
         return;
     if (it->size & BN_SENSITIVE)
-        BN_clear_free((BIGNUM *)*pval);
+        VR_BN_clear_free((BIGNUM *)*pval);
     else
-        BN_free((BIGNUM *)*pval);
+        VR_BN_free((BIGNUM *)*pval);
     *pval = NULL;
 }
 
@@ -100,14 +100,14 @@ static int bn_i2c(ASN1_VALUE **pval, unsigned char *cont, int *putype,
         return -1;
     bn = (BIGNUM *)*pval;
     /* If MSB set in an octet we need a padding byte */
-    if (BN_num_bits(bn) & 0x7)
+    if (VR_BN_num_bits(bn) & 0x7)
         pad = 0;
     else
         pad = 1;
     if (cont) {
         if (pad)
             *cont++ = 0;
-        BN_bn2bin(bn, cont);
+        VR_BN_bn2bin(bn, cont);
     }
     return pad + BN_num_bytes(bn);
 }
@@ -120,7 +120,7 @@ static int bn_c2i(ASN1_VALUE **pval, const unsigned char *cont, int len,
     if (*pval == NULL && !bn_new(pval, it))
         return 0;
     bn = (BIGNUM *)*pval;
-    if (!BN_bin2bn(cont, len, bn)) {
+    if (!VR_BN_bin2bn(cont, len, bn)) {
         bn_free(pval, it);
         return 0;
     }
@@ -138,9 +138,9 @@ static int bn_secure_c2i(ASN1_VALUE **pval, const unsigned char *cont, int len,
 static int bn_print(BIO *out, ASN1_VALUE **pval, const ASN1_ITEM *it,
                     int indent, const ASN1_PCTX *pctx)
 {
-    if (!BN_print(out, *(BIGNUM **)pval))
+    if (!VR_BN_print(out, *(BIGNUM **)pval))
         return 0;
-    if (BIO_puts(out, "\n") <= 0)
+    if (VR_BIO_puts(out, "\n") <= 0)
         return 0;
     return 1;
 }

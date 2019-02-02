@@ -35,7 +35,7 @@ static CRYPTO_ONCE bio_lookup_init = CRYPTO_ONCE_STATIC_INIT;
  *
  */
 
-BIO_ADDR *BIO_ADDR_new(void)
+BIO_ADDR *VR_BIO_ADDR_new(void)
 {
     BIO_ADDR *ret = OPENSSL_zalloc(sizeof(*ret));
 
@@ -48,22 +48,22 @@ BIO_ADDR *BIO_ADDR_new(void)
     return ret;
 }
 
-void BIO_ADDR_free(BIO_ADDR *ap)
+void VR_BIO_ADDR_free(BIO_ADDR *ap)
 {
-    OPENSSL_free(ap);
+    OPENVR_SSL_free(ap);
 }
 
-void BIO_ADDR_clear(BIO_ADDR *ap)
+void VR_BIO_ADDR_clear(BIO_ADDR *ap)
 {
     memset(ap, 0, sizeof(*ap));
     ap->sa.sa_family = AF_UNSPEC;
 }
 
 /*
- * BIO_ADDR_make - non-public routine to fill a BIO_ADDR with the contents
+ * VR_BIO_ADDR_make - non-public routine to fill a BIO_ADDR with the contents
  * of a struct sockaddr.
  */
-int BIO_ADDR_make(BIO_ADDR *ap, const struct sockaddr *sa)
+int VR_BIO_ADDR_make(BIO_ADDR *ap, const struct sockaddr *sa)
 {
     if (sa->sa_family == AF_INET) {
         memcpy(&(ap->s_in), sa, sizeof(struct sockaddr_in));
@@ -85,7 +85,7 @@ int BIO_ADDR_make(BIO_ADDR *ap, const struct sockaddr *sa)
     return 0;
 }
 
-int BIO_ADDR_rawmake(BIO_ADDR *ap, int family,
+int VR_BIO_ADDR_rawmake(BIO_ADDR *ap, int family,
                      const void *where, size_t wherelen,
                      unsigned short port)
 {
@@ -123,12 +123,12 @@ int BIO_ADDR_rawmake(BIO_ADDR *ap, int family,
     return 0;
 }
 
-int BIO_ADDR_family(const BIO_ADDR *ap)
+int VR_BIO_ADDR_family(const BIO_ADDR *ap)
 {
     return ap->sa.sa_family;
 }
 
-int BIO_ADDR_rawaddress(const BIO_ADDR *ap, void *p, size_t *l)
+int VR_BIO_ADDR_rawaddress(const BIO_ADDR *ap, void *p, size_t *l)
 {
     size_t len = 0;
     const void *addrptr = NULL;
@@ -162,7 +162,7 @@ int BIO_ADDR_rawaddress(const BIO_ADDR *ap, void *p, size_t *l)
     return 1;
 }
 
-unsigned short BIO_ADDR_rawport(const BIO_ADDR *ap)
+unsigned short VR_BIO_ADDR_rawport(const BIO_ADDR *ap)
 {
     if (ap->sa.sa_family == AF_INET)
         return ap->s_in.sin_port;
@@ -189,7 +189,7 @@ unsigned short BIO_ADDR_rawport(const BIO_ADDR *ap)
 static int addr_strings(const BIO_ADDR *ap, int numeric,
                         char **hostname, char **service)
 {
-    if (BIO_sock_init() != 1)
+    if (VR_BIO_sock_init() != 1)
         return 0;
 
     if (1) {
@@ -201,8 +201,8 @@ static int addr_strings(const BIO_ADDR *ap, int numeric,
         if (numeric)
             flags |= NI_NUMERICHOST | NI_NUMERICSERV;
 
-        if ((ret = getnameinfo(BIO_ADDR_sockaddr(ap),
-                               BIO_ADDR_sockaddr_size(ap),
+        if ((ret = getnameinfo(VR_BIO_ADDR_sockaddr(ap),
+                               VR_BIO_ADDR_sockaddr_size(ap),
                                host, sizeof(host), serv, sizeof(serv),
                                flags)) != 0) {
 # ifdef EAI_SYSTEM
@@ -213,7 +213,7 @@ static int addr_strings(const BIO_ADDR *ap, int numeric,
 # endif
             {
                 BIOerr(BIO_F_ADDR_STRINGS, ERR_R_SYS_LIB);
-                ERR_add_error_data(1, gai_strerror(ret));
+                VR_ERR_add_error_data(1, gai_strerror(ret));
             }
             return 0;
         }
@@ -225,8 +225,8 @@ static int addr_strings(const BIO_ADDR *ap, int numeric,
          * didn't go the way one might expect.
          */
         if (serv[0] == '\0') {
-            BIO_snprintf(serv, sizeof(serv), "%d",
-                         ntohs(BIO_ADDR_rawport(ap)));
+            VR_BIO_snprintf(serv, sizeof(serv), "%d",
+                         ntohs(VR_BIO_ADDR_rawport(ap)));
         }
 
         if (hostname != NULL)
@@ -239,7 +239,7 @@ static int addr_strings(const BIO_ADDR *ap, int numeric,
             *hostname = OPENSSL_strdup(inet_ntoa(ap->s_in.sin_addr));
         if (service != NULL) {
             char serv[6];        /* port is 16 bits => max 5 decimal digits */
-            BIO_snprintf(serv, sizeof(serv), "%d", ntohs(ap->s_in.sin_port));
+            VR_BIO_snprintf(serv, sizeof(serv), "%d", ntohs(ap->s_in.sin_port));
             *service = OPENSSL_strdup(serv);
         }
     }
@@ -247,11 +247,11 @@ static int addr_strings(const BIO_ADDR *ap, int numeric,
     if ((hostname != NULL && *hostname == NULL)
             || (service != NULL && *service == NULL)) {
         if (hostname != NULL) {
-            OPENSSL_free(*hostname);
+            OPENVR_SSL_free(*hostname);
             *hostname = NULL;
         }
         if (service != NULL) {
-            OPENSSL_free(*service);
+            OPENVR_SSL_free(*service);
             *service = NULL;
         }
         BIOerr(BIO_F_ADDR_STRINGS, ERR_R_MALLOC_FAILURE);
@@ -261,7 +261,7 @@ static int addr_strings(const BIO_ADDR *ap, int numeric,
     return 1;
 }
 
-char *BIO_ADDR_hostname_string(const BIO_ADDR *ap, int numeric)
+char *VR_BIO_ADDR_hostname_string(const BIO_ADDR *ap, int numeric)
 {
     char *hostname = NULL;
 
@@ -271,7 +271,7 @@ char *BIO_ADDR_hostname_string(const BIO_ADDR *ap, int numeric)
     return NULL;
 }
 
-char *BIO_ADDR_service_string(const BIO_ADDR *ap, int numeric)
+char *VR_BIO_ADDR_service_string(const BIO_ADDR *ap, int numeric)
 {
     char *service = NULL;
 
@@ -281,7 +281,7 @@ char *BIO_ADDR_service_string(const BIO_ADDR *ap, int numeric)
     return NULL;
 }
 
-char *BIO_ADDR_path_string(const BIO_ADDR *ap)
+char *VR_BIO_ADDR_path_string(const BIO_ADDR *ap)
 {
 #ifdef AF_UNIX
     if (ap->sa.sa_family == AF_UNIX)
@@ -291,33 +291,33 @@ char *BIO_ADDR_path_string(const BIO_ADDR *ap)
 }
 
 /*
- * BIO_ADDR_sockaddr - non-public routine to return the struct sockaddr
+ * VR_BIO_ADDR_sockaddr - non-public routine to return the struct sockaddr
  * for a given BIO_ADDR.  In reality, this is simply a type safe cast.
  * The returned struct sockaddr is const, so it can't be tampered with.
  */
-const struct sockaddr *BIO_ADDR_sockaddr(const BIO_ADDR *ap)
+const struct sockaddr *VR_BIO_ADDR_sockaddr(const BIO_ADDR *ap)
 {
     return &(ap->sa);
 }
 
 /*
- * BIO_ADDR_sockaddr_noconst - non-public function that does the same
- * as BIO_ADDR_sockaddr, but returns a non-const.  USE WITH CARE, as
+ * VR_BIO_ADDR_sockaddr_noconst - non-public function that does the same
+ * as VR_BIO_ADDR_sockaddr, but returns a non-const.  USE WITH CARE, as
  * it allows you to tamper with the data (and thereby the contents
  * of the input BIO_ADDR).
  */
-struct sockaddr *BIO_ADDR_sockaddr_noconst(BIO_ADDR *ap)
+struct sockaddr *VR_BIO_ADDR_sockaddr_noconst(BIO_ADDR *ap)
 {
     return &(ap->sa);
 }
 
 /*
- * BIO_ADDR_sockaddr_size - non-public function that returns the size
+ * VR_BIO_ADDR_sockaddr_size - non-public function that returns the size
  * of the struct sockaddr the BIO_ADDR is using.  If the protocol family
  * isn't set or is something other than AF_INET, AF_INET6 or AF_UNIX,
  * the size of the BIO_ADDR type is returned.
  */
-socklen_t BIO_ADDR_sockaddr_size(const BIO_ADDR *ap)
+socklen_t VR_BIO_ADDR_sockaddr_size(const BIO_ADDR *ap)
 {
     if (ap->sa.sa_family == AF_INET)
         return sizeof(ap->s_in);
@@ -338,28 +338,28 @@ socklen_t BIO_ADDR_sockaddr_size(const BIO_ADDR *ap)
  *
  */
 
-const BIO_ADDRINFO *BIO_ADDRINFO_next(const BIO_ADDRINFO *bai)
+const BIO_ADDRINFO *VR_BIO_ADDRINFO_next(const BIO_ADDRINFO *bai)
 {
     if (bai != NULL)
         return bai->bai_next;
     return NULL;
 }
 
-int BIO_ADDRINFO_family(const BIO_ADDRINFO *bai)
+int VR_BIO_ADDRINFO_family(const BIO_ADDRINFO *bai)
 {
     if (bai != NULL)
         return bai->bai_family;
     return 0;
 }
 
-int BIO_ADDRINFO_socktype(const BIO_ADDRINFO *bai)
+int VR_BIO_ADDRINFO_socktype(const BIO_ADDRINFO *bai)
 {
     if (bai != NULL)
         return bai->bai_socktype;
     return 0;
 }
 
-int BIO_ADDRINFO_protocol(const BIO_ADDRINFO *bai)
+int VR_BIO_ADDRINFO_protocol(const BIO_ADDRINFO *bai)
 {
     if (bai != NULL) {
         if (bai->bai_protocol != 0)
@@ -383,10 +383,10 @@ int BIO_ADDRINFO_protocol(const BIO_ADDRINFO *bai)
 }
 
 /*
- * BIO_ADDRINFO_sockaddr_size - non-public function that returns the size
+ * VR_BIO_ADDRINFO_sockaddr_size - non-public function that returns the size
  * of the struct sockaddr inside the BIO_ADDRINFO.
  */
-socklen_t BIO_ADDRINFO_sockaddr_size(const BIO_ADDRINFO *bai)
+socklen_t VR_BIO_ADDRINFO_sockaddr_size(const BIO_ADDRINFO *bai)
 {
     if (bai != NULL)
         return bai->bai_addrlen;
@@ -394,24 +394,24 @@ socklen_t BIO_ADDRINFO_sockaddr_size(const BIO_ADDRINFO *bai)
 }
 
 /*
- * BIO_ADDRINFO_sockaddr - non-public function that returns bai_addr
+ * VR_BIO_ADDRINFO_sockaddr - non-public function that returns bai_addr
  * as the struct sockaddr it is.
  */
-const struct sockaddr *BIO_ADDRINFO_sockaddr(const BIO_ADDRINFO *bai)
+const struct sockaddr *VR_BIO_ADDRINFO_sockaddr(const BIO_ADDRINFO *bai)
 {
     if (bai != NULL)
         return bai->bai_addr;
     return NULL;
 }
 
-const BIO_ADDR *BIO_ADDRINFO_address(const BIO_ADDRINFO *bai)
+const BIO_ADDR *VR_BIO_ADDRINFO_address(const BIO_ADDRINFO *bai)
 {
     if (bai != NULL)
         return (BIO_ADDR *)bai->bai_addr;
     return NULL;
 }
 
-void BIO_ADDRINFO_free(BIO_ADDRINFO *bai)
+void VR_BIO_ADDRINFO_free(BIO_ADDRINFO *bai)
 {
     if (bai == NULL)
         return;
@@ -433,8 +433,8 @@ void BIO_ADDRINFO_free(BIO_ADDRINFO *bai)
      */
     while (bai != NULL) {
         BIO_ADDRINFO *next = bai->bai_next;
-        OPENSSL_free(bai->bai_addr);
-        OPENSSL_free(bai);
+        OPENVR_SSL_free(bai->bai_addr);
+        OPENVR_SSL_free(bai);
         bai = next;
     }
 }
@@ -464,7 +464,7 @@ void BIO_ADDRINFO_free(BIO_ADDRINFO *bai)
  * service              => *host untouched, *service = "service"
  *
  */
-int BIO_parse_hostserv(const char *hostserv, char **host, char **service,
+int VR_BIO_parse_hostserv(const char *hostserv, char **host, char **service,
                        enum BIO_hostserv_priorities hostserv_prio)
 {
     const char *h = NULL; size_t hl = 0;
@@ -581,20 +581,20 @@ static int addrinfo_wrap(int family, int socktype,
         (*bai)->bai_protocol = 0;
 #endif
     {
-        /* Magic: We know that BIO_ADDR_sockaddr_noconst is really
+        /* Magic: We know that VR_BIO_ADDR_sockaddr_noconst is really
            just an advanced cast of BIO_ADDR* to struct sockaddr *
            by the power of union, so while it may seem that we're
            creating a memory leak here, we are not.  It will be
            all right. */
-        BIO_ADDR *addr = BIO_ADDR_new();
+        BIO_ADDR *addr = VR_BIO_ADDR_new();
         if (addr != NULL) {
-            BIO_ADDR_rawmake(addr, family, where, wherelen, port);
-            (*bai)->bai_addr = BIO_ADDR_sockaddr_noconst(addr);
+            VR_BIO_ADDR_rawmake(addr, family, where, wherelen, port);
+            (*bai)->bai_addr = VR_BIO_ADDR_sockaddr_noconst(addr);
         }
     }
     (*bai)->bai_next = NULL;
     if ((*bai)->bai_addr == NULL) {
-        BIO_ADDRINFO_free(*bai);
+        VR_BIO_ADDRINFO_free(*bai);
         *bai = NULL;
         return 0;
     }
@@ -603,21 +603,21 @@ static int addrinfo_wrap(int family, int socktype,
 
 DEFINE_RUN_ONCE_STATIC(do_bio_lookup_init)
 {
-    if (!OPENSSL_init_crypto(0, NULL))
+    if (!VR_OPENSSL_init_crypto(0, NULL))
         return 0;
-    bio_lookup_lock = CRYPTO_THREAD_lock_new();
+    bio_lookup_lock = VR_CRYPTO_THREAD_lock_new();
     return bio_lookup_lock != NULL;
 }
 
-int BIO_lookup(const char *host, const char *service,
-               enum BIO_lookup_type lookup_type,
+int VR_BIO_lookup(const char *host, const char *service,
+               enum VR_BIO_lookup_type lookup_type,
                int family, int socktype, BIO_ADDRINFO **res)
 {
-    return BIO_lookup_ex(host, service, lookup_type, family, socktype, 0, res);
+    return VR_BIO_lookup_ex(host, service, lookup_type, family, socktype, 0, res);
 }
 
 /*-
- * BIO_lookup_ex - look up the node and service you want to connect to.
+ * VR_BIO_lookup_ex - look up the node and service you want to connect to.
  * @node: the node you want to connect to.
  * @service: the service you want to connect to.
  * @lookup_type: declare intent with the result, client or server.
@@ -634,11 +634,11 @@ int BIO_lookup(const char *host, const char *service,
  * This will do a lookup of the node and service that you want to connect to.
  * It returns a linked list of different addresses you can try to connect to.
  *
- * When no longer needed you should call BIO_ADDRINFO_free() to free the result.
+ * When no longer needed you should call VR_BIO_ADDRINFO_free() to free the result.
  *
  * The return value is 1 on success or 0 in case of error.
  */
-int BIO_lookup_ex(const char *host, const char *service, int lookup_type,
+int VR_BIO_lookup_ex(const char *host, const char *service, int lookup_type,
                   int family, int socktype, int protocol, BIO_ADDRINFO **res)
 {
     int ret = 0;                 /* Assume failure */
@@ -670,7 +670,7 @@ int BIO_lookup_ex(const char *host, const char *service, int lookup_type,
     }
 #endif
 
-    if (BIO_sock_init() != 1)
+    if (VR_BIO_sock_init() != 1)
         return 0;
 
     if (1) {
@@ -702,7 +702,7 @@ int BIO_lookup_ex(const char *host, const char *service, int lookup_type,
             break;
         default:
             BIOerr(BIO_F_BIO_LOOKUP_EX, ERR_R_SYS_LIB);
-            ERR_add_error_data(1, gai_strerror(gai_ret));
+            VR_ERR_add_error_data(1, gai_strerror(gai_ret));
             break;
         }
     } else {
@@ -748,7 +748,7 @@ int BIO_lookup_ex(const char *host, const char *service, int lookup_type,
             goto err;
         }
 
-        CRYPTO_THREAD_write_lock(bio_lookup_lock);
+        VR_CRYPTO_THREAD_write_lock(bio_lookup_lock);
         he_fallback_address = INADDR_ANY;
         if (host == NULL) {
             he = &he_fallback;
@@ -883,7 +883,7 @@ int BIO_lookup_ex(const char *host, const char *service, int lookup_type,
                 *res = tmp_bai;
                 continue;
              addrinfo_malloc_err:
-                BIO_ADDRINFO_free(*res);
+                VR_BIO_ADDRINFO_free(*res);
                 *res = NULL;
                 BIOerr(BIO_F_BIO_LOOKUP_EX, ERR_R_MALLOC_FAILURE);
                 ret = 0;
@@ -893,7 +893,7 @@ int BIO_lookup_ex(const char *host, const char *service, int lookup_type,
             ret = 1;
         }
      err:
-        CRYPTO_THREAD_unlock(bio_lookup_lock);
+        VR_CRYPTO_THREAD_unlock(bio_lookup_lock);
     }
 
     return ret;

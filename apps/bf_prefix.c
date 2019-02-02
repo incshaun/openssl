@@ -29,16 +29,16 @@ BIO_METHOD *apps_bf_prefix(void)
 {
     if (prefix_meth == NULL) {
         if ((prefix_meth =
-             BIO_meth_new(BIO_TYPE_FILTER, "Prefix filter")) == NULL
-            || !BIO_meth_set_create(prefix_meth, prefix_create)
-            || !BIO_meth_set_destroy(prefix_meth, prefix_destroy)
-            || !BIO_meth_set_write_ex(prefix_meth, prefix_write)
-            || !BIO_meth_set_read_ex(prefix_meth, prefix_read)
-            || !BIO_meth_set_puts(prefix_meth, prefix_puts)
-            || !BIO_meth_set_gets(prefix_meth, prefix_gets)
-            || !BIO_meth_set_ctrl(prefix_meth, prefix_ctrl)
-            || !BIO_meth_set_callback_ctrl(prefix_meth, prefix_callback_ctrl)) {
-            BIO_meth_free(prefix_meth);
+             VR_BIO_meth_new(BIO_TYPE_FILTER, "Prefix filter")) == NULL
+            || !VR_BIO_meth_set_create(prefix_meth, prefix_create)
+            || !VR_BIO_meth_set_destroy(prefix_meth, prefix_destroy)
+            || !VR_BIO_meth_set_write_ex(prefix_meth, prefix_write)
+            || !VR_BIO_meth_set_read_ex(prefix_meth, prefix_read)
+            || !VR_BIO_meth_set_puts(prefix_meth, prefix_puts)
+            || !VR_BIO_meth_set_gets(prefix_meth, prefix_gets)
+            || !VR_BIO_meth_set_ctrl(prefix_meth, prefix_ctrl)
+            || !VR_BIO_meth_set_callback_ctrl(prefix_meth, prefix_callback_ctrl)) {
+            VR_BIO_meth_free(prefix_meth);
             prefix_meth = NULL;
         }
     }
@@ -59,29 +59,29 @@ static int prefix_create(BIO *b)
 
     ctx->prefix = NULL;
     ctx->linestart = 1;
-    BIO_set_data(b, ctx);
-    BIO_set_init(b, 1);
+    VR_BIO_set_data(b, ctx);
+    VR_BIO_set_init(b, 1);
     return 1;
 }
 
 static int prefix_destroy(BIO *b)
 {
-    PREFIX_CTX *ctx = BIO_get_data(b);
+    PREFIX_CTX *ctx = VR_BIO_get_data(b);
 
-    OPENSSL_free(ctx->prefix);
-    OPENSSL_free(ctx);
+    OPENVR_SSL_free(ctx->prefix);
+    OPENVR_SSL_free(ctx);
     return 1;
 }
 
 static int prefix_read(BIO *b, char *in, size_t size, size_t *numread)
 {
-    return BIO_read_ex(BIO_next(b), in, size, numread);
+    return VR_BIO_read_ex(VR_BIO_next(b), in, size, numread);
 }
 
 static int prefix_write(BIO *b, const char *out, size_t outl,
                         size_t *numwritten)
 {
-    PREFIX_CTX *ctx = BIO_get_data(b);
+    PREFIX_CTX *ctx = VR_BIO_get_data(b);
 
     if (ctx == NULL)
         return 0;
@@ -91,7 +91,7 @@ static int prefix_write(BIO *b, const char *out, size_t outl,
         /* We do note if what comes next will be a new line, though */
         if (outl > 0)
             ctx->linestart = (out[outl-1] == '\n');
-        return BIO_write_ex(BIO_next(b), out, outl, numwritten);
+        return VR_BIO_write_ex(VR_BIO_next(b), out, outl, numwritten);
     }
 
     *numwritten = 0;
@@ -104,7 +104,7 @@ static int prefix_write(BIO *b, const char *out, size_t outl,
         if (ctx->linestart) {
             size_t dontcare;
 
-            if (!BIO_write_ex(BIO_next(b), ctx->prefix, strlen(ctx->prefix),
+            if (!VR_BIO_write_ex(VR_BIO_next(b), ctx->prefix, strlen(ctx->prefix),
                               &dontcare))
                 return 0;
             ctx->linestart = 0;
@@ -120,7 +120,7 @@ static int prefix_write(BIO *b, const char *out, size_t outl,
         while (i > 0) {
             size_t num = 0;
 
-            if (!BIO_write_ex(BIO_next(b), out, i, &num))
+            if (!VR_BIO_write_ex(VR_BIO_next(b), out, i, &num))
                 return 0;
             out += num;
             outl -= num;
@@ -143,19 +143,19 @@ static long prefix_ctrl(BIO *b, int cmd, long num, void *ptr)
     switch (cmd) {
     case PREFIX_CTRL_SET_PREFIX:
         {
-            PREFIX_CTX *ctx = BIO_get_data(b);
+            PREFIX_CTX *ctx = VR_BIO_get_data(b);
 
             if (ctx == NULL)
                 break;
 
-            OPENSSL_free(ctx->prefix);
+            OPENVR_SSL_free(ctx->prefix);
             ctx->prefix = OPENSSL_strdup((const char *)ptr);
             ret = ctx->prefix != NULL;
         }
         break;
     default:
-        if (BIO_next(b) != NULL)
-            ret = BIO_ctrl(BIO_next(b), cmd, num, ptr);
+        if (VR_BIO_next(b) != NULL)
+            ret = VR_BIO_ctrl(VR_BIO_next(b), cmd, num, ptr);
         break;
     }
     return ret;
@@ -163,15 +163,15 @@ static long prefix_ctrl(BIO *b, int cmd, long num, void *ptr)
 
 static long prefix_callback_ctrl(BIO *b, int cmd, BIO_info_cb *fp)
 {
-    return BIO_callback_ctrl(BIO_next(b), cmd, fp);
+    return VR_BIO_callback_ctrl(VR_BIO_next(b), cmd, fp);
 }
 
 static int prefix_gets(BIO *b, char *buf, int size)
 {
-    return BIO_gets(BIO_next(b), buf, size);
+    return VR_BIO_gets(VR_BIO_next(b), buf, size);
 }
 
 static int prefix_puts(BIO *b, const char *str)
 {
-    return BIO_write(b, str, strlen(str));
+    return VR_BIO_write(b, str, strlen(str));
 }

@@ -22,14 +22,14 @@ static int test_509_dup_cert(int n)
     X509_LOOKUP *lookup = NULL;
     const char *cert_f = test_get_argument(n);
 
-    if (TEST_ptr(store = X509_STORE_new())
-        && TEST_ptr(lookup = X509_STORE_add_lookup(store, X509_LOOKUP_file()))
-        && TEST_true(X509_load_cert_file(lookup, cert_f, X509_FILETYPE_PEM))
-        && TEST_true(X509_load_cert_file(lookup, cert_f, X509_FILETYPE_PEM)))
+    if (TEST_ptr(store = VR_X509_STORE_new())
+        && TEST_ptr(lookup = VR_X509_STORE_add_lookup(store, VR_X509_LOOKUP_file()))
+        && TEST_true(VR_X509_load_cert_file(lookup, cert_f, X509_FILETYPE_PEM))
+        && TEST_true(VR_X509_load_cert_file(lookup, cert_f, X509_FILETYPE_PEM)))
         ret = 1;
 
-    X509_STORE_CTX_free(sctx);
-    X509_STORE_free(store);
+    VR_X509_STORE_CTX_free(sctx);
+    VR_X509_STORE_free(store);
     return ret;
 }
 

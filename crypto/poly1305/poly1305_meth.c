@@ -23,7 +23,7 @@ static EVP_MAC_IMPL *poly1305_new(void)
 
     if ((ctx = OPENSSL_zalloc(sizeof(*ctx))) == NULL
             || (ctx->ctx = OPENSSL_zalloc(sizeof(POLY1305))) == NULL) {
-        OPENSSL_free(ctx);
+        OPENVR_SSL_free(ctx);
         return 0;
     }
     return ctx;
@@ -32,8 +32,8 @@ static EVP_MAC_IMPL *poly1305_new(void)
 static void poly1305_free(EVP_MAC_IMPL *ctx)
 {
     if (ctx != NULL) {
-        OPENSSL_free(ctx->ctx);
-        OPENSSL_free(ctx);
+        OPENVR_SSL_free(ctx->ctx);
+        OPENVR_SSL_free(ctx);
     }
 }
 
@@ -49,7 +49,7 @@ static size_t poly1305_size(EVP_MAC_IMPL *ctx)
     return POLY1305_DIGEST_SIZE;
 }
 
-static int poly1305_init(EVP_MAC_IMPL *ctx)
+static int VR_poly1305_init(EVP_MAC_IMPL *ctx)
 {
     /* initialize the context in MAC_ctrl function */
     return 1;
@@ -61,7 +61,7 @@ static int poly1305_update(EVP_MAC_IMPL *ctx, const unsigned char *data,
     POLY1305 *poly_ctx = ctx->ctx;
 
     /* poly1305 has nothing to return in its update function */
-    Poly1305_Update(poly_ctx, data, datalen);
+    VR_Poly1305_Update(poly_ctx, data, datalen);
     return 1;
 }
 
@@ -69,7 +69,7 @@ static int poly1305_final(EVP_MAC_IMPL *ctx, unsigned char *out)
 {
     POLY1305 *poly_ctx = ctx->ctx;
 
-    Poly1305_Final(poly_ctx, out);
+    VR_Poly1305_Final(poly_ctx, out);
     return 1;
 }
 
@@ -88,7 +88,7 @@ static int poly1305_ctrl(EVP_MAC_IMPL *ctx, int cmd, va_list args)
             EVPerr(EVP_F_POLY1305_CTRL, EVP_R_INVALID_KEY_LENGTH);
             return 0;
         }
-        Poly1305_Init(poly_ctx, key);
+        VR_Poly1305_Init(poly_ctx, key);
         return 1;
     default:
         return -2;
@@ -119,10 +119,10 @@ static int poly1305_ctrl_str(EVP_MAC_IMPL *ctx,
     if (value == NULL)
         return 0;
     if (strcmp(type, "key") == 0)
-        return EVP_str2ctrl(poly1305_ctrl_str_cb, ctx, EVP_MAC_CTRL_SET_KEY,
+        return VR_EVP_str2ctrl(poly1305_ctrl_str_cb, ctx, EVP_MAC_CTRL_SET_KEY,
                             value);
     if (strcmp(type, "hexkey") == 0)
-        return EVP_hex2ctrl(poly1305_ctrl_str_cb, ctx, EVP_MAC_CTRL_SET_KEY,
+        return VR_EVP_hex2ctrl(poly1305_ctrl_str_cb, ctx, EVP_MAC_CTRL_SET_KEY,
                             value);
     return -2;
 }
@@ -133,7 +133,7 @@ const EVP_MAC poly1305_meth = {
     poly1305_copy,
     poly1305_free,
     poly1305_size,
-    poly1305_init,
+    VR_poly1305_init,
     poly1305_update,
     poly1305_final,
     poly1305_ctrl,

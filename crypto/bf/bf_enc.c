@@ -21,7 +21,7 @@
 to modify the code.
 #endif
 
-void BF_encrypt(BF_LONG *data, const BF_KEY *key)
+void VR_BF_encrypt(BF_LONG *data, const BF_KEY *key)
 {
     register BF_LONG l, r;
     register const BF_LONG *p, *s;
@@ -60,7 +60,7 @@ void BF_encrypt(BF_LONG *data, const BF_KEY *key)
     data[0] = r & 0xffffffffU;
 }
 
-void BF_decrypt(BF_LONG *data, const BF_KEY *key)
+void VR_BF_decrypt(BF_LONG *data, const BF_KEY *key)
 {
     register BF_LONG l, r;
     register const BF_LONG *p, *s;
@@ -99,7 +99,7 @@ void BF_decrypt(BF_LONG *data, const BF_KEY *key)
     data[0] = r & 0xffffffffU;
 }
 
-void BF_cbc_encrypt(const unsigned char *in, unsigned char *out, long length,
+void VR_BF_cbc_encrypt(const unsigned char *in, unsigned char *out, long length,
                     const BF_KEY *schedule, unsigned char *ivec, int encrypt)
 {
     register BF_LONG tin0, tin1;
@@ -118,7 +118,7 @@ void BF_cbc_encrypt(const unsigned char *in, unsigned char *out, long length,
             tin1 ^= tout1;
             tin[0] = tin0;
             tin[1] = tin1;
-            BF_encrypt(tin, schedule);
+            VR_BF_encrypt(tin, schedule);
             tout0 = tin[0];
             tout1 = tin[1];
             l2n(tout0, out);
@@ -130,7 +130,7 @@ void BF_cbc_encrypt(const unsigned char *in, unsigned char *out, long length,
             tin1 ^= tout1;
             tin[0] = tin0;
             tin[1] = tin1;
-            BF_encrypt(tin, schedule);
+            VR_BF_encrypt(tin, schedule);
             tout0 = tin[0];
             tout1 = tin[1];
             l2n(tout0, out);
@@ -147,7 +147,7 @@ void BF_cbc_encrypt(const unsigned char *in, unsigned char *out, long length,
             n2l(in, tin1);
             tin[0] = tin0;
             tin[1] = tin1;
-            BF_decrypt(tin, schedule);
+            VR_BF_decrypt(tin, schedule);
             tout0 = tin[0] ^ xor0;
             tout1 = tin[1] ^ xor1;
             l2n(tout0, out);
@@ -160,7 +160,7 @@ void BF_cbc_encrypt(const unsigned char *in, unsigned char *out, long length,
             n2l(in, tin1);
             tin[0] = tin0;
             tin[1] = tin1;
-            BF_decrypt(tin, schedule);
+            VR_BF_decrypt(tin, schedule);
             tout0 = tin[0] ^ xor0;
             tout1 = tin[1] ^ xor1;
             l2nn(tout0, tout1, out, l + 8);

@@ -32,13 +32,13 @@ static int cpy_utf8(unsigned long value, void *arg);
  * size limits too.
  */
 
-int ASN1_mbstring_copy(ASN1_STRING **out, const unsigned char *in, int len,
+int VR_ASN1_mbstring_copy(ASN1_STRING **out, const unsigned char *in, int len,
                        int inform, unsigned long mask)
 {
-    return ASN1_mbstring_ncopy(out, in, len, inform, mask, 0, 0);
+    return VR_ASN1_mbstring_ncopy(out, in, len, inform, mask, 0, 0);
 }
 
-int ASN1_mbstring_ncopy(ASN1_STRING **out, const unsigned char *in, int len,
+int VR_ASN1_mbstring_ncopy(ASN1_STRING **out, const unsigned char *in, int len,
                         int inform, unsigned long mask,
                         long minsize, long maxsize)
 {
@@ -98,15 +98,15 @@ int ASN1_mbstring_ncopy(ASN1_STRING **out, const unsigned char *in, int len,
 
     if ((minsize > 0) && (nchar < minsize)) {
         ASN1err(ASN1_F_ASN1_MBSTRING_NCOPY, ASN1_R_STRING_TOO_SHORT);
-        BIO_snprintf(strbuf, sizeof(strbuf), "%ld", minsize);
-        ERR_add_error_data(2, "minsize=", strbuf);
+        VR_BIO_snprintf(strbuf, sizeof(strbuf), "%ld", minsize);
+        VR_ERR_add_error_data(2, "minsize=", strbuf);
         return -1;
     }
 
     if ((maxsize > 0) && (nchar > maxsize)) {
         ASN1err(ASN1_F_ASN1_MBSTRING_NCOPY, ASN1_R_STRING_TOO_LONG);
-        BIO_snprintf(strbuf, sizeof(strbuf), "%ld", maxsize);
-        ERR_add_error_data(2, "maxsize=", strbuf);
+        VR_BIO_snprintf(strbuf, sizeof(strbuf), "%ld", maxsize);
+        VR_ERR_add_error_data(2, "maxsize=", strbuf);
         return -1;
     }
 
@@ -141,13 +141,13 @@ int ASN1_mbstring_ncopy(ASN1_STRING **out, const unsigned char *in, int len,
     if (*out) {
         free_out = 0;
         dest = *out;
-        OPENSSL_free(dest->data);
+        OPENVR_SSL_free(dest->data);
         dest->data = NULL;
         dest->length = 0;
         dest->type = str_type;
     } else {
         free_out = 1;
-        dest = ASN1_STRING_type_new(str_type);
+        dest = VR_ASN1_STRING_type_new(str_type);
         if (dest == NULL) {
             ASN1err(ASN1_F_ASN1_MBSTRING_NCOPY, ERR_R_MALLOC_FAILURE);
             return -1;
@@ -156,7 +156,7 @@ int ASN1_mbstring_ncopy(ASN1_STRING **out, const unsigned char *in, int len,
     }
     /* If both the same type just copy across */
     if (inform == outform) {
-        if (!ASN1_STRING_set(dest, in, len)) {
+        if (!VR_ASN1_STRING_set(dest, in, len)) {
             ASN1err(ASN1_F_ASN1_MBSTRING_NCOPY, ERR_R_MALLOC_FAILURE);
             return -1;
         }
@@ -188,7 +188,7 @@ int ASN1_mbstring_ncopy(ASN1_STRING **out, const unsigned char *in, int len,
     }
     if ((p = OPENSSL_malloc(outlen + 1)) == NULL) {
         if (free_out)
-            ASN1_STRING_free(dest);
+            VR_ASN1_STRING_free(dest);
         ASN1err(ASN1_F_ASN1_MBSTRING_NCOPY, ERR_R_MALLOC_FAILURE);
         return -1;
     }
@@ -225,7 +225,7 @@ static int traverse_string(const unsigned char *p, int len, int inform,
             value |= *p++;
             len -= 4;
         } else {
-            ret = UTF8_getc(p, len, &value);
+            ret = VR_UTF8_getc(p, len, &value);
             if (ret < 0)
                 return -1;
             len -= ret;
@@ -258,7 +258,7 @@ static int out_utf8(unsigned long value, void *arg)
 {
     int *outlen;
     outlen = arg;
-    *outlen += UTF8_putc(NULL, -1, value);
+    *outlen += VR_UTF8_putc(NULL, -1, value);
     return 1;
 }
 
@@ -337,7 +337,7 @@ static int cpy_utf8(unsigned long value, void *arg)
     int ret;
     p = arg;
     /* We already know there is enough room so pass 0xff as the length */
-    ret = UTF8_putc(*p, 0xff, value);
+    ret = VR_UTF8_putc(*p, 0xff, value);
     *p += ret;
     return 1;
 }

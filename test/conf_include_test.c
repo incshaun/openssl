@@ -54,7 +54,7 @@ static int change_path(const char *file)
 
     TEST_note("changing path to %s", s);
     ret = chdir(s);
-    OPENSSL_free(s);
+    OPENVR_SSL_free(s);
     return ret;
 }
 
@@ -73,8 +73,8 @@ static int test_load_config(void)
     char *str;
     long err;
 
-    if (!TEST_int_gt(NCONF_load_bio(conf, in, &errline), 0)
-        || !TEST_int_eq(err = ERR_peek_error(), 0)) {
+    if (!TEST_int_gt(VR_NCONF_load_bio(conf, in, &errline), 0)
+        || !TEST_int_eq(err = VR_ERR_peek_error(), 0)) {
         if (expect_failure)
             return 1;
         TEST_note("Failure loading the configuration at line %ld", errline);
@@ -85,13 +85,13 @@ static int test_load_config(void)
         return 0;
     }
 
-    if (!TEST_int_gt(CONF_modules_load(conf, NULL, 0), 0)) {
-        TEST_note("Failed in CONF_modules_load");
+    if (!TEST_int_gt(VR_CONF_modules_load(conf, NULL, 0), 0)) {
+        TEST_note("Failed in VR_CONF_modules_load");
         return 0;
     }
 
     /* verify whether RANDFILE is set correctly */
-    str = NCONF_get_string(conf, "", "RANDFILE");
+    str = VR_NCONF_get_string(conf, "", "RANDFILE");
     if (!TEST_ptr(str) || !TEST_str_eq(str, "./.rnd")) {
         TEST_note("RANDFILE incorrect");
         return 0;
@@ -99,7 +99,7 @@ static int test_load_config(void)
 
     /* verify whether CA_default/default_days is set */
     val = 0;
-    if (!TEST_int_eq(NCONF_get_number(conf, "CA_default", "default_days", &val), 1)
+    if (!TEST_int_eq(NVR_CONF_get_number(conf, "CA_default", "default_days", &val), 1)
         || !TEST_int_eq(val, 365)) {
         TEST_note("default_days incorrect");
         return 0;
@@ -107,14 +107,14 @@ static int test_load_config(void)
 
     /* verify whether req/default_bits is set */
     val = 0;
-    if (!TEST_int_eq(NCONF_get_number(conf, "req", "default_bits", &val), 1)
+    if (!TEST_int_eq(NVR_CONF_get_number(conf, "req", "default_bits", &val), 1)
         || !TEST_int_eq(val, 2048)) {
         TEST_note("default_bits incorrect");
         return 0;
     }
 
     /* verify whether countryName_default is set correctly */
-    str = NCONF_get_string(conf, "req_distinguished_name", "countryName_default");
+    str = VR_NCONF_get_string(conf, "req_distinguished_name", "countryName_default");
     if (!TEST_ptr(str) || !TEST_str_eq(str, "AU")) {
         TEST_note("countryName_default incorrect");
         return 0;
@@ -134,7 +134,7 @@ static int test_check_null_numbers(void)
      * success and the value.
      */
     if (!TEST_int_eq(setenv("FNORD", "123", 1), 0)
-            || !TEST_true(NCONF_get_number(NULL, "missing", "FNORD", &val))
+            || !TEST_true(NVR_CONF_get_number(NULL, "missing", "FNORD", &val))
             || !TEST_long_eq(val, 123)) {
         TEST_note("environment variable with NULL conf failed");
         return 0;
@@ -145,7 +145,7 @@ static int test_check_null_numbers(void)
      * a failure code.
      */
     if (!TEST_int_eq(unsetenv("FNORD"), 0)
-            || !TEST_false(NCONF_get_number(NULL, "missing", "FNORD", &val))) {
+            || !TEST_false(NVR_CONF_get_number(NULL, "missing", "FNORD", &val))) {
         TEST_note("missing environment variable with NULL conf failed");
         return 0;
     }
@@ -164,7 +164,7 @@ static int test_check_overflow(void)
 
     p = max + sprintf(max, "0%ld", LONG_MAX) - 1;
     setenv("FNORD", max, 1);
-    if (!TEST_true(NCONF_get_number(NULL, "missing", "FNORD", &val))
+    if (!TEST_true(NVR_CONF_get_number(NULL, "missing", "FNORD", &val))
             || !TEST_long_eq(val, LONG_MAX))
         return 0;
 
@@ -172,7 +172,7 @@ static int test_check_overflow(void)
         *p-- = '0';
 
     setenv("FNORD", max, 1);
-    if (!TEST_false(NCONF_get_number(NULL, "missing", "FNORD", &val)))
+    if (!TEST_false(NVR_CONF_get_number(NULL, "missing", "FNORD", &val)))
         return 0;
 #endif
     return 1;
@@ -183,13 +183,13 @@ int setup_tests(void)
     const char *conf_file;
     const char *arg2;
 
-    if (!TEST_ptr(conf = NCONF_new(NULL)))
+    if (!TEST_ptr(conf = VR_NCONF_new(NULL)))
         return 0;
 
     conf_file = test_get_argument(0);
 
     if (!TEST_ptr(conf_file)
-        || !TEST_ptr(in = BIO_new_file(conf_file, "r"))) {
+        || !TEST_ptr(in = VR_BIO_new_file(conf_file, "r"))) {
         TEST_note("Unable to open the file argument");
         return 0;
     }
@@ -212,7 +212,7 @@ int setup_tests(void)
 
 void cleanup_tests(void)
 {
-    BIO_vfree(in);
-    NCONF_free(conf);
-    CONF_modules_unload(1);
+    VR_BIO_vfree(in);
+    VR_NCONF_free(conf);
+    VR_CONF_modules_unload(1);
 }

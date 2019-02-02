@@ -43,7 +43,7 @@ extern CRYPTO_RWLOCK *global_engine_lock;
 
 /*
  * Any code that will need cleanup operations should use these functions to
- * register callbacks. engine_cleanup_int() will call all registered
+ * register callbacks. VR_engine_cleanup_int() will call all registered
  * callbacks in order. NB: both the "add" functions assume the engine lock to
  * already be held (in "write" mode).
  */
@@ -52,14 +52,14 @@ typedef struct st_engine_cleanup_item {
     ENGINE_CLEANUP_CB *cb;
 } ENGINE_CLEANUP_ITEM;
 DEFINE_STACK_OF(ENGINE_CLEANUP_ITEM)
-void engine_cleanup_add_first(ENGINE_CLEANUP_CB *cb);
-void engine_cleanup_add_last(ENGINE_CLEANUP_CB *cb);
+void VR_engine_cleanup_add_first(ENGINE_CLEANUP_CB *cb);
+void VR_engine_cleanup_add_last(ENGINE_CLEANUP_CB *cb);
 
 /* We need stacks of ENGINEs for use in eng_table.c */
 DEFINE_STACK_OF(ENGINE)
 
 /*
- * If this symbol is defined then engine_table_select(), the function that is
+ * If this symbol is defined then VR_engine_table_select(), the function that is
  * used by RSA, DSA (etc) code to select registered ENGINEs, cache defaults
  * and functional references (etc), will display debugging summaries to
  * stderr.
@@ -71,21 +71,21 @@ DEFINE_STACK_OF(ENGINE)
  * it as a (ENGINE_TABLE *) pointer value set initially to NULL.
  */
 typedef struct st_engine_table ENGINE_TABLE;
-int engine_table_register(ENGINE_TABLE **table, ENGINE_CLEANUP_CB *cleanup,
+int VR_engine_table_register(ENGINE_TABLE **table, ENGINE_CLEANUP_CB *cleanup,
                           ENGINE *e, const int *nids, int num_nids,
                           int setdefault);
-void engine_table_unregister(ENGINE_TABLE **table, ENGINE *e);
-void engine_table_cleanup(ENGINE_TABLE **table);
+void VR_engine_table_unregister(ENGINE_TABLE **table, ENGINE *e);
+void VR_engine_table_cleanup(ENGINE_TABLE **table);
 # ifndef ENGINE_TABLE_DEBUG
-ENGINE *engine_table_select(ENGINE_TABLE **table, int nid);
+ENGINE *VR_engine_table_select(ENGINE_TABLE **table, int nid);
 # else
-ENGINE *engine_table_select_tmp(ENGINE_TABLE **table, int nid, const char *f,
+ENGINE *VR_engine_table_select_tmp(ENGINE_TABLE **table, int nid, const char *f,
                                 int l);
-#  define engine_table_select(t,n) engine_table_select_tmp(t,n,OPENSSL_FILE,OPENSSL_LINE)
+#  define VR_engine_table_select(t,n) VR_engine_table_select_tmp(t,n,OPENSSL_FILE,OPENSSL_LINE)
 # endif
-typedef void (engine_table_doall_cb) (int nid, STACK_OF(ENGINE) *sk,
+typedef void (VR_engine_table_doall_cb) (int nid, STACK_OF(ENGINE) *sk,
                                       ENGINE *def, void *arg);
-void engine_table_doall(ENGINE_TABLE *table, engine_table_doall_cb *cb,
+void VR_engine_table_doall(ENGINE_TABLE *table, VR_engine_table_doall_cb *cb,
                         void *arg);
 
 /*
@@ -93,16 +93,16 @@ void engine_table_doall(ENGINE_TABLE *table, engine_table_doall_cb *cb,
  * are used between C files when functionality needs to be shared but the
  * caller may already be controlling of the engine lock.
  */
-int engine_unlocked_init(ENGINE *e);
-int engine_unlocked_finish(ENGINE *e, int unlock_for_handlers);
-int engine_free_util(ENGINE *e, int not_locked);
+int VR_engine_unlocked_init(ENGINE *e);
+int VR_engine_unlocked_finish(ENGINE *e, int unlock_for_handlers);
+int VR_engine_free_util(ENGINE *e, int not_locked);
 
 /*
  * This function will reset all "set"able values in an ENGINE to NULL. This
  * won't touch reference counts or ex_data, but is equivalent to calling all
  * the ENGINE_set_***() functions with a NULL value.
  */
-void engine_set_all_null(ENGINE *e);
+void VR_engine_set_all_null(ENGINE *e);
 
 /*
  * NB: Bitwise OR-able values for the "flags" variable in ENGINE are now
@@ -111,12 +111,12 @@ void engine_set_all_null(ENGINE *e);
 
 /* Free up dynamically allocated public key methods associated with ENGINE */
 
-void engine_pkey_meths_free(ENGINE *e);
-void engine_pkey_asn1_meths_free(ENGINE *e);
+void VR_engine_pkey_meths_free(ENGINE *e);
+void VR_engine_pkey_asn1_meths_free(ENGINE *e);
 
 /* Once initialisation function */
 extern CRYPTO_ONCE engine_lock_init;
-DECLARE_RUN_ONCE(do_engine_lock_init)
+DECLARE_RUN_ONCE(VR_do_engine_lock_init)
 
 /*
  * This is a structure for storing implementations of various crypto

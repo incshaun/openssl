@@ -21,8 +21,8 @@
 
 int FuzzerInitialize(int *argc, char ***argv)
 {
-    OPENSSL_init_crypto(OPENSSL_INIT_LOAD_CRYPTO_STRINGS, NULL);
-    ERR_get_state();
+    VR_OPENSSL_init_crypto(OPENSSL_INIT_LOAD_CRYPTO_STRINGS, NULL);
+    VR_ERR_get_state();
 
     return 1;
 }
@@ -39,12 +39,12 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
     BIGNUM *b4;
     BIGNUM *b5;
 
-    b1 = BN_new();
-    b2 = BN_new();
-    b3 = BN_new();
-    b4 = BN_new();
-    b5 = BN_new();
-    ctx = BN_CTX_new();
+    b1 = VR_BN_new();
+    b2 = VR_BN_new();
+    b3 = VR_BN_new();
+    b4 = VR_BN_new();
+    b5 = VR_BN_new();
+    ctx = VR_BN_CTX_new();
 
     /* Divide the input into three parts, using the values of the first two
      * bytes to choose lengths, which generate b1, b2 and b3. Use three bits
@@ -62,44 +62,44 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
         s3 = buf[0] & 4;
         ++buf;
     }
-    OPENSSL_assert(BN_bin2bn(buf, l1, b1) == b1);
-    BN_set_negative(b1, s1);
-    OPENSSL_assert(BN_bin2bn(buf + l1, l2, b2) == b2);
-    OPENSSL_assert(BN_bin2bn(buf + l1 + l2, l3, b3) == b3);
-    BN_set_negative(b3, s3);
+    OPENSSL_assert(VR_BN_bin2bn(buf, l1, b1) == b1);
+    VR_BN_set_negative(b1, s1);
+    OPENSSL_assert(VR_BN_bin2bn(buf + l1, l2, b2) == b2);
+    OPENSSL_assert(VR_BN_bin2bn(buf + l1 + l2, l3, b3) == b3);
+    VR_BN_set_negative(b3, s3);
 
     /* mod 0 is undefined */
-    if (BN_is_zero(b3)) {
+    if (VR_BN_is_zero(b3)) {
         success = 1;
         goto done;
     }
 
-    OPENSSL_assert(BN_mod_exp(b4, b1, b2, b3, ctx));
-    OPENSSL_assert(BN_mod_exp_simple(b5, b1, b2, b3, ctx));
+    OPENSSL_assert(VR_BN_mod_exp(b4, b1, b2, b3, ctx));
+    OPENSSL_assert(VR_BN_mod_exp_simple(b5, b1, b2, b3, ctx));
 
-    success = BN_cmp(b4, b5) == 0;
+    success = VR_BN_cmp(b4, b5) == 0;
     if (!success) {
-        BN_print_fp(stdout, b1);
+        VR_BN_print_fp(stdout, b1);
         putchar('\n');
-        BN_print_fp(stdout, b2);
+        VR_BN_print_fp(stdout, b2);
         putchar('\n');
-        BN_print_fp(stdout, b3);
+        VR_BN_print_fp(stdout, b3);
         putchar('\n');
-        BN_print_fp(stdout, b4);
+        VR_BN_print_fp(stdout, b4);
         putchar('\n');
-        BN_print_fp(stdout, b5);
+        VR_BN_print_fp(stdout, b5);
         putchar('\n');
     }
 
  done:
     OPENSSL_assert(success);
-    BN_free(b1);
-    BN_free(b2);
-    BN_free(b3);
-    BN_free(b4);
-    BN_free(b5);
-    BN_CTX_free(ctx);
-    ERR_clear_error();
+    VR_BN_free(b1);
+    VR_BN_free(b2);
+    VR_BN_free(b3);
+    VR_BN_free(b4);
+    VR_BN_free(b5);
+    VR_BN_CTX_free(ctx);
+    VR_ERR_clear_error();
 
     return 0;
 }

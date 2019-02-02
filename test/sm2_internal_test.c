@@ -49,29 +49,29 @@ static int get_faked_bytes(unsigned char *buf, int num)
 static int start_fake_rand(const char *hex_bytes)
 {
     /* save old rand method */
-    if (!TEST_ptr(saved_rand = RAND_get_rand_method()))
+    if (!TEST_ptr(saved_rand = VR_RAND_get_rand_method()))
         return 0;
 
     fake_rand = *saved_rand;
     /* use own random function */
     fake_rand.bytes = get_faked_bytes;
 
-    fake_rand_bytes = OPENSSL_hexstr2buf(hex_bytes, NULL);
+    fake_rand_bytes = VR_OPENSSL_hexstr2buf(hex_bytes, NULL);
     fake_rand_bytes_offset = 0;
     fake_rand_size = strlen(hex_bytes) / 2;
 
     /* set new RAND_METHOD */
-    if (!TEST_true(RAND_set_rand_method(&fake_rand)))
+    if (!TEST_true(VR_RAND_set_rand_method(&fake_rand)))
         return 0;
     return 1;
 }
 
 static int restore_rand(void)
 {
-    OPENSSL_free(fake_rand_bytes);
+    OPENVR_SSL_free(fake_rand_bytes);
     fake_rand_bytes = NULL;
     fake_rand_bytes_offset = 0;
-    if (!TEST_true(RAND_set_rand_method(saved_rand)))
+    if (!TEST_true(VR_RAND_set_rand_method(saved_rand)))
         return 0;
     return 1;
 }
@@ -92,42 +92,42 @@ static EC_GROUP *create_EC_group(const char *p_hex, const char *a_hex,
     EC_GROUP *group = NULL;
     int ok = 0;
 
-    if (!TEST_true(BN_hex2bn(&p, p_hex))
-            || !TEST_true(BN_hex2bn(&a, a_hex))
-            || !TEST_true(BN_hex2bn(&b, b_hex)))
+    if (!TEST_true(VR_BN_hex2bn(&p, p_hex))
+            || !TEST_true(VR_BN_hex2bn(&a, a_hex))
+            || !TEST_true(VR_BN_hex2bn(&b, b_hex)))
         goto done;
 
-    group = EC_GROUP_new_curve_GFp(p, a, b, NULL);
+    group = VR_EC_GROUP_new_curve_GFp(p, a, b, NULL);
     if (!TEST_ptr(group))
         goto done;
 
-    generator = EC_POINT_new(group);
+    generator = VR_EC_POINT_new(group);
     if (!TEST_ptr(generator))
         goto done;
 
-    if (!TEST_true(BN_hex2bn(&g_x, x_hex))
-            || !TEST_true(BN_hex2bn(&g_y, y_hex))
-            || !TEST_true(EC_POINT_set_affine_coordinates(group, generator, g_x,
+    if (!TEST_true(VR_BN_hex2bn(&g_x, x_hex))
+            || !TEST_true(VR_BN_hex2bn(&g_y, y_hex))
+            || !TEST_true(VR_EC_POINT_set_affine_coordinates(group, generator, g_x,
                                                           g_y, NULL)))
         goto done;
 
-    if (!TEST_true(BN_hex2bn(&order, order_hex))
-            || !TEST_true(BN_hex2bn(&cof, cof_hex))
-            || !TEST_true(EC_GROUP_set_generator(group, generator, order, cof)))
+    if (!TEST_true(VR_BN_hex2bn(&order, order_hex))
+            || !TEST_true(VR_BN_hex2bn(&cof, cof_hex))
+            || !TEST_true(VR_EC_GROUP_set_generator(group, generator, order, cof)))
         goto done;
 
     ok = 1;
 done:
-    BN_free(p);
-    BN_free(a);
-    BN_free(b);
-    BN_free(g_x);
-    BN_free(g_y);
-    EC_POINT_free(generator);
-    BN_free(order);
-    BN_free(cof);
+    VR_BN_free(p);
+    VR_BN_free(a);
+    VR_BN_free(b);
+    VR_BN_free(g_x);
+    VR_BN_free(g_y);
+    VR_EC_POINT_free(generator);
+    VR_BN_free(order);
+    VR_BN_free(cof);
     if (!ok) {
-        EC_GROUP_free(group);
+        VR_EC_GROUP_free(group);
         group = NULL;
     }
 
@@ -144,7 +144,7 @@ static int test_sm2_crypt(const EC_GROUP *group,
     BIGNUM *priv = NULL;
     EC_KEY *key = NULL;
     EC_POINT *pt = NULL;
-    unsigned char *expected = OPENSSL_hexstr2buf(ctext_hex, NULL);
+    unsigned char *expected = VR_OPENSSL_hexstr2buf(ctext_hex, NULL);
     size_t ctext_len = 0;
     size_t ptext_len = 0;
     uint8_t *ctext = NULL;
@@ -153,20 +153,20 @@ static int test_sm2_crypt(const EC_GROUP *group,
     int rc = 0;
 
     if (!TEST_ptr(expected)
-            || !TEST_true(BN_hex2bn(&priv, privkey_hex)))
+            || !TEST_true(VR_BN_hex2bn(&priv, privkey_hex)))
         goto done;
 
-    key = EC_KEY_new();
+    key = VR_EC_KEY_new();
     if (!TEST_ptr(key)
-            || !TEST_true(EC_KEY_set_group(key, group))
-            || !TEST_true(EC_KEY_set_private_key(key, priv)))
+            || !TEST_true(VR_EC_KEY_set_group(key, group))
+            || !TEST_true(VR_EC_KEY_set_private_key(key, priv)))
         goto done;
 
-    pt = EC_POINT_new(group);
+    pt = VR_EC_POINT_new(group);
     if (!TEST_ptr(pt)
-            || !TEST_true(EC_POINT_mul(group, pt, priv, NULL, NULL, NULL))
-            || !TEST_true(EC_KEY_set_public_key(key, pt))
-            || !TEST_true(sm2_ciphertext_size(key, digest, msg_len, &ctext_len)))
+            || !TEST_true(VR_EC_POINT_mul(group, pt, priv, NULL, NULL, NULL))
+            || !TEST_true(VR_EC_KEY_set_public_key(key, pt))
+            || !TEST_true(VR_sm2_ciphertext_size(key, digest, msg_len, &ctext_len)))
         goto done;
 
     ctext = OPENSSL_zalloc(ctext_len);
@@ -174,7 +174,7 @@ static int test_sm2_crypt(const EC_GROUP *group,
         goto done;
 
     start_fake_rand(k_hex);
-    if (!TEST_true(sm2_encrypt(key, digest, (const uint8_t *)message, msg_len,
+    if (!TEST_true(VR_sm2_encrypt(key, digest, (const uint8_t *)message, msg_len,
                                ctext, &ctext_len))
             || !TEST_size_t_eq(fake_rand_bytes_offset, fake_rand_size)) {
         restore_rand();
@@ -185,25 +185,25 @@ static int test_sm2_crypt(const EC_GROUP *group,
     if (!TEST_mem_eq(ctext, ctext_len, expected, ctext_len))
         goto done;
 
-    if (!TEST_true(sm2_plaintext_size(key, digest, ctext_len, &ptext_len))
+    if (!TEST_true(VR_sm2_plaintext_size(key, digest, ctext_len, &ptext_len))
             || !TEST_int_eq(ptext_len, msg_len))
         goto done;
 
     recovered = OPENSSL_zalloc(ptext_len);
     if (!TEST_ptr(recovered)
-            || !TEST_true(sm2_decrypt(key, digest, ctext, ctext_len, recovered, &recovered_len))
+            || !TEST_true(VR_sm2_decrypt(key, digest, ctext, ctext_len, recovered, &recovered_len))
             || !TEST_int_eq(recovered_len, msg_len)
             || !TEST_mem_eq(recovered, recovered_len, message, msg_len))
         goto done;
 
     rc = 1;
  done:
-    BN_free(priv);
-    EC_POINT_free(pt);
-    OPENSSL_free(ctext);
-    OPENSSL_free(recovered);
-    OPENSSL_free(expected);
-    EC_KEY_free(key);
+    VR_BN_free(priv);
+    VR_EC_POINT_free(pt);
+    OPENVR_SSL_free(ctext);
+    OPENVR_SSL_free(recovered);
+    OPENVR_SSL_free(expected);
+    VR_EC_KEY_free(key);
     return rc;
 }
 
@@ -225,7 +225,7 @@ static int sm2_crypt_test(void)
 
     if (!test_sm2_crypt(
             test_group,
-            EVP_sm3(),
+            VR_EVP_sm3(),
             "1649AB77A00637BD5E2EFE283FBF353534AA7F7CB89463F208DDBC2920BB0DA0",
             "encryption standard",
             "004C62EEFD6ECFC2B95B92FD6C3D9575148AFA17425546D49018E5388D49DD7B4F"
@@ -240,7 +240,7 @@ static int sm2_crypt_test(void)
     /* Same test as above except using SHA-256 instead of SM3 */
     if (!test_sm2_crypt(
             test_group,
-            EVP_sha256(),
+            VR_EVP_sha256(),
             "1649AB77A00637BD5E2EFE283FBF353534AA7F7CB89463F208DDBC2920BB0DA0",
             "encryption standard",
             "004C62EEFD6ECFC2B95B92FD6C3D9575148AFA17425546D49018E5388D49DD7B4F"
@@ -254,12 +254,12 @@ static int sm2_crypt_test(void)
 
     testresult = 1;
  done:
-    EC_GROUP_free(test_group);
+    VR_EC_GROUP_free(test_group);
 
     return testresult;
 }
 
-static int test_sm2_sign(const EC_GROUP *group,
+static int test_VR_sm2_sign(const EC_GROUP *group,
                          const char *userid,
                          const char *privkey_hex,
                          const char *message,
@@ -278,23 +278,23 @@ static int test_sm2_sign(const EC_GROUP *group,
     BIGNUM *r = NULL;
     BIGNUM *s = NULL;
 
-    if (!TEST_true(BN_hex2bn(&priv, privkey_hex)))
+    if (!TEST_true(VR_BN_hex2bn(&priv, privkey_hex)))
         goto done;
 
-    key = EC_KEY_new();
+    key = VR_EC_KEY_new();
     if (!TEST_ptr(key)
-            || !TEST_true(EC_KEY_set_group(key, group))
-            || !TEST_true(EC_KEY_set_private_key(key, priv)))
+            || !TEST_true(VR_EC_KEY_set_group(key, group))
+            || !TEST_true(VR_EC_KEY_set_private_key(key, priv)))
         goto done;
 
-    pt = EC_POINT_new(group);
+    pt = VR_EC_POINT_new(group);
     if (!TEST_ptr(pt)
-            || !TEST_true(EC_POINT_mul(group, pt, priv, NULL, NULL, NULL))
-            || !TEST_true(EC_KEY_set_public_key(key, pt)))
+            || !TEST_true(VR_EC_POINT_mul(group, pt, priv, NULL, NULL, NULL))
+            || !TEST_true(VR_EC_KEY_set_public_key(key, pt)))
         goto done;
 
     start_fake_rand(k_hex);
-    sig = sm2_do_sign(key, EVP_sm3(), (const uint8_t *)userid, strlen(userid),
+    sig = VR_sm2_do_sign(key, VR_EVP_sm3(), (const uint8_t *)userid, strlen(userid),
                       (const uint8_t *)message, msg_len);
     if (!TEST_ptr(sig)
             || !TEST_size_t_eq(fake_rand_bytes_offset, fake_rand_size)) {
@@ -303,27 +303,27 @@ static int test_sm2_sign(const EC_GROUP *group,
     }
     restore_rand();
 
-    ECDSA_SIG_get0(sig, &sig_r, &sig_s);
+    VR_ECDSA_SIG_get0(sig, &sig_r, &sig_s);
 
-    if (!TEST_true(BN_hex2bn(&r, r_hex))
-            || !TEST_true(BN_hex2bn(&s, s_hex))
+    if (!TEST_true(VR_BN_hex2bn(&r, r_hex))
+            || !TEST_true(VR_BN_hex2bn(&s, s_hex))
             || !TEST_BN_eq(r, sig_r)
             || !TEST_BN_eq(s, sig_s))
         goto done;
 
-    ok = sm2_do_verify(key, EVP_sm3(), sig, (const uint8_t *)userid,
+    ok = VR_sm2_do_verify(key, VR_EVP_sm3(), sig, (const uint8_t *)userid,
                        strlen(userid), (const uint8_t *)message, msg_len);
 
     /* We goto done whether this passes or fails */
     TEST_true(ok);
 
  done:
-    ECDSA_SIG_free(sig);
-    EC_POINT_free(pt);
-    EC_KEY_free(key);
-    BN_free(priv);
-    BN_free(r);
-    BN_free(s);
+    VR_ECDSA_SIG_free(sig);
+    VR_EC_POINT_free(pt);
+    VR_EC_KEY_free(key);
+    VR_BN_free(priv);
+    VR_BN_free(r);
+    VR_BN_free(s);
 
     return ok;
 }
@@ -345,7 +345,7 @@ static int sm2_sig_test(void)
     if (!TEST_ptr(test_group))
         goto done;
 
-    if (!TEST_true(test_sm2_sign(
+    if (!TEST_true(test_VR_sm2_sign(
                         test_group,
                         "ALICE123@YAHOO.COM",
                         "128B2FA8BD433C6C068C8D803DFF79792A519A55171B1B650C23661D15897263",
@@ -359,7 +359,7 @@ static int sm2_sig_test(void)
     testresult = 1;
 
  done:
-    EC_GROUP_free(test_group);
+    VR_EC_GROUP_free(test_group);
 
     return testresult;
 }

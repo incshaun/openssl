@@ -33,23 +33,23 @@ ASN1_SEQUENCE(X509_ATTRIBUTE) = {
 IMPLEMENT_ASN1_FUNCTIONS(X509_ATTRIBUTE)
 IMPLEMENT_ASN1_DUP_FUNCTION(X509_ATTRIBUTE)
 
-X509_ATTRIBUTE *X509_ATTRIBUTE_create(int nid, int atrtype, void *value)
+X509_ATTRIBUTE *VR_X509_ATTRIBUTE_create(int nid, int atrtype, void *value)
 {
     X509_ATTRIBUTE *ret = NULL;
     ASN1_TYPE *val = NULL;
 
-    if ((ret = X509_ATTRIBUTE_new()) == NULL)
+    if ((ret = VR_X509_ATTRIBUTE_new()) == NULL)
         return NULL;
-    ret->object = OBJ_nid2obj(nid);
-    if ((val = ASN1_TYPE_new()) == NULL)
+    ret->object = VR_OBJ_nid2obj(nid);
+    if ((val = VR_ASN1_TYPE_new()) == NULL)
         goto err;
-    if (!sk_ASN1_TYPE_push(ret->set, val))
+    if (!sk_VR_ASN1_TYPE_push(ret->set, val))
         goto err;
 
-    ASN1_TYPE_set(val, atrtype, value);
+    VR_ASN1_TYPE_set(val, atrtype, value);
     return ret;
  err:
-    X509_ATTRIBUTE_free(ret);
-    ASN1_TYPE_free(val);
+    VR_X509_ATTRIBUTE_free(ret);
+    VR_ASN1_TYPE_free(val);
     return NULL;
 }

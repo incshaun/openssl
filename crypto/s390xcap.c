@@ -62,7 +62,7 @@ void OPENSSL_vx_probe(void);
 
 struct OPENSSL_s390xcap_st OPENSSL_s390xcap_P;
 
-void OPENSSL_cpuid_setup(void)
+void VR_OPENSSL_cpuid_setup(void)
 {
     sigset_t oset;
     struct sigaction ill_act, oact;

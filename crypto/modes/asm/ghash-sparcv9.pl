@@ -99,9 +99,9 @@ rem_4bit:
 .type	rem_4bit,#object
 .size	rem_4bit,(.-rem_4bit)
 
-.globl	gcm_ghash_4bit
+.globl	VR_gcm_ghash_4bit
 .align	32
-gcm_ghash_4bit:
+VR_gcm_ghash_4bit:
 	save	%sp,-$frame,%sp
 	ldub	[$inp+15],$nlo
 	ldub	[$Xi+15],$xi0
@@ -232,17 +232,17 @@ gcm_ghash_4bit:
 
 	ret
 	restore
-.type	gcm_ghash_4bit,#function
-.size	gcm_ghash_4bit,(.-gcm_ghash_4bit)
+.type	VR_gcm_ghash_4bit,#function
+.size	VR_gcm_ghash_4bit,(.-VR_gcm_ghash_4bit)
 ___
 
 undef $inp;
 undef $len;
 
 $code.=<<___;
-.globl	gcm_gmult_4bit
+.globl	VR_gcm_gmult_4bit
 .align	32
-gcm_gmult_4bit:
+VR_gcm_gmult_4bit:
 	save	%sp,-$frame,%sp
 	ldub	[$Xi+15],$nlo
 	add	$Htbl,8,$Htblo
@@ -340,8 +340,8 @@ gcm_gmult_4bit:
 
 	ret
 	restore
-.type	gcm_gmult_4bit,#function
-.size	gcm_gmult_4bit,(.-gcm_gmult_4bit)
+.type	VR_gcm_gmult_4bit,#function
+.size	VR_gcm_gmult_4bit,(.-VR_gcm_gmult_4bit)
 ___
 
 {{{

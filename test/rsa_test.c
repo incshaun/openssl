@@ -31,17 +31,17 @@ int setup_tests(void)
 # include <openssl/rsa.h>
 
 # define SetKey \
-    RSA_set0_key(key,                                           \
-                 BN_bin2bn(n, sizeof(n)-1, NULL),               \
-                 BN_bin2bn(e, sizeof(e)-1, NULL),               \
-                 BN_bin2bn(d, sizeof(d)-1, NULL));              \
-    RSA_set0_factors(key,                                       \
-                     BN_bin2bn(p, sizeof(p)-1, NULL),           \
-                     BN_bin2bn(q, sizeof(q)-1, NULL));          \
-    RSA_set0_crt_params(key,                                    \
-                        BN_bin2bn(dmp1, sizeof(dmp1)-1, NULL),  \
-                        BN_bin2bn(dmq1, sizeof(dmq1)-1, NULL),  \
-                        BN_bin2bn(iqmp, sizeof(iqmp)-1, NULL)); \
+    VR_RSA_set0_key(key,                                           \
+                 VR_BN_bin2bn(n, sizeof(n)-1, NULL),               \
+                 VR_BN_bin2bn(e, sizeof(e)-1, NULL),               \
+                 VR_BN_bin2bn(d, sizeof(d)-1, NULL));              \
+    VR_RSA_set0_factors(key,                                       \
+                     VR_BN_bin2bn(p, sizeof(p)-1, NULL),           \
+                     VR_BN_bin2bn(q, sizeof(q)-1, NULL));          \
+    VR_RSA_set0_crt_params(key,                                    \
+                        VR_BN_bin2bn(dmp1, sizeof(dmp1)-1, NULL),  \
+                        VR_BN_bin2bn(dmq1, sizeof(dmq1)-1, NULL),  \
+                        VR_BN_bin2bn(iqmp, sizeof(iqmp)-1, NULL)); \
     memcpy(c, ctext_ex, sizeof(ctext_ex) - 1);                  \
     return sizeof(ctext_ex) - 1;
 
@@ -214,7 +214,7 @@ static int key3(RSA *key, unsigned char *c)
 static int pad_unknown(void)
 {
     unsigned long l;
-    while ((l = ERR_get_error()) != 0)
+    while ((l = VR_ERR_get_error()) != 0)
         if (ERR_GET_REASON(l) == RSA_R_UNKNOWN_PADDING_TYPE)
             return 1;
     return 0;
@@ -223,7 +223,7 @@ static int pad_unknown(void)
 static int rsa_setkey(RSA** key, unsigned char* ctext, int idx)
 {
     int clen = 0;
-    *key = RSA_new();
+    *key = VR_RSA_new();
     switch (idx) {
     case 0:
         clen = key1(*key, ctext);
@@ -253,18 +253,18 @@ static int test_rsa_pkcs1(int idx)
     plen = sizeof(ptext_ex) - 1;
     clen = rsa_setkey(&key, ctext_ex, idx);
 
-    num = RSA_public_encrypt(plen, ptext_ex, ctext, key,
+    num = VR_RSA_public_encrypt(plen, ptext_ex, ctext, key,
                              RSA_PKCS1_PADDING);
     if (!TEST_int_eq(num, clen))
         goto err;
 
-    num = RSA_private_decrypt(num, ctext, ptext, key, RSA_PKCS1_PADDING);
+    num = VR_RSA_private_decrypt(num, ctext, ptext, key, RSA_PKCS1_PADDING);
     if (!TEST_mem_eq(ptext, num, ptext_ex, plen))
         goto err;
 
     ret = 1;
 err:
-    RSA_free(key);
+    VR_RSA_free(key);
     return ret;
 }
 
@@ -284,7 +284,7 @@ static int test_rsa_oaep(int idx)
     plen = sizeof(ptext_ex) - 1;
     clen = rsa_setkey(&key, ctext_ex, idx);
 
-    num = RSA_public_encrypt(plen, ptext_ex, ctext, key,
+    num = VR_RSA_public_encrypt(plen, ptext_ex, ctext, key,
                              RSA_PKCS1_OAEP_PADDING);
     if (num == -1 && pad_unknown()) {
         TEST_info("Skipping: No OAEP support");
@@ -294,13 +294,13 @@ static int test_rsa_oaep(int idx)
     if (!TEST_int_eq(num, clen))
         goto err;
 
-    num = RSA_private_decrypt(num, ctext, ptext, key,
+    num = VR_RSA_private_decrypt(num, ctext, ptext, key,
                               RSA_PKCS1_OAEP_PADDING);
     if (!TEST_mem_eq(ptext, num, ptext_ex, plen))
         goto err;
 
     /* Different ciphertexts. Try decrypting ctext_ex */
-    num = RSA_private_decrypt(clen, ctext_ex, ptext, key,
+    num = VR_RSA_private_decrypt(clen, ctext_ex, ptext, key,
                               RSA_PKCS1_OAEP_PADDING);
     if (!TEST_mem_eq(ptext, num, ptext_ex, plen))
         goto err;
@@ -308,7 +308,7 @@ static int test_rsa_oaep(int idx)
     /* Try decrypting corrupted ciphertexts. */
     for (n = 0; n < clen; ++n) {
         ctext[n] ^= 1;
-        num = RSA_private_decrypt(clen, ctext, ptext, key,
+        num = VR_RSA_private_decrypt(clen, ctext, ptext, key,
                                       RSA_PKCS1_OAEP_PADDING);
         if (!TEST_int_le(num, 0))
             goto err;
@@ -317,7 +317,7 @@ static int test_rsa_oaep(int idx)
 
     /* Test truncated ciphertexts, as well as negative length. */
     for (n = -1; n < clen; ++n) {
-        num = RSA_private_decrypt(n, ctext, ptext, key,
+        num = VR_RSA_private_decrypt(n, ctext, ptext, key,
                                   RSA_PKCS1_OAEP_PADDING);
         if (!TEST_int_le(num, 0))
             goto err;
@@ -325,7 +325,7 @@ static int test_rsa_oaep(int idx)
 
     ret = 1;
 err:
-    RSA_free(key);
+    VR_RSA_free(key);
     return ret;
 }
 
@@ -356,7 +356,7 @@ static int test_rsa_security_bit(int n)
     static const unsigned char vals[8] = {
         0x80, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40
     };
-    RSA *key = RSA_new();
+    RSA *key = VR_RSA_new();
     const int bits = rsa_security_bits_cases[n].bits;
     const int result = rsa_security_bits_cases[n].r;
     const int bytes = (bits + 7) / 8;
@@ -379,12 +379,12 @@ static int test_rsa_security_bit(int n)
      * an extra BN to hold a sensible value for 'e'.  This is safe since the
      * RSA key is not used.  The 'd' parameter can be NULL safely.
      */
-    if (TEST_true(RSA_set0_key(key, BN_bin2bn(num, bytes, NULL),
-                               BN_bin2bn(num, bytes, NULL), NULL))
-            && TEST_uint_eq(RSA_security_bits(key), result))
+    if (TEST_true(VR_RSA_set0_key(key, VR_BN_bin2bn(num, bytes, NULL),
+                               VR_BN_bin2bn(num, bytes, NULL), NULL))
+            && TEST_uint_eq(VR_RSA_security_bits(key), result))
         r = 1;
 err:
-    RSA_free(key);
+    VR_RSA_free(key);
     return r;
 }
 

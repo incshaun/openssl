@@ -21,7 +21,7 @@
 
 #include "asn1_item_list.h"
 
-const ASN1_ITEM *ASN1_ITEM_lookup(const char *name)
+const ASN1_ITEM *VR_ASN1_ITEM_lookup(const char *name)
 {
     size_t i;
 
@@ -34,7 +34,7 @@ const ASN1_ITEM *ASN1_ITEM_lookup(const char *name)
     return NULL;
 }
 
-const ASN1_ITEM *ASN1_ITEM_get(size_t i)
+const ASN1_ITEM *VR_ASN1_ITEM_get(size_t i)
 {
     if (i >= OSSL_NELEM(asn1_item_list))
         return NULL;

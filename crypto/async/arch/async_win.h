@@ -26,11 +26,11 @@ typedef struct async_fibre_st {
 
 # define async_fibre_swapcontext(o,n,r) \
         (SwitchToFiber((n)->fibre), 1)
-# define async_fibre_makecontext(c) \
-        ((c)->fibre = CreateFiber(0, async_start_func_win, 0))
-# define async_fibre_free(f)             (DeleteFiber((f)->fibre))
+# define VR_async_fibre_makecontext(c) \
+        ((c)->fibre = CreateFiber(0, VR_async_start_func_win, 0))
+# define VR_async_fibre_free(f)             (DeleteFiber((f)->fibre))
 
 int async_fibre_init_dispatcher(async_fibre *fibre);
-VOID CALLBACK async_start_func_win(PVOID unused);
+VOID CALLBACK VR_async_start_func_win(PVOID unused);
 
 #endif

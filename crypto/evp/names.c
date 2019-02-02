@@ -14,112 +14,112 @@
 #include <openssl/x509.h>
 #include "internal/evp_int.h"
 
-int EVP_add_cipher(const EVP_CIPHER *c)
+int VR_EVP_add_cipher(const EVP_CIPHER *c)
 {
     int r;
 
     if (c == NULL)
         return 0;
 
-    r = OBJ_NAME_add(OBJ_nid2sn(c->nid), OBJ_NAME_TYPE_CIPHER_METH,
+    r = VR_OBJ_NAME_add(VR_OBJ_nid2sn(c->nid), OBJ_NAME_TYPE_CIPHER_METH,
                      (const char *)c);
     if (r == 0)
         return 0;
-    r = OBJ_NAME_add(OBJ_nid2ln(c->nid), OBJ_NAME_TYPE_CIPHER_METH,
+    r = VR_OBJ_NAME_add(VR_OBJ_nid2ln(c->nid), OBJ_NAME_TYPE_CIPHER_METH,
                      (const char *)c);
     return r;
 }
 
-int EVP_add_digest(const EVP_MD *md)
+int VR_EVP_add_digest(const EVP_MD *md)
 {
     int r;
     const char *name;
 
-    name = OBJ_nid2sn(md->type);
-    r = OBJ_NAME_add(name, OBJ_NAME_TYPE_MD_METH, (const char *)md);
+    name = VR_OBJ_nid2sn(md->type);
+    r = VR_OBJ_NAME_add(name, OBJ_NAME_TYPE_MD_METH, (const char *)md);
     if (r == 0)
         return 0;
-    r = OBJ_NAME_add(OBJ_nid2ln(md->type), OBJ_NAME_TYPE_MD_METH,
+    r = VR_OBJ_NAME_add(VR_OBJ_nid2ln(md->type), OBJ_NAME_TYPE_MD_METH,
                      (const char *)md);
     if (r == 0)
         return 0;
 
     if (md->pkey_type && md->type != md->pkey_type) {
-        r = OBJ_NAME_add(OBJ_nid2sn(md->pkey_type),
+        r = VR_OBJ_NAME_add(VR_OBJ_nid2sn(md->pkey_type),
                          OBJ_NAME_TYPE_MD_METH | OBJ_NAME_ALIAS, name);
         if (r == 0)
             return 0;
-        r = OBJ_NAME_add(OBJ_nid2ln(md->pkey_type),
+        r = VR_OBJ_NAME_add(VR_OBJ_nid2ln(md->pkey_type),
                          OBJ_NAME_TYPE_MD_METH | OBJ_NAME_ALIAS, name);
     }
     return r;
 }
 
-int EVP_add_mac(const EVP_MAC *m)
+int VR_EVP_add_mac(const EVP_MAC *m)
 {
     int r;
 
     if (m == NULL)
         return 0;
 
-    r = OBJ_NAME_add(OBJ_nid2sn(m->type), OBJ_NAME_TYPE_MAC_METH,
+    r = VR_OBJ_NAME_add(VR_OBJ_nid2sn(m->type), OBJ_NAME_TYPE_MAC_METH,
                      (const char *)m);
     if (r == 0)
         return 0;
-    r = OBJ_NAME_add(OBJ_nid2ln(m->type), OBJ_NAME_TYPE_MAC_METH,
+    r = VR_OBJ_NAME_add(VR_OBJ_nid2ln(m->type), OBJ_NAME_TYPE_MAC_METH,
                      (const char *)m);
     return r;
 }
 
-const EVP_CIPHER *EVP_get_cipherbyname(const char *name)
+const EVP_CIPHER *VR_EVP_get_cipherbyname(const char *name)
 {
     const EVP_CIPHER *cp;
 
-    if (!OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_CIPHERS, NULL))
+    if (!VR_OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_CIPHERS, NULL))
         return NULL;
 
-    cp = (const EVP_CIPHER *)OBJ_NAME_get(name, OBJ_NAME_TYPE_CIPHER_METH);
+    cp = (const EVP_CIPHER *)VR_OBJ_NAME_get(name, OBJ_NAME_TYPE_CIPHER_METH);
     return cp;
 }
 
-const EVP_MD *EVP_get_digestbyname(const char *name)
+const EVP_MD *VR_EVP_get_digestbyname(const char *name)
 {
     const EVP_MD *cp;
 
-    if (!OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_DIGESTS, NULL))
+    if (!VR_OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_DIGESTS, NULL))
         return NULL;
 
-    cp = (const EVP_MD *)OBJ_NAME_get(name, OBJ_NAME_TYPE_MD_METH);
+    cp = (const EVP_MD *)VR_OBJ_NAME_get(name, OBJ_NAME_TYPE_MD_METH);
     return cp;
 }
 
-const EVP_MAC *EVP_get_macbyname(const char *name)
+const EVP_MAC *VR_EVP_get_macbyname(const char *name)
 {
     const EVP_MAC *mp;
 
-    if (!OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_MACS, NULL))
+    if (!VR_OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_MACS, NULL))
         return NULL;
 
-    mp = (const EVP_MAC *)OBJ_NAME_get(name, OBJ_NAME_TYPE_MAC_METH);
+    mp = (const EVP_MAC *)VR_OBJ_NAME_get(name, OBJ_NAME_TYPE_MAC_METH);
     return mp;
 }
 
-void evp_cleanup_int(void)
+void VR_evp_cleanup_int(void)
 {
-    OBJ_NAME_cleanup(OBJ_NAME_TYPE_MAC_METH);
-    OBJ_NAME_cleanup(OBJ_NAME_TYPE_CIPHER_METH);
-    OBJ_NAME_cleanup(OBJ_NAME_TYPE_MD_METH);
+    VR_OBJ_NAME_cleanup(OBJ_NAME_TYPE_MAC_METH);
+    VR_OBJ_NAME_cleanup(OBJ_NAME_TYPE_CIPHER_METH);
+    VR_OBJ_NAME_cleanup(OBJ_NAME_TYPE_MD_METH);
     /*
      * The above calls will only clean out the contents of the name hash
      * table, but not the hash table itself.  The following line does that
      * part.  -- Richard Levitte
      */
-    OBJ_NAME_cleanup(-1);
+    VR_OBJ_NAME_cleanup(-1);
 
-    EVP_PBE_cleanup();
-    OBJ_sigid_free();
+    VR_EVP_PBE_cleanup();
+    VR_OBJ_sigid_free();
 
-    evp_app_cleanup_int();
+    VR_evp_app_cleanup_int();
 }
 
 struct doall_cipher {
@@ -137,32 +137,32 @@ static void do_all_cipher_fn(const OBJ_NAME *nm, void *arg)
         dc->fn((const EVP_CIPHER *)nm->data, nm->name, NULL, dc->arg);
 }
 
-void EVP_CIPHER_do_all(void (*fn) (const EVP_CIPHER *ciph,
+void VR_EVP_CIPHER_do_all(void (*fn) (const EVP_CIPHER *ciph,
                                    const char *from, const char *to, void *x),
                        void *arg)
 {
     struct doall_cipher dc;
 
     /* Ignore errors */
-    OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_CIPHERS, NULL);
+    VR_OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_CIPHERS, NULL);
 
     dc.fn = fn;
     dc.arg = arg;
-    OBJ_NAME_do_all(OBJ_NAME_TYPE_CIPHER_METH, do_all_cipher_fn, &dc);
+    VR_OBJ_NAME_do_all(OBJ_NAME_TYPE_CIPHER_METH, do_all_cipher_fn, &dc);
 }
 
-void EVP_CIPHER_do_all_sorted(void (*fn) (const EVP_CIPHER *ciph,
+void VR_EVP_CIPHER_do_all_sorted(void (*fn) (const EVP_CIPHER *ciph,
                                           const char *from, const char *to,
                                           void *x), void *arg)
 {
     struct doall_cipher dc;
 
     /* Ignore errors */
-    OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_CIPHERS, NULL);
+    VR_OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_CIPHERS, NULL);
 
     dc.fn = fn;
     dc.arg = arg;
-    OBJ_NAME_do_all_sorted(OBJ_NAME_TYPE_CIPHER_METH, do_all_cipher_fn, &dc);
+    VR_OBJ_NAME_do_all_sorted(OBJ_NAME_TYPE_CIPHER_METH, do_all_cipher_fn, &dc);
 }
 
 struct doall_md {
@@ -180,31 +180,31 @@ static void do_all_md_fn(const OBJ_NAME *nm, void *arg)
         dc->fn((const EVP_MD *)nm->data, nm->name, NULL, dc->arg);
 }
 
-void EVP_MD_do_all(void (*fn) (const EVP_MD *md,
+void VR_EVP_MD_do_all(void (*fn) (const EVP_MD *md,
                                const char *from, const char *to, void *x),
                    void *arg)
 {
     struct doall_md dc;
 
     /* Ignore errors */
-    OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_DIGESTS, NULL);
+    VR_OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_DIGESTS, NULL);
 
     dc.fn = fn;
     dc.arg = arg;
-    OBJ_NAME_do_all(OBJ_NAME_TYPE_MD_METH, do_all_md_fn, &dc);
+    VR_OBJ_NAME_do_all(OBJ_NAME_TYPE_MD_METH, do_all_md_fn, &dc);
 }
 
-void EVP_MD_do_all_sorted(void (*fn) (const EVP_MD *md,
+void VR_EVP_MD_do_all_sorted(void (*fn) (const EVP_MD *md,
                                       const char *from, const char *to,
                                       void *x), void *arg)
 {
     struct doall_md dc;
 
-    OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_DIGESTS, NULL);
+    VR_OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_DIGESTS, NULL);
 
     dc.fn = fn;
     dc.arg = arg;
-    OBJ_NAME_do_all_sorted(OBJ_NAME_TYPE_MD_METH, do_all_md_fn, &dc);
+    VR_OBJ_NAME_do_all_sorted(OBJ_NAME_TYPE_MD_METH, do_all_md_fn, &dc);
 }
 
 struct doall_mac {
@@ -223,31 +223,31 @@ static void do_all_mac_fn(const OBJ_NAME *nm, void *arg)
         dc->fn((const EVP_MAC *)nm->data, nm->name, NULL, dc->arg);
 }
 
-void EVP_MAC_do_all(void (*fn)
+void VR_EVP_MAC_do_all(void (*fn)
                     (const EVP_MAC *ciph, const char *from, const char *to,
                      void *x), void *arg)
 {
     struct doall_mac dc;
 
     /* Ignore errors */
-    OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_MACS, NULL);
+    VR_OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_MACS, NULL);
 
     dc.fn = fn;
     dc.arg = arg;
-    OBJ_NAME_do_all(OBJ_NAME_TYPE_MAC_METH, do_all_mac_fn, &dc);
+    VR_OBJ_NAME_do_all(OBJ_NAME_TYPE_MAC_METH, do_all_mac_fn, &dc);
 }
 
-void EVP_MAC_do_all_sorted(void (*fn)
+void VR_EVP_MAC_do_all_sorted(void (*fn)
                            (const EVP_MAC *ciph, const char *from,
                             const char *to, void *x), void *arg)
 {
     struct doall_mac dc;
 
     /* Ignore errors */
-    OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_MACS, NULL);
+    VR_OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_MACS, NULL);
 
     dc.fn = fn;
     dc.arg = arg;
-    OBJ_NAME_do_all_sorted(OBJ_NAME_TYPE_MAC_METH, do_all_mac_fn, &dc);
+    VR_OBJ_NAME_do_all_sorted(OBJ_NAME_TYPE_MAC_METH, do_all_mac_fn, &dc);
 }
 

@@ -85,7 +85,7 @@ int dhparam_main(int argc, char **argv)
         case OPT_EOF:
         case OPT_ERR:
  opthelp:
-            BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
+            VR_BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
             opt_help(dhparam_options);
@@ -148,7 +148,7 @@ int dhparam_main(int argc, char **argv)
 
 # ifndef OPENSSL_NO_DSA
     if (dsaparam && g) {
-        BIO_printf(bio_err,
+        VR_BIO_printf(bio_err,
                    "generator may not be chosen for DSA parameters\n");
         goto end;
     }
@@ -165,52 +165,52 @@ int dhparam_main(int argc, char **argv)
     if (num) {
 
         BN_GENCB *cb;
-        cb = BN_GENCB_new();
+        cb = VR_BN_GENCB_new();
         if (cb == NULL) {
-            ERR_print_errors(bio_err);
+            VR_ERR_print_errors(bio_err);
             goto end;
         }
 
-        BN_GENCB_set(cb, dh_cb, bio_err);
+        VR_BN_GENCB_set(cb, dh_cb, bio_err);
 
 # ifndef OPENSSL_NO_DSA
         if (dsaparam) {
-            DSA *dsa = DSA_new();
+            DSA *dsa = VR_DSA_new();
 
-            BIO_printf(bio_err,
+            VR_BIO_printf(bio_err,
                        "Generating DSA parameters, %d bit long prime\n", num);
             if (dsa == NULL
-                || !DSA_generate_parameters_ex(dsa, num, NULL, 0, NULL, NULL,
+                || !VR_DSA_generate_parameters_ex(dsa, num, NULL, 0, NULL, NULL,
                                                cb)) {
-                DSA_free(dsa);
-                BN_GENCB_free(cb);
-                ERR_print_errors(bio_err);
+                VR_DSA_free(dsa);
+                VR_BN_GENCB_free(cb);
+                VR_ERR_print_errors(bio_err);
                 goto end;
             }
 
-            dh = DSA_dup_DH(dsa);
-            DSA_free(dsa);
+            dh = VR_DSA_dup_DH(dsa);
+            VR_DSA_free(dsa);
             if (dh == NULL) {
-                BN_GENCB_free(cb);
-                ERR_print_errors(bio_err);
+                VR_BN_GENCB_free(cb);
+                VR_ERR_print_errors(bio_err);
                 goto end;
             }
         } else
 # endif
         {
-            dh = DH_new();
-            BIO_printf(bio_err,
+            dh = VR_DH_new();
+            VR_BIO_printf(bio_err,
                        "Generating DH parameters, %d bit long safe prime, generator %d\n",
                        num, g);
-            BIO_printf(bio_err, "This is going to take a long time\n");
-            if (dh == NULL || !DH_generate_parameters_ex(dh, num, g, cb)) {
-                BN_GENCB_free(cb);
-                ERR_print_errors(bio_err);
+            VR_BIO_printf(bio_err, "This is going to take a long time\n");
+            if (dh == NULL || !VR_DH_generate_parameters_ex(dh, num, g, cb)) {
+                VR_BN_GENCB_free(cb);
+                VR_ERR_print_errors(bio_err);
                 goto end;
             }
         }
 
-        BN_GENCB_free(cb);
+        VR_BN_GENCB_free(cb);
     } else {
 
         in = bio_open_default(infile, 'r', informat);
@@ -222,20 +222,20 @@ int dhparam_main(int argc, char **argv)
             DSA *dsa;
 
             if (informat == FORMAT_ASN1)
-                dsa = d2i_DSAparams_bio(in, NULL);
+                dsa = VR_d2i_DSAparams_bio(in, NULL);
             else                /* informat == FORMAT_PEM */
-                dsa = PEM_read_bio_DSAparams(in, NULL, NULL, NULL);
+                dsa = VR_PEM_read_bio_DSAparams(in, NULL, NULL, NULL);
 
             if (dsa == NULL) {
-                BIO_printf(bio_err, "unable to load DSA parameters\n");
-                ERR_print_errors(bio_err);
+                VR_BIO_printf(bio_err, "unable to load DSA parameters\n");
+                VR_ERR_print_errors(bio_err);
                 goto end;
             }
 
-            dh = DSA_dup_DH(dsa);
-            DSA_free(dsa);
+            dh = VR_DSA_dup_DH(dsa);
+            VR_DSA_free(dsa);
             if (dh == NULL) {
-                ERR_print_errors(bio_err);
+                VR_ERR_print_errors(bio_err);
                 goto end;
             }
         } else
@@ -246,18 +246,18 @@ int dhparam_main(int argc, char **argv)
                  * We have no PEM header to determine what type of DH params it
                  * is. We'll just try both.
                  */
-                dh = d2i_DHparams_bio(in, NULL);
+                dh = VR_d2i_DHparams_bio(in, NULL);
                 /* BIO_reset() returns 0 for success for file BIOs only!!! */
                 if (dh == NULL && BIO_reset(in) == 0)
-                    dh = d2i_DHxparams_bio(in, NULL);
+                    dh = VR_d2i_DHxparams_bio(in, NULL);
             } else {
                 /* informat == FORMAT_PEM */
-                dh = PEM_read_bio_DHparams(in, NULL, NULL, NULL);
+                dh = VR_PEM_read_bio_DHparams(in, NULL, NULL, NULL);
             }
 
             if (dh == NULL) {
-                BIO_printf(bio_err, "unable to load DH parameters\n");
-                ERR_print_errors(bio_err);
+                VR_BIO_printf(bio_err, "unable to load DH parameters\n");
+                VR_ERR_print_errors(bio_err);
                 goto end;
             }
         }
@@ -266,37 +266,37 @@ int dhparam_main(int argc, char **argv)
     }
 
     if (text) {
-        DHparams_print(out, dh);
+        VR_DHparams_print(out, dh);
     }
 
     if (check) {
-        if (!DH_check(dh, &i)) {
-            ERR_print_errors(bio_err);
+        if (!VR_DH_check(dh, &i)) {
+            VR_ERR_print_errors(bio_err);
             goto end;
         }
         if (i & DH_CHECK_P_NOT_PRIME)
-            BIO_printf(bio_err, "WARNING: p value is not prime\n");
+            VR_BIO_printf(bio_err, "WARNING: p value is not prime\n");
         if (i & DH_CHECK_P_NOT_SAFE_PRIME)
-            BIO_printf(bio_err, "WARNING: p value is not a safe prime\n");
+            VR_BIO_printf(bio_err, "WARNING: p value is not a safe prime\n");
         if (i & DH_CHECK_Q_NOT_PRIME)
-            BIO_printf(bio_err, "WARNING: q value is not a prime\n");
+            VR_BIO_printf(bio_err, "WARNING: q value is not a prime\n");
         if (i & DH_CHECK_INVALID_Q_VALUE)
-            BIO_printf(bio_err, "WARNING: q value is invalid\n");
+            VR_BIO_printf(bio_err, "WARNING: q value is invalid\n");
         if (i & DH_CHECK_INVALID_J_VALUE)
-            BIO_printf(bio_err, "WARNING: j value is invalid\n");
+            VR_BIO_printf(bio_err, "WARNING: j value is invalid\n");
         if (i & DH_UNABLE_TO_CHECK_GENERATOR)
-            BIO_printf(bio_err,
+            VR_BIO_printf(bio_err,
                        "WARNING: unable to check the generator value\n");
         if (i & DH_NOT_SUITABLE_GENERATOR)
-            BIO_printf(bio_err, "WARNING: the g value is not a generator\n");
+            VR_BIO_printf(bio_err, "WARNING: the g value is not a generator\n");
         if (i == 0)
-            BIO_printf(bio_err, "DH parameters appear to be ok.\n");
+            VR_BIO_printf(bio_err, "DH parameters appear to be ok.\n");
         if (num != 0 && i != 0) {
             /*
-             * We have generated parameters but DH_check() indicates they are
+             * We have generated parameters but VR_DH_check() indicates they are
              * invalid! This should never happen!
              */
-            BIO_printf(bio_err, "ERROR: Invalid parameters generated\n");
+            VR_BIO_printf(bio_err, "ERROR: Invalid parameters generated\n");
             goto end;
         }
     }
@@ -305,64 +305,64 @@ int dhparam_main(int argc, char **argv)
         int len, bits;
         const BIGNUM *pbn, *gbn;
 
-        len = DH_size(dh);
-        bits = DH_bits(dh);
-        DH_get0_pqg(dh, &pbn, NULL, &gbn);
+        len = VR_DH_size(dh);
+        bits = VR_DH_bits(dh);
+        VR_DH_get0_pqg(dh, &pbn, NULL, &gbn);
         data = app_malloc(len, "print a BN");
 
-        BIO_printf(out, "static DH *get_dh%d(void)\n{\n", bits);
+        VR_BIO_printf(out, "static DH *get_dh%d(void)\n{\n", bits);
         print_bignum_var(out, pbn, "dhp", bits, data);
         print_bignum_var(out, gbn, "dhg", bits, data);
-        BIO_printf(out, "    DH *dh = DH_new();\n"
+        VR_BIO_printf(out, "    DH *dh = VR_DH_new();\n"
                         "    BIGNUM *p, *g;\n"
                         "\n"
                         "    if (dh == NULL)\n"
                         "        return NULL;\n");
-        BIO_printf(out, "    p = BN_bin2bn(dhp_%d, sizeof(dhp_%d), NULL);\n",
+        VR_BIO_printf(out, "    p = VR_BN_bin2bn(dhp_%d, sizeof(dhp_%d), NULL);\n",
                    bits, bits);
-        BIO_printf(out, "    g = BN_bin2bn(dhg_%d, sizeof(dhg_%d), NULL);\n",
+        VR_BIO_printf(out, "    g = VR_BN_bin2bn(dhg_%d, sizeof(dhg_%d), NULL);\n",
                    bits, bits);
-        BIO_printf(out, "    if (p == NULL || g == NULL\n"
-                        "            || !DH_set0_pqg(dh, p, NULL, g)) {\n"
-                        "        DH_free(dh);\n"
-                        "        BN_free(p);\n"
-                        "        BN_free(g);\n"
+        VR_BIO_printf(out, "    if (p == NULL || g == NULL\n"
+                        "            || !VR_DH_set0_pqg(dh, p, NULL, g)) {\n"
+                        "        VR_DH_free(dh);\n"
+                        "        VR_BN_free(p);\n"
+                        "        VR_BN_free(g);\n"
                         "        return NULL;\n"
                         "    }\n");
-        if (DH_get_length(dh) > 0)
-            BIO_printf(out,
-                        "    if (!DH_set_length(dh, %ld)) {\n"
-                        "        DH_free(dh);\n"
+        if (VR_DH_get_length(dh) > 0)
+            VR_BIO_printf(out,
+                        "    if (!VR_DH_set_length(dh, %ld)) {\n"
+                        "        VR_DH_free(dh);\n"
                         "        return NULL;\n"
-                        "    }\n", DH_get_length(dh));
-        BIO_printf(out, "    return dh;\n}\n");
-        OPENSSL_free(data);
+                        "    }\n", VR_DH_get_length(dh));
+        VR_BIO_printf(out, "    return dh;\n}\n");
+        OPENVR_SSL_free(data);
     }
 
     if (!noout) {
         const BIGNUM *q;
-        DH_get0_pqg(dh, NULL, &q, NULL);
+        VR_DH_get0_pqg(dh, NULL, &q, NULL);
         if (outformat == FORMAT_ASN1) {
             if (q != NULL)
-                i = i2d_DHxparams_bio(out, dh);
+                i = VR_i2d_DHxparams_bio(out, dh);
             else
-                i = i2d_DHparams_bio(out, dh);
+                i = VR_i2d_DHparams_bio(out, dh);
         } else if (q != NULL) {
-            i = PEM_write_bio_DHxparams(out, dh);
+            i = VR_PEM_write_bio_DHxparams(out, dh);
         } else {
-            i = PEM_write_bio_DHparams(out, dh);
+            i = VR_PEM_write_bio_DHparams(out, dh);
         }
         if (!i) {
-            BIO_printf(bio_err, "unable to write DH parameters\n");
-            ERR_print_errors(bio_err);
+            VR_BIO_printf(bio_err, "unable to write DH parameters\n");
+            VR_ERR_print_errors(bio_err);
             goto end;
         }
     }
     ret = 0;
  end:
-    BIO_free(in);
-    BIO_free_all(out);
-    DH_free(dh);
+    VR_BIO_free(in);
+    VR_BIO_free_all(out);
+    VR_DH_free(dh);
     release_engine(e);
     return ret;
 }
@@ -372,8 +372,8 @@ static int dh_cb(int p, int n, BN_GENCB *cb)
     static const char symbols[] = ".+*\n";
     char c = (p >= 0 && (size_t)p < sizeof(symbols) - 1) ? symbols[p] : '?';
 
-    BIO_write(BN_GENCB_get_arg(cb), &c, 1);
-    (void)BIO_flush(BN_GENCB_get_arg(cb));
+    VR_BIO_write(VR_BN_GENCB_get_arg(cb), &c, 1);
+    (void)BIO_flush(VR_BN_GENCB_get_arg(cb));
     return 1;
 }
 #endif

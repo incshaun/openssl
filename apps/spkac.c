@@ -68,7 +68,7 @@ int spkac_main(int argc, char **argv)
         case OPT_EOF:
         case OPT_ERR:
  opthelp:
-            BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
+            VR_BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
             opt_help(spkac_options);
@@ -118,7 +118,7 @@ int spkac_main(int argc, char **argv)
         goto opthelp;
 
     if (!app_passwd(passinarg, NULL, &passin, NULL)) {
-        BIO_printf(bio_err, "Error getting password\n");
+        VR_BIO_printf(bio_err, "Error getting password\n");
         goto end;
     }
 
@@ -127,25 +127,25 @@ int spkac_main(int argc, char **argv)
                         keyformat, 1, passin, e, "private key");
         if (pkey == NULL)
             goto end;
-        spki = NETSCAPE_SPKI_new();
+        spki = VR_NETSCAPE_SPKI_new();
         if (spki == NULL)
             goto end;
         if (challenge != NULL)
-            ASN1_STRING_set(spki->spkac->challenge,
+            VR_ASN1_STRING_set(spki->spkac->challenge,
                             challenge, (int)strlen(challenge));
-        NETSCAPE_SPKI_set_pubkey(spki, pkey);
-        NETSCAPE_SPKI_sign(spki, pkey, EVP_md5());
-        spkstr = NETSCAPE_SPKI_b64_encode(spki);
+        VR_NETSCAPE_SPKI_set_pubkey(spki, pkey);
+        VR_NETSCAPE_SPKI_sign(spki, pkey, VR_EVP_md5());
+        spkstr = VR_NETSCAPE_SPKI_b64_encode(spki);
         if (spkstr == NULL)
             goto end;
 
         out = bio_open_default(outfile, 'w', FORMAT_TEXT);
         if (out == NULL) {
-            OPENSSL_free(spkstr);
+            OPENVR_SSL_free(spkstr);
             goto end;
         }
-        BIO_printf(out, "SPKAC=%s\n", spkstr);
-        OPENSSL_free(spkstr);
+        VR_BIO_printf(out, "SPKAC=%s\n", spkstr);
+        OPENVR_SSL_free(spkstr);
         ret = 0;
         goto end;
     }
@@ -153,19 +153,19 @@ int spkac_main(int argc, char **argv)
     if ((conf = app_load_config(infile)) == NULL)
         goto end;
 
-    spkstr = NCONF_get_string(conf, spksect, spkac);
+    spkstr = VR_NCONF_get_string(conf, spksect, spkac);
 
     if (spkstr == NULL) {
-        BIO_printf(bio_err, "Can't find SPKAC called \"%s\"\n", spkac);
-        ERR_print_errors(bio_err);
+        VR_BIO_printf(bio_err, "Can't find SPKAC called \"%s\"\n", spkac);
+        VR_ERR_print_errors(bio_err);
         goto end;
     }
 
-    spki = NETSCAPE_SPKI_b64_decode(spkstr, -1);
+    spki = VR_NETSCAPE_SPKI_b64_decode(spkstr, -1);
 
     if (spki == NULL) {
-        BIO_printf(bio_err, "Error loading SPKAC\n");
-        ERR_print_errors(bio_err);
+        VR_BIO_printf(bio_err, "Error loading SPKAC\n");
+        VR_ERR_print_errors(bio_err);
         goto end;
     }
 
@@ -174,29 +174,29 @@ int spkac_main(int argc, char **argv)
         goto end;
 
     if (!noout)
-        NETSCAPE_SPKI_print(out, spki);
-    pkey = NETSCAPE_SPKI_get_pubkey(spki);
+        VR_NETSCAPE_SPKI_print(out, spki);
+    pkey = VR_NETSCAPE_SPKI_get_pubkey(spki);
     if (verify) {
-        i = NETSCAPE_SPKI_verify(spki, pkey);
+        i = VR_NETSCAPE_SPKI_verify(spki, pkey);
         if (i > 0) {
-            BIO_printf(bio_err, "Signature OK\n");
+            VR_BIO_printf(bio_err, "Signature OK\n");
         } else {
-            BIO_printf(bio_err, "Signature Failure\n");
-            ERR_print_errors(bio_err);
+            VR_BIO_printf(bio_err, "Signature Failure\n");
+            VR_ERR_print_errors(bio_err);
             goto end;
         }
     }
     if (pubkey)
-        PEM_write_bio_PUBKEY(out, pkey);
+        VR_PEM_write_bio_PUBKEY(out, pkey);
 
     ret = 0;
 
  end:
-    NCONF_free(conf);
-    NETSCAPE_SPKI_free(spki);
-    BIO_free_all(out);
-    EVP_PKEY_free(pkey);
+    VR_NCONF_free(conf);
+    VR_NETSCAPE_SPKI_free(spki);
+    VR_BIO_free_all(out);
+    VR_EVP_PKEY_free(pkey);
     release_engine(e);
-    OPENSSL_free(passin);
+    OPENVR_SSL_free(passin);
     return ret;
 }

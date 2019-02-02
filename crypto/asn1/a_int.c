@@ -15,12 +15,12 @@
 #include <openssl/bn.h>
 #include "asn1_locl.h"
 
-ASN1_INTEGER *ASN1_INTEGER_dup(const ASN1_INTEGER *x)
+ASN1_INTEGER *VR_ASN1_INTEGER_dup(const ASN1_INTEGER *x)
 {
-    return ASN1_STRING_dup(x);
+    return VR_ASN1_STRING_dup(x);
 }
 
-int ASN1_INTEGER_cmp(const ASN1_INTEGER *x, const ASN1_INTEGER *y)
+int VR_ASN1_INTEGER_cmp(const ASN1_INTEGER *x, const ASN1_INTEGER *y)
 {
     int neg, ret;
     /* Compare signs */
@@ -32,7 +32,7 @@ int ASN1_INTEGER_cmp(const ASN1_INTEGER *x, const ASN1_INTEGER *y)
             return 1;
     }
 
-    ret = ASN1_STRING_cmp(x, y);
+    ret = VR_ASN1_STRING_cmp(x, y);
 
     if (neg)
         return -ret;
@@ -198,7 +198,7 @@ static size_t c2i_ibuf(unsigned char *b, int *pneg,
     return plen;
 }
 
-int i2c_ASN1_INTEGER(ASN1_INTEGER *a, unsigned char **pp)
+int VR_i2c_ASN1_INTEGER(ASN1_INTEGER *a, unsigned char **pp)
 {
     return i2c_ibuf(a->data, a->length, a->type & V_ASN1_NEG, pp);
 }
@@ -277,7 +277,7 @@ static int asn1_get_int64(int64_t *pr, const unsigned char *b, size_t blen,
 }
 
 /* Convert ASN1 INTEGER content octets to ASN1_INTEGER structure */
-ASN1_INTEGER *c2i_ASN1_INTEGER(ASN1_INTEGER **a, const unsigned char **pp,
+ASN1_INTEGER *VR_c2i_ASN1_INTEGER(ASN1_INTEGER **a, const unsigned char **pp,
                                long len)
 {
     ASN1_INTEGER *ret = NULL;
@@ -290,14 +290,14 @@ ASN1_INTEGER *c2i_ASN1_INTEGER(ASN1_INTEGER **a, const unsigned char **pp,
         return NULL;
 
     if ((a == NULL) || ((*a) == NULL)) {
-        ret = ASN1_INTEGER_new();
+        ret = VR_ASN1_INTEGER_new();
         if (ret == NULL)
             return NULL;
         ret->type = V_ASN1_INTEGER;
     } else
         ret = *a;
 
-    if (ASN1_STRING_set(ret, NULL, r) == 0)
+    if (VR_ASN1_STRING_set(ret, NULL, r) == 0)
         goto err;
 
     c2i_ibuf(ret->data, &neg, *pp, len);
@@ -312,7 +312,7 @@ ASN1_INTEGER *c2i_ASN1_INTEGER(ASN1_INTEGER **a, const unsigned char **pp,
  err:
     ASN1err(ASN1_F_C2I_ASN1_INTEGER, ERR_R_MALLOC_FAILURE);
     if ((a == NULL) || (*a != ret))
-        ASN1_INTEGER_free(ret);
+        VR_ASN1_INTEGER_free(ret);
     return NULL;
 }
 
@@ -347,7 +347,7 @@ static int asn1_string_set_int64(ASN1_STRING *a, int64_t r, int itype)
         off = asn1_put_uint64(tbuf, r);
         a->type &= ~V_ASN1_NEG;
     }
-    return ASN1_STRING_set(a, tbuf + off, sizeof(tbuf) - off);
+    return VR_ASN1_STRING_set(a, tbuf + off, sizeof(tbuf) - off);
 }
 
 static int asn1_string_get_uint64(uint64_t *pr, const ASN1_STRING *a,
@@ -375,16 +375,16 @@ static int asn1_string_set_uint64(ASN1_STRING *a, uint64_t r, int itype)
 
     a->type = itype;
     off = asn1_put_uint64(tbuf, r);
-    return ASN1_STRING_set(a, tbuf + off, sizeof(tbuf) - off);
+    return VR_ASN1_STRING_set(a, tbuf + off, sizeof(tbuf) - off);
 }
 
 /*
- * This is a version of d2i_ASN1_INTEGER that ignores the sign bit of ASN1
+ * This is a version of VR_d2i_ASN1_INTEGER that ignores the sign bit of ASN1
  * integers: some broken software can encode a positive INTEGER with its MSB
  * set as negative (it doesn't add a padding zero).
  */
 
-ASN1_INTEGER *d2i_ASN1_UINTEGER(ASN1_INTEGER **a, const unsigned char **pp,
+ASN1_INTEGER *VR_d2i_ASN1_UINTEGER(ASN1_INTEGER **a, const unsigned char **pp,
                                 long length)
 {
     ASN1_INTEGER *ret = NULL;
@@ -395,14 +395,14 @@ ASN1_INTEGER *d2i_ASN1_UINTEGER(ASN1_INTEGER **a, const unsigned char **pp,
     int i;
 
     if ((a == NULL) || ((*a) == NULL)) {
-        if ((ret = ASN1_INTEGER_new()) == NULL)
+        if ((ret = VR_ASN1_INTEGER_new()) == NULL)
             return NULL;
         ret->type = V_ASN1_INTEGER;
     } else
         ret = (*a);
 
     p = *pp;
-    inf = ASN1_get_object(&p, &len, &tag, &xclass, length);
+    inf = VR_ASN1_get_object(&p, &len, &tag, &xclass, length);
     if (inf & 0x80) {
         i = ASN1_R_BAD_OBJECT_HEADER;
         goto err;
@@ -432,7 +432,7 @@ ASN1_INTEGER *d2i_ASN1_UINTEGER(ASN1_INTEGER **a, const unsigned char **pp,
         p += len;
     }
 
-    OPENSSL_free(ret->data);
+    OPENVR_SSL_free(ret->data);
     ret->data = s;
     ret->length = (int)len;
     if (a != NULL)
@@ -442,7 +442,7 @@ ASN1_INTEGER *d2i_ASN1_UINTEGER(ASN1_INTEGER **a, const unsigned char **pp,
  err:
     ASN1err(ASN1_F_D2I_ASN1_UINTEGER, i);
     if ((a == NULL) || (*a != ret))
-        ASN1_INTEGER_free(ret);
+        VR_ASN1_INTEGER_free(ret);
     return NULL;
 }
 
@@ -453,7 +453,7 @@ static ASN1_STRING *bn_to_asn1_string(const BIGNUM *bn, ASN1_STRING *ai,
     int len;
 
     if (ai == NULL) {
-        ret = ASN1_STRING_type_new(atype);
+        ret = VR_ASN1_STRING_type_new(atype);
     } else {
         ret = ai;
         ret->type = atype;
@@ -464,7 +464,7 @@ static ASN1_STRING *bn_to_asn1_string(const BIGNUM *bn, ASN1_STRING *ai,
         goto err;
     }
 
-    if (BN_is_negative(bn) && !BN_is_zero(bn))
+    if (VR_BN_is_negative(bn) && !VR_BN_is_zero(bn))
         ret->type |= V_ASN1_NEG_INTEGER;
 
     len = BN_num_bytes(bn);
@@ -472,21 +472,21 @@ static ASN1_STRING *bn_to_asn1_string(const BIGNUM *bn, ASN1_STRING *ai,
     if (len == 0)
         len = 1;
 
-    if (ASN1_STRING_set(ret, NULL, len) == 0) {
+    if (VR_ASN1_STRING_set(ret, NULL, len) == 0) {
         ASN1err(ASN1_F_BN_TO_ASN1_STRING, ERR_R_MALLOC_FAILURE);
         goto err;
     }
 
     /* Correct zero case */
-    if (BN_is_zero(bn))
+    if (VR_BN_is_zero(bn))
         ret->data[0] = 0;
     else
-        len = BN_bn2bin(bn, ret->data);
+        len = VR_BN_bn2bin(bn, ret->data);
     ret->length = len;
     return ret;
  err:
     if (ret != ai)
-        ASN1_INTEGER_free(ret);
+        VR_ASN1_INTEGER_free(ret);
     return NULL;
 }
 
@@ -500,48 +500,48 @@ static BIGNUM *asn1_string_to_bn(const ASN1_INTEGER *ai, BIGNUM *bn,
         return NULL;
     }
 
-    ret = BN_bin2bn(ai->data, ai->length, bn);
+    ret = VR_BN_bin2bn(ai->data, ai->length, bn);
     if (ret == NULL) {
         ASN1err(ASN1_F_ASN1_STRING_TO_BN, ASN1_R_BN_LIB);
         return NULL;
     }
     if (ai->type & V_ASN1_NEG)
-        BN_set_negative(ret, 1);
+        VR_BN_set_negative(ret, 1);
     return ret;
 }
 
-int ASN1_INTEGER_get_int64(int64_t *pr, const ASN1_INTEGER *a)
+int VR_ASN1_INTEGER_get_int64(int64_t *pr, const ASN1_INTEGER *a)
 {
     return asn1_string_get_int64(pr, a, V_ASN1_INTEGER);
 }
 
-int ASN1_INTEGER_set_int64(ASN1_INTEGER *a, int64_t r)
+int VR_ASN1_INTEGER_set_int64(ASN1_INTEGER *a, int64_t r)
 {
     return asn1_string_set_int64(a, r, V_ASN1_INTEGER);
 }
 
-int ASN1_INTEGER_get_uint64(uint64_t *pr, const ASN1_INTEGER *a)
+int VR_ASN1_INTEGER_get_uint64(uint64_t *pr, const ASN1_INTEGER *a)
 {
     return asn1_string_get_uint64(pr, a, V_ASN1_INTEGER);
 }
 
-int ASN1_INTEGER_set_uint64(ASN1_INTEGER *a, uint64_t r)
+int VR_ASN1_INTEGER_set_uint64(ASN1_INTEGER *a, uint64_t r)
 {
     return asn1_string_set_uint64(a, r, V_ASN1_INTEGER);
 }
 
-int ASN1_INTEGER_set(ASN1_INTEGER *a, long v)
+int VR_ASN1_INTEGER_set(ASN1_INTEGER *a, long v)
 {
-    return ASN1_INTEGER_set_int64(a, v);
+    return VR_ASN1_INTEGER_set_int64(a, v);
 }
 
-long ASN1_INTEGER_get(const ASN1_INTEGER *a)
+long VR_ASN1_INTEGER_get(const ASN1_INTEGER *a)
 {
     int i;
     int64_t r;
     if (a == NULL)
         return 0;
-    i = ASN1_INTEGER_get_int64(&r, a);
+    i = VR_ASN1_INTEGER_get_int64(&r, a);
     if (i == 0)
         return -1;
     if (r > LONG_MAX || r < LONG_MIN)
@@ -549,32 +549,32 @@ long ASN1_INTEGER_get(const ASN1_INTEGER *a)
     return (long)r;
 }
 
-ASN1_INTEGER *BN_to_ASN1_INTEGER(const BIGNUM *bn, ASN1_INTEGER *ai)
+ASN1_INTEGER *VR_BN_to_ASN1_INTEGER(const BIGNUM *bn, ASN1_INTEGER *ai)
 {
     return bn_to_asn1_string(bn, ai, V_ASN1_INTEGER);
 }
 
-BIGNUM *ASN1_INTEGER_to_BN(const ASN1_INTEGER *ai, BIGNUM *bn)
+BIGNUM *VR_ASN1_INTEGER_to_BN(const ASN1_INTEGER *ai, BIGNUM *bn)
 {
     return asn1_string_to_bn(ai, bn, V_ASN1_INTEGER);
 }
 
-int ASN1_ENUMERATED_get_int64(int64_t *pr, const ASN1_ENUMERATED *a)
+int VR_ASN1_ENUMERATED_get_int64(int64_t *pr, const ASN1_ENUMERATED *a)
 {
     return asn1_string_get_int64(pr, a, V_ASN1_ENUMERATED);
 }
 
-int ASN1_ENUMERATED_set_int64(ASN1_ENUMERATED *a, int64_t r)
+int VR_ASN1_ENUMERATED_set_int64(ASN1_ENUMERATED *a, int64_t r)
 {
     return asn1_string_set_int64(a, r, V_ASN1_ENUMERATED);
 }
 
-int ASN1_ENUMERATED_set(ASN1_ENUMERATED *a, long v)
+int VR_ASN1_ENUMERATED_set(ASN1_ENUMERATED *a, long v)
 {
-    return ASN1_ENUMERATED_set_int64(a, v);
+    return VR_ASN1_ENUMERATED_set_int64(a, v);
 }
 
-long ASN1_ENUMERATED_get(const ASN1_ENUMERATED *a)
+long VR_ASN1_ENUMERATED_get(const ASN1_ENUMERATED *a)
 {
     int i;
     int64_t r;
@@ -584,7 +584,7 @@ long ASN1_ENUMERATED_get(const ASN1_ENUMERATED *a)
         return -1;
     if (a->length > (int)sizeof(long))
         return 0xffffffffL;
-    i = ASN1_ENUMERATED_get_int64(&r, a);
+    i = VR_ASN1_ENUMERATED_get_int64(&r, a);
     if (i == 0)
         return -1;
     if (r > LONG_MAX || r < LONG_MIN)
@@ -592,18 +592,18 @@ long ASN1_ENUMERATED_get(const ASN1_ENUMERATED *a)
     return (long)r;
 }
 
-ASN1_ENUMERATED *BN_to_ASN1_ENUMERATED(const BIGNUM *bn, ASN1_ENUMERATED *ai)
+ASN1_ENUMERATED *VR_BN_to_ASN1_ENUMERATED(const BIGNUM *bn, ASN1_ENUMERATED *ai)
 {
     return bn_to_asn1_string(bn, ai, V_ASN1_ENUMERATED);
 }
 
-BIGNUM *ASN1_ENUMERATED_to_BN(const ASN1_ENUMERATED *ai, BIGNUM *bn)
+BIGNUM *VR_ASN1_ENUMERATED_to_BN(const ASN1_ENUMERATED *ai, BIGNUM *bn)
 {
     return asn1_string_to_bn(ai, bn, V_ASN1_ENUMERATED);
 }
 
 /* Internal functions used by x_int64.c */
-int c2i_uint64_int(uint64_t *ret, int *neg, const unsigned char **pp, long len)
+int VR_c2i_uint64_int(uint64_t *ret, int *neg, const unsigned char **pp, long len)
 {
     unsigned char buf[sizeof(uint64_t)];
     size_t buflen;
@@ -619,7 +619,7 @@ int c2i_uint64_int(uint64_t *ret, int *neg, const unsigned char **pp, long len)
     return asn1_get_uint64(ret, buf, buflen);
 }
 
-int i2c_uint64_int(unsigned char *p, uint64_t r, int neg)
+int VR_i2c_uint64_int(unsigned char *p, uint64_t r, int neg)
 {
     unsigned char buf[sizeof(uint64_t)];
     size_t off;

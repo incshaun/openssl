@@ -14,10 +14,10 @@
  * The extra state information to record how much of the 64bit block we have
  * used is contained in *num;
  */
-void DES_ede3_ofb64_encrypt(register const unsigned char *in,
+void VR_DES_ede3_ofb64_encrypt(register const unsigned char *in,
                             register unsigned char *out, long length,
-                            DES_key_schedule *k1, DES_key_schedule *k2,
-                            DES_key_schedule *k3, DES_cblock *ivec, int *num)
+                            VR_DES_key_schedule *k1, VR_DES_key_schedule *k2,
+                            VR_DES_key_schedule *k3, DES_cblock *ivec, int *num)
 {
     register DES_LONG v0, v1;
     register int n = *num;
@@ -40,7 +40,7 @@ void DES_ede3_ofb64_encrypt(register const unsigned char *in,
         if (n == 0) {
             /* ti[0]=v0; */
             /* ti[1]=v1; */
-            DES_encrypt3(ti, k1, k2, k3);
+            VR_DES_encrypt3(ti, k1, k2, k3);
             v0 = ti[0];
             v1 = ti[1];
 

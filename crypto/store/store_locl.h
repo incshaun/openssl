@@ -56,10 +56,10 @@ DEFINE_STACK_OF(OSSL_STORE_INFO)
  * Because this is an internal type, we don't make it public.
  */
 #define OSSL_STORE_INFO_EMBEDDED       -1
-OSSL_STORE_INFO *ossl_store_info_new_EMBEDDED(const char *new_pem_name,
+OSSL_STORE_INFO *VR_ossl_store_info_new_EMBEDDED(const char *new_pem_name,
                                               BUF_MEM *embedded);
-BUF_MEM *ossl_store_info_get0_EMBEDDED_buffer(OSSL_STORE_INFO *info);
-char *ossl_store_info_get0_EMBEDDED_pem_name(OSSL_STORE_INFO *info);
+BUF_MEM *VR_ossl_store_info_get0_EMBEDDED_buffer(OSSL_STORE_INFO *info);
+char *VR_ossl_store_info_get0_EMBEDDED_pem_name(OSSL_STORE_INFO *info);
 
 /*-
  *  OSSL_STORE_SEARCH stuff
@@ -94,39 +94,39 @@ struct ossl_store_search_st {
  *  -----------------------
  */
 
-int ossl_store_register_loader_int(OSSL_STORE_LOADER *loader);
-OSSL_STORE_LOADER *ossl_store_unregister_loader_int(const char *scheme);
+int VR_ossl_store_register_loader_int(OSSL_STORE_LOADER *loader);
+OSSL_STORE_LOADER *VR_ossl_store_unregister_loader_int(const char *scheme);
 
 /* loader stuff */
 struct ossl_store_loader_st {
     const char *scheme;
     ENGINE *engine;
-    OSSL_STORE_open_fn open;
-    OSSL_STORE_ctrl_fn ctrl;
-    OSSL_STORE_expect_fn expect;
-    OSSL_STORE_find_fn find;
-    OSSL_STORE_load_fn load;
-    OSSL_STORE_eof_fn eof;
-    OSSL_STORE_error_fn error;
-    OSSL_STORE_close_fn close;
+    VR_OSSL_STORE_open_fn open;
+    VR_OSSL_STORE_ctrl_fn ctrl;
+    VR_OSSL_STORE_expect_fn expect;
+    VR_OSSL_STORE_find_fn find;
+    VR_OSSL_STORE_load_fn load;
+    VR_OSSL_STORE_eof_fn eof;
+    VR_OSSL_STORE_error_fn error;
+    VR_OSSL_STORE_close_fn close;
 };
 DEFINE_LHASH_OF(OSSL_STORE_LOADER);
 
-const OSSL_STORE_LOADER *ossl_store_get0_loader_int(const char *scheme);
-void ossl_store_destroy_loaders_int(void);
+const OSSL_STORE_LOADER *VR_ossl_store_get0_loader_int(const char *scheme);
+void VR_ossl_store_destroy_loaders_int(void);
 
 /*-
  *  OSSL_STORE init stuff
  *  ---------------------
  */
 
-int ossl_store_init_once(void);
-int ossl_store_file_loader_init(void);
+int VR_ossl_store_init_once(void);
+int VR_ossl_store_file_loader_init(void);
 
 /*-
  *  'file' scheme stuff
  *  -------------------
  */
 
-OSSL_STORE_LOADER_CTX *ossl_store_file_attach_pem_bio_int(BIO *bp);
-int ossl_store_file_detach_pem_bio_int(OSSL_STORE_LOADER_CTX *ctx);
+OSSL_STORE_LOADER_CTX *VR_ossl_store_file_attach_pem_bio_int(BIO *bp);
+int VR_ossl_store_file_detach_pem_bio_int(OSSL_STORE_LOADER_CTX *ctx);

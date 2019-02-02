@@ -25,7 +25,7 @@
 $output=pop;
 open STDOUT,">$output";
 
-# int bn_mul_mont(
+# int VR_bn_mul_mont(
 $rp="a0";	# BN_ULONG *rp,
 $ap="a1";	# const BN_ULONG *ap,
 $bp="a2";	# const BN_ULONG *bp,
@@ -63,10 +63,10 @@ $code=<<___;
 .set	noat
 .set	noreorder
 
-.globl	bn_mul_mont
+.globl	VR_bn_mul_mont
 .align	5
-.ent	bn_mul_mont
-bn_mul_mont:
+.ent	VR_bn_mul_mont
+VR_bn_mul_mont:
 	lda	sp,-48(sp)
 	stq	ra,0(sp)
 	stq	s3,8(sp)
@@ -319,7 +319,7 @@ bn_mul_mont:
 	ldq	fp,32(sp)
 	lda	sp,48(sp)
 	ret	(ra)
-.end	bn_mul_mont
+.end	VR_bn_mul_mont
 .ascii	"Montgomery Multiplication for Alpha, CRYPTOGAMS by <appro\@openssl.org>"
 .align	2
 ___

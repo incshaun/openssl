@@ -66,33 +66,33 @@ typedef void conf_finish_func (CONF_IMODULE *md);
 # define CONF_MFLAGS_IGNORE_MISSING_FILE 0x10
 # define CONF_MFLAGS_DEFAULT_SECTION     0x20
 
-int CONF_set_default_method(CONF_METHOD *meth);
-void CONF_set_nconf(CONF *conf, LHASH_OF(CONF_VALUE) *hash);
-LHASH_OF(CONF_VALUE) *CONF_load(LHASH_OF(CONF_VALUE) *conf, const char *file,
+int VR_CONF_set_default_method(CONF_METHOD *meth);
+void VR_CONF_set_nconf(CONF *conf, LHASH_OF(CONF_VALUE) *hash);
+LHASH_OF(CONF_VALUE) *VR_CONF_load(LHASH_OF(CONF_VALUE) *conf, const char *file,
                                 long *eline);
 # ifndef OPENSSL_NO_STDIO
-LHASH_OF(CONF_VALUE) *CONF_load_fp(LHASH_OF(CONF_VALUE) *conf, FILE *fp,
+LHASH_OF(CONF_VALUE) *VR_CONF_load_fp(LHASH_OF(CONF_VALUE) *conf, FILE *fp,
                                    long *eline);
 # endif
-LHASH_OF(CONF_VALUE) *CONF_load_bio(LHASH_OF(CONF_VALUE) *conf, BIO *bp,
+LHASH_OF(CONF_VALUE) *VR_CONF_load_bio(LHASH_OF(CONF_VALUE) *conf, BIO *bp,
                                     long *eline);
-STACK_OF(CONF_VALUE) *CONF_get_section(LHASH_OF(CONF_VALUE) *conf,
+STACK_OF(CONF_VALUE) *VR_CONF_get_section(LHASH_OF(CONF_VALUE) *conf,
                                        const char *section);
-char *CONF_get_string(LHASH_OF(CONF_VALUE) *conf, const char *group,
+char *VR_CONF_get_string(LHASH_OF(CONF_VALUE) *conf, const char *group,
                       const char *name);
-long CONF_get_number(LHASH_OF(CONF_VALUE) *conf, const char *group,
+long VR_CONF_get_number(LHASH_OF(CONF_VALUE) *conf, const char *group,
                      const char *name);
-void CONF_free(LHASH_OF(CONF_VALUE) *conf);
+void VR_CONF_free(LHASH_OF(CONF_VALUE) *conf);
 #ifndef OPENSSL_NO_STDIO
-int CONF_dump_fp(LHASH_OF(CONF_VALUE) *conf, FILE *out);
+int VR_CONF_dump_fp(LHASH_OF(CONF_VALUE) *conf, FILE *out);
 #endif
-int CONF_dump_bio(LHASH_OF(CONF_VALUE) *conf, BIO *out);
+int VR_CONF_dump_bio(LHASH_OF(CONF_VALUE) *conf, BIO *out);
 
-DEPRECATEDIN_1_1_0(void OPENSSL_config(const char *config_name))
+DEPRECATEDIN_1_1_0(void VR_OPENSSL_config(const char *config_name))
 
 #if !OPENSSL_API_1_1_0
 # define OPENSSL_no_config() \
-    OPENSSL_init_crypto(OPENSSL_INIT_NO_LOAD_CONFIG, NULL)
+    VR_OPENSSL_init_crypto(OPENSSL_INIT_NO_LOAD_CONFIG, NULL)
 #endif
 
 /*
@@ -106,60 +106,60 @@ struct conf_st {
     LHASH_OF(CONF_VALUE) *data;
 };
 
-CONF *NCONF_new(CONF_METHOD *meth);
-CONF_METHOD *NCONF_default(void);
-CONF_METHOD *NCONF_WIN32(void);
-void NCONF_free(CONF *conf);
-void NCONF_free_data(CONF *conf);
+CONF *VR_NCONF_new(CONF_METHOD *meth);
+CONF_METHOD *VR_NCONF_default(void);
+CONF_METHOD *VR_NCONF_WIN32(void);
+void VR_NCONF_free(CONF *conf);
+void VR_NCONF_free_data(CONF *conf);
 
-int NCONF_load(CONF *conf, const char *file, long *eline);
+int VR_NCONF_load(CONF *conf, const char *file, long *eline);
 # ifndef OPENSSL_NO_STDIO
-int NCONF_load_fp(CONF *conf, FILE *fp, long *eline);
+int VR_NCONF_load_fp(CONF *conf, FILE *fp, long *eline);
 # endif
-int NCONF_load_bio(CONF *conf, BIO *bp, long *eline);
-STACK_OF(CONF_VALUE) *NCONF_get_section(const CONF *conf,
+int VR_NCONF_load_bio(CONF *conf, BIO *bp, long *eline);
+STACK_OF(CONF_VALUE) *VR_NCONF_get_section(const CONF *conf,
                                         const char *section);
-char *NCONF_get_string(const CONF *conf, const char *group, const char *name);
-int NCONF_get_number_e(const CONF *conf, const char *group, const char *name,
+char *VR_NCONF_get_string(const CONF *conf, const char *group, const char *name);
+int VR_NCONF_get_number_e(const CONF *conf, const char *group, const char *name,
                        long *result);
 #ifndef OPENSSL_NO_STDIO
-int NCONF_dump_fp(const CONF *conf, FILE *out);
+int VR_NCONF_dump_fp(const CONF *conf, FILE *out);
 #endif
-int NCONF_dump_bio(const CONF *conf, BIO *out);
+int VR_NCONF_dump_bio(const CONF *conf, BIO *out);
 
-#define NCONF_get_number(c,g,n,r) NCONF_get_number_e(c,g,n,r)
+#define NVR_CONF_get_number(c,g,n,r) VR_NCONF_get_number_e(c,g,n,r)
 
 /* Module functions */
 
-int CONF_modules_load(const CONF *cnf, const char *appname,
+int VR_CONF_modules_load(const CONF *cnf, const char *appname,
                       unsigned long flags);
-int CONF_modules_load_file(const char *filename, const char *appname,
+int VR_CONF_modules_load_file(const char *filename, const char *appname,
                            unsigned long flags);
-void CONF_modules_unload(int all);
-void CONF_modules_finish(void);
+void VR_CONF_modules_unload(int all);
+void VR_CONF_modules_finish(void);
 #if !OPENSSL_API_1_1_0
 # define CONF_modules_free() while(0) continue
 #endif
-int CONF_module_add(const char *name, conf_init_func *ifunc,
+int VR_CONF_module_add(const char *name, conf_init_func *ifunc,
                     conf_finish_func *ffunc);
 
-const char *CONF_imodule_get_name(const CONF_IMODULE *md);
-const char *CONF_imodule_get_value(const CONF_IMODULE *md);
-void *CONF_imodule_get_usr_data(const CONF_IMODULE *md);
-void CONF_imodule_set_usr_data(CONF_IMODULE *md, void *usr_data);
-CONF_MODULE *CONF_imodule_get_module(const CONF_IMODULE *md);
-unsigned long CONF_imodule_get_flags(const CONF_IMODULE *md);
-void CONF_imodule_set_flags(CONF_IMODULE *md, unsigned long flags);
-void *CONF_module_get_usr_data(CONF_MODULE *pmod);
-void CONF_module_set_usr_data(CONF_MODULE *pmod, void *usr_data);
+const char *VR_CONF_imodule_get_name(const CONF_IMODULE *md);
+const char *VR_CONF_imodule_get_value(const CONF_IMODULE *md);
+void *VR_CONF_imodule_get_usr_data(const CONF_IMODULE *md);
+void VR_CONF_imodule_set_usr_data(CONF_IMODULE *md, void *usr_data);
+CONF_MODULE *VR_CONF_imodule_get_module(const CONF_IMODULE *md);
+unsigned long VR_CONF_imodule_get_flags(const CONF_IMODULE *md);
+void VR_CONF_imodule_set_flags(CONF_IMODULE *md, unsigned long flags);
+void *VR_CONF_module_get_usr_data(CONF_MODULE *pmod);
+void VR_CONF_module_set_usr_data(CONF_MODULE *pmod, void *usr_data);
 
-char *CONF_get1_default_config_file(void);
+char *VR_CONF_get1_default_config_file(void);
 
-int CONF_parse_list(const char *list, int sep, int nospc,
+int VR_CONF_parse_list(const char *list, int sep, int nospc,
                     int (*list_cb) (const char *elem, int len, void *usr),
                     void *arg);
 
-void OPENSSL_load_builtin_modules(void);
+void VR_OPENSSL_load_builtin_modules(void);
 
 
 # ifdef  __cplusplus

@@ -32,7 +32,7 @@ __owur static ossl_inline int ossl_assert_int(int expr, const char *exprstr,
                                               const char *file, int line)
 {
     if (!expr)
-        OPENSSL_die(exprstr, file, line);
+        VR_OPENSSL_die(exprstr, file, line);
 
     return expr;
 }
@@ -75,24 +75,24 @@ DEFINE_LHASH_OF(MEM);
 # define DECIMAL_SIZE(type)      ((sizeof(type)*8+2)/3+1)
 # define HEX_SIZE(type)          (sizeof(type)*2)
 
-void OPENSSL_cpuid_setup(void);
+void VR_OPENSSL_cpuid_setup(void);
 extern unsigned int OPENSSL_ia32cap_P[];
-void OPENSSL_showfatal(const char *fmta, ...);
-void crypto_cleanup_all_ex_data_int(void);
-int openssl_init_fork_handlers(void);
+void VR_OPENSSL_showfatal(const char *fmta, ...);
+void VR_crypto_cleanup_all_ex_data_int(void);
+int VR_openssl_init_fork_handlers(void);
 
-char *ossl_safe_getenv(const char *name);
+char *VR_ossl_safe_getenv(const char *name);
 
 extern CRYPTO_RWLOCK *memdbg_lock;
-int openssl_strerror_r(int errnum, char *buf, size_t buflen);
+int VR_openssl_strerror_r(int errnum, char *buf, size_t buflen);
 # if !defined(OPENSSL_NO_STDIO)
-FILE *openssl_fopen(const char *filename, const char *mode);
+FILE *VR_openssl_fopen(const char *filename, const char *mode);
 # else
-void *openssl_fopen(const char *filename, const char *mode);
+void *VR_openssl_fopen(const char *filename, const char *mode);
 # endif
 
-uint32_t OPENSSL_rdtsc(void);
-size_t OPENSSL_instrument_bus(unsigned int *, size_t);
-size_t OPENSSL_instrument_bus2(unsigned int *, size_t, size_t);
+uint32_t VR_OPENSSL_rdtsc(void);
+size_t VR_OPENSSL_instrument_bus(unsigned int *, size_t);
+size_t VR_OPENSSL_instrument_bus2(unsigned int *, size_t, size_t);
 
 #endif

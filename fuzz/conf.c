@@ -18,8 +18,8 @@
 
 int FuzzerInitialize(int *argc, char ***argv)
 {
-    OPENSSL_init_crypto(OPENSSL_INIT_LOAD_CRYPTO_STRINGS, NULL);
-    ERR_get_state();
+    VR_OPENSSL_init_crypto(OPENSSL_INIT_LOAD_CRYPTO_STRINGS, NULL);
+    VR_ERR_get_state();
     return 1;
 }
 
@@ -32,13 +32,13 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
     if (len == 0)
         return 0;
 
-    conf = NCONF_new(NULL);
-    in = BIO_new(BIO_s_mem());
-    OPENSSL_assert((size_t)BIO_write(in, buf, len) == len);
-    NCONF_load_bio(conf, in, &eline);
-    NCONF_free(conf);
-    BIO_free(in);
-    ERR_clear_error();
+    conf = VR_NCONF_new(NULL);
+    in = VR_BIO_new(VR_BIO_s_mem());
+    OPENSSL_assert((size_t)VR_BIO_write(in, buf, len) == len);
+    VR_NCONF_load_bio(conf, in, &eline);
+    VR_NCONF_free(conf);
+    VR_BIO_free(in);
+    VR_ERR_clear_error();
 
     return 0;
 }

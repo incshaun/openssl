@@ -12,27 +12,27 @@
 #include <openssl/e_os2.h>
 #include <openssl/md5.h>
 
-#ifdef MD5_ASM
+#ifdef VR_MD5_ASM
 # if defined(__i386) || defined(__i386__) || defined(_M_IX86) || \
      defined(__x86_64) || defined(__x86_64__) || defined(_M_AMD64) || defined(_M_X64)
-#  define md5_block_data_order md5_block_asm_data_order
+#  define VR_md5_block_data_order VR_md5_block_asm_data_order
 # elif defined(__ia64) || defined(__ia64__) || defined(_M_IA64)
-#  define md5_block_data_order md5_block_asm_data_order
+#  define VR_md5_block_data_order VR_md5_block_asm_data_order
 # elif defined(__sparc) || defined(__sparc__)
-#  define md5_block_data_order md5_block_asm_data_order
+#  define VR_md5_block_data_order VR_md5_block_asm_data_order
 # endif
 #endif
 
-void md5_block_data_order(MD5_CTX *c, const void *p, size_t num);
+void VR_md5_block_data_order(VR_MD5_CTX *c, const void *p, size_t num);
 
 #define DATA_ORDER_IS_LITTLE_ENDIAN
 
-#define HASH_LONG               MD5_LONG
-#define HASH_CTX                MD5_CTX
-#define HASH_CBLOCK             MD5_CBLOCK
-#define HASH_UPDATE             MD5_Update
-#define HASH_TRANSFORM          MD5_Transform
-#define HASH_FINAL              MD5_Final
+#define HASH_LONG               VR_MD5_LONG
+#define HASH_CTX                VR_MD5_CTX
+#define HASH_CBLOCK             VR_MD5_CBLOCK
+#define HASH_UPDATE             VR_MD5_Update
+#define HASH_TRANSFORM          VR_MD5_Transform
+#define HASH_FINAL              VR_MD5_Final
 #define HASH_MAKE_STRING(c,s)   do {    \
         unsigned long ll;               \
         ll=(c)->A; (void)HOST_l2c(ll,(s));      \
@@ -40,7 +40,7 @@ void md5_block_data_order(MD5_CTX *c, const void *p, size_t num);
         ll=(c)->C; (void)HOST_l2c(ll,(s));      \
         ll=(c)->D; (void)HOST_l2c(ll,(s));      \
         } while (0)
-#define HASH_BLOCK_DATA_ORDER   md5_block_data_order
+#define HASH_BLOCK_DATA_ORDER   VR_md5_block_data_order
 
 #include "internal/md32_common.h"
 

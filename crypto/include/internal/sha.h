@@ -13,7 +13,7 @@
 
 # include <openssl/opensslconf.h>
 
-int sha512_224_init(SHA512_CTX *);
-int sha512_256_init(SHA512_CTX *);
+int VR_sha512_224_init(VR_SHA512_CTX *);
+int VR_sha512_256_init(VR_SHA512_CTX *);
 
 #endif

@@ -11,7 +11,7 @@
 #include "internal/cryptlib.h"
 #include "bn_lcl.h"
 
-int BN_lshift1(BIGNUM *r, const BIGNUM *a)
+int VR_BN_lshift1(BIGNUM *r, const BIGNUM *a)
 {
     register BN_ULONG *ap, *rp, t, c;
     int i;
@@ -21,11 +21,11 @@ int BN_lshift1(BIGNUM *r, const BIGNUM *a)
 
     if (r != a) {
         r->neg = a->neg;
-        if (bn_wexpand(r, a->top + 1) == NULL)
+        if (VR_bn_wexpand(r, a->top + 1) == NULL)
             return 0;
         r->top = a->top;
     } else {
-        if (bn_wexpand(r, a->top + 1) == NULL)
+        if (VR_bn_wexpand(r, a->top + 1) == NULL)
             return 0;
     }
     ap = a->d;
@@ -44,7 +44,7 @@ int BN_lshift1(BIGNUM *r, const BIGNUM *a)
     return 1;
 }
 
-int BN_rshift1(BIGNUM *r, const BIGNUM *a)
+int VR_BN_rshift1(BIGNUM *r, const BIGNUM *a)
 {
     BN_ULONG *ap, *rp, t, c;
     int i, j;
@@ -52,7 +52,7 @@ int BN_rshift1(BIGNUM *r, const BIGNUM *a)
     bn_check_top(r);
     bn_check_top(a);
 
-    if (BN_is_zero(a)) {
+    if (VR_BN_is_zero(a)) {
         BN_zero(r);
         return 1;
     }
@@ -60,7 +60,7 @@ int BN_rshift1(BIGNUM *r, const BIGNUM *a)
     ap = a->d;
     j = i - (ap[i - 1] == 1);
     if (a != r) {
-        if (bn_wexpand(r, j) == NULL)
+        if (VR_bn_wexpand(r, j) == NULL)
             return 0;
         r->neg = a->neg;
     }
@@ -81,7 +81,7 @@ int BN_rshift1(BIGNUM *r, const BIGNUM *a)
     return 1;
 }
 
-int BN_lshift(BIGNUM *r, const BIGNUM *a, int n)
+int VR_BN_lshift(BIGNUM *r, const BIGNUM *a, int n)
 {
     int ret;
 
@@ -90,9 +90,9 @@ int BN_lshift(BIGNUM *r, const BIGNUM *a, int n)
         return 0;
     }
 
-    ret = bn_lshift_fixed_top(r, a, n);
+    ret = VR_bn_lshift_fixed_top(r, a, n);
 
-    bn_correct_top(r);
+    VR_bn_correct_top(r);
     bn_check_top(r);
 
     return ret;
@@ -104,7 +104,7 @@ int BN_lshift(BIGNUM *r, const BIGNUM *a, int n)
  * for constant-time-ness is |n < BN_BITS2| or |n / BN_BITS2| being
  * non-secret.
  */
-int bn_lshift_fixed_top(BIGNUM *r, const BIGNUM *a, int n)
+int VR_bn_lshift_fixed_top(BIGNUM *r, const BIGNUM *a, int n)
 {
     int i, nw;
     unsigned int lb, rb;
@@ -117,7 +117,7 @@ int bn_lshift_fixed_top(BIGNUM *r, const BIGNUM *a, int n)
     bn_check_top(a);
 
     nw = n / BN_BITS2;
-    if (bn_wexpand(r, a->top + nw + 1) == NULL)
+    if (VR_bn_wexpand(r, a->top + nw + 1) == NULL)
         return 0;
 
     if (a->top != 0) {
@@ -150,7 +150,7 @@ int bn_lshift_fixed_top(BIGNUM *r, const BIGNUM *a, int n)
     return 1;
 }
 
-int BN_rshift(BIGNUM *r, const BIGNUM *a, int n)
+int VR_BN_rshift(BIGNUM *r, const BIGNUM *a, int n)
 {
     int i, j, nw, lb, rb;
     BN_ULONG *t, *f;
@@ -171,9 +171,9 @@ int BN_rshift(BIGNUM *r, const BIGNUM *a, int n)
         BN_zero(r);
         return 1;
     }
-    i = (BN_num_bits(a) - n + (BN_BITS2 - 1)) / BN_BITS2;
+    i = (VR_BN_num_bits(a) - n + (BN_BITS2 - 1)) / BN_BITS2;
     if (r != a) {
-        if (bn_wexpand(r, i) == NULL)
+        if (VR_bn_wexpand(r, i) == NULL)
             return 0;
         r->neg = a->neg;
     } else {
@@ -211,7 +211,7 @@ int BN_rshift(BIGNUM *r, const BIGNUM *a, int n)
  * for constant-time-ness for sufficiently[!] zero-padded inputs is
  * |n < BN_BITS2| or |n / BN_BITS2| being non-secret.
  */
-int bn_rshift_fixed_top(BIGNUM *r, const BIGNUM *a, int n)
+int VR_bn_rshift_fixed_top(BIGNUM *r, const BIGNUM *a, int n)
 {
     int i, top, nw;
     unsigned int lb, rb;
@@ -236,7 +236,7 @@ int bn_rshift_fixed_top(BIGNUM *r, const BIGNUM *a, int n)
     mask = (BN_ULONG)0 - lb;   /* mask = 0 - (lb != 0) */
     mask |= mask >> 8;
     top = a->top - nw;
-    if (r != a && bn_wexpand(r, top) == NULL)
+    if (r != a && VR_bn_wexpand(r, top) == NULL)
         return 0;
 
     t = &(r->d[0]);

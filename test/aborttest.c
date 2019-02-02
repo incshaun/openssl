@@ -11,6 +11,6 @@
 
 int main(int argc, char **argv)
 {
-    OPENSSL_die("Voluntary abort", __FILE__, __LINE__);
+    VR_OPENSSL_die("Voluntary abort", __FILE__, __LINE__);
     return 0;
 }

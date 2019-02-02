@@ -30,7 +30,7 @@ static const char *pemtype = "PEMTESTDATA";
 
 static int test_b64(int idx)
 {
-    BIO *b = BIO_new(BIO_s_mem());
+    BIO *b = VR_BIO_new(VR_BIO_s_mem());
     char *name = NULL, *header = NULL;
     unsigned char *data = NULL;
     long len;
@@ -39,10 +39,10 @@ static int test_b64(int idx)
     const char *encoded = b64_pem_data[idx].encoded;
 
     if (!TEST_ptr(b)
-        || !TEST_true(BIO_printf(b, "-----BEGIN %s-----\n", pemtype))
-        || !TEST_true(BIO_printf(b, "%s\n", encoded))
-        || !TEST_true(BIO_printf(b, "-----END %s-----\n", pemtype))
-        || !TEST_true(PEM_read_bio_ex(b, &name, &header, &data, &len,
+        || !TEST_true(VR_BIO_printf(b, "-----BEGIN %s-----\n", pemtype))
+        || !TEST_true(VR_BIO_printf(b, "%s\n", encoded))
+        || !TEST_true(VR_BIO_printf(b, "-----END %s-----\n", pemtype))
+        || !TEST_true(VR_PEM_read_bio_ex(b, &name, &header, &data, &len,
                                       PEM_FLAG_ONLY_B64)))
         goto err;
     if (!TEST_int_eq(memcmp(pemtype, name, strlen(pemtype)), 0)
@@ -51,35 +51,35 @@ static int test_b64(int idx)
         goto err;
     ret = 1;
  err:
-    BIO_free(b);
-    OPENSSL_free(name);
-    OPENSSL_free(header);
-    OPENSSL_free(data);
+    VR_BIO_free(b);
+    OPENVR_SSL_free(name);
+    OPENVR_SSL_free(header);
+    OPENVR_SSL_free(data);
     return ret;
 }
 
 static int test_invalid(void)
 {
-    BIO *b = BIO_new(BIO_s_mem());
+    BIO *b = VR_BIO_new(VR_BIO_s_mem());
     char *name = NULL, *header = NULL;
     unsigned char *data = NULL;
     long len;
     const char *encoded = b64_pem_data[0].encoded;
 
     if (!TEST_ptr(b)
-        || !TEST_true(BIO_printf(b, "-----BEGIN %s-----\n", pemtype))
-        || !TEST_true(BIO_printf(b, "%c%s\n", '\t', encoded))
-        || !TEST_true(BIO_printf(b, "-----END %s-----\n", pemtype))
+        || !TEST_true(VR_BIO_printf(b, "-----BEGIN %s-----\n", pemtype))
+        || !TEST_true(VR_BIO_printf(b, "%c%s\n", '\t', encoded))
+        || !TEST_true(VR_BIO_printf(b, "-----END %s-----\n", pemtype))
         /* Expected to fail due to non-base64 character */
-        || TEST_true(PEM_read_bio_ex(b, &name, &header, &data, &len,
+        || TEST_true(VR_PEM_read_bio_ex(b, &name, &header, &data, &len,
                                      PEM_FLAG_ONLY_B64))) {
-        BIO_free(b);
+        VR_BIO_free(b);
         return 0;
     }
-    BIO_free(b);
-    OPENSSL_free(name);
-    OPENSSL_free(header);
-    OPENSSL_free(data);
+    VR_BIO_free(b);
+    OPENVR_SSL_free(name);
+    OPENVR_SSL_free(header);
+    OPENVR_SSL_free(data);
     return 1;
 }
 

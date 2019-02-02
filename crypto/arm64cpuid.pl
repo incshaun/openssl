@@ -78,10 +78,10 @@ _armv8_sha512_probe:
 	ret
 .size	_armv8_sha512_probe,.-_armv8_sha512_probe
 
-.globl	OPENSSL_cleanse
-.type	OPENSSL_cleanse,%function
+.globl	VR_OPENSSL_cleanse
+.type	VR_OPENSSL_cleanse,%function
 .align	5
-OPENSSL_cleanse:
+VR_OPENSSL_cleanse:
 	cbz	x1,.Lret	// len==0?
 	cmp	x1,#15
 	b.hi	.Lot		// len>15
@@ -107,12 +107,12 @@ OPENSSL_cleanse:
 	b.ne	.Laligned	// len>=8
 	cbnz	x1,.Little	// len!=0?
 	ret
-.size	OPENSSL_cleanse,.-OPENSSL_cleanse
+.size	VR_OPENSSL_cleanse,.-VR_OPENSSL_cleanse
 
-.globl	CRYPTO_memcmp
-.type	CRYPTO_memcmp,%function
+.globl	VR_CRYPTO_memcmp
+.type	VR_CRYPTO_memcmp,%function
 .align	4
-CRYPTO_memcmp:
+VR_CRYPTO_memcmp:
 	eor	w3,w3,w3
 	cbz	x2,.Lno_data	// len==0?
 	cmp	x2,#16
@@ -140,7 +140,7 @@ CRYPTO_memcmp:
 	neg	w0,w3
 	lsr	w0,w0,#31
 	ret
-.size	CRYPTO_memcmp,.-CRYPTO_memcmp
+.size	VR_CRYPTO_memcmp,.-VR_CRYPTO_memcmp
 ___
 
 print $code;

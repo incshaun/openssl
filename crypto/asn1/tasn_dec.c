@@ -82,7 +82,7 @@ static const unsigned long tag2bit[32] = {
     B_ASN1_UNIVERSALSTRING, B_ASN1_UNKNOWN, B_ASN1_BMPSTRING, B_ASN1_UNKNOWN,
 };
 
-unsigned long ASN1_tag2bit(int tag)
+unsigned long VR_ASN1_tag2bit(int tag)
 {
     if ((tag < 0) || (tag > 30))
         return 0;
@@ -102,7 +102,7 @@ unsigned long ASN1_tag2bit(int tag)
  * this will simply be a special case.
  */
 
-ASN1_VALUE *ASN1_item_d2i(ASN1_VALUE **pval,
+ASN1_VALUE *VR_ASN1_item_d2i(ASN1_VALUE **pval,
                           const unsigned char **in, long len,
                           const ASN1_ITEM *it)
 {
@@ -111,19 +111,19 @@ ASN1_VALUE *ASN1_item_d2i(ASN1_VALUE **pval,
     if (!pval)
         pval = &ptmpval;
     asn1_tlc_clear_nc(&c);
-    if (ASN1_item_ex_d2i(pval, in, len, it, -1, 0, 0, &c) > 0)
+    if (VR_ASN1_item_ex_d2i(pval, in, len, it, -1, 0, 0, &c) > 0)
         return *pval;
     return NULL;
 }
 
-int ASN1_item_ex_d2i(ASN1_VALUE **pval, const unsigned char **in, long len,
+int VR_ASN1_item_ex_d2i(ASN1_VALUE **pval, const unsigned char **in, long len,
                      const ASN1_ITEM *it,
                      int tag, int aclass, char opt, ASN1_TLC *ctx)
 {
     int rv;
     rv = asn1_item_embed_d2i(pval, in, len, it, tag, aclass, opt, ctx, 0);
     if (rv <= 0)
-        ASN1_item_ex_free(pval, it);
+        VR_ASN1_item_ex_free(pval, it);
     return rv;
 }
 
@@ -200,7 +200,7 @@ static int asn1_item_embed_d2i(ASN1_VALUE **pval, const unsigned char **in,
             goto err;
         }
         /* Check tag matches bit map */
-        if (!(ASN1_tag2bit(otag) & it->utype)) {
+        if (!(VR_ASN1_tag2bit(otag) & it->utype)) {
             /* If OPTIONAL, assume this is OK */
             if (opt)
                 return -1;
@@ -219,21 +219,21 @@ static int asn1_item_embed_d2i(ASN1_VALUE **pval, const unsigned char **in,
             goto auxerr;
         if (*pval) {
             /* Free up and zero CHOICE value if initialised */
-            i = asn1_get_choice_selector(pval, it);
+            i = VR_asn1_get_choice_selector(pval, it);
             if ((i >= 0) && (i < it->tcount)) {
                 tt = it->templates + i;
-                pchptr = asn1_get_field_ptr(pval, tt);
-                asn1_template_free(pchptr, tt);
-                asn1_set_choice_selector(pval, -1, it);
+                pchptr = VR_asn1_get_field_ptr(pval, tt);
+                VR_asn1_template_free(pchptr, tt);
+                VR_asn1_set_choice_selector(pval, -1, it);
             }
-        } else if (!ASN1_item_ex_new(pval, it)) {
+        } else if (!VR_ASN1_item_ex_new(pval, it)) {
             ASN1err(ASN1_F_ASN1_ITEM_EMBED_D2I, ERR_R_NESTED_ASN1_ERROR);
             goto err;
         }
         /* CHOICE type, try each possibility in turn */
         p = *in;
         for (i = 0, tt = it->templates; i < it->tcount; i++, tt++) {
-            pchptr = asn1_get_field_ptr(pval, tt);
+            pchptr = VR_asn1_get_field_ptr(pval, tt);
             /*
              * We mark field as OPTIONAL so its absence can be recognised.
              */
@@ -248,7 +248,7 @@ static int asn1_item_embed_d2i(ASN1_VALUE **pval, const unsigned char **in,
              * Must be an ASN1 parsing error.
              * Free up any partial choice value
              */
-            asn1_template_free(pchptr, tt);
+            VR_asn1_template_free(pchptr, tt);
             errtt = tt;
             ASN1err(ASN1_F_ASN1_ITEM_EMBED_D2I, ERR_R_NESTED_ASN1_ERROR);
             goto err;
@@ -259,14 +259,14 @@ static int asn1_item_embed_d2i(ASN1_VALUE **pval, const unsigned char **in,
             /* If OPTIONAL, this is OK */
             if (opt) {
                 /* Free and zero it */
-                ASN1_item_ex_free(pval, it);
+                VR_ASN1_item_ex_free(pval, it);
                 return -1;
             }
             ASN1err(ASN1_F_ASN1_ITEM_EMBED_D2I, ASN1_R_NO_MATCHING_CHOICE_TYPE);
             goto err;
         }
 
-        asn1_set_choice_selector(pval, i, it);
+        VR_asn1_set_choice_selector(pval, i, it);
 
         if (asn1_cb && !asn1_cb(ASN1_OP_D2I_POST, pval, it, NULL))
             goto auxerr;
@@ -303,7 +303,7 @@ static int asn1_item_embed_d2i(ASN1_VALUE **pval, const unsigned char **in,
             goto err;
         }
 
-        if (!*pval && !ASN1_item_ex_new(pval, it)) {
+        if (!*pval && !VR_ASN1_item_ex_new(pval, it)) {
             ASN1err(ASN1_F_ASN1_ITEM_EMBED_D2I, ERR_R_NESTED_ASN1_ERROR);
             goto err;
         }
@@ -316,11 +316,11 @@ static int asn1_item_embed_d2i(ASN1_VALUE **pval, const unsigned char **in,
             if (tt->flags & ASN1_TFLG_ADB_MASK) {
                 const ASN1_TEMPLATE *seqtt;
                 ASN1_VALUE **pseqval;
-                seqtt = asn1_do_adb(pval, tt, 0);
+                seqtt = VR_asn1_do_adb(pval, tt, 0);
                 if (seqtt == NULL)
                     continue;
-                pseqval = asn1_get_field_ptr(pval, seqtt);
-                asn1_template_free(pseqval, seqtt);
+                pseqval = VR_asn1_get_field_ptr(pval, seqtt);
+                VR_asn1_template_free(pseqval, seqtt);
             }
         }
 
@@ -328,10 +328,10 @@ static int asn1_item_embed_d2i(ASN1_VALUE **pval, const unsigned char **in,
         for (i = 0, tt = it->templates; i < it->tcount; i++, tt++) {
             const ASN1_TEMPLATE *seqtt;
             ASN1_VALUE **pseqval;
-            seqtt = asn1_do_adb(pval, tt, 1);
+            seqtt = VR_asn1_do_adb(pval, tt, 1);
             if (seqtt == NULL)
                 goto err;
-            pseqval = asn1_get_field_ptr(pval, seqtt);
+            pseqval = VR_asn1_get_field_ptr(pval, seqtt);
             /* Have we ran out of data? */
             if (!len)
                 break;
@@ -369,7 +369,7 @@ static int asn1_item_embed_d2i(ASN1_VALUE **pval, const unsigned char **in,
                 /*
                  * OPTIONAL component absent. Free and zero the field.
                  */
-                asn1_template_free(pseqval, seqtt);
+                VR_asn1_template_free(pseqval, seqtt);
                 continue;
             }
             /* Update length */
@@ -394,13 +394,13 @@ static int asn1_item_embed_d2i(ASN1_VALUE **pval, const unsigned char **in,
          */
         for (; i < it->tcount; tt++, i++) {
             const ASN1_TEMPLATE *seqtt;
-            seqtt = asn1_do_adb(pval, tt, 1);
+            seqtt = VR_asn1_do_adb(pval, tt, 1);
             if (seqtt == NULL)
                 goto err;
             if (seqtt->flags & ASN1_TFLG_OPTIONAL) {
                 ASN1_VALUE **pseqval;
-                pseqval = asn1_get_field_ptr(pval, seqtt);
-                asn1_template_free(pseqval, seqtt);
+                pseqval = VR_asn1_get_field_ptr(pval, seqtt);
+                VR_asn1_template_free(pseqval, seqtt);
             } else {
                 errtt = seqtt;
                 ASN1err(ASN1_F_ASN1_ITEM_EMBED_D2I, ASN1_R_FIELD_MISSING);
@@ -408,7 +408,7 @@ static int asn1_item_embed_d2i(ASN1_VALUE **pval, const unsigned char **in,
             }
         }
         /* Save encoding */
-        if (!asn1_enc_save(pval, *in, p - *in, it))
+        if (!VR_asn1_enc_save(pval, *in, p - *in, it))
             goto auxerr;
         if (asn1_cb && !asn1_cb(ASN1_OP_D2I_POST, pval, it, NULL))
             goto auxerr;
@@ -422,10 +422,10 @@ static int asn1_item_embed_d2i(ASN1_VALUE **pval, const unsigned char **in,
     ASN1err(ASN1_F_ASN1_ITEM_EMBED_D2I, ASN1_R_AUX_ERROR);
  err:
     if (errtt)
-        ERR_add_error_data(4, "Field=", errtt->field_name,
+        VR_ERR_add_error_data(4, "Field=", errtt->field_name,
                            ", Type=", it->sname);
     else
-        ERR_add_error_data(2, "Type=", it->sname);
+        VR_ERR_add_error_data(2, "Type=", it->sname);
     return 0;
 }
 
@@ -555,7 +555,7 @@ static int asn1_template_noexp_d2i(ASN1_VALUE **val,
         } else if (ret == -1)
             return -1;
         if (!*val)
-            *val = (ASN1_VALUE *)sk_ASN1_VALUE_new_null();
+            *val = (ASN1_VALUE *)sk_VR_ASN1_VALUE_new_null();
         else {
             /*
              * We've got a valid STACK: free up any items present
@@ -563,8 +563,8 @@ static int asn1_template_noexp_d2i(ASN1_VALUE **val,
             STACK_OF(ASN1_VALUE) *sktmp = (STACK_OF(ASN1_VALUE) *)*val;
             ASN1_VALUE *vtmp;
             while (sk_ASN1_VALUE_num(sktmp) > 0) {
-                vtmp = sk_ASN1_VALUE_pop(sktmp);
-                ASN1_item_ex_free(&vtmp, ASN1_ITEM_ptr(tt->item));
+                vtmp = sk_VR_ASN1_VALUE_pop(sktmp);
+                VR_ASN1_item_ex_free(&vtmp, ASN1_ITEM_ptr(tt->item));
             }
         }
 
@@ -595,13 +595,13 @@ static int asn1_template_noexp_d2i(ASN1_VALUE **val,
                 ASN1err(ASN1_F_ASN1_TEMPLATE_NOEXP_D2I,
                         ERR_R_NESTED_ASN1_ERROR);
                 /* |skfield| may be partially allocated despite failure. */
-                ASN1_item_free(skfield, ASN1_ITEM_ptr(tt->item));
+                VR_ASN1_item_free(skfield, ASN1_ITEM_ptr(tt->item));
                 goto err;
             }
             len -= p - q;
-            if (!sk_ASN1_VALUE_push((STACK_OF(ASN1_VALUE) *)*val, skfield)) {
+            if (!sk_VR_ASN1_VALUE_push((STACK_OF(ASN1_VALUE) *)*val, skfield)) {
                 ASN1err(ASN1_F_ASN1_TEMPLATE_NOEXP_D2I, ERR_R_MALLOC_FAILURE);
-                ASN1_item_free(skfield, ASN1_ITEM_ptr(tt->item));
+                VR_ASN1_item_free(skfield, ASN1_ITEM_ptr(tt->item));
                 goto err;
             }
         }
@@ -744,7 +744,7 @@ static int asn1_d2i_ex_primitive(ASN1_VALUE **pval,
         }
         len = buf.length;
         /* Append a final null to string */
-        if (!BUF_MEM_grow_clean(&buf, len + 1)) {
+        if (!VR_BUF_MEM_grow_clean(&buf, len + 1)) {
             ASN1err(ASN1_F_ASN1_D2I_EX_PRIMITIVE, ERR_R_MALLOC_FAILURE);
             goto err;
         }
@@ -765,7 +765,7 @@ static int asn1_d2i_ex_primitive(ASN1_VALUE **pval,
     ret = 1;
  err:
     if (free_cont)
-        OPENSSL_free(buf.data);
+        OPENVR_SSL_free(buf.data);
     return ret;
 }
 
@@ -787,7 +787,7 @@ static int asn1_ex_c2i(ASN1_VALUE **pval, const unsigned char *cont, int len,
     /* If ANY type clear type and set pointer to internal value */
     if (it->utype == V_ASN1_ANY) {
         if (!*pval) {
-            typ = ASN1_TYPE_new();
+            typ = VR_ASN1_TYPE_new();
             if (typ == NULL)
                 goto err;
             *pval = (ASN1_VALUE *)typ;
@@ -795,13 +795,13 @@ static int asn1_ex_c2i(ASN1_VALUE **pval, const unsigned char *cont, int len,
             typ = (ASN1_TYPE *)*pval;
 
         if (utype != typ->type)
-            ASN1_TYPE_set(typ, utype, NULL);
+            VR_ASN1_TYPE_set(typ, utype, NULL);
         opval = pval;
         pval = &typ->value.asn1_value;
     }
     switch (utype) {
     case V_ASN1_OBJECT:
-        if (!c2i_ASN1_OBJECT((ASN1_OBJECT **)pval, &cont, len))
+        if (!VR_c2i_ASN1_OBJECT((ASN1_OBJECT **)pval, &cont, len))
             goto err;
         break;
 
@@ -825,14 +825,14 @@ static int asn1_ex_c2i(ASN1_VALUE **pval, const unsigned char *cont, int len,
         break;
 
     case V_ASN1_BIT_STRING:
-        if (!c2i_ASN1_BIT_STRING((ASN1_BIT_STRING **)pval, &cont, len))
+        if (!VR_c2i_ASN1_BIT_STRING((ASN1_BIT_STRING **)pval, &cont, len))
             goto err;
         break;
 
     case V_ASN1_INTEGER:
     case V_ASN1_ENUMERATED:
         tint = (ASN1_INTEGER **)pval;
-        if (!c2i_ASN1_INTEGER(tint, &cont, len))
+        if (!VR_c2i_ASN1_INTEGER(tint, &cont, len))
             goto err;
         /* Fixup type to match the expected form */
         (*tint)->type = utype | ((*tint)->type & V_ASN1_NEG);
@@ -867,7 +867,7 @@ static int asn1_ex_c2i(ASN1_VALUE **pval, const unsigned char *cont, int len,
         }
         /* All based on ASN1_STRING and handled the same */
         if (!*pval) {
-            stmp = ASN1_STRING_type_new(utype);
+            stmp = VR_ASN1_STRING_type_new(utype);
             if (stmp == NULL) {
                 ASN1err(ASN1_F_ASN1_EX_C2I, ERR_R_MALLOC_FAILURE);
                 goto err;
@@ -879,14 +879,14 @@ static int asn1_ex_c2i(ASN1_VALUE **pval, const unsigned char *cont, int len,
         }
         /* If we've already allocated a buffer use it */
         if (*free_cont) {
-            OPENSSL_free(stmp->data);
+            OPENVR_SSL_free(stmp->data);
             stmp->data = (unsigned char *)cont; /* UGLY CAST! RL */
             stmp->length = len;
             *free_cont = 0;
         } else {
-            if (!ASN1_STRING_set(stmp, cont, len)) {
+            if (!VR_ASN1_STRING_set(stmp, cont, len)) {
                 ASN1err(ASN1_F_ASN1_EX_C2I, ERR_R_MALLOC_FAILURE);
-                ASN1_STRING_free(stmp);
+                VR_ASN1_STRING_free(stmp);
                 *pval = NULL;
                 goto err;
             }
@@ -900,7 +900,7 @@ static int asn1_ex_c2i(ASN1_VALUE **pval, const unsigned char *cont, int len,
     ret = 1;
  err:
     if (!ret) {
-        ASN1_TYPE_free(typ);
+        VR_ASN1_TYPE_free(typ);
         if (opval)
             *opval = NULL;
     }
@@ -1043,7 +1043,7 @@ static int collect_data(BUF_MEM *buf, const unsigned char **p, long plen)
     int len;
     if (buf) {
         len = buf->length;
-        if (!BUF_MEM_grow_clean(buf, len + plen)) {
+        if (!VR_BUF_MEM_grow_clean(buf, len + plen)) {
             ASN1err(ASN1_F_COLLECT_DATA, ERR_R_MALLOC_FAILURE);
             return 0;
         }
@@ -1069,7 +1069,7 @@ static int asn1_check_eoc(const unsigned char **in, long len)
 }
 
 /*
- * Check an ASN1 tag and length: a bit like ASN1_get_object but it sets the
+ * Check an ASN1 tag and length: a bit like VR_ASN1_get_object but it sets the
  * length for indefinite length constructed form, we don't know the exact
  * length but we can set an upper bound to the amount of data available minus
  * the header length just read.
@@ -1094,7 +1094,7 @@ static int asn1_check_tlen(long *olen, int *otag, unsigned char *oclass,
         ptag = ctx->ptag;
         p += ctx->hdrlen;
     } else {
-        i = ASN1_get_object(&p, &plen, &ptag, &pclass, len);
+        i = VR_ASN1_get_object(&p, &plen, &ptag, &pclass, len);
         if (ctx) {
             ctx->ret = i;
             ctx->plen = plen;

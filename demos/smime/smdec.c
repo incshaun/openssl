@@ -24,39 +24,39 @@ int main(int argc, char **argv)
     ERR_load_crypto_strings();
 
     /* Read in recipient certificate and private key */
-    tbio = BIO_new_file("signer.pem", "r");
+    tbio = VR_BIO_new_file("signer.pem", "r");
 
     if (!tbio)
         goto err;
 
-    rcert = PEM_read_bio_X509(tbio, NULL, 0, NULL);
+    rcert = VR_PEM_read_bio_X509(tbio, NULL, 0, NULL);
 
     BIO_reset(tbio);
 
-    rkey = PEM_read_bio_PrivateKey(tbio, NULL, 0, NULL);
+    rkey = VR_PEM_read_bio_PrivateKey(tbio, NULL, 0, NULL);
 
     if (!rcert || !rkey)
         goto err;
 
     /* Open content being signed */
 
-    in = BIO_new_file("smencr.txt", "r");
+    in = VR_BIO_new_file("smencr.txt", "r");
 
     if (!in)
         goto err;
 
     /* Sign content */
-    p7 = SMIME_read_PKCS7(in, NULL);
+    p7 = VR_SMIME_read_PKCS7(in, NULL);
 
     if (!p7)
         goto err;
 
-    out = BIO_new_file("encrout.txt", "w");
+    out = VR_BIO_new_file("encrout.txt", "w");
     if (!out)
         goto err;
 
     /* Decrypt S/MIME message */
-    if (!PKCS7_decrypt(p7, rkey, rcert, out, 0))
+    if (!VR_PKCS7_decrypt(p7, rkey, rcert, out, 0))
         goto err;
 
     ret = 0;
@@ -64,14 +64,14 @@ int main(int argc, char **argv)
  err:
     if (ret) {
         fprintf(stderr, "Error Signing Data\n");
-        ERR_print_errors_fp(stderr);
+        VR_ERR_print_errors_fp(stderr);
     }
-    PKCS7_free(p7);
-    X509_free(rcert);
-    EVP_PKEY_free(rkey);
-    BIO_free(in);
-    BIO_free(out);
-    BIO_free(tbio);
+    VR_PKCS7_free(p7);
+    VR_X509_free(rcert);
+    VR_EVP_PKEY_free(rkey);
+    VR_BIO_free(in);
+    VR_BIO_free(out);
+    VR_BIO_free(tbio);
 
     return ret;
 

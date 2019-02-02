@@ -15,7 +15,7 @@
 
 /* SSL library configuration module. */
 
-void SSL_add_ssl_module(void)
+void VR_SSL_add_ssl_module(void)
 {
     /* Do nothing. This will be added automatically by libcrypto */
 }
@@ -36,15 +36,15 @@ static int ssl_do_config(SSL *s, SSL_CTX *ctx, const char *name, int system)
 
     if (name == NULL && system)
         name = "system_default";
-    if (!conf_ssl_name_find(name, &idx)) {
+    if (!VR_conf_ssl_name_find(name, &idx)) {
         if (!system) {
             SSLerr(SSL_F_SSL_DO_CONFIG, SSL_R_INVALID_CONFIGURATION_NAME);
-            ERR_add_error_data(2, "name=", name);
+            VR_ERR_add_error_data(2, "name=", name);
         }
         goto err;
     }
-    cmds = conf_ssl_get(idx, &name, &cmd_count);
-    cctx = SSL_CONF_CTX_new();
+    cmds = VR_conf_ssl_get(idx, &name, &cmd_count);
+    cctx = VR_SSL_CONF_CTX_new();
     if (cctx == NULL)
         goto err;
     flags = SSL_CONF_FLAG_FILE;
@@ -52,48 +52,48 @@ static int ssl_do_config(SSL *s, SSL_CTX *ctx, const char *name, int system)
         flags |= SSL_CONF_FLAG_CERTIFICATE | SSL_CONF_FLAG_REQUIRE_PRIVATE;
     if (s != NULL) {
         meth = s->method;
-        SSL_CONF_CTX_set_ssl(cctx, s);
+        VR_SSL_CONF_CTX_set_ssl(cctx, s);
     } else {
         meth = ctx->method;
-        SSL_CONF_CTX_set_ssl_ctx(cctx, ctx);
+        VR_SSL_CONF_CTX_set_ssl_ctx(cctx, ctx);
     }
-    if (meth->ssl_accept != ssl_undefined_function)
+    if (meth->ssl_accept != VR_ssl_undefined_function)
         flags |= SSL_CONF_FLAG_SERVER;
-    if (meth->ssl_connect != ssl_undefined_function)
+    if (meth->ssl_connect != VR_ssl_undefined_function)
         flags |= SSL_CONF_FLAG_CLIENT;
-    SSL_CONF_CTX_set_flags(cctx, flags);
+    VR_SSL_CONF_CTX_set_flags(cctx, flags);
     for (i = 0; i < cmd_count; i++) {
         char *cmdstr, *arg;
 
-        conf_ssl_get_cmd(cmds, i, &cmdstr, &arg);
-        rv = SSL_CONF_cmd(cctx, cmdstr, arg);
+        VR_conf_ssl_get_cmd(cmds, i, &cmdstr, &arg);
+        rv = VR_SSL_CONF_cmd(cctx, cmdstr, arg);
         if (rv <= 0) {
             if (rv == -2)
                 SSLerr(SSL_F_SSL_DO_CONFIG, SSL_R_UNKNOWN_COMMAND);
             else
                 SSLerr(SSL_F_SSL_DO_CONFIG, SSL_R_BAD_VALUE);
-            ERR_add_error_data(6, "section=", name, ", cmd=", cmdstr,
+            VR_ERR_add_error_data(6, "section=", name, ", cmd=", cmdstr,
                                ", arg=", arg);
             goto err;
         }
     }
-    rv = SSL_CONF_CTX_finish(cctx);
+    rv = VR_SSL_CONF_CTX_finish(cctx);
  err:
-    SSL_CONF_CTX_free(cctx);
+    VR_SSL_CONF_CTX_free(cctx);
     return rv <= 0 ? 0 : 1;
 }
 
-int SSL_config(SSL *s, const char *name)
+int VR_SSL_config(SSL *s, const char *name)
 {
     return ssl_do_config(s, NULL, name, 0);
 }
 
-int SSL_CTX_config(SSL_CTX *ctx, const char *name)
+int VR_SSL_CTX_config(SSL_CTX *ctx, const char *name)
 {
     return ssl_do_config(NULL, ctx, name, 0);
 }
 
-void ssl_ctx_system_config(SSL_CTX *ctx)
+void VR_ssl_ctx_system_config(SSL_CTX *ctx)
 {
     ssl_do_config(NULL, ctx, NULL, 1);
 }

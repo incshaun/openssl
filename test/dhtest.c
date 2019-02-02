@@ -44,11 +44,11 @@ static int dh_test(void)
     int i, alen, blen, clen, aout, bout, cout;
     int ret = 0;
 
-    if (!TEST_ptr(dh = DH_new())
-        || !TEST_ptr(p = BN_new())
-        || !TEST_ptr(q = BN_new())
-        || !TEST_ptr(g = BN_new())
-        || !TEST_ptr(priv_key = BN_new()))
+    if (!TEST_ptr(dh = VR_DH_new())
+        || !TEST_ptr(p = VR_BN_new())
+        || !TEST_ptr(q = VR_BN_new())
+        || !TEST_ptr(g = VR_BN_new())
+        || !TEST_ptr(priv_key = VR_BN_new()))
         goto err1;
 
     /*
@@ -56,76 +56,76 @@ static int dh_test(void)
      */
 
     /* using a small predefined Sophie Germain DH group with generator 3 */
-    if (!TEST_true(BN_set_word(p, 4079L))
-        || !TEST_true(BN_set_word(q, 2039L))
-        || !TEST_true(BN_set_word(g, 3L))
-        || !TEST_true(DH_set0_pqg(dh, p, q, g)))
+    if (!TEST_true(VR_BN_set_word(p, 4079L))
+        || !TEST_true(VR_BN_set_word(q, 2039L))
+        || !TEST_true(VR_BN_set_word(g, 3L))
+        || !TEST_true(VR_DH_set0_pqg(dh, p, q, g)))
         goto err1;
 
     /* test the combined getter for p, q, and g */
-    DH_get0_pqg(dh, &p2, &q2, &g2);
+    VR_DH_get0_pqg(dh, &p2, &q2, &g2);
     if (!TEST_ptr_eq(p2, p)
         || !TEST_ptr_eq(q2, q)
         || !TEST_ptr_eq(g2, g))
         goto err2;
 
     /* test the simple getters for p, q, and g */
-    if (!TEST_ptr_eq(DH_get0_p(dh), p2)
-        || !TEST_ptr_eq(DH_get0_q(dh), q2)
-        || !TEST_ptr_eq(DH_get0_g(dh), g2))
+    if (!TEST_ptr_eq(VR_DH_get0_p(dh), p2)
+        || !TEST_ptr_eq(VR_DH_get0_q(dh), q2)
+        || !TEST_ptr_eq(VR_DH_get0_g(dh), g2))
         goto err2;
 
     /* set the private key only*/
-    if (!TEST_true(BN_set_word(priv_key, 1234L))
-        || !TEST_true(DH_set0_key(dh, NULL, priv_key)))
+    if (!TEST_true(VR_BN_set_word(priv_key, 1234L))
+        || !TEST_true(VR_DH_set0_key(dh, NULL, priv_key)))
         goto err2;
 
     /* test the combined getter for pub_key and priv_key */
-    DH_get0_key(dh, &pub_key2, &priv_key2);
+    VR_DH_get0_key(dh, &pub_key2, &priv_key2);
     if (!TEST_ptr_eq(pub_key2, NULL)
         || !TEST_ptr_eq(priv_key2, priv_key))
         goto err3;
 
     /* test the simple getters for pub_key and priv_key */
-    if (!TEST_ptr_eq(DH_get0_pub_key(dh), pub_key2)
-        || !TEST_ptr_eq(DH_get0_priv_key(dh), priv_key2))
+    if (!TEST_ptr_eq(VR_DH_get0_pub_key(dh), pub_key2)
+        || !TEST_ptr_eq(VR_DH_get0_priv_key(dh), priv_key2))
         goto err3;
 
     /* now generate a key pair ... */
-    if (!DH_generate_key(dh))
+    if (!VR_DH_generate_key(dh))
         goto err3;
 
     /* ... and check whether the private key was reused: */
 
     /* test it with the combined getter for pub_key and priv_key */
-    DH_get0_key(dh, &pub_key2, &priv_key2);
+    VR_DH_get0_key(dh, &pub_key2, &priv_key2);
     if (!TEST_ptr(pub_key2)
         || !TEST_ptr_eq(priv_key2, priv_key))
         goto err3;
 
     /* test it the simple getters for pub_key and priv_key */
-    if (!TEST_ptr_eq(DH_get0_pub_key(dh), pub_key2)
-        || !TEST_ptr_eq(DH_get0_priv_key(dh), priv_key2))
+    if (!TEST_ptr_eq(VR_DH_get0_pub_key(dh), pub_key2)
+        || !TEST_ptr_eq(VR_DH_get0_priv_key(dh), priv_key2))
         goto err3;
 
     /* check whether the public key was calculated correctly */
-    TEST_uint_eq(BN_get_word(pub_key2), 3331L);
+    TEST_uint_eq(VR_BN_get_word(pub_key2), 3331L);
 
     /*
      * II) key generation
      */
 
     /* generate a DH group ... */
-    if (!TEST_ptr(_cb = BN_GENCB_new()))
+    if (!TEST_ptr(_cb = VR_BN_GENCB_new()))
         goto err3;
-    BN_GENCB_set(_cb, &cb, NULL);
-    if (!TEST_ptr(a = DH_new())
-            || !TEST_true(DH_generate_parameters_ex(a, 64,
+    VR_BN_GENCB_set(_cb, &cb, NULL);
+    if (!TEST_ptr(a = VR_DH_new())
+            || !TEST_true(VR_DH_generate_parameters_ex(a, 64,
                                                     DH_GENERATOR_5, _cb)))
         goto err3;
 
     /* ... and check whether it is valid */
-    if (!DH_check(a, &i))
+    if (!VR_DH_check(a, &i))
         goto err3;
     if (!TEST_false(i & DH_CHECK_P_NOT_PRIME)
             || !TEST_false(i & DH_CHECK_P_NOT_SAFE_PRIME)
@@ -133,15 +133,15 @@ static int dh_test(void)
             || !TEST_false(i & DH_NOT_SUITABLE_GENERATOR))
         goto err3;
 
-    DH_get0_pqg(a, &ap, NULL, &ag);
+    VR_DH_get0_pqg(a, &ap, NULL, &ag);
 
     /* now create another copy of the DH group for the peer */
-    if (!TEST_ptr(b = DH_new()))
+    if (!TEST_ptr(b = VR_DH_new()))
         goto err3;
 
-    if (!TEST_ptr(bp = BN_dup(ap))
-            || !TEST_ptr(bg = BN_dup(ag))
-            || !TEST_true(DH_set0_pqg(b, bp, NULL, bg)))
+    if (!TEST_ptr(bp = VR_BN_dup(ap))
+            || !TEST_ptr(bg = VR_BN_dup(ag))
+            || !TEST_true(VR_DH_set0_pqg(b, bp, NULL, bg)))
         goto err3;
     bp = bg = NULL;
 
@@ -149,34 +149,34 @@ static int dh_test(void)
      * III) simulate a key exchange
      */
 
-    if (!DH_generate_key(a))
+    if (!VR_DH_generate_key(a))
         goto err3;
-    DH_get0_key(a, &apub_key, NULL);
+    VR_DH_get0_key(a, &apub_key, NULL);
 
-    if (!DH_generate_key(b))
+    if (!VR_DH_generate_key(b))
         goto err3;
-    DH_get0_key(b, &bpub_key, &bpriv_key);
+    VR_DH_get0_key(b, &bpub_key, &bpriv_key);
 
     /* Also test with a private-key-only copy of |b|. */
-    if (!TEST_ptr(c = DHparams_dup(b))
-            || !TEST_ptr(cpriv_key = BN_dup(bpriv_key))
-            || !TEST_true(DH_set0_key(c, NULL, cpriv_key)))
+    if (!TEST_ptr(c = VR_DHparams_dup(b))
+            || !TEST_ptr(cpriv_key = VR_BN_dup(bpriv_key))
+            || !TEST_true(VR_DH_set0_key(c, NULL, cpriv_key)))
         goto err3;
     cpriv_key = NULL;
 
-    alen = DH_size(a);
+    alen = VR_DH_size(a);
     if (!TEST_ptr(abuf = OPENSSL_malloc(alen))
-            || !TEST_true((aout = DH_compute_key(abuf, bpub_key, a)) != -1))
+            || !TEST_true((aout = VR_DH_compute_key(abuf, bpub_key, a)) != -1))
         goto err3;
 
-    blen = DH_size(b);
+    blen = VR_DH_size(b);
     if (!TEST_ptr(bbuf = OPENSSL_malloc(blen))
-            || !TEST_true((bout = DH_compute_key(bbuf, apub_key, b)) != -1))
+            || !TEST_true((bout = VR_DH_compute_key(bbuf, apub_key, b)) != -1))
         goto err3;
 
-    clen = DH_size(c);
+    clen = VR_DH_size(c);
     if (!TEST_ptr(cbuf = OPENSSL_malloc(clen))
-            || !TEST_true((cout = DH_compute_key(cbuf, apub_key, c)) != -1))
+            || !TEST_true((cout = VR_DH_compute_key(cbuf, apub_key, c)) != -1))
         goto err3;
 
     if (!TEST_true(aout >= 4)
@@ -189,25 +189,25 @@ static int dh_test(void)
 
  err1:
     /* an error occurred before p,q,g were assigned to dh */
-    BN_free(p);
-    BN_free(q);
-    BN_free(g);
+    VR_BN_free(p);
+    VR_BN_free(q);
+    VR_BN_free(g);
  err2:
     /* an error occured before priv_key was assigned to dh */
-    BN_free(priv_key);
+    VR_BN_free(priv_key);
  err3:
  success:
-    OPENSSL_free(abuf);
-    OPENSSL_free(bbuf);
-    OPENSSL_free(cbuf);
-    DH_free(b);
-    DH_free(a);
-    DH_free(c);
-    BN_free(bp);
-    BN_free(bg);
-    BN_free(cpriv_key);
-    BN_GENCB_free(_cb);
-    DH_free(dh);
+    OPENVR_SSL_free(abuf);
+    OPENVR_SSL_free(bbuf);
+    OPENVR_SSL_free(cbuf);
+    VR_DH_free(b);
+    VR_DH_free(a);
+    VR_DH_free(c);
+    VR_BN_free(bp);
+    VR_BN_free(bg);
+    VR_BN_free(cpriv_key);
+    VR_BN_GENCB_free(_cb);
+    VR_DH_free(dh);
 
     return ret;
 }
@@ -485,7 +485,7 @@ typedef struct {
 } rfc5114_td;
 
 # define make_rfc5114_td(pre) { \
-        DH_get_##pre, \
+        VR_DH_get_##pre, \
         dhtest_##pre##_xA, sizeof(dhtest_##pre##_xA), \
         dhtest_##pre##_yA, sizeof(dhtest_##pre##_yA), \
         dhtest_##pre##_xB, sizeof(dhtest_##pre##_xB), \
@@ -517,95 +517,95 @@ static int rfc5114_test(void)
                 || !TEST_ptr(dhB = td->get_param()))
             goto bad_err;
 
-        if (!TEST_ptr(priv_key = BN_bin2bn(td->xA, td->xA_len, NULL))
-                || !TEST_ptr(pub_key = BN_bin2bn(td->yA, td->yA_len, NULL))
-                || !TEST_true(DH_set0_key(dhA, pub_key, priv_key)))
+        if (!TEST_ptr(priv_key = VR_BN_bin2bn(td->xA, td->xA_len, NULL))
+                || !TEST_ptr(pub_key = VR_BN_bin2bn(td->yA, td->yA_len, NULL))
+                || !TEST_true(VR_DH_set0_key(dhA, pub_key, priv_key)))
             goto bad_err;
 
-        if (!TEST_ptr(priv_key = BN_bin2bn(td->xB, td->xB_len, NULL))
-                || !TEST_ptr(pub_key = BN_bin2bn(td->yB, td->yB_len, NULL))
-                || !TEST_true( DH_set0_key(dhB, pub_key, priv_key)))
+        if (!TEST_ptr(priv_key = VR_BN_bin2bn(td->xB, td->xB_len, NULL))
+                || !TEST_ptr(pub_key = VR_BN_bin2bn(td->yB, td->yB_len, NULL))
+                || !TEST_true( VR_DH_set0_key(dhB, pub_key, priv_key)))
             goto bad_err;
         priv_key = pub_key = NULL;
 
-        if (!TEST_uint_eq(td->Z_len, (size_t)DH_size(dhA))
-            || !TEST_uint_eq(td->Z_len, (size_t)DH_size(dhB)))
+        if (!TEST_uint_eq(td->Z_len, (size_t)VR_DH_size(dhA))
+            || !TEST_uint_eq(td->Z_len, (size_t)VR_DH_size(dhB)))
             goto err;
 
-        if (!TEST_ptr(Z1 = OPENSSL_malloc(DH_size(dhA)))
-                || !TEST_ptr(Z2 = OPENSSL_malloc(DH_size(dhB))))
+        if (!TEST_ptr(Z1 = OPENSSL_malloc(VR_DH_size(dhA)))
+                || !TEST_ptr(Z2 = OPENSSL_malloc(VR_DH_size(dhB))))
             goto bad_err;
         /*
          * Work out shared secrets using both sides and compare with expected
          * values.
          */
-        DH_get0_key(dhB, &pub_key_tmp, NULL);
-        if (!TEST_int_ne(DH_compute_key(Z1, pub_key_tmp, dhA), -1))
+        VR_DH_get0_key(dhB, &pub_key_tmp, NULL);
+        if (!TEST_int_ne(VR_DH_compute_key(Z1, pub_key_tmp, dhA), -1))
             goto bad_err;
 
-        DH_get0_key(dhA, &pub_key_tmp, NULL);
-        if (!TEST_int_ne(DH_compute_key(Z2, pub_key_tmp, dhB), -1))
+        VR_DH_get0_key(dhA, &pub_key_tmp, NULL);
+        if (!TEST_int_ne(VR_DH_compute_key(Z2, pub_key_tmp, dhB), -1))
             goto bad_err;
 
         if (!TEST_mem_eq(Z1, td->Z_len, td->Z, td->Z_len)
                 || !TEST_mem_eq(Z2, td->Z_len, td->Z, td->Z_len))
             goto err;
 
-        DH_free(dhA);
+        VR_DH_free(dhA);
         dhA = NULL;
-        DH_free(dhB);
+        VR_DH_free(dhB);
         dhB = NULL;
-        OPENSSL_free(Z1);
+        OPENVR_SSL_free(Z1);
         Z1 = NULL;
-        OPENSSL_free(Z2);
+        OPENVR_SSL_free(Z2);
         Z2 = NULL;
     }
 
     /* Now i == OSSL_NELEM(rfctd) */
     /* RFC5114 uses unsafe primes, so now test an invalid y value */
-    if (!TEST_ptr(dhA = DH_get_2048_224())
-            || !TEST_ptr(Z1 = OPENSSL_malloc(DH_size(dhA))))
+    if (!TEST_ptr(dhA = VR_DH_get_2048_224())
+            || !TEST_ptr(Z1 = OPENSSL_malloc(VR_DH_size(dhA))))
         goto bad_err;
 
-    if (!TEST_ptr(bady = BN_bin2bn(dhtest_rfc5114_2048_224_bad_y,
+    if (!TEST_ptr(bady = VR_BN_bin2bn(dhtest_rfc5114_2048_224_bad_y,
                                    sizeof(dhtest_rfc5114_2048_224_bad_y),
                                    NULL)))
         goto bad_err;
 
-    if (!DH_generate_key(dhA))
+    if (!VR_DH_generate_key(dhA))
         goto bad_err;
 
-    if (DH_compute_key(Z1, bady, dhA) != -1) {
+    if (VR_DH_compute_key(Z1, bady, dhA) != -1) {
         /*
-         * DH_compute_key should fail with -1. If we get here we unexpectedly
+         * VR_DH_compute_key should fail with -1. If we get here we unexpectedly
          * allowed an invalid y value
          */
         goto err;
     }
     /* We'll have a stale error on the queue from the above test so clear it */
-    ERR_clear_error();
-    BN_free(bady);
-    DH_free(dhA);
-    OPENSSL_free(Z1);
+    VR_ERR_clear_error();
+    VR_BN_free(bady);
+    VR_DH_free(dhA);
+    OPENVR_SSL_free(Z1);
     return 1;
 
  bad_err:
-    BN_free(bady);
-    DH_free(dhA);
-    DH_free(dhB);
-    BN_free(pub_key);
-    BN_free(priv_key);
-    OPENSSL_free(Z1);
-    OPENSSL_free(Z2);
+    VR_BN_free(bady);
+    VR_DH_free(dhA);
+    VR_DH_free(dhB);
+    VR_BN_free(pub_key);
+    VR_BN_free(priv_key);
+    OPENVR_SSL_free(Z1);
+    OPENVR_SSL_free(Z2);
     TEST_error("Initialisation error RFC5114 set %d\n", i + 1);
     return 0;
 
  err:
-    BN_free(bady);
-    DH_free(dhA);
-    DH_free(dhB);
-    OPENSSL_free(Z1);
-    OPENSSL_free(Z2);
+    VR_BN_free(bady);
+    VR_DH_free(dhA);
+    VR_DH_free(dhB);
+    OPENVR_SSL_free(Z1);
+    OPENVR_SSL_free(Z2);
     TEST_error("Test failed RFC5114 set %d\n", i + 1);
     return 0;
 }

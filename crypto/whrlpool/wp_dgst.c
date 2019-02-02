@@ -39,16 +39,16 @@
 /*
  * OpenSSL-specific implementation notes.
  *
- * WHIRLPOOL_Update as well as one-stroke WHIRLPOOL both expect
+ * VR_WHIRLPOOL_Update as well as one-stroke VR_WHIRLPOOL both expect
  * number of *bytes* as input length argument. Bit-oriented routine
- * as specified by authors is called WHIRLPOOL_BitUpdate[!] and
+ * as specified by authors is called VR_WHIRLPOOL_BitUpdate[!] and
  * does not have one-stroke counterpart.
  *
- * WHIRLPOOL_BitUpdate implements byte-oriented loop, essentially
- * to serve WHIRLPOOL_Update. This is done for performance.
+ * VR_WHIRLPOOL_BitUpdate implements byte-oriented loop, essentially
+ * to serve VR_WHIRLPOOL_Update. This is done for performance.
  *
  * Unlike authors' reference implementation, block processing
- * routine whirlpool_block is designed to operate on multi-block
+ * routine VR_whirlpool_block is designed to operate on multi-block
  * input. This is done for performance.
  */
 
@@ -56,34 +56,34 @@
 #include "wp_locl.h"
 #include <string.h>
 
-int WHIRLPOOL_Init(WHIRLPOOL_CTX *c)
+int VR_WHIRLPOOL_Init(VR_WHIRLPOOL_CTX *c)
 {
     memset(c, 0, sizeof(*c));
     return 1;
 }
 
-int WHIRLPOOL_Update(WHIRLPOOL_CTX *c, const void *_inp, size_t bytes)
+int VR_WHIRLPOOL_Update(VR_WHIRLPOOL_CTX *c, const void *_inp, size_t bytes)
 {
     /*
      * Well, largest suitable chunk size actually is
      * (1<<(sizeof(size_t)*8-3))-64, but below number is large enough for not
-     * to care about excessive calls to WHIRLPOOL_BitUpdate...
+     * to care about excessive calls to VR_WHIRLPOOL_BitUpdate...
      */
     size_t chunk = ((size_t)1) << (sizeof(size_t) * 8 - 4);
     const unsigned char *inp = _inp;
 
     while (bytes >= chunk) {
-        WHIRLPOOL_BitUpdate(c, inp, chunk * 8);
+        VR_WHIRLPOOL_BitUpdate(c, inp, chunk * 8);
         bytes -= chunk;
         inp += chunk;
     }
     if (bytes)
-        WHIRLPOOL_BitUpdate(c, inp, bytes * 8);
+        VR_WHIRLPOOL_BitUpdate(c, inp, bytes * 8);
 
     return 1;
 }
 
-void WHIRLPOOL_BitUpdate(WHIRLPOOL_CTX *c, const void *_inp, size_t bits)
+void VR_WHIRLPOOL_BitUpdate(VR_WHIRLPOOL_CTX *c, const void *_inp, size_t bits)
 {
     size_t n;
     unsigned int bitoff = c->bitoff,
@@ -101,26 +101,26 @@ void WHIRLPOOL_BitUpdate(WHIRLPOOL_CTX *c, const void *_inp, size_t bits)
         do {
             c->bitlen[n]++;
         } while (c->bitlen[n] == 0
-                 && ++n < (WHIRLPOOL_COUNTER / sizeof(size_t)));
+                 && ++n < (VR_WHIRLPOOL_COUNTER / sizeof(size_t)));
     }
 #ifndef OPENSSL_SMALL_FOOTPRINT
  reconsider:
     if (inpgap == 0 && bitrem == 0) { /* byte-oriented loop */
         while (bits) {
-            if (bitoff == 0 && (n = bits / WHIRLPOOL_BBLOCK)) {
-                whirlpool_block(c, inp, n);
-                inp += n * WHIRLPOOL_BBLOCK / 8;
-                bits %= WHIRLPOOL_BBLOCK;
+            if (bitoff == 0 && (n = bits / VR_WHIRLPOOL_BBLOCK)) {
+                VR_whirlpool_block(c, inp, n);
+                inp += n * VR_WHIRLPOOL_BBLOCK / 8;
+                bits %= VR_WHIRLPOOL_BBLOCK;
             } else {
                 unsigned int byteoff = bitoff / 8;
 
-                bitrem = WHIRLPOOL_BBLOCK - bitoff; /* re-use bitrem */
+                bitrem = VR_WHIRLPOOL_BBLOCK - bitoff; /* re-use bitrem */
                 if (bits >= bitrem) {
                     bits -= bitrem;
                     bitrem /= 8;
                     memcpy(c->data + byteoff, inp, bitrem);
                     inp += bitrem;
-                    whirlpool_block(c, c->data, 1);
+                    VR_whirlpool_block(c, c->data, 1);
                     bitoff = 0;
                 } else {
                     memcpy(c->data + byteoff, inp, bits / 8);
@@ -158,8 +158,8 @@ void WHIRLPOOL_BitUpdate(WHIRLPOOL_CTX *c, const void *_inp, size_t bits)
                 bits -= inpgap;
                 inpgap = 0;     /* bits%8 */
                 inp++;
-                if (bitoff == WHIRLPOOL_BBLOCK) {
-                    whirlpool_block(c, c->data, 1);
+                if (bitoff == VR_WHIRLPOOL_BBLOCK) {
+                    VR_whirlpool_block(c, c->data, 1);
                     bitoff = 0;
                 }
                 c->bitoff = bitoff;
@@ -176,10 +176,10 @@ void WHIRLPOOL_BitUpdate(WHIRLPOOL_CTX *c, const void *_inp, size_t bits)
                 bitoff += 8;
                 bits -= 8;
                 inp++;
-                if (bitoff >= WHIRLPOOL_BBLOCK) {
-                    whirlpool_block(c, c->data, 1);
+                if (bitoff >= VR_WHIRLPOOL_BBLOCK) {
+                    VR_whirlpool_block(c, c->data, 1);
                     byteoff = 0;
-                    bitoff %= WHIRLPOOL_BBLOCK;
+                    bitoff %= VR_WHIRLPOOL_BBLOCK;
                 }
                 if (bitrem)
                     c->data[byteoff] = b << (8 - bitrem);
@@ -191,10 +191,10 @@ void WHIRLPOOL_BitUpdate(WHIRLPOOL_CTX *c, const void *_inp, size_t bits)
                 else
                     c->data[byteoff++] = b;
                 bitoff += (unsigned int)bits;
-                if (bitoff == WHIRLPOOL_BBLOCK) {
-                    whirlpool_block(c, c->data, 1);
+                if (bitoff == VR_WHIRLPOOL_BBLOCK) {
+                    VR_whirlpool_block(c, c->data, 1);
                     byteoff = 0;
-                    bitoff %= WHIRLPOOL_BBLOCK;
+                    bitoff %= VR_WHIRLPOOL_BBLOCK;
                 }
                 if (bitrem)
                     c->data[byteoff] = b << (8 - bitrem);
@@ -205,7 +205,7 @@ void WHIRLPOOL_BitUpdate(WHIRLPOOL_CTX *c, const void *_inp, size_t bits)
     }
 }
 
-int WHIRLPOOL_Final(unsigned char *md, WHIRLPOOL_CTX *c)
+int VR_WHIRLPOOL_Final(unsigned char *md, VR_WHIRLPOOL_CTX *c)
 {
     unsigned int bitoff = c->bitoff, byteoff = bitoff / 8;
     size_t i, j, v;
@@ -219,40 +219,40 @@ int WHIRLPOOL_Final(unsigned char *md, WHIRLPOOL_CTX *c)
     byteoff++;
 
     /* pad with zeros */
-    if (byteoff > (WHIRLPOOL_BBLOCK / 8 - WHIRLPOOL_COUNTER)) {
-        if (byteoff < WHIRLPOOL_BBLOCK / 8)
-            memset(&c->data[byteoff], 0, WHIRLPOOL_BBLOCK / 8 - byteoff);
-        whirlpool_block(c, c->data, 1);
+    if (byteoff > (VR_WHIRLPOOL_BBLOCK / 8 - VR_WHIRLPOOL_COUNTER)) {
+        if (byteoff < VR_WHIRLPOOL_BBLOCK / 8)
+            memset(&c->data[byteoff], 0, VR_WHIRLPOOL_BBLOCK / 8 - byteoff);
+        VR_whirlpool_block(c, c->data, 1);
         byteoff = 0;
     }
-    if (byteoff < (WHIRLPOOL_BBLOCK / 8 - WHIRLPOOL_COUNTER))
+    if (byteoff < (VR_WHIRLPOOL_BBLOCK / 8 - VR_WHIRLPOOL_COUNTER))
         memset(&c->data[byteoff], 0,
-               (WHIRLPOOL_BBLOCK / 8 - WHIRLPOOL_COUNTER) - byteoff);
+               (VR_WHIRLPOOL_BBLOCK / 8 - VR_WHIRLPOOL_COUNTER) - byteoff);
     /* smash 256-bit c->bitlen in big-endian order */
-    p = &c->data[WHIRLPOOL_BBLOCK / 8 - 1]; /* last byte in c->data */
-    for (i = 0; i < WHIRLPOOL_COUNTER / sizeof(size_t); i++)
+    p = &c->data[VR_WHIRLPOOL_BBLOCK / 8 - 1]; /* last byte in c->data */
+    for (i = 0; i < VR_WHIRLPOOL_COUNTER / sizeof(size_t); i++)
         for (v = c->bitlen[i], j = 0; j < sizeof(size_t); j++, v >>= 8)
             *p-- = (unsigned char)(v & 0xff);
 
-    whirlpool_block(c, c->data, 1);
+    VR_whirlpool_block(c, c->data, 1);
 
     if (md) {
-        memcpy(md, c->H.c, WHIRLPOOL_DIGEST_LENGTH);
-        OPENSSL_cleanse(c, sizeof(*c));
+        memcpy(md, c->H.c, VR_WHIRLPOOL_DIGEST_LENGTH);
+        VR_OPENSSL_cleanse(c, sizeof(*c));
         return 1;
     }
     return 0;
 }
 
-unsigned char *WHIRLPOOL(const void *inp, size_t bytes, unsigned char *md)
+unsigned char *VR_WHIRLPOOL(const void *inp, size_t bytes, unsigned char *md)
 {
-    WHIRLPOOL_CTX ctx;
-    static unsigned char m[WHIRLPOOL_DIGEST_LENGTH];
+    VR_WHIRLPOOL_CTX ctx;
+    static unsigned char m[VR_WHIRLPOOL_DIGEST_LENGTH];
 
     if (md == NULL)
         md = m;
-    WHIRLPOOL_Init(&ctx);
-    WHIRLPOOL_Update(&ctx, inp, bytes);
-    WHIRLPOOL_Final(md, &ctx);
+    VR_WHIRLPOOL_Init(&ctx);
+    VR_WHIRLPOOL_Update(&ctx, inp, bytes);
+    VR_WHIRLPOOL_Final(md, &ctx);
     return md;
 }

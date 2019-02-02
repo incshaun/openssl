@@ -25,12 +25,12 @@ static int sk_table_cmp(const ASN1_STRING_TABLE *const *a,
 
 static unsigned long global_mask = B_ASN1_UTF8STRING;
 
-void ASN1_STRING_set_default_mask(unsigned long mask)
+void VR_ASN1_STRING_set_default_mask(unsigned long mask)
 {
     global_mask = mask;
 }
 
-unsigned long ASN1_STRING_get_default_mask(void)
+unsigned long VR_ASN1_STRING_get_default_mask(void)
 {
     return global_mask;
 }
@@ -45,7 +45,7 @@ unsigned long ASN1_STRING_get_default_mask(void)
  * default:   the default value, Printable, T61, BMP.
  */
 
-int ASN1_STRING_set_default_mask_asc(const char *p)
+int VR_ASN1_STRING_set_default_mask_asc(const char *p)
 {
     unsigned long mask;
     char *end;
@@ -66,7 +66,7 @@ int ASN1_STRING_set_default_mask_asc(const char *p)
         mask = 0xFFFFFFFFL;
     else
         return 0;
-    ASN1_STRING_set_default_mask(mask);
+    VR_ASN1_STRING_set_default_mask(mask);
     return 1;
 }
 
@@ -76,7 +76,7 @@ int ASN1_STRING_set_default_mask_asc(const char *p)
  * a corresponding OID. For example certificates and certificate requests.
  */
 
-ASN1_STRING *ASN1_STRING_set_by_NID(ASN1_STRING **out,
+ASN1_STRING *VR_ASN1_STRING_set_by_NID(ASN1_STRING **out,
                                     const unsigned char *in, int inlen,
                                     int inform, int nid)
 {
@@ -87,15 +87,15 @@ ASN1_STRING *ASN1_STRING_set_by_NID(ASN1_STRING **out,
 
     if (out == NULL)
         out = &str;
-    tbl = ASN1_STRING_TABLE_get(nid);
+    tbl = VR_ASN1_STRING_TABLE_get(nid);
     if (tbl != NULL) {
         mask = tbl->mask;
         if (!(tbl->flags & STABLE_NO_MASK))
             mask &= global_mask;
-        ret = ASN1_mbstring_ncopy(out, in, inlen, inform, mask,
+        ret = VR_ASN1_mbstring_ncopy(out, in, inlen, inform, mask,
                                   tbl->minsize, tbl->maxsize);
     } else {
-        ret = ASN1_mbstring_copy(out, in, inlen, inform,
+        ret = VR_ASN1_mbstring_copy(out, in, inlen, inform,
                                  DIRSTRING_TYPE & global_mask);
     }
     if (ret <= 0)
@@ -124,18 +124,18 @@ static int table_cmp(const ASN1_STRING_TABLE *a, const ASN1_STRING_TABLE *b)
 
 IMPLEMENT_OBJ_BSEARCH_CMP_FN(ASN1_STRING_TABLE, ASN1_STRING_TABLE, table);
 
-ASN1_STRING_TABLE *ASN1_STRING_TABLE_get(int nid)
+ASN1_STRING_TABLE *VR_ASN1_STRING_TABLE_get(int nid)
 {
     int idx;
     ASN1_STRING_TABLE fnd;
 
     fnd.nid = nid;
     if (stable) {
-        idx = sk_ASN1_STRING_TABLE_find(stable, &fnd);
+        idx = sk_VR_ASN1_STRING_TABLE_find(stable, &fnd);
         if (idx >= 0)
             return sk_ASN1_STRING_TABLE_value(stable, idx);
     }
-    return OBJ_bsearch_table(&fnd, tbl_standard, OSSL_NELEM(tbl_standard));
+    return VR_OBJ_bsearch_table(&fnd, tbl_standard, OSSL_NELEM(tbl_standard));
 }
 
 /*
@@ -149,19 +149,19 @@ static ASN1_STRING_TABLE *stable_get(int nid)
 
     /* Always need a string table so allocate one if NULL */
     if (stable == NULL) {
-        stable = sk_ASN1_STRING_TABLE_new(sk_table_cmp);
+        stable = sk_VR_ASN1_STRING_TABLE_new(sk_table_cmp);
         if (stable == NULL)
             return NULL;
     }
-    tmp = ASN1_STRING_TABLE_get(nid);
+    tmp = VR_ASN1_STRING_TABLE_get(nid);
     if (tmp != NULL && tmp->flags & STABLE_FLAGS_MALLOC)
         return tmp;
     if ((rv = OPENSSL_zalloc(sizeof(*rv))) == NULL) {
         ASN1err(ASN1_F_STABLE_GET, ERR_R_MALLOC_FAILURE);
         return NULL;
     }
-    if (!sk_ASN1_STRING_TABLE_push(stable, rv)) {
-        OPENSSL_free(rv);
+    if (!sk_VR_ASN1_STRING_TABLE_push(stable, rv)) {
+        OPENVR_SSL_free(rv);
         return NULL;
     }
     if (tmp != NULL) {
@@ -179,7 +179,7 @@ static ASN1_STRING_TABLE *stable_get(int nid)
     return rv;
 }
 
-int ASN1_STRING_TABLE_add(int nid,
+int VR_ASN1_STRING_TABLE_add(int nid,
                           long minsize, long maxsize, unsigned long mask,
                           unsigned long flags)
 {
@@ -201,7 +201,7 @@ int ASN1_STRING_TABLE_add(int nid,
     return 1;
 }
 
-void ASN1_STRING_TABLE_cleanup(void)
+void VR_ASN1_STRING_TABLE_cleanup(void)
 {
     STACK_OF(ASN1_STRING_TABLE) *tmp;
 
@@ -209,11 +209,11 @@ void ASN1_STRING_TABLE_cleanup(void)
     if (tmp == NULL)
         return;
     stable = NULL;
-    sk_ASN1_STRING_TABLE_pop_free(tmp, st_free);
+    sk_VR_ASN1_STRING_TABLE_pop_free(tmp, st_free);
 }
 
 static void st_free(ASN1_STRING_TABLE *tbl)
 {
     if (tbl->flags & STABLE_FLAGS_MALLOC)
-        OPENSSL_free(tbl);
+        OPENVR_SSL_free(tbl);
 }

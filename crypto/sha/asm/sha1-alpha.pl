@@ -243,10 +243,10 @@ $code=<<___;
 
 .set	noat
 .set	noreorder
-.globl	sha1_block_data_order
+.globl	VR_sha1_block_data_order
 .align	5
-.ent	sha1_block_data_order
-sha1_block_data_order:
+.ent	VR_sha1_block_data_order
+VR_sha1_block_data_order:
 	lda	sp,-64(sp)
 	stq	ra,0(sp)
 	stq	s0,8(sp)
@@ -320,7 +320,7 @@ $code.=<<___;
 	ldq	fp,56(sp)
 	lda	sp,64(sp)
 	ret	(ra)
-.end	sha1_block_data_order
+.end	VR_sha1_block_data_order
 .ascii	"SHA1 block transform for Alpha, CRYPTOGAMS by <appro\@openssl.org>"
 .align	2
 ___

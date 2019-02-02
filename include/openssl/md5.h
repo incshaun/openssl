@@ -7,12 +7,12 @@
  * https://www.openssl.org/source/license.html
  */
 
-#ifndef HEADER_MD5_H
-# define HEADER_MD5_H
+#ifndef HEADER_VR_MD5_H
+# define HEADER_VR_MD5_H
 
 # include <openssl/opensslconf.h>
 
-# ifndef OPENSSL_NO_MD5
+# ifndef OPENSSL_NO_VR_MD5
 # include <openssl/e_os2.h>
 # include <stddef.h>
 # ifdef  __cplusplus
@@ -21,27 +21,27 @@ extern "C" {
 
 /*
  * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
- * ! MD5_LONG has to be at least 32 bits wide.                     !
+ * ! VR_MD5_LONG has to be at least 32 bits wide.                     !
  * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  */
-# define MD5_LONG unsigned int
+# define VR_MD5_LONG unsigned int
 
-# define MD5_CBLOCK      64
-# define MD5_LBLOCK      (MD5_CBLOCK/4)
-# define MD5_DIGEST_LENGTH 16
+# define VR_MD5_CBLOCK      64
+# define VR_MD5_LBLOCK      (VR_MD5_CBLOCK/4)
+# define VR_MD5_DIGEST_LENGTH 16
 
-typedef struct MD5state_st {
-    MD5_LONG A, B, C, D;
-    MD5_LONG Nl, Nh;
-    MD5_LONG data[MD5_LBLOCK];
+typedef struct VR_MD5state_st {
+    VR_MD5_LONG A, B, C, D;
+    VR_MD5_LONG Nl, Nh;
+    VR_MD5_LONG data[VR_MD5_LBLOCK];
     unsigned int num;
-} MD5_CTX;
+} VR_MD5_CTX;
 
-int MD5_Init(MD5_CTX *c);
-int MD5_Update(MD5_CTX *c, const void *data, size_t len);
-int MD5_Final(unsigned char *md, MD5_CTX *c);
-unsigned char *MD5(const unsigned char *d, size_t n, unsigned char *md);
-void MD5_Transform(MD5_CTX *c, const unsigned char *b);
+int VR_MD5_Init(VR_MD5_CTX *c);
+int VR_MD5_Update(VR_MD5_CTX *c, const void *data, size_t len);
+int VR_MD5_Final(unsigned char *md, VR_MD5_CTX *c);
+unsigned char *VR_MD5(const unsigned char *d, size_t n, unsigned char *md);
+void VR_MD5_Transform(VR_MD5_CTX *c, const unsigned char *b);
 # ifdef  __cplusplus
 }
 # endif

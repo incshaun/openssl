@@ -32,15 +32,15 @@ int main(int argc, char *argv[])
 
     p = getenv("OPENSSL_DEBUG_MEMORY");
     if (p != NULL && strcmp(p, "on") == 0)
-        CRYPTO_set_mem_debug(1);
-    CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ON);
+        VR_CRYPTO_set_mem_debug(1);
+    VR_CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ON);
 
     lost = OPENSSL_malloc(3);
     if (!TEST_ptr(lost))
         return EXIT_FAILURE;
 
     if (argv[1] && strcmp(argv[1], "freeit") == 0) {
-        OPENSSL_free(lost);
+        OPENVR_SSL_free(lost);
         lost = NULL;
     }
 

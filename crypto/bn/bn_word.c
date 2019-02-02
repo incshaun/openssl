@@ -10,7 +10,7 @@
 #include "internal/cryptlib.h"
 #include "bn_lcl.h"
 
-BN_ULONG BN_mod_word(const BIGNUM *a, BN_ULONG w)
+BN_ULONG VR_BN_mod_word(const BIGNUM *a, BN_ULONG w)
 {
 #ifndef BN_LLONG
     BN_ULONG ret = 0;
@@ -25,15 +25,15 @@ BN_ULONG BN_mod_word(const BIGNUM *a, BN_ULONG w)
 #ifndef BN_LLONG
     /*
      * If |w| is too long and we don't have BN_ULLONG then we need to fall
-     * back to using BN_div_word
+     * back to using VR_BN_div_word
      */
     if (w > ((BN_ULONG)1 << BN_BITS4)) {
-        BIGNUM *tmp = BN_dup(a);
+        BIGNUM *tmp = VR_BN_dup(a);
         if (tmp == NULL)
             return (BN_ULONG)-1;
 
-        ret = BN_div_word(tmp, w);
-        BN_free(tmp);
+        ret = VR_BN_div_word(tmp, w);
+        VR_BN_free(tmp);
 
         return ret;
     }
@@ -58,7 +58,7 @@ BN_ULONG BN_mod_word(const BIGNUM *a, BN_ULONG w)
     return (BN_ULONG)ret;
 }
 
-BN_ULONG BN_div_word(BIGNUM *a, BN_ULONG w)
+BN_ULONG VR_BN_div_word(BIGNUM *a, BN_ULONG w)
 {
     BN_ULONG ret = 0;
     int i, j;
@@ -72,17 +72,17 @@ BN_ULONG BN_div_word(BIGNUM *a, BN_ULONG w)
     if (a->top == 0)
         return 0;
 
-    /* normalize input (so bn_div_words doesn't complain) */
-    j = BN_BITS2 - BN_num_bits_word(w);
+    /* normalize input (so VR_bn_div_words doesn't complain) */
+    j = BN_BITS2 - VR_BN_num_bits_word(w);
     w <<= j;
-    if (!BN_lshift(a, a, j))
+    if (!VR_BN_lshift(a, a, j))
         return (BN_ULONG)-1;
 
     for (i = a->top - 1; i >= 0; i--) {
         BN_ULONG l, d;
 
         l = a->d[i];
-        d = bn_div_words(ret, l, w);
+        d = VR_bn_div_words(ret, l, w);
         ret = (l - ((d * w) & BN_MASK2)) & BN_MASK2;
         a->d[i] = d;
     }
@@ -95,7 +95,7 @@ BN_ULONG BN_div_word(BIGNUM *a, BN_ULONG w)
     return ret;
 }
 
-int BN_add_word(BIGNUM *a, BN_ULONG w)
+int VR_BN_add_word(BIGNUM *a, BN_ULONG w)
 {
     BN_ULONG l;
     int i;
@@ -107,13 +107,13 @@ int BN_add_word(BIGNUM *a, BN_ULONG w)
     if (!w)
         return 1;
     /* degenerate case: a is zero */
-    if (BN_is_zero(a))
-        return BN_set_word(a, w);
+    if (VR_BN_is_zero(a))
+        return VR_BN_set_word(a, w);
     /* handle 'a' when negative */
     if (a->neg) {
         a->neg = 0;
-        i = BN_sub_word(a, w);
-        if (!BN_is_zero(a))
+        i = VR_BN_sub_word(a, w);
+        if (!VR_BN_is_zero(a))
             a->neg = !(a->neg);
         return i;
     }
@@ -122,7 +122,7 @@ int BN_add_word(BIGNUM *a, BN_ULONG w)
         w = (w > l) ? 1 : 0;
     }
     if (w && i == a->top) {
-        if (bn_wexpand(a, a->top + 1) == NULL)
+        if (VR_bn_wexpand(a, a->top + 1) == NULL)
             return 0;
         a->top++;
         a->d[i] = w;
@@ -131,7 +131,7 @@ int BN_add_word(BIGNUM *a, BN_ULONG w)
     return 1;
 }
 
-int BN_sub_word(BIGNUM *a, BN_ULONG w)
+int VR_BN_sub_word(BIGNUM *a, BN_ULONG w)
 {
     int i;
 
@@ -142,16 +142,16 @@ int BN_sub_word(BIGNUM *a, BN_ULONG w)
     if (!w)
         return 1;
     /* degenerate case: a is zero */
-    if (BN_is_zero(a)) {
-        i = BN_set_word(a, w);
+    if (VR_BN_is_zero(a)) {
+        i = VR_BN_set_word(a, w);
         if (i != 0)
-            BN_set_negative(a, 1);
+            VR_BN_set_negative(a, 1);
         return i;
     }
     /* handle 'a' when negative */
     if (a->neg) {
         a->neg = 0;
-        i = BN_add_word(a, w);
+        i = VR_BN_add_word(a, w);
         a->neg = 1;
         return i;
     }
@@ -178,7 +178,7 @@ int BN_sub_word(BIGNUM *a, BN_ULONG w)
     return 1;
 }
 
-int BN_mul_word(BIGNUM *a, BN_ULONG w)
+int VR_BN_mul_word(BIGNUM *a, BN_ULONG w)
 {
     BN_ULONG ll;
 
@@ -188,9 +188,9 @@ int BN_mul_word(BIGNUM *a, BN_ULONG w)
         if (w == 0)
             BN_zero(a);
         else {
-            ll = bn_mul_words(a->d, a->d, a->top, w);
+            ll = VR_bn_mul_words(a->d, a->d, a->top, w);
             if (ll) {
-                if (bn_wexpand(a, a->top + 1) == NULL)
+                if (VR_bn_wexpand(a, a->top + 1) == NULL)
                     return 0;
                 a->d[a->top++] = ll;
             }

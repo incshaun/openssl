@@ -76,7 +76,7 @@ typedef struct dso_internal_st {
     char imagename[NAMX_MAXRSS + 1];
 } DSO_VMS_INTERNAL;
 
-DSO_METHOD *DSO_METHOD_openssl(void)
+DSO_METHOD *VR_DSO_METHOD_openssl(void)
 {
     return &dso_meth_vms;
 }
@@ -85,7 +85,7 @@ static int vms_load(DSO *dso)
 {
     void *ptr = NULL;
     /* See applicable comments in dso_dl.c */
-    char *filename = DSO_convert_filename(dso, NULL);
+    char *filename = VR_DSO_convert_filename(dso, NULL);
 
 /* Ensure 32-bit pointer for "p", and appropriate malloc() function. */
 # if __INITIAL_POINTER_SIZE == 64
@@ -200,7 +200,7 @@ static int vms_load(DSO *dso)
     p->imagename_dsc.dsc$b_class = DSC$K_CLASS_S;
     p->imagename_dsc.dsc$a_pointer = p->imagename;
 
-    if (!sk_void_push(dso->meth_data, (char *)p)) {
+    if (!sk_VR_void_push(dso->meth_data, (char *)p)) {
         DSOerr(DSO_F_VMS_LOAD, DSO_R_STACK_ERROR);
         goto err;
     }
@@ -210,8 +210,8 @@ static int vms_load(DSO *dso)
     return 1;
  err:
     /* Cleanup! */
-    OPENSSL_free(p);
-    OPENSSL_free(filename);
+    OPENVR_SSL_free(p);
+    OPENVR_SSL_free(filename);
     return 0;
 }
 
@@ -229,13 +229,13 @@ static int vms_unload(DSO *dso)
     }
     if (sk_void_num(dso->meth_data) < 1)
         return 1;
-    p = (DSO_VMS_INTERNAL *)sk_void_pop(dso->meth_data);
+    p = (DSO_VMS_INTERNAL *)sk_VR_void_pop(dso->meth_data);
     if (p == NULL) {
         DSOerr(DSO_F_VMS_UNLOAD, DSO_R_NULL_HANDLE);
         return 0;
     }
     /* Cleanup */
-    OPENSSL_free(p);
+    OPENVR_SSL_free(p);
     return 1;
 }
 
@@ -338,13 +338,13 @@ void vms_bind_sym(DSO *dso, const char *symname, void **sym)
 
             DSOerr(DSO_F_VMS_BIND_SYM, DSO_R_SYM_FAILURE);
             if (ptr->imagename_dsc.dsc$w_length)
-                ERR_add_error_data(9,
+                VR_ERR_add_error_data(9,
                                    "Symbol ", symname,
                                    " in ", ptr->filename,
                                    " (", ptr->imagename, ")",
                                    ": ", errstring);
             else
-                ERR_add_error_data(6,
+                VR_ERR_add_error_data(6,
                                    "Symbol ", symname,
                                    " in ", ptr->filename, ": ", errstring);
         }
@@ -437,7 +437,7 @@ static char *vms_merger(DSO *dso, const char *filespec1,
             errstring[length] = '\0';
 
             DSOerr(DSO_F_VMS_MERGER, DSO_R_FAILURE);
-            ERR_add_error_data(7,
+            VR_ERR_add_error_data(7,
                                "filespec \"", filespec1, "\", ",
                                "defaults \"", filespec2, "\": ", errstring);
         }

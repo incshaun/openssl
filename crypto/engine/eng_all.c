@@ -10,12 +10,12 @@
 #include "internal/cryptlib.h"
 #include "eng_int.h"
 
-void ENGINE_load_builtin_engines(void)
+void VR_ENGINE_load_builtin_engines(void)
 {
     /* Some ENGINEs need this */
-    OPENSSL_cpuid_setup();
+    VR_OPENSSL_cpuid_setup();
 
-    OPENSSL_init_crypto(OPENSSL_INIT_ENGINE_ALL_BUILTIN, NULL);
+    VR_OPENSSL_init_crypto(OPENSSL_INIT_ENGINE_ALL_BUILTIN, NULL);
 }
 
 #if (defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__DragonFly__)) \

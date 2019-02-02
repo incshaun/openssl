@@ -14,27 +14,27 @@
 #ifndef OPENSSL_NO_ERR
 
 static const ERR_STRING_DATA DSA_str_functs[] = {
-    {ERR_PACK(ERR_LIB_DSA, DSA_F_DSAPARAMS_PRINT, 0), "DSAparams_print"},
-    {ERR_PACK(ERR_LIB_DSA, DSA_F_DSAPARAMS_PRINT_FP, 0), "DSAparams_print_fp"},
+    {ERR_PACK(ERR_LIB_DSA, DSA_F_DSAPARAMS_PRINT, 0), "VR_DSAparams_print"},
+    {ERR_PACK(ERR_LIB_DSA, DSA_F_DSAPARAMS_PRINT_FP, 0), "VR_DSAparams_print_fp"},
     {ERR_PACK(ERR_LIB_DSA, DSA_F_DSA_BUILTIN_PARAMGEN, 0),
-     "dsa_builtin_paramgen"},
+     "VR_dsa_builtin_paramgen"},
     {ERR_PACK(ERR_LIB_DSA, DSA_F_DSA_BUILTIN_PARAMGEN2, 0),
-     "dsa_builtin_paramgen2"},
-    {ERR_PACK(ERR_LIB_DSA, DSA_F_DSA_DO_SIGN, 0), "DSA_do_sign"},
-    {ERR_PACK(ERR_LIB_DSA, DSA_F_DSA_DO_VERIFY, 0), "DSA_do_verify"},
-    {ERR_PACK(ERR_LIB_DSA, DSA_F_DSA_METH_DUP, 0), "DSA_meth_dup"},
-    {ERR_PACK(ERR_LIB_DSA, DSA_F_DSA_METH_NEW, 0), "DSA_meth_new"},
-    {ERR_PACK(ERR_LIB_DSA, DSA_F_DSA_METH_SET1_NAME, 0), "DSA_meth_set1_name"},
-    {ERR_PACK(ERR_LIB_DSA, DSA_F_DSA_NEW_METHOD, 0), "DSA_new_method"},
+     "VR_dsa_builtin_paramgen2"},
+    {ERR_PACK(ERR_LIB_DSA, DSA_F_DSA_DO_SIGN, 0), "VR_DSA_do_sign"},
+    {ERR_PACK(ERR_LIB_DSA, DSA_F_DSA_DO_VERIFY, 0), "VR_DSA_do_verify"},
+    {ERR_PACK(ERR_LIB_DSA, DSA_F_DSA_METH_DUP, 0), "VR_DSA_meth_dup"},
+    {ERR_PACK(ERR_LIB_DSA, DSA_F_DSA_METH_NEW, 0), "VR_DSA_meth_new"},
+    {ERR_PACK(ERR_LIB_DSA, DSA_F_DSA_METH_SET1_NAME, 0), "VR_DSA_meth_set1_name"},
+    {ERR_PACK(ERR_LIB_DSA, DSA_F_DSA_NEW_METHOD, 0), "VR_DSA_new_method"},
     {ERR_PACK(ERR_LIB_DSA, DSA_F_DSA_PARAM_DECODE, 0), "dsa_param_decode"},
-    {ERR_PACK(ERR_LIB_DSA, DSA_F_DSA_PRINT_FP, 0), "DSA_print_fp"},
+    {ERR_PACK(ERR_LIB_DSA, DSA_F_DSA_PRINT_FP, 0), "VR_DSA_print_fp"},
     {ERR_PACK(ERR_LIB_DSA, DSA_F_DSA_PRIV_DECODE, 0), "dsa_priv_decode"},
     {ERR_PACK(ERR_LIB_DSA, DSA_F_DSA_PRIV_ENCODE, 0), "dsa_priv_encode"},
     {ERR_PACK(ERR_LIB_DSA, DSA_F_DSA_PUB_DECODE, 0), "dsa_pub_decode"},
     {ERR_PACK(ERR_LIB_DSA, DSA_F_DSA_PUB_ENCODE, 0), "dsa_pub_encode"},
-    {ERR_PACK(ERR_LIB_DSA, DSA_F_DSA_SIGN, 0), "DSA_sign"},
-    {ERR_PACK(ERR_LIB_DSA, DSA_F_DSA_SIGN_SETUP, 0), "DSA_sign_setup"},
-    {ERR_PACK(ERR_LIB_DSA, DSA_F_DSA_SIG_NEW, 0), "DSA_SIG_new"},
+    {ERR_PACK(ERR_LIB_DSA, DSA_F_DSA_SIGN, 0), "VR_DSA_sign"},
+    {ERR_PACK(ERR_LIB_DSA, DSA_F_DSA_SIGN_SETUP, 0), "VR_DSA_sign_setup"},
+    {ERR_PACK(ERR_LIB_DSA, DSA_F_DSA_SIG_NEW, 0), "VR_DSA_SIG_new"},
     {ERR_PACK(ERR_LIB_DSA, DSA_F_OLD_DSA_PRIV_DECODE, 0),
      "old_dsa_priv_decode"},
     {ERR_PACK(ERR_LIB_DSA, DSA_F_PKEY_DSA_CTRL, 0), "pkey_dsa_ctrl"},
@@ -64,12 +64,12 @@ static const ERR_STRING_DATA DSA_str_reasons[] = {
 
 #endif
 
-int ERR_load_DSA_strings(void)
+int VR_ERR_load_DSA_strings(void)
 {
 #ifndef OPENSSL_NO_ERR
-    if (ERR_func_error_string(DSA_str_functs[0].error) == NULL) {
-        ERR_load_strings_const(DSA_str_functs);
-        ERR_load_strings_const(DSA_str_reasons);
+    if (VR_ERR_func_error_string(DSA_str_functs[0].error) == NULL) {
+        VR_ERR_load_strings_const(DSA_str_functs);
+        VR_ERR_load_strings_const(DSA_str_reasons);
     }
 #endif
     return 1;

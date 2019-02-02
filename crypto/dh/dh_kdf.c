@@ -29,7 +29,7 @@ static int skip_asn1(unsigned char **pp, long *plen, int exptag)
     const unsigned char *q = *pp;
     int i, tag, xclass;
     long tmplen;
-    i = ASN1_get_object(&q, &tmplen, &tag, &xclass, *plen);
+    i = VR_ASN1_get_object(&q, &tmplen, &tag, &xclass, *plen);
     if (i & 0x80)
         return 0;
     if (tag != exptag || xclass != V_ASN1_UNIVERSAL)
@@ -76,7 +76,7 @@ static int dh_sharedinfo_encode(unsigned char **pder, unsigned char **pctr,
         pukm_oct = &ukm_oct;
     } else
         pukm_oct = NULL;
-    derlen = CMS_SharedInfo_encode(pder, &atmp, pukm_oct, outlen);
+    derlen = VR_CMS_SharedInfo_encode(pder, &atmp, pukm_oct, outlen);
     if (derlen <= 0)
         return 0;
     p = *pder;
@@ -89,13 +89,13 @@ static int dh_sharedinfo_encode(unsigned char **pder, unsigned char **pctr,
         return 0;
     if (!skip_asn1(&p, &tlen, V_ASN1_OCTET_STRING))
         return 0;
-    if (CRYPTO_memcmp(p, ctr, 4))
+    if (VR_CRYPTO_memcmp(p, ctr, 4))
         return 0;
     *pctr = p;
     return derlen;
 }
 
-int DH_KDF_X9_42(unsigned char *out, size_t outlen,
+int VR_DH_KDF_X9_42(unsigned char *out, size_t outlen,
                  const unsigned char *Z, size_t Zlen,
                  ASN1_OBJECT *key_oid,
                  const unsigned char *ukm, size_t ukmlen, const EVP_MD *md)
@@ -108,43 +108,43 @@ int DH_KDF_X9_42(unsigned char *out, size_t outlen,
     int derlen;
     if (Zlen > DH_KDF_MAX)
         return 0;
-    mctx = EVP_MD_CTX_new();
+    mctx = VR_EVP_MD_CTX_new();
     if (mctx == NULL)
         return 0;
-    mdlen = EVP_MD_size(md);
+    mdlen = VR_EVP_MD_size(md);
     derlen = dh_sharedinfo_encode(&der, &ctr, key_oid, outlen, ukm, ukmlen);
     if (derlen == 0)
         goto err;
     for (i = 1;; i++) {
         unsigned char mtmp[EVP_MAX_MD_SIZE];
-        if (!EVP_DigestInit_ex(mctx, md, NULL)
-            || !EVP_DigestUpdate(mctx, Z, Zlen))
+        if (!VR_EVP_DigestInit_ex(mctx, md, NULL)
+            || !VR_EVP_DigestUpdate(mctx, Z, Zlen))
             goto err;
         ctr[3] = i & 0xFF;
         ctr[2] = (i >> 8) & 0xFF;
         ctr[1] = (i >> 16) & 0xFF;
         ctr[0] = (i >> 24) & 0xFF;
-        if (!EVP_DigestUpdate(mctx, der, derlen))
+        if (!VR_EVP_DigestUpdate(mctx, der, derlen))
             goto err;
         if (outlen >= mdlen) {
-            if (!EVP_DigestFinal(mctx, out, NULL))
+            if (!VR_EVP_DigestFinal(mctx, out, NULL))
                 goto err;
             outlen -= mdlen;
             if (outlen == 0)
                 break;
             out += mdlen;
         } else {
-            if (!EVP_DigestFinal(mctx, mtmp, NULL))
+            if (!VR_EVP_DigestFinal(mctx, mtmp, NULL))
                 goto err;
             memcpy(out, mtmp, outlen);
-            OPENSSL_cleanse(mtmp, mdlen);
+            VR_OPENSSL_cleanse(mtmp, mdlen);
             break;
         }
     }
     rv = 1;
  err:
-    OPENSSL_free(der);
-    EVP_MD_CTX_free(mctx);
+    OPENVR_SSL_free(der);
+    VR_EVP_MD_CTX_free(mctx);
     return rv;
 }
 #endif

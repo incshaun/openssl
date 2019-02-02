@@ -9,7 +9,7 @@
 
 #include <openssl/async.h>
 
-int async_init(void);
-void async_deinit(void);
-void async_delete_thread_state(void);
+int VR_async_init(void);
+void VR_async_deinit(void);
+void VR_async_delete_thread_state(void);
 

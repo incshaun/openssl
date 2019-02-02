@@ -38,11 +38,11 @@ static int run_srp(const char *username, const char *client_pass,
     /* use builtin 1024-bit params */
     const SRP_gN *GN;
 
-    if (!TEST_ptr(GN = SRP_get_default_gN("1024")))
+    if (!TEST_ptr(GN = VR_SRP_get_default_gN("1024")))
         return 0;
 
     /* Set up server's password entry */
-    if (!TEST_true(SRP_create_verifier_BN(username, server_pass,
+    if (!TEST_true(VR_SRP_create_verifier_BN(username, server_pass,
                                           &s, &v, GN->N, GN->g)))
         goto end;
 
@@ -52,43 +52,43 @@ static int run_srp(const char *username, const char *client_pass,
     test_output_bignum("Verifier", v);
 
     /* Server random */
-    RAND_bytes(rand_tmp, sizeof(rand_tmp));
-    b = BN_bin2bn(rand_tmp, sizeof(rand_tmp), NULL);
+    VR_RAND_bytes(rand_tmp, sizeof(rand_tmp));
+    b = VR_BN_bin2bn(rand_tmp, sizeof(rand_tmp), NULL);
     if (!TEST_BN_ne_zero(b))
         goto end;
     test_output_bignum("b", b);
 
     /* Server's first message */
-    Bpub = SRP_Calc_B(b, GN->N, GN->g, v);
+    Bpub = VR_SRP_Calc_B(b, GN->N, GN->g, v);
     test_output_bignum("B", Bpub);
 
-    if (!TEST_true(SRP_Verify_B_mod_N(Bpub, GN->N)))
+    if (!TEST_true(VR_SRP_Verify_B_mod_N(Bpub, GN->N)))
         goto end;
 
     /* Client random */
-    RAND_bytes(rand_tmp, sizeof(rand_tmp));
-    a = BN_bin2bn(rand_tmp, sizeof(rand_tmp), NULL);
+    VR_RAND_bytes(rand_tmp, sizeof(rand_tmp));
+    a = VR_BN_bin2bn(rand_tmp, sizeof(rand_tmp), NULL);
     if (!TEST_BN_ne_zero(a))
         goto end;
     test_output_bignum("a", a);
 
     /* Client's response */
-    Apub = SRP_Calc_A(a, GN->N, GN->g);
+    Apub = VR_SRP_Calc_A(a, GN->N, GN->g);
     test_output_bignum("A", Apub);
 
-    if (!TEST_true(SRP_Verify_A_mod_N(Apub, GN->N)))
+    if (!TEST_true(VR_SRP_Verify_A_mod_N(Apub, GN->N)))
         goto end;
 
     /* Both sides calculate u */
-    u = SRP_Calc_u(Apub, Bpub, GN->N);
+    u = VR_SRP_Calc_u(Apub, Bpub, GN->N);
 
     /* Client's key */
-    x = SRP_Calc_x(s, username, client_pass);
-    Kclient = SRP_Calc_client_key(GN->N, Bpub, GN->g, x, a, u);
+    x = VR_SRP_Calc_x(s, username, client_pass);
+    Kclient = VR_SRP_Calc_client_key(GN->N, Bpub, GN->g, x, a, u);
     test_output_bignum("Client's key", Kclient);
 
     /* Server's key */
-    Kserver = SRP_Calc_server_key(Apub, v, u, b, GN->N);
+    Kserver = VR_SRP_Calc_server_key(Apub, v, u, b, GN->N);
     test_output_bignum("Server's key", Kserver);
 
     if (!TEST_BN_eq(Kclient, Kserver))
@@ -97,16 +97,16 @@ static int run_srp(const char *username, const char *client_pass,
     ret = 1;
 
 end:
-    BN_clear_free(Kclient);
-    BN_clear_free(Kserver);
-    BN_clear_free(x);
-    BN_free(u);
-    BN_free(Apub);
-    BN_clear_free(a);
-    BN_free(Bpub);
-    BN_clear_free(b);
-    BN_free(s);
-    BN_clear_free(v);
+    VR_BN_clear_free(Kclient);
+    VR_BN_clear_free(Kserver);
+    VR_BN_clear_free(x);
+    VR_BN_free(u);
+    VR_BN_free(Apub);
+    VR_BN_clear_free(a);
+    VR_BN_free(Bpub);
+    VR_BN_clear_free(b);
+    VR_BN_free(s);
+    VR_BN_clear_free(v);
 
     return ret;
 }
@@ -116,13 +116,13 @@ static int check_bn(const char *name, const BIGNUM *bn, const char *hexbn)
     BIGNUM *tmp = NULL;
     int r;
 
-    if (!TEST_true(BN_hex2bn(&tmp, hexbn)))
+    if (!TEST_true(VR_BN_hex2bn(&tmp, hexbn)))
         return 0;
 
-    if (BN_cmp(bn, tmp) != 0)
+    if (VR_BN_cmp(bn, tmp) != 0)
         TEST_error("unexpected %s value", name);
     r = TEST_BN_eq(bn, tmp);
-    BN_free(tmp);
+    VR_BN_free(tmp);
     return r;
 }
 
@@ -143,11 +143,11 @@ static int run_srp_kat(void)
     /* use builtin 1024-bit params */
     const SRP_gN *GN;
 
-    if (!TEST_ptr(GN = SRP_get_default_gN("1024")))
+    if (!TEST_ptr(GN = VR_SRP_get_default_gN("1024")))
         goto err;
-    BN_hex2bn(&s, "BEB25379D1A8581EB5A727673A2441EE");
+    VR_BN_hex2bn(&s, "BEB25379D1A8581EB5A727673A2441EE");
     /* Set up server's password entry */
-    if (!TEST_true(SRP_create_verifier_BN("alice", "password123", &s, &v, GN->N,
+    if (!TEST_true(VR_SRP_create_verifier_BN("alice", "password123", &s, &v, GN->N,
                                           GN->g)))
         goto err;
 
@@ -162,12 +162,12 @@ static int run_srp_kat(void)
     TEST_note("    okay");
 
     /* Server random */
-    BN_hex2bn(&b, "E487CB59D31AC550471E81F00F6928E01DDA08E974A004F49E61F5D1"
+    VR_BN_hex2bn(&b, "E487CB59D31AC550471E81F00F6928E01DDA08E974A004F49E61F5D1"
                   "05284D20");
 
     /* Server's first message */
-    Bpub = SRP_Calc_B(b, GN->N, GN->g, v);
-    if (!TEST_true(SRP_Verify_B_mod_N(Bpub, GN->N)))
+    Bpub = VR_SRP_Calc_B(b, GN->N, GN->g, v);
+    if (!TEST_true(VR_SRP_Verify_B_mod_N(Bpub, GN->N)))
         goto err;
 
     TEST_info("checking B");
@@ -181,12 +181,12 @@ static int run_srp_kat(void)
     TEST_note("    okay");
 
     /* Client random */
-    BN_hex2bn(&a, "60975527035CF2AD1989806F0407210BC81EDC04E2762A56AFD529DD"
+    VR_BN_hex2bn(&a, "60975527035CF2AD1989806F0407210BC81EDC04E2762A56AFD529DD"
                   "DA2D4393");
 
     /* Client's response */
-    Apub = SRP_Calc_A(a, GN->N, GN->g);
-    if (!TEST_true(SRP_Verify_A_mod_N(Apub, GN->N)))
+    Apub = VR_SRP_Calc_A(a, GN->N, GN->g);
+    if (!TEST_true(VR_SRP_Verify_A_mod_N(Apub, GN->N)))
         goto err;
 
     TEST_info("checking A");
@@ -200,15 +200,15 @@ static int run_srp_kat(void)
     TEST_note("    okay");
 
     /* Both sides calculate u */
-    u = SRP_Calc_u(Apub, Bpub, GN->N);
+    u = VR_SRP_Calc_u(Apub, Bpub, GN->N);
 
     if (!TEST_true(check_bn("u", u,
                     "CE38B9593487DA98554ED47D70A7AE5F462EF019")))
         goto err;
 
     /* Client's key */
-    x = SRP_Calc_x(s, "alice", "password123");
-    Kclient = SRP_Calc_client_key(GN->N, Bpub, GN->g, x, a, u);
+    x = VR_SRP_Calc_x(s, "alice", "password123");
+    Kclient = VR_SRP_Calc_client_key(GN->N, Bpub, GN->g, x, a, u);
     TEST_info("checking client's key");
     if (!TEST_true(check_bn("Client's key", Kclient,
                   "B0DC82BABCF30674AE450C0287745E7990A3381F63B387AAF271A10D"
@@ -220,7 +220,7 @@ static int run_srp_kat(void)
     TEST_note("    okay");
 
     /* Server's key */
-    Kserver = SRP_Calc_server_key(Apub, v, u, b, GN->N);
+    Kserver = VR_SRP_Calc_server_key(Apub, v, u, b, GN->N);
     TEST_info("checking server's key");
     if (!TEST_true(check_bn("Server's key", Kserver,
                   "B0DC82BABCF30674AE450C0287745E7990A3381F63B387AAF271A10D"
@@ -234,16 +234,16 @@ static int run_srp_kat(void)
     ret = 1;
 
 err:
-    BN_clear_free(Kclient);
-    BN_clear_free(Kserver);
-    BN_clear_free(x);
-    BN_free(u);
-    BN_free(Apub);
-    BN_clear_free(a);
-    BN_free(Bpub);
-    BN_clear_free(b);
-    BN_free(s);
-    BN_clear_free(v);
+    VR_BN_clear_free(Kclient);
+    VR_BN_clear_free(Kserver);
+    VR_BN_clear_free(x);
+    VR_BN_free(u);
+    VR_BN_free(Apub);
+    VR_BN_clear_free(a);
+    VR_BN_free(Bpub);
+    VR_BN_clear_free(b);
+    VR_BN_free(s);
+    VR_BN_clear_free(v);
 
     return ret;
 }

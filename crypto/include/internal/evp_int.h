@@ -11,7 +11,7 @@
 #include "internal/refcount.h"
 
 /*
- * Don't free up md_ctx->pctx in EVP_MD_CTX_reset, use the reserved flag
+ * Don't free up md_ctx->pctx in VR_EVP_MD_CTX_reset, use the reserved flag
  * values in evp.h
  */
 #define EVP_MD_CTX_FLAG_KEEP_PKEY_CTX   0x0400
@@ -91,7 +91,7 @@ struct evp_pkey_method_st {
 
 DEFINE_STACK_OF_CONST(EVP_PKEY_METHOD)
 
-void evp_pkey_set_cb_translate(BN_GENCB *cb, EVP_PKEY_CTX *ctx);
+void VR_evp_pkey_set_cb_translate(BN_GENCB *cb, EVP_PKEY_CTX *ctx);
 
 extern const EVP_PKEY_METHOD cmac_pkey_meth;
 extern const EVP_PKEY_METHOD dh_pkey_meth;
@@ -137,17 +137,17 @@ extern const EVP_MAC siphash_meth;
 extern const EVP_MAC poly1305_meth;
 
 /* Internal keccak algorithms used for KMAC */
-const EVP_MD *evp_keccak_kmac128(void);
-const EVP_MD *evp_keccak_kmac256(void);
+const EVP_MD *VR_evp_keccak_kmac128(void);
+const EVP_MD *VR_evp_keccak_kmac256(void);
 
 /*
  * This function is internal for now, but can be made external when needed.
  * The documentation would read:
  *
- * EVP_add_mac() adds the MAC implementation C<mac> to the internal
+ * VR_EVP_add_mac() adds the MAC implementation C<mac> to the internal
  * object database.
  */
-int EVP_add_mac(const EVP_MAC *mac);
+int VR_EVP_add_mac(const EVP_MAC *mac);
 
 struct evp_md_st {
     int type;
@@ -198,11 +198,11 @@ struct evp_cipher_st {
 /* Wrapper functions for each cipher mode */
 
 #define EVP_C_DATA(kstruct, ctx) \
-        ((kstruct *)EVP_CIPHER_CTX_get_cipher_data(ctx))
+        ((kstruct *)VR_EVP_CIPHER_CTX_get_cipher_data(ctx))
 
 #define BLOCK_CIPHER_ecb_loop() \
         size_t i, bl; \
-        bl = EVP_CIPHER_CTX_cipher(ctx)->block_size;    \
+        bl = VR_EVP_CIPHER_CTX_cipher(ctx)->block_size;    \
         if (inl < bl) return 1;\
         inl -= bl; \
         for (i=0; i <= inl; i+=bl)
@@ -211,7 +211,7 @@ struct evp_cipher_st {
 static int cname##_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out, const unsigned char *in, size_t inl) \
 {\
         BLOCK_CIPHER_ecb_loop() \
-            cprefix##_ecb_encrypt(in + i, out + i, &EVP_C_DATA(kstruct,ctx)->ksched, EVP_CIPHER_CTX_encrypting(ctx)); \
+            VR_##cprefix##_ecb_encrypt(in + i, out + i, &EVP_C_DATA(kstruct,ctx)->ksched, VR_EVP_CIPHER_CTX_encrypting(ctx)); \
         return 1;\
 }
 
@@ -221,17 +221,17 @@ static int cname##_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out, const uns
     static int cname##_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out, const unsigned char *in, size_t inl) \
 {\
         while(inl>=EVP_MAXCHUNK) {\
-            int num = EVP_CIPHER_CTX_num(ctx);\
-            cprefix##_ofb##cbits##_encrypt(in, out, (long)EVP_MAXCHUNK, &EVP_C_DATA(kstruct,ctx)->ksched, EVP_CIPHER_CTX_iv_noconst(ctx), &num); \
-            EVP_CIPHER_CTX_set_num(ctx, num);\
+            int num = VR_EVP_CIPHER_CTX_num(ctx);\
+            VR_##cprefix##_ofb##cbits##_encrypt(in, out, (long)EVP_MAXCHUNK, &EVP_C_DATA(kstruct,ctx)->ksched, VR_EVP_CIPHER_CTX_iv_noconst(ctx), &num); \
+            VR_EVP_CIPHER_CTX_set_num(ctx, num);\
             inl-=EVP_MAXCHUNK;\
             in +=EVP_MAXCHUNK;\
             out+=EVP_MAXCHUNK;\
         }\
         if (inl) {\
-            int num = EVP_CIPHER_CTX_num(ctx);\
-            cprefix##_ofb##cbits##_encrypt(in, out, (long)inl, &EVP_C_DATA(kstruct,ctx)->ksched, EVP_CIPHER_CTX_iv_noconst(ctx), &num); \
-            EVP_CIPHER_CTX_set_num(ctx, num);\
+            int num = VR_EVP_CIPHER_CTX_num(ctx);\
+            VR_##cprefix##_ofb##cbits##_encrypt(in, out, (long)inl, &EVP_C_DATA(kstruct,ctx)->ksched, VR_EVP_CIPHER_CTX_iv_noconst(ctx), &num); \
+            VR_EVP_CIPHER_CTX_set_num(ctx, num);\
         }\
         return 1;\
 }
@@ -241,13 +241,13 @@ static int cname##_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out, const uns
 {\
         while(inl>=EVP_MAXCHUNK) \
             {\
-            cprefix##_cbc_encrypt(in, out, (long)EVP_MAXCHUNK, &EVP_C_DATA(kstruct,ctx)->ksched, EVP_CIPHER_CTX_iv_noconst(ctx), EVP_CIPHER_CTX_encrypting(ctx));\
+            VR_##cprefix##_cbc_encrypt(in, out, (long)EVP_MAXCHUNK, &EVP_C_DATA(kstruct,ctx)->ksched, VR_EVP_CIPHER_CTX_iv_noconst(ctx), VR_EVP_CIPHER_CTX_encrypting(ctx));\
             inl-=EVP_MAXCHUNK;\
             in +=EVP_MAXCHUNK;\
             out+=EVP_MAXCHUNK;\
             }\
         if (inl)\
-            cprefix##_cbc_encrypt(in, out, (long)inl, &EVP_C_DATA(kstruct,ctx)->ksched, EVP_CIPHER_CTX_iv_noconst(ctx), EVP_CIPHER_CTX_encrypting(ctx));\
+            VR_##cprefix##_cbc_encrypt(in, out, (long)inl, &EVP_C_DATA(kstruct,ctx)->ksched, VR_EVP_CIPHER_CTX_iv_noconst(ctx), VR_EVP_CIPHER_CTX_encrypting(ctx));\
         return 1;\
 }
 
@@ -259,14 +259,14 @@ static int cname##_cfb##cbits##_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out, 
     if (inl < chunk) chunk = inl;\
     while (inl && inl >= chunk)\
     {\
-        int num = EVP_CIPHER_CTX_num(ctx);\
-        cprefix##_cfb##cbits##_encrypt(in, out, (long) \
+        int num = VR_EVP_CIPHER_CTX_num(ctx);\
+        VR_##cprefix##_cfb##cbits##_encrypt(in, out, (long) \
             ((cbits == 1) \
-                && !EVP_CIPHER_CTX_test_flags(ctx, EVP_CIPH_FLAG_LENGTH_BITS) \
+                && !VR_EVP_CIPHER_CTX_test_flags(ctx, EVP_CIPH_FLAG_LENGTH_BITS) \
                 ? chunk*8 : chunk), \
-            &EVP_C_DATA(kstruct, ctx)->ksched, EVP_CIPHER_CTX_iv_noconst(ctx),\
-            &num, EVP_CIPHER_CTX_encrypting(ctx));\
-        EVP_CIPHER_CTX_set_num(ctx, num);\
+            &EVP_C_DATA(kstruct, ctx)->ksched, VR_EVP_CIPHER_CTX_iv_noconst(ctx),\
+            &num, VR_EVP_CIPHER_CTX_encrypting(ctx));\
+        VR_EVP_CIPHER_CTX_set_num(ctx, num);\
         inl -= chunk;\
         in += chunk;\
         out += chunk;\
@@ -295,7 +295,7 @@ static const EVP_CIPHER cname##_##mode = { \
         ctrl, \
         NULL \
 }; \
-const EVP_CIPHER *EVP_##cname##_##mode(void) { return &cname##_##mode; }
+const EVP_CIPHER *VR_##EVP_##cname##_##mode(void) { return &cname##_##mode; }
 
 #define BLOCK_CIPHER_def_cbc(cname, kstruct, nid, block_size, key_len, \
                              iv_len, flags, init_key, cleanup, set_asn1, \
@@ -412,8 +412,8 @@ const EVP_CIPHER *EVP_##cname##_ecb(void) { return &cname##_ecb; }
 
 # ifndef OPENSSL_NO_EC
 
-#define X25519_KEYLEN        32
-#define X448_KEYLEN          56
+#define VR_X25519_KEYLEN        32
+#define VR_X448_KEYLEN          56
 #define ED448_KEYLEN         57
 
 #define MAX_KEYLEN  ED448_KEYLEN
@@ -449,7 +449,7 @@ struct evp_pkey_st {
 # endif
 # ifndef OPENSSL_NO_EC
         struct ec_key_st *ec;   /* ECC */
-        ECX_KEY *ecx;           /* X25519, X448, Ed25519, Ed448 */
+        ECX_KEY *ecx;           /* VR_X25519, VR_X448, Ed25519, Ed448 */
 # endif
     } pkey;
     int save_parameters;
@@ -458,20 +458,20 @@ struct evp_pkey_st {
 } /* EVP_PKEY */ ;
 
 
-void openssl_add_all_ciphers_int(void);
-void openssl_add_all_digests_int(void);
-void openssl_add_all_macs_int(void);
-void evp_cleanup_int(void);
-void evp_app_cleanup_int(void);
+void VR_openssl_add_all_ciphers_int(void);
+void VR_openssl_add_all_digests_int(void);
+void VR_openssl_add_all_macs_int(void);
+void VR_evp_cleanup_int(void);
+void VR_evp_app_cleanup_int(void);
 
 /* Pulling defines out of C source files */
 
-#define EVP_RC4_KEY_SIZE 16
+#define EVP_VR_RC4_KEY_SIZE 16
 #ifndef TLS1_1_VERSION
 # define TLS1_1_VERSION   0x0302
 #endif
 
-void evp_encode_ctx_set_flags(EVP_ENCODE_CTX *ctx, unsigned int flags);
+void VR_evp_encode_ctx_set_flags(EVP_ENCODE_CTX *ctx, unsigned int flags);
 
 /* EVP_ENCODE_CTX flags */
 /* Don't generate new lines when encoding */

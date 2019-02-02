@@ -16,7 +16,7 @@
  * used is contained in *num;
  */
 
-void RC2_cfb64_encrypt(const unsigned char *in, unsigned char *out,
+void VR_RC2_cfb64_encrypt(const unsigned char *in, unsigned char *out,
                        long length, RC2_KEY *schedule, unsigned char *ivec,
                        int *num, int encrypt)
 {
@@ -34,7 +34,7 @@ void RC2_cfb64_encrypt(const unsigned char *in, unsigned char *out,
                 ti[0] = v0;
                 c2l(iv, v1);
                 ti[1] = v1;
-                RC2_encrypt((unsigned long *)ti, schedule);
+                VR_RC2_encrypt((unsigned long *)ti, schedule);
                 iv = (unsigned char *)ivec;
                 t = ti[0];
                 l2c(t, iv);
@@ -54,7 +54,7 @@ void RC2_cfb64_encrypt(const unsigned char *in, unsigned char *out,
                 ti[0] = v0;
                 c2l(iv, v1);
                 ti[1] = v1;
-                RC2_encrypt((unsigned long *)ti, schedule);
+                VR_RC2_encrypt((unsigned long *)ti, schedule);
                 iv = (unsigned char *)ivec;
                 t = ti[0];
                 l2c(t, iv);

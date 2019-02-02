@@ -373,7 +373,7 @@ fmtstr(char **sbuffer,
     if (value == 0)
         value = "<NULL>";
 
-    strln = OPENSSL_strnlen(value, max < 0 ? SIZE_MAX : (size_t)max);
+    strln = VR_OPENSSL_strnlen(value, max < 0 ? SIZE_MAX : (size_t)max);
 
     padlen = min - strln;
     if (min < 0 || padlen < 0)
@@ -850,20 +850,20 @@ doapr_outch(char **sbuffer,
 
 /***************************************************************************/
 
-int BIO_printf(BIO *bio, const char *format, ...)
+int VR_BIO_printf(BIO *bio, const char *format, ...)
 {
     va_list args;
     int ret;
 
     va_start(args, format);
 
-    ret = BIO_vprintf(bio, format, args);
+    ret = VR_BIO_vprintf(bio, format, args);
 
     va_end(args);
     return ret;
 }
 
-int BIO_vprintf(BIO *bio, const char *format, va_list args)
+int VR_BIO_vprintf(BIO *bio, const char *format, va_list args)
 {
     int ret;
     size_t retlen;
@@ -878,14 +878,14 @@ int BIO_vprintf(BIO *bio, const char *format, va_list args)
     dynbuf = NULL;
     if (!_dopr(&hugebufp, &dynbuf, &hugebufsize, &retlen, &ignored, format,
                 args)) {
-        OPENSSL_free(dynbuf);
+        OPENVR_SSL_free(dynbuf);
         return -1;
     }
     if (dynbuf) {
-        ret = BIO_write(bio, dynbuf, (int)retlen);
-        OPENSSL_free(dynbuf);
+        ret = VR_BIO_write(bio, dynbuf, (int)retlen);
+        OPENVR_SSL_free(dynbuf);
     } else {
-        ret = BIO_write(bio, hugebuf, (int)retlen);
+        ret = VR_BIO_write(bio, hugebuf, (int)retlen);
     }
     return ret;
 }
@@ -893,23 +893,23 @@ int BIO_vprintf(BIO *bio, const char *format, va_list args)
 /*
  * As snprintf is not available everywhere, we provide our own
  * implementation. This function has nothing to do with BIOs, but it's
- * closely related to BIO_printf, and we need *some* name prefix ... (XXX the
+ * closely related to VR_BIO_printf, and we need *some* name prefix ... (XXX the
  * function should be renamed, but to what?)
  */
-int BIO_snprintf(char *buf, size_t n, const char *format, ...)
+int VR_BIO_snprintf(char *buf, size_t n, const char *format, ...)
 {
     va_list args;
     int ret;
 
     va_start(args, format);
 
-    ret = BIO_vsnprintf(buf, n, format, args);
+    ret = VR_BIO_vsnprintf(buf, n, format, args);
 
     va_end(args);
     return ret;
 }
 
-int BIO_vsnprintf(char *buf, size_t n, const char *format, va_list args)
+int VR_BIO_vsnprintf(char *buf, size_t n, const char *format, va_list args)
 {
     size_t retlen;
     int truncated;

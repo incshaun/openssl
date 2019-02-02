@@ -16,7 +16,7 @@
 #
 # February 2012
 #
-# The module implements bn_GF2m_mul_2x2 polynomial multiplication
+# The module implements VR_bn_GF2m_mul_2x2 polynomial multiplication
 # used in bn_gf2m.c. It's kind of low-hanging mechanical port from
 # C for the time being... The subroutine runs in 37 cycles, which is
 # 4.5x faster than compiler-generated code. Though comparison is
@@ -119,11 +119,11 @@ $code.=<<___;
 	.asg	0,__TI_EABI__
 	.endif
 	.if	__TI_EABI__
-	.asg	bn_GF2m_mul_2x2,_bn_GF2m_mul_2x2
+	.asg	VR_bn_GF2m_mul_2x2,_VR_bn_GF2m_mul_2x2
 	.endif
 
-	.global	_bn_GF2m_mul_2x2
-_bn_GF2m_mul_2x2:
+	.global	_VR_bn_GF2m_mul_2x2
+_VR_bn_GF2m_mul_2x2:
 	.asmfunc
 	MVK	0xFF,$xFF
 ___

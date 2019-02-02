@@ -98,10 +98,10 @@ if (!$addx && `$ENV{CC} -v 2>&1` =~ /((?:^clang|LLVM) version|.*based on LLVM) (
 $code.=<<___;
 .text
 
-.globl	x25519_fe51_mul
-.type	x25519_fe51_mul,\@function,3
+.globl	VR_x25519_fe51_mul
+.type	VR_x25519_fe51_mul,\@function,3
 .align	32
-x25519_fe51_mul:
+VR_x25519_fe51_mul:
 .cfi_startproc
 	push	%rbp
 .cfi_push	%rbp
@@ -247,12 +247,12 @@ x25519_fe51_mul:
 	jmp	.Lreduce51
 .Lfe51_mul_epilogue:
 .cfi_endproc
-.size	x25519_fe51_mul,.-x25519_fe51_mul
+.size	VR_x25519_fe51_mul,.-VR_x25519_fe51_mul
 
-.globl	x25519_fe51_sqr
-.type	x25519_fe51_sqr,\@function,2
+.globl	VR_x25519_fe51_sqr
+.type	VR_x25519_fe51_sqr,\@function,2
 .align	32
-x25519_fe51_sqr:
+VR_x25519_fe51_sqr:
 .cfi_startproc
 	push	%rbp
 .cfi_push	%rbp
@@ -427,12 +427,12 @@ x25519_fe51_sqr:
 .Lfe51_sqr_epilogue:
 	ret
 .cfi_endproc
-.size	x25519_fe51_sqr,.-x25519_fe51_sqr
+.size	VR_x25519_fe51_sqr,.-VR_x25519_fe51_sqr
 
-.globl	x25519_fe51_mul121666
-.type	x25519_fe51_mul121666,\@function,2
+.globl	VR_x25519_fe51_mul121666
+.type	VR_x25519_fe51_mul121666,\@function,2
 .align	32
-x25519_fe51_mul121666:
+VR_x25519_fe51_mul121666:
 .cfi_startproc
 	push	%rbp
 .cfi_push	%rbp
@@ -474,7 +474,7 @@ x25519_fe51_mul121666:
 	jmp	.Lreduce51
 .Lfe51_mul121666_epilogue:
 .cfi_endproc
-.size	x25519_fe51_mul121666,.-x25519_fe51_mul121666
+.size	VR_x25519_fe51_mul121666,.-VR_x25519_fe51_mul121666
 ___
 ########################################################################
 # Base 2^64 subroutines modulo 2*(2^255-19)
@@ -484,22 +484,22 @@ my ($acc0,$acc1,$acc2,$acc3,$acc4,$acc5,$acc6,$acc7) = map("%r$_",(8..15));
 
 $code.=<<___;
 .extern	OPENSSL_ia32cap_P
-.globl	x25519_fe64_eligible
-.type	x25519_fe64_eligible,\@abi-omnipotent
+.globl	VR_x25519_fe64_eligible
+.type	VR_x25519_fe64_eligible,\@abi-omnipotent
 .align	32
-x25519_fe64_eligible:
+VR_x25519_fe64_eligible:
 	mov	OPENSSL_ia32cap_P+8(%rip),%ecx
 	xor	%eax,%eax
 	and	\$0x80100,%ecx
 	cmp	\$0x80100,%ecx
 	cmove	%ecx,%eax
 	ret
-.size	x25519_fe64_eligible,.-x25519_fe64_eligible
+.size	VR_x25519_fe64_eligible,.-VR_x25519_fe64_eligible
 
-.globl	x25519_fe64_mul
-.type	x25519_fe64_mul,\@function,3
+.globl	VR_x25519_fe64_mul
+.type	VR_x25519_fe64_mul,\@function,3
 .align	32
-x25519_fe64_mul:
+VR_x25519_fe64_mul:
 .cfi_startproc
 	push	%rbp
 .cfi_push	%rbp
@@ -586,12 +586,12 @@ x25519_fe64_mul:
 	jmp	.Lreduce64
 .Lfe64_mul_epilogue:
 .cfi_endproc
-.size	x25519_fe64_mul,.-x25519_fe64_mul
+.size	VR_x25519_fe64_mul,.-VR_x25519_fe64_mul
 
-.globl	x25519_fe64_sqr
-.type	x25519_fe64_sqr,\@function,2
+.globl	VR_x25519_fe64_sqr
+.type	VR_x25519_fe64_sqr,\@function,2
 .align	32
-x25519_fe64_sqr:
+VR_x25519_fe64_sqr:
 .cfi_startproc
 	push	%rbp
 .cfi_push	%rbp
@@ -715,12 +715,12 @@ x25519_fe64_sqr:
 .Lfe64_sqr_epilogue:
 	ret
 .cfi_endproc
-.size	x25519_fe64_sqr,.-x25519_fe64_sqr
+.size	VR_x25519_fe64_sqr,.-VR_x25519_fe64_sqr
 
-.globl	x25519_fe64_mul121666
-.type	x25519_fe64_mul121666,\@function,2
+.globl	VR_x25519_fe64_mul121666
+.type	VR_x25519_fe64_mul121666,\@function,2
 .align	32
-x25519_fe64_mul121666:
+VR_x25519_fe64_mul121666:
 .Lfe64_mul121666_body:
 	mov	\$121666,%edx
 	mulx	8*0(%rsi),$acc0,%rcx
@@ -750,12 +750,12 @@ x25519_fe64_mul121666:
 
 .Lfe64_mul121666_epilogue:
 	ret
-.size	x25519_fe64_mul121666,.-x25519_fe64_mul121666
+.size	VR_x25519_fe64_mul121666,.-VR_x25519_fe64_mul121666
 
-.globl	x25519_fe64_add
-.type	x25519_fe64_add,\@function,3
+.globl	VR_x25519_fe64_add
+.type	VR_x25519_fe64_add,\@function,3
 .align	32
-x25519_fe64_add:
+VR_x25519_fe64_add:
 .Lfe64_add_body:
 	mov	8*0(%rsi),$acc0
 	mov	8*1(%rsi),$acc1
@@ -785,12 +785,12 @@ x25519_fe64_add:
 
 .Lfe64_add_epilogue:
 	ret
-.size	x25519_fe64_add,.-x25519_fe64_add
+.size	VR_x25519_fe64_add,.-VR_x25519_fe64_add
 
-.globl	x25519_fe64_sub
-.type	x25519_fe64_sub,\@function,3
+.globl	VR_x25519_fe64_sub
+.type	VR_x25519_fe64_sub,\@function,3
 .align	32
-x25519_fe64_sub:
+VR_x25519_fe64_sub:
 .Lfe64_sub_body:
 	mov	8*0(%rsi),$acc0
 	mov	8*1(%rsi),$acc1
@@ -820,12 +820,12 @@ x25519_fe64_sub:
 
 .Lfe64_sub_epilogue:
 	ret
-.size	x25519_fe64_sub,.-x25519_fe64_sub
+.size	VR_x25519_fe64_sub,.-VR_x25519_fe64_sub
 
-.globl	x25519_fe64_tobytes
-.type	x25519_fe64_tobytes,\@function,2
+.globl	VR_x25519_fe64_tobytes
+.type	VR_x25519_fe64_tobytes,\@function,2
 .align	32
-x25519_fe64_tobytes:
+VR_x25519_fe64_tobytes:
 .Lfe64_to_body:
 	mov	8*0(%rsi),$acc0
 	mov	8*1(%rsi),$acc1
@@ -862,34 +862,34 @@ x25519_fe64_tobytes:
 
 .Lfe64_to_epilogue:
 	ret
-.size	x25519_fe64_tobytes,.-x25519_fe64_tobytes
+.size	VR_x25519_fe64_tobytes,.-VR_x25519_fe64_tobytes
 ___
 } else {
 $code.=<<___;
-.globl	x25519_fe64_eligible
-.type	x25519_fe64_eligible,\@abi-omnipotent
+.globl	VR_x25519_fe64_eligible
+.type	VR_x25519_fe64_eligible,\@abi-omnipotent
 .align	32
-x25519_fe64_eligible:
+VR_x25519_fe64_eligible:
 	xor	%eax,%eax
 	ret
-.size	x25519_fe64_eligible,.-x25519_fe64_eligible
+.size	VR_x25519_fe64_eligible,.-VR_x25519_fe64_eligible
 
-.globl	x25519_fe64_mul
-.type	x25519_fe64_mul,\@abi-omnipotent
-.globl	x25519_fe64_sqr
-.globl	x25519_fe64_mul121666
-.globl	x25519_fe64_add
-.globl	x25519_fe64_sub
-.globl	x25519_fe64_tobytes
-x25519_fe64_mul:
-x25519_fe64_sqr:
-x25519_fe64_mul121666:
-x25519_fe64_add:
-x25519_fe64_sub:
-x25519_fe64_tobytes:
+.globl	VR_x25519_fe64_mul
+.type	VR_x25519_fe64_mul,\@abi-omnipotent
+.globl	VR_x25519_fe64_sqr
+.globl	VR_x25519_fe64_mul121666
+.globl	VR_x25519_fe64_add
+.globl	VR_x25519_fe64_sub
+.globl	VR_x25519_fe64_tobytes
+VR_x25519_fe64_mul:
+VR_x25519_fe64_sqr:
+VR_x25519_fe64_mul121666:
+VR_x25519_fe64_add:
+VR_x25519_fe64_sub:
+VR_x25519_fe64_tobytes:
 	.byte	0x0f,0x0b	# ud2
 	ret
-.size	x25519_fe64_mul,.-x25519_fe64_mul
+.size	VR_x25519_fe64_mul,.-VR_x25519_fe64_mul
 ___
 }
 $code.=<<___;
@@ -1026,86 +1026,86 @@ full_handler:
 
 .section	.pdata
 .align	4
-	.rva	.LSEH_begin_x25519_fe51_mul
-	.rva	.LSEH_end_x25519_fe51_mul
-	.rva	.LSEH_info_x25519_fe51_mul
+	.rva	.LSEH_begin_VR_x25519_fe51_mul
+	.rva	.LSEH_end_VR_x25519_fe51_mul
+	.rva	.LSEH_info_VR_x25519_fe51_mul
 
-	.rva	.LSEH_begin_x25519_fe51_sqr
-	.rva	.LSEH_end_x25519_fe51_sqr
-	.rva	.LSEH_info_x25519_fe51_sqr
+	.rva	.LSEH_begin_VR_x25519_fe51_sqr
+	.rva	.LSEH_end_VR_x25519_fe51_sqr
+	.rva	.LSEH_info_VR_x25519_fe51_sqr
 
-	.rva	.LSEH_begin_x25519_fe51_mul121666
-	.rva	.LSEH_end_x25519_fe51_mul121666
-	.rva	.LSEH_info_x25519_fe51_mul121666
+	.rva	.LSEH_begin_VR_x25519_fe51_mul121666
+	.rva	.LSEH_end_VR_x25519_fe51_mul121666
+	.rva	.LSEH_info_VR_x25519_fe51_mul121666
 ___
 $code.=<<___	if ($addx);
-	.rva	.LSEH_begin_x25519_fe64_mul
-	.rva	.LSEH_end_x25519_fe64_mul
-	.rva	.LSEH_info_x25519_fe64_mul
+	.rva	.LSEH_begin_VR_x25519_fe64_mul
+	.rva	.LSEH_end_VR_x25519_fe64_mul
+	.rva	.LSEH_info_VR_x25519_fe64_mul
 
-	.rva	.LSEH_begin_x25519_fe64_sqr
-	.rva	.LSEH_end_x25519_fe64_sqr
-	.rva	.LSEH_info_x25519_fe64_sqr
+	.rva	.LSEH_begin_VR_x25519_fe64_sqr
+	.rva	.LSEH_end_VR_x25519_fe64_sqr
+	.rva	.LSEH_info_VR_x25519_fe64_sqr
 
-	.rva	.LSEH_begin_x25519_fe64_mul121666
-	.rva	.LSEH_end_x25519_fe64_mul121666
-	.rva	.LSEH_info_x25519_fe64_mul121666
+	.rva	.LSEH_begin_VR_x25519_fe64_mul121666
+	.rva	.LSEH_end_VR_x25519_fe64_mul121666
+	.rva	.LSEH_info_VR_x25519_fe64_mul121666
 
-	.rva	.LSEH_begin_x25519_fe64_add
-	.rva	.LSEH_end_x25519_fe64_add
-	.rva	.LSEH_info_x25519_fe64_add
+	.rva	.LSEH_begin_VR_x25519_fe64_add
+	.rva	.LSEH_end_VR_x25519_fe64_add
+	.rva	.LSEH_info_VR_x25519_fe64_add
 
-	.rva	.LSEH_begin_x25519_fe64_sub
-	.rva	.LSEH_end_x25519_fe64_sub
-	.rva	.LSEH_info_x25519_fe64_sub
+	.rva	.LSEH_begin_VR_x25519_fe64_sub
+	.rva	.LSEH_end_VR_x25519_fe64_sub
+	.rva	.LSEH_info_VR_x25519_fe64_sub
 
-	.rva	.LSEH_begin_x25519_fe64_tobytes
-	.rva	.LSEH_end_x25519_fe64_tobytes
-	.rva	.LSEH_info_x25519_fe64_tobytes
+	.rva	.LSEH_begin_VR_x25519_fe64_tobytes
+	.rva	.LSEH_end_VR_x25519_fe64_tobytes
+	.rva	.LSEH_info_VR_x25519_fe64_tobytes
 ___
 $code.=<<___;
 .section	.xdata
 .align	8
-.LSEH_info_x25519_fe51_mul:
+.LSEH_info_VR_x25519_fe51_mul:
 	.byte	9,0,0,0
 	.rva	full_handler
 	.rva	.Lfe51_mul_body,.Lfe51_mul_epilogue	# HandlerData[]
 	.long	88,0
-.LSEH_info_x25519_fe51_sqr:
+.LSEH_info_VR_x25519_fe51_sqr:
 	.byte	9,0,0,0
 	.rva	full_handler
 	.rva	.Lfe51_sqr_body,.Lfe51_sqr_epilogue	# HandlerData[]
 	.long	88,0
-.LSEH_info_x25519_fe51_mul121666:
+.LSEH_info_VR_x25519_fe51_mul121666:
 	.byte	9,0,0,0
 	.rva	full_handler
 	.rva	.Lfe51_mul121666_body,.Lfe51_mul121666_epilogue	# HandlerData[]
 	.long	88,0
 ___
 $code.=<<___	if ($addx);
-.LSEH_info_x25519_fe64_mul:
+.LSEH_info_VR_x25519_fe64_mul:
 	.byte	9,0,0,0
 	.rva	full_handler
 	.rva	.Lfe64_mul_body,.Lfe64_mul_epilogue	# HandlerData[]
 	.long	72,0
-.LSEH_info_x25519_fe64_sqr:
+.LSEH_info_VR_x25519_fe64_sqr:
 	.byte	9,0,0,0
 	.rva	full_handler
 	.rva	.Lfe64_sqr_body,.Lfe64_sqr_epilogue	# HandlerData[]
 	.long	72,0
-.LSEH_info_x25519_fe64_mul121666:
+.LSEH_info_VR_x25519_fe64_mul121666:
 	.byte	9,0,0,0
 	.rva	short_handler
 	.rva	.Lfe64_mul121666_body,.Lfe64_mul121666_epilogue	# HandlerData[]
-.LSEH_info_x25519_fe64_add:
+.LSEH_info_VR_x25519_fe64_add:
 	.byte	9,0,0,0
 	.rva	short_handler
 	.rva	.Lfe64_add_body,.Lfe64_add_epilogue	# HandlerData[]
-.LSEH_info_x25519_fe64_sub:
+.LSEH_info_VR_x25519_fe64_sub:
 	.byte	9,0,0,0
 	.rva	short_handler
 	.rva	.Lfe64_sub_body,.Lfe64_sub_epilogue	# HandlerData[]
-.LSEH_info_x25519_fe64_tobytes:
+.LSEH_info_VR_x25519_fe64_tobytes:
 	.byte	9,0,0,0
 	.rva	short_handler
 	.rva	.Lfe64_to_body,.Lfe64_to_epilogue	# HandlerData[]

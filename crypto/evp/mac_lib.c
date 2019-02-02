@@ -16,22 +16,22 @@
 #include "internal/evp_int.h"
 #include "evp_locl.h"
 
-EVP_MAC_CTX *EVP_MAC_CTX_new_id(int id)
+EVP_MAC_CTX *VR_EVP_MAC_CTX_new_id(int id)
 {
     const EVP_MAC *mac = EVP_get_macbynid(id);
 
     if (mac == NULL)
         return NULL;
-    return EVP_MAC_CTX_new(mac);
+    return VR_EVP_MAC_CTX_new(mac);
 }
 
-EVP_MAC_CTX *EVP_MAC_CTX_new(const EVP_MAC *mac)
+EVP_MAC_CTX *VR_EVP_MAC_CTX_new(const EVP_MAC *mac)
 {
     EVP_MAC_CTX *ctx = OPENSSL_zalloc(sizeof(EVP_MAC_CTX));
 
     if (ctx == NULL || (ctx->data = mac->new()) == NULL) {
         EVPerr(EVP_F_EVP_MAC_CTX_NEW, ERR_R_MALLOC_FAILURE);
-        OPENSSL_free(ctx);
+        OPENVR_SSL_free(ctx);
         ctx = NULL;
     } else {
         ctx->meth = mac;
@@ -39,16 +39,16 @@ EVP_MAC_CTX *EVP_MAC_CTX_new(const EVP_MAC *mac)
     return ctx;
 }
 
-void EVP_MAC_CTX_free(EVP_MAC_CTX *ctx)
+void VR_EVP_MAC_CTX_free(EVP_MAC_CTX *ctx)
 {
     if (ctx != NULL && ctx->data != NULL) {
         ctx->meth->free(ctx->data);
         ctx->data = NULL;
     }
-    OPENSSL_free(ctx);
+    OPENVR_SSL_free(ctx);
 }
 
-int EVP_MAC_CTX_copy(EVP_MAC_CTX *dst, EVP_MAC_CTX *src)
+int VR_EVP_MAC_CTX_copy(EVP_MAC_CTX *dst, EVP_MAC_CTX *src)
 {
     EVP_MAC_IMPL *macdata;
 
@@ -62,12 +62,12 @@ int EVP_MAC_CTX_copy(EVP_MAC_CTX *dst, EVP_MAC_CTX *src)
     return 1;
 }
 
-const EVP_MAC *EVP_MAC_CTX_mac(EVP_MAC_CTX *ctx)
+const EVP_MAC *VR_EVP_MAC_CTX_mac(EVP_MAC_CTX *ctx)
 {
     return ctx->meth;
 }
 
-size_t EVP_MAC_size(EVP_MAC_CTX *ctx)
+size_t VR_EVP_MAC_size(EVP_MAC_CTX *ctx)
 {
     if (ctx->data != NULL)
         return ctx->meth->size(ctx->data);
@@ -75,17 +75,17 @@ size_t EVP_MAC_size(EVP_MAC_CTX *ctx)
     return 0;
 }
 
-int EVP_MAC_init(EVP_MAC_CTX *ctx)
+int VR_EVP_MAC_init(EVP_MAC_CTX *ctx)
 {
     return ctx->meth->init(ctx->data);
 }
 
-int EVP_MAC_update(EVP_MAC_CTX *ctx, const unsigned char *data, size_t datalen)
+int VR_EVP_MAC_update(EVP_MAC_CTX *ctx, const unsigned char *data, size_t datalen)
 {
     return ctx->meth->update(ctx->data, data, datalen);
 }
 
-int EVP_MAC_final(EVP_MAC_CTX *ctx, unsigned char *out, size_t *poutlen)
+int VR_EVP_MAC_final(EVP_MAC_CTX *ctx, unsigned char *out, size_t *poutlen)
 {
     int l = ctx->meth->size(ctx->data);
 
@@ -98,13 +98,13 @@ int EVP_MAC_final(EVP_MAC_CTX *ctx, unsigned char *out, size_t *poutlen)
     return ctx->meth->final(ctx->data, out);
 }
 
-int EVP_MAC_ctrl(EVP_MAC_CTX *ctx, int cmd, ...)
+int VR_EVP_MAC_ctrl(EVP_MAC_CTX *ctx, int cmd, ...)
 {
     int ok = -1;
     va_list args;
 
     va_start(args, cmd);
-    ok = EVP_MAC_vctrl(ctx, cmd, args);
+    ok = VR_EVP_MAC_vctrl(ctx, cmd, args);
     va_end(args);
 
     if (ok == -2)
@@ -113,7 +113,7 @@ int EVP_MAC_ctrl(EVP_MAC_CTX *ctx, int cmd, ...)
     return ok;
 }
 
-int EVP_MAC_vctrl(EVP_MAC_CTX *ctx, int cmd, va_list args)
+int VR_EVP_MAC_vctrl(EVP_MAC_CTX *ctx, int cmd, va_list args)
 {
     int ok = 1;
 
@@ -138,7 +138,7 @@ int EVP_MAC_vctrl(EVP_MAC_CTX *ctx, int cmd, va_list args)
     return ok;
 }
 
-int EVP_MAC_ctrl_str(EVP_MAC_CTX *ctx, const char *type, const char *value)
+int VR_EVP_MAC_ctrl_str(EVP_MAC_CTX *ctx, const char *type, const char *value)
 {
     int ok = 1;
 
@@ -154,32 +154,32 @@ int EVP_MAC_ctrl_str(EVP_MAC_CTX *ctx, const char *type, const char *value)
     return ok;
 }
 
-int EVP_MAC_str2ctrl(EVP_MAC_CTX *ctx, int cmd, const char *value)
+int VR_EVP_MAC_str2ctrl(EVP_MAC_CTX *ctx, int cmd, const char *value)
 {
     size_t len;
 
     len = strlen(value);
     if (len > INT_MAX)
         return -1;
-    return EVP_MAC_ctrl(ctx, cmd, value, len);
+    return VR_EVP_MAC_ctrl(ctx, cmd, value, len);
 }
 
-int EVP_MAC_hex2ctrl(EVP_MAC_CTX *ctx, int cmd, const char *hex)
+int VR_EVP_MAC_hex2ctrl(EVP_MAC_CTX *ctx, int cmd, const char *hex)
 {
     unsigned char *bin;
     long binlen;
     int rv = -1;
 
-    bin = OPENSSL_hexstr2buf(hex, &binlen);
+    bin = VR_OPENSSL_hexstr2buf(hex, &binlen);
     if (bin == NULL)
         return 0;
     if (binlen <= INT_MAX)
-        rv = EVP_MAC_ctrl(ctx, cmd, bin, (size_t)binlen);
-    OPENSSL_free(bin);
+        rv = VR_EVP_MAC_ctrl(ctx, cmd, bin, (size_t)binlen);
+    OPENVR_SSL_free(bin);
     return rv;
 }
 
-int EVP_MAC_nid(const EVP_MAC *mac)
+int VR_EVP_MAC_nid(const EVP_MAC *mac)
 {
     return mac->type;
 }

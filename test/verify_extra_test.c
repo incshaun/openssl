@@ -25,35 +25,35 @@ static STACK_OF(X509) *load_certs_from_file(const char *filename)
     BIO *bio;
     X509 *x;
 
-    bio = BIO_new_file(filename, "r");
+    bio = VR_BIO_new_file(filename, "r");
 
     if (bio == NULL) {
         return NULL;
     }
 
-    certs = sk_X509_new_null();
+    certs = sk_VR_X509_new_null();
     if (certs == NULL) {
-        BIO_free(bio);
+        VR_BIO_free(bio);
         return NULL;
     }
 
-    ERR_set_mark();
+    VR_ERR_set_mark();
     do {
-        x = PEM_read_bio_X509(bio, NULL, 0, NULL);
-        if (x != NULL && !sk_X509_push(certs, x)) {
-            sk_X509_pop_free(certs, X509_free);
-            BIO_free(bio);
+        x = VR_PEM_read_bio_X509(bio, NULL, 0, NULL);
+        if (x != NULL && !sk_VR_X509_push(certs, x)) {
+            sk_VR_X509_pop_free(certs, VR_X509_free);
+            VR_BIO_free(bio);
             return NULL;
         } else if (x == NULL) {
             /*
              * We probably just ran out of certs, so ignore any errors
              * generated
              */
-            ERR_pop_to_mark();
+            VR_ERR_pop_to_mark();
         }
     } while (x != NULL);
 
-    BIO_free(bio);
+    VR_BIO_free(bio);
 
     return certs;
 }
@@ -98,11 +98,11 @@ static int test_alt_chains_cert_forgery(void)
     X509_STORE *store = NULL;
     X509_LOOKUP *lookup = NULL;
 
-    store = X509_STORE_new();
+    store = VR_X509_STORE_new();
     if (store == NULL)
         goto err;
 
-    lookup = X509_STORE_add_lookup(store, X509_LOOKUP_file());
+    lookup = VR_X509_STORE_add_lookup(store, VR_X509_LOOKUP_file());
     if (lookup == NULL)
         goto err;
     if (!X509_LOOKUP_load_file(lookup, roots_f, X509_FILETYPE_PEM))
@@ -110,31 +110,31 @@ static int test_alt_chains_cert_forgery(void)
 
     untrusted = load_certs_from_file(untrusted_f);
 
-    if ((bio = BIO_new_file(bad_f, "r")) == NULL)
+    if ((bio = VR_BIO_new_file(bad_f, "r")) == NULL)
         goto err;
 
-    if ((x = PEM_read_bio_X509(bio, NULL, 0, NULL)) == NULL)
+    if ((x = VR_PEM_read_bio_X509(bio, NULL, 0, NULL)) == NULL)
         goto err;
 
-    sctx = X509_STORE_CTX_new();
+    sctx = VR_X509_STORE_CTX_new();
     if (sctx == NULL)
         goto err;
 
-    if (!X509_STORE_CTX_init(sctx, store, x, untrusted))
+    if (!VR_X509_STORE_CTX_init(sctx, store, x, untrusted))
         goto err;
 
-    i = X509_verify_cert(sctx);
+    i = VR_X509_verify_cert(sctx);
 
-    if (i == 0 && X509_STORE_CTX_get_error(sctx) == X509_V_ERR_INVALID_CA) {
+    if (i == 0 && VR_X509_STORE_CTX_get_error(sctx) == X509_V_ERR_INVALID_CA) {
         /* This is the result we were expecting: Test passed */
         ret = 1;
     }
  err:
-    X509_STORE_CTX_free(sctx);
-    X509_free(x);
-    BIO_free(bio);
-    sk_X509_pop_free(untrusted, X509_free);
-    X509_STORE_free(store);
+    VR_X509_STORE_CTX_free(sctx);
+    VR_X509_free(x);
+    VR_BIO_free(bio);
+    sk_VR_X509_pop_free(untrusted, VR_X509_free);
+    VR_X509_STORE_free(store);
     return ret;
 }
 
@@ -145,23 +145,23 @@ static int test_store_ctx(void)
     BIO *bio = NULL;
     int testresult = 0, ret;
 
-    bio = BIO_new_file(bad_f, "r");
+    bio = VR_BIO_new_file(bad_f, "r");
     if (bio == NULL)
         goto err;
 
-    x = PEM_read_bio_X509(bio, NULL, 0, NULL);
+    x = VR_PEM_read_bio_X509(bio, NULL, 0, NULL);
     if (x == NULL)
         goto err;
 
-    sctx = X509_STORE_CTX_new();
+    sctx = VR_X509_STORE_CTX_new();
     if (sctx == NULL)
         goto err;
 
-    if (!X509_STORE_CTX_init(sctx, NULL, x, NULL))
+    if (!VR_X509_STORE_CTX_init(sctx, NULL, x, NULL))
         goto err;
 
     /* Verifying a cert where we have no trusted certs should fail */
-    ret = X509_verify_cert(sctx);
+    ret = VR_X509_verify_cert(sctx);
 
     if (ret == 0) {
         /* This is the result we were expecting: Test passed */
@@ -169,9 +169,9 @@ static int test_store_ctx(void)
     }
 
  err:
-    X509_STORE_CTX_free(sctx);
-    X509_free(x);
-    BIO_free(bio);
+    VR_X509_STORE_CTX_free(sctx);
+    VR_X509_free(x);
+    VR_BIO_free(bio);
     return testresult;
 }
 

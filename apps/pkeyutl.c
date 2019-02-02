@@ -104,7 +104,7 @@ int pkeyutl_main(int argc, char **argv)
         case OPT_EOF:
         case OPT_ERR:
  opthelp:
-            BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
+            VR_BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
             opt_help(pkeyutl_options);
@@ -189,17 +189,17 @@ int pkeyutl_main(int argc, char **argv)
             break;
         case OPT_PKEYOPT:
             if ((pkeyopts == NULL &&
-                 (pkeyopts = sk_OPENSSL_STRING_new_null()) == NULL) ||
-                sk_OPENSSL_STRING_push(pkeyopts, opt_arg()) == 0) {
-                BIO_puts(bio_err, "out of memory\n");
+                 (pkeyopts = sk_VR_OPENSSL_STRING_new_null()) == NULL) ||
+                sk_VR_OPENSSL_STRING_push(pkeyopts, opt_arg()) == 0) {
+                VR_BIO_puts(bio_err, "out of memory\n");
                 goto end;
             }
             break;
         case OPT_PKEYOPT_PASSIN:
             if ((pkeyopts_passin == NULL &&
-                 (pkeyopts_passin = sk_OPENSSL_STRING_new_null()) == NULL) ||
-                sk_OPENSSL_STRING_push(pkeyopts_passin, opt_arg()) == 0) {
-                BIO_puts(bio_err, "out of memory\n");
+                 (pkeyopts_passin = sk_VR_OPENSSL_STRING_new_null()) == NULL) ||
+                sk_VR_OPENSSL_STRING_push(pkeyopts_passin, opt_arg()) == 0) {
+                VR_BIO_puts(bio_err, "out of memory\n");
                 goto end;
             }
             break;
@@ -211,29 +211,29 @@ int pkeyutl_main(int argc, char **argv)
 
     if (kdfalg != NULL) {
         if (kdflen == 0) {
-            BIO_printf(bio_err,
+            VR_BIO_printf(bio_err,
                        "%s: no KDF length given (-kdflen parameter).\n", prog);
             goto opthelp;
         }
     } else if (inkey == NULL) {
-        BIO_printf(bio_err,
+        VR_BIO_printf(bio_err,
                    "%s: no private key given (-inkey parameter).\n", prog);
         goto opthelp;
     } else if (peerkey != NULL && pkey_op != EVP_PKEY_OP_DERIVE) {
-        BIO_printf(bio_err,
+        VR_BIO_printf(bio_err,
                    "%s: no peer key given (-peerkey parameter).\n", prog);
         goto opthelp;
     }
     ctx = init_ctx(kdfalg, &keysize, inkey, keyform, key_type,
                    passinarg, pkey_op, e, engine_impl);
     if (ctx == NULL) {
-        BIO_printf(bio_err, "%s: Error initializing context\n", prog);
-        ERR_print_errors(bio_err);
+        VR_BIO_printf(bio_err, "%s: Error initializing context\n", prog);
+        VR_ERR_print_errors(bio_err);
         goto end;
     }
     if (peerkey != NULL && !setup_peer(ctx, peerform, peerkey, e)) {
-        BIO_printf(bio_err, "%s: Error setting up peer key\n", prog);
-        ERR_print_errors(bio_err);
+        VR_BIO_printf(bio_err, "%s: Error setting up peer key\n", prog);
+        VR_ERR_print_errors(bio_err);
         goto end;
     }
     if (pkeyopts != NULL) {
@@ -244,9 +244,9 @@ int pkeyutl_main(int argc, char **argv)
             const char *opt = sk_OPENSSL_STRING_value(pkeyopts, i);
 
             if (pkey_ctrl_string(ctx, opt) <= 0) {
-                BIO_printf(bio_err, "%s: Can't set parameter \"%s\":\n",
+                VR_BIO_printf(bio_err, "%s: Can't set parameter \"%s\":\n",
                            prog, opt);
-                ERR_print_errors(bio_err);
+                VR_ERR_print_errors(bio_err);
                 goto end;
             }
         }
@@ -263,12 +263,12 @@ int pkeyutl_main(int argc, char **argv)
             if (passin == NULL) {
                 /* Get password interactively */
                 char passwd_buf[4096];
-                BIO_snprintf(passwd_buf, sizeof(passwd_buf), "Enter %s: ", opt);
-                EVP_read_pw_string(passwd_buf, sizeof(passwd_buf) - 1,
+                VR_BIO_snprintf(passwd_buf, sizeof(passwd_buf), "Enter %s: ", opt);
+                VR_EVP_read_pw_string(passwd_buf, sizeof(passwd_buf) - 1,
                                    passwd_buf, 0);
                 passwd = OPENSSL_strdup(passwd_buf);
                 if (passwd == NULL) {
-                    BIO_puts(bio_err, "out of memory\n");
+                    VR_BIO_puts(bio_err, "out of memory\n");
                     goto end;
                 }
             } else {
@@ -277,28 +277,28 @@ int pkeyutl_main(int argc, char **argv)
                 *passin = 0;
                 passin++;
                 if (app_passwd(passin, NULL, &passwd, NULL) == 0) {
-                    BIO_printf(bio_err, "failed to get '%s'\n", opt);
+                    VR_BIO_printf(bio_err, "failed to get '%s'\n", opt);
                     goto end;
                 }
             }
 
-            if (EVP_PKEY_CTX_ctrl_str(ctx, opt, passwd) <= 0) {
-                BIO_printf(bio_err, "%s: Can't set parameter \"%s\":\n",
+            if (VR_EVP_PKEY_CTX_ctrl_str(ctx, opt, passwd) <= 0) {
+                VR_BIO_printf(bio_err, "%s: Can't set parameter \"%s\":\n",
                            prog, opt);
                 goto end;
             }
-            OPENSSL_free(passwd);
+            OPENVR_SSL_free(passwd);
         }
     }
 
     if (sigfile != NULL && (pkey_op != EVP_PKEY_OP_VERIFY)) {
-        BIO_printf(bio_err,
+        VR_BIO_printf(bio_err,
                    "%s: Signature file specified for non verify\n", prog);
         goto end;
     }
 
     if (sigfile == NULL && (pkey_op == EVP_PKEY_OP_VERIFY)) {
-        BIO_printf(bio_err,
+        VR_BIO_printf(bio_err,
                    "%s: No signature file specified for verify\n", prog);
         goto end;
     }
@@ -313,16 +313,16 @@ int pkeyutl_main(int argc, char **argv)
         goto end;
 
     if (sigfile != NULL) {
-        BIO *sigbio = BIO_new_file(sigfile, "rb");
+        BIO *sigbio = VR_BIO_new_file(sigfile, "rb");
 
         if (sigbio == NULL) {
-            BIO_printf(bio_err, "Can't open signature file %s\n", sigfile);
+            VR_BIO_printf(bio_err, "Can't open signature file %s\n", sigfile);
             goto end;
         }
         siglen = bio_to_mem(&sig, keysize * 10, sigbio);
-        BIO_free(sigbio);
+        VR_BIO_free(sigbio);
         if (siglen < 0) {
-            BIO_printf(bio_err, "Error reading signature data\n");
+            VR_BIO_printf(bio_err, "Error reading signature data\n");
             goto end;
         }
     }
@@ -331,7 +331,7 @@ int pkeyutl_main(int argc, char **argv)
         /* Read the input data */
         buf_inlen = bio_to_mem(&buf_in, keysize * 10, in);
         if (buf_inlen < 0) {
-            BIO_printf(bio_err, "Error reading input Data\n");
+            VR_BIO_printf(bio_err, "Error reading input Data\n");
             goto end;
         }
         if (rev) {
@@ -351,19 +351,19 @@ int pkeyutl_main(int argc, char **argv)
             && (pkey_op == EVP_PKEY_OP_SIGN
                 || pkey_op == EVP_PKEY_OP_VERIFY
                 || pkey_op == EVP_PKEY_OP_VERIFYRECOVER)) {
-        BIO_printf(bio_err,
+        VR_BIO_printf(bio_err,
                    "Error: The input data looks too long to be a hash\n");
         goto end;
     }
 
     if (pkey_op == EVP_PKEY_OP_VERIFY) {
-        rv = EVP_PKEY_verify(ctx, sig, (size_t)siglen,
+        rv = VR_EVP_PKEY_verify(ctx, sig, (size_t)siglen,
                              buf_in, (size_t)buf_inlen);
         if (rv == 1) {
-            BIO_puts(out, "Signature Verified Successfully\n");
+            VR_BIO_puts(out, "Signature Verified Successfully\n");
             ret = 0;
         } else {
-            BIO_puts(out, "Signature Verification Failure\n");
+            VR_BIO_puts(out, "Signature Verification Failure\n");
         }
         goto end;
     }
@@ -382,34 +382,34 @@ int pkeyutl_main(int argc, char **argv)
     }
     if (rv <= 0) {
         if (pkey_op != EVP_PKEY_OP_DERIVE) {
-            BIO_puts(bio_err, "Public Key operation error\n");
+            VR_BIO_puts(bio_err, "Public Key operation error\n");
         } else {
-            BIO_puts(bio_err, "Key derivation failed\n");
+            VR_BIO_puts(bio_err, "Key derivation failed\n");
         }
-        ERR_print_errors(bio_err);
+        VR_ERR_print_errors(bio_err);
         goto end;
     }
     ret = 0;
 
     if (asn1parse) {
-        if (!ASN1_parse_dump(out, buf_out, buf_outlen, 1, -1))
-            ERR_print_errors(bio_err);
+        if (!VR_ASN1_parse_dump(out, buf_out, buf_outlen, 1, -1))
+            VR_ERR_print_errors(bio_err);
     } else if (hexdump) {
-        BIO_dump(out, (char *)buf_out, buf_outlen);
+        VR_BIO_dump(out, (char *)buf_out, buf_outlen);
     } else {
-        BIO_write(out, buf_out, buf_outlen);
+        VR_BIO_write(out, buf_out, buf_outlen);
     }
 
  end:
-    EVP_PKEY_CTX_free(ctx);
+    VR_EVP_PKEY_CTX_free(ctx);
     release_engine(e);
-    BIO_free(in);
-    BIO_free_all(out);
-    OPENSSL_free(buf_in);
-    OPENSSL_free(buf_out);
-    OPENSSL_free(sig);
-    sk_OPENSSL_STRING_free(pkeyopts);
-    sk_OPENSSL_STRING_free(pkeyopts_passin);
+    VR_BIO_free(in);
+    VR_BIO_free_all(out);
+    OPENVR_SSL_free(buf_in);
+    OPENVR_SSL_free(buf_out);
+    OPENVR_SSL_free(sig);
+    sk_VR_OPENSSL_STRING_free(pkeyopts);
+    sk_VR_OPENSSL_STRING_free(pkeyopts_passin);
     return ret;
 }
 
@@ -427,11 +427,11 @@ static EVP_PKEY_CTX *init_ctx(const char *kdfalg, int *pkeysize,
     if (((pkey_op == EVP_PKEY_OP_SIGN) || (pkey_op == EVP_PKEY_OP_DECRYPT)
          || (pkey_op == EVP_PKEY_OP_DERIVE))
         && (key_type != KEY_PRIVKEY && kdfalg == NULL)) {
-        BIO_printf(bio_err, "A private key is needed for this operation\n");
+        VR_BIO_printf(bio_err, "A private key is needed for this operation\n");
         goto end;
     }
     if (!app_passwd(passinarg, NULL, &passin, NULL)) {
-        BIO_printf(bio_err, "Error getting password\n");
+        VR_BIO_printf(bio_err, "Error getting password\n");
         goto end;
     }
     switch (key_type) {
@@ -446,8 +446,8 @@ static EVP_PKEY_CTX *init_ctx(const char *kdfalg, int *pkeysize,
     case KEY_CERT:
         x = load_cert(keyfile, keyform, "Certificate");
         if (x) {
-            pkey = X509_get_pubkey(x);
-            X509_free(x);
+            pkey = VR_X509_get_pubkey(x);
+            VR_X509_free(x);
         }
         break;
 
@@ -462,23 +462,23 @@ static EVP_PKEY_CTX *init_ctx(const char *kdfalg, int *pkeysize,
 #endif
 
     if (kdfalg != NULL) {
-        int kdfnid = OBJ_sn2nid(kdfalg);
+        int kdfnid = VR_OBJ_sn2nid(kdfalg);
 
         if (kdfnid == NID_undef) {
-            kdfnid = OBJ_ln2nid(kdfalg);
+            kdfnid = VR_OBJ_ln2nid(kdfalg);
             if (kdfnid == NID_undef) {
-                BIO_printf(bio_err, "The given KDF \"%s\" is unknown.\n",
+                VR_BIO_printf(bio_err, "The given KDF \"%s\" is unknown.\n",
                            kdfalg);
                 goto end;
             }
         }
-        ctx = EVP_PKEY_CTX_new_id(kdfnid, impl);
+        ctx = VR_EVP_PKEY_CTX_new_id(kdfnid, impl);
     } else {
         if (pkey == NULL)
             goto end;
-        *pkeysize = EVP_PKEY_size(pkey);
-        ctx = EVP_PKEY_CTX_new(pkey, impl);
-        EVP_PKEY_free(pkey);
+        *pkeysize = VR_EVP_PKEY_size(pkey);
+        ctx = VR_EVP_PKEY_CTX_new(pkey, impl);
+        VR_EVP_PKEY_free(pkey);
     }
 
     if (ctx == NULL)
@@ -486,37 +486,37 @@ static EVP_PKEY_CTX *init_ctx(const char *kdfalg, int *pkeysize,
 
     switch (pkey_op) {
     case EVP_PKEY_OP_SIGN:
-        rv = EVP_PKEY_sign_init(ctx);
+        rv = VR_EVP_PKEY_sign_init(ctx);
         break;
 
     case EVP_PKEY_OP_VERIFY:
-        rv = EVP_PKEY_verify_init(ctx);
+        rv = VR_EVP_PKEY_verify_init(ctx);
         break;
 
     case EVP_PKEY_OP_VERIFYRECOVER:
-        rv = EVP_PKEY_verify_recover_init(ctx);
+        rv = VR_EVP_PKEY_verify_recover_init(ctx);
         break;
 
     case EVP_PKEY_OP_ENCRYPT:
-        rv = EVP_PKEY_encrypt_init(ctx);
+        rv = VR_EVP_PKEY_encrypt_init(ctx);
         break;
 
     case EVP_PKEY_OP_DECRYPT:
-        rv = EVP_PKEY_decrypt_init(ctx);
+        rv = VR_EVP_PKEY_decrypt_init(ctx);
         break;
 
     case EVP_PKEY_OP_DERIVE:
-        rv = EVP_PKEY_derive_init(ctx);
+        rv = VR_EVP_PKEY_derive_init(ctx);
         break;
     }
 
     if (rv <= 0) {
-        EVP_PKEY_CTX_free(ctx);
+        VR_EVP_PKEY_CTX_free(ctx);
         ctx = NULL;
     }
 
  end:
-    OPENSSL_free(passin);
+    OPENVR_SSL_free(passin);
     return ctx;
 
 }
@@ -532,16 +532,16 @@ static int setup_peer(EVP_PKEY_CTX *ctx, int peerform, const char *file,
         engine = e;
     peer = load_pubkey(file, peerform, 0, NULL, engine, "Peer Key");
     if (peer == NULL) {
-        BIO_printf(bio_err, "Error reading peer key %s\n", file);
-        ERR_print_errors(bio_err);
+        VR_BIO_printf(bio_err, "Error reading peer key %s\n", file);
+        VR_ERR_print_errors(bio_err);
         return 0;
     }
 
-    ret = EVP_PKEY_derive_set_peer(ctx, peer);
+    ret = VR_EVP_PKEY_derive_set_peer(ctx, peer);
 
-    EVP_PKEY_free(peer);
+    VR_EVP_PKEY_free(peer);
     if (ret <= 0)
-        ERR_print_errors(bio_err);
+        VR_ERR_print_errors(bio_err);
     return ret;
 }
 
@@ -552,23 +552,23 @@ static int do_keyop(EVP_PKEY_CTX *ctx, int pkey_op,
     int rv = 0;
     switch (pkey_op) {
     case EVP_PKEY_OP_VERIFYRECOVER:
-        rv = EVP_PKEY_verify_recover(ctx, out, poutlen, in, inlen);
+        rv = VR_EVP_PKEY_verify_recover(ctx, out, poutlen, in, inlen);
         break;
 
     case EVP_PKEY_OP_SIGN:
-        rv = EVP_PKEY_sign(ctx, out, poutlen, in, inlen);
+        rv = VR_EVP_PKEY_sign(ctx, out, poutlen, in, inlen);
         break;
 
     case EVP_PKEY_OP_ENCRYPT:
-        rv = EVP_PKEY_encrypt(ctx, out, poutlen, in, inlen);
+        rv = VR_EVP_PKEY_encrypt(ctx, out, poutlen, in, inlen);
         break;
 
     case EVP_PKEY_OP_DECRYPT:
-        rv = EVP_PKEY_decrypt(ctx, out, poutlen, in, inlen);
+        rv = VR_EVP_PKEY_decrypt(ctx, out, poutlen, in, inlen);
         break;
 
     case EVP_PKEY_OP_DERIVE:
-        rv = EVP_PKEY_derive(ctx, out, poutlen);
+        rv = VR_EVP_PKEY_derive(ctx, out, poutlen);
         break;
 
     }

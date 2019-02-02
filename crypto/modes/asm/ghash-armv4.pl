@@ -111,7 +111,7 @@ $nlo="r12";
 $nhi="r14";
 ################# r15 is program counter
 
-$rem_4bit=$inp;	# used in gcm_gmult_4bit
+$rem_4bit=$inp;	# used in VR_gcm_gmult_4bit
 $cnt=$len;
 
 sub Zsmash() {
@@ -175,10 +175,10 @@ rem_4bit_get:
 	nop
 .size	rem_4bit_get,.-rem_4bit_get
 
-.global	gcm_ghash_4bit
-.type	gcm_ghash_4bit,%function
+.global	VR_gcm_ghash_4bit
+.type	VR_gcm_ghash_4bit,%function
 .align	4
-gcm_ghash_4bit:
+VR_gcm_ghash_4bit:
 #if defined(__thumb2__)
 	adr	r12,rem_4bit
 #else
@@ -289,11 +289,11 @@ $code.=<<___;
 	moveq	pc,lr			@ be binary compatible with V4, yet
 	bx	lr			@ interoperable with Thumb ISA:-)
 #endif
-.size	gcm_ghash_4bit,.-gcm_ghash_4bit
+.size	VR_gcm_ghash_4bit,.-VR_gcm_ghash_4bit
 
-.global	gcm_gmult_4bit
-.type	gcm_gmult_4bit,%function
-gcm_gmult_4bit:
+.global	VR_gcm_gmult_4bit
+.type	VR_gcm_gmult_4bit,%function
+VR_gcm_gmult_4bit:
 	stmdb	sp!,{r4-r11,lr}
 	ldrb	$nlo,[$Xi,#15]
 	b	rem_4bit_get
@@ -372,7 +372,7 @@ $code.=<<___;
 	moveq	pc,lr			@ be binary compatible with V4, yet
 	bx	lr			@ interoperable with Thumb ISA:-)
 #endif
-.size	gcm_gmult_4bit,.-gcm_gmult_4bit
+.size	VR_gcm_gmult_4bit,.-VR_gcm_gmult_4bit
 ___
 {
 my ($Xl,$Xm,$Xh,$IN)=map("q$_",(0..3));

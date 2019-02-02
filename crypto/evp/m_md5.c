@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include "internal/cryptlib.h"
 
-#ifndef OPENSSL_NO_MD5
+#ifndef OPENSSL_NO_VR_MD5
 
 # include <openssl/evp.h>
 # include <openssl/objects.h>
@@ -21,34 +21,34 @@
 
 static int init(EVP_MD_CTX *ctx)
 {
-    return MD5_Init(EVP_MD_CTX_md_data(ctx));
+    return VR_MD5_Init(VR_EVP_MD_CTX_md_data(ctx));
 }
 
 static int update(EVP_MD_CTX *ctx, const void *data, size_t count)
 {
-    return MD5_Update(EVP_MD_CTX_md_data(ctx), data, count);
+    return VR_MD5_Update(VR_EVP_MD_CTX_md_data(ctx), data, count);
 }
 
 static int final(EVP_MD_CTX *ctx, unsigned char *md)
 {
-    return MD5_Final(md, EVP_MD_CTX_md_data(ctx));
+    return VR_MD5_Final(md, VR_EVP_MD_CTX_md_data(ctx));
 }
 
 static const EVP_MD md5_md = {
     NID_md5,
     NID_md5WithRSAEncryption,
-    MD5_DIGEST_LENGTH,
+    VR_MD5_DIGEST_LENGTH,
     0,
     init,
     update,
     final,
     NULL,
     NULL,
-    MD5_CBLOCK,
-    sizeof(EVP_MD *) + sizeof(MD5_CTX),
+    VR_MD5_CBLOCK,
+    sizeof(EVP_MD *) + sizeof(VR_MD5_CTX),
 };
 
-const EVP_MD *EVP_md5(void)
+const EVP_MD *VR_EVP_md5(void)
 {
     return &md5_md;
 }

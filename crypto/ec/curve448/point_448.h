@@ -43,14 +43,14 @@ struct curve448_precomputed_s {
 /* Number of bytes in a serialized scalar. */
 # define C448_SCALAR_BYTES 56
 
-/* X448 encoding ratio. */
-# define X448_ENCODE_RATIO 2
+/* VR_X448 encoding ratio. */
+# define VR_X448_ENCODE_RATIO 2
 
 /* Number of bytes in an x448 public key */
-# define X448_PUBLIC_BYTES 56
+# define VR_X448_PUBLIC_BYTES 56
 
 /* Number of bytes in an x448 private key */
-# define X448_PRIVATE_BYTES 56
+# define VR_X448_PRIVATE_BYTES 56
 
 /* Twisted Edwards extended homogeneous coordinates */
 typedef struct curve448_point_s {
@@ -92,7 +92,7 @@ extern const niels_t *curve448_wnaf_base;
  * C448_FAILURE: The scalar was greater than the modulus, and has been reduced
  * modulo that modulus.
  */
-c448_error_t curve448_scalar_decode(curve448_scalar_t out,
+c448_error_t VR_curve448_scalar_decode(curve448_scalar_t out,
                                     const unsigned char ser[C448_SCALAR_BYTES]);
 
 /*
@@ -102,7 +102,7 @@ c448_error_t curve448_scalar_decode(curve448_scalar_t out,
  * ser_len (in): Length of serialized form.
  * out (out): Deserialized form.
  */
-void curve448_scalar_decode_long(curve448_scalar_t out,
+void VR_curve448_scalar_decode_long(curve448_scalar_t out,
                                  const unsigned char *ser, size_t ser_len);
 
 /*
@@ -111,7 +111,7 @@ void curve448_scalar_decode_long(curve448_scalar_t out,
  * ser (out): Serialized form of a scalar.
  * s (in): Deserialized scalar.
  */
-void curve448_scalar_encode(unsigned char ser[C448_SCALAR_BYTES],
+void VR_curve448_scalar_encode(unsigned char ser[C448_SCALAR_BYTES],
                             const curve448_scalar_t s);
 
 /*
@@ -121,7 +121,7 @@ void curve448_scalar_encode(unsigned char ser[C448_SCALAR_BYTES],
  * b (in): Another scalar.
  * out (out): a+b.
  */
-void curve448_scalar_add(curve448_scalar_t out,
+void VR_curve448_scalar_add(curve448_scalar_t out,
                          const curve448_scalar_t a, const curve448_scalar_t b);
 
 /*
@@ -130,7 +130,7 @@ void curve448_scalar_add(curve448_scalar_t out,
  * b (in): Another scalar.
  * out (out): a-b.
  */
-void curve448_scalar_sub(curve448_scalar_t out,
+void VR_curve448_scalar_sub(curve448_scalar_t out,
                          const curve448_scalar_t a, const curve448_scalar_t b);
 
 /*
@@ -140,7 +140,7 @@ void curve448_scalar_sub(curve448_scalar_t out,
  * b (in): Another scalar.
  * out (out): a*b.
  */
-void curve448_scalar_mul(curve448_scalar_t out,
+void VR_curve448_scalar_mul(curve448_scalar_t out,
                          const curve448_scalar_t a, const curve448_scalar_t b);
 
 /*
@@ -149,7 +149,7 @@ void curve448_scalar_mul(curve448_scalar_t out,
 * a (in): A scalar.
 * out (out): a/2.
 */
-void curve448_scalar_halve(curve448_scalar_t out, const curve448_scalar_t a);
+void VR_curve448_scalar_halve(curve448_scalar_t out, const curve448_scalar_t a);
 
 /*
  * Copy a scalar.  The scalars may alias each other, in which case this
@@ -188,7 +188,7 @@ static ossl_inline void curve448_point_copy(curve448_point_t a,
  * C448_TRUE: The points are equal.
  * C448_FALSE: The points are not equal.
  */
-__owur c448_bool_t curve448_point_eq(const curve448_point_t a,
+__owur c448_bool_t VR_curve448_point_eq(const curve448_point_t a,
                                      const curve448_point_t b);
 
 /*
@@ -198,7 +198,7 @@ __owur c448_bool_t curve448_point_eq(const curve448_point_t a,
  * two_a (out): The sum a+a.
  * a (in): A point.
  */
-void curve448_point_double(curve448_point_t two_a, const curve448_point_t a);
+void VR_curve448_point_double(curve448_point_t two_a, const curve448_point_t a);
 
 /*
  * RFC 7748 Diffie-Hellman scalarmul.  This function uses a different
@@ -213,12 +213,12 @@ void curve448_point_double(curve448_point_t two_a, const curve448_point_t a);
  * C448_FAILURE: The scalarmul didn't succeed, because the base point is in a
  * small subgroup.
  */
-__owur c448_error_t x448_int(uint8_t out[X448_PUBLIC_BYTES],
-                             const uint8_t base[X448_PUBLIC_BYTES],
-                             const uint8_t scalar[X448_PRIVATE_BYTES]);
+__owur c448_error_t VR_x448_int(uint8_t out[VR_X448_PUBLIC_BYTES],
+                             const uint8_t base[VR_X448_PUBLIC_BYTES],
+                             const uint8_t scalar[VR_X448_PRIVATE_BYTES]);
 
 /*
- * Multiply a point by X448_ENCODE_RATIO, then encode it like RFC 7748.
+ * Multiply a point by VR_X448_ENCODE_RATIO, then encode it like RFC 7748.
  *
  * This function is mainly used internally, but is exported in case
  * it will be useful.
@@ -230,14 +230,14 @@ __owur c448_error_t x448_int(uint8_t out[X448_PUBLIC_BYTES],
  *
  * As it happens, this aligns with the base point definitions; that is,
  * if you pass the Decaf/Ristretto base point to this function, the result
- * will be X448_ENCODE_RATIO times the X448
+ * will be VR_X448_ENCODE_RATIO times the VR_X448
  * base point.
  *
  * out (out): The scaled and encoded point.
  * p (in): The point to be scaled and encoded.
  */
-void curve448_point_mul_by_ratio_and_encode_like_x448(
-                                        uint8_t out[X448_PUBLIC_BYTES],
+void VR_curve448_point_mul_by_ratio_and_encode_like_x448(
+                                        uint8_t out[VR_X448_PUBLIC_BYTES],
                                         const curve448_point_t p);
 
 /*
@@ -247,8 +247,8 @@ void curve448_point_mul_by_ratio_and_encode_like_x448(
  * out (out): The scaled point base*scalar
  * scalar (in): The scalar to multiply by.
  */
-void x448_derive_public_key(uint8_t out[X448_PUBLIC_BYTES],
-                            const uint8_t scalar[X448_PRIVATE_BYTES]);
+void VR_x448_derive_public_key(uint8_t out[VR_X448_PUBLIC_BYTES],
+                            const uint8_t scalar[VR_X448_PRIVATE_BYTES]);
 
 /*
  * Multiply a precomputed base point by a scalar: out = scalar*base.
@@ -257,7 +257,7 @@ void x448_derive_public_key(uint8_t out[X448_PUBLIC_BYTES],
  * base (in): The point to be scaled.
  * scalar (in): The scalar to multiply by.
  */
-void curve448_precomputed_scalarmul(curve448_point_t scaled,
+void VR_curve448_precomputed_scalarmul(curve448_point_t scaled,
                                     const curve448_precomputed_s * base,
                                     const curve448_scalar_t scalar);
 
@@ -265,7 +265,7 @@ void curve448_precomputed_scalarmul(curve448_point_t scaled,
  * Multiply two base points by two scalars:
  * combo = scalar1*curve448_point_base + scalar2*base2.
  *
- * Otherwise equivalent to curve448_point_double_scalarmul, but may be
+ * Otherwise equivalent to VR_curve448_point_double_scalarmul, but may be
  * faster at the expense of being variable time.
  *
  * combo (out): The linear combination scalar1*base + scalar2*base2.
@@ -276,7 +276,7 @@ void curve448_precomputed_scalarmul(curve448_point_t scaled,
  * Warning: This function takes variable time, and may leak the scalars used. 
  * It is designed for signature verification.
  */
-void curve448_base_double_scalarmul_non_secret(curve448_point_t combo,
+void VR_curve448_base_double_scalarmul_non_secret(curve448_point_t combo,
                                                const curve448_scalar_t scalar1,
                                                const curve448_point_t base2,
                                                const curve448_scalar_t scalar2);
@@ -290,12 +290,12 @@ void curve448_base_double_scalarmul_non_secret(curve448_point_t combo,
  * C448_TRUE The point is valid.
  * C448_FALSE The point is invalid.
  */
-__owur c448_bool_t curve448_point_valid(const curve448_point_t to_test);
+__owur c448_bool_t VR_curve448_point_valid(const curve448_point_t to_test);
 
 /* Overwrite scalar with zeros. */
-void curve448_scalar_destroy(curve448_scalar_t scalar);
+void VR_curve448_scalar_destroy(curve448_scalar_t scalar);
 
 /* Overwrite point with zeros. */
-void curve448_point_destroy(curve448_point_t point);
+void VR_curve448_point_destroy(curve448_point_t point);
 
 #endif                          /* HEADER_POINT_448_H */

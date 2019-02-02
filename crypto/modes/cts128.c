@@ -24,7 +24,7 @@
  * compliant with the NIST proposal, both extending CBC mode.
  */
 
-size_t CRYPTO_cts128_encrypt_block(const unsigned char *in,
+size_t VR_CRYPTO_cts128_encrypt_block(const unsigned char *in,
                                    unsigned char *out, size_t len,
                                    const void *key, unsigned char ivec[16],
                                    block128_f block)
@@ -39,7 +39,7 @@ size_t CRYPTO_cts128_encrypt_block(const unsigned char *in,
 
     len -= residue;
 
-    CRYPTO_cbc128_encrypt(in, out, len, key, ivec, block);
+    VR_CRYPTO_cbc128_encrypt(in, out, len, key, ivec, block);
 
     in += len;
     out += len;
@@ -53,7 +53,7 @@ size_t CRYPTO_cts128_encrypt_block(const unsigned char *in,
     return len + residue;
 }
 
-size_t CRYPTO_nistcts128_encrypt_block(const unsigned char *in,
+size_t VR_CRYPTO_nistcts128_encrypt_block(const unsigned char *in,
                                        unsigned char *out, size_t len,
                                        const void *key,
                                        unsigned char ivec[16],
@@ -68,7 +68,7 @@ size_t CRYPTO_nistcts128_encrypt_block(const unsigned char *in,
 
     len -= residue;
 
-    CRYPTO_cbc128_encrypt(in, out, len, key, ivec, block);
+    VR_CRYPTO_cbc128_encrypt(in, out, len, key, ivec, block);
 
     if (residue == 0)
         return len;
@@ -84,7 +84,7 @@ size_t CRYPTO_nistcts128_encrypt_block(const unsigned char *in,
     return len + residue;
 }
 
-size_t CRYPTO_cts128_encrypt(const unsigned char *in, unsigned char *out,
+size_t VR_CRYPTO_cts128_encrypt(const unsigned char *in, unsigned char *out,
                              size_t len, const void *key,
                              unsigned char ivec[16], cbc128_f cbc)
 {
@@ -120,7 +120,7 @@ size_t CRYPTO_cts128_encrypt(const unsigned char *in, unsigned char *out,
     return len + residue;
 }
 
-size_t CRYPTO_nistcts128_encrypt(const unsigned char *in, unsigned char *out,
+size_t VR_CRYPTO_nistcts128_encrypt(const unsigned char *in, unsigned char *out,
                                  size_t len, const void *key,
                                  unsigned char ivec[16], cbc128_f cbc)
 {
@@ -155,7 +155,7 @@ size_t CRYPTO_nistcts128_encrypt(const unsigned char *in, unsigned char *out,
     return len + residue;
 }
 
-size_t CRYPTO_cts128_decrypt_block(const unsigned char *in,
+size_t VR_CRYPTO_cts128_decrypt_block(const unsigned char *in,
                                    unsigned char *out, size_t len,
                                    const void *key, unsigned char ivec[16],
                                    block128_f block)
@@ -175,7 +175,7 @@ size_t CRYPTO_cts128_decrypt_block(const unsigned char *in,
     len -= 16 + residue;
 
     if (len) {
-        CRYPTO_cbc128_decrypt(in, out, len, key, ivec, block);
+        VR_CRYPTO_cbc128_decrypt(in, out, len, key, ivec, block);
         in += len;
         out += len;
     }
@@ -197,7 +197,7 @@ size_t CRYPTO_cts128_decrypt_block(const unsigned char *in,
     return 16 + len + residue;
 }
 
-size_t CRYPTO_nistcts128_decrypt_block(const unsigned char *in,
+size_t VR_CRYPTO_nistcts128_decrypt_block(const unsigned char *in,
                                        unsigned char *out, size_t len,
                                        const void *key,
                                        unsigned char ivec[16],
@@ -215,14 +215,14 @@ size_t CRYPTO_nistcts128_decrypt_block(const unsigned char *in,
     residue = len % 16;
 
     if (residue == 0) {
-        CRYPTO_cbc128_decrypt(in, out, len, key, ivec, block);
+        VR_CRYPTO_cbc128_decrypt(in, out, len, key, ivec, block);
         return len;
     }
 
     len -= 16 + residue;
 
     if (len) {
-        CRYPTO_cbc128_decrypt(in, out, len, key, ivec, block);
+        VR_CRYPTO_cbc128_decrypt(in, out, len, key, ivec, block);
         in += len;
         out += len;
     }
@@ -245,7 +245,7 @@ size_t CRYPTO_nistcts128_decrypt_block(const unsigned char *in,
     return 16 + len + residue;
 }
 
-size_t CRYPTO_cts128_decrypt(const unsigned char *in, unsigned char *out,
+size_t VR_CRYPTO_cts128_decrypt(const unsigned char *in, unsigned char *out,
                              size_t len, const void *key,
                              unsigned char ivec[16], cbc128_f cbc)
 {
@@ -285,7 +285,7 @@ size_t CRYPTO_cts128_decrypt(const unsigned char *in, unsigned char *out,
     return 16 + len + residue;
 }
 
-size_t CRYPTO_nistcts128_decrypt(const unsigned char *in, unsigned char *out,
+size_t VR_CRYPTO_nistcts128_decrypt(const unsigned char *in, unsigned char *out,
                                  size_t len, const void *key,
                                  unsigned char ivec[16], cbc128_f cbc)
 {

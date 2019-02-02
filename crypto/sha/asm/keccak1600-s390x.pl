@@ -393,10 +393,10 @@ ___
 { my ($A_flat,$inp,$len,$bsz) = map("%r$_",(2..5));
 
 $code.=<<___;
-.globl	SHA3_absorb
-.type	SHA3_absorb,\@function
+.globl	VR_SHA3_absorb
+.type	VR_SHA3_absorb,\@function
 .align	32
-SHA3_absorb:
+VR_SHA3_absorb:
 	lghi	%r1,-$frame
 	stm${g}	%r5,%r15,$SIZE_T*5($sp)
 	lgr	%r0,$sp
@@ -467,16 +467,16 @@ SHA3_absorb:
 
 	lm${g}	%r6,%r15,$frame+6*$SIZE_T($sp)
 	br	%r14
-.size	SHA3_absorb,.-SHA3_absorb
+.size	VR_SHA3_absorb,.-VR_SHA3_absorb
 ___
 }
 { my ($A_flat,$out,$len,$bsz) = map("%r$_",(2..5));
 
 $code.=<<___;
-.globl	SHA3_squeeze
-.type	SHA3_squeeze,\@function
+.globl	VR_SHA3_squeeze
+.type	VR_SHA3_squeeze,\@function
 .align	32
-SHA3_squeeze:
+VR_SHA3_squeeze:
 	srl${g}	$bsz,3
 	st${g}	%r14,2*$SIZE_T($sp)
 	lghi	%r14,8
@@ -517,7 +517,7 @@ SHA3_squeeze:
 .Ldone_squeeze:
 	l${g}	%r14,2*$SIZE_T($sp)
 	br	%r14
-.size	SHA3_squeeze,.-SHA3_squeeze
+.size	VR_SHA3_squeeze,.-VR_SHA3_squeeze
 ___
 }
 $code.=<<___;

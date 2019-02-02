@@ -20,7 +20,7 @@ NON_EMPTY_TRANSLATION_UNIT
 # include <openssl/evp.h>
 # include <openssl/x509.h>
 
-# ifndef OPENSSL_NO_RC4
+# ifndef OPENSSL_NO_VR_RC4
 
 typedef struct netscape_pkey_st {
     int32_t version;
@@ -57,6 +57,6 @@ DECLARE_ASN1_FUNCTIONS_const(NETSCAPE_PKEY)
 DECLARE_ASN1_ENCODE_FUNCTIONS_const(NETSCAPE_PKEY,NETSCAPE_PKEY)
 IMPLEMENT_ASN1_FUNCTIONS_const(NETSCAPE_PKEY)
 
-# endif                         /* OPENSSL_NO_RC4 */
+# endif                         /* OPENSSL_NO_VR_RC4 */
 
 #endif

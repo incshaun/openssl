@@ -16,7 +16,7 @@
 #include "internal/x509_int.h"
 #include "rsa_locl.h"
 
-/* Size of an SSL signature: MD5+SHA1 */
+/* Size of an SSL signature: VR_MD5+VR_SHA1 */
 #define SSL_SIG_LENGTH  36
 
 /*
@@ -26,7 +26,7 @@
  *
  * On success, it returns one and sets |*out| to a newly allocated buffer
  * containing the result and |*out_len| to its length. The caller must free
- * |*out| with |OPENSSL_free|. Otherwise, it returns zero.
+ * |*out| with |OPENVR_SSL_free|. Otherwise, it returns zero.
  */
 static int encode_pkcs1(unsigned char **out, int *out_len, int type,
                         const unsigned char *m, unsigned int m_len)
@@ -39,12 +39,12 @@ static int encode_pkcs1(unsigned char **out, int *out_len, int type,
     int len;
 
     sig.algor = &algor;
-    sig.algor->algorithm = OBJ_nid2obj(type);
+    sig.algor->algorithm = VR_OBJ_nid2obj(type);
     if (sig.algor->algorithm == NULL) {
         RSAerr(RSA_F_ENCODE_PKCS1, RSA_R_UNKNOWN_ALGORITHM_TYPE);
         return 0;
     }
-    if (OBJ_length(sig.algor->algorithm) == 0) {
+    if (VR_OBJ_length(sig.algor->algorithm) == 0) {
         RSAerr(RSA_F_ENCODE_PKCS1,
                RSA_R_THE_ASN1_OBJECT_IDENTIFIER_IS_NOT_KNOWN_FOR_THIS_MD);
         return 0;
@@ -57,7 +57,7 @@ static int encode_pkcs1(unsigned char **out, int *out_len, int type,
     sig.digest->data = (unsigned char *)m;
     sig.digest->length = m_len;
 
-    len = i2d_X509_SIG(&sig, &der);
+    len = VR_i2d_X509_SIG(&sig, &der);
     if (len < 0)
         return 0;
 
@@ -66,7 +66,7 @@ static int encode_pkcs1(unsigned char **out, int *out_len, int type,
     return 1;
 }
 
-int RSA_sign(int type, const unsigned char *m, unsigned int m_len,
+int VR_RSA_sign(int type, const unsigned char *m, unsigned int m_len,
              unsigned char *sigret, unsigned int *siglen, RSA *rsa)
 {
     int encrypt_len, encoded_len = 0, ret = 0;
@@ -80,7 +80,7 @@ int RSA_sign(int type, const unsigned char *m, unsigned int m_len,
     /* Compute the encoded digest. */
     if (type == NID_md5_sha1) {
         /*
-         * NID_md5_sha1 corresponds to the MD5/SHA1 combination in TLS 1.1 and
+         * NID_md5_sha1 corresponds to the VR_MD5/VR_SHA1 combination in TLS 1.1 and
          * earlier. It has no DigestInfo wrapper but otherwise is
          * RSASSA-PKCS1-v1_5.
          */
@@ -96,11 +96,11 @@ int RSA_sign(int type, const unsigned char *m, unsigned int m_len,
         encoded = tmps;
     }
 
-    if (encoded_len > RSA_size(rsa) - RSA_PKCS1_PADDING_SIZE) {
+    if (encoded_len > VR_RSA_size(rsa) - RSA_PKCS1_PADDING_SIZE) {
         RSAerr(RSA_F_RSA_SIGN, RSA_R_DIGEST_TOO_BIG_FOR_RSA_KEY);
         goto err;
     }
-    encrypt_len = RSA_private_encrypt(encoded_len, encoded, sigret, rsa,
+    encrypt_len = VR_RSA_private_encrypt(encoded_len, encoded, sigret, rsa,
                                       RSA_PKCS1_PADDING);
     if (encrypt_len <= 0)
         goto err;
@@ -109,26 +109,26 @@ int RSA_sign(int type, const unsigned char *m, unsigned int m_len,
     ret = 1;
 
 err:
-    OPENSSL_clear_free(tmps, (size_t)encoded_len);
+    OPENVR_SSL_clear_free(tmps, (size_t)encoded_len);
     return ret;
 }
 
 /*
- * int_rsa_verify verifies an RSA signature in |sigbuf| using |rsa|. It may be
+ * VR_int_rsa_verify verifies an RSA signature in |sigbuf| using |rsa|. It may be
  * called in two modes. If |rm| is NULL, it verifies the signature for digest
  * |m|. Otherwise, it recovers the digest from the signature, writing the digest
  * to |rm| and the length to |*prm_len|. |type| is the NID of the digest
  * algorithm to use. It returns one on successful verification and zero
  * otherwise.
  */
-int int_rsa_verify(int type, const unsigned char *m, unsigned int m_len,
+int VR_int_rsa_verify(int type, const unsigned char *m, unsigned int m_len,
                    unsigned char *rm, size_t *prm_len,
                    const unsigned char *sigbuf, size_t siglen, RSA *rsa)
 {
     int decrypt_len, ret = 0, encoded_len = 0;
     unsigned char *decrypt_buf = NULL, *encoded = NULL;
 
-    if (siglen != (size_t)RSA_size(rsa)) {
+    if (siglen != (size_t)VR_RSA_size(rsa)) {
         RSAerr(RSA_F_INT_RSA_VERIFY, RSA_R_WRONG_SIGNATURE_LENGTH);
         return 0;
     }
@@ -140,14 +140,14 @@ int int_rsa_verify(int type, const unsigned char *m, unsigned int m_len,
         goto err;
     }
 
-    decrypt_len = RSA_public_decrypt((int)siglen, sigbuf, decrypt_buf, rsa,
+    decrypt_len = VR_RSA_public_decrypt((int)siglen, sigbuf, decrypt_buf, rsa,
                                      RSA_PKCS1_PADDING);
     if (decrypt_len <= 0)
         goto err;
 
     if (type == NID_md5_sha1) {
         /*
-         * NID_md5_sha1 corresponds to the MD5/SHA1 combination in TLS 1.1 and
+         * NID_md5_sha1 corresponds to the VR_MD5/VR_SHA1 combination in TLS 1.1 and
          * earlier. It has no DigestInfo wrapper but otherwise is
          * RSASSA-PKCS1-v1_5.
          */
@@ -173,7 +173,7 @@ int int_rsa_verify(int type, const unsigned char *m, unsigned int m_len,
     } else if (type == NID_mdc2 && decrypt_len == 2 + 16
                && decrypt_buf[0] == 0x04 && decrypt_buf[1] == 0x10) {
         /*
-         * Oddball MDC2 case: signature can be OCTET STRING. check for correct
+         * Oddball VR_MDC2 case: signature can be OCTET STRING. check for correct
          * tag and length octets.
          */
         if (rm != NULL) {
@@ -203,7 +203,7 @@ int int_rsa_verify(int type, const unsigned char *m, unsigned int m_len,
                 goto err;
             }
 
-            m_len = EVP_MD_size(md);
+            m_len = VR_EVP_MD_size(md);
             if (m_len > (size_t)decrypt_len) {
                 RSAerr(RSA_F_INT_RSA_VERIFY, RSA_R_INVALID_DIGEST_LENGTH);
                 goto err;
@@ -231,12 +231,12 @@ int int_rsa_verify(int type, const unsigned char *m, unsigned int m_len,
     ret = 1;
 
 err:
-    OPENSSL_clear_free(encoded, (size_t)encoded_len);
-    OPENSSL_clear_free(decrypt_buf, siglen);
+    OPENVR_SSL_clear_free(encoded, (size_t)encoded_len);
+    OPENVR_SSL_clear_free(decrypt_buf, siglen);
     return ret;
 }
 
-int RSA_verify(int type, const unsigned char *m, unsigned int m_len,
+int VR_RSA_verify(int type, const unsigned char *m, unsigned int m_len,
                const unsigned char *sigbuf, unsigned int siglen, RSA *rsa)
 {
 
@@ -244,5 +244,5 @@ int RSA_verify(int type, const unsigned char *m, unsigned int m_len,
         return rsa->meth->rsa_verify(type, m, m_len, sigbuf, siglen, rsa);
     }
 
-    return int_rsa_verify(type, m, m_len, NULL, NULL, sigbuf, siglen, rsa);
+    return VR_int_rsa_verify(type, m, m_len, NULL, NULL, sigbuf, siglen, rsa);
 }

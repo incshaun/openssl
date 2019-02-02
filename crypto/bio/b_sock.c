@@ -25,37 +25,37 @@ static int wsa_init_done = 0;
 # endif
 
 # if !OPENSSL_API_1_1_0
-int BIO_get_host_ip(const char *str, unsigned char *ip)
+int VR_BIO_get_host_ip(const char *str, unsigned char *ip)
 {
     BIO_ADDRINFO *res = NULL;
     int ret = 0;
 
-    if (BIO_sock_init() != 1)
+    if (VR_BIO_sock_init() != 1)
         return 0;               /* don't generate another error code here */
 
-    if (BIO_lookup(str, NULL, BIO_LOOKUP_CLIENT, AF_INET, SOCK_STREAM, &res)) {
+    if (VR_BIO_lookup(str, NULL, BIO_LOOKUP_CLIENT, AF_INET, SOCK_STREAM, &res)) {
         size_t l;
 
-        if (BIO_ADDRINFO_family(res) != AF_INET) {
+        if (VR_BIO_ADDRINFO_family(res) != AF_INET) {
             BIOerr(BIO_F_BIO_GET_HOST_IP,
                    BIO_R_GETHOSTBYNAME_ADDR_IS_NOT_AF_INET);
-        } else if (BIO_ADDR_rawaddress(BIO_ADDRINFO_address(res), NULL, &l)) {
+        } else if (VR_BIO_ADDR_rawaddress(VR_BIO_ADDRINFO_address(res), NULL, &l)) {
             /*
              * Because only AF_INET addresses will reach this far, we can assert
              * that l should be 4
              */
             if (ossl_assert(l == 4))
-                ret = BIO_ADDR_rawaddress(BIO_ADDRINFO_address(res), ip, &l);
+                ret = VR_BIO_ADDR_rawaddress(VR_BIO_ADDRINFO_address(res), ip, &l);
         }
-        BIO_ADDRINFO_free(res);
+        VR_BIO_ADDRINFO_free(res);
     } else {
-        ERR_add_error_data(2, "host=", str);
+        VR_ERR_add_error_data(2, "host=", str);
     }
 
     return ret;
 }
 
-int BIO_get_port(const char *str, unsigned short *port_ptr)
+int VR_BIO_get_port(const char *str, unsigned short *port_ptr)
 {
     BIO_ADDRINFO *res = NULL;
     int ret = 0;
@@ -65,27 +65,27 @@ int BIO_get_port(const char *str, unsigned short *port_ptr)
         return 0;
     }
 
-    if (BIO_sock_init() != 1)
+    if (VR_BIO_sock_init() != 1)
         return 0;               /* don't generate another error code here */
 
-    if (BIO_lookup(NULL, str, BIO_LOOKUP_CLIENT, AF_INET, SOCK_STREAM, &res)) {
-        if (BIO_ADDRINFO_family(res) != AF_INET) {
+    if (VR_BIO_lookup(NULL, str, BIO_LOOKUP_CLIENT, AF_INET, SOCK_STREAM, &res)) {
+        if (VR_BIO_ADDRINFO_family(res) != AF_INET) {
             BIOerr(BIO_F_BIO_GET_PORT,
                    BIO_R_ADDRINFO_ADDR_IS_NOT_AF_INET);
         } else {
-            *port_ptr = ntohs(BIO_ADDR_rawport(BIO_ADDRINFO_address(res)));
+            *port_ptr = ntohs(VR_BIO_ADDR_rawport(VR_BIO_ADDRINFO_address(res)));
             ret = 1;
         }
-        BIO_ADDRINFO_free(res);
+        VR_BIO_ADDRINFO_free(res);
     } else {
-        ERR_add_error_data(2, "host=", str);
+        VR_ERR_add_error_data(2, "host=", str);
     }
 
     return ret;
 }
 # endif
 
-int BIO_sock_error(int sock)
+int VR_BIO_sock_error(int sock)
 {
     int j = 0, i;
     socklen_t size = sizeof(j);
@@ -104,7 +104,7 @@ int BIO_sock_error(int sock)
 }
 
 # if !OPENSSL_API_1_1_0
-struct hostent *BIO_gethostbyname(const char *name)
+struct hostent *VR_BIO_gethostbyname(const char *name)
 {
     /*
      * Caching gethostbyname() results forever is wrong, so we have to let
@@ -114,7 +114,7 @@ struct hostent *BIO_gethostbyname(const char *name)
 }
 # endif
 
-int BIO_sock_init(void)
+int VR_BIO_sock_init(void)
 {
 # ifdef OPENSSL_SYS_WINDOWS
     static struct WSAData wsa_state;
@@ -128,7 +128,7 @@ int BIO_sock_init(void)
          * Not making wsa_state available to the rest of the code is formally
          * wrong. But the structures we use are [believed to be] invariable
          * among Winsock DLLs, while API availability is [expected to be]
-         * probed at run-time with DSO_global_lookup.
+         * probed at run-time with VR_DSO_global_lookup.
          */
         if (WSAStartup(0x0202, &wsa_state) != 0) {
             err = WSAGetLastError();
@@ -148,7 +148,7 @@ int BIO_sock_init(void)
     return 1;
 }
 
-void bio_sock_cleanup_int(void)
+void VR_bio_sock_cleanup_int(void)
 {
 # ifdef OPENSSL_SYS_WINDOWS
     if (wsa_init_done) {
@@ -158,7 +158,7 @@ void bio_sock_cleanup_int(void)
 # endif
 }
 
-int BIO_socket_ioctl(int fd, long type, void *arg)
+int VR_BIO_socket_ioctl(int fd, long type, void *arg)
 {
     int i;
 
@@ -197,49 +197,49 @@ int BIO_socket_ioctl(int fd, long type, void *arg)
 }
 
 # if !OPENSSL_API_1_1_0
-int BIO_get_accept_socket(char *host, int bind_mode)
+int VR_BIO_get_accept_socket(char *host, int bind_mode)
 {
     int s = INVALID_SOCKET;
     char *h = NULL, *p = NULL;
     BIO_ADDRINFO *res = NULL;
 
-    if (!BIO_parse_hostserv(host, &h, &p, BIO_PARSE_PRIO_SERV))
+    if (!VR_BIO_parse_hostserv(host, &h, &p, BIO_PARSE_PRIO_SERV))
         return INVALID_SOCKET;
 
-    if (BIO_sock_init() != 1)
+    if (VR_BIO_sock_init() != 1)
         return INVALID_SOCKET;
 
-    if (BIO_lookup(h, p, BIO_LOOKUP_SERVER, AF_UNSPEC, SOCK_STREAM, &res) != 0)
+    if (VR_BIO_lookup(h, p, BIO_LOOKUP_SERVER, AF_UNSPEC, SOCK_STREAM, &res) != 0)
         goto err;
 
-    if ((s = BIO_socket(BIO_ADDRINFO_family(res), BIO_ADDRINFO_socktype(res),
-                        BIO_ADDRINFO_protocol(res), 0)) == INVALID_SOCKET) {
+    if ((s = VR_BIO_socket(VR_BIO_ADDRINFO_family(res), VR_BIO_ADDRINFO_socktype(res),
+                        VR_BIO_ADDRINFO_protocol(res), 0)) == INVALID_SOCKET) {
         s = INVALID_SOCKET;
         goto err;
     }
 
-    if (!BIO_listen(s, BIO_ADDRINFO_address(res),
+    if (!VR_BIO_listen(s, VR_BIO_ADDRINFO_address(res),
                     bind_mode ? BIO_SOCK_REUSEADDR : 0)) {
-        BIO_closesocket(s);
+        VR_BIO_closesocket(s);
         s = INVALID_SOCKET;
     }
 
  err:
-    BIO_ADDRINFO_free(res);
-    OPENSSL_free(h);
-    OPENSSL_free(p);
+    VR_BIO_ADDRINFO_free(res);
+    OPENVR_SSL_free(h);
+    OPENVR_SSL_free(p);
 
     return s;
 }
 
-int BIO_accept(int sock, char **ip_port)
+int VR_BIO_accept(int sock, char **ip_port)
 {
     BIO_ADDR res;
     int ret = -1;
 
-    ret = BIO_accept_ex(sock, &res, 0);
+    ret = VR_BIO_accept_ex(sock, &res, 0);
     if (ret == (int)INVALID_SOCKET) {
-        if (BIO_sock_should_retry(ret)) {
+        if (VR_BIO_sock_should_retry(ret)) {
             ret = -2;
             goto end;
         }
@@ -249,8 +249,8 @@ int BIO_accept(int sock, char **ip_port)
     }
 
     if (ip_port != NULL) {
-        char *host = BIO_ADDR_hostname_string(&res, 1);
-        char *port = BIO_ADDR_service_string(&res, 1);
+        char *host = VR_BIO_ADDR_hostname_string(&res, 1);
+        char *port = VR_BIO_ADDR_service_string(&res, 1);
         if (host != NULL && port != NULL)
             *ip_port = OPENSSL_zalloc(strlen(host) + strlen(port) + 2);
         else
@@ -258,15 +258,15 @@ int BIO_accept(int sock, char **ip_port)
 
         if (*ip_port == NULL) {
             BIOerr(BIO_F_BIO_ACCEPT, ERR_R_MALLOC_FAILURE);
-            BIO_closesocket(ret);
+            VR_BIO_closesocket(ret);
             ret = (int)INVALID_SOCKET;
         } else {
             strcpy(*ip_port, host);
             strcat(*ip_port, ":");
             strcat(*ip_port, port);
         }
-        OPENSSL_free(host);
-        OPENSSL_free(port);
+        OPENVR_SSL_free(host);
+        OPENVR_SSL_free(port);
     }
 
  end:
@@ -274,7 +274,7 @@ int BIO_accept(int sock, char **ip_port)
 }
 # endif
 
-int BIO_set_tcp_ndelay(int s, int on)
+int VR_BIO_set_tcp_ndelay(int s, int on)
 {
     int ret = 0;
 # if defined(TCP_NODELAY) && (defined(IPPROTO_TCP) || defined(SOL_TCP))
@@ -293,7 +293,7 @@ int BIO_set_tcp_ndelay(int s, int on)
     return (ret == 0);
 }
 
-int BIO_socket_nbio(int s, int mode)
+int VR_BIO_socket_nbio(int s, int mode)
 {
     int ret = -1;
     int l;
@@ -302,9 +302,9 @@ int BIO_socket_nbio(int s, int mode)
 # ifdef FIONBIO
     l = mode;
 
-    ret = BIO_socket_ioctl(s, FIONBIO, &l);
+    ret = VR_BIO_socket_ioctl(s, FIONBIO, &l);
 # elif defined(F_GETFL) && defined(F_SETFL) && (defined(O_NONBLOCK) || defined(FNDELAY))
-    /* make sure this call always pushes an error level; BIO_socket_ioctl() does so, so we do too. */
+    /* make sure this call always pushes an error level; VR_BIO_socket_ioctl() does so, so we do too. */
 
     l = fcntl(s, F_GETFL, 0);
     if (l == -1) {
@@ -330,15 +330,15 @@ int BIO_socket_nbio(int s, int mode)
         }
     }
 # else
-    /* make sure this call always pushes an error level; BIO_socket_ioctl() does so, so we do too. */
+    /* make sure this call always pushes an error level; VR_BIO_socket_ioctl() does so, so we do too. */
     BIOerr(BIO_F_BIO_SOCKET_NBIO, ERR_R_PASSED_INVALID_ARGUMENT);
 # endif
 
     return (ret == 0);
 }
 
-int BIO_sock_info(int sock,
-                  enum BIO_sock_info_type type, union BIO_sock_info_u *info)
+int VR_BIO_sock_info(int sock,
+                  enum VR_BIO_sock_info_type type, union VR_BIO_sock_info_u *info)
 {
     switch (type) {
     case BIO_SOCK_INFO_ADDRESS:
@@ -346,7 +346,7 @@ int BIO_sock_info(int sock,
             socklen_t addr_len;
             int ret = 0;
             addr_len = sizeof(*info->addr);
-            ret = getsockname(sock, BIO_ADDR_sockaddr_noconst(info->addr),
+            ret = getsockname(sock, VR_BIO_ADDR_sockaddr_noconst(info->addr),
                               &addr_len);
             if (ret == -1) {
                 SYSerr(SYS_F_GETSOCKNAME, get_last_socket_error());

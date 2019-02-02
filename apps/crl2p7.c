@@ -58,7 +58,7 @@ int crl2pkcs7_main(int argc, char **argv)
         case OPT_EOF:
         case OPT_ERR:
  opthelp:
-            BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
+            VR_BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
             opt_help(crl2pkcs7_options);
@@ -83,9 +83,9 @@ int crl2pkcs7_main(int argc, char **argv)
             break;
         case OPT_CERTFILE:
             if ((certflst == NULL)
-                && (certflst = sk_OPENSSL_STRING_new_null()) == NULL)
+                && (certflst = sk_VR_OPENSSL_STRING_new_null()) == NULL)
                 goto end;
-            if (!sk_OPENSSL_STRING_push(certflst, opt_arg()))
+            if (!sk_VR_OPENSSL_STRING_push(certflst, opt_arg()))
                 goto end;
             break;
         }
@@ -100,35 +100,35 @@ int crl2pkcs7_main(int argc, char **argv)
             goto end;
 
         if (informat == FORMAT_ASN1)
-            crl = d2i_X509_CRL_bio(in, NULL);
+            crl = VR_d2i_X509_CRL_bio(in, NULL);
         else if (informat == FORMAT_PEM)
-            crl = PEM_read_bio_X509_CRL(in, NULL, NULL, NULL);
+            crl = VR_PEM_read_bio_X509_CRL(in, NULL, NULL, NULL);
         if (crl == NULL) {
-            BIO_printf(bio_err, "unable to load CRL\n");
-            ERR_print_errors(bio_err);
+            VR_BIO_printf(bio_err, "unable to load CRL\n");
+            VR_ERR_print_errors(bio_err);
             goto end;
         }
     }
 
-    if ((p7 = PKCS7_new()) == NULL)
+    if ((p7 = VR_PKCS7_new()) == NULL)
         goto end;
-    if ((p7s = PKCS7_SIGNED_new()) == NULL)
+    if ((p7s = VR_PKCS7_SIGNED_new()) == NULL)
         goto end;
-    p7->type = OBJ_nid2obj(NID_pkcs7_signed);
+    p7->type = VR_OBJ_nid2obj(NID_pkcs7_signed);
     p7->d.sign = p7s;
-    p7s->contents->type = OBJ_nid2obj(NID_pkcs7_data);
+    p7s->contents->type = VR_OBJ_nid2obj(NID_pkcs7_data);
 
-    if (!ASN1_INTEGER_set(p7s->version, 1))
+    if (!VR_ASN1_INTEGER_set(p7s->version, 1))
         goto end;
-    if ((crl_stack = sk_X509_CRL_new_null()) == NULL)
+    if ((crl_stack = sk_VR_X509_CRL_new_null()) == NULL)
         goto end;
     p7s->crl = crl_stack;
     if (crl != NULL) {
-        sk_X509_CRL_push(crl_stack, crl);
-        crl = NULL;             /* now part of p7 for OPENSSL_freeing */
+        sk_VR_X509_CRL_push(crl_stack, crl);
+        crl = NULL;             /* now part of p7 for OPENVR_SSL_freeing */
     }
 
-    if ((cert_stack = sk_X509_new_null()) == NULL)
+    if ((cert_stack = sk_VR_X509_new_null()) == NULL)
         goto end;
     p7s->cert = cert_stack;
 
@@ -136,8 +136,8 @@ int crl2pkcs7_main(int argc, char **argv)
         for (i = 0; i < sk_OPENSSL_STRING_num(certflst); i++) {
             certfile = sk_OPENSSL_STRING_value(certflst, i);
             if (add_certs_from_file(cert_stack, certfile) < 0) {
-                BIO_printf(bio_err, "error loading certificates\n");
-                ERR_print_errors(bio_err);
+                VR_BIO_printf(bio_err, "error loading certificates\n");
+                VR_ERR_print_errors(bio_err);
                 goto end;
             }
         }
@@ -147,21 +147,21 @@ int crl2pkcs7_main(int argc, char **argv)
         goto end;
 
     if (outformat == FORMAT_ASN1)
-        i = i2d_PKCS7_bio(out, p7);
+        i = VR_i2d_PKCS7_bio(out, p7);
     else if (outformat == FORMAT_PEM)
-        i = PEM_write_bio_PKCS7(out, p7);
+        i = VR_PEM_write_bio_PKCS7(out, p7);
     if (!i) {
-        BIO_printf(bio_err, "unable to write pkcs7 object\n");
-        ERR_print_errors(bio_err);
+        VR_BIO_printf(bio_err, "unable to write pkcs7 object\n");
+        VR_ERR_print_errors(bio_err);
         goto end;
     }
     ret = 0;
  end:
-    sk_OPENSSL_STRING_free(certflst);
-    BIO_free(in);
-    BIO_free_all(out);
-    PKCS7_free(p7);
-    X509_CRL_free(crl);
+    sk_VR_OPENSSL_STRING_free(certflst);
+    VR_BIO_free(in);
+    VR_BIO_free_all(out);
+    VR_PKCS7_free(p7);
+    VR_X509_CRL_free(crl);
 
     return ret;
 }
@@ -184,34 +184,34 @@ static int add_certs_from_file(STACK_OF(X509) *stack, char *certfile)
     STACK_OF(X509_INFO) *sk = NULL;
     X509_INFO *xi;
 
-    in = BIO_new_file(certfile, "r");
+    in = VR_BIO_new_file(certfile, "r");
     if (in == NULL) {
-        BIO_printf(bio_err, "error opening the file, %s\n", certfile);
+        VR_BIO_printf(bio_err, "error opening the file, %s\n", certfile);
         goto end;
     }
 
     /* This loads from a file, a stack of x509/crl/pkey sets */
-    sk = PEM_X509_INFO_read_bio(in, NULL, NULL, NULL);
+    sk = VR_PEM_X509_INFO_read_bio(in, NULL, NULL, NULL);
     if (sk == NULL) {
-        BIO_printf(bio_err, "error reading the file, %s\n", certfile);
+        VR_BIO_printf(bio_err, "error reading the file, %s\n", certfile);
         goto end;
     }
 
     /* scan over it and pull out the CRL's */
     while (sk_X509_INFO_num(sk)) {
-        xi = sk_X509_INFO_shift(sk);
+        xi = sk_VR_X509_INFO_shift(sk);
         if (xi->x509 != NULL) {
-            sk_X509_push(stack, xi->x509);
+            sk_VR_X509_push(stack, xi->x509);
             xi->x509 = NULL;
             count++;
         }
-        X509_INFO_free(xi);
+        VR_X509_INFO_free(xi);
     }
 
     ret = count;
  end:
-    /* never need to OPENSSL_free x */
-    BIO_free(in);
-    sk_X509_INFO_free(sk);
+    /* never need to OPENVR_SSL_free x */
+    VR_BIO_free(in);
+    sk_VR_X509_INFO_free(sk);
     return ret;
 }

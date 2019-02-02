@@ -49,7 +49,7 @@ int pkeyparam_main(int argc, char **argv)
         case OPT_EOF:
         case OPT_ERR:
  opthelp:
-            BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
+            VR_BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
             opt_help(pkeyparam_options);
@@ -85,10 +85,10 @@ int pkeyparam_main(int argc, char **argv)
     out = bio_open_default(outfile, 'w', FORMAT_PEM);
     if (out == NULL)
         goto end;
-    pkey = PEM_read_bio_Parameters(in, NULL);
+    pkey = VR_PEM_read_bio_Parameters(in, NULL);
     if (pkey == NULL) {
-        BIO_printf(bio_err, "Error reading parameters\n");
-        ERR_print_errors(bio_err);
+        VR_BIO_printf(bio_err, "Error reading parameters\n");
+        VR_ERR_print_errors(bio_err);
         goto end;
     }
 
@@ -96,16 +96,16 @@ int pkeyparam_main(int argc, char **argv)
         int r;
         EVP_PKEY_CTX *ctx;
 
-        ctx = EVP_PKEY_CTX_new(pkey, e);
+        ctx = VR_EVP_PKEY_CTX_new(pkey, e);
         if (ctx == NULL) {
-            ERR_print_errors(bio_err);
+            VR_ERR_print_errors(bio_err);
             goto end;
         }
 
-        r = EVP_PKEY_param_check(ctx);
+        r = VR_EVP_PKEY_param_check(ctx);
 
         if (r == 1) {
-            BIO_printf(out, "Parameters are valid\n");
+            VR_BIO_printf(out, "Parameters are valid\n");
         } else {
             /*
              * Note: at least for RSA keys if this function returns
@@ -113,30 +113,30 @@ int pkeyparam_main(int argc, char **argv)
              */
             unsigned long err;
 
-            BIO_printf(out, "Parameters are invalid\n");
+            VR_BIO_printf(out, "Parameters are invalid\n");
 
-            while ((err = ERR_peek_error()) != 0) {
-                BIO_printf(out, "Detailed error: %s\n",
-                           ERR_reason_error_string(err));
-                ERR_get_error(); /* remove err from error stack */
+            while ((err = VR_ERR_peek_error()) != 0) {
+                VR_BIO_printf(out, "Detailed error: %s\n",
+                           VR_ERR_reason_error_string(err));
+                VR_ERR_get_error(); /* remove err from error stack */
             }
         }
-        EVP_PKEY_CTX_free(ctx);
+        VR_EVP_PKEY_CTX_free(ctx);
     }
 
     if (!noout)
-        PEM_write_bio_Parameters(out, pkey);
+        VR_PEM_write_bio_Parameters(out, pkey);
 
     if (text)
-        EVP_PKEY_print_params(out, pkey, 0, NULL);
+        VR_EVP_PKEY_print_params(out, pkey, 0, NULL);
 
     ret = 0;
 
  end:
-    EVP_PKEY_free(pkey);
+    VR_EVP_PKEY_free(pkey);
     release_engine(e);
-    BIO_free_all(out);
-    BIO_free(in);
+    VR_BIO_free_all(out);
+    VR_BIO_free(in);
 
     return ret;
 }

@@ -77,7 +77,7 @@ if (!$avx && `$ENV{CC} -v 2>&1` =~ /((?:^clang|LLVM) version|.*based on LLVM) ([
 open OUT,"| \"$^X\" \"$xlate\" $flavour \"$output\"";
 *STDOUT=*OUT;
 
-# void aesni_multi_cbc_encrypt (
+# void VR_aesni_multi_cbc_encrypt (
 #     struct {	void *inp,*out; int blocks; double iv[2]; } inp[8];
 #     const AES_KEY *key,
 #     int num);		/* 1 or 2 */
@@ -101,10 +101,10 @@ $code.=<<___;
 
 .extern	OPENSSL_ia32cap_P
 
-.globl	aesni_multi_cbc_encrypt
-.type	aesni_multi_cbc_encrypt,\@function,3
+.globl	VR_aesni_multi_cbc_encrypt
+.type	VR_aesni_multi_cbc_encrypt,\@function,3
 .align	32
-aesni_multi_cbc_encrypt:
+VR_aesni_multi_cbc_encrypt:
 .cfi_startproc
 ___
 $code.=<<___ if ($avx);
@@ -376,12 +376,12 @@ $code.=<<___;
 .Lenc4x_epilogue:
 	ret
 .cfi_endproc
-.size	aesni_multi_cbc_encrypt,.-aesni_multi_cbc_encrypt
+.size	VR_aesni_multi_cbc_encrypt,.-VR_aesni_multi_cbc_encrypt
 
-.globl	aesni_multi_cbc_decrypt
-.type	aesni_multi_cbc_decrypt,\@function,3
+.globl	VR_aesni_multi_cbc_decrypt
+.type	VR_aesni_multi_cbc_decrypt,\@function,3
 .align	32
-aesni_multi_cbc_decrypt:
+VR_aesni_multi_cbc_decrypt:
 .cfi_startproc
 ___
 $code.=<<___ if ($avx);
@@ -644,7 +644,7 @@ $code.=<<___;
 .Ldec4x_epilogue:
 	ret
 .cfi_endproc
-.size	aesni_multi_cbc_decrypt,.-aesni_multi_cbc_decrypt
+.size	VR_aesni_multi_cbc_decrypt,.-VR_aesni_multi_cbc_decrypt
 ___
 
 						if ($avx) {{{
@@ -656,9 +656,9 @@ my @inp=map("%xmm$_",(10..13));
 my ($counters,$zero)=("%xmm14","%xmm15");
 
 $code.=<<___;
-.type	aesni_multi_cbc_encrypt_avx,\@function,3
+.type	VR_aesni_multi_cbc_encrypt_avx,\@function,3
 .align	32
-aesni_multi_cbc_encrypt_avx:
+VR_aesni_multi_cbc_encrypt_avx:
 .cfi_startproc
 _avx_cbc_enc_shortcut:
 	mov	%rsp,%rax
@@ -945,11 +945,11 @@ $code.=<<___;
 .Lenc8x_epilogue:
 	ret
 .cfi_endproc
-.size	aesni_multi_cbc_encrypt_avx,.-aesni_multi_cbc_encrypt_avx
+.size	VR_aesni_multi_cbc_encrypt_avx,.-VR_aesni_multi_cbc_encrypt_avx
 
-.type	aesni_multi_cbc_decrypt_avx,\@function,3
+.type	VR_aesni_multi_cbc_decrypt_avx,\@function,3
 .align	32
-aesni_multi_cbc_decrypt_avx:
+VR_aesni_multi_cbc_decrypt_avx:
 .cfi_startproc
 _avx_cbc_dec_shortcut:
 	mov	%rsp,%rax
@@ -1269,7 +1269,7 @@ $code.=<<___;
 .Ldec8x_epilogue:
 	ret
 .cfi_endproc
-.size	aesni_multi_cbc_decrypt_avx,.-aesni_multi_cbc_decrypt_avx
+.size	VR_aesni_multi_cbc_decrypt_avx,.-VR_aesni_multi_cbc_decrypt_avx
 ___
 						}}}
 
@@ -1377,39 +1377,39 @@ se_handler:
 
 .section	.pdata
 .align	4
-	.rva	.LSEH_begin_aesni_multi_cbc_encrypt
-	.rva	.LSEH_end_aesni_multi_cbc_encrypt
-	.rva	.LSEH_info_aesni_multi_cbc_encrypt
-	.rva	.LSEH_begin_aesni_multi_cbc_decrypt
-	.rva	.LSEH_end_aesni_multi_cbc_decrypt
-	.rva	.LSEH_info_aesni_multi_cbc_decrypt
+	.rva	.LSEH_begin_VR_aesni_multi_cbc_encrypt
+	.rva	.LSEH_end_VR_aesni_multi_cbc_encrypt
+	.rva	.LSEH_info_VR_aesni_multi_cbc_encrypt
+	.rva	.LSEH_begin_VR_aesni_multi_cbc_decrypt
+	.rva	.LSEH_end_VR_aesni_multi_cbc_decrypt
+	.rva	.LSEH_info_VR_aesni_multi_cbc_decrypt
 ___
 $code.=<<___ if ($avx);
-	.rva	.LSEH_begin_aesni_multi_cbc_encrypt_avx
-	.rva	.LSEH_end_aesni_multi_cbc_encrypt_avx
-	.rva	.LSEH_info_aesni_multi_cbc_encrypt_avx
-	.rva	.LSEH_begin_aesni_multi_cbc_decrypt_avx
-	.rva	.LSEH_end_aesni_multi_cbc_decrypt_avx
-	.rva	.LSEH_info_aesni_multi_cbc_decrypt_avx
+	.rva	.LSEH_begin_VR_aesni_multi_cbc_encrypt_avx
+	.rva	.LSEH_end_VR_aesni_multi_cbc_encrypt_avx
+	.rva	.LSEH_info_VR_aesni_multi_cbc_encrypt_avx
+	.rva	.LSEH_begin_VR_aesni_multi_cbc_decrypt_avx
+	.rva	.LSEH_end_VR_aesni_multi_cbc_decrypt_avx
+	.rva	.LSEH_info_VR_aesni_multi_cbc_decrypt_avx
 ___
 $code.=<<___;
 .section	.xdata
 .align	8
-.LSEH_info_aesni_multi_cbc_encrypt:
+.LSEH_info_VR_aesni_multi_cbc_encrypt:
 	.byte	9,0,0,0
 	.rva	se_handler
 	.rva	.Lenc4x_body,.Lenc4x_epilogue		# HandlerData[]
-.LSEH_info_aesni_multi_cbc_decrypt:
+.LSEH_info_VR_aesni_multi_cbc_decrypt:
 	.byte	9,0,0,0
 	.rva	se_handler
 	.rva	.Ldec4x_body,.Ldec4x_epilogue		# HandlerData[]
 ___
 $code.=<<___ if ($avx);
-.LSEH_info_aesni_multi_cbc_encrypt_avx:
+.LSEH_info_VR_aesni_multi_cbc_encrypt_avx:
 	.byte	9,0,0,0
 	.rva	se_handler
 	.rva	.Lenc8x_body,.Lenc8x_epilogue		# HandlerData[]
-.LSEH_info_aesni_multi_cbc_decrypt_avx:
+.LSEH_info_VR_aesni_multi_cbc_decrypt_avx:
 	.byte	9,0,0,0
 	.rva	se_handler
 	.rva	.Ldec8x_body,.Ldec8x_epilogue		# HandlerData[]

@@ -78,23 +78,23 @@ $code=<<___;
 .explicit
 .text
 
-// int bn_mul_mont (BN_ULONG *rp,const BN_ULONG *ap,
+// int VR_bn_mul_mont (BN_ULONG *rp,const BN_ULONG *ap,
 //		    const BN_ULONG *bp,const BN_ULONG *np,
 //		    const BN_ULONG *n0p,int num);
 .align	64
-.global	bn_mul_mont#
-.proc	bn_mul_mont#
-bn_mul_mont:
+.global	VR_bn_mul_mont#
+.proc	VR_bn_mul_mont#
+VR_bn_mul_mont:
 	.prologue
 	.body
 { .mmi;	cmp4.le		p6,p7=2,r37;;
 (p6)	cmp4.lt.unc	p8,p9=8,r37
 	mov		ret0=r0		};;
 { .bbb;
-(p9)	br.cond.dptk.many	bn_mul_mont_8
-(p8)	br.cond.dpnt.many	bn_mul_mont_general
+(p9)	br.cond.dptk.many	VR_bn_mul_mont_8
+(p8)	br.cond.dpnt.many	VR_bn_mul_mont_general
 (p7)	br.ret.spnt.many	b0	};;
-.endp	bn_mul_mont#
+.endp	VR_bn_mul_mont#
 
 prevfs=r2;	prevpr=r3;	prevlc=r10;	prevsp=r11;
 
@@ -109,9 +109,9 @@ m0=f7;
 bi=f8;
 
 .align	64
-.local	bn_mul_mont_general#
-.proc	bn_mul_mont_general#
-bn_mul_mont_general:
+.local	VR_bn_mul_mont_general#
+.proc	VR_bn_mul_mont_general#
+VR_bn_mul_mont_general:
 	.prologue
 { .mmi;	.save	ar.pfs,prevfs
 	alloc	prevfs=ar.pfs,6,2,0,8
@@ -364,7 +364,7 @@ bn_mul_mont_general:
 	mov		sp=prevsp
 	mov		pr=prevpr,0x1ffff
 	br.ret.sptk.many	b0	};;
-.endp	bn_mul_mont_general#
+.endp	VR_bn_mul_mont_general#
 
 a1=r16;  a2=r17;  a3=r18;  a4=r19;  a5=r20;  a6=r21;  a7=r22;  a8=r23;
 n1=r24;  n2=r25;  n3=r26;  n4=r27;  n5=r28;  n6=r29;  n7=r30;  n8=r31;
@@ -375,9 +375,9 @@ ni0=f16; ni1=f17; ni2=f18; ni3=f19; ni4=f20; ni5=f21; ni6=f22; ni7=f23;
 
 .align	64
 .skip	48		// aligns loop body
-.local	bn_mul_mont_8#
-.proc	bn_mul_mont_8#
-bn_mul_mont_8:
+.local	VR_bn_mul_mont_8#
+.proc	VR_bn_mul_mont_8#
+VR_bn_mul_mont_8:
 	.prologue
 { .mmi;	.save		ar.pfs,prevfs
 	alloc		prevfs=ar.pfs,6,2,0,8
@@ -848,7 +848,7 @@ bn_mul_mont_8:
 	.restore	sp
 	mov		sp=prevsp
 	br.ret.sptk.many	b0	};;
-.endp	bn_mul_mont_8#
+.endp	VR_bn_mul_mont_8#
 
 .type	copyright#,\@object
 copyright:

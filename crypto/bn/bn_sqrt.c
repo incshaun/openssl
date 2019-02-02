@@ -10,7 +10,7 @@
 #include "internal/cryptlib.h"
 #include "bn_lcl.h"
 
-BIGNUM *BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
+BIGNUM *VR_BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
 /*
  * Returns 'ret' such that ret^2 == a (mod p), using the Tonelli/Shanks
  * algorithm (cf. Henri Cohen, "A Course in Algebraic Computational Number
@@ -23,15 +23,15 @@ BIGNUM *BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
     BIGNUM *A, *b, *q, *t, *x, *y;
     int e, i, j;
 
-    if (!BN_is_odd(p) || BN_abs_is_word(p, 1)) {
-        if (BN_abs_is_word(p, 2)) {
+    if (!VR_BN_is_odd(p) || VR_BN_abs_is_word(p, 1)) {
+        if (VR_BN_abs_is_word(p, 2)) {
             if (ret == NULL)
-                ret = BN_new();
+                ret = VR_BN_new();
             if (ret == NULL)
                 goto end;
-            if (!BN_set_word(ret, BN_is_bit_set(a, 0))) {
+            if (!VR_BN_set_word(ret, VR_BN_is_bit_set(a, 0))) {
                 if (ret != in)
-                    BN_free(ret);
+                    VR_BN_free(ret);
                 return NULL;
             }
             bn_check_top(ret);
@@ -42,42 +42,42 @@ BIGNUM *BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
         return NULL;
     }
 
-    if (BN_is_zero(a) || BN_is_one(a)) {
+    if (VR_BN_is_zero(a) || VR_BN_is_one(a)) {
         if (ret == NULL)
-            ret = BN_new();
+            ret = VR_BN_new();
         if (ret == NULL)
             goto end;
-        if (!BN_set_word(ret, BN_is_one(a))) {
+        if (!VR_BN_set_word(ret, VR_BN_is_one(a))) {
             if (ret != in)
-                BN_free(ret);
+                VR_BN_free(ret);
             return NULL;
         }
         bn_check_top(ret);
         return ret;
     }
 
-    BN_CTX_start(ctx);
-    A = BN_CTX_get(ctx);
-    b = BN_CTX_get(ctx);
-    q = BN_CTX_get(ctx);
-    t = BN_CTX_get(ctx);
-    x = BN_CTX_get(ctx);
-    y = BN_CTX_get(ctx);
+    VR_BN_CTX_start(ctx);
+    A = VR_BN_CTX_get(ctx);
+    b = VR_BN_CTX_get(ctx);
+    q = VR_BN_CTX_get(ctx);
+    t = VR_BN_CTX_get(ctx);
+    x = VR_BN_CTX_get(ctx);
+    y = VR_BN_CTX_get(ctx);
     if (y == NULL)
         goto end;
 
     if (ret == NULL)
-        ret = BN_new();
+        ret = VR_BN_new();
     if (ret == NULL)
         goto end;
 
     /* A = a mod p */
-    if (!BN_nnmod(A, a, p, ctx))
+    if (!VR_BN_nnmod(A, a, p, ctx))
         goto end;
 
     /* now write  |p| - 1  as  2^e*q  where  q  is odd */
     e = 1;
-    while (!BN_is_bit_set(p, e))
+    while (!VR_BN_is_bit_set(p, e))
         e++;
     /* we'll set  q  later (if needed) */
 
@@ -90,12 +90,12 @@ BIGNUM *BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
          *     2 * (|p|+1)/4 == 1   (mod (|p|-1)/2),
          * so we can use exponent  (|p|+1)/4,  i.e.  (|p|-3)/4 + 1.
          */
-        if (!BN_rshift(q, p, 2))
+        if (!VR_BN_rshift(q, p, 2))
             goto end;
         q->neg = 0;
-        if (!BN_add_word(q, 1))
+        if (!VR_BN_add_word(q, 1))
             goto end;
-        if (!BN_mod_exp(ret, A, q, p, ctx))
+        if (!VR_BN_mod_exp(ret, A, q, p, ctx))
             goto end;
         err = 0;
         goto vrfy;
@@ -130,33 +130,33 @@ BIGNUM *BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
          */
 
         /* t := 2*a */
-        if (!BN_mod_lshift1_quick(t, A, p))
+        if (!VR_BN_mod_lshift1_quick(t, A, p))
             goto end;
 
         /* b := (2*a)^((|p|-5)/8) */
-        if (!BN_rshift(q, p, 3))
+        if (!VR_BN_rshift(q, p, 3))
             goto end;
         q->neg = 0;
-        if (!BN_mod_exp(b, t, q, p, ctx))
+        if (!VR_BN_mod_exp(b, t, q, p, ctx))
             goto end;
 
         /* y := b^2 */
-        if (!BN_mod_sqr(y, b, p, ctx))
+        if (!VR_BN_mod_sqr(y, b, p, ctx))
             goto end;
 
         /* t := (2*a)*b^2 - 1 */
-        if (!BN_mod_mul(t, t, y, p, ctx))
+        if (!VR_BN_mod_mul(t, t, y, p, ctx))
             goto end;
-        if (!BN_sub_word(t, 1))
+        if (!VR_BN_sub_word(t, 1))
             goto end;
 
         /* x = a*b*t */
-        if (!BN_mod_mul(x, A, b, p, ctx))
+        if (!VR_BN_mod_mul(x, A, b, p, ctx))
             goto end;
-        if (!BN_mod_mul(x, x, t, p, ctx))
+        if (!VR_BN_mod_mul(x, x, t, p, ctx))
             goto end;
 
-        if (!BN_copy(ret, x))
+        if (!VR_BN_copy(ret, x))
             goto end;
         err = 0;
         goto vrfy;
@@ -166,7 +166,7 @@ BIGNUM *BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
      * e > 2, so we really have to use the Tonelli/Shanks algorithm. First,
      * find some y that is not a square.
      */
-    if (!BN_copy(q, p))
+    if (!VR_BN_copy(q, p))
         goto end;               /* use 'q' as temp */
     q->neg = 0;
     i = 2;
@@ -176,22 +176,22 @@ BIGNUM *BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
          * numbers.
          */
         if (i < 22) {
-            if (!BN_set_word(y, i))
+            if (!VR_BN_set_word(y, i))
                 goto end;
         } else {
-            if (!BN_priv_rand(y, BN_num_bits(p), 0, 0))
+            if (!VR_BN_priv_rand(y, VR_BN_num_bits(p), 0, 0))
                 goto end;
-            if (BN_ucmp(y, p) >= 0) {
-                if (!(p->neg ? BN_add : BN_sub) (y, y, p))
+            if (VR_BN_ucmp(y, p) >= 0) {
+                if (!(p->neg ? VR_BN_add : VR_BN_sub) (y, y, p))
                     goto end;
             }
             /* now 0 <= y < |p| */
-            if (BN_is_zero(y))
-                if (!BN_set_word(y, i))
+            if (VR_BN_is_zero(y))
+                if (!VR_BN_set_word(y, i))
                     goto end;
         }
 
-        r = BN_kronecker(y, q, ctx); /* here 'q' is |p| */
+        r = VR_BN_kronecker(y, q, ctx); /* here 'q' is |p| */
         if (r < -1)
             goto end;
         if (r == 0) {
@@ -213,16 +213,16 @@ BIGNUM *BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
     }
 
     /* Here's our actual 'q': */
-    if (!BN_rshift(q, q, e))
+    if (!VR_BN_rshift(q, q, e))
         goto end;
 
     /*
      * Now that we have some non-square, we can find an element of order 2^e
      * by computing its q'th power.
      */
-    if (!BN_mod_exp(y, y, q, p, ctx))
+    if (!VR_BN_mod_exp(y, y, q, p, ctx))
         goto end;
-    if (BN_is_one(y)) {
+    if (VR_BN_is_one(y)) {
         BNerr(BN_F_BN_MOD_SQRT, BN_R_P_IS_NOT_PRIME);
         goto end;
     }
@@ -247,14 +247,14 @@ BIGNUM *BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
      */
 
     /* t := (q-1)/2  (note that  q  is odd) */
-    if (!BN_rshift1(t, q))
+    if (!VR_BN_rshift1(t, q))
         goto end;
 
     /* x := a^((q-1)/2) */
-    if (BN_is_zero(t)) {        /* special case: p = 2^e + 1 */
-        if (!BN_nnmod(t, A, p, ctx))
+    if (VR_BN_is_zero(t)) {        /* special case: p = 2^e + 1 */
+        if (!VR_BN_nnmod(t, A, p, ctx))
             goto end;
-        if (BN_is_zero(t)) {
+        if (VR_BN_is_zero(t)) {
             /* special case: a == 0  (mod p) */
             BN_zero(ret);
             err = 0;
@@ -262,9 +262,9 @@ BIGNUM *BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
         } else if (!BN_one(x))
             goto end;
     } else {
-        if (!BN_mod_exp(x, A, t, p, ctx))
+        if (!VR_BN_mod_exp(x, A, t, p, ctx))
             goto end;
-        if (BN_is_zero(x)) {
+        if (VR_BN_is_zero(x)) {
             /* special case: a == 0  (mod p) */
             BN_zero(ret);
             err = 0;
@@ -273,13 +273,13 @@ BIGNUM *BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
     }
 
     /* b := a*x^2  (= a^q) */
-    if (!BN_mod_sqr(b, x, p, ctx))
+    if (!VR_BN_mod_sqr(b, x, p, ctx))
         goto end;
-    if (!BN_mod_mul(b, b, A, p, ctx))
+    if (!VR_BN_mod_mul(b, b, A, p, ctx))
         goto end;
 
     /* x := a*x    (= a^((q+1)/2)) */
-    if (!BN_mod_mul(x, x, A, p, ctx))
+    if (!VR_BN_mod_mul(x, x, A, p, ctx))
         goto end;
 
     while (1) {
@@ -293,8 +293,8 @@ BIGNUM *BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
          *    b^2^(e-1) = 1.
          */
 
-        if (BN_is_one(b)) {
-            if (!BN_copy(ret, x))
+        if (VR_BN_is_one(b)) {
+            if (!VR_BN_copy(ret, x))
                 goto end;
             err = 0;
             goto vrfy;
@@ -302,30 +302,30 @@ BIGNUM *BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
 
         /* find smallest  i  such that  b^(2^i) = 1 */
         i = 1;
-        if (!BN_mod_sqr(t, b, p, ctx))
+        if (!VR_BN_mod_sqr(t, b, p, ctx))
             goto end;
-        while (!BN_is_one(t)) {
+        while (!VR_BN_is_one(t)) {
             i++;
             if (i == e) {
                 BNerr(BN_F_BN_MOD_SQRT, BN_R_NOT_A_SQUARE);
                 goto end;
             }
-            if (!BN_mod_mul(t, t, t, p, ctx))
+            if (!VR_BN_mod_mul(t, t, t, p, ctx))
                 goto end;
         }
 
         /* t := y^2^(e - i - 1) */
-        if (!BN_copy(t, y))
+        if (!VR_BN_copy(t, y))
             goto end;
         for (j = e - i - 1; j > 0; j--) {
-            if (!BN_mod_sqr(t, t, p, ctx))
+            if (!VR_BN_mod_sqr(t, t, p, ctx))
                 goto end;
         }
-        if (!BN_mod_mul(y, t, t, p, ctx))
+        if (!VR_BN_mod_mul(y, t, t, p, ctx))
             goto end;
-        if (!BN_mod_mul(x, x, t, p, ctx))
+        if (!VR_BN_mod_mul(x, x, t, p, ctx))
             goto end;
-        if (!BN_mod_mul(b, b, y, p, ctx))
+        if (!VR_BN_mod_mul(b, b, y, p, ctx))
             goto end;
         e = i;
     }
@@ -337,10 +337,10 @@ BIGNUM *BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
          * added in 0.9.8)
          */
 
-        if (!BN_mod_sqr(x, ret, p, ctx))
+        if (!VR_BN_mod_sqr(x, ret, p, ctx))
             err = 1;
 
-        if (!err && 0 != BN_cmp(x, A)) {
+        if (!err && 0 != VR_BN_cmp(x, A)) {
             BNerr(BN_F_BN_MOD_SQRT, BN_R_NOT_A_SQUARE);
             err = 1;
         }
@@ -349,10 +349,10 @@ BIGNUM *BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
  end:
     if (err) {
         if (ret != in)
-            BN_clear_free(ret);
+            VR_BN_clear_free(ret);
         ret = NULL;
     }
-    BN_CTX_end(ctx);
+    VR_BN_CTX_end(ctx);
     bn_check_top(ret);
     return ret;
 }

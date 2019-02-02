@@ -168,9 +168,9 @@ $code.=<<___;
 Ktable: .long	0x5a827999,0x6ed9eba1,0x8f1bbcdc,0xca62c1d6
 	.skip	48	#.long	0,0,0,0,0,0,0,0,0,0,0,0
 .size	Ktable,.-Ktable
-.globl	sha1_block_data_order
-.type	sha1_block_data_order,\@function
-sha1_block_data_order:
+.globl	VR_sha1_block_data_order
+.type	VR_sha1_block_data_order,\@function
+VR_sha1_block_data_order:
 ___
 $code.=<<___ if ($kimdfunc);
 	larl	%r1,OPENSSL_s390xcap_P
@@ -239,7 +239,7 @@ $code.=<<___;
 
 	lm${g}	%r6,%r15,`$frame+6*$SIZE_T`($sp)
 	br	%r14
-.size	sha1_block_data_order,.-sha1_block_data_order
+.size	VR_sha1_block_data_order,.-VR_sha1_block_data_order
 .string	"SHA1 block transform for s390x, CRYPTOGAMS by <appro\@openssl.org>"
 ___
 

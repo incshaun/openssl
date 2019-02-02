@@ -126,10 +126,10 @@ $np="%r13";			# reassigned argument
 $code.=<<___;
 .text
 
-.globl	rsaz_1024_sqr_avx2
-.type	rsaz_1024_sqr_avx2,\@function,5
+.globl	VR_rsaz_1024_sqr_avx2
+.type	VR_rsaz_1024_sqr_avx2,\@function,5
 .align	64
-rsaz_1024_sqr_avx2:		# 702 cycles, 14% faster than rsaz_1024_mul_avx2
+VR_rsaz_1024_sqr_avx2:		# 702 cycles, 14% faster than VR_rsaz_1024_mul_avx2
 .cfi_startproc
 	lea	(%rsp), %rax
 .cfi_def_cfa_register	%rax
@@ -829,7 +829,7 @@ $code.=<<___;
 .Lsqr_1024_epilogue:
 	ret
 .cfi_endproc
-.size	rsaz_1024_sqr_avx2,.-rsaz_1024_sqr_avx2
+.size	VR_rsaz_1024_sqr_avx2,.-VR_rsaz_1024_sqr_avx2
 ___
 }
 
@@ -877,10 +877,10 @@ my $tmp="%r15";
 $bp="%r13";	# reassigned argument
 
 $code.=<<___;
-.globl	rsaz_1024_mul_avx2
-.type	rsaz_1024_mul_avx2,\@function,5
+.globl	VR_rsaz_1024_mul_avx2
+.type	VR_rsaz_1024_mul_avx2,\@function,5
 .align	64
-rsaz_1024_mul_avx2:
+VR_rsaz_1024_mul_avx2:
 .cfi_startproc
 	lea	(%rsp), %rax
 .cfi_def_cfa_register	%rax
@@ -1480,7 +1480,7 @@ $code.=<<___;
 .Lmul_1024_epilogue:
 	ret
 .cfi_endproc
-.size	rsaz_1024_mul_avx2,.-rsaz_1024_mul_avx2
+.size	VR_rsaz_1024_mul_avx2,.-VR_rsaz_1024_mul_avx2
 ___
 }
 {
@@ -1488,10 +1488,10 @@ my ($out,$inp) = $win64 ? ("%rcx","%rdx") : ("%rdi","%rsi");
 my @T = map("%r$_",(8..11));
 
 $code.=<<___;
-.globl	rsaz_1024_red2norm_avx2
-.type	rsaz_1024_red2norm_avx2,\@abi-omnipotent
+.globl	VR_rsaz_1024_red2norm_avx2
+.type	VR_rsaz_1024_red2norm_avx2,\@abi-omnipotent
 .align	32
-rsaz_1024_red2norm_avx2:
+VR_rsaz_1024_red2norm_avx2:
 	sub	\$-128,$inp	# size optimization
 	xor	%rax,%rax
 ___
@@ -1525,12 +1525,12 @@ ___
 }
 $code.=<<___;
 	ret
-.size	rsaz_1024_red2norm_avx2,.-rsaz_1024_red2norm_avx2
+.size	VR_rsaz_1024_red2norm_avx2,.-VR_rsaz_1024_red2norm_avx2
 
-.globl	rsaz_1024_norm2red_avx2
-.type	rsaz_1024_norm2red_avx2,\@abi-omnipotent
+.globl	VR_rsaz_1024_norm2red_avx2
+.type	VR_rsaz_1024_norm2red_avx2,\@abi-omnipotent
 .align	32
-rsaz_1024_norm2red_avx2:
+VR_rsaz_1024_norm2red_avx2:
 	sub	\$-128,$out	# size optimization
 	mov	($inp),@T[0]
 	mov	\$0x1fffffff,%eax
@@ -1562,17 +1562,17 @@ $code.=<<___;
 	mov	@T[0],`8*($j+2)-128`($out)
 	mov	@T[0],`8*($j+3)-128`($out)
 	ret
-.size	rsaz_1024_norm2red_avx2,.-rsaz_1024_norm2red_avx2
+.size	VR_rsaz_1024_norm2red_avx2,.-VR_rsaz_1024_norm2red_avx2
 ___
 }
 {
 my ($out,$inp,$power) = $win64 ? ("%rcx","%rdx","%r8d") : ("%rdi","%rsi","%edx");
 
 $code.=<<___;
-.globl	rsaz_1024_scatter5_avx2
-.type	rsaz_1024_scatter5_avx2,\@abi-omnipotent
+.globl	VR_rsaz_1024_scatter5_avx2
+.type	VR_rsaz_1024_scatter5_avx2,\@abi-omnipotent
 .align	32
-rsaz_1024_scatter5_avx2:
+VR_rsaz_1024_scatter5_avx2:
 	vzeroupper
 	vmovdqu	.Lscatter_permd(%rip),%ymm5
 	shl	\$4,$power
@@ -1592,12 +1592,12 @@ rsaz_1024_scatter5_avx2:
 
 	vzeroupper
 	ret
-.size	rsaz_1024_scatter5_avx2,.-rsaz_1024_scatter5_avx2
+.size	VR_rsaz_1024_scatter5_avx2,.-VR_rsaz_1024_scatter5_avx2
 
-.globl	rsaz_1024_gather5_avx2
-.type	rsaz_1024_gather5_avx2,\@abi-omnipotent
+.globl	VR_rsaz_1024_gather5_avx2
+.type	VR_rsaz_1024_gather5_avx2,\@abi-omnipotent
 .align	32
-rsaz_1024_gather5_avx2:
+VR_rsaz_1024_gather5_avx2:
 .cfi_startproc
 	vzeroupper
 	mov	%rsp,%r11
@@ -1746,16 +1746,16 @@ $code.=<<___;
 	ret
 .cfi_endproc
 .LSEH_end_rsaz_1024_gather5:
-.size	rsaz_1024_gather5_avx2,.-rsaz_1024_gather5_avx2
+.size	VR_rsaz_1024_gather5_avx2,.-VR_rsaz_1024_gather5_avx2
 ___
 }
 
 $code.=<<___;
 .extern	OPENSSL_ia32cap_P
-.globl	rsaz_avx2_eligible
-.type	rsaz_avx2_eligible,\@abi-omnipotent
+.globl	VR_rsaz_avx2_eligible
+.type	VR_rsaz_avx2_eligible,\@abi-omnipotent
 .align	32
-rsaz_avx2_eligible:
+VR_rsaz_avx2_eligible:
 	mov	OPENSSL_ia32cap_P+8(%rip),%eax
 ___
 $code.=<<___	if ($addx);
@@ -1769,7 +1769,7 @@ $code.=<<___;
 	and	\$`1<<5`,%eax
 	shr	\$5,%eax
 	ret
-.size	rsaz_avx2_eligible,.-rsaz_avx2_eligible
+.size	VR_rsaz_avx2_eligible,.-VR_rsaz_avx2_eligible
 
 .align	64
 .Land_mask:
@@ -1890,25 +1890,25 @@ rsaz_se_handler:
 
 .section	.pdata
 .align	4
-	.rva	.LSEH_begin_rsaz_1024_sqr_avx2
-	.rva	.LSEH_end_rsaz_1024_sqr_avx2
-	.rva	.LSEH_info_rsaz_1024_sqr_avx2
+	.rva	.LSEH_begin_VR_rsaz_1024_sqr_avx2
+	.rva	.LSEH_end_VR_rsaz_1024_sqr_avx2
+	.rva	.LSEH_info_VR_rsaz_1024_sqr_avx2
 
-	.rva	.LSEH_begin_rsaz_1024_mul_avx2
-	.rva	.LSEH_end_rsaz_1024_mul_avx2
-	.rva	.LSEH_info_rsaz_1024_mul_avx2
+	.rva	.LSEH_begin_VR_rsaz_1024_mul_avx2
+	.rva	.LSEH_end_VR_rsaz_1024_mul_avx2
+	.rva	.LSEH_info_VR_rsaz_1024_mul_avx2
 
 	.rva	.LSEH_begin_rsaz_1024_gather5
 	.rva	.LSEH_end_rsaz_1024_gather5
 	.rva	.LSEH_info_rsaz_1024_gather5
 .section	.xdata
 .align	8
-.LSEH_info_rsaz_1024_sqr_avx2:
+.LSEH_info_VR_rsaz_1024_sqr_avx2:
 	.byte	9,0,0,0
 	.rva	rsaz_se_handler
 	.rva	.Lsqr_1024_body,.Lsqr_1024_epilogue,.Lsqr_1024_in_tail
 	.long	0
-.LSEH_info_rsaz_1024_mul_avx2:
+.LSEH_info_VR_rsaz_1024_mul_avx2:
 	.byte	9,0,0,0
 	.rva	rsaz_se_handler
 	.rva	.Lmul_1024_body,.Lmul_1024_epilogue,.Lmul_1024_in_tail
@@ -1947,29 +1947,29 @@ foreach (split("\n",$code)) {
 print <<___;	# assembler is too old
 .text
 
-.globl	rsaz_avx2_eligible
-.type	rsaz_avx2_eligible,\@abi-omnipotent
-rsaz_avx2_eligible:
+.globl	VR_rsaz_avx2_eligible
+.type	VR_rsaz_avx2_eligible,\@abi-omnipotent
+VR_rsaz_avx2_eligible:
 	xor	%eax,%eax
 	ret
-.size	rsaz_avx2_eligible,.-rsaz_avx2_eligible
+.size	VR_rsaz_avx2_eligible,.-VR_rsaz_avx2_eligible
 
-.globl	rsaz_1024_sqr_avx2
-.globl	rsaz_1024_mul_avx2
-.globl	rsaz_1024_norm2red_avx2
-.globl	rsaz_1024_red2norm_avx2
-.globl	rsaz_1024_scatter5_avx2
-.globl	rsaz_1024_gather5_avx2
-.type	rsaz_1024_sqr_avx2,\@abi-omnipotent
-rsaz_1024_sqr_avx2:
-rsaz_1024_mul_avx2:
-rsaz_1024_norm2red_avx2:
-rsaz_1024_red2norm_avx2:
-rsaz_1024_scatter5_avx2:
-rsaz_1024_gather5_avx2:
+.globl	VR_rsaz_1024_sqr_avx2
+.globl	VR_rsaz_1024_mul_avx2
+.globl	VR_rsaz_1024_norm2red_avx2
+.globl	VR_rsaz_1024_red2norm_avx2
+.globl	VR_rsaz_1024_scatter5_avx2
+.globl	VR_rsaz_1024_gather5_avx2
+.type	VR_rsaz_1024_sqr_avx2,\@abi-omnipotent
+VR_rsaz_1024_sqr_avx2:
+VR_rsaz_1024_mul_avx2:
+VR_rsaz_1024_norm2red_avx2:
+VR_rsaz_1024_red2norm_avx2:
+VR_rsaz_1024_scatter5_avx2:
+VR_rsaz_1024_gather5_avx2:
 	.byte	0x0f,0x0b	# ud2
 	ret
-.size	rsaz_1024_sqr_avx2,.-rsaz_1024_sqr_avx2
+.size	VR_rsaz_1024_sqr_avx2,.-VR_rsaz_1024_sqr_avx2
 ___
 }}}
 

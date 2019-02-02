@@ -118,14 +118,14 @@ static __inline int CRYPTO_DOWN_REF(volatile int *val, int *ret, void *lock)
 
 typedef int CRYPTO_REF_COUNT;
 
-# define CRYPTO_UP_REF(val, ret, lock) CRYPTO_atomic_add(val, 1, ret, lock)
-# define CRYPTO_DOWN_REF(val, ret, lock) CRYPTO_atomic_add(val, -1, ret, lock)
+# define CRYPTO_UP_REF(val, ret, lock) VR_CRYPTO_atomic_add(val, 1, ret, lock)
+# define CRYPTO_DOWN_REF(val, ret, lock) VR_CRYPTO_atomic_add(val, -1, ret, lock)
 
 # endif
 
 # if !defined(NDEBUG) && !defined(OPENSSL_NO_STDIO)
 #  define REF_ASSERT_ISNT(test) \
-    (void)((test) ? (OPENSSL_die("refcount error", __FILE__, __LINE__), 1) : 0)
+    (void)((test) ? (VR_OPENSSL_die("refcount error", __FILE__, __LINE__), 1) : 0)
 # else
 #  define REF_ASSERT_ISNT(i)
 # endif

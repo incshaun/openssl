@@ -14,7 +14,7 @@
 #include <openssl/rand.h>
 
 /*
- * BIO_put and BIO_get both add to the digest, BIO_gets returns the digest
+ * BIO_put and BIO_get both add to the digest, VR_BIO_gets returns the digest
  */
 
 static int nbiof_write(BIO *h, const char *buf, int num);
@@ -35,10 +35,10 @@ static const BIO_METHOD methods_nbiof = {
     BIO_TYPE_NBIO_TEST,
     "non-blocking IO test filter",
     /* TODO: Convert to new style write function */
-    bwrite_conv,
+    VR_bwrite_conv,
     nbiof_write,
     /* TODO: Convert to new style read function */
-    bread_conv,
+    VR_bread_conv,
     nbiof_read,
     nbiof_puts,
     nbiof_gets,
@@ -48,7 +48,7 @@ static const BIO_METHOD methods_nbiof = {
     nbiof_callback_ctrl,
 };
 
-const BIO_METHOD *BIO_f_nbio_test(void)
+const BIO_METHOD *VR_BIO_f_nbio_test(void)
 {
     return &methods_nbiof;
 }
@@ -72,7 +72,7 @@ static int nbiof_free(BIO *a)
 {
     if (a == NULL)
         return 0;
-    OPENSSL_free(a->ptr);
+    OPENVR_SSL_free(a->ptr);
     a->ptr = NULL;
     a->init = 0;
     a->flags = 0;
@@ -91,7 +91,7 @@ static int nbiof_read(BIO *b, char *out, int outl)
         return 0;
 
     BIO_clear_retry_flags(b);
-    if (RAND_priv_bytes(&n, 1) <= 0)
+    if (VR_RAND_priv_bytes(&n, 1) <= 0)
         return -1;
     num = (n & 0x07);
 
@@ -102,9 +102,9 @@ static int nbiof_read(BIO *b, char *out, int outl)
         ret = -1;
         BIO_set_retry_read(b);
     } else {
-        ret = BIO_read(b->next_bio, out, outl);
+        ret = VR_BIO_read(b->next_bio, out, outl);
         if (ret < 0)
-            BIO_copy_next_retry(b);
+            VR_BIO_copy_next_retry(b);
     }
     return ret;
 }
@@ -128,7 +128,7 @@ static int nbiof_write(BIO *b, const char *in, int inl)
         num = nt->lwn;
         nt->lwn = 0;
     } else {
-        if (RAND_priv_bytes(&n, 1) <= 0)
+        if (VR_RAND_priv_bytes(&n, 1) <= 0)
             return -1;
         num = (n & 7);
     }
@@ -140,9 +140,9 @@ static int nbiof_write(BIO *b, const char *in, int inl)
         ret = -1;
         BIO_set_retry_write(b);
     } else {
-        ret = BIO_write(b->next_bio, in, inl);
+        ret = VR_BIO_write(b->next_bio, in, inl);
         if (ret < 0) {
-            BIO_copy_next_retry(b);
+            VR_BIO_copy_next_retry(b);
             nt->lwn = inl;
         }
     }
@@ -158,14 +158,14 @@ static long nbiof_ctrl(BIO *b, int cmd, long num, void *ptr)
     switch (cmd) {
     case BIO_C_DO_STATE_MACHINE:
         BIO_clear_retry_flags(b);
-        ret = BIO_ctrl(b->next_bio, cmd, num, ptr);
-        BIO_copy_next_retry(b);
+        ret = VR_BIO_ctrl(b->next_bio, cmd, num, ptr);
+        VR_BIO_copy_next_retry(b);
         break;
     case BIO_CTRL_DUP:
         ret = 0L;
         break;
     default:
-        ret = BIO_ctrl(b->next_bio, cmd, num, ptr);
+        ret = VR_BIO_ctrl(b->next_bio, cmd, num, ptr);
         break;
     }
     return ret;
@@ -179,7 +179,7 @@ static long nbiof_callback_ctrl(BIO *b, int cmd, BIO_info_cb *fp)
         return 0;
     switch (cmd) {
     default:
-        ret = BIO_callback_ctrl(b->next_bio, cmd, fp);
+        ret = VR_BIO_callback_ctrl(b->next_bio, cmd, fp);
         break;
     }
     return ret;
@@ -189,12 +189,12 @@ static int nbiof_gets(BIO *bp, char *buf, int size)
 {
     if (bp->next_bio == NULL)
         return 0;
-    return BIO_gets(bp->next_bio, buf, size);
+    return VR_BIO_gets(bp->next_bio, buf, size);
 }
 
 static int nbiof_puts(BIO *bp, const char *str)
 {
     if (bp->next_bio == NULL)
         return 0;
-    return BIO_puts(bp->next_bio, str);
+    return VR_BIO_puts(bp->next_bio, str);
 }

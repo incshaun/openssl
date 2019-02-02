@@ -11,14 +11,14 @@
 #include "ec_lcl.h"
 #include <openssl/sha.h>
 
-#if defined(X25519_ASM) && (defined(__x86_64) || defined(__x86_64__) || \
+#if defined(VR_X25519_ASM) && (defined(__x86_64) || defined(__x86_64__) || \
                             defined(_M_AMD64) || defined(_M_X64))
 
 # define BASE_2_64_IMPLEMENTED
 
 typedef uint64_t fe64[4];
 
-int x25519_fe64_eligible(void);
+int VR_x25519_fe64_eligible(void);
 
 /*
  * Following subroutines perform corresponding operations modulo
@@ -29,18 +29,18 @@ int x25519_fe64_eligible(void);
  *
  * There are no reference C implementations for these.
  */
-void x25519_fe64_mul(fe64 h, const fe64 f, const fe64 g);
-void x25519_fe64_sqr(fe64 h, const fe64 f);
-void x25519_fe64_mul121666(fe64 h, fe64 f);
-void x25519_fe64_add(fe64 h, const fe64 f, const fe64 g);
-void x25519_fe64_sub(fe64 h, const fe64 f, const fe64 g);
-void x25519_fe64_tobytes(uint8_t *s, const fe64 f);
-# define fe64_mul x25519_fe64_mul
-# define fe64_sqr x25519_fe64_sqr
-# define fe64_mul121666 x25519_fe64_mul121666
-# define fe64_add x25519_fe64_add
-# define fe64_sub x25519_fe64_sub
-# define fe64_tobytes x25519_fe64_tobytes
+void VR_x25519_fe64_mul(fe64 h, const fe64 f, const fe64 g);
+void VR_x25519_fe64_sqr(fe64 h, const fe64 f);
+void VR_x25519_fe64_mul121666(fe64 h, fe64 f);
+void VR_x25519_fe64_add(fe64 h, const fe64 f, const fe64 g);
+void VR_x25519_fe64_sub(fe64 h, const fe64 f, const fe64 g);
+void VR_x25519_fe64_tobytes(uint8_t *s, const fe64 f);
+# define fe64_mul VR_x25519_fe64_mul
+# define fe64_sqr VR_x25519_fe64_sqr
+# define fe64_mul121666 VR_x25519_fe64_mul121666
+# define fe64_add VR_x25519_fe64_add
+# define fe64_sub VR_x25519_fe64_sub
+# define fe64_tobytes VR_x25519_fe64_tobytes
 
 static uint64_t load_8(const uint8_t *in)
 {
@@ -247,11 +247,11 @@ static void x25519_scalar_mulx(uint8_t out[32], const uint8_t scalar[32],
     fe64_mul(x2, x2, z2);
     fe64_tobytes(out, x2);
 
-    OPENSSL_cleanse(e, sizeof(e));
+    VR_OPENSSL_cleanse(e, sizeof(e));
 }
 #endif
 
-#if defined(X25519_ASM) \
+#if defined(VR_X25519_ASM) \
     || ( (defined(__SIZEOF_INT128__) && __SIZEOF_INT128__ == 16) \
          && !defined(__sparc__) \
          && !(defined(__ANDROID__) && !defined(__clang__)) )
@@ -375,13 +375,13 @@ static void fe51_tobytes(uint8_t *s, const fe51 h)
     s[31] = (uint8_t)(h4 >> 44);
 }
 
-# if defined(X25519_ASM)
-void x25519_fe51_mul(fe51 h, const fe51 f, const fe51 g);
-void x25519_fe51_sqr(fe51 h, const fe51 f);
-void x25519_fe51_mul121666(fe51 h, fe51 f);
-#  define fe51_mul x25519_fe51_mul
-#  define fe51_sq  x25519_fe51_sqr
-#  define fe51_mul121666 x25519_fe51_mul121666
+# if defined(VR_X25519_ASM)
+void VR_x25519_fe51_mul(fe51 h, const fe51 f, const fe51 g);
+void VR_x25519_fe51_sqr(fe51 h, const fe51 f);
+void VR_x25519_fe51_mul121666(fe51 h, fe51 f);
+#  define fe51_mul VR_x25519_fe51_mul
+#  define fe51_sq  VR_x25519_fe51_sqr
+#  define fe51_mul121666 VR_x25519_fe51_mul121666
 # else
 
 typedef __uint128_t u128;
@@ -691,7 +691,7 @@ static void x25519_scalar_mult(uint8_t out[32], const uint8_t scalar[32],
     int pos;
 
 # ifdef BASE_2_64_IMPLEMENTED
-    if (x25519_fe64_eligible()) {
+    if (VR_x25519_fe64_eligible()) {
         x25519_scalar_mulx(out, scalar, point);
         return;
     }
@@ -738,7 +738,7 @@ static void x25519_scalar_mult(uint8_t out[32], const uint8_t scalar[32],
     fe51_mul(x2, x2, z2);
     fe51_tobytes(out, x2);
 
-    OPENSSL_cleanse(e, sizeof(e));
+    VR_OPENSSL_cleanse(e, sizeof(e));
 }
 #endif
 
@@ -748,7 +748,7 @@ static void x25519_scalar_mult(uint8_t out[32], const uint8_t scalar[32],
  * This code is mostly taken from the ref10 version of Ed25519 in SUPERCOP
  * 20141124 (http://bench.cr.yp.to/supercop.html).
  *
- * The field functions are shared by Ed25519 and X25519 where possible.
+ * The field functions are shared by Ed25519 and VR_X25519 where possible.
  */
 
 /*
@@ -1539,7 +1539,7 @@ static int fe_isnonzero(const fe f)
 
     fe_tobytes(s, f);
 
-    return CRYPTO_memcmp(s, zero, sizeof(zero)) != 0;
+    return VR_CRYPTO_memcmp(s, zero, sizeof(zero)) != 0;
 }
 
 /*
@@ -4272,7 +4272,7 @@ static void ge_scalarmult_base(ge_p3 *h, const uint8_t *a)
         ge_p1p1_to_p3(h, &r);
     }
 
-    OPENSSL_cleanse(e, sizeof(e));
+    VR_OPENSSL_cleanse(e, sizeof(e));
 }
 
 #if !defined(BASE_2_51_IMPLEMENTED)
@@ -4411,7 +4411,7 @@ static void x25519_scalar_mult_generic(uint8_t out[32],
     fe_mul(x2, x2, z2);
     fe_tobytes(out, x2);
 
-    OPENSSL_cleanse(e, sizeof(e));
+    VR_OPENSSL_cleanse(e, sizeof(e));
 }
 
 static void x25519_scalar_mult(uint8_t out[32], const uint8_t scalar[32],
@@ -5428,60 +5428,60 @@ static void sc_muladd(uint8_t *s, const uint8_t *a, const uint8_t *b,
     s[31] = (uint8_t) (s11 >> 17);
 }
 
-int ED25519_sign(uint8_t *out_sig, const uint8_t *message, size_t message_len,
+int VR_ED25519_sign(uint8_t *out_sig, const uint8_t *message, size_t message_len,
                  const uint8_t public_key[32], const uint8_t private_key[32])
 {
-    uint8_t az[SHA512_DIGEST_LENGTH];
-    uint8_t nonce[SHA512_DIGEST_LENGTH];
+    uint8_t az[VR_SHA512_DIGEST_LENGTH];
+    uint8_t nonce[VR_SHA512_DIGEST_LENGTH];
     ge_p3 R;
-    uint8_t hram[SHA512_DIGEST_LENGTH];
-    SHA512_CTX hash_ctx;
+    uint8_t hram[VR_SHA512_DIGEST_LENGTH];
+    VR_SHA512_CTX hash_ctx;
 
-    SHA512_Init(&hash_ctx);
-    SHA512_Update(&hash_ctx, private_key, 32);
-    SHA512_Final(az, &hash_ctx);
+    VR_SHA512_Init(&hash_ctx);
+    VR_SHA512_Update(&hash_ctx, private_key, 32);
+    VR_SHA512_Final(az, &hash_ctx);
 
     az[0] &= 248;
     az[31] &= 63;
     az[31] |= 64;
 
-    SHA512_Init(&hash_ctx);
-    SHA512_Update(&hash_ctx, az + 32, 32);
-    SHA512_Update(&hash_ctx, message, message_len);
-    SHA512_Final(nonce, &hash_ctx);
+    VR_SHA512_Init(&hash_ctx);
+    VR_SHA512_Update(&hash_ctx, az + 32, 32);
+    VR_SHA512_Update(&hash_ctx, message, message_len);
+    VR_SHA512_Final(nonce, &hash_ctx);
 
     x25519_sc_reduce(nonce);
     ge_scalarmult_base(&R, nonce);
     ge_p3_tobytes(out_sig, &R);
 
-    SHA512_Init(&hash_ctx);
-    SHA512_Update(&hash_ctx, out_sig, 32);
-    SHA512_Update(&hash_ctx, public_key, 32);
-    SHA512_Update(&hash_ctx, message, message_len);
-    SHA512_Final(hram, &hash_ctx);
+    VR_SHA512_Init(&hash_ctx);
+    VR_SHA512_Update(&hash_ctx, out_sig, 32);
+    VR_SHA512_Update(&hash_ctx, public_key, 32);
+    VR_SHA512_Update(&hash_ctx, message, message_len);
+    VR_SHA512_Final(hram, &hash_ctx);
 
     x25519_sc_reduce(hram);
     sc_muladd(out_sig + 32, hram, az, nonce);
 
-    OPENSSL_cleanse(&hash_ctx, sizeof(hash_ctx));
-    OPENSSL_cleanse(nonce, sizeof(nonce));
-    OPENSSL_cleanse(az, sizeof(az));
+    VR_OPENSSL_cleanse(&hash_ctx, sizeof(hash_ctx));
+    VR_OPENSSL_cleanse(nonce, sizeof(nonce));
+    VR_OPENSSL_cleanse(az, sizeof(az));
 
     return 1;
 }
 
 static const char allzeroes[15];
 
-int ED25519_verify(const uint8_t *message, size_t message_len,
+int VR_ED25519_verify(const uint8_t *message, size_t message_len,
                    const uint8_t signature[64], const uint8_t public_key[32])
 {
     int i;
     ge_p3 A;
     const uint8_t *r, *s;
-    SHA512_CTX hash_ctx;
+    VR_SHA512_CTX hash_ctx;
     ge_p2 R;
     uint8_t rcheck[32];
-    uint8_t h[SHA512_DIGEST_LENGTH];
+    uint8_t h[VR_SHA512_DIGEST_LENGTH];
     /* 27742317777372353535851937790883648493 in little endian format */
     const uint8_t l_low[16] = {
         0xED, 0xD3, 0xF5, 0x5C, 0x1A, 0x63, 0x12, 0x58, 0xD6, 0x9C, 0xF7, 0xA2,
@@ -5525,11 +5525,11 @@ int ED25519_verify(const uint8_t *message, size_t message_len,
     fe_neg(A.X, A.X);
     fe_neg(A.T, A.T);
 
-    SHA512_Init(&hash_ctx);
-    SHA512_Update(&hash_ctx, r, 32);
-    SHA512_Update(&hash_ctx, public_key, 32);
-    SHA512_Update(&hash_ctx, message, message_len);
-    SHA512_Final(h, &hash_ctx);
+    VR_SHA512_Init(&hash_ctx);
+    VR_SHA512_Update(&hash_ctx, r, 32);
+    VR_SHA512_Update(&hash_ctx, public_key, 32);
+    VR_SHA512_Update(&hash_ctx, message, message_len);
+    VR_SHA512_Final(h, &hash_ctx);
 
     x25519_sc_reduce(h);
 
@@ -5537,16 +5537,16 @@ int ED25519_verify(const uint8_t *message, size_t message_len,
 
     ge_tobytes(rcheck, &R);
 
-    return CRYPTO_memcmp(rcheck, r, sizeof(rcheck)) == 0;
+    return VR_CRYPTO_memcmp(rcheck, r, sizeof(rcheck)) == 0;
 }
 
-void ED25519_public_from_private(uint8_t out_public_key[32],
+void VR_ED25519_public_from_private(uint8_t out_public_key[32],
                                  const uint8_t private_key[32])
 {
-    uint8_t az[SHA512_DIGEST_LENGTH];
+    uint8_t az[VR_SHA512_DIGEST_LENGTH];
     ge_p3 A;
 
-    SHA512(private_key, 32, az);
+    VR_SHA512(private_key, 32, az);
 
     az[0] &= 248;
     az[31] &= 63;
@@ -5555,19 +5555,19 @@ void ED25519_public_from_private(uint8_t out_public_key[32],
     ge_scalarmult_base(&A, az);
     ge_p3_tobytes(out_public_key, &A);
 
-    OPENSSL_cleanse(az, sizeof(az));
+    VR_OPENSSL_cleanse(az, sizeof(az));
 }
 
-int X25519(uint8_t out_shared_key[32], const uint8_t private_key[32],
+int VR_X25519(uint8_t out_shared_key[32], const uint8_t private_key[32],
            const uint8_t peer_public_value[32])
 {
     static const uint8_t kZeros[32] = {0};
     x25519_scalar_mult(out_shared_key, private_key, peer_public_value);
     /* The all-zero output results when the input is a point of small order. */
-    return CRYPTO_memcmp(kZeros, out_shared_key, 32) != 0;
+    return VR_CRYPTO_memcmp(kZeros, out_shared_key, 32) != 0;
 }
 
-void X25519_public_from_private(uint8_t out_public_value[32],
+void VR_X25519_public_from_private(uint8_t out_public_value[32],
                                 const uint8_t private_key[32])
 {
     uint8_t e[32];
@@ -5592,5 +5592,5 @@ void X25519_public_from_private(uint8_t out_public_value[32],
     fe_mul(zplusy, zplusy, zminusy_inv);
     fe_tobytes(out_public_value, zplusy);
 
-    OPENSSL_cleanse(e, sizeof(e));
+    VR_OPENSSL_cleanse(e, sizeof(e));
 }

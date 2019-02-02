@@ -27,12 +27,12 @@ static STACK_OF(ENGINE) *initialized_engines = NULL;
 
 static int int_engine_init(ENGINE *e)
 {
-    if (!ENGINE_init(e))
+    if (!VR_ENGINE_init(e))
         return 0;
     if (!initialized_engines)
-        initialized_engines = sk_ENGINE_new_null();
-    if (!initialized_engines || !sk_ENGINE_push(initialized_engines, e)) {
-        ENGINE_finish(e);
+        initialized_engines = sk_VR_ENGINE_new_null();
+    if (!initialized_engines || !sk_VR_ENGINE_push(initialized_engines, e)) {
+        VR_ENGINE_finish(e);
         return 0;
     }
     return 1;
@@ -54,7 +54,7 @@ static int int_engine_configure(const char *name, const char *value, const CONF 
     fprintf(stderr, "Configuring engine %s\n", name);
 #endif
     /* Value is a section containing ENGINE commands */
-    ecmds = NCONF_get_section(cnf, value);
+    ecmds = VR_NCONF_get_section(cnf, value);
 
     if (!ecmds) {
         ENGINEerr(ENGINE_F_INT_ENGINE_CONFIGURE,
@@ -80,14 +80,14 @@ static int int_engine_configure(const char *name, const char *value, const CONF 
             soft = 1;
         /* Load a dynamic ENGINE */
         else if (strcmp(ctrlname, "dynamic_path") == 0) {
-            e = ENGINE_by_id("dynamic");
+            e = VR_ENGINE_by_id("dynamic");
             if (!e)
                 goto err;
-            if (!ENGINE_ctrl_cmd_string(e, "SO_PATH", ctrlvalue, 0))
+            if (!VR_ENGINE_ctrl_cmd_string(e, "SO_PATH", ctrlvalue, 0))
                 goto err;
-            if (!ENGINE_ctrl_cmd_string(e, "LIST_ADD", "2", 0))
+            if (!VR_ENGINE_ctrl_cmd_string(e, "LIST_ADD", "2", 0))
                 goto err;
-            if (!ENGINE_ctrl_cmd_string(e, "LOAD", NULL, 0))
+            if (!VR_ENGINE_ctrl_cmd_string(e, "LOAD", NULL, 0))
                 goto err;
         }
         /* ... add other pseudos here ... */
@@ -97,9 +97,9 @@ static int int_engine_configure(const char *name, const char *value, const CONF 
              * don't already have one.
              */
             if (!e) {
-                e = ENGINE_by_id(name);
+                e = VR_ENGINE_by_id(name);
                 if (!e && soft) {
-                    ERR_clear_error();
+                    VR_ERR_clear_error();
                     return 1;
                 }
                 if (!e)
@@ -112,7 +112,7 @@ static int int_engine_configure(const char *name, const char *value, const CONF 
             if (strcmp(ctrlvalue, "EMPTY") == 0)
                 ctrlvalue = NULL;
             if (strcmp(ctrlname, "init") == 0) {
-                if (!NCONF_get_number_e(cnf, value, "init", &do_init))
+                if (!VR_NCONF_get_number_e(cnf, value, "init", &do_init))
                     goto err;
                 if (do_init == 1) {
                     if (!int_engine_init(e))
@@ -123,9 +123,9 @@ static int int_engine_configure(const char *name, const char *value, const CONF 
                     goto err;
                 }
             } else if (strcmp(ctrlname, "default_algorithms") == 0) {
-                if (!ENGINE_set_default_string(e, ctrlvalue))
+                if (!VR_ENGINE_set_default_string(e, ctrlvalue))
                     goto err;
-            } else if (!ENGINE_ctrl_cmd_string(e, ctrlname, ctrlvalue, 0))
+            } else if (!VR_ENGINE_ctrl_cmd_string(e, ctrlname, ctrlvalue, 0))
                 goto err;
         }
 
@@ -140,11 +140,11 @@ static int int_engine_configure(const char *name, const char *value, const CONF 
         ENGINEerr(ENGINE_F_INT_ENGINE_CONFIGURE,
                   ENGINE_R_ENGINE_CONFIGURATION_ERROR);
         if (ecmd)
-            ERR_add_error_data(6, "section=", ecmd->section,
+            VR_ERR_add_error_data(6, "section=", ecmd->section,
                                ", name=", ecmd->name,
                                ", value=", ecmd->value);
     }
-    ENGINE_free(e);
+    VR_ENGINE_free(e);
     return ret;
 }
 
@@ -155,10 +155,10 @@ static int int_engine_module_init(CONF_IMODULE *md, const CONF *cnf)
     int i;
 #ifdef ENGINE_CONF_DEBUG
     fprintf(stderr, "Called engine module: name %s, value %s\n",
-            CONF_imodule_get_name(md), CONF_imodule_get_value(md));
+            VR_CONF_imodule_get_name(md), VR_CONF_imodule_get_value(md));
 #endif
     /* Value is a section containing ENGINEs to configure */
-    elist = NCONF_get_section(cnf, CONF_imodule_get_value(md));
+    elist = VR_NCONF_get_section(cnf, VR_CONF_imodule_get_value(md));
 
     if (!elist) {
         ENGINEerr(ENGINE_F_INT_ENGINE_MODULE_INIT,
@@ -179,14 +179,14 @@ static void int_engine_module_finish(CONF_IMODULE *md)
 {
     ENGINE *e;
 
-    while ((e = sk_ENGINE_pop(initialized_engines)))
-        ENGINE_finish(e);
-    sk_ENGINE_free(initialized_engines);
+    while ((e = sk_VR_ENGINE_pop(initialized_engines)))
+        VR_ENGINE_finish(e);
+    sk_VR_ENGINE_free(initialized_engines);
     initialized_engines = NULL;
 }
 
-void ENGINE_add_conf_module(void)
+void VR_ENGINE_add_conf_module(void)
 {
-    CONF_module_add("engines",
+    VR_CONF_module_add("engines",
                     int_engine_module_init, int_engine_module_finish);
 }

@@ -234,7 +234,7 @@ static int test_PACKET_memdup(void)
         goto end;
     result = 1;
 end:
-    OPENSSL_free(data);
+    OPENVR_SSL_free(data);
     return result;
 }
 
@@ -261,7 +261,7 @@ static int test_PACKET_strndup(void)
 
     result = 1;
 end:
-    OPENSSL_free(data);
+    OPENVR_SSL_free(data);
     return result;
 }
 

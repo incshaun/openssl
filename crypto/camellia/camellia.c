@@ -277,7 +277,7 @@ static const u32 SIGMA[] = {
         _s3 = (_s3<<_n) | _t0;\
 } while (0)
 
-int Camellia_Ekeygen(int keyBitLength, const u8 *rawKey, KEY_TABLE_TYPE k)
+int VR_Camellia_Ekeygen(int keyBitLength, const u8 *rawKey, KEY_TABLE_TYPE k)
 {
     register u32 s0, s1, s2, s3;
 
@@ -394,7 +394,7 @@ int Camellia_Ekeygen(int keyBitLength, const u8 *rawKey, KEY_TABLE_TYPE k)
      */
 }
 
-void Camellia_EncryptBlock_Rounds(int grandRounds, const u8 plaintext[],
+void VR_Camellia_EncryptBlock_Rounds(int grandRounds, const u8 plaintext[],
                                   const KEY_TABLE_TYPE keyTable,
                                   u8 ciphertext[])
 {
@@ -440,14 +440,14 @@ void Camellia_EncryptBlock_Rounds(int grandRounds, const u8 plaintext[],
     PUTU32(ciphertext + 12, s1);
 }
 
-void Camellia_EncryptBlock(int keyBitLength, const u8 plaintext[],
+void VR_Camellia_EncryptBlock(int keyBitLength, const u8 plaintext[],
                            const KEY_TABLE_TYPE keyTable, u8 ciphertext[])
 {
-    Camellia_EncryptBlock_Rounds(keyBitLength == 128 ? 3 : 4,
+    VR_Camellia_EncryptBlock_Rounds(keyBitLength == 128 ? 3 : 4,
                                  plaintext, keyTable, ciphertext);
 }
 
-void Camellia_DecryptBlock_Rounds(int grandRounds, const u8 ciphertext[],
+void VR_Camellia_DecryptBlock_Rounds(int grandRounds, const u8 ciphertext[],
                                   const KEY_TABLE_TYPE keyTable,
                                   u8 plaintext[])
 {
@@ -493,9 +493,9 @@ void Camellia_DecryptBlock_Rounds(int grandRounds, const u8 ciphertext[],
     PUTU32(plaintext + 12, s1);
 }
 
-void Camellia_DecryptBlock(int keyBitLength, const u8 plaintext[],
+void VR_Camellia_DecryptBlock(int keyBitLength, const u8 plaintext[],
                            const KEY_TABLE_TYPE keyTable, u8 ciphertext[])
 {
-    Camellia_DecryptBlock_Rounds(keyBitLength == 128 ? 3 : 4,
+    VR_Camellia_DecryptBlock_Rounds(keyBitLength == 128 ? 3 : 4,
                                  plaintext, keyTable, ciphertext);
 }

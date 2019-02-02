@@ -15,14 +15,14 @@
 # include <windows.h>
 # include "internal/cryptlib.h"
 
-int ASYNC_is_capable(void)
+int VR_ASYNC_is_capable(void)
 {
     return 1;
 }
 
-void async_local_cleanup(void)
+void VR_async_local_cleanup(void)
 {
-    async_ctx *ctx = async_get_ctx();
+    async_ctx *ctx = VR_async_get_ctx();
     if (ctx != NULL) {
         async_fibre *fibre = &ctx->dispatcher;
         if (fibre != NULL && fibre->fibre != NULL && fibre->converted) {
@@ -47,9 +47,9 @@ int async_fibre_init_dispatcher(async_fibre *fibre)
     return 1;
 }
 
-VOID CALLBACK async_start_func_win(PVOID unused)
+VOID CALLBACK VR_async_start_func_win(PVOID unused)
 {
-    async_start_func();
+    VR_async_start_func();
 }
 
 #endif

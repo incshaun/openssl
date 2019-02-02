@@ -25,23 +25,23 @@
 # endif
 
 /*-
- * BIO_socket - create a socket
+ * VR_BIO_socket - create a socket
  * @domain: the socket domain (AF_INET, AF_INET6, AF_UNIX, ...)
  * @socktype: the socket type (SOCK_STEAM, SOCK_DGRAM)
  * @protocol: the protocol to use (IPPROTO_TCP, IPPROTO_UDP)
  * @options: BIO socket options (currently unused)
  *
  * Creates a socket.  This should be called before calling any
- * of BIO_connect and BIO_listen.
+ * of VR_BIO_connect and VR_BIO_listen.
  *
  * Returns the file descriptor on success or INVALID_SOCKET on failure.  On
  * failure errno is set, and a status is added to the OpenSSL error stack.
  */
-int BIO_socket(int domain, int socktype, int protocol, int options)
+int VR_BIO_socket(int domain, int socktype, int protocol, int options)
 {
     int sock = -1;
 
-    if (BIO_sock_init() != 1)
+    if (VR_BIO_sock_init() != 1)
         return INVALID_SOCKET;
 
     sock = socket(domain, socktype, protocol);
@@ -55,7 +55,7 @@ int BIO_socket(int domain, int socktype, int protocol, int options)
 }
 
 /*-
- * BIO_connect - connect to an address
+ * VR_BIO_connect - connect to an address
  * @sock: the socket to connect with
  * @addr: the address to connect to
  * @options: BIO socket options
@@ -68,13 +68,13 @@ int BIO_socket(int domain, int socktype, int protocol, int options)
  * - BIO_SOCK_NODELAY: don't delay small messages.
  *
  * options holds BIO socket options that can be used
- * You should call this for every address returned by BIO_lookup
+ * You should call this for every address returned by VR_BIO_lookup
  * until the connection is successful.
  *
  * Returns 1 on success or 0 on failure.  On failure errno is set
  * and an error status is added to the OpenSSL error stack.
  */
-int BIO_connect(int sock, const BIO_ADDR *addr, int options)
+int VR_BIO_connect(int sock, const BIO_ADDR *addr, int options)
 {
     const int on = 1;
 
@@ -83,7 +83,7 @@ int BIO_connect(int sock, const BIO_ADDR *addr, int options)
         return 0;
     }
 
-    if (!BIO_socket_nbio(sock, (options & BIO_SOCK_NONBLOCK) != 0))
+    if (!VR_BIO_socket_nbio(sock, (options & BIO_SOCK_NONBLOCK) != 0))
         return 0;
 
     if (options & BIO_SOCK_KEEPALIVE) {
@@ -104,9 +104,9 @@ int BIO_connect(int sock, const BIO_ADDR *addr, int options)
         }
     }
 
-    if (connect(sock, BIO_ADDR_sockaddr(addr),
-                BIO_ADDR_sockaddr_size(addr)) == -1) {
-        if (!BIO_sock_should_retry(-1)) {
+    if (connect(sock, VR_BIO_ADDR_sockaddr(addr),
+                VR_BIO_ADDR_sockaddr_size(addr)) == -1) {
+        if (!VR_BIO_sock_should_retry(-1)) {
             SYSerr(SYS_F_CONNECT, get_last_socket_error());
             BIOerr(BIO_F_BIO_CONNECT, BIO_R_CONNECT_ERROR);
         }
@@ -116,7 +116,7 @@ int BIO_connect(int sock, const BIO_ADDR *addr, int options)
 }
 
 /*-
- * BIO_bind - bind socket to address
+ * VR_BIO_bind - bind socket to address
  * @sock: the socket to set
  * @addr: local address to bind to
  * @options: BIO socket options
@@ -131,7 +131,7 @@ int BIO_connect(int sock, const BIO_ADDR *addr, int options)
  * you set to BIO_SOCK_REUSEADDR option it will try to reuse the port anyway.
  * It's recommended that you use this.
  */
-int BIO_bind(int sock, const BIO_ADDR *addr, int options)
+int VR_BIO_bind(int sock, const BIO_ADDR *addr, int options)
 {
 # ifndef OPENSSL_SYS_WINDOWS
     int on = 1;
@@ -157,7 +157,7 @@ int BIO_bind(int sock, const BIO_ADDR *addr, int options)
     }
 # endif
 
-    if (bind(sock, BIO_ADDR_sockaddr(addr), BIO_ADDR_sockaddr_size(addr)) != 0) {
+    if (bind(sock, VR_BIO_ADDR_sockaddr(addr), VR_BIO_ADDR_sockaddr_size(addr)) != 0) {
         SYSerr(SYS_F_BIND, get_last_socket_error());
         BIOerr(BIO_F_BIO_BIND, BIO_R_UNABLE_TO_BIND_SOCKET);
         return 0;
@@ -167,7 +167,7 @@ int BIO_bind(int sock, const BIO_ADDR *addr, int options)
 }
 
 /*-
- * BIO_listen - Creates a listen socket
+ * VR_BIO_listen - Creates a listen socket
  * @sock: the socket to listen with
  * @addr: local address to bind to
  * @options: BIO socket options
@@ -192,7 +192,7 @@ int BIO_bind(int sock, const BIO_ADDR *addr, int options)
  * others it's an option.  If you pass the BIO_LISTEN_V6_ONLY it will try to
  * create the IPv6 sockets to only listen for IPv6 connection.
  *
- * It could be that the first BIO_listen() call will listen to all the IPv6
+ * It could be that the first VR_BIO_listen() call will listen to all the IPv6
  * and IPv4 addresses and that then trying to bind to the IPv4 address will
  * fail.  We can't tell the difference between already listening ourself to
  * it and someone else listening to it when failing and errno is EADDRINUSE, so
@@ -203,7 +203,7 @@ int BIO_bind(int sock, const BIO_ADDR *addr, int options)
  * you set to BIO_SOCK_REUSEADDR option it will try to reuse the port anyway.
  * It's recommended that you use this.
  */
-int BIO_listen(int sock, const BIO_ADDR *addr, int options)
+int VR_BIO_listen(int sock, const BIO_ADDR *addr, int options)
 {
     int on = 1;
     int socktype;
@@ -222,7 +222,7 @@ int BIO_listen(int sock, const BIO_ADDR *addr, int options)
         return 0;
     }
 
-    if (!BIO_socket_nbio(sock, (options & BIO_SOCK_NONBLOCK) != 0))
+    if (!VR_BIO_socket_nbio(sock, (options & BIO_SOCK_NONBLOCK) != 0))
         return 0;
 
     if (options & BIO_SOCK_KEEPALIVE) {
@@ -244,7 +244,7 @@ int BIO_listen(int sock, const BIO_ADDR *addr, int options)
     }
 
 # ifdef IPV6_V6ONLY
-    if (BIO_ADDR_family(addr) == AF_INET6) {
+    if (VR_BIO_ADDR_family(addr) == AF_INET6) {
         /*
          * Note: Windows default of IPV6_V6ONLY is ON, and Linux is OFF.
          * Therefore we always have to use setsockopt here.
@@ -259,7 +259,7 @@ int BIO_listen(int sock, const BIO_ADDR *addr, int options)
     }
 # endif
 
-    if (!BIO_bind(sock, addr, options))
+    if (!VR_BIO_bind(sock, addr, options))
         return 0;
 
     if (socktype != SOCK_DGRAM && listen(sock, MAX_LISTEN) == -1) {
@@ -272,13 +272,13 @@ int BIO_listen(int sock, const BIO_ADDR *addr, int options)
 }
 
 /*-
- * BIO_accept_ex - Accept new incoming connections
+ * VR_BIO_accept_ex - Accept new incoming connections
  * @sock: the listening socket
  * @addr: the BIO_ADDR to store the peer address in
  * @options: BIO socket options, applied on the accepted socket.
  *
  */
-int BIO_accept_ex(int accept_sock, BIO_ADDR *addr_, int options)
+int VR_BIO_accept_ex(int accept_sock, BIO_ADDR *addr_, int options)
 {
     socklen_t len;
     int accepted_sock;
@@ -287,16 +287,16 @@ int BIO_accept_ex(int accept_sock, BIO_ADDR *addr_, int options)
 
     len = sizeof(*addr);
     accepted_sock = accept(accept_sock,
-                           BIO_ADDR_sockaddr_noconst(addr), &len);
+                           VR_BIO_ADDR_sockaddr_noconst(addr), &len);
     if (accepted_sock == -1) {
-        if (!BIO_sock_should_retry(accepted_sock)) {
+        if (!VR_BIO_sock_should_retry(accepted_sock)) {
             SYSerr(SYS_F_ACCEPT, get_last_socket_error());
             BIOerr(BIO_F_BIO_ACCEPT_EX, BIO_R_ACCEPT_ERROR);
         }
         return INVALID_SOCKET;
     }
 
-    if (!BIO_socket_nbio(accepted_sock, (options & BIO_SOCK_NONBLOCK) != 0)) {
+    if (!VR_BIO_socket_nbio(accepted_sock, (options & BIO_SOCK_NONBLOCK) != 0)) {
         closesocket(accepted_sock);
         return INVALID_SOCKET;
     }
@@ -305,10 +305,10 @@ int BIO_accept_ex(int accept_sock, BIO_ADDR *addr_, int options)
 }
 
 /*-
- * BIO_closesocket - Close a socket
+ * VR_BIO_closesocket - Close a socket
  * @sock: the socket to close
  */
-int BIO_closesocket(int sock)
+int VR_BIO_closesocket(int sock)
 {
     if (closesocket(sock) < 0)
         return 0;

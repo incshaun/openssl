@@ -24,39 +24,39 @@ int main(int argc, char **argv)
     ERR_load_crypto_strings();
 
     /* Read in recipient certificate and private key */
-    tbio = BIO_new_file("signer.pem", "r");
+    tbio = VR_BIO_new_file("signer.pem", "r");
 
     if (!tbio)
         goto err;
 
-    rcert = PEM_read_bio_X509(tbio, NULL, 0, NULL);
+    rcert = VR_PEM_read_bio_X509(tbio, NULL, 0, NULL);
 
     BIO_reset(tbio);
 
-    rkey = PEM_read_bio_PrivateKey(tbio, NULL, 0, NULL);
+    rkey = VR_PEM_read_bio_PrivateKey(tbio, NULL, 0, NULL);
 
     if (!rcert || !rkey)
         goto err;
 
     /* Open S/MIME message to decrypt */
 
-    in = BIO_new_file("smencr.txt", "r");
+    in = VR_BIO_new_file("smencr.txt", "r");
 
     if (!in)
         goto err;
 
     /* Parse message */
-    cms = SMIME_read_CMS(in, NULL);
+    cms = VR_SMIME_read_CMS(in, NULL);
 
     if (!cms)
         goto err;
 
-    out = BIO_new_file("decout.txt", "w");
+    out = VR_BIO_new_file("decout.txt", "w");
     if (!out)
         goto err;
 
     /* Decrypt S/MIME message */
-    if (!CMS_decrypt(cms, rkey, rcert, NULL, out, 0))
+    if (!VR_CMS_decrypt(cms, rkey, rcert, NULL, out, 0))
         goto err;
 
     ret = 0;
@@ -65,14 +65,14 @@ int main(int argc, char **argv)
 
     if (ret) {
         fprintf(stderr, "Error Decrypting Data\n");
-        ERR_print_errors_fp(stderr);
+        VR_ERR_print_errors_fp(stderr);
     }
 
-    CMS_ContentInfo_free(cms);
-    X509_free(rcert);
-    EVP_PKEY_free(rkey);
-    BIO_free(in);
-    BIO_free(out);
-    BIO_free(tbio);
+    VR_CMS_ContentInfo_free(cms);
+    VR_X509_free(rcert);
+    VR_EVP_PKEY_free(rkey);
+    VR_BIO_free(in);
+    VR_BIO_free(out);
+    VR_BIO_free(tbio);
     return ret;
 }

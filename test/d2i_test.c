@@ -52,33 +52,33 @@ static int test_bad_asn1(void)
     int derlen;
     int len;
 
-    bio = BIO_new_file(test_file, "r");
+    bio = VR_BIO_new_file(test_file, "r");
     if (!TEST_ptr(bio))
         return 0;
 
     if (expected_error == ASN1_BIO) {
-        if (TEST_ptr_null(ASN1_item_d2i_bio(item_type, bio, NULL)))
+        if (TEST_ptr_null(VR_ASN1_item_d2i_bio(item_type, bio, NULL)))
             ret = 1;
         goto err;
     }
 
     /*
-     * Unless we are testing it we don't use ASN1_item_d2i_bio because it
+     * Unless we are testing it we don't use VR_ASN1_item_d2i_bio because it
      * performs sanity checks on the input and can reject it before the
      * decoder is called.
      */
-    len = BIO_read(bio, buf, sizeof(buf));
+    len = VR_BIO_read(bio, buf, sizeof(buf));
     if (!TEST_int_ge(len, 0))
         goto err;
 
-    value = ASN1_item_d2i(NULL, &buf_ptr, len, item_type);
+    value = VR_ASN1_item_d2i(NULL, &buf_ptr, len, item_type);
     if (value == NULL) {
         if (TEST_int_eq(expected_error, ASN1_DECODE))
             ret = 1;
         goto err;
     }
 
-    derlen = ASN1_item_i2d(value, &der, item_type);
+    derlen = VR_ASN1_item_i2d(value, &der, item_type);
 
     if (der == NULL || derlen < 0) {
         if (TEST_int_eq(expected_error, ASN1_ENCODE))
@@ -98,11 +98,11 @@ static int test_bad_asn1(void)
  err:
     /* Don't indicate success for memory allocation errors */
     if (ret == 1
-        && !TEST_false(ERR_GET_REASON(ERR_peek_error()) == ERR_R_MALLOC_FAILURE))
+        && !TEST_false(ERR_GET_REASON(VR_ERR_peek_error()) == ERR_R_MALLOC_FAILURE))
         ret = 0;
-    BIO_free(bio);
-    OPENSSL_free(der);
-    ASN1_item_free(value, item_type);
+    VR_BIO_free(bio);
+    OPENVR_SSL_free(der);
+    VR_ASN1_item_free(value, item_type);
     return ret;
 }
 
@@ -132,13 +132,13 @@ int setup_tests(void)
         return 0;
     }
 
-    item_type = ASN1_ITEM_lookup(test_type_name);
+    item_type = VR_ASN1_ITEM_lookup(test_type_name);
 
     if (item_type == NULL) {
         TEST_error("Unknown type %s", test_type_name);
         TEST_note("Supported types:");
         for (i = 0;; i++) {
-            const ASN1_ITEM *it = ASN1_ITEM_get(i);
+            const ASN1_ITEM *it = VR_ASN1_ITEM_get(i);
 
             if (it == NULL)
                 break;

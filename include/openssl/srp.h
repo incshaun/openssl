@@ -47,12 +47,12 @@ typedef struct SRP_user_pwd_st {
     char *info;
 } SRP_user_pwd;
 
-SRP_user_pwd *SRP_user_pwd_new(void);
-void SRP_user_pwd_free(SRP_user_pwd *user_pwd);
+SRP_user_pwd *VR_SRP_user_pwd_new(void);
+void VR_SRP_user_pwd_free(SRP_user_pwd *user_pwd);
 
-void SRP_user_pwd_set_gN(SRP_user_pwd *user_pwd, const BIGNUM *g, const BIGNUM *N);
-int SRP_user_pwd_set1_ids(SRP_user_pwd *user_pwd, const char *id, const char *info);
-int SRP_user_pwd_set0_sv(SRP_user_pwd *user_pwd, BIGNUM *s, BIGNUM *v);
+void VR_SRP_user_pwd_set_gN(SRP_user_pwd *user_pwd, const BIGNUM *g, const BIGNUM *N);
+int VR_SRP_user_pwd_set1_ids(SRP_user_pwd *user_pwd, const char *id, const char *info);
+int VR_SRP_user_pwd_set0_sv(SRP_user_pwd *user_pwd, BIGNUM *s, BIGNUM *v);
 
 DEFINE_STACK_OF(SRP_user_pwd)
 
@@ -76,19 +76,19 @@ typedef struct SRP_gN_st {
 
 DEFINE_STACK_OF(SRP_gN)
 
-SRP_VBASE *SRP_VBASE_new(char *seed_key);
-void SRP_VBASE_free(SRP_VBASE *vb);
-int SRP_VBASE_init(SRP_VBASE *vb, char *verifier_file);
+SRP_VBASE *VR_SRP_VBASE_new(char *seed_key);
+void VR_SRP_VBASE_free(SRP_VBASE *vb);
+int VR_SRP_VBASE_init(SRP_VBASE *vb, char *verifier_file);
 
-int SRP_VBASE_add0_user(SRP_VBASE *vb, SRP_user_pwd *user_pwd);
+int VR_SRP_VBASE_add0_user(SRP_VBASE *vb, SRP_user_pwd *user_pwd);
 /* This method ignores the configured seed and fails for an unknown user. */
-DEPRECATEDIN_1_1_0(SRP_user_pwd *SRP_VBASE_get_by_user(SRP_VBASE *vb, char *username))
-/* NOTE: unlike in SRP_VBASE_get_by_user, caller owns the returned pointer.*/
-SRP_user_pwd *SRP_VBASE_get1_by_user(SRP_VBASE *vb, char *username);
+DEPRECATEDIN_1_1_0(SRP_user_pwd *VR_SRP_VBASE_get_by_user(SRP_VBASE *vb, char *username))
+/* NOTE: unlike in VR_SRP_VBASE_get_by_user, caller owns the returned pointer.*/
+SRP_user_pwd *VR_SRP_VBASE_get1_by_user(SRP_VBASE *vb, char *username);
 
-char *SRP_create_verifier(const char *user, const char *pass, char **salt,
+char *VR_SRP_create_verifier(const char *user, const char *pass, char **salt,
                           char **verifier, const char *N, const char *g);
-int SRP_create_verifier_BN(const char *user, const char *pass, BIGNUM **salt,
+int VR_SRP_create_verifier_BN(const char *user, const char *pass, BIGNUM **salt,
                            BIGNUM **verifier, const BIGNUM *N,
                            const BIGNUM *g);
 
@@ -113,23 +113,23 @@ int SRP_create_verifier_BN(const char *user, const char *pass, BIGNUM **salt,
 # define DB_SRP_MODIF    'v'
 
 /* see srp.c */
-char *SRP_check_known_gN_param(const BIGNUM *g, const BIGNUM *N);
-SRP_gN *SRP_get_default_gN(const char *id);
+char *VR_SRP_check_known_gN_param(const BIGNUM *g, const BIGNUM *N);
+SRP_gN *VR_SRP_get_default_gN(const char *id);
 
 /* server side .... */
-BIGNUM *SRP_Calc_server_key(const BIGNUM *A, const BIGNUM *v, const BIGNUM *u,
+BIGNUM *VR_SRP_Calc_server_key(const BIGNUM *A, const BIGNUM *v, const BIGNUM *u,
                             const BIGNUM *b, const BIGNUM *N);
-BIGNUM *SRP_Calc_B(const BIGNUM *b, const BIGNUM *N, const BIGNUM *g,
+BIGNUM *VR_SRP_Calc_B(const BIGNUM *b, const BIGNUM *N, const BIGNUM *g,
                    const BIGNUM *v);
-int SRP_Verify_A_mod_N(const BIGNUM *A, const BIGNUM *N);
-BIGNUM *SRP_Calc_u(const BIGNUM *A, const BIGNUM *B, const BIGNUM *N);
+int VR_SRP_Verify_A_mod_N(const BIGNUM *A, const BIGNUM *N);
+BIGNUM *VR_SRP_Calc_u(const BIGNUM *A, const BIGNUM *B, const BIGNUM *N);
 
 /* client side .... */
-BIGNUM *SRP_Calc_x(const BIGNUM *s, const char *user, const char *pass);
-BIGNUM *SRP_Calc_A(const BIGNUM *a, const BIGNUM *N, const BIGNUM *g);
-BIGNUM *SRP_Calc_client_key(const BIGNUM *N, const BIGNUM *B, const BIGNUM *g,
+BIGNUM *VR_SRP_Calc_x(const BIGNUM *s, const char *user, const char *pass);
+BIGNUM *VR_SRP_Calc_A(const BIGNUM *a, const BIGNUM *N, const BIGNUM *g);
+BIGNUM *VR_SRP_Calc_client_key(const BIGNUM *N, const BIGNUM *B, const BIGNUM *g,
                             const BIGNUM *x, const BIGNUM *a, const BIGNUM *u);
-int SRP_Verify_B_mod_N(const BIGNUM *B, const BIGNUM *N);
+int VR_SRP_Verify_B_mod_N(const BIGNUM *B, const BIGNUM *N);
 
 # define SRP_MINIMAL_N 1024
 

@@ -136,10 +136,10 @@ OPENSSL_s390x_functions:
 	br	$ra
 .size	OPENSSL_s390x_functions,.-OPENSSL_s390x_functions
 
-.globl	OPENSSL_rdtsc
-.type	OPENSSL_rdtsc,\@function
+.globl	VR_OPENSSL_rdtsc
+.type	VR_OPENSSL_rdtsc,\@function
 .align	16
-OPENSSL_rdtsc:
+VR_OPENSSL_rdtsc:
 	larl	%r4,OPENSSL_s390xcap_P
 	tm	S390X_STFLE+3(%r4),0x40	# check for store-clock-fast facility
 	jz	.Lstck
@@ -151,12 +151,12 @@ OPENSSL_rdtsc:
 	stck	16($sp)
 	lg	%r2,16($sp)
 	br	$ra
-.size	OPENSSL_rdtsc,.-OPENSSL_rdtsc
+.size	VR_OPENSSL_rdtsc,.-VR_OPENSSL_rdtsc
 
-.globl	OPENSSL_atomic_add
-.type	OPENSSL_atomic_add,\@function
+.globl	VR_OPENSSL_atomic_add
+.type	VR_OPENSSL_atomic_add,\@function
 .align	16
-OPENSSL_atomic_add:
+VR_OPENSSL_atomic_add:
 	l	%r1,0(%r2)
 .Lspin:	lr	%r0,%r1
 	ar	%r0,%r3
@@ -164,12 +164,12 @@ OPENSSL_atomic_add:
 	brc	4,.Lspin
 	lgfr	%r2,%r0		# OpenSSL expects the new value
 	br	$ra
-.size	OPENSSL_atomic_add,.-OPENSSL_atomic_add
+.size	VR_OPENSSL_atomic_add,.-VR_OPENSSL_atomic_add
 
-.globl	OPENSSL_wipe_cpu
-.type	OPENSSL_wipe_cpu,\@function
+.globl	VR_OPENSSL_wipe_cpu
+.type	VR_OPENSSL_wipe_cpu,\@function
 .align	16
-OPENSSL_wipe_cpu:
+VR_OPENSSL_wipe_cpu:
 	xgr	%r0,%r0
 	xgr	%r1,%r1
 	lgr	%r2,$sp
@@ -184,12 +184,12 @@ OPENSSL_wipe_cpu:
 	lzdr	%f6
 	lzdr	%f7
 	br	$ra
-.size	OPENSSL_wipe_cpu,.-OPENSSL_wipe_cpu
+.size	VR_OPENSSL_wipe_cpu,.-VR_OPENSSL_wipe_cpu
 
-.globl	OPENSSL_cleanse
-.type	OPENSSL_cleanse,\@function
+.globl	VR_OPENSSL_cleanse
+.type	VR_OPENSSL_cleanse,\@function
 .align	16
-OPENSSL_cleanse:
+VR_OPENSSL_cleanse:
 #if !defined(__s390x__) && !defined(__s390x)
 	llgfr	%r3,%r3
 #endif
@@ -219,12 +219,12 @@ OPENSSL_cleanse:
 	ngr	%r3,%r4
 	jnz	.Little
 	br	$ra
-.size	OPENSSL_cleanse,.-OPENSSL_cleanse
+.size	VR_OPENSSL_cleanse,.-VR_OPENSSL_cleanse
 
-.globl	CRYPTO_memcmp
-.type	CRYPTO_memcmp,\@function
+.globl	VR_CRYPTO_memcmp
+.type	VR_CRYPTO_memcmp,\@function
 .align	16
-CRYPTO_memcmp:
+VR_CRYPTO_memcmp:
 #if !defined(__s390x__) && !defined(__s390x)
 	llgfr	%r4,%r4
 #endif
@@ -246,23 +246,23 @@ CRYPTO_memcmp:
 .Lno_data:
 	lgr	%r2,%r5
 	br	$ra
-.size	CRYPTO_memcmp,.-CRYPTO_memcmp
+.size	VR_CRYPTO_memcmp,.-VR_CRYPTO_memcmp
 
-.globl	OPENSSL_instrument_bus
-.type	OPENSSL_instrument_bus,\@function
+.globl	VR_OPENSSL_instrument_bus
+.type	VR_OPENSSL_instrument_bus,\@function
 .align	16
-OPENSSL_instrument_bus:
+VR_OPENSSL_instrument_bus:
 	lghi	%r2,0
 	br	%r14
-.size	OPENSSL_instrument_bus,.-OPENSSL_instrument_bus
+.size	VR_OPENSSL_instrument_bus,.-VR_OPENSSL_instrument_bus
 
-.globl	OPENSSL_instrument_bus2
-.type	OPENSSL_instrument_bus2,\@function
+.globl	VR_OPENSSL_instrument_bus2
+.type	VR_OPENSSL_instrument_bus2,\@function
 .align	16
-OPENSSL_instrument_bus2:
+VR_OPENSSL_instrument_bus2:
 	lghi	%r2,0
 	br	$ra
-.size	OPENSSL_instrument_bus2,.-OPENSSL_instrument_bus2
+.size	VR_OPENSSL_instrument_bus2,.-VR_OPENSSL_instrument_bus2
 
 .globl	OPENSSL_vx_probe
 .type	OPENSSL_vx_probe,\@function
@@ -424,7 +424,7 @@ ___
 
 $code.=<<___;
 .section	.init
-	brasl	$ra,OPENSSL_cpuid_setup
+	brasl	$ra,VR_OPENSSL_cpuid_setup
 ___
 
 $code =~ s/\`([^\`]*)\`/eval $1/gem;

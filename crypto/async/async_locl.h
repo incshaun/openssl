@@ -72,9 +72,9 @@ struct async_pool_st {
     size_t max_size;
 };
 
-void async_local_cleanup(void);
-void async_start_func(void);
-async_ctx *async_get_ctx(void);
+void VR_async_local_cleanup(void);
+void VR_async_start_func(void);
+async_ctx *VR_async_get_ctx(void);
 
-void async_wait_ctx_reset_counts(ASYNC_WAIT_CTX *ctx);
+void VR_async_wait_ctx_reset_counts(ASYNC_WAIT_CTX *ctx);
 

@@ -19,7 +19,7 @@
  * POLICY_MAPPINGS structure
  */
 
-int policy_cache_set_mapping(X509 *x, POLICY_MAPPINGS *maps)
+int VR_policy_cache_set_mapping(X509 *x, POLICY_MAPPINGS *maps)
 {
     POLICY_MAPPING *map;
     X509_POLICY_DATA *data;
@@ -33,21 +33,21 @@ int policy_cache_set_mapping(X509 *x, POLICY_MAPPINGS *maps)
     for (i = 0; i < sk_POLICY_MAPPING_num(maps); i++) {
         map = sk_POLICY_MAPPING_value(maps, i);
         /* Reject if map to or from anyPolicy */
-        if ((OBJ_obj2nid(map->subjectDomainPolicy) == NID_any_policy)
-            || (OBJ_obj2nid(map->issuerDomainPolicy) == NID_any_policy)) {
+        if ((VR_OBJ_obj2nid(map->subjectDomainPolicy) == NID_any_policy)
+            || (VR_OBJ_obj2nid(map->issuerDomainPolicy) == NID_any_policy)) {
             ret = -1;
             goto bad_mapping;
         }
 
         /* Attempt to find matching policy data */
-        data = policy_cache_find_data(cache, map->issuerDomainPolicy);
+        data = VR_policy_cache_find_data(cache, map->issuerDomainPolicy);
         /* If we don't have anyPolicy can't map */
         if (data == NULL && !cache->anyPolicy)
             continue;
 
         /* Create a NODE from anyPolicy */
         if (data == NULL) {
-            data = policy_data_new(NULL, map->issuerDomainPolicy,
+            data = VR_policy_data_new(NULL, map->issuerDomainPolicy,
                                    cache->anyPolicy->flags
                                    & POLICY_DATA_FLAG_CRITICAL);
             if (data == NULL)
@@ -58,13 +58,13 @@ int policy_cache_set_mapping(X509 *x, POLICY_MAPPINGS *maps)
              */
             data->flags |= POLICY_DATA_FLAG_MAPPED_ANY;
             data->flags |= POLICY_DATA_FLAG_SHARED_QUALIFIERS;
-            if (!sk_X509_POLICY_DATA_push(cache->data, data)) {
-                policy_data_free(data);
+            if (!sk_VR_X509_POLICY_DATA_push(cache->data, data)) {
+                VR_policy_data_free(data);
                 goto bad_mapping;
             }
         } else
             data->flags |= POLICY_DATA_FLAG_MAPPED;
-        if (!sk_ASN1_OBJECT_push(data->expected_policy_set,
+        if (!sk_VR_ASN1_OBJECT_push(data->expected_policy_set,
                                  map->subjectDomainPolicy))
             goto bad_mapping;
         map->subjectDomainPolicy = NULL;
@@ -75,7 +75,7 @@ int policy_cache_set_mapping(X509 *x, POLICY_MAPPINGS *maps)
  bad_mapping:
     if (ret == -1)
         x->ex_flags |= EXFLAG_INVALID_POLICY;
-    sk_POLICY_MAPPING_pop_free(maps, POLICY_MAPPING_free);
+    sk_VR_POLICY_MAPPING_pop_free(maps, VR_POLICY_MAPPING_free);
     return ret;
 
 }

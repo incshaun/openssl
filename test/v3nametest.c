@@ -93,7 +93,7 @@ static int set_cn(X509 *crt, ...)
     va_list ap;
 
     va_start(ap, crt);
-    n = X509_NAME_new();
+    n = VR_X509_NAME_new();
     if (n == NULL)
         goto out;
 
@@ -105,24 +105,24 @@ static int set_cn(X509 *crt, ...)
         if (nid == 0)
             break;
         name = va_arg(ap, const char *);
-        if (!X509_NAME_add_entry_by_NID(n, nid, MBSTRING_ASC,
+        if (!VR_X509_NAME_add_entry_by_NID(n, nid, MBSTRING_ASC,
                                         (unsigned char *)name, -1, -1, 1))
             goto out;
     }
-    if (!X509_set_subject_name(crt, n))
+    if (!VR_X509_set_subject_name(crt, n))
         goto out;
     ret = 1;
  out:
-    X509_NAME_free(n);
+    VR_X509_NAME_free(n);
     va_end(ap);
     return ret;
 }
 
 /*-
-int             X509_add_ext(X509 *x, X509_EXTENSION *ex, int loc);
-X509_EXTENSION *X509_EXTENSION_create_by_NID(X509_EXTENSION **ex,
+int             VR_X509_add_ext(X509 *x, X509_EXTENSION *ex, int loc);
+X509_EXTENSION *VR_X509_EXTENSION_create_by_NID(X509_EXTENSION **ex,
                         int nid, int crit, ASN1_OCTET_STRING *data);
-int             X509_add_ext(X509 *x, X509_EXTENSION *ex, int loc);
+int             VR_X509_add_ext(X509 *x, X509_EXTENSION *ex, int loc);
 */
 
 static int set_altname(X509 *crt, ...)
@@ -133,7 +133,7 @@ static int set_altname(X509 *crt, ...)
     ASN1_IA5STRING *ia5 = NULL;
     va_list ap;
     va_start(ap, crt);
-    gens = sk_GENERAL_NAME_new_null();
+    gens = sk_VR_GENERAL_NAME_new_null();
     if (gens == NULL)
         goto out;
     while (1) {
@@ -144,33 +144,33 @@ static int set_altname(X509 *crt, ...)
             break;
         name = va_arg(ap, const char *);
 
-        gen = GENERAL_NAME_new();
+        gen = VR_GENERAL_NAME_new();
         if (gen == NULL)
             goto out;
-        ia5 = ASN1_IA5STRING_new();
+        ia5 = VR_ASN1_IA5STRING_new();
         if (ia5 == NULL)
             goto out;
-        if (!ASN1_STRING_set(ia5, name, -1))
+        if (!VR_ASN1_STRING_set(ia5, name, -1))
             goto out;
         switch (type) {
         case GEN_EMAIL:
         case GEN_DNS:
-            GENERAL_NAME_set0_value(gen, type, ia5);
+            VR_GENERAL_NAME_set0_value(gen, type, ia5);
             ia5 = NULL;
             break;
         default:
             abort();
         }
-        sk_GENERAL_NAME_push(gens, gen);
+        sk_VR_GENERAL_NAME_push(gens, gen);
         gen = NULL;
     }
-    if (!X509_add1_ext_i2d(crt, NID_subject_alt_name, gens, 0, 0))
+    if (!VR_X509_add1_ext_i2d(crt, NID_subject_alt_name, gens, 0, 0))
         goto out;
     ret = 1;
  out:
-    ASN1_IA5STRING_free(ia5);
-    GENERAL_NAME_free(gen);
-    GENERAL_NAMES_free(gens);
+    VR_ASN1_IA5STRING_free(ia5);
+    VR_GENERAL_NAME_free(gen);
+    VR_GENERAL_NAMES_free(gens);
     va_end(ap);
     return ret;
 }
@@ -255,10 +255,10 @@ static X509 *make_cert(void)
 {
     X509 *crt = NULL;
 
-    if (!TEST_ptr(crt = X509_new()))
+    if (!TEST_ptr(crt = VR_X509_new()))
         return NULL;
-    if (!TEST_true(X509_set_version(crt, 2))) {
-        X509_free(crt);
+    if (!TEST_true(VR_X509_set_version(crt, 2))) {
+        VR_X509_free(crt);
         return NULL;
     }
     return crt;
@@ -271,7 +271,7 @@ static int check_message(const struct set_name_fn *fn, const char *op,
 
     if (match < 0)
         return 1;
-    BIO_snprintf(msg, sizeof(msg), "%s: %s: [%s] %s [%s]",
+    VR_BIO_snprintf(msg, sizeof(msg), "%s: %s: [%s] %s [%s]",
                  fn->name, op, nameincert,
                  match ? "matches" : "does not match", name);
     if (is_exception(msg))
@@ -295,7 +295,7 @@ static int run_cert(X509 *crt, const char *nameincert,
         memcpy(name, *pname, namelen);
 
         match = -1;
-        if (!TEST_int_ge(ret = X509_check_host(crt, name, namelen, 0, NULL),
+        if (!TEST_int_ge(ret = VR_X509_check_host(crt, name, namelen, 0, NULL),
                          0)) {
             failed = 1;
         } else if (fn->host) {
@@ -309,7 +309,7 @@ static int run_cert(X509 *crt, const char *nameincert,
             failed = 1;
 
         match = -1;
-        if (!TEST_int_ge(ret = X509_check_host(crt, name, namelen,
+        if (!TEST_int_ge(ret = VR_X509_check_host(crt, name, namelen,
                                                X509_CHECK_FLAG_NO_WILDCARDS,
                                                NULL), 0)) {
             failed = 1;
@@ -325,7 +325,7 @@ static int run_cert(X509 *crt, const char *nameincert,
             failed = 1;
 
         match = -1;
-        ret = X509_check_email(crt, name, namelen, 0);
+        ret = VR_X509_check_email(crt, name, namelen, 0);
         if (fn->email) {
             if (ret && !samename)
                 match = 1;
@@ -335,7 +335,7 @@ static int run_cert(X509 *crt, const char *nameincert,
             match = 1;
         if (!TEST_true(check_message(fn, "email", nameincert, match, *pname)))
             failed = 1;
-        OPENSSL_free(name);
+        OPENVR_SSL_free(name);
     }
 
     return failed == 0;
@@ -354,7 +354,7 @@ static int call_run_cert(int i)
              || !TEST_true(pfn->fn(crt, *pname))
              || !run_cert(crt, *pname, pfn))
             failed = 1;
-        X509_free(crt);
+        VR_X509_free(crt);
     }
     return failed == 0;
 }

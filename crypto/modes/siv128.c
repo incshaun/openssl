@@ -93,15 +93,15 @@ __owur static ossl_inline int siv128_do_s2v_p(SIV128_CONTEXT *ctx, SIV_BLOCK *ou
     SIV_BLOCK t;
     size_t out_len = sizeof(out->byte);
 
-    if (!EVP_MAC_CTX_copy(ctx->mac_ctx, ctx->mac_ctx_init))
+    if (!VR_EVP_MAC_CTX_copy(ctx->mac_ctx, ctx->mac_ctx_init))
         return 0;
 
     if (len >= SIV_LEN) {
-        if (!EVP_MAC_update(ctx->mac_ctx, in, len - SIV_LEN))
+        if (!VR_EVP_MAC_update(ctx->mac_ctx, in, len - SIV_LEN))
             return 0;
         memcpy(&t, in + (len-SIV_LEN), SIV_LEN);
         siv128_xorblock(&t, &ctx->d);
-        if (!EVP_MAC_update(ctx->mac_ctx, t.byte, SIV_LEN))
+        if (!VR_EVP_MAC_update(ctx->mac_ctx, t.byte, SIV_LEN))
             return 0;
     } else {
         memset(&t, 0, sizeof(t));
@@ -109,10 +109,10 @@ __owur static ossl_inline int siv128_do_s2v_p(SIV128_CONTEXT *ctx, SIV_BLOCK *ou
         t.byte[len] = 0x80;
         siv128_dbl(&ctx->d);
         siv128_xorblock(&t, &ctx->d);
-        if (!EVP_MAC_update(ctx->mac_ctx, t.byte, SIV_LEN))
+        if (!VR_EVP_MAC_update(ctx->mac_ctx, t.byte, SIV_LEN))
             return 0;
     }
-    if (!EVP_MAC_final(ctx->mac_ctx, out->byte, &out_len)
+    if (!VR_EVP_MAC_final(ctx->mac_ctx, out->byte, &out_len)
         || out_len != SIV_LEN)
         return 0;
     return 1;
@@ -125,24 +125,24 @@ __owur static ossl_inline int siv128_do_encrypt(EVP_CIPHER_CTX *ctx, unsigned ch
 {
     int out_len = (int)len;
 
-    if (!EVP_CipherInit_ex(ctx, NULL, NULL, NULL, icv->byte, 1))
+    if (!VR_EVP_CipherInit_ex(ctx, NULL, NULL, NULL, icv->byte, 1))
         return 0;
-    return EVP_EncryptUpdate(ctx, out, &out_len, in, out_len);
+    return VR_EVP_EncryptUpdate(ctx, out, &out_len, in, out_len);
 }
 
 /*
  * Create a new SIV128_CONTEXT
  */
-SIV128_CONTEXT *CRYPTO_siv128_new(const unsigned char *key, int klen, EVP_CIPHER* cbc, EVP_CIPHER* ctr)
+SIV128_CONTEXT *VR_CRYPTO_siv128_new(const unsigned char *key, int klen, EVP_CIPHER* cbc, EVP_CIPHER* ctr)
 {
     SIV128_CONTEXT *ctx;
     int ret;
 
     if ((ctx = OPENSSL_malloc(sizeof(*ctx))) != NULL) {
-        ret = CRYPTO_siv128_init(ctx, key, klen, cbc, ctr);
+        ret = VR_CRYPTO_siv128_init(ctx, key, klen, cbc, ctr);
         if (ret)
             return ctx;
-        OPENSSL_free(ctx);
+        OPENVR_SSL_free(ctx);
     }
 
     return NULL;
@@ -151,7 +151,7 @@ SIV128_CONTEXT *CRYPTO_siv128_new(const unsigned char *key, int klen, EVP_CIPHER
 /*
  * Initialise an existing SIV128_CONTEXT
  */
-int CRYPTO_siv128_init(SIV128_CONTEXT *ctx, const unsigned char *key, int klen,
+int VR_CRYPTO_siv128_init(SIV128_CONTEXT *ctx, const unsigned char *key, int klen,
                        const EVP_CIPHER* cbc, const EVP_CIPHER* ctr)
 {
     static const unsigned char zero[SIV_LEN] = { 0 };
@@ -163,18 +163,18 @@ int CRYPTO_siv128_init(SIV128_CONTEXT *ctx, const unsigned char *key, int klen,
     ctx->mac_ctx_init = NULL;
 
     if (key == NULL || cbc == NULL || ctr == NULL
-            || (ctx->cipher_ctx = EVP_CIPHER_CTX_new()) == NULL
-            || (ctx->mac_ctx_init = EVP_MAC_CTX_new_id(EVP_MAC_CMAC)) == NULL
-            || (ctx->mac_ctx = EVP_MAC_CTX_new_id(EVP_MAC_CMAC)) == NULL
-            || !EVP_MAC_ctrl(ctx->mac_ctx_init, EVP_MAC_CTRL_SET_CIPHER, cbc)
-            || !EVP_MAC_ctrl(ctx->mac_ctx_init, EVP_MAC_CTRL_SET_KEY, key, klen)
-            || !EVP_EncryptInit_ex(ctx->cipher_ctx, ctr, NULL, key + klen, NULL)
-            || !EVP_MAC_CTX_copy(ctx->mac_ctx, ctx->mac_ctx_init)
-            || !EVP_MAC_update(ctx->mac_ctx, zero, sizeof(zero))
-            || !EVP_MAC_final(ctx->mac_ctx, ctx->d.byte, &out_len)) {
-        EVP_CIPHER_CTX_free(ctx->cipher_ctx);
-        EVP_MAC_CTX_free(ctx->mac_ctx_init);
-        EVP_MAC_CTX_free(ctx->mac_ctx);
+            || (ctx->cipher_ctx = VR_EVP_CIPHER_CTX_new()) == NULL
+            || (ctx->mac_ctx_init = VR_EVP_MAC_CTX_new_id(EVP_MAC_CMAC)) == NULL
+            || (ctx->mac_ctx = VR_EVP_MAC_CTX_new_id(EVP_MAC_CMAC)) == NULL
+            || !VR_EVP_MAC_ctrl(ctx->mac_ctx_init, EVP_MAC_CTRL_SET_CIPHER, cbc)
+            || !VR_EVP_MAC_ctrl(ctx->mac_ctx_init, EVP_MAC_CTRL_SET_KEY, key, klen)
+            || !VR_EVP_EncryptInit_ex(ctx->cipher_ctx, ctr, NULL, key + klen, NULL)
+            || !VR_EVP_MAC_CTX_copy(ctx->mac_ctx, ctx->mac_ctx_init)
+            || !VR_EVP_MAC_update(ctx->mac_ctx, zero, sizeof(zero))
+            || !VR_EVP_MAC_final(ctx->mac_ctx, ctx->d.byte, &out_len)) {
+        VR_EVP_CIPHER_CTX_free(ctx->cipher_ctx);
+        VR_EVP_MAC_CTX_free(ctx->mac_ctx_init);
+        VR_EVP_MAC_CTX_free(ctx->mac_ctx);
         return 0;
     }
 
@@ -187,12 +187,12 @@ int CRYPTO_siv128_init(SIV128_CONTEXT *ctx, const unsigned char *key, int klen,
 /*
  * Copy an SIV128_CONTEXT object
  */
-int CRYPTO_siv128_copy_ctx(SIV128_CONTEXT *dest, SIV128_CONTEXT *src)
+int VR_CRYPTO_siv128_copy_ctx(SIV128_CONTEXT *dest, SIV128_CONTEXT *src)
 {
     memcpy(&dest->d, &src->d, sizeof(src->d));
-    if (!EVP_CIPHER_CTX_copy(dest->cipher_ctx, src->cipher_ctx))
+    if (!VR_EVP_CIPHER_CTX_copy(dest->cipher_ctx, src->cipher_ctx))
         return 0;
-    if (!EVP_MAC_CTX_copy(dest->mac_ctx_init, src->mac_ctx_init))
+    if (!VR_EVP_MAC_CTX_copy(dest->mac_ctx_init, src->mac_ctx_init))
         return 0;
     /* no need to copy mac_ctx since it's temp storage */
     return 1;
@@ -203,7 +203,7 @@ int CRYPTO_siv128_copy_ctx(SIV128_CONTEXT *dest, SIV128_CONTEXT *src)
  * Per RFC5297, the last piece of associated data
  * is the nonce, but it's not treated special
  */
-int CRYPTO_siv128_aad(SIV128_CONTEXT *ctx, const unsigned char *aad,
+int VR_CRYPTO_siv128_aad(SIV128_CONTEXT *ctx, const unsigned char *aad,
                       size_t len)
 {
     SIV_BLOCK mac_out;
@@ -211,9 +211,9 @@ int CRYPTO_siv128_aad(SIV128_CONTEXT *ctx, const unsigned char *aad,
 
     siv128_dbl(&ctx->d);
 
-    if (!EVP_MAC_CTX_copy(ctx->mac_ctx, ctx->mac_ctx_init)
-        || !EVP_MAC_update(ctx->mac_ctx, aad, len)
-        || !EVP_MAC_final(ctx->mac_ctx, mac_out.byte, &out_len)
+    if (!VR_EVP_MAC_CTX_copy(ctx->mac_ctx, ctx->mac_ctx_init)
+        || !VR_EVP_MAC_update(ctx->mac_ctx, aad, len)
+        || !VR_EVP_MAC_final(ctx->mac_ctx, mac_out.byte, &out_len)
         || out_len != SIV_LEN)
         return 0;
 
@@ -226,7 +226,7 @@ int CRYPTO_siv128_aad(SIV128_CONTEXT *ctx, const unsigned char *aad,
 /*
  * Provide any data to be encrypted. This can be called once.
  */
-int CRYPTO_siv128_encrypt(SIV128_CONTEXT *ctx,
+int VR_CRYPTO_siv128_encrypt(SIV128_CONTEXT *ctx,
                           const unsigned char *in, unsigned char *out,
                           size_t len)
 {
@@ -253,7 +253,7 @@ int CRYPTO_siv128_encrypt(SIV128_CONTEXT *ctx,
 /*
  * Provide any data to be decrypted. This can be called once.
  */
-int CRYPTO_siv128_decrypt(SIV128_CONTEXT *ctx,
+int VR_CRYPTO_siv128_decrypt(SIV128_CONTEXT *ctx,
                           const unsigned char *in, unsigned char *out,
                           size_t len)
 {
@@ -279,7 +279,7 @@ int CRYPTO_siv128_decrypt(SIV128_CONTEXT *ctx,
         t.byte[i] ^= p[i];
 
     if ((t.word[0] | t.word[1]) != 0) {
-        OPENSSL_cleanse(out, len);
+        VR_OPENSSL_cleanse(out, len);
         return 0;
     }
     ctx->final_ret = 0;
@@ -289,7 +289,7 @@ int CRYPTO_siv128_decrypt(SIV128_CONTEXT *ctx,
 /*
  * Return the already calculated final result.
  */
-int CRYPTO_siv128_finish(SIV128_CONTEXT *ctx)
+int VR_CRYPTO_siv128_finish(SIV128_CONTEXT *ctx)
 {
     return ctx->final_ret;
 }
@@ -297,7 +297,7 @@ int CRYPTO_siv128_finish(SIV128_CONTEXT *ctx)
 /*
  * Set the tag
  */
-int CRYPTO_siv128_set_tag(SIV128_CONTEXT *ctx, const unsigned char *tag, size_t len)
+int VR_CRYPTO_siv128_set_tag(SIV128_CONTEXT *ctx, const unsigned char *tag, size_t len)
 {
     if (len != SIV_LEN)
         return 0;
@@ -310,7 +310,7 @@ int CRYPTO_siv128_set_tag(SIV128_CONTEXT *ctx, const unsigned char *tag, size_t 
 /*
  * Retrieve the calculated tag
  */
-int CRYPTO_siv128_get_tag(SIV128_CONTEXT *ctx, unsigned char *tag, size_t len)
+int VR_CRYPTO_siv128_get_tag(SIV128_CONTEXT *ctx, unsigned char *tag, size_t len)
 {
     if (len != SIV_LEN)
         return 0;
@@ -323,24 +323,24 @@ int CRYPTO_siv128_get_tag(SIV128_CONTEXT *ctx, unsigned char *tag, size_t len)
 /*
  * Release all resources
  */
-int CRYPTO_siv128_cleanup(SIV128_CONTEXT *ctx)
+int VR_CRYPTO_siv128_cleanup(SIV128_CONTEXT *ctx)
 {
     if (ctx != NULL) {
-        EVP_CIPHER_CTX_free(ctx->cipher_ctx);
+        VR_EVP_CIPHER_CTX_free(ctx->cipher_ctx);
         ctx->cipher_ctx = NULL;
-        EVP_MAC_CTX_free(ctx->mac_ctx_init);
+        VR_EVP_MAC_CTX_free(ctx->mac_ctx_init);
         ctx->mac_ctx_init = NULL;
-        EVP_MAC_CTX_free(ctx->mac_ctx);
+        VR_EVP_MAC_CTX_free(ctx->mac_ctx);
         ctx->mac_ctx = NULL;
-        OPENSSL_cleanse(&ctx->d, sizeof(ctx->d));
-        OPENSSL_cleanse(&ctx->tag, sizeof(ctx->tag));
+        VR_OPENSSL_cleanse(&ctx->d, sizeof(ctx->d));
+        VR_OPENSSL_cleanse(&ctx->tag, sizeof(ctx->tag));
         ctx->final_ret = -1;
         ctx->crypto_ok = 1;
     }
     return 1;
 }
 
-int CRYPTO_siv128_speed(SIV128_CONTEXT *ctx, int arg)
+int VR_CRYPTO_siv128_speed(SIV128_CONTEXT *ctx, int arg)
 {
     ctx->crypto_ok = (arg == 1) ? -1 : 1;
     return 1;

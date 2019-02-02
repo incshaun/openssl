@@ -27,7 +27,7 @@ static unsigned int clnt_psk_callback(SSL *ssl, const char *hint,
                                       unsigned char *psk,
                                       unsigned int max_psk_len)
 {
-    BIO_snprintf(ident, max_ident_len, "psk");
+    VR_BIO_snprintf(ident, max_ident_len, "psk");
 
     if (max_psk_len > 20)
         max_psk_len = 20;
@@ -63,11 +63,11 @@ static int mtu_test(SSL_CTX *ctx, const char *cs, int no_etm)
         goto end;
 
     if (no_etm)
-        SSL_set_options(srvr_ssl, SSL_OP_NO_ENCRYPT_THEN_MAC);
+        VR_SSL_set_options(srvr_ssl, SSL_OP_NO_ENCRYPT_THEN_MAC);
 
-    if (!TEST_true(SSL_set_cipher_list(srvr_ssl, cs))
-            || !TEST_true(SSL_set_cipher_list(clnt_ssl, cs))
-            || !TEST_ptr(sc_bio = SSL_get_rbio(srvr_ssl))
+    if (!TEST_true(VR_SSL_set_cipher_list(srvr_ssl, cs))
+            || !TEST_true(VR_SSL_set_cipher_list(clnt_ssl, cs))
+            || !TEST_ptr(sc_bio = VR_SSL_get_rbio(srvr_ssl))
             || !TEST_true(create_ssl_connection(clnt_ssl, srvr_ssl,
                                                 SSL_ERROR_NONE)))
         goto end;
@@ -75,11 +75,11 @@ static int mtu_test(SSL_CTX *ctx, const char *cs, int no_etm)
     if (debug)
         TEST_info("Channel established");
 
-    /* For record MTU values between 500 and 539, call DTLS_get_data_mtu()
+    /* For record MTU values between 500 and 539, call VR_DTLS_get_data_mtu()
      * to query the payload MTU which will fit. */
     for (i = 0; i < 30; i++) {
         SSL_set_mtu(clnt_ssl, 500 + i);
-        mtus[i] = DTLS_get_data_mtu(clnt_ssl);
+        mtus[i] = VR_DTLS_get_data_mtu(clnt_ssl);
         if (debug)
             TEST_info("%s%s MTU for record mtu %d = %lu",
                       cs, no_etm ? "-noEtM" : "",
@@ -100,14 +100,14 @@ static int mtu_test(SSL_CTX *ctx, const char *cs, int no_etm)
     for (s = mtus[0]; s <= mtus[29]; s++) {
         size_t reclen;
 
-        if (!TEST_int_eq(SSL_write(clnt_ssl, buf, s), (int)s))
+        if (!TEST_int_eq(VR_SSL_write(clnt_ssl, buf, s), (int)s))
             goto end;
-        reclen = BIO_read(sc_bio, buf, sizeof(buf));
+        reclen = VR_BIO_read(sc_bio, buf, sizeof(buf));
         if (debug)
             TEST_info("record %zu for payload %zu", reclen, s);
 
         for (i = 0; i < 30; i++) {
-            /* DTLS_get_data_mtu() with record MTU 500+i returned mtus[i] ... */
+            /* VR_DTLS_get_data_mtu() with record MTU 500+i returned mtus[i] ... */
 
             if (!TEST_false(s <= mtus[i] && reclen > (size_t)(500 + i))) {
                 /*
@@ -122,7 +122,7 @@ static int mtu_test(SSL_CTX *ctx, const char *cs, int no_etm)
             if (!TEST_false(s > mtus[i] && reclen <= (size_t)(500 + i))) {
                 /*
                  * We sent a *larger* packet than mtus[i] and that *still*
-                 * fits within the record MTU 500+i, so DTLS_get_data_mtu()
+                 * fits within the record MTU 500+i, so VR_DTLS_get_data_mtu()
                  * was overly pessimistic.
                  */
                 TEST_error("%s: s=%lu, mtus[i]=%lu, reclen=%lu, i=%d",
@@ -136,8 +136,8 @@ static int mtu_test(SSL_CTX *ctx, const char *cs, int no_etm)
     if (SSL_READ_ETM(clnt_ssl))
         rv = 2;
  end:
-    SSL_free(clnt_ssl);
-    SSL_free(srvr_ssl);
+    VR_SSL_free(clnt_ssl);
+    VR_SSL_free(srvr_ssl);
     return rv;
 }
 
@@ -147,25 +147,25 @@ static int run_mtu_tests(void)
     STACK_OF(SSL_CIPHER) *ciphers;
     int i, ret = 0;
 
-    if (!TEST_ptr(ctx = SSL_CTX_new(DTLS_method())))
+    if (!TEST_ptr(ctx = VR_SSL_CTX_new(VR_DTLS_method())))
         goto end;
 
-    SSL_CTX_set_psk_server_callback(ctx, srvr_psk_callback);
-    SSL_CTX_set_psk_client_callback(ctx, clnt_psk_callback);
-    SSL_CTX_set_security_level(ctx, 0);
+    VR_SSL_CTX_set_psk_server_callback(ctx, srvr_psk_callback);
+    VR_SSL_CTX_set_psk_client_callback(ctx, clnt_psk_callback);
+    VR_SSL_CTX_set_security_level(ctx, 0);
 
     /*
      * We only care about iterating over each enc/mac; we don't want to
      * repeat the test for each auth/kx variant. So keep life simple and
      * only do (non-DH) PSK.
      */
-    if (!TEST_true(SSL_CTX_set_cipher_list(ctx, "PSK")))
+    if (!TEST_true(VR_SSL_CTX_set_cipher_list(ctx, "PSK")))
         goto end;
 
-    ciphers = SSL_CTX_get_ciphers(ctx);
+    ciphers = VR_SSL_CTX_get_ciphers(ctx);
     for (i = 0; i < sk_SSL_CIPHER_num(ciphers); i++) {
         const SSL_CIPHER *cipher = sk_SSL_CIPHER_value(ciphers, i);
-        const char *cipher_name = SSL_CIPHER_get_name(cipher);
+        const char *cipher_name = VR_SSL_CIPHER_get_name(cipher);
 
         /* As noted above, only one test for each enc/mac variant. */
         if (strncmp(cipher_name, "PSK-", 4) != 0)
@@ -184,7 +184,7 @@ static int run_mtu_tests(void)
     }
 
  end:
-    SSL_CTX_free(ctx);
+    VR_SSL_CTX_free(ctx);
     bio_s_mempacket_test_free();
     return ret;
 }

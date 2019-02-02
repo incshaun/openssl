@@ -52,7 +52,7 @@ int rand_main(int argc, char **argv)
         case OPT_EOF:
         case OPT_ERR:
  opthelp:
-            BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
+            VR_BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
             opt_help(rand_options);
@@ -82,7 +82,7 @@ int rand_main(int argc, char **argv)
         if (!opt_int(argv[0], &num) || num <= 0)
             goto end;
     } else if (argc > 0) {
-        BIO_printf(bio_err, "Extra arguments given.\n");
+        VR_BIO_printf(bio_err, "Extra arguments given.\n");
         goto opthelp;
     }
 
@@ -91,10 +91,10 @@ int rand_main(int argc, char **argv)
         goto end;
 
     if (format == FORMAT_BASE64) {
-        BIO *b64 = BIO_new(BIO_f_base64());
+        BIO *b64 = VR_BIO_new(VR_BIO_f_base64());
         if (b64 == NULL)
             goto end;
-        out = BIO_push(b64, out);
+        out = VR_BIO_push(b64, out);
     }
 
     while (num > 0) {
@@ -104,21 +104,21 @@ int rand_main(int argc, char **argv)
         chunk = num;
         if (chunk > (int)sizeof(buf))
             chunk = sizeof(buf);
-        r = RAND_bytes(buf, chunk);
+        r = VR_RAND_bytes(buf, chunk);
         if (r <= 0)
             goto end;
         if (format != FORMAT_TEXT) {
-            if (BIO_write(out, buf, chunk) != chunk)
+            if (VR_BIO_write(out, buf, chunk) != chunk)
                 goto end;
         } else {
             for (i = 0; i < chunk; i++)
-                if (BIO_printf(out, "%02x", buf[i]) != 2)
+                if (VR_BIO_printf(out, "%02x", buf[i]) != 2)
                     goto end;
         }
         num -= chunk;
     }
     if (format == FORMAT_TEXT)
-        BIO_puts(out, "\n");
+        VR_BIO_puts(out, "\n");
     if (BIO_flush(out) <= 0)
         goto end;
 
@@ -126,8 +126,8 @@ int rand_main(int argc, char **argv)
 
  end:
     if (ret != 0)
-        ERR_print_errors(bio_err);
+        VR_ERR_print_errors(bio_err);
     release_engine(e);
-    BIO_free_all(out);
+    VR_BIO_free_all(out);
     return ret;
 }

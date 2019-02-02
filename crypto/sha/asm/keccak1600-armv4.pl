@@ -761,10 +761,10 @@ ___
 #       | ....
 
 $code.=<<___;
-.global	SHA3_absorb
-.type	SHA3_absorb,%function
+.global	VR_SHA3_absorb
+.type	VR_SHA3_absorb,%function
 .align	5
-SHA3_absorb:
+VR_SHA3_absorb:
 	stmdb	sp!,{r0-r12,lr}
 	sub	sp,sp,#456+16
 
@@ -906,16 +906,16 @@ SHA3_absorb:
 	add	sp,sp,#456+32
 	mov	r0,$len			@ return value
 	ldmia	sp!,{r4-r12,pc}
-.size	SHA3_absorb,.-SHA3_absorb
+.size	VR_SHA3_absorb,.-VR_SHA3_absorb
 ___
 }
 { my ($out,$len,$A_flat,$bsz) = map("r$_", (4,5,10,12));
 
 $code.=<<___;
-.global	SHA3_squeeze
-.type	SHA3_squeeze,%function
+.global	VR_SHA3_squeeze
+.type	VR_SHA3_squeeze,%function
 .align	5
-SHA3_squeeze:
+VR_SHA3_squeeze:
 	stmdb	sp!,{r0,r3-r10,lr}
 
 	mov	$A_flat,r0
@@ -1056,7 +1056,7 @@ SHA3_squeeze:
 .Lsqueeze_done:
 	add	sp,sp,#24
 	ldmia	sp!,{r4-r10,pc}
-.size	SHA3_squeeze,.-SHA3_squeeze
+.size	VR_SHA3_squeeze,.-VR_SHA3_squeeze
 ___
 }
 
@@ -1268,10 +1268,10 @@ KeccakF1600_neon:
 	bx	lr
 .size	KeccakF1600_neon,.-KeccakF1600_neon
 
-.global	SHA3_absorb_neon
-.type	SHA3_absorb_neon, %function
+.global	VR_SHA3_absorb_neon
+.type	VR_SHA3_absorb_neon, %function
 .align	5
-SHA3_absorb_neon:
+VR_SHA3_absorb_neon:
 	stmdb	sp!, {r4-r6,lr}
 	vstmdb	sp!, {d8-d15}
 
@@ -1441,12 +1441,12 @@ SHA3_absorb_neon:
 	mov	r0, r5			@ return value
 	vldmia	sp!, {d8-d15}
 	ldmia	sp!, {r4-r6,pc}
-.size	SHA3_absorb_neon,.-SHA3_absorb_neon
+.size	VR_SHA3_absorb_neon,.-VR_SHA3_absorb_neon
 
-.global	SHA3_squeeze_neon
-.type	SHA3_squeeze_neon, %function
+.global	VR_SHA3_squeeze_neon
+.type	VR_SHA3_squeeze_neon, %function
 .align	5
-SHA3_squeeze_neon:
+VR_SHA3_squeeze_neon:
 	stmdb	sp!, {r4-r6,lr}
 
 	mov	r4, r1			@ out
@@ -1562,7 +1562,7 @@ SHA3_squeeze_neon:
 
 .Lsqueeze_neon_done:
 	ldmia	sp!, {r4-r6,pc}
-.size	SHA3_squeeze_neon,.-SHA3_squeeze_neon
+.size	VR_SHA3_squeeze_neon,.-VR_SHA3_squeeze_neon
 #endif
 .asciz	"Keccak-1600 absorb and squeeze for ARMv4/NEON, CRYPTOGAMS by <appro\@openssl.org>"
 .align	2

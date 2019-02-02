@@ -38,15 +38,15 @@ void HANDSHAKE_RESULT_free(HANDSHAKE_RESULT *result)
 {
     if (result == NULL)
         return;
-    OPENSSL_free(result->client_npn_negotiated);
-    OPENSSL_free(result->server_npn_negotiated);
-    OPENSSL_free(result->client_alpn_negotiated);
-    OPENSSL_free(result->server_alpn_negotiated);
-    OPENSSL_free(result->result_session_ticket_app_data);
-    sk_X509_NAME_pop_free(result->server_ca_names, X509_NAME_free);
-    sk_X509_NAME_pop_free(result->client_ca_names, X509_NAME_free);
-    OPENSSL_free(result->cipher);
-    OPENSSL_free(result);
+    OPENVR_SSL_free(result->client_npn_negotiated);
+    OPENVR_SSL_free(result->server_npn_negotiated);
+    OPENVR_SSL_free(result->client_alpn_negotiated);
+    OPENVR_SSL_free(result->server_alpn_negotiated);
+    OPENVR_SSL_free(result->result_session_ticket_app_data);
+    sk_VR_X509_NAME_pop_free(result->server_ca_names, VR_X509_NAME_free);
+    sk_VR_X509_NAME_pop_free(result->client_ca_names, VR_X509_NAME_free);
+    OPENVR_SSL_free(result->cipher);
+    OPENVR_SSL_free(result);
 }
 
 /*
@@ -75,15 +75,15 @@ typedef struct ctx_data_st {
 /* |ctx_data| itself is stack-allocated. */
 static void ctx_data_free_data(CTX_DATA *ctx_data)
 {
-    OPENSSL_free(ctx_data->npn_protocols);
+    OPENVR_SSL_free(ctx_data->npn_protocols);
     ctx_data->npn_protocols = NULL;
-    OPENSSL_free(ctx_data->alpn_protocols);
+    OPENVR_SSL_free(ctx_data->alpn_protocols);
     ctx_data->alpn_protocols = NULL;
-    OPENSSL_free(ctx_data->srp_user);
+    OPENVR_SSL_free(ctx_data->srp_user);
     ctx_data->srp_user = NULL;
-    OPENSSL_free(ctx_data->srp_password);
+    OPENVR_SSL_free(ctx_data->srp_password);
     ctx_data->srp_password = NULL;
-    OPENSSL_free(ctx_data->session_ticket_app_data);
+    OPENVR_SSL_free(ctx_data->session_ticket_app_data);
     ctx_data->session_ticket_app_data = NULL;
 }
 
@@ -93,11 +93,11 @@ static void info_cb(const SSL *s, int where, int ret)
 {
     if (where & SSL_CB_ALERT) {
         HANDSHAKE_EX_DATA *ex_data =
-            (HANDSHAKE_EX_DATA*)(SSL_get_ex_data(s, ex_data_idx));
+            (HANDSHAKE_EX_DATA*)(VR_SSL_get_ex_data(s, ex_data_idx));
         if (where & SSL_CB_WRITE) {
             ex_data->alert_sent = ret;
-            if (strcmp(SSL_alert_type_string(ret), "F") == 0
-                || strcmp(SSL_alert_desc_string(ret), "CN") == 0)
+            if (strcmp(VR_SSL_alert_type_string(ret), "F") == 0
+                || strcmp(VR_SSL_alert_desc_string(ret), "CN") == 0)
                 ex_data->num_fatal_alerts_sent++;
         } else {
             ex_data->alert_received = ret;
@@ -113,9 +113,9 @@ static void info_cb(const SSL *s, int where, int ret)
  */
 static int select_server_ctx(SSL *s, void *arg, int ignore)
 {
-    const char *servername = SSL_get_servername(s, TLSEXT_NAMETYPE_host_name);
+    const char *servername = VR_SSL_get_servername(s, TLSEXT_NAMETYPE_host_name);
     HANDSHAKE_EX_DATA *ex_data =
-        (HANDSHAKE_EX_DATA*)(SSL_get_ex_data(s, ex_data_idx));
+        (HANDSHAKE_EX_DATA*)(VR_SSL_get_ex_data(s, ex_data_idx));
 
     if (servername == NULL) {
         ex_data->servername = SSL_TEST_SERVERNAME_SERVER1;
@@ -124,14 +124,14 @@ static int select_server_ctx(SSL *s, void *arg, int ignore)
 
     if (strcmp(servername, "server2") == 0) {
         SSL_CTX *new_ctx = (SSL_CTX*)arg;
-        SSL_set_SSL_CTX(s, new_ctx);
+        VR_SSL_set_SSL_CTX(s, new_ctx);
         /*
          * Copy over all the SSL_CTX options - reasonable behavior
          * allows testing of cases where the options between two
          * contexts differ/conflict
          */
-        SSL_clear_options(s, 0xFFFFFFFFL);
-        SSL_set_options(s, SSL_CTX_get_options(new_ctx));
+        VR_SSL_clear_options(s, 0xFFFFFFFFL);
+        VR_SSL_set_options(s, VR_SSL_CTX_get_options(new_ctx));
 
         ex_data->servername = SSL_TEST_SERVERNAME_SERVER2;
         return SSL_TLSEXT_ERR_OK;
@@ -153,13 +153,13 @@ static int client_hello_select_server_ctx(SSL *s, void *arg, int ignore)
     const unsigned char *p;
     size_t len, remaining;
     HANDSHAKE_EX_DATA *ex_data =
-        (HANDSHAKE_EX_DATA*)(SSL_get_ex_data(s, ex_data_idx));
+        (HANDSHAKE_EX_DATA*)(VR_SSL_get_ex_data(s, ex_data_idx));
 
     /*
      * The server_name extension was given too much extensibility when it
      * was written, so parsing the normal case is a bit complex.
      */
-    if (!SSL_client_hello_get0_ext(s, TLSEXT_TYPE_server_name, &p,
+    if (!VR_SSL_client_hello_get0_ext(s, TLSEXT_TYPE_server_name, &p,
                                    &remaining) ||
         remaining <= 2)
         return 0;
@@ -188,14 +188,14 @@ static int client_hello_select_server_ctx(SSL *s, void *arg, int ignore)
 
     if (len == strlen("server2") && strncmp(servername, "server2", len) == 0) {
         SSL_CTX *new_ctx = arg;
-        SSL_set_SSL_CTX(s, new_ctx);
+        VR_SSL_set_SSL_CTX(s, new_ctx);
         /*
          * Copy over all the SSL_CTX options - reasonable behavior
          * allows testing of cases where the options between two
          * contexts differ/conflict
          */
-        SSL_clear_options(s, 0xFFFFFFFFL);
-        SSL_set_options(s, SSL_CTX_get_options(new_ctx));
+        VR_SSL_clear_options(s, 0xFFFFFFFFL);
+        VR_SSL_set_options(s, VR_SSL_CTX_get_options(new_ctx));
 
         ex_data->servername = SSL_TEST_SERVERNAME_SERVER2;
         return 1;
@@ -254,16 +254,16 @@ static int client_hello_nov12_cb(SSL *s, int *al, void *arg)
     unsigned int v;
     const unsigned char *p;
 
-    v = SSL_client_hello_get0_legacy_version(s);
+    v = VR_SSL_client_hello_get0_legacy_version(s);
     if (v > TLS1_2_VERSION || v < SSL3_VERSION) {
         *al = SSL_AD_PROTOCOL_VERSION;
         return SSL_CLIENT_HELLO_ERROR;
     }
-    (void)SSL_client_hello_get0_session_id(s, &p);
+    (void)VR_SSL_client_hello_get0_session_id(s, &p);
     if (p == NULL ||
-        SSL_client_hello_get0_random(s, &p) == 0 ||
-        SSL_client_hello_get0_ciphers(s, &p) == 0 ||
-        SSL_client_hello_get0_compression_methods(s, &p) == 0) {
+        VR_SSL_client_hello_get0_random(s, &p) == 0 ||
+        VR_SSL_client_hello_get0_ciphers(s, &p) == 0 ||
+        VR_SSL_client_hello_get0_compression_methods(s, &p) == 0) {
         *al = SSL_AD_INTERNAL_ERROR;
         return SSL_CLIENT_HELLO_ERROR;
     }
@@ -309,7 +309,7 @@ static int client_ocsp_cb(SSL *s, void *arg)
 }
 
 static int verify_reject_cb(X509_STORE_CTX *ctx, void *arg) {
-    X509_STORE_CTX_set_error(ctx, X509_V_ERR_APPLICATION_VERIFICATION);
+    VR_X509_STORE_CTX_set_error(ctx, X509_V_ERR_APPLICATION_VERIFICATION);
     return 0;
 }
 
@@ -318,7 +318,7 @@ static int verify_accept_cb(X509_STORE_CTX *ctx, void *arg) {
 }
 
 static int broken_session_ticket_cb(SSL *s, unsigned char *key_name, unsigned char *iv,
-                                    EVP_CIPHER_CTX *ctx, HMAC_CTX *hctx, int enc)
+                                    EVP_CIPHER_CTX *ctx, VR_HMAC_CTX *hctx, int enc)
 {
     return 0;
 }
@@ -326,10 +326,10 @@ static int broken_session_ticket_cb(SSL *s, unsigned char *key_name, unsigned ch
 static int do_not_call_session_ticket_cb(SSL *s, unsigned char *key_name,
                                          unsigned char *iv,
                                          EVP_CIPHER_CTX *ctx,
-                                         HMAC_CTX *hctx, int enc)
+                                         VR_HMAC_CTX *hctx, int enc)
 {
     HANDSHAKE_EX_DATA *ex_data =
-        (HANDSHAKE_EX_DATA*)(SSL_get_ex_data(s, ex_data_idx));
+        (HANDSHAKE_EX_DATA*)(VR_SSL_get_ex_data(s, ex_data_idx));
     ex_data->session_ticket_do_not_call = 1;
     return 0;
 }
@@ -371,7 +371,7 @@ static int parse_protos(const char *protos, unsigned char **out, size_t *outlen)
     return 1;
 
 err:
-    OPENSSL_free(*out);
+    OPENVR_SSL_free(*out);
     *out = NULL;
     return 0;
 }
@@ -390,7 +390,7 @@ static int client_npn_cb(SSL *s, unsigned char **out, unsigned char *outlen,
     CTX_DATA *ctx_data = (CTX_DATA*)(arg);
     int ret;
 
-    ret = SSL_select_next_proto(out, outlen, in, inlen,
+    ret = VR_SSL_select_next_proto(out, outlen, in, inlen,
                                 ctx_data->npn_protocols,
                                 ctx_data->npn_protocols_len);
     /* Accept both OPENSSL_NPN_NEGOTIATED and OPENSSL_NPN_NO_OVERLAP. */
@@ -421,7 +421,7 @@ static int server_alpn_cb(SSL *s, const unsigned char **out,
     CTX_DATA *ctx_data = (CTX_DATA*)(arg);
     int ret;
 
-    /* SSL_select_next_proto isn't const-correct... */
+    /* VR_SSL_select_next_proto isn't const-correct... */
     unsigned char *tmp_out;
 
     /*
@@ -429,7 +429,7 @@ static int server_alpn_cb(SSL *s, const unsigned char **out,
      * The callback is allowed to point to |in| or to a long-lived buffer,
      * so we can return directly without storing a copy.
      */
-    ret = SSL_select_next_proto(&tmp_out, outlen,
+    ret = VR_SSL_select_next_proto(&tmp_out, outlen,
                                 ctx_data->alpn_protocols,
                                 ctx_data->alpn_protocols_len, in, inlen);
 
@@ -449,9 +449,9 @@ static char *client_srp_cb(SSL *s, void *arg)
 static int server_srp_cb(SSL *s, int *ad, void *arg)
 {
     CTX_DATA *ctx_data = (CTX_DATA*)(arg);
-    if (strcmp(ctx_data->srp_user, SSL_get_srp_username(s)) != 0)
+    if (strcmp(ctx_data->srp_user, VR_SSL_get_srp_username(s)) != 0)
         return SSL3_AL_FATAL;
-    if (SSL_set_srp_server_param_pw(s, ctx_data->srp_user,
+    if (VR_SSL_set_srp_server_param_pw(s, ctx_data->srp_user,
                                     ctx_data->srp_password,
                                     "2048" /* known group */) < 0) {
         *ad = SSL_AD_INTERNAL_ERROR;
@@ -464,13 +464,13 @@ static int server_srp_cb(SSL *s, int *ad, void *arg)
 static int generate_session_ticket_cb(SSL *s, void *arg)
 {
     CTX_DATA *server_ctx_data = arg;
-    SSL_SESSION *ss = SSL_get_session(s);
+    SSL_SESSION *ss = VR_SSL_get_session(s);
     char *app_data = server_ctx_data->session_ticket_app_data;
 
     if (ss == NULL || app_data == NULL)
         return 0;
 
-    return SSL_SESSION_set1_ticket_appdata(ss, app_data, strlen(app_data));
+    return VR_SSL_SESSION_set1_ticket_appdata(ss, app_data, strlen(app_data));
 }
 
 static int decrypt_session_ticket_cb(SSL *s, SSL_SESSION *ss,
@@ -523,10 +523,10 @@ static int configure_handshake_ctx(SSL_CTX *server_ctx, SSL_CTX *server2_ctx,
 
     switch (extra->client.verify_callback) {
     case SSL_TEST_VERIFY_ACCEPT_ALL:
-        SSL_CTX_set_cert_verify_callback(client_ctx, &verify_accept_cb, NULL);
+        VR_SSL_CTX_set_cert_verify_callback(client_ctx, &verify_accept_cb, NULL);
         break;
     case SSL_TEST_VERIFY_REJECT_ALL:
-        SSL_CTX_set_cert_verify_callback(client_ctx, &verify_reject_cb, NULL);
+        VR_SSL_CTX_set_cert_verify_callback(client_ctx, &verify_reject_cb, NULL);
         break;
     case SSL_TEST_VERIFY_NONE:
         break;
@@ -538,7 +538,7 @@ static int configure_handshake_ctx(SSL_CTX *server_ctx, SSL_CTX *server2_ctx,
     case TLSEXT_max_fragment_length_2048:
     case TLSEXT_max_fragment_length_4096:
     case TLSEXT_max_fragment_length_DISABLED:
-        SSL_CTX_set_tlsext_max_fragment_length(
+        VR_SSL_CTX_set_tlsext_max_fragment_length(
               client_ctx, extra->client.max_fragment_len_mode);
         break;
     }
@@ -560,13 +560,13 @@ static int configure_handshake_ctx(SSL_CTX *server_ctx, SSL_CTX *server2_ctx,
     case SSL_TEST_SERVERNAME_CB_NONE:
         break;
     case SSL_TEST_SERVERNAME_CLIENT_HELLO_IGNORE_MISMATCH:
-        SSL_CTX_set_client_hello_cb(server_ctx, client_hello_ignore_cb, server2_ctx);
+        VR_SSL_CTX_set_client_hello_cb(server_ctx, client_hello_ignore_cb, server2_ctx);
         break;
     case SSL_TEST_SERVERNAME_CLIENT_HELLO_REJECT_MISMATCH:
-        SSL_CTX_set_client_hello_cb(server_ctx, client_hello_reject_cb, server2_ctx);
+        VR_SSL_CTX_set_client_hello_cb(server_ctx, client_hello_reject_cb, server2_ctx);
         break;
     case SSL_TEST_SERVERNAME_CLIENT_HELLO_NO_V12:
-        SSL_CTX_set_client_hello_cb(server_ctx, client_hello_nov12_cb, server2_ctx);
+        VR_SSL_CTX_set_client_hello_cb(server_ctx, client_hello_nov12_cb, server2_ctx);
     }
 
     if (extra->server.cert_status != SSL_TEST_CERT_STATUS_NONE) {
@@ -614,7 +614,7 @@ static int configure_handshake_ctx(SSL_CTX *server_ctx, SSL_CTX *server2_ctx,
                                     &client_ctx_data->npn_protocols,
                                     &client_ctx_data->npn_protocols_len)))
             goto err;
-        SSL_CTX_set_next_proto_select_cb(client_ctx, client_npn_cb,
+        VR_SSL_CTX_set_next_proto_select_cb(client_ctx, client_npn_cb,
                                          client_ctx_data);
     }
 #endif
@@ -623,7 +623,7 @@ static int configure_handshake_ctx(SSL_CTX *server_ctx, SSL_CTX *server2_ctx,
                                     &server_ctx_data->alpn_protocols,
                                     &server_ctx_data->alpn_protocols_len)))
             goto err;
-        SSL_CTX_set_alpn_select_cb(server_ctx, server_alpn_cb, server_ctx_data);
+        VR_SSL_CTX_set_alpn_select_cb(server_ctx, server_alpn_cb, server_ctx_data);
     }
     if (extra->server2.alpn_protocols != NULL) {
         if (!TEST_ptr(server2_ctx)
@@ -632,7 +632,7 @@ static int configure_handshake_ctx(SSL_CTX *server_ctx, SSL_CTX *server2_ctx,
                                            &server2_ctx_data->alpn_protocols_len
             )))
             goto err;
-        SSL_CTX_set_alpn_select_cb(server2_ctx, server_alpn_cb,
+        VR_SSL_CTX_set_alpn_select_cb(server2_ctx, server_alpn_cb,
                                    server2_ctx_data);
     }
     if (extra->client.alpn_protocols != NULL) {
@@ -641,16 +641,16 @@ static int configure_handshake_ctx(SSL_CTX *server_ctx, SSL_CTX *server2_ctx,
         if (!TEST_true(parse_protos(extra->client.alpn_protocols,
                                     &alpn_protos, &alpn_protos_len))
                 /* Reversed return value convention... */
-                || !TEST_int_eq(SSL_CTX_set_alpn_protos(client_ctx, alpn_protos,
+                || !TEST_int_eq(VR_SSL_CTX_set_alpn_protos(client_ctx, alpn_protos,
                                                         alpn_protos_len), 0))
             goto err;
-        OPENSSL_free(alpn_protos);
+        OPENVR_SSL_free(alpn_protos);
     }
 
     if (extra->server.session_ticket_app_data != NULL) {
         server_ctx_data->session_ticket_app_data =
             OPENSSL_strdup(extra->server.session_ticket_app_data);
-        SSL_CTX_set_session_ticket_cb(server_ctx, generate_session_ticket_cb,
+        VR_SSL_CTX_set_session_ticket_cb(server_ctx, generate_session_ticket_cb,
                                       decrypt_session_ticket_cb, server_ctx_data);
     }
     if (extra->server2.session_ticket_app_data != NULL) {
@@ -658,7 +658,7 @@ static int configure_handshake_ctx(SSL_CTX *server_ctx, SSL_CTX *server2_ctx,
             goto err;
         server2_ctx_data->session_ticket_app_data =
             OPENSSL_strdup(extra->server2.session_ticket_app_data);
-        SSL_CTX_set_session_ticket_cb(server2_ctx, NULL,
+        VR_SSL_CTX_set_session_ticket_cb(server2_ctx, NULL,
                                       decrypt_session_ticket_cb, server2_ctx_data);
     }
 
@@ -671,23 +671,23 @@ static int configure_handshake_ctx(SSL_CTX *server_ctx, SSL_CTX *server2_ctx,
             || !TEST_int_eq(SSL_CTX_set_tlsext_ticket_keys(server_ctx,
                                                            ticket_keys,
                                                            ticket_key_len), 1)) {
-        OPENSSL_free(ticket_keys);
+        OPENVR_SSL_free(ticket_keys);
         goto err;
     }
-    OPENSSL_free(ticket_keys);
+    OPENVR_SSL_free(ticket_keys);
 
     /* The default log list includes EC keys, so CT can't work without EC. */
 #if !defined(OPENSSL_NO_CT) && !defined(OPENSSL_NO_EC)
-    if (!TEST_true(SSL_CTX_set_default_ctlog_list_file(client_ctx)))
+    if (!TEST_true(VR_SSL_CTX_set_default_ctlog_list_file(client_ctx)))
         goto err;
     switch (extra->client.ct_validation) {
     case SSL_TEST_CT_VALIDATION_PERMISSIVE:
-        if (!TEST_true(SSL_CTX_enable_ct(client_ctx,
+        if (!TEST_true(VR_SSL_CTX_enable_ct(client_ctx,
                                          SSL_CT_VALIDATION_PERMISSIVE)))
             goto err;
         break;
     case SSL_TEST_CT_VALIDATION_STRICT:
-        if (!TEST_true(SSL_CTX_enable_ct(client_ctx, SSL_CT_VALIDATION_STRICT)))
+        if (!TEST_true(VR_SSL_CTX_enable_ct(client_ctx, SSL_CT_VALIDATION_STRICT)))
             goto err;
         break;
     case SSL_TEST_CT_VALIDATION_NONE:
@@ -696,26 +696,26 @@ static int configure_handshake_ctx(SSL_CTX *server_ctx, SSL_CTX *server2_ctx,
 #endif
 #ifndef OPENSSL_NO_SRP
     if (extra->server.srp_user != NULL) {
-        SSL_CTX_set_srp_username_callback(server_ctx, server_srp_cb);
+        VR_SSL_CTX_set_srp_username_callback(server_ctx, server_srp_cb);
         server_ctx_data->srp_user = OPENSSL_strdup(extra->server.srp_user);
         server_ctx_data->srp_password = OPENSSL_strdup(extra->server.srp_password);
-        SSL_CTX_set_srp_cb_arg(server_ctx, server_ctx_data);
+        VR_SSL_CTX_set_srp_cb_arg(server_ctx, server_ctx_data);
     }
     if (extra->server2.srp_user != NULL) {
         if (!TEST_ptr(server2_ctx))
             goto err;
-        SSL_CTX_set_srp_username_callback(server2_ctx, server_srp_cb);
+        VR_SSL_CTX_set_srp_username_callback(server2_ctx, server_srp_cb);
         server2_ctx_data->srp_user = OPENSSL_strdup(extra->server2.srp_user);
         server2_ctx_data->srp_password = OPENSSL_strdup(extra->server2.srp_password);
-        SSL_CTX_set_srp_cb_arg(server2_ctx, server2_ctx_data);
+        VR_SSL_CTX_set_srp_cb_arg(server2_ctx, server2_ctx_data);
     }
     if (extra->client.srp_user != NULL) {
-        if (!TEST_true(SSL_CTX_set_srp_username(client_ctx,
+        if (!TEST_true(VR_SSL_CTX_set_srp_username(client_ctx,
                                                 extra->client.srp_user)))
             goto err;
-        SSL_CTX_set_srp_client_pwd_callback(client_ctx, client_srp_cb);
+        VR_SSL_CTX_set_srp_client_pwd_callback(client_ctx, client_srp_cb);
         client_ctx_data->srp_password = OPENSSL_strdup(extra->client.srp_password);
-        SSL_CTX_set_srp_cb_arg(client_ctx, client_ctx_data);
+        VR_SSL_CTX_set_srp_cb_arg(client_ctx, client_ctx_data);
     }
 #endif  /* !OPENSSL_NO_SRP */
     return 1;
@@ -731,7 +731,7 @@ static void configure_handshake_ssl(SSL *server, SSL *client,
         SSL_set_tlsext_host_name(client,
                                  ssl_servername_name(extra->client.servername));
     if (extra->client.enable_pha)
-        SSL_set_post_handshake_auth(client, 1);
+        VR_SSL_set_post_handshake_auth(client, 1);
 }
 
 /* The status for each connection phase. */
@@ -762,7 +762,7 @@ static int create_peer(PEER *peer, SSL_CTX *ctx)
     SSL *ssl = NULL;
     unsigned char *read_buf = NULL, *write_buf = NULL;
 
-    if (!TEST_ptr(ssl = SSL_new(ctx))
+    if (!TEST_ptr(ssl = VR_SSL_new(ctx))
             || !TEST_ptr(write_buf = OPENSSL_zalloc(peer_buffer_size))
             || !TEST_ptr(read_buf = OPENSSL_zalloc(peer_buffer_size)))
         goto err;
@@ -773,21 +773,21 @@ static int create_peer(PEER *peer, SSL_CTX *ctx)
     peer->write_buf_len = peer->read_buf_len = peer_buffer_size;
     return 1;
 err:
-    SSL_free(ssl);
-    OPENSSL_free(write_buf);
-    OPENSSL_free(read_buf);
+    VR_SSL_free(ssl);
+    OPENVR_SSL_free(write_buf);
+    OPENVR_SSL_free(read_buf);
     return 0;
 }
 
 static void peer_free_data(PEER *peer)
 {
-    SSL_free(peer->ssl);
-    OPENSSL_free(peer->write_buf);
-    OPENSSL_free(peer->read_buf);
+    VR_SSL_free(peer->ssl);
+    OPENVR_SSL_free(peer->write_buf);
+    OPENVR_SSL_free(peer->read_buf);
 }
 
 /*
- * Note that we could do the handshake transparently under an SSL_write,
+ * Note that we could do the handshake transparently under an VR_SSL_write,
  * but separating the steps is more helpful for debugging test failures.
  */
 static void do_handshake_step(PEER *peer)
@@ -795,14 +795,14 @@ static void do_handshake_step(PEER *peer)
     if (!TEST_int_eq(peer->status, PEER_RETRY)) {
         peer->status = PEER_TEST_FAILURE;
     } else {
-        int ret = SSL_do_handshake(peer->ssl);
+        int ret = VR_SSL_do_handshake(peer->ssl);
 
         if (ret == 1) {
             peer->status = PEER_SUCCESS;
         } else if (ret == 0) {
             peer->status = PEER_ERROR;
         } else {
-            int error = SSL_get_error(peer->ssl, ret);
+            int error = VR_SSL_get_error(peer->ssl, ret);
             /* Memory bios should never block with SSL_ERROR_WANT_WRITE. */
             if (error != SSL_ERROR_WANT_READ)
                 peer->status = PEER_ERROR;
@@ -830,7 +830,7 @@ static void do_app_data_step(PEER *peer)
 
     /* We read everything available... */
     while (ret > 0 && peer->bytes_to_read) {
-        ret = SSL_read(peer->ssl, peer->read_buf, peer->read_buf_len);
+        ret = VR_SSL_read(peer->ssl, peer->read_buf, peer->read_buf_len);
         if (ret > 0) {
             if (!TEST_int_le(ret, peer->bytes_to_read)) {
                 peer->status = PEER_TEST_FAILURE;
@@ -841,7 +841,7 @@ static void do_app_data_step(PEER *peer)
             peer->status = PEER_ERROR;
             return;
         } else {
-            int error = SSL_get_error(peer->ssl, ret);
+            int error = VR_SSL_get_error(peer->ssl, ret);
             if (error != SSL_ERROR_WANT_READ) {
                 peer->status = PEER_ERROR;
                 return;
@@ -853,9 +853,9 @@ static void do_app_data_step(PEER *peer)
     write_bytes = peer->bytes_to_write < peer->write_buf_len ? peer->bytes_to_write :
         peer->write_buf_len;
     if (write_bytes) {
-        ret = SSL_write(peer->ssl, peer->write_buf, write_bytes);
+        ret = VR_SSL_write(peer->ssl, peer->write_buf, write_bytes);
         if (ret > 0) {
-            /* SSL_write will only succeed with a complete write. */
+            /* VR_SSL_write will only succeed with a complete write. */
             if (!TEST_int_eq(ret, write_bytes)) {
                 peer->status = PEER_TEST_FAILURE;
                 return;
@@ -918,31 +918,31 @@ static void do_reneg_setup_step(const SSL_TEST_CTX *test_ctx, PEER *peer)
 
     /* Check if we are the peer that is going to initiate */
     if ((test_ctx->handshake_mode == SSL_TEST_HANDSHAKE_RENEG_SERVER
-                && SSL_is_server(peer->ssl))
+                && VR_SSL_is_server(peer->ssl))
             || (test_ctx->handshake_mode == SSL_TEST_HANDSHAKE_RENEG_CLIENT
-                && !SSL_is_server(peer->ssl))) {
+                && !VR_SSL_is_server(peer->ssl))) {
         /*
          * If we already asked for a renegotiation then fall through to the
-         * SSL_read() below.
+         * VR_SSL_read() below.
          */
-        if (!SSL_renegotiate_pending(peer->ssl)) {
+        if (!VR_SSL_renegotiate_pending(peer->ssl)) {
             /*
              * If we are the client we will always attempt to resume the
              * session. The server may or may not resume dependent on the
              * setting of SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION
              */
-            if (SSL_is_server(peer->ssl)) {
-                ret = SSL_renegotiate(peer->ssl);
+            if (VR_SSL_is_server(peer->ssl)) {
+                ret = VR_SSL_renegotiate(peer->ssl);
             } else {
                 if (test_ctx->extra.client.reneg_ciphers != NULL) {
-                    if (!SSL_set_cipher_list(peer->ssl,
+                    if (!VR_SSL_set_cipher_list(peer->ssl,
                                 test_ctx->extra.client.reneg_ciphers)) {
                         peer->status = PEER_ERROR;
                         return;
                     }
-                    ret = SSL_renegotiate(peer->ssl);
+                    ret = VR_SSL_renegotiate(peer->ssl);
                 } else {
-                    ret = SSL_renegotiate_abbreviated(peer->ssl);
+                    ret = VR_SSL_renegotiate_abbreviated(peer->ssl);
                 }
             }
             if (!ret) {
@@ -969,14 +969,14 @@ static void do_reneg_setup_step(const SSL_TEST_CTX *test_ctx, PEER *peer)
     } else if (test_ctx->handshake_mode == SSL_TEST_HANDSHAKE_KEY_UPDATE_SERVER
                || test_ctx->handshake_mode
                   == SSL_TEST_HANDSHAKE_KEY_UPDATE_CLIENT) {
-        if (SSL_is_server(peer->ssl)
+        if (VR_SSL_is_server(peer->ssl)
                 != (test_ctx->handshake_mode
                     == SSL_TEST_HANDSHAKE_KEY_UPDATE_SERVER)) {
             peer->status = PEER_SUCCESS;
             return;
         }
 
-        ret = SSL_key_update(peer->ssl, test_ctx->key_update_type);
+        ret = VR_SSL_key_update(peer->ssl, test_ctx->key_update_type);
         if (!ret) {
             peer->status = PEER_ERROR;
             return;
@@ -990,11 +990,11 @@ static void do_reneg_setup_step(const SSL_TEST_CTX *test_ctx, PEER *peer)
             peer->status = PEER_ERROR;
         return;
     } else if (test_ctx->handshake_mode == SSL_TEST_HANDSHAKE_POST_HANDSHAKE_AUTH) {
-        if (SSL_is_server(peer->ssl)) {
+        if (VR_SSL_is_server(peer->ssl)) {
             /* Make the server believe it's received the extension */
             if (test_ctx->extra.server.force_pha)
                 peer->ssl->post_handshake_auth = SSL_PHA_EXT_RECEIVED;
-            ret = SSL_verify_client_post_handshake(peer->ssl);
+            ret = VR_SSL_verify_client_post_handshake(peer->ssl);
             if (!ret) {
                 peer->status = PEER_ERROR;
                 return;
@@ -1015,7 +1015,7 @@ static void do_reneg_setup_step(const SSL_TEST_CTX *test_ctx, PEER *peer)
      * get a handshake message. We try to read, and it should fail - after which
      * we should be in a handshake
      */
-    ret = SSL_read(peer->ssl, &buf, sizeof(buf));
+    ret = VR_SSL_read(peer->ssl, &buf, sizeof(buf));
     if (ret >= 0) {
         /*
          * We're not actually expecting data - we're expecting a reneg to
@@ -1024,13 +1024,13 @@ static void do_reneg_setup_step(const SSL_TEST_CTX *test_ctx, PEER *peer)
         peer->status = PEER_ERROR;
         return;
     } else {
-        int error = SSL_get_error(peer->ssl, ret);
+        int error = VR_SSL_get_error(peer->ssl, ret);
         if (error != SSL_ERROR_WANT_READ) {
             peer->status = PEER_ERROR;
             return;
         }
         /* If we're not in init yet then we're not done with setup yet */
-        if (!SSL_in_init(peer->ssl))
+        if (!VR_SSL_in_init(peer->ssl))
             return;
     }
 
@@ -1051,7 +1051,7 @@ static void do_reneg_setup_step(const SSL_TEST_CTX *test_ctx, PEER *peer)
  * (b) We test lower versions, too.
  * So we just implement shutdown. We do a full bidirectional shutdown so that we
  * can compare sent and received close_notify alerts and get some test coverage
- * for SSL_shutdown as a bonus.
+ * for VR_SSL_shutdown as a bonus.
  */
 static void do_shutdown_step(PEER *peer)
 {
@@ -1061,12 +1061,12 @@ static void do_shutdown_step(PEER *peer)
         peer->status = PEER_TEST_FAILURE;
         return;
     }
-    ret = SSL_shutdown(peer->ssl);
+    ret = VR_SSL_shutdown(peer->ssl);
 
     if (ret == 1) {
         peer->status = PEER_SUCCESS;
     } else if (ret < 0) { /* On 0, we retry. */
-        int error = SSL_get_error(peer->ssl, ret);
+        int error = VR_SSL_get_error(peer->ssl, ret);
 
         if (error != SSL_ERROR_WANT_READ && error != SSL_ERROR_WANT_WRITE)
             peer->status = PEER_ERROR;
@@ -1252,19 +1252,19 @@ static char *dup_str(const unsigned char *in, size_t len)
         return NULL;
 
     /* Assert that the string does not contain NUL-bytes. */
-    if (TEST_size_t_eq(OPENSSL_strnlen((const char*)(in), len), len))
+    if (TEST_size_t_eq(VR_OPENSSL_strnlen((const char*)(in), len), len))
         TEST_ptr(ret = OPENSSL_strndup((const char*)(in), len));
     return ret;
 }
 
 static int pkey_type(EVP_PKEY *pkey)
 {
-    int nid = EVP_PKEY_id(pkey);
+    int nid = VR_EVP_PKEY_id(pkey);
 
 #ifndef OPENSSL_NO_EC
     if (nid == EVP_PKEY_EC) {
-        const EC_KEY *ec = EVP_PKEY_get0_EC_KEY(pkey);
-        return EC_GROUP_get_curve_name(EC_KEY_get0_group(ec));
+        const EC_KEY *ec = VR_EVP_PKEY_get0_EC_KEY(pkey);
+        return VR_EC_GROUP_get_curve_name(VR_EC_KEY_get0_group(ec));
     }
 #endif
     return nid;
@@ -1272,12 +1272,12 @@ static int pkey_type(EVP_PKEY *pkey)
 
 static int peer_pkey_type(SSL *s)
 {
-    X509 *x = SSL_get_peer_certificate(s);
+    X509 *x = VR_SSL_get_peer_certificate(s);
 
     if (x != NULL) {
-        int nid = pkey_type(X509_get0_pubkey(x));
+        int nid = pkey_type(VR_X509_get0_pubkey(x));
 
-        X509_free(x);
+        VR_X509_free(x);
         return nid;
     }
     return NID_undef;
@@ -1308,15 +1308,15 @@ static int set_sock_as_sctp(int sock)
 
     /*
      * For SCTP we have to set various options on the socket prior to
-     * connecting. This is done automatically by BIO_new_dgram_sctp().
+     * connecting. This is done automatically by VR_BIO_new_dgram_sctp().
      * We don't actually need the created BIO though so we free it again
      * immediately.
      */
-    tmpbio = BIO_new_dgram_sctp(sock, BIO_NOCLOSE);
+    tmpbio = VR_BIO_new_dgram_sctp(sock, BIO_NOCLOSE);
 
     if (tmpbio == NULL)
         return 0;
-    BIO_free(tmpbio);
+    VR_BIO_free(tmpbio);
 
     return 1;
 }
@@ -1330,7 +1330,7 @@ static int create_sctp_socks(int *ssock, int *csock)
     int ret = 0;
     int family = 0;
 
-    if (BIO_sock_init() != 1)
+    if (VR_BIO_sock_init() != 1)
         return 0;
 
     /*
@@ -1338,24 +1338,24 @@ static int create_sctp_socks(int *ssock, int *csock)
      * used for some other SCTP service. It seems unlikely though so we don't
      * worry about it here.
      */
-    if (!BIO_lookup_ex(NULL, "4463", BIO_LOOKUP_SERVER, family, SOCK_STREAM,
+    if (!VR_BIO_lookup_ex(NULL, "4463", BIO_LOOKUP_SERVER, family, SOCK_STREAM,
                        IPPROTO_SCTP, &res))
         return 0;
 
-    for (ai = res; ai != NULL; ai = BIO_ADDRINFO_next(ai)) {
-        family = BIO_ADDRINFO_family(ai);
-        lsock = BIO_socket(family, SOCK_STREAM, IPPROTO_SCTP, 0);
+    for (ai = res; ai != NULL; ai = VR_BIO_ADDRINFO_next(ai)) {
+        family = VR_BIO_ADDRINFO_family(ai);
+        lsock = VR_BIO_socket(family, SOCK_STREAM, IPPROTO_SCTP, 0);
         if (lsock == INVALID_SOCKET) {
             /* Maybe the kernel doesn't support the socket family, even if
-             * BIO_lookup() added it in the returned result...
+             * VR_BIO_lookup() added it in the returned result...
              */
             continue;
         }
 
         if (!set_sock_as_sctp(lsock)
-                || !BIO_listen(lsock, BIO_ADDRINFO_address(ai),
+                || !VR_BIO_listen(lsock, VR_BIO_ADDRINFO_address(ai),
                                BIO_SOCK_REUSEADDR)) {
-            BIO_closesocket(lsock);
+            VR_BIO_closesocket(lsock);
             lsock = INVALID_SOCKET;
             continue;
         }
@@ -1367,23 +1367,23 @@ static int create_sctp_socks(int *ssock, int *csock)
     if (lsock == INVALID_SOCKET)
         goto err;
 
-    BIO_ADDRINFO_free(res);
+    VR_BIO_ADDRINFO_free(res);
     res = NULL;
 
-    if (!BIO_lookup_ex(NULL, "4463", BIO_LOOKUP_CLIENT, family, SOCK_STREAM,
+    if (!VR_BIO_lookup_ex(NULL, "4463", BIO_LOOKUP_CLIENT, family, SOCK_STREAM,
                         IPPROTO_SCTP, &res))
         goto err;
 
-    consock = BIO_socket(family, SOCK_STREAM, IPPROTO_SCTP, 0);
+    consock = VR_BIO_socket(family, SOCK_STREAM, IPPROTO_SCTP, 0);
     if (consock == INVALID_SOCKET)
         goto err;
 
     if (!set_sock_as_sctp(consock)
-            || !BIO_connect(consock, BIO_ADDRINFO_address(res), 0)
-            || !BIO_socket_nbio(consock, 1))
+            || !VR_BIO_connect(consock, VR_BIO_ADDRINFO_address(res), 0)
+            || !VR_BIO_socket_nbio(consock, 1))
         goto err;
 
-    asock = BIO_accept_ex(lsock, NULL, BIO_SOCK_NONBLOCK);
+    asock = VR_BIO_accept_ex(lsock, NULL, BIO_SOCK_NONBLOCK);
     if (asock == INVALID_SOCKET)
         goto err;
 
@@ -1393,13 +1393,13 @@ static int create_sctp_socks(int *ssock, int *csock)
     ret = 1;
 
  err:
-    BIO_ADDRINFO_free(res);
+    VR_BIO_ADDRINFO_free(res);
     if (consock != INVALID_SOCKET)
-        BIO_closesocket(consock);
+        VR_BIO_closesocket(consock);
     if (lsock != INVALID_SOCKET)
-        BIO_closesocket(lsock);
+        VR_BIO_closesocket(lsock);
     if (asock != INVALID_SOCKET)
-        BIO_closesocket(asock);
+        VR_BIO_closesocket(asock);
     return ret;
 }
 #endif
@@ -1484,12 +1484,12 @@ static HANDSHAKE_RESULT *do_handshake_internal(
 
     configure_handshake_ssl(server.ssl, client.ssl, extra);
     if (session_in != NULL) {
-        SSL_SESSION_get_id(serv_sess_in, &sess_id_len);
+        VR_SSL_SESSION_get_id(serv_sess_in, &sess_id_len);
         /* In case we're testing resumption without tickets. */
         if ((sess_id_len > 0
-                    && !TEST_true(SSL_CTX_add_session(server_ctx,
+                    && !TEST_true(VR_SSL_CTX_add_session(server_ctx,
                                                       serv_sess_in)))
-                || !TEST_true(SSL_set_session(client.ssl, session_in)))
+                || !TEST_true(VR_SSL_set_session(client.ssl, session_in)))
             goto err;
         sess_id_len = 0;
     }
@@ -1501,13 +1501,13 @@ static HANDSHAKE_RESULT *do_handshake_internal(
         int csock, ssock;
 
         if (create_sctp_socks(&ssock, &csock)) {
-            client_to_server = BIO_new_dgram_sctp(csock, BIO_CLOSE);
-            server_to_client = BIO_new_dgram_sctp(ssock, BIO_CLOSE);
+            client_to_server = VR_BIO_new_dgram_sctp(csock, BIO_CLOSE);
+            server_to_client = VR_BIO_new_dgram_sctp(ssock, BIO_CLOSE);
         }
 #endif
     } else {
-        client_to_server = BIO_new(BIO_s_mem());
-        server_to_client = BIO_new(BIO_s_mem());
+        client_to_server = VR_BIO_new(VR_BIO_s_mem());
+        server_to_client = VR_BIO_new(VR_BIO_s_mem());
     }
 
     if (!TEST_ptr(client_to_server)
@@ -1518,29 +1518,29 @@ static HANDSHAKE_RESULT *do_handshake_internal(
     BIO_set_nbio(client_to_server, 1);
     BIO_set_nbio(server_to_client, 1);
 
-    SSL_set_connect_state(client.ssl);
-    SSL_set_accept_state(server.ssl);
+    VR_SSL_set_connect_state(client.ssl);
+    VR_SSL_set_accept_state(server.ssl);
 
     /* The bios are now owned by the SSL object. */
     if (test_ctx->use_sctp) {
-        SSL_set_bio(client.ssl, client_to_server, client_to_server);
-        SSL_set_bio(server.ssl, server_to_client, server_to_client);
+        VR_SSL_set_bio(client.ssl, client_to_server, client_to_server);
+        VR_SSL_set_bio(server.ssl, server_to_client, server_to_client);
     } else {
-        SSL_set_bio(client.ssl, server_to_client, client_to_server);
-        if (!TEST_int_gt(BIO_up_ref(server_to_client), 0)
-                || !TEST_int_gt(BIO_up_ref(client_to_server), 0))
+        VR_SSL_set_bio(client.ssl, server_to_client, client_to_server);
+        if (!TEST_int_gt(VR_BIO_up_ref(server_to_client), 0)
+                || !TEST_int_gt(VR_BIO_up_ref(client_to_server), 0))
             goto err;
-        SSL_set_bio(server.ssl, client_to_server, server_to_client);
+        VR_SSL_set_bio(server.ssl, client_to_server, server_to_client);
     }
 
     ex_data_idx = SSL_get_ex_new_index(0, "ex data", NULL, NULL, NULL);
     if (!TEST_int_ge(ex_data_idx, 0)
-            || !TEST_int_eq(SSL_set_ex_data(server.ssl, ex_data_idx, &server_ex_data), 1)
-            || !TEST_int_eq(SSL_set_ex_data(client.ssl, ex_data_idx, &client_ex_data), 1))
+            || !TEST_int_eq(VR_SSL_set_ex_data(server.ssl, ex_data_idx, &server_ex_data), 1)
+            || !TEST_int_eq(VR_SSL_set_ex_data(client.ssl, ex_data_idx, &client_ex_data), 1))
         goto err;
 
-    SSL_set_info_callback(server.ssl, &info_cb);
-    SSL_set_info_callback(client.ssl, &info_cb);
+    VR_SSL_set_info_callback(server.ssl, &info_cb);
+    VR_SSL_set_info_callback(client.ssl, &info_cb);
 
     client.status = PEER_RETRY;
     server.status = PEER_WAITING;
@@ -1646,18 +1646,18 @@ static HANDSHAKE_RESULT *do_handshake_internal(
     ret->client_alert_sent = client_ex_data.alert_sent;
     ret->client_num_fatal_alerts_sent = client_ex_data.num_fatal_alerts_sent;
     ret->client_alert_received = server_ex_data.alert_received;
-    ret->server_protocol = SSL_version(server.ssl);
-    ret->client_protocol = SSL_version(client.ssl);
+    ret->server_protocol = VR_SSL_version(server.ssl);
+    ret->client_protocol = VR_SSL_version(client.ssl);
     ret->servername = server_ex_data.servername;
     if ((sess = SSL_get0_session(client.ssl)) != NULL) {
-        SSL_SESSION_get0_ticket(sess, &tick, &tick_len);
-        sess_id = SSL_SESSION_get_id(sess, &sess_id_len);
+        VR_SSL_SESSION_get0_ticket(sess, &tick, &tick_len);
+        sess_id = VR_SSL_SESSION_get_id(sess, &sess_id_len);
     }
     if (tick == NULL || tick_len == 0)
         ret->session_ticket = SSL_TEST_SESSION_TICKET_NO;
     else
         ret->session_ticket = SSL_TEST_SESSION_TICKET_YES;
-    ret->compression = (SSL_get_current_compression(client.ssl) == NULL)
+    ret->compression = (VR_SSL_get_current_compression(client.ssl) == NULL)
                        ? SSL_TEST_COMPRESSION_NO
                        : SSL_TEST_COMPRESSION_YES;
     if (sess_id == NULL || sess_id_len == 0)
@@ -1667,65 +1667,65 @@ static HANDSHAKE_RESULT *do_handshake_internal(
     ret->session_ticket_do_not_call = server_ex_data.session_ticket_do_not_call;
 
 #ifndef OPENSSL_NO_NEXTPROTONEG
-    SSL_get0_next_proto_negotiated(client.ssl, &proto, &proto_len);
+    VR_SSL_get0_next_proto_negotiated(client.ssl, &proto, &proto_len);
     ret->client_npn_negotiated = dup_str(proto, proto_len);
 
-    SSL_get0_next_proto_negotiated(server.ssl, &proto, &proto_len);
+    VR_SSL_get0_next_proto_negotiated(server.ssl, &proto, &proto_len);
     ret->server_npn_negotiated = dup_str(proto, proto_len);
 #endif
 
-    SSL_get0_alpn_selected(client.ssl, &proto, &proto_len);
+    VR_SSL_get0_alpn_selected(client.ssl, &proto, &proto_len);
     ret->client_alpn_negotiated = dup_str(proto, proto_len);
 
-    SSL_get0_alpn_selected(server.ssl, &proto, &proto_len);
+    VR_SSL_get0_alpn_selected(server.ssl, &proto, &proto_len);
     ret->server_alpn_negotiated = dup_str(proto, proto_len);
 
     if ((sess = SSL_get0_session(server.ssl)) != NULL) {
-        SSL_SESSION_get0_ticket_appdata(sess, (void**)&tick, &tick_len);
+        VR_SSL_SESSION_get0_ticket_appdata(sess, (void**)&tick, &tick_len);
         ret->result_session_ticket_app_data = OPENSSL_strndup((const char*)tick, tick_len);
     }
 
-    ret->client_resumed = SSL_session_reused(client.ssl);
-    ret->server_resumed = SSL_session_reused(server.ssl);
+    ret->client_resumed = VR_SSL_session_reused(client.ssl);
+    ret->server_resumed = VR_SSL_session_reused(server.ssl);
 
-    cipher = SSL_CIPHER_get_name(SSL_get_current_cipher(client.ssl));
+    cipher = VR_SSL_CIPHER_get_name(VR_SSL_get_current_cipher(client.ssl));
     ret->cipher = dup_str((const unsigned char*)cipher, strlen(cipher));
 
     if (session_out != NULL)
-        *session_out = SSL_get1_session(client.ssl);
+        *session_out = VR_SSL_get1_session(client.ssl);
     if (serv_sess_out != NULL) {
-        SSL_SESSION *tmp = SSL_get_session(server.ssl);
+        SSL_SESSION *tmp = VR_SSL_get_session(server.ssl);
 
         /*
          * We create a fresh copy that is not in the server session ctx linked
          * list.
          */
         if (tmp != NULL)
-            *serv_sess_out = SSL_SESSION_dup(tmp);
+            *serv_sess_out = VR_SSL_SESSION_dup(tmp);
     }
 
     if (SSL_get_peer_tmp_key(client.ssl, &tmp_key)) {
         ret->tmp_key_type = pkey_type(tmp_key);
-        EVP_PKEY_free(tmp_key);
+        VR_EVP_PKEY_free(tmp_key);
     }
 
     SSL_get_peer_signature_nid(client.ssl, &ret->server_sign_hash);
     SSL_get_peer_signature_nid(server.ssl, &ret->client_sign_hash);
 
-    SSL_get_peer_signature_type_nid(client.ssl, &ret->server_sign_type);
-    SSL_get_peer_signature_type_nid(server.ssl, &ret->client_sign_type);
+    VR_SSL_get_peer_signature_type_nid(client.ssl, &ret->server_sign_type);
+    VR_SSL_get_peer_signature_type_nid(server.ssl, &ret->client_sign_type);
 
-    names = SSL_get0_peer_CA_list(client.ssl);
+    names = VR_SSL_get0_peer_CA_list(client.ssl);
     if (names == NULL)
         ret->client_ca_names = NULL;
     else
-        ret->client_ca_names = SSL_dup_CA_list(names);
+        ret->client_ca_names = VR_SSL_dup_CA_list(names);
 
-    names = SSL_get0_peer_CA_list(server.ssl);
+    names = VR_SSL_get0_peer_CA_list(server.ssl);
     if (names == NULL)
         ret->server_ca_names = NULL;
     else
-        ret->server_ca_names = SSL_dup_CA_list(names);
+        ret->server_ca_names = VR_SSL_dup_CA_list(names);
 
     ret->server_cert_type = peer_pkey_type(client.ssl);
     ret->client_cert_type = peer_pkey_type(server.ssl);
@@ -1766,7 +1766,7 @@ HANDSHAKE_RESULT *do_handshake(SSL_CTX *server_ctx, SSL_CTX *server2_ctx,
                                    test_ctx, &test_ctx->resume_extra,
                                    session, serv_sess, NULL, NULL);
  end:
-    SSL_SESSION_free(session);
-    SSL_SESSION_free(serv_sess);
+    VR_SSL_SESSION_free(session);
+    VR_SSL_SESSION_free(serv_sess);
     return result;
 }

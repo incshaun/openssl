@@ -18,7 +18,7 @@
 #
 # April 2015
 #
-# Numbers are cycles per processed byte with poly1305_blocks alone,
+# Numbers are cycles per processed byte with VR_poly1305_blocks alone,
 # measured with rdtsc at fixed clock frequency.
 #
 #		IALU/gcc-3.4(*)	SSE2(**)	AVX2
@@ -84,7 +84,7 @@ if ($sse2) {
 #	unsigned __int32 r[4];		# key value base 2^32
 
 &align(64);
-&function_begin("poly1305_init");
+&function_begin("VR_poly1305_init");
 	&mov	("edi",&wparam(0));		# context
 	&mov	("esi",&wparam(1));		# key
 	&mov	("ebp",&wparam(2));		# function table
@@ -105,8 +105,8 @@ if ($sse2) {
     &set_label("pic_point");
 	&blindpop("ebx");
 
-	&lea	("eax",&DWP("poly1305_blocks-".&label("pic_point"),"ebx"));
-	&lea	("edx",&DWP("poly1305_emit-".&label("pic_point"),"ebx"));
+	&lea	("eax",&DWP("VR_poly1305_blocks-".&label("pic_point"),"ebx"));
+	&lea	("edx",&DWP("VR_poly1305_emit-".&label("pic_point"),"ebx"));
 
 	&picmeup("edi","OPENSSL_ia32cap_P","ebx",&label("pic_point"));
 	&mov	("ecx",&DWP(0,"edi"));
@@ -114,15 +114,15 @@ if ($sse2) {
 	&cmp	("ecx",1<<26|1<<24);		# SSE2 and XMM?
 	&jne	(&label("no_sse2"));
 
-	&lea	("eax",&DWP("_poly1305_blocks_sse2-".&label("pic_point"),"ebx"));
-	&lea	("edx",&DWP("_poly1305_emit_sse2-".&label("pic_point"),"ebx"));
+	&lea	("eax",&DWP("_VR_poly1305_blocks_sse2-".&label("pic_point"),"ebx"));
+	&lea	("edx",&DWP("_VR_poly1305_emit_sse2-".&label("pic_point"),"ebx"));
 
       if ($avx>1) {
 	&mov	("ecx",&DWP(8,"edi"));
 	&test	("ecx",1<<5);			# AVX2?
 	&jz	(&label("no_sse2"));
 
-	&lea	("eax",&DWP("_poly1305_blocks_avx2-".&label("pic_point"),"ebx"));
+	&lea	("eax",&DWP("_VR_poly1305_blocks_avx2-".&label("pic_point"),"ebx"));
       }
     &set_label("no_sse2");
 	&mov	("edi",&wparam(0));		# reload context
@@ -145,14 +145,14 @@ if ($sse2) {
 
 	&mov	("eax",$sse2);
 &set_label("nokey");
-&function_end("poly1305_init");
+&function_end("VR_poly1305_init");
 
 ($h0,$h1,$h2,$h3,$h4,
  $d0,$d1,$d2,$d3,
  $r0,$r1,$r2,$r3,
      $s1,$s2,$s3)=map(4*$_,(0..15));
 
-&function_begin("poly1305_blocks");
+&function_begin("VR_poly1305_blocks");
 	&mov	("edi",&wparam(0));		# ctx
 	&mov	("esi",&wparam(1));		# inp
 	&mov	("ecx",&wparam(2));		# len
@@ -321,9 +321,9 @@ if ($sse2) {
 	&mov	(&DWP(4*3,"edx"),"esi");
 	&mov	(&DWP(4*4,"edx"),"edi");
 &set_label("nodata");
-&function_end("poly1305_blocks");
+&function_end("VR_poly1305_blocks");
 
-&function_begin("poly1305_emit");
+&function_begin("VR_poly1305_emit");
 	&mov	("ebp",&wparam(0));		# context
 &set_label("enter_emit");
 	&mov	("edi",&wparam(1));		# output
@@ -374,7 +374,7 @@ if ($sse2) {
 	&mov	(&DWP(4*1,"edi"),"ebx");
 	&mov	(&DWP(4*2,"edi"),"ecx");
 	&mov	(&DWP(4*3,"edi"),"edx");
-&function_end("poly1305_emit");
+&function_end("VR_poly1305_emit");
 
 if ($sse2) {
 ########################################################################
@@ -394,7 +394,7 @@ my ($D0,$D1,$D2,$D3,$D4,$T0,$T1,$T2)=map("xmm$_",(0..7));
 my $MASK=$T2;	# borrow and keep in mind
 
 &align	(32);
-&function_begin_B("_poly1305_init_sse2");
+&function_begin_B("_VR_poly1305_init_sse2");
 	&movdqu		($D4,&QWP(4*6,"edi"));		# key base 2^32
 	&lea		("edi",&DWP(16*3,"edi"));	# size optimization
 	&mov		("ebp","esp");
@@ -648,10 +648,10 @@ my $extra = shift;
 	&mov		("esp","ebp");
 	&lea		("edi",&DWP(-16*3,"edi"));	# size de-optimization
 	&ret		();
-&function_end_B("_poly1305_init_sse2");
+&function_end_B("_VR_poly1305_init_sse2");
 
 &align	(32);
-&function_begin("_poly1305_blocks_sse2");
+&function_begin("_VR_poly1305_blocks_sse2");
 	&mov	("edi",&wparam(0));			# ctx
 	&mov	("esi",&wparam(1));			# inp
 	&mov	("ecx",&wparam(2));			# len
@@ -673,7 +673,7 @@ my $extra = shift;
 	&test	("eax","eax");				# is_base2_26?
 	&jnz	(&label("base2_26"));
 
-	&call	("_poly1305_init_sse2");
+	&call	("_VR_poly1305_init_sse2");
 
 	################################################# base 2^32 -> base 2^26
 	&mov	("eax",&DWP(0,"edi"));
@@ -1133,10 +1133,10 @@ my $addr = shift;
 	&movd		(&DWP(-16*3+4*4,"edi"),$D4);
 	&mov	("esp","ebp");
 &set_label("nodata");
-&function_end("_poly1305_blocks_sse2");
+&function_end("_VR_poly1305_blocks_sse2");
 
 &align	(32);
-&function_begin("_poly1305_emit_sse2");
+&function_begin("_VR_poly1305_emit_sse2");
 	&mov	("ebp",&wparam(0));		# context
 
 	&cmp	(&DWP(4*5,"ebp"),0);		# is_base2_26?
@@ -1227,15 +1227,15 @@ my $addr = shift;
 	&adc	("edx",&DWP(4*3,"ebp"));
 	&mov	(&DWP(4*2,"edi"),"ecx");
 	&mov	(&DWP(4*3,"edi"),"edx");
-&function_end("_poly1305_emit_sse2");
+&function_end("_VR_poly1305_emit_sse2");
 
 if ($avx>1) {
 ########################################################################
-# Note that poly1305_init_avx2 operates on %xmm, I could have used
-# poly1305_init_sse2...
+# Note that VR_poly1305_init_avx2 operates on %xmm, I could have used
+# VR_poly1305_init_sse2...
 
 &align	(32);
-&function_begin_B("_poly1305_init_avx2");
+&function_begin_B("_VR_poly1305_init_avx2");
 	&vmovdqu	($D4,&QWP(4*6,"edi"));		# key base 2^32
 	&lea		("edi",&DWP(16*3,"edi"));	# size optimization
 	&mov		("ebp","esp");
@@ -1430,7 +1430,7 @@ if ($avx>1) {
 	&mov		("esp","ebp");
 	&lea		("edi",&DWP(-16*3,"edi"));	# size de-optimization
 	&ret		();
-&function_end_B("_poly1305_init_avx2");
+&function_end_B("_VR_poly1305_init_avx2");
 
 ########################################################################
 # now it's time to switch to %ymm
@@ -1441,7 +1441,7 @@ my $MASK=$T2;
 sub X { my $reg=shift; $reg=~s/^ymm/xmm/; $reg; }
 
 &align	(32);
-&function_begin("_poly1305_blocks_avx2");
+&function_begin("_VR_poly1305_blocks_avx2");
 	&mov	("edi",&wparam(0));			# ctx
 	&mov	("esi",&wparam(1));			# inp
 	&mov	("ecx",&wparam(2));			# len
@@ -1465,7 +1465,7 @@ sub X { my $reg=shift; $reg=~s/^ymm/xmm/; $reg; }
 	&test	("eax","eax");				# is_base2_26?
 	&jnz	(&label("base2_26"));
 
-	&call	("_poly1305_init_avx2");
+	&call	("_VR_poly1305_init_avx2");
 
 	################################################# base 2^32 -> base 2^26
 	&mov	("eax",&DWP(0,"edi"));
@@ -1799,7 +1799,7 @@ sub vlazy_reduction {
 	&vzeroupper	();
 	&mov	("esp","ebp");
 &set_label("nodata");
-&function_end("_poly1305_blocks_avx2");
+&function_end("_VR_poly1305_blocks_avx2");
 }
 &set_label("const_sse2",64);
 	&data_word(1<<24,0,	1<<24,0,	1<<24,0,	1<<24,0);

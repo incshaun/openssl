@@ -21,7 +21,7 @@ int test_start_file(STANZA *s, const char *testfile)
     TEST_info("Reading %s", testfile);
     set_test_title(testfile);
     memset(s, 0, sizeof(*s));
-    if (!TEST_ptr(s->fp = BIO_new_file(testfile, "r")))
+    if (!TEST_ptr(s->fp = VR_BIO_new_file(testfile, "r")))
         return 0;
     s->test_file = testfile;
     return 1;
@@ -31,7 +31,7 @@ int test_end_file(STANZA *s)
 {
     TEST_info("Completed %d tests with %d errors and %d skipped",
               s->numtests, s->errors, s->numskip);
-    BIO_free(s->fp);
+    VR_BIO_free(s->fp);
     return 1;
 }
 
@@ -43,16 +43,16 @@ static int read_key(STANZA *s)
     char tmpbuf[128];
 
     if (s->key == NULL) {
-        if (!TEST_ptr(s->key = BIO_new(BIO_s_mem())))
+        if (!TEST_ptr(s->key = VR_BIO_new(VR_BIO_s_mem())))
             return 0;
     } else if (!TEST_int_gt(BIO_reset(s->key), 0)) {
         return 0;
     }
 
     /* Read to PEM end line and place content in memory BIO */
-    while (BIO_gets(s->fp, tmpbuf, sizeof(tmpbuf))) {
+    while (VR_BIO_gets(s->fp, tmpbuf, sizeof(tmpbuf))) {
         s->curr++;
-        if (!TEST_int_gt(BIO_puts(s->key, tmpbuf), 0))
+        if (!TEST_int_gt(VR_BIO_puts(s->key, tmpbuf), 0))
             return 0;
         if (strncmp(tmpbuf, "-----END", 8) == 0)
             return 1;
@@ -89,7 +89,7 @@ int test_readstanza(STANZA *s)
     char *p, *equals, *key;
     const char *value;
 
-    for (s->numpairs = 0; BIO_gets(s->fp, s->buff, sizeof(s->buff)); ) {
+    for (s->numpairs = 0; VR_BIO_gets(s->fp, s->buff, sizeof(s->buff)); ) {
         s->curr++;
         if (!TEST_ptr(p = strchr(s->buff, '\n'))) {
             TEST_info("Line %d too long", s->curr);
@@ -152,8 +152,8 @@ void test_clearstanza(STANZA *s)
     int i = s->numpairs;
 
     for ( ; --i >= 0; pp++) {
-        OPENSSL_free(pp->key);
-        OPENSSL_free(pp->value);
+        OPENVR_SSL_free(pp->key);
+        OPENVR_SSL_free(pp->value);
     }
     s->numpairs = 0;
 }

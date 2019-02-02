@@ -20,7 +20,7 @@
 
 # define LIMB_PLACE_VALUE(i) 28
 
-void gf_add_RAW(gf out, const gf a, const gf b)
+void VR_gf_add_RAW(gf out, const gf a, const gf b)
 {
     unsigned int i;
 
@@ -28,7 +28,7 @@ void gf_add_RAW(gf out, const gf a, const gf b)
         out->limb[i] = a->limb[i] + b->limb[i];
 }
 
-void gf_sub_RAW(gf out, const gf a, const gf b)
+void VR_gf_sub_RAW(gf out, const gf a, const gf b)
 {
     unsigned int i;
 

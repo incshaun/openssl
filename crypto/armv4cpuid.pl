@@ -31,9 +31,9 @@ $code.=<<___;
 #endif
 
 .align	5
-.global	OPENSSL_atomic_add
-.type	OPENSSL_atomic_add,%function
-OPENSSL_atomic_add:
+.global	VR_OPENSSL_atomic_add
+.type	VR_OPENSSL_atomic_add,%function
+VR_OPENSSL_atomic_add:
 #if __ARM_ARCH__>=6
 .Ladd:	ldrex	r2,[r0]
 	add	r3,r2,r1
@@ -65,11 +65,11 @@ OPENSSL_atomic_add:
 	moveq	pc,lr
 	.word	0xe12fff1e	@ bx	lr
 #endif
-.size	OPENSSL_atomic_add,.-OPENSSL_atomic_add
+.size	VR_OPENSSL_atomic_add,.-VR_OPENSSL_atomic_add
 
-.global	OPENSSL_cleanse
-.type	OPENSSL_cleanse,%function
-OPENSSL_cleanse:
+.global	VR_OPENSSL_cleanse
+.type	VR_OPENSSL_cleanse,%function
+VR_OPENSSL_cleanse:
 	eor	ip,ip,ip
 	cmp	r1,#7
 #ifdef	__thumb2__
@@ -104,12 +104,12 @@ OPENSSL_cleanse:
 	moveq	pc,lr
 	.word	0xe12fff1e	@ bx	lr
 #endif
-.size	OPENSSL_cleanse,.-OPENSSL_cleanse
+.size	VR_OPENSSL_cleanse,.-VR_OPENSSL_cleanse
 
-.global	CRYPTO_memcmp
-.type	CRYPTO_memcmp,%function
+.global	VR_CRYPTO_memcmp
+.type	VR_CRYPTO_memcmp,%function
 .align	4
-CRYPTO_memcmp:
+VR_CRYPTO_memcmp:
 	eor	ip,ip,ip
 	cmp	r2,#0
 	beq	.Lno_data
@@ -134,7 +134,7 @@ CRYPTO_memcmp:
 	moveq	pc,lr
 	.word	0xe12fff1e	@ bx	lr
 #endif
-.size	CRYPTO_memcmp,.-CRYPTO_memcmp
+.size	VR_CRYPTO_memcmp,.-VR_CRYPTO_memcmp
 
 #if __ARM_MAX_ARCH__>=7
 .arch	armv7-a
@@ -203,9 +203,9 @@ _armv8_pmull_probe:
 .size	_armv8_pmull_probe,.-_armv8_pmull_probe
 #endif
 
-.global	OPENSSL_wipe_cpu
-.type	OPENSSL_wipe_cpu,%function
-OPENSSL_wipe_cpu:
+.global	VR_OPENSSL_wipe_cpu
+.type	VR_OPENSSL_wipe_cpu,%function
+VR_OPENSSL_wipe_cpu:
 #if __ARM_MAX_ARCH__>=7
 	ldr	r0,.LOPENSSL_armcap
 	adr	r1,.LOPENSSL_armcap
@@ -242,11 +242,11 @@ OPENSSL_wipe_cpu:
 	moveq	pc,lr
 	.word	0xe12fff1e	@ bx	lr
 #endif
-.size	OPENSSL_wipe_cpu,.-OPENSSL_wipe_cpu
+.size	VR_OPENSSL_wipe_cpu,.-VR_OPENSSL_wipe_cpu
 
-.global	OPENSSL_instrument_bus
-.type	OPENSSL_instrument_bus,%function
-OPENSSL_instrument_bus:
+.global	VR_OPENSSL_instrument_bus
+.type	VR_OPENSSL_instrument_bus,%function
+VR_OPENSSL_instrument_bus:
 	eor	r0,r0,r0
 #if __ARM_ARCH__>=5
 	bx	lr
@@ -255,11 +255,11 @@ OPENSSL_instrument_bus:
 	moveq	pc,lr
 	.word	0xe12fff1e	@ bx	lr
 #endif
-.size	OPENSSL_instrument_bus,.-OPENSSL_instrument_bus
+.size	VR_OPENSSL_instrument_bus,.-VR_OPENSSL_instrument_bus
 
-.global	OPENSSL_instrument_bus2
-.type	OPENSSL_instrument_bus2,%function
-OPENSSL_instrument_bus2:
+.global	VR_OPENSSL_instrument_bus2
+.type	VR_OPENSSL_instrument_bus2,%function
+VR_OPENSSL_instrument_bus2:
 	eor	r0,r0,r0
 #if __ARM_ARCH__>=5
 	bx	lr
@@ -268,7 +268,7 @@ OPENSSL_instrument_bus2:
 	moveq	pc,lr
 	.word	0xe12fff1e	@ bx	lr
 #endif
-.size	OPENSSL_instrument_bus2,.-OPENSSL_instrument_bus2
+.size	VR_OPENSSL_instrument_bus2,.-VR_OPENSSL_instrument_bus2
 
 .align	5
 #if __ARM_MAX_ARCH__>=7

@@ -176,10 +176,10 @@ $code.=<<___;
 .text
 
 .extern	OPENSSL_armcap_P
-.globl	sha1_block_data_order
-.type	sha1_block_data_order,%function
+.globl	VR_sha1_block_data_order
+.type	VR_sha1_block_data_order,%function
 .align	6
-sha1_block_data_order:
+VR_sha1_block_data_order:
 #ifdef	__ILP32__
 	ldrsw	x16,.LOPENSSL_armcap_P
 #else
@@ -238,7 +238,7 @@ $code.=<<___;
 	ldp	x27,x28,[sp,#80]
 	ldr	x29,[sp],#96
 	ret
-.size	sha1_block_data_order,.-sha1_block_data_order
+.size	VR_sha1_block_data_order,.-VR_sha1_block_data_order
 ___
 {{{
 my ($ABCD,$E,$E0,$E1)=map("v$_.16b",(0..3));

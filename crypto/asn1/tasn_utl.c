@@ -26,7 +26,7 @@
  * Given an ASN1_ITEM CHOICE type return the selector value
  */
 
-int asn1_get_choice_selector(ASN1_VALUE **pval, const ASN1_ITEM *it)
+int VR_asn1_get_choice_selector(ASN1_VALUE **pval, const ASN1_ITEM *it)
 {
     int *sel = offset2ptr(*pval, it->utype);
     return *sel;
@@ -36,7 +36,7 @@ int asn1_get_choice_selector(ASN1_VALUE **pval, const ASN1_ITEM *it)
  * Given an ASN1_ITEM CHOICE type set the selector value, return old value.
  */
 
-int asn1_set_choice_selector(ASN1_VALUE **pval, int value,
+int VR_asn1_set_choice_selector(ASN1_VALUE **pval, int value,
                              const ASN1_ITEM *it)
 {
     int *sel, ret;
@@ -55,7 +55,7 @@ int asn1_set_choice_selector(ASN1_VALUE **pval, int value,
  * It returns -1 on initialisation error.
  * Used by ASN1_SEQUENCE construct of X509, X509_REQ, X509_CRL objects
  */
-int asn1_do_lock(ASN1_VALUE **pval, int op, const ASN1_ITEM *it)
+int VR_asn1_do_lock(ASN1_VALUE **pval, int op, const ASN1_ITEM *it)
 {
     const ASN1_AUX *aux;
     CRYPTO_REF_COUNT *lck;
@@ -74,7 +74,7 @@ int asn1_do_lock(ASN1_VALUE **pval, int op, const ASN1_ITEM *it)
     switch (op) {
     case 0:
         *lck = ret = 1;
-        *lock = CRYPTO_THREAD_lock_new();
+        *lock = VR_CRYPTO_THREAD_lock_new();
         if (*lock == NULL) {
             ASN1err(ASN1_F_ASN1_DO_LOCK, ERR_R_MALLOC_FAILURE);
             return -1;
@@ -92,7 +92,7 @@ int asn1_do_lock(ASN1_VALUE **pval, int op, const ASN1_ITEM *it)
 #endif
         REF_ASSERT_ISNT(ret < 0);
         if (ret == 0) {
-            CRYPTO_THREAD_lock_free(*lock);
+            VR_CRYPTO_THREAD_lock_free(*lock);
             *lock = NULL;
         }
         break;
@@ -112,7 +112,7 @@ static ASN1_ENCODING *asn1_get_enc_ptr(ASN1_VALUE **pval, const ASN1_ITEM *it)
     return offset2ptr(*pval, aux->enc_offset);
 }
 
-void asn1_enc_init(ASN1_VALUE **pval, const ASN1_ITEM *it)
+void VR_asn1_enc_init(ASN1_VALUE **pval, const ASN1_ITEM *it)
 {
     ASN1_ENCODING *enc;
     enc = asn1_get_enc_ptr(pval, it);
@@ -123,19 +123,19 @@ void asn1_enc_init(ASN1_VALUE **pval, const ASN1_ITEM *it)
     }
 }
 
-void asn1_enc_free(ASN1_VALUE **pval, const ASN1_ITEM *it)
+void VR_asn1_enc_free(ASN1_VALUE **pval, const ASN1_ITEM *it)
 {
     ASN1_ENCODING *enc;
     enc = asn1_get_enc_ptr(pval, it);
     if (enc) {
-        OPENSSL_free(enc->enc);
+        OPENVR_SSL_free(enc->enc);
         enc->enc = NULL;
         enc->len = 0;
         enc->modified = 1;
     }
 }
 
-int asn1_enc_save(ASN1_VALUE **pval, const unsigned char *in, int inlen,
+int VR_asn1_enc_save(ASN1_VALUE **pval, const unsigned char *in, int inlen,
                   const ASN1_ITEM *it)
 {
     ASN1_ENCODING *enc;
@@ -143,7 +143,7 @@ int asn1_enc_save(ASN1_VALUE **pval, const unsigned char *in, int inlen,
     if (!enc)
         return 1;
 
-    OPENSSL_free(enc->enc);
+    OPENVR_SSL_free(enc->enc);
     if ((enc->enc = OPENSSL_malloc(inlen)) == NULL) {
         ASN1err(ASN1_F_ASN1_ENC_SAVE, ERR_R_MALLOC_FAILURE);
         return 0;
@@ -155,7 +155,7 @@ int asn1_enc_save(ASN1_VALUE **pval, const unsigned char *in, int inlen,
     return 1;
 }
 
-int asn1_enc_restore(int *len, unsigned char **out, ASN1_VALUE **pval,
+int VR_asn1_enc_restore(int *len, unsigned char **out, ASN1_VALUE **pval,
                      const ASN1_ITEM *it)
 {
     ASN1_ENCODING *enc;
@@ -172,7 +172,7 @@ int asn1_enc_restore(int *len, unsigned char **out, ASN1_VALUE **pval,
 }
 
 /* Given an ASN1_TEMPLATE get a pointer to a field */
-ASN1_VALUE **asn1_get_field_ptr(ASN1_VALUE **pval, const ASN1_TEMPLATE *tt)
+ASN1_VALUE **VR_asn1_get_field_ptr(ASN1_VALUE **pval, const ASN1_TEMPLATE *tt)
 {
     ASN1_VALUE **pvaltmp;
     pvaltmp = offset2ptr(*pval, tt->offset);
@@ -188,7 +188,7 @@ ASN1_VALUE **asn1_get_field_ptr(ASN1_VALUE **pval, const ASN1_TEMPLATE *tt)
  * ASN1_TEMPLATE in the table and return it.
  */
 
-const ASN1_TEMPLATE *asn1_do_adb(ASN1_VALUE **pval, const ASN1_TEMPLATE *tt,
+const ASN1_TEMPLATE *VR_asn1_do_adb(ASN1_VALUE **pval, const ASN1_TEMPLATE *tt,
                                  int nullerr)
 {
     const ASN1_ADB *adb;
@@ -217,9 +217,9 @@ const ASN1_TEMPLATE *asn1_do_adb(ASN1_VALUE **pval, const ASN1_TEMPLATE *tt,
      * might be a legitimate value in the table
      */
     if (tt->flags & ASN1_TFLG_ADB_OID)
-        selector = OBJ_obj2nid((ASN1_OBJECT *)*sfld);
+        selector = VR_OBJ_obj2nid((ASN1_OBJECT *)*sfld);
     else
-        selector = ASN1_INTEGER_get((ASN1_INTEGER *)*sfld);
+        selector = VR_ASN1_INTEGER_get((ASN1_INTEGER *)*sfld);
 
     /* Let application callback translate value */
     if (adb->adb_cb != NULL && adb->adb_cb(&selector) == 0) {

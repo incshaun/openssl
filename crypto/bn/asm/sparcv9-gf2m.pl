@@ -16,7 +16,7 @@
 #
 # October 2012
 #
-# The module implements bn_GF2m_mul_2x2 polynomial multiplication used
+# The module implements VR_bn_GF2m_mul_2x2 polynomial multiplication used
 # in bn_gf2m.c. It's kind of low-hanging mechanical port from C for
 # the time being... Except that it has two code paths: one suitable
 # for all SPARCv9 processors and one for VIS3-capable ones. Former
@@ -50,9 +50,9 @@ $code.=<<___;
 SPARC_PIC_THUNK(%g1)
 #endif
 
-.globl	bn_GF2m_mul_2x2
+.globl	VR_bn_GF2m_mul_2x2
 .align	16
-bn_GF2m_mul_2x2:
+VR_bn_GF2m_mul_2x2:
         SPARC_LOAD_ADDRESS_LEAF(OPENSSL_sparcv9cap_P,%g1,%g5)
         ld	[%g1+0],%g1             	! OPENSSL_sparcv9cap_P[0]
 
@@ -189,8 +189,8 @@ $code.=<<___;
 
 	ret
 	restore
-.type	bn_GF2m_mul_2x2,#function
-.size	bn_GF2m_mul_2x2,.-bn_GF2m_mul_2x2
+.type	VR_bn_GF2m_mul_2x2,#function
+.size	VR_bn_GF2m_mul_2x2,.-VR_bn_GF2m_mul_2x2
 .asciz	"GF(2^m) Multiplication for SPARCv9, CRYPTOGAMS by <appro\@openssl.org>"
 .align	4
 ___

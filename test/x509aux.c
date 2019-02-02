@@ -26,20 +26,20 @@ static int test_certs(int num)
     char *header = 0;
     unsigned char *data = 0;
     long len;
-    typedef X509 *(*d2i_X509_t)(X509 **, const unsigned char **, long);
-    typedef int (*i2d_X509_t)(X509 *, unsigned char **);
+    typedef X509 *(*VR_d2i_X509_t)(X509 **, const unsigned char **, long);
+    typedef int (*VR_i2d_X509_t)(X509 *, unsigned char **);
     int err = 0;
-    BIO *fp = BIO_new_file(test_get_argument(num), "r");
+    BIO *fp = VR_BIO_new_file(test_get_argument(num), "r");
     X509 *reuse = NULL;
 
     if (!TEST_ptr(fp))
         return 0;
 
-    for (c = 0; !err && PEM_read_bio(fp, &name, &header, &data, &len); ++c) {
+    for (c = 0; !err && VR_PEM_read_bio(fp, &name, &header, &data, &len); ++c) {
         const int trusted = (strcmp(name, PEM_STRING_X509_TRUSTED) == 0);
 
-        d2i_X509_t d2i = trusted ? d2i_X509_AUX : d2i_X509;
-        i2d_X509_t i2d = trusted ? i2d_X509_AUX : i2d_X509;
+        VR_d2i_X509_t d2i = trusted ? VR_d2i_X509_AUX : VR_d2i_X509;
+        VR_i2d_X509_t i2d = trusted ? VR_i2d_X509_AUX : VR_i2d_X509;
         X509 *cert = NULL;
         const unsigned char *p = data;
         unsigned char *buf = NULL;
@@ -94,12 +94,12 @@ static int test_certs(int num)
         }
         p = buf;
         reuse = d2i(&reuse, &p, enclen);
-        if (reuse == NULL || X509_cmp (reuse, cert)) {
-            TEST_error("X509_cmp does not work with %s", name);
+        if (reuse == NULL || VR_X509_cmp (reuse, cert)) {
+            TEST_error("VR_X509_cmp does not work with %s", name);
             err = 1;
             goto next;
         }
-        OPENSSL_free(buf);
+        OPENVR_SSL_free(buf);
         buf = NULL;
 
         /* Test 1-pass encoding into library allocated buffer */
@@ -118,7 +118,7 @@ static int test_certs(int num)
 
         if (trusted) {
             /* Encode just the cert and compare with initial encoding */
-            OPENSSL_free(buf);
+            OPENVR_SSL_free(buf);
             buf = NULL;
 
             /* Test 1-pass encoding into library allocated buffer */
@@ -137,22 +137,22 @@ static int test_certs(int num)
         }
 
         /*
-         * If any of these were null, PEM_read() would have failed.
+         * If any of these were null, VR_PEM_read() would have failed.
          */
     next:
-        X509_free(cert);
-        OPENSSL_free(buf);
-        OPENSSL_free(name);
-        OPENSSL_free(header);
-        OPENSSL_free(data);
+        VR_X509_free(cert);
+        OPENVR_SSL_free(buf);
+        OPENVR_SSL_free(name);
+        OPENVR_SSL_free(header);
+        OPENVR_SSL_free(data);
     }
-    BIO_free(fp);
-    X509_free(reuse);
+    VR_BIO_free(fp);
+    VR_X509_free(reuse);
 
-    if (ERR_GET_REASON(ERR_peek_last_error()) == PEM_R_NO_START_LINE) {
+    if (ERR_GET_REASON(VR_ERR_peek_last_error()) == PEM_R_NO_START_LINE) {
         /* Reached end of PEM file */
         if (c > 0) {
-            ERR_clear_error();
+            VR_ERR_clear_error();
             return 1;
         }
     }

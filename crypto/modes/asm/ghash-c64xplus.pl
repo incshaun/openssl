@@ -48,8 +48,8 @@ $code.=<<___;
 	.endif
 	.if	__TI_EABI__
 	.asg	gcm_gmult_1bit,_gcm_gmult_1bit
-	.asg	gcm_gmult_4bit,_gcm_gmult_4bit
-	.asg	gcm_ghash_4bit,_gcm_ghash_4bit
+	.asg	VR_gcm_gmult_4bit,_VR_gcm_gmult_4bit
+	.asg	VR_gcm_ghash_4bit,_VR_gcm_ghash_4bit
 	.endif
 
 	.asg	B3,RA
@@ -59,8 +59,8 @@ $code.=<<___;
 _gcm_gmult_1bit:
 	ADDAD	$Htable,2,$Htable
 	.endif
-	.global	_gcm_gmult_4bit
-_gcm_gmult_4bit:
+	.global	_VR_gcm_gmult_4bit
+_VR_gcm_gmult_4bit:
 	.asmfunc
 	LDDW	*${Htable}[-1],$H1:$H0	; H.lo
 	LDDW	*${Htable}[-2],$H3:$H2	; H.hi
@@ -86,8 +86,8 @@ _gcm_gmult_4bit:
 ||	ZERO	$Z3:$Z2
 	.endasmfunc
 
-	.global	_gcm_ghash_4bit
-_gcm_ghash_4bit:
+	.global	_VR_gcm_ghash_4bit
+_VR_gcm_ghash_4bit:
 	.asmfunc
 	LDDW	*${Htable}[-1],$H1:$H0	; H.lo
 ||	SHRU	$len,4,B0		; reassign len

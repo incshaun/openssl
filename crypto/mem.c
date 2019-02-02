@@ -24,11 +24,11 @@
 static int allow_customize = 1;
 
 static void *(*malloc_impl)(size_t, const char *, int)
-    = CRYPTO_malloc;
+    = VR_CRYPTO_malloc;
 static void *(*realloc_impl)(void *, size_t, const char *, int)
-    = CRYPTO_realloc;
+    = VR_CRYPTO_realloc;
 static void (*free_impl)(void *, const char *, int)
-    = CRYPTO_free;
+    = VR_CRYPTO_free;
 
 #ifndef OPENSSL_NO_CRYPTO_MDEBUG
 # include "internal/tsan_assist.h"
@@ -57,7 +57,7 @@ static int call_malloc_debug = 0;
 # define FAILTEST() /* empty */
 #endif
 
-int CRYPTO_set_mem_functions(
+int VR_CRYPTO_set_mem_functions(
         void *(*m)(size_t, const char *, int),
         void *(*r)(void *, size_t, const char *, int),
         void (*f)(void *, const char *, int))
@@ -73,7 +73,7 @@ int CRYPTO_set_mem_functions(
     return 1;
 }
 
-int CRYPTO_set_mem_debug(int flag)
+int VR_CRYPTO_set_mem_debug(int flag)
 {
     if (!allow_customize)
         return 0;
@@ -81,7 +81,7 @@ int CRYPTO_set_mem_debug(int flag)
     return 1;
 }
 
-void CRYPTO_get_mem_functions(
+void VR_CRYPTO_get_mem_functions(
         void *(**m)(size_t, const char *, int),
         void *(**r)(void *, size_t, const char *, int),
         void (**f)(void *, const char *, int))
@@ -152,7 +152,7 @@ static int shouldfail(void)
     char buff[80];
 
     if (md_tracefd > 0) {
-        BIO_snprintf(buff, sizeof(buff),
+        VR_BIO_snprintf(buff, sizeof(buff),
                      "%c C%ld %%%d R%d\n",
                      shoulditfail ? '-' : '+', md_count, md_fail_percent, roll);
         len = strlen(buff);
@@ -189,12 +189,12 @@ void ossl_malloc_setup_failures(void)
 }
 #endif
 
-void *CRYPTO_malloc(size_t num, const char *file, int line)
+void *VR_CRYPTO_malloc(size_t num, const char *file, int line)
 {
     void *ret = NULL;
 
     INCREMENT(malloc_count);
-    if (malloc_impl != NULL && malloc_impl != CRYPTO_malloc)
+    if (malloc_impl != NULL && malloc_impl != VR_CRYPTO_malloc)
         return malloc_impl(num, file, line);
 
     if (num == 0)
@@ -225,9 +225,9 @@ void *CRYPTO_malloc(size_t num, const char *file, int line)
     return ret;
 }
 
-void *CRYPTO_zalloc(size_t num, const char *file, int line)
+void *VR_CRYPTO_zalloc(size_t num, const char *file, int line)
 {
-    void *ret = CRYPTO_malloc(num, file, line);
+    void *ret = VR_CRYPTO_malloc(num, file, line);
 
     FAILTEST();
     if (ret != NULL)
@@ -235,18 +235,18 @@ void *CRYPTO_zalloc(size_t num, const char *file, int line)
     return ret;
 }
 
-void *CRYPTO_realloc(void *str, size_t num, const char *file, int line)
+void *VR_CRYPTO_realloc(void *str, size_t num, const char *file, int line)
 {
     INCREMENT(realloc_count);
-    if (realloc_impl != NULL && realloc_impl != &CRYPTO_realloc)
+    if (realloc_impl != NULL && realloc_impl != &VR_CRYPTO_realloc)
         return realloc_impl(str, num, file, line);
 
     FAILTEST();
     if (str == NULL)
-        return CRYPTO_malloc(num, file, line);
+        return VR_CRYPTO_malloc(num, file, line);
 
     if (num == 0) {
-        CRYPTO_free(str, file, line);
+        VR_CRYPTO_free(str, file, line);
         return NULL;
     }
 
@@ -265,37 +265,37 @@ void *CRYPTO_realloc(void *str, size_t num, const char *file, int line)
 
 }
 
-void *CRYPTO_clear_realloc(void *str, size_t old_len, size_t num,
+void *VR_CRYPTO_clear_realloc(void *str, size_t old_len, size_t num,
                            const char *file, int line)
 {
     void *ret = NULL;
 
     if (str == NULL)
-        return CRYPTO_malloc(num, file, line);
+        return VR_CRYPTO_malloc(num, file, line);
 
     if (num == 0) {
-        CRYPTO_clear_free(str, old_len, file, line);
+        VR_CRYPTO_clear_free(str, old_len, file, line);
         return NULL;
     }
 
     /* Can't shrink the buffer since memcpy below copies |old_len| bytes. */
     if (num < old_len) {
-        OPENSSL_cleanse((char*)str + num, old_len - num);
+        VR_OPENSSL_cleanse((char*)str + num, old_len - num);
         return str;
     }
 
-    ret = CRYPTO_malloc(num, file, line);
+    ret = VR_CRYPTO_malloc(num, file, line);
     if (ret != NULL) {
         memcpy(ret, str, old_len);
-        CRYPTO_clear_free(str, old_len, file, line);
+        VR_CRYPTO_clear_free(str, old_len, file, line);
     }
     return ret;
 }
 
-void CRYPTO_free(void *str, const char *file, int line)
+void VR_CRYPTO_free(void *str, const char *file, int line)
 {
     INCREMENT(free_count);
-    if (free_impl != NULL && free_impl != &CRYPTO_free) {
+    if (free_impl != NULL && free_impl != &VR_CRYPTO_free) {
         free_impl(str, file, line);
         return;
     }
@@ -313,11 +313,11 @@ void CRYPTO_free(void *str, const char *file, int line)
 #endif
 }
 
-void CRYPTO_clear_free(void *str, size_t num, const char *file, int line)
+void VR_CRYPTO_clear_free(void *str, size_t num, const char *file, int line)
 {
     if (str == NULL)
         return;
     if (num)
-        OPENSSL_cleanse(str, num);
-    CRYPTO_free(str, file, line);
+        VR_OPENSSL_cleanse(str, num);
+    VR_CRYPTO_free(str, file, line);
 }

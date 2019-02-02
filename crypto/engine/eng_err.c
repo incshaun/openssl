@@ -21,51 +21,51 @@ static const ERR_STRING_DATA ENGINE_str_functs[] = {
     {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_DYNAMIC_LOAD, 0), "dynamic_load"},
     {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_DYNAMIC_SET_DATA_CTX, 0),
      "dynamic_set_data_ctx"},
-    {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_ADD, 0), "ENGINE_add"},
-    {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_BY_ID, 0), "ENGINE_by_id"},
+    {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_ADD, 0), "VR_ENGINE_add"},
+    {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_BY_ID, 0), "VR_ENGINE_by_id"},
     {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_CMD_IS_EXECUTABLE, 0),
-     "ENGINE_cmd_is_executable"},
-    {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_CTRL, 0), "ENGINE_ctrl"},
-    {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_CTRL_CMD, 0), "ENGINE_ctrl_cmd"},
+     "VR_ENGINE_cmd_is_executable"},
+    {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_CTRL, 0), "VR_ENGINE_ctrl"},
+    {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_CTRL_CMD, 0), "VR_ENGINE_ctrl_cmd"},
     {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_CTRL_CMD_STRING, 0),
-     "ENGINE_ctrl_cmd_string"},
-    {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_FINISH, 0), "ENGINE_finish"},
+     "VR_ENGINE_ctrl_cmd_string"},
+    {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_FINISH, 0), "VR_ENGINE_finish"},
     {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_GET_CIPHER, 0),
-     "ENGINE_get_cipher"},
+     "VR_ENGINE_get_cipher"},
     {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_GET_DIGEST, 0),
-     "ENGINE_get_digest"},
+     "VR_ENGINE_get_digest"},
     {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_GET_FIRST, 0),
-     "ENGINE_get_first"},
-    {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_GET_LAST, 0), "ENGINE_get_last"},
-    {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_GET_NEXT, 0), "ENGINE_get_next"},
+     "VR_ENGINE_get_first"},
+    {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_GET_LAST, 0), "VR_ENGINE_get_last"},
+    {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_GET_NEXT, 0), "VR_ENGINE_get_next"},
     {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_GET_PKEY_ASN1_METH, 0),
-     "ENGINE_get_pkey_asn1_meth"},
+     "VR_ENGINE_get_pkey_asn1_meth"},
     {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_GET_PKEY_METH, 0),
-     "ENGINE_get_pkey_meth"},
-    {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_GET_PREV, 0), "ENGINE_get_prev"},
-    {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_INIT, 0), "ENGINE_init"},
+     "VR_ENGINE_get_pkey_meth"},
+    {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_GET_PREV, 0), "VR_ENGINE_get_prev"},
+    {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_INIT, 0), "VR_ENGINE_init"},
     {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_LIST_ADD, 0), "engine_list_add"},
     {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_LIST_REMOVE, 0),
      "engine_list_remove"},
     {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_LOAD_PRIVATE_KEY, 0),
-     "ENGINE_load_private_key"},
+     "VR_ENGINE_load_private_key"},
     {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_LOAD_PUBLIC_KEY, 0),
-     "ENGINE_load_public_key"},
+     "VR_ENGINE_load_public_key"},
     {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_LOAD_SSL_CLIENT_CERT, 0),
-     "ENGINE_load_ssl_client_cert"},
-    {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_NEW, 0), "ENGINE_new"},
+     "VR_ENGINE_load_ssl_client_cert"},
+    {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_NEW, 0), "VR_ENGINE_new"},
     {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_PKEY_ASN1_FIND_STR, 0),
-     "ENGINE_pkey_asn1_find_str"},
-    {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_REMOVE, 0), "ENGINE_remove"},
+     "VR_ENGINE_pkey_asn1_find_str"},
+    {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_REMOVE, 0), "VR_ENGINE_remove"},
     {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_SET_DEFAULT_STRING, 0),
-     "ENGINE_set_default_string"},
-    {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_SET_ID, 0), "ENGINE_set_id"},
-    {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_SET_NAME, 0), "ENGINE_set_name"},
+     "VR_ENGINE_set_default_string"},
+    {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_SET_ID, 0), "VR_ENGINE_set_id"},
+    {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_SET_NAME, 0), "VR_ENGINE_set_name"},
     {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_TABLE_REGISTER, 0),
-     "engine_table_register"},
+     "VR_engine_table_register"},
     {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_UNLOCKED_FINISH, 0),
-     "engine_unlocked_finish"},
-    {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_UP_REF, 0), "ENGINE_up_ref"},
+     "VR_engine_unlocked_finish"},
+    {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_ENGINE_UP_REF, 0), "VR_ENGINE_up_ref"},
     {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_INT_CLEANUP_ITEM, 0),
      "int_cleanup_item"},
     {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_INT_CTRL_HELPER, 0), "int_ctrl_helper"},
@@ -73,7 +73,7 @@ static const ERR_STRING_DATA ENGINE_str_functs[] = {
      "int_engine_configure"},
     {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_INT_ENGINE_MODULE_INIT, 0),
      "int_engine_module_init"},
-    {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_OSSL_HMAC_INIT, 0), "ossl_hmac_init"},
+    {ERR_PACK(ERR_LIB_ENGINE, ENGINE_F_OSSL_VR_HMAC_INIT, 0), "ossl_hmac_init"},
     {0, NULL}
 };
 
@@ -142,12 +142,12 @@ static const ERR_STRING_DATA ENGINE_str_reasons[] = {
 
 #endif
 
-int ERR_load_ENGINE_strings(void)
+int VR_ERR_load_ENGINE_strings(void)
 {
 #ifndef OPENSSL_NO_ERR
-    if (ERR_func_error_string(ENGINE_str_functs[0].error) == NULL) {
-        ERR_load_strings_const(ENGINE_str_functs);
-        ERR_load_strings_const(ENGINE_str_reasons);
+    if (VR_ERR_func_error_string(ENGINE_str_functs[0].error) == NULL) {
+        VR_ERR_load_strings_const(ENGINE_str_functs);
+        VR_ERR_load_strings_const(ENGINE_str_reasons);
     }
 #endif
     return 1;

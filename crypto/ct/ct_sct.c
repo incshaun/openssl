@@ -19,7 +19,7 @@
 
 #include "ct_locl.h"
 
-SCT *SCT_new(void)
+SCT *VR_SCT_new(void)
 {
     SCT *sct = OPENSSL_zalloc(sizeof(*sct));
 
@@ -33,24 +33,24 @@ SCT *SCT_new(void)
     return sct;
 }
 
-void SCT_free(SCT *sct)
+void VR_SCT_free(SCT *sct)
 {
     if (sct == NULL)
         return;
 
-    OPENSSL_free(sct->log_id);
-    OPENSSL_free(sct->ext);
-    OPENSSL_free(sct->sig);
-    OPENSSL_free(sct->sct);
-    OPENSSL_free(sct);
+    OPENVR_SSL_free(sct->log_id);
+    OPENVR_SSL_free(sct->ext);
+    OPENVR_SSL_free(sct->sig);
+    OPENVR_SSL_free(sct->sct);
+    OPENVR_SSL_free(sct);
 }
 
-void SCT_LIST_free(STACK_OF(SCT) *a)
+void VR_SCT_LIST_free(STACK_OF(SCT) *a)
 {
-    sk_SCT_pop_free(a, SCT_free);
+    sk_VR_SCT_pop_free(a, VR_SCT_free);
 }
 
-int SCT_set_version(SCT *sct, sct_version_t version)
+int VR_SCT_set_version(SCT *sct, sct_version_t version)
 {
     if (version != SCT_VERSION_V1) {
         CTerr(CT_F_SCT_SET_VERSION, CT_R_UNSUPPORTED_VERSION);
@@ -61,7 +61,7 @@ int SCT_set_version(SCT *sct, sct_version_t version)
     return 1;
 }
 
-int SCT_set_log_entry_type(SCT *sct, ct_log_entry_type_t entry_type)
+int VR_SCT_set_log_entry_type(SCT *sct, ct_log_entry_type_t entry_type)
 {
     sct->validation_status = SCT_VALIDATION_STATUS_NOT_SET;
 
@@ -77,28 +77,28 @@ int SCT_set_log_entry_type(SCT *sct, ct_log_entry_type_t entry_type)
     return 0;
 }
 
-int SCT_set0_log_id(SCT *sct, unsigned char *log_id, size_t log_id_len)
+int VR_SCT_set0_log_id(SCT *sct, unsigned char *log_id, size_t log_id_len)
 {
     if (sct->version == SCT_VERSION_V1 && log_id_len != CT_V1_HASHLEN) {
         CTerr(CT_F_SCT_SET0_LOG_ID, CT_R_INVALID_LOG_ID_LENGTH);
         return 0;
     }
 
-    OPENSSL_free(sct->log_id);
+    OPENVR_SSL_free(sct->log_id);
     sct->log_id = log_id;
     sct->log_id_len = log_id_len;
     sct->validation_status = SCT_VALIDATION_STATUS_NOT_SET;
     return 1;
 }
 
-int SCT_set1_log_id(SCT *sct, const unsigned char *log_id, size_t log_id_len)
+int VR_SCT_set1_log_id(SCT *sct, const unsigned char *log_id, size_t log_id_len)
 {
     if (sct->version == SCT_VERSION_V1 && log_id_len != CT_V1_HASHLEN) {
         CTerr(CT_F_SCT_SET1_LOG_ID, CT_R_INVALID_LOG_ID_LENGTH);
         return 0;
     }
 
-    OPENSSL_free(sct->log_id);
+    OPENVR_SSL_free(sct->log_id);
     sct->log_id = NULL;
     sct->log_id_len = 0;
     sct->validation_status = SCT_VALIDATION_STATUS_NOT_SET;
@@ -115,13 +115,13 @@ int SCT_set1_log_id(SCT *sct, const unsigned char *log_id, size_t log_id_len)
 }
 
 
-void SCT_set_timestamp(SCT *sct, uint64_t timestamp)
+void VR_SCT_set_timestamp(SCT *sct, uint64_t timestamp)
 {
     sct->timestamp = timestamp;
     sct->validation_status = SCT_VALIDATION_STATUS_NOT_SET;
 }
 
-int SCT_set_signature_nid(SCT *sct, int nid)
+int VR_SCT_set_signature_nid(SCT *sct, int nid)
 {
     switch (nid) {
     case NID_sha256WithRSAEncryption:
@@ -129,7 +129,7 @@ int SCT_set_signature_nid(SCT *sct, int nid)
         sct->sig_alg = TLSEXT_signature_rsa;
         sct->validation_status = SCT_VALIDATION_STATUS_NOT_SET;
         return 1;
-    case NID_ecdsa_with_SHA256:
+    case NID_ecdsa_with_VR_SHA256:
         sct->hash_alg = TLSEXT_hash_sha256;
         sct->sig_alg = TLSEXT_signature_ecdsa;
         sct->validation_status = SCT_VALIDATION_STATUS_NOT_SET;
@@ -140,17 +140,17 @@ int SCT_set_signature_nid(SCT *sct, int nid)
     }
 }
 
-void SCT_set0_extensions(SCT *sct, unsigned char *ext, size_t ext_len)
+void VR_SCT_set0_extensions(SCT *sct, unsigned char *ext, size_t ext_len)
 {
-    OPENSSL_free(sct->ext);
+    OPENVR_SSL_free(sct->ext);
     sct->ext = ext;
     sct->ext_len = ext_len;
     sct->validation_status = SCT_VALIDATION_STATUS_NOT_SET;
 }
 
-int SCT_set1_extensions(SCT *sct, const unsigned char *ext, size_t ext_len)
+int VR_SCT_set1_extensions(SCT *sct, const unsigned char *ext, size_t ext_len)
 {
-    OPENSSL_free(sct->ext);
+    OPENVR_SSL_free(sct->ext);
     sct->ext = NULL;
     sct->ext_len = 0;
     sct->validation_status = SCT_VALIDATION_STATUS_NOT_SET;
@@ -166,17 +166,17 @@ int SCT_set1_extensions(SCT *sct, const unsigned char *ext, size_t ext_len)
     return 1;
 }
 
-void SCT_set0_signature(SCT *sct, unsigned char *sig, size_t sig_len)
+void VR_SCT_set0_signature(SCT *sct, unsigned char *sig, size_t sig_len)
 {
-    OPENSSL_free(sct->sig);
+    OPENVR_SSL_free(sct->sig);
     sct->sig = sig;
     sct->sig_len = sig_len;
     sct->validation_status = SCT_VALIDATION_STATUS_NOT_SET;
 }
 
-int SCT_set1_signature(SCT *sct, const unsigned char *sig, size_t sig_len)
+int VR_SCT_set1_signature(SCT *sct, const unsigned char *sig, size_t sig_len)
 {
-    OPENSSL_free(sct->sig);
+    OPENVR_SSL_free(sct->sig);
     sct->sig = NULL;
     sct->sig_len = 0;
     sct->validation_status = SCT_VALIDATION_STATUS_NOT_SET;
@@ -192,34 +192,34 @@ int SCT_set1_signature(SCT *sct, const unsigned char *sig, size_t sig_len)
     return 1;
 }
 
-sct_version_t SCT_get_version(const SCT *sct)
+sct_version_t VR_SCT_get_version(const SCT *sct)
 {
     return sct->version;
 }
 
-ct_log_entry_type_t SCT_get_log_entry_type(const SCT *sct)
+ct_log_entry_type_t VR_SCT_get_log_entry_type(const SCT *sct)
 {
     return sct->entry_type;
 }
 
-size_t SCT_get0_log_id(const SCT *sct, unsigned char **log_id)
+size_t VR_SCT_get0_log_id(const SCT *sct, unsigned char **log_id)
 {
     *log_id = sct->log_id;
     return sct->log_id_len;
 }
 
-uint64_t SCT_get_timestamp(const SCT *sct)
+uint64_t VR_SCT_get_timestamp(const SCT *sct)
 {
     return sct->timestamp;
 }
 
-int SCT_get_signature_nid(const SCT *sct)
+int VR_SCT_get_signature_nid(const SCT *sct)
 {
     if (sct->version == SCT_VERSION_V1) {
         if (sct->hash_alg == TLSEXT_hash_sha256) {
             switch (sct->sig_alg) {
             case TLSEXT_signature_ecdsa:
-                return NID_ecdsa_with_SHA256;
+                return NID_ecdsa_with_VR_SHA256;
             case TLSEXT_signature_rsa:
                 return NID_sha256WithRSAEncryption;
             default:
@@ -230,51 +230,51 @@ int SCT_get_signature_nid(const SCT *sct)
     return NID_undef;
 }
 
-size_t SCT_get0_extensions(const SCT *sct, unsigned char **ext)
+size_t VR_SCT_get0_extensions(const SCT *sct, unsigned char **ext)
 {
     *ext = sct->ext;
     return sct->ext_len;
 }
 
-size_t SCT_get0_signature(const SCT *sct, unsigned char **sig)
+size_t VR_SCT_get0_signature(const SCT *sct, unsigned char **sig)
 {
     *sig = sct->sig;
     return sct->sig_len;
 }
 
-int SCT_is_complete(const SCT *sct)
+int VR_SCT_is_complete(const SCT *sct)
 {
     switch (sct->version) {
     case SCT_VERSION_NOT_SET:
         return 0;
     case SCT_VERSION_V1:
-        return sct->log_id != NULL && SCT_signature_is_complete(sct);
+        return sct->log_id != NULL && VR_SCT_signature_is_complete(sct);
     default:
         return sct->sct != NULL; /* Just need cached encoding */
     }
 }
 
-int SCT_signature_is_complete(const SCT *sct)
+int VR_SCT_signature_is_complete(const SCT *sct)
 {
-    return SCT_get_signature_nid(sct) != NID_undef &&
+    return VR_SCT_get_signature_nid(sct) != NID_undef &&
         sct->sig != NULL && sct->sig_len > 0;
 }
 
-sct_source_t SCT_get_source(const SCT *sct)
+sct_source_t VR_SCT_get_source(const SCT *sct)
 {
     return sct->source;
 }
 
-int SCT_set_source(SCT *sct, sct_source_t source)
+int VR_SCT_set_source(SCT *sct, sct_source_t source)
 {
     sct->source = source;
     sct->validation_status = SCT_VALIDATION_STATUS_NOT_SET;
     switch (source) {
     case SCT_SOURCE_TLS_EXTENSION:
     case SCT_SOURCE_OCSP_STAPLED_RESPONSE:
-        return SCT_set_log_entry_type(sct, CT_LOG_ENTRY_TYPE_X509);
+        return VR_SCT_set_log_entry_type(sct, CT_LOG_ENTRY_TYPE_X509);
     case SCT_SOURCE_X509V3_EXTENSION:
-        return SCT_set_log_entry_type(sct, CT_LOG_ENTRY_TYPE_PRECERT);
+        return VR_SCT_set_log_entry_type(sct, CT_LOG_ENTRY_TYPE_PRECERT);
     case SCT_SOURCE_UNKNOWN:
         break;
     }
@@ -282,12 +282,12 @@ int SCT_set_source(SCT *sct, sct_source_t source)
     return 1;
 }
 
-sct_validation_status_t SCT_get_validation_status(const SCT *sct)
+sct_validation_status_t VR_SCT_get_validation_status(const SCT *sct)
 {
     return sct->validation_status;
 }
 
-int SCT_validate(SCT *sct, const CT_POLICY_EVAL_CTX *ctx)
+int VR_SCT_validate(SCT *sct, const CT_POLICY_EVAL_CTX *ctx)
 {
     int is_sct_valid = -1;
     SCT_CTX *sctx = NULL;
@@ -303,7 +303,7 @@ int SCT_validate(SCT *sct, const CT_POLICY_EVAL_CTX *ctx)
         return 0;
     }
 
-    log = CTLOG_STORE_get0_log_by_id(ctx->log_store,
+    log = VR_CTLOG_STORE_get0_log_by_id(ctx->log_store,
                                      sct->log_id, sct->log_id_len);
 
     /* Similarly, an SCT from an unknown log also cannot be validated. */
@@ -312,16 +312,16 @@ int SCT_validate(SCT *sct, const CT_POLICY_EVAL_CTX *ctx)
         return 0;
     }
 
-    sctx = SCT_CTX_new();
+    sctx = VR_SCT_CTX_new();
     if (sctx == NULL)
         goto err;
 
-    if (X509_PUBKEY_set(&log_pkey, CTLOG_get0_public_key(log)) != 1)
+    if (VR_X509_PUBKEY_set(&log_pkey, VR_CTLOG_get0_public_key(log)) != 1)
         goto err;
-    if (SCT_CTX_set1_pubkey(sctx, log_pkey) != 1)
+    if (VR_SCT_CTX_set1_pubkey(sctx, log_pkey) != 1)
         goto err;
 
-    if (SCT_get_log_entry_type(sct) == CT_LOG_ENTRY_TYPE_PRECERT) {
+    if (VR_SCT_get_log_entry_type(sct) == CT_LOG_ENTRY_TYPE_PRECERT) {
         EVP_PKEY *issuer_pkey;
 
         if (ctx->issuer == NULL) {
@@ -329,15 +329,15 @@ int SCT_validate(SCT *sct, const CT_POLICY_EVAL_CTX *ctx)
             goto end;
         }
 
-        issuer_pkey = X509_get0_pubkey(ctx->issuer);
+        issuer_pkey = VR_X509_get0_pubkey(ctx->issuer);
 
-        if (X509_PUBKEY_set(&pub, issuer_pkey) != 1)
+        if (VR_X509_PUBKEY_set(&pub, issuer_pkey) != 1)
             goto err;
-        if (SCT_CTX_set1_issuer_pubkey(sctx, pub) != 1)
+        if (VR_SCT_CTX_set1_issuer_pubkey(sctx, pub) != 1)
             goto err;
     }
 
-    SCT_CTX_set_time(sctx, ctx->epoch_time_in_ms);
+    VR_SCT_CTX_set_time(sctx, ctx->epoch_time_in_ms);
 
     /*
      * XXX: Potential for optimization.  This repeats some idempotent heavy
@@ -357,23 +357,23 @@ int SCT_validate(SCT *sct, const CT_POLICY_EVAL_CTX *ctx)
      * to do is to report a validation failure and let the callback or
      * application decide what to do.
      */
-    if (SCT_CTX_set1_cert(sctx, ctx->cert, NULL) != 1)
+    if (VR_SCT_CTX_set1_cert(sctx, ctx->cert, NULL) != 1)
         sct->validation_status = SCT_VALIDATION_STATUS_UNVERIFIED;
     else
-        sct->validation_status = SCT_CTX_verify(sctx, sct) == 1 ?
+        sct->validation_status = VR_SCT_CTX_verify(sctx, sct) == 1 ?
             SCT_VALIDATION_STATUS_VALID : SCT_VALIDATION_STATUS_INVALID;
 
 end:
     is_sct_valid = sct->validation_status == SCT_VALIDATION_STATUS_VALID;
 err:
-    X509_PUBKEY_free(pub);
-    X509_PUBKEY_free(log_pkey);
-    SCT_CTX_free(sctx);
+    VR_X509_PUBKEY_free(pub);
+    VR_X509_PUBKEY_free(log_pkey);
+    VR_SCT_CTX_free(sctx);
 
     return is_sct_valid;
 }
 
-int SCT_LIST_validate(const STACK_OF(SCT) *scts, CT_POLICY_EVAL_CTX *ctx)
+int VR_SCT_LIST_validate(const STACK_OF(SCT) *scts, CT_POLICY_EVAL_CTX *ctx)
 {
     int are_scts_valid = 1;
     int sct_count = scts != NULL ? sk_SCT_num(scts) : 0;
@@ -386,7 +386,7 @@ int SCT_LIST_validate(const STACK_OF(SCT) *scts, CT_POLICY_EVAL_CTX *ctx)
         if (sct == NULL)
             continue;
 
-        is_sct_valid = SCT_validate(sct, ctx);
+        is_sct_valid = VR_SCT_validate(sct, ctx);
         if (is_sct_valid < 0)
             return is_sct_valid;
         are_scts_valid &= is_sct_valid;

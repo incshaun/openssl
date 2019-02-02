@@ -23,13 +23,13 @@
 
 .text
 .align	32
-.global	OPENSSL_wipe_cpu
-.type	OPENSSL_wipe_cpu,#function
+.global	VR_OPENSSL_wipe_cpu
+.type	VR_OPENSSL_wipe_cpu,#function
 ! Keep in mind that this does not excuse us from wiping the stack!
 ! This routine wipes registers, but not the backing store [which
 ! resides on the stack, toward lower addresses]. To facilitate for
 ! stack wiping I return pointer to the top of stack of the *caller*.
-OPENSSL_wipe_cpu:
+VR_OPENSSL_wipe_cpu:
 	save	%sp,FRAME,%sp
 	nop
 #ifdef __sun
@@ -170,12 +170,12 @@ walk_reg_wins:
 	add	%o0,1,%i0	! used for debugging
 2:	ret
 	restore
-.size	OPENSSL_wipe_cpu,.-OPENSSL_wipe_cpu
+.size	VR_OPENSSL_wipe_cpu,.-VR_OPENSSL_wipe_cpu
 
-.global	OPENSSL_atomic_add
-.type	OPENSSL_atomic_add,#function
+.global	VR_OPENSSL_atomic_add
+.type	VR_OPENSSL_atomic_add,#function
 .align	32
-OPENSSL_atomic_add:
+VR_OPENSSL_atomic_add:
 #ifndef ABI64
 	subcc	%g0,1,%o2
 	.word	0x95408000	!rd	%ccr,%o2, see comment above
@@ -220,7 +220,7 @@ OPENSSL_atomic_add:
 	add	%o1,%o2,%o0	! OpenSSL expects the new value
 	retl
 	sra	%o0,%g0,%o0	! we return signed int, remember?
-.size	OPENSSL_atomic_add,.-OPENSSL_atomic_add
+.size	VR_OPENSSL_atomic_add,.-VR_OPENSSL_atomic_add
 
 .global	_sparcv9_rdtick
 .align	32
@@ -360,9 +360,9 @@ _sparcv9_fjaesx_probe:
 	nop
 .size	_sparcv9_fjaesx_probe,.-_sparcv9_fjaesx_probe
 
-.global	OPENSSL_cleanse
+.global	VR_OPENSSL_cleanse
 .align	32
-OPENSSL_cleanse:
+VR_OPENSSL_cleanse:
 	cmp	%o1,14
 	nop
 #ifdef ABI64
@@ -440,12 +440,12 @@ OPENSSL_cleanse:
 	retl
 	nop
 #endif
-.type	OPENSSL_cleanse,#function
-.size	OPENSSL_cleanse,.-OPENSSL_cleanse
+.type	VR_OPENSSL_cleanse,#function
+.size	VR_OPENSSL_cleanse,.-VR_OPENSSL_cleanse
 
-.global	CRYPTO_memcmp
+.global	VR_CRYPTO_memcmp
 .align	16
-CRYPTO_memcmp:
+VR_CRYPTO_memcmp:
 	cmp	%o2,0
 #ifdef ABI64
 	beq,pn	%xcc,.Lno_data
@@ -474,8 +474,8 @@ CRYPTO_memcmp:
 .Lno_data:
 	retl
 	mov	%g1,%o0
-.type	CRYPTO_memcmp,#function
-.size	CRYPTO_memcmp,.-CRYPTO_memcmp
+.type	VR_CRYPTO_memcmp,#function
+.size	VR_CRYPTO_memcmp,.-VR_CRYPTO_memcmp
 
 .global	_sparcv9_vis1_instrument_bus
 .align	8
@@ -574,5 +574,5 @@ _sparcv9_vis1_instrument_bus2:
 .size	_sparcv9_vis1_instrument_bus2,.-_sparcv9_vis1_instrument_bus2
 
 .section	".init",#alloc,#execinstr
-	call	OPENSSL_cpuid_setup
+	call	VR_OPENSSL_cpuid_setup
 	nop

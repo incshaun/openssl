@@ -13,7 +13,7 @@
 #include <openssl/buffer.h>
 #include <openssl/asn1.h>
 
-int i2a_ASN1_INTEGER(BIO *bp, const ASN1_INTEGER *a)
+int VR_i2a_ASN1_INTEGER(BIO *bp, const ASN1_INTEGER *a)
 {
     int i, n = 0;
     static const char *h = "0123456789ABCDEF";
@@ -23,25 +23,25 @@ int i2a_ASN1_INTEGER(BIO *bp, const ASN1_INTEGER *a)
         return 0;
 
     if (a->type & V_ASN1_NEG) {
-        if (BIO_write(bp, "-", 1) != 1)
+        if (VR_BIO_write(bp, "-", 1) != 1)
             goto err;
         n = 1;
     }
 
     if (a->length == 0) {
-        if (BIO_write(bp, "00", 2) != 2)
+        if (VR_BIO_write(bp, "00", 2) != 2)
             goto err;
         n += 2;
     } else {
         for (i = 0; i < a->length; i++) {
             if ((i != 0) && (i % 35 == 0)) {
-                if (BIO_write(bp, "\\\n", 2) != 2)
+                if (VR_BIO_write(bp, "\\\n", 2) != 2)
                     goto err;
                 n += 2;
             }
             buf[0] = h[((unsigned char)a->data[i] >> 4) & 0x0f];
             buf[1] = h[((unsigned char)a->data[i]) & 0x0f];
-            if (BIO_write(bp, buf, 2) != 2)
+            if (VR_BIO_write(bp, buf, 2) != 2)
                 goto err;
             n += 2;
         }
@@ -51,7 +51,7 @@ int i2a_ASN1_INTEGER(BIO *bp, const ASN1_INTEGER *a)
     return -1;
 }
 
-int a2i_ASN1_INTEGER(BIO *bp, ASN1_INTEGER *bs, char *buf, int size)
+int VR_a2i_ASN1_INTEGER(BIO *bp, ASN1_INTEGER *bs, char *buf, int size)
 {
     int i, j, k, m, n, again, bufsize;
     unsigned char *s = NULL, *sp;
@@ -60,7 +60,7 @@ int a2i_ASN1_INTEGER(BIO *bp, ASN1_INTEGER *bs, char *buf, int size)
 
     bs->type = V_ASN1_INTEGER;
 
-    bufsize = BIO_gets(bp, buf, size);
+    bufsize = VR_BIO_gets(bp, buf, size);
     for (;;) {
         if (bufsize < 1)
             goto err;
@@ -101,15 +101,15 @@ int a2i_ASN1_INTEGER(BIO *bp, ASN1_INTEGER *bs, char *buf, int size)
         i -= again;
         if (i % 2 != 0) {
             ASN1err(ASN1_F_A2I_ASN1_INTEGER, ASN1_R_ODD_NUMBER_OF_CHARS);
-            OPENSSL_free(s);
+            OPENVR_SSL_free(s);
             return 0;
         }
         i /= 2;
         if (num + i > slen) {
-            sp = OPENSSL_clear_realloc(s, slen, num + i * 2);
+            sp = OPENVR_SSL_clear_realloc(s, slen, num + i * 2);
             if (sp == NULL) {
                 ASN1err(ASN1_F_A2I_ASN1_INTEGER, ERR_R_MALLOC_FAILURE);
-                OPENSSL_free(s);
+                OPENVR_SSL_free(s);
                 return 0;
             }
             s = sp;
@@ -117,7 +117,7 @@ int a2i_ASN1_INTEGER(BIO *bp, ASN1_INTEGER *bs, char *buf, int size)
         }
         for (j = 0; j < i; j++, k += 2) {
             for (n = 0; n < 2; n++) {
-                m = OPENSSL_hexchar2int(bufp[k + n]);
+                m = VR_OPENSSL_hexchar2int(bufp[k + n]);
                 if (m < 0) {
                     ASN1err(ASN1_F_A2I_ASN1_INTEGER,
                             ASN1_R_NON_HEX_CHARACTERS);
@@ -129,7 +129,7 @@ int a2i_ASN1_INTEGER(BIO *bp, ASN1_INTEGER *bs, char *buf, int size)
         }
         num += i;
         if (again)
-            bufsize = BIO_gets(bp, buf, size);
+            bufsize = VR_BIO_gets(bp, buf, size);
         else
             break;
     }
@@ -138,18 +138,18 @@ int a2i_ASN1_INTEGER(BIO *bp, ASN1_INTEGER *bs, char *buf, int size)
     return 1;
  err:
     ASN1err(ASN1_F_A2I_ASN1_INTEGER, ASN1_R_SHORT_LINE);
-    OPENSSL_free(s);
+    OPENVR_SSL_free(s);
     return 0;
 }
 
-int i2a_ASN1_ENUMERATED(BIO *bp, const ASN1_ENUMERATED *a)
+int VR_i2a_ASN1_ENUMERATED(BIO *bp, const ASN1_ENUMERATED *a)
 {
-    return i2a_ASN1_INTEGER(bp, a);
+    return VR_i2a_ASN1_INTEGER(bp, a);
 }
 
-int a2i_ASN1_ENUMERATED(BIO *bp, ASN1_ENUMERATED *bs, char *buf, int size)
+int VR_a2i_ASN1_ENUMERATED(BIO *bp, ASN1_ENUMERATED *bs, char *buf, int size)
 {
-    int rv = a2i_ASN1_INTEGER(bp, bs, buf, size);
+    int rv = VR_a2i_ASN1_INTEGER(bp, bs, buf, size);
     if (rv == 1)
         bs->type = V_ASN1_INTEGER | (bs->type & V_ASN1_NEG);
     return rv;

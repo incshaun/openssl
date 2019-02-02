@@ -26,32 +26,32 @@ IMPLEMENT_ASN1_FUNCTIONS(X509_ALGOR)
 IMPLEMENT_ASN1_ENCODE_FUNCTIONS_fname(X509_ALGORS, X509_ALGORS, X509_ALGORS)
 IMPLEMENT_ASN1_DUP_FUNCTION(X509_ALGOR)
 
-int X509_ALGOR_set0(X509_ALGOR *alg, ASN1_OBJECT *aobj, int ptype, void *pval)
+int VR_X509_ALGOR_set0(X509_ALGOR *alg, ASN1_OBJECT *aobj, int ptype, void *pval)
 {
     if (alg == NULL)
         return 0;
 
     if (ptype != V_ASN1_UNDEF) {
         if (alg->parameter == NULL)
-            alg->parameter = ASN1_TYPE_new();
+            alg->parameter = VR_ASN1_TYPE_new();
         if (alg->parameter == NULL)
             return 0;
     }
 
-    ASN1_OBJECT_free(alg->algorithm);
+    VR_ASN1_OBJECT_free(alg->algorithm);
     alg->algorithm = aobj;
 
     if (ptype == 0)
         return 1;
     if (ptype == V_ASN1_UNDEF) {
-        ASN1_TYPE_free(alg->parameter);
+        VR_ASN1_TYPE_free(alg->parameter);
         alg->parameter = NULL;
     } else
-        ASN1_TYPE_set(alg->parameter, ptype, pval);
+        VR_ASN1_TYPE_set(alg->parameter, ptype, pval);
     return 1;
 }
 
-void X509_ALGOR_get0(const ASN1_OBJECT **paobj, int *pptype,
+void VR_X509_ALGOR_get0(const ASN1_OBJECT **paobj, int *pptype,
                      const void **ppval, const X509_ALGOR *algor)
 {
     if (paobj)
@@ -69,7 +69,7 @@ void X509_ALGOR_get0(const ASN1_OBJECT **paobj, int *pptype,
 
 /* Set up an X509_ALGOR DigestAlgorithmIdentifier from an EVP_MD */
 
-void X509_ALGOR_set_md(X509_ALGOR *alg, const EVP_MD *md)
+void VR_X509_ALGOR_set_md(X509_ALGOR *alg, const EVP_MD *md)
 {
     int param_type;
 
@@ -78,17 +78,17 @@ void X509_ALGOR_set_md(X509_ALGOR *alg, const EVP_MD *md)
     else
         param_type = V_ASN1_NULL;
 
-    X509_ALGOR_set0(alg, OBJ_nid2obj(EVP_MD_type(md)), param_type, NULL);
+    VR_X509_ALGOR_set0(alg, VR_OBJ_nid2obj(VR_EVP_MD_type(md)), param_type, NULL);
 
 }
 
-int X509_ALGOR_cmp(const X509_ALGOR *a, const X509_ALGOR *b)
+int VR_X509_ALGOR_cmp(const X509_ALGOR *a, const X509_ALGOR *b)
 {
     int rv;
-    rv = OBJ_cmp(a->algorithm, b->algorithm);
+    rv = VR_OBJ_cmp(a->algorithm, b->algorithm);
     if (rv)
         return rv;
     if (!a->parameter && !b->parameter)
         return 0;
-    return ASN1_TYPE_cmp(a->parameter, b->parameter);
+    return VR_ASN1_TYPE_cmp(a->parameter, b->parameter);
 }

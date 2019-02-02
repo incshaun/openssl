@@ -14,7 +14,7 @@
 # ifdef  __cplusplus
 extern "C"
 # endif
-int ERR_load_OSSL_STORE_strings(void);
+int VR_ERR_load_OSSL_STORE_strings(void);
 
 /*
  * OSSL_STORE function codes.

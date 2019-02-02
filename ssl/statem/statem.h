@@ -106,7 +106,7 @@ struct ossl_statem_st {
     OSSL_HANDSHAKE_STATE request_state;
     int in_init;
     int read_state_first_init;
-    /* true when we are actually in SSL_accept() or SSL_connect() */
+    /* true when we are actually in VR_SSL_accept() or VR_SSL_connect() */
     int in_handshake;
     /*
      * True when are processing a "real" handshake that needs cleaning up (not
@@ -128,30 +128,30 @@ typedef struct ossl_statem_st OSSL_STATEM;
  *                                                                           *
  *****************************************************************************/
 
-__owur int ossl_statem_accept(SSL *s);
-__owur int ossl_statem_connect(SSL *s);
-void ossl_statem_clear(SSL *s);
-void ossl_statem_set_renegotiate(SSL *s);
-void ossl_statem_fatal(SSL *s, int al, int func, int reason, const char *file,
+__owur int VR_ossl_statem_accept(SSL *s);
+__owur int VR_ossl_statem_connect(SSL *s);
+void VR_ossl_statem_clear(SSL *s);
+void VR_ossl_statem_set_renegotiate(SSL *s);
+void VR_ossl_statem_fatal(SSL *s, int al, int func, int reason, const char *file,
                        int line);
 # define SSL_AD_NO_ALERT    -1
 # ifndef OPENSSL_NO_ERR
-#  define SSLfatal(s, al, f, r)  ossl_statem_fatal((s), (al), (f), (r), \
+#  define SSLfatal(s, al, f, r)  VR_ossl_statem_fatal((s), (al), (f), (r), \
                                                    OPENSSL_FILE, OPENSSL_LINE)
 # else
-#  define SSLfatal(s, al, f, r)  ossl_statem_fatal((s), (al), (f), (r), NULL, 0)
+#  define SSLfatal(s, al, f, r)  VR_ossl_statem_fatal((s), (al), (f), (r), NULL, 0)
 # endif
 
-int ossl_statem_in_error(const SSL *s);
-void ossl_statem_set_in_init(SSL *s, int init);
-int ossl_statem_get_in_handshake(SSL *s);
-void ossl_statem_set_in_handshake(SSL *s, int inhand);
-__owur int ossl_statem_skip_early_data(SSL *s);
-void ossl_statem_check_finish_init(SSL *s, int send);
-void ossl_statem_set_hello_verify_done(SSL *s);
-__owur int ossl_statem_app_data_allowed(SSL *s);
-__owur int ossl_statem_export_allowed(SSL *s);
-__owur int ossl_statem_export_early_allowed(SSL *s);
+int VR_ossl_statem_in_error(const SSL *s);
+void VR_ossl_statem_set_in_init(SSL *s, int init);
+int VR_ossl_statem_get_in_handshake(SSL *s);
+void VR_ossl_statem_set_in_handshake(SSL *s, int inhand);
+__owur int VR_ossl_statem_skip_early_data(SSL *s);
+void VR_ossl_statem_check_finish_init(SSL *s, int send);
+void VR_ossl_statem_set_hello_verify_done(SSL *s);
+__owur int VR_ossl_statem_app_data_allowed(SSL *s);
+__owur int VR_ossl_statem_export_allowed(SSL *s);
+__owur int VR_ossl_statem_export_early_allowed(SSL *s);
 
 /* Flush the write BIO */
-int statem_flush(SSL *s);
+int VR_statem_flush(SSL *s);

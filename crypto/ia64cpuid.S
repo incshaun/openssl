@@ -14,23 +14,23 @@
 #define	ADDP	add
 #endif
 
-.global	OPENSSL_cpuid_setup#
-.proc	OPENSSL_cpuid_setup#
-OPENSSL_cpuid_setup:
+.global	VR_OPENSSL_cpuid_setup#
+.proc	VR_OPENSSL_cpuid_setup#
+VR_OPENSSL_cpuid_setup:
 { .mib;	br.ret.sptk.many	b0		};;
-.endp	OPENSSL_cpuid_setup#
+.endp	VR_OPENSSL_cpuid_setup#
 
-.global	OPENSSL_rdtsc#
-.proc	OPENSSL_rdtsc#
-OPENSSL_rdtsc:
+.global	VR_OPENSSL_rdtsc#
+.proc	VR_OPENSSL_rdtsc#
+VR_OPENSSL_rdtsc:
 { .mib;	mov			r8=ar.itc
 	br.ret.sptk.many	b0		};;
-.endp   OPENSSL_rdtsc#
+.endp   VR_OPENSSL_rdtsc#
 
-.global	OPENSSL_atomic_add#
-.proc	OPENSSL_atomic_add#
+.global	VR_OPENSSL_atomic_add#
+.proc	VR_OPENSSL_atomic_add#
 .align	32
-OPENSSL_atomic_add:
+VR_OPENSSL_atomic_add:
 { .mii;	ld4		r2=[r32]
 	nop.i		0
 	nop.i		0		};;
@@ -47,7 +47,7 @@ OPENSSL_atomic_add:
 { .mib;	nop.m		0
 	sxt4		r8=r8
 	br.ret.sptk.many	b0	};;
-.endp	OPENSSL_atomic_add#
+.endp	VR_OPENSSL_atomic_add#
 
 // Returns a structure comprising pointer to the top of stack of
 // the caller and pointer beyond backing storage for the current
@@ -56,10 +56,10 @@ OPENSSL_atomic_add:
 // (as this procedure does), one might have to go further, toward
 // higher addresses to reach for whole "retroactively" saved
 // context...
-.global	OPENSSL_wipe_cpu#
-.proc	OPENSSL_wipe_cpu#
+.global	VR_OPENSSL_wipe_cpu#
+.proc	VR_OPENSSL_wipe_cpu#
 .align	32
-OPENSSL_wipe_cpu:
+VR_OPENSSL_wipe_cpu:
 	.prologue
 	.fframe	0
 	.save	ar.pfs,r2
@@ -137,11 +137,11 @@ OPENSSL_wipe_cpu:
 { .mib;	mov		r8=sp
 	mov		ar.lc=r3
 	br.ret.sptk	b0		};;
-.endp	OPENSSL_wipe_cpu#
+.endp	VR_OPENSSL_wipe_cpu#
 
-.global	OPENSSL_cleanse#
-.proc	OPENSSL_cleanse#
-OPENSSL_cleanse:
+.global	VR_OPENSSL_cleanse#
+.proc	VR_OPENSSL_cleanse#
+VR_OPENSSL_cleanse:
 { .mib;	cmp.eq		p6,p0=0,r33	    // len==0
 	ADDP		r32=0,r32
 (p6)	br.ret.spnt	b0		};;
@@ -174,13 +174,13 @@ OPENSSL_cleanse:
 { .mbb;	cmp.eq		p6,p7=r0,r33
 (p7)	br.cond.dpnt	.Little
 (p6)	br.ret.sptk.many	b0	};;
-.endp	OPENSSL_cleanse#
+.endp	VR_OPENSSL_cleanse#
 
-.global	CRYPTO_memcmp#
-.proc	CRYPTO_memcmp#
+.global	VR_CRYPTO_memcmp#
+.proc	VR_CRYPTO_memcmp#
 .align	32
 .skip	16
-CRYPTO_memcmp:
+VR_CRYPTO_memcmp:
 	.prologue
 { .mib;	mov		r8=0
 	cmp.eq		p6,p0=0,r34	    // len==0?
@@ -214,11 +214,11 @@ CRYPTO_memcmp:
 (p6)	mov		r8=1
 	mov		pr=r9,0x1ffff
 	br.ret.sptk.many	b0	};;
-.endp	CRYPTO_memcmp#
+.endp	VR_CRYPTO_memcmp#
 
-.global	OPENSSL_instrument_bus#
-.proc	OPENSSL_instrument_bus#
-OPENSSL_instrument_bus:
+.global	VR_OPENSSL_instrument_bus#
+.proc	VR_OPENSSL_instrument_bus#
+VR_OPENSSL_instrument_bus:
 { .mmi;	mov		r2=r33
 	ADDP		r32=0,r32	}
 { .mmi;	mov		r8=ar.itc;;
@@ -249,11 +249,11 @@ OPENSSL_instrument_bus:
 
 { .mib;	sub		r8=r2,r33
 	br.ret.sptk.many	b0	};;
-.endp	OPENSSL_instrument_bus#
+.endp	VR_OPENSSL_instrument_bus#
 
-.global	OPENSSL_instrument_bus2#
-.proc	OPENSSL_instrument_bus2#
-OPENSSL_instrument_bus2:
+.global	VR_OPENSSL_instrument_bus2#
+.proc	VR_OPENSSL_instrument_bus2#
+VR_OPENSSL_instrument_bus2:
 { .mmi;	mov		r2=r33			// put aside cnt
 	ADDP		r32=0,r32	}
 { .mmi;	mov		r8=ar.itc;;
@@ -294,4 +294,4 @@ OPENSSL_instrument_bus2:
 .Ldone2:
 { .mib;	sub		r8=r2,r33
 	br.ret.sptk.many	b0	};;
-.endp	OPENSSL_instrument_bus2#
+.endp	VR_OPENSSL_instrument_bus2#

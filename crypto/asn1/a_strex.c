@@ -18,7 +18,7 @@
 #include "charmap.h"
 
 /*
- * ASN1_STRING_print_ex() and X509_NAME_print_ex(). Enhanced string and name
+ * VR_ASN1_STRING_print_ex() and VR_X509_NAME_print_ex(). Enhanced string and name
  * printing routines handling multibyte characters, RFC2253 and a host of
  * other options.
  */
@@ -39,7 +39,7 @@ static int send_bio_chars(void *arg, const void *buf, int len)
 {
     if (!arg)
         return 1;
-    if (BIO_write(arg, buf, len) != len)
+    if (VR_BIO_write(arg, buf, len) != len)
         return 0;
     return 1;
 }
@@ -73,13 +73,13 @@ static int do_esc_char(unsigned long c, unsigned short flags, char *do_quotes,
     if (c > 0xffffffffL)
         return -1;
     if (c > 0xffff) {
-        BIO_snprintf(tmphex, sizeof(tmphex), "\\W%08lX", c);
+        VR_BIO_snprintf(tmphex, sizeof(tmphex), "\\W%08lX", c);
         if (!io_ch(arg, tmphex, 10))
             return -1;
         return 10;
     }
     if (c > 0xff) {
-        BIO_snprintf(tmphex, sizeof(tmphex), "\\U%04lX", c);
+        VR_BIO_snprintf(tmphex, sizeof(tmphex), "\\U%04lX", c);
         if (!io_ch(arg, tmphex, 6))
             return -1;
         return 6;
@@ -107,7 +107,7 @@ static int do_esc_char(unsigned long c, unsigned short flags, char *do_quotes,
     if (chflgs & (ASN1_STRFLGS_ESC_CTRL
                   | ASN1_STRFLGS_ESC_MSB
                   | ASN1_STRFLGS_ESC_2254)) {
-        BIO_snprintf(tmphex, 11, "\\%02X", chtmp);
+        VR_BIO_snprintf(tmphex, 11, "\\%02X", chtmp);
         if (!io_ch(arg, tmphex, 3))
             return -1;
         return 3;
@@ -190,7 +190,7 @@ static int do_buf(unsigned char *buf, int buflen,
             break;
 
         case 0:
-            i = UTF8_getc(p, buflen, &c);
+            i = VR_UTF8_getc(p, buflen, &c);
             if (i < 0)
                 return -1;      /* Invalid UTF8String */
             buflen -= i;
@@ -204,7 +204,7 @@ static int do_buf(unsigned char *buf, int buflen,
         if (type & BUF_TYPE_CONVUTF8) {
             unsigned char utfbuf[6];
             int utflen;
-            utflen = UTF8_putc(utfbuf, sizeof(utfbuf), c);
+            utflen = VR_UTF8_putc(utfbuf, sizeof(utfbuf), c);
             for (i = 0; i < utflen; i++) {
                 /*
                  * We don't need to worry about setting orflags correctly
@@ -279,15 +279,15 @@ static int do_dump(unsigned long lflags, char_io *io_ch, void *arg,
     }
     t.type = str->type;
     t.value.ptr = (char *)str;
-    der_len = i2d_ASN1_TYPE(&t, NULL);
+    der_len = VR_i2d_ASN1_TYPE(&t, NULL);
     if ((der_buf = OPENSSL_malloc(der_len)) == NULL) {
         ASN1err(ASN1_F_DO_DUMP, ERR_R_MALLOC_FAILURE);
         return -1;
     }
     p = der_buf;
-    i2d_ASN1_TYPE(&t, &p);
+    VR_i2d_ASN1_TYPE(&t, &p);
     outlen = do_hex_dump(io_ch, arg, der_buf, der_len);
-    OPENSSL_free(der_buf);
+    OPENVR_SSL_free(der_buf);
     if (outlen < 0)
         return -1;
     return outlen + 1;
@@ -343,7 +343,7 @@ static int do_print_ex(char_io *io_ch, void *arg, unsigned long lflags,
 
     if (lflags & ASN1_STRFLGS_SHOW_TYPE) {
         const char *tagname;
-        tagname = ASN1_tag2str(type);
+        tagname = VR_ASN1_tag2str(type);
         outlen += strlen(tagname);
         if (!io_ch(arg, tagname, outlen) || !io_ch(arg, ":", 1))
             return -1;
@@ -483,14 +483,14 @@ static int do_name_ex(char_io *io_ch, void *arg, const X509_NAME *n,
 
     fn_opt = flags & XN_FLAG_FN_MASK;
 
-    cnt = X509_NAME_entry_count(n);
+    cnt = VR_X509_NAME_entry_count(n);
     for (i = 0; i < cnt; i++) {
         if (flags & XN_FLAG_DN_REV)
-            ent = X509_NAME_get_entry(n, cnt - i - 1);
+            ent = VR_X509_NAME_get_entry(n, cnt - i - 1);
         else
-            ent = X509_NAME_get_entry(n, i);
+            ent = VR_X509_NAME_get_entry(n, i);
         if (prev != -1) {
-            if (prev == X509_NAME_ENTRY_set(ent)) {
+            if (prev == VR_X509_NAME_ENTRY_set(ent)) {
                 if (!io_ch(arg, sep_mv, sep_mv_len))
                     return -1;
                 outlen += sep_mv_len;
@@ -503,23 +503,23 @@ static int do_name_ex(char_io *io_ch, void *arg, const X509_NAME *n,
                 outlen += indent;
             }
         }
-        prev = X509_NAME_ENTRY_set(ent);
-        fn = X509_NAME_ENTRY_get_object(ent);
-        val = X509_NAME_ENTRY_get_data(ent);
-        fn_nid = OBJ_obj2nid(fn);
+        prev = VR_X509_NAME_ENTRY_set(ent);
+        fn = VR_X509_NAME_ENTRY_get_object(ent);
+        val = VR_X509_NAME_ENTRY_get_data(ent);
+        fn_nid = VR_OBJ_obj2nid(fn);
         if (fn_opt != XN_FLAG_FN_NONE) {
             int objlen, fld_len;
             if ((fn_opt == XN_FLAG_FN_OID) || (fn_nid == NID_undef)) {
-                OBJ_obj2txt(objtmp, sizeof(objtmp), fn, 1);
+                VR_OBJ_obj2txt(objtmp, sizeof(objtmp), fn, 1);
                 fld_len = 0;    /* XXX: what should this be? */
                 objbuf = objtmp;
             } else {
                 if (fn_opt == XN_FLAG_FN_SN) {
                     fld_len = FN_WIDTH_SN;
-                    objbuf = OBJ_nid2sn(fn_nid);
+                    objbuf = VR_OBJ_nid2sn(fn_nid);
                 } else if (fn_opt == XN_FLAG_FN_LN) {
                     fld_len = FN_WIDTH_LN;
-                    objbuf = OBJ_nid2ln(fn_nid);
+                    objbuf = VR_OBJ_nid2ln(fn_nid);
                 } else {
                     fld_len = 0; /* XXX: what should this be? */
                     objbuf = "";
@@ -557,39 +557,39 @@ static int do_name_ex(char_io *io_ch, void *arg, const X509_NAME *n,
 
 /* Wrappers round the main functions */
 
-int X509_NAME_print_ex(BIO *out, const X509_NAME *nm, int indent,
+int VR_X509_NAME_print_ex(BIO *out, const X509_NAME *nm, int indent,
                        unsigned long flags)
 {
     if (flags == XN_FLAG_COMPAT)
-        return X509_NAME_print(out, nm, indent);
+        return VR_X509_NAME_print(out, nm, indent);
     return do_name_ex(send_bio_chars, out, nm, indent, flags);
 }
 
 #ifndef OPENSSL_NO_STDIO
-int X509_NAME_print_ex_fp(FILE *fp, const X509_NAME *nm, int indent,
+int VR_X509_NAME_print_ex_fp(FILE *fp, const X509_NAME *nm, int indent,
                           unsigned long flags)
 {
     if (flags == XN_FLAG_COMPAT) {
         BIO *btmp;
         int ret;
-        btmp = BIO_new_fp(fp, BIO_NOCLOSE);
+        btmp = VR_BIO_new_fp(fp, BIO_NOCLOSE);
         if (!btmp)
             return -1;
-        ret = X509_NAME_print(btmp, nm, indent);
-        BIO_free(btmp);
+        ret = VR_X509_NAME_print(btmp, nm, indent);
+        VR_BIO_free(btmp);
         return ret;
     }
     return do_name_ex(send_fp_chars, fp, nm, indent, flags);
 }
 #endif
 
-int ASN1_STRING_print_ex(BIO *out, const ASN1_STRING *str, unsigned long flags)
+int VR_ASN1_STRING_print_ex(BIO *out, const ASN1_STRING *str, unsigned long flags)
 {
     return do_print_ex(send_bio_chars, out, flags, str);
 }
 
 #ifndef OPENSSL_NO_STDIO
-int ASN1_STRING_print_ex_fp(FILE *fp, const ASN1_STRING *str, unsigned long flags)
+int VR_ASN1_STRING_print_ex_fp(FILE *fp, const ASN1_STRING *str, unsigned long flags)
 {
     return do_print_ex(send_fp_chars, fp, flags, str);
 }
@@ -600,7 +600,7 @@ int ASN1_STRING_print_ex_fp(FILE *fp, const ASN1_STRING *str, unsigned long flag
  * in output string or a negative error code
  */
 
-int ASN1_STRING_to_UTF8(unsigned char **out, const ASN1_STRING *in)
+int VR_ASN1_STRING_to_UTF8(unsigned char **out, const ASN1_STRING *in)
 {
     ASN1_STRING stmp, *str = &stmp;
     int mbflag, type, ret;
@@ -617,7 +617,7 @@ int ASN1_STRING_to_UTF8(unsigned char **out, const ASN1_STRING *in)
     stmp.length = 0;
     stmp.flags = 0;
     ret =
-        ASN1_mbstring_copy(&str, in->data, in->length, mbflag,
+        VR_ASN1_mbstring_copy(&str, in->data, in->length, mbflag,
                            B_ASN1_UTF8STRING);
     if (ret < 0)
         return ret;

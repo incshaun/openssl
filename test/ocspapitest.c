@@ -28,22 +28,22 @@ static int get_cert_and_key(X509 **cert_out, EVP_PKEY **key_out)
     X509 *cert = NULL;
     EVP_PKEY *key = NULL;
 
-    if (!TEST_ptr(certbio = BIO_new_file(certstr, "r")))
+    if (!TEST_ptr(certbio = VR_BIO_new_file(certstr, "r")))
         return 0;
-    cert = PEM_read_bio_X509(certbio, NULL, NULL, NULL);
-    BIO_free(certbio);
-    if (!TEST_ptr(keybio = BIO_new_file(privkeystr, "r")))
+    cert = VR_PEM_read_bio_X509(certbio, NULL, NULL, NULL);
+    VR_BIO_free(certbio);
+    if (!TEST_ptr(keybio = VR_BIO_new_file(privkeystr, "r")))
         goto end;
-    key = PEM_read_bio_PrivateKey(keybio, NULL, NULL, NULL);
-    BIO_free(keybio);
+    key = VR_PEM_read_bio_PrivateKey(keybio, NULL, NULL, NULL);
+    VR_BIO_free(keybio);
     if (!TEST_ptr(cert) || !TEST_ptr(key))
         goto end;
     *cert_out = cert;
     *key_out = key;
     return 1;
  end:
-    X509_free(cert);
-    EVP_PKEY_free(key);
+    VR_X509_free(cert);
+    VR_EVP_PKEY_free(key);
     return 0;
 }
 
@@ -51,39 +51,39 @@ static OCSP_BASICRESP *make_dummy_resp(void)
 {
     const unsigned char namestr[] = "openssl.example.com";
     unsigned char keybytes[128] = {7};
-    OCSP_BASICRESP *bs = OCSP_BASICRESP_new();
+    OCSP_BASICRESP *bs = VR_OCSP_BASICRESP_new();
     OCSP_BASICRESP *bs_out = NULL;
     OCSP_CERTID *cid = NULL;
-    ASN1_TIME *thisupd = ASN1_TIME_set(NULL, time(NULL));
-    ASN1_TIME *nextupd = ASN1_TIME_set(NULL, time(NULL) + 200);
-    X509_NAME *name = X509_NAME_new();
-    ASN1_BIT_STRING *key = ASN1_BIT_STRING_new();
-    ASN1_INTEGER *serial = ASN1_INTEGER_new();
+    ASN1_TIME *thisupd = VR_ASN1_TIME_set(NULL, time(NULL));
+    ASN1_TIME *nextupd = VR_ASN1_TIME_set(NULL, time(NULL) + 200);
+    X509_NAME *name = VR_X509_NAME_new();
+    ASN1_BIT_STRING *key = VR_ASN1_BIT_STRING_new();
+    ASN1_INTEGER *serial = VR_ASN1_INTEGER_new();
 
-    if (!X509_NAME_add_entry_by_NID(name, NID_commonName, MBSTRING_ASC,
+    if (!VR_X509_NAME_add_entry_by_NID(name, NID_commonName, MBSTRING_ASC,
                                    namestr, -1, -1, 1)
-        || !ASN1_BIT_STRING_set(key, keybytes, sizeof(keybytes))
-        || !ASN1_INTEGER_set_uint64(serial, (uint64_t)1))
+        || !VR_ASN1_BIT_STRING_set(key, keybytes, sizeof(keybytes))
+        || !VR_ASN1_INTEGER_set_uint64(serial, (uint64_t)1))
         goto err;
-    cid = OCSP_cert_id_new(EVP_sha256(), name, key, serial);
+    cid = VR_OCSP_cert_id_new(VR_EVP_sha256(), name, key, serial);
     if (!TEST_ptr(bs)
         || !TEST_ptr(thisupd)
         || !TEST_ptr(nextupd)
         || !TEST_ptr(cid)
-        || !TEST_true(OCSP_basic_add1_status(bs, cid,
+        || !TEST_true(VR_OCSP_basic_add1_status(bs, cid,
                                              V_OCSP_CERTSTATUS_UNKNOWN,
                                              0, NULL, thisupd, nextupd)))
         goto err;
     bs_out = bs;
     bs = NULL;
  err:
-    ASN1_TIME_free(thisupd);
-    ASN1_TIME_free(nextupd);
-    ASN1_BIT_STRING_free(key);
-    ASN1_INTEGER_free(serial);
-    OCSP_CERTID_free(cid);
-    OCSP_BASICRESP_free(bs);
-    X509_NAME_free(name);
+    VR_ASN1_TIME_free(thisupd);
+    VR_ASN1_TIME_free(nextupd);
+    VR_ASN1_BIT_STRING_free(key);
+    VR_ASN1_INTEGER_free(serial);
+    VR_OCSP_CERTID_free(cid);
+    VR_OCSP_BASICRESP_free(bs);
+    VR_X509_NAME_free(name);
     return bs_out;
 }
 
@@ -97,38 +97,38 @@ static int test_resp_signer(void)
 
     /*
      * Test a response with no certs at all; get the signer from the
-     * extra certs given to OCSP_resp_get0_signer().
+     * extra certs given to VR_OCSP_resp_get0_signer().
      */
     bs = make_dummy_resp();
-    extra_certs = sk_X509_new_null();
+    extra_certs = sk_VR_X509_new_null();
     if (!TEST_ptr(bs)
         || !TEST_ptr(extra_certs)
         || !TEST_true(get_cert_and_key(&signer, &key))
-        || !TEST_true(sk_X509_push(extra_certs, signer))
-        || !TEST_true(OCSP_basic_sign(bs, signer, key, EVP_sha1(),
+        || !TEST_true(sk_VR_X509_push(extra_certs, signer))
+        || !TEST_true(VR_OCSP_basic_sign(bs, signer, key, VR_EVP_sha1(),
                                       NULL, OCSP_NOCERTS)))
         goto err;
-    if (!TEST_true(OCSP_resp_get0_signer(bs, &tmp, extra_certs))
-        || !TEST_int_eq(X509_cmp(tmp, signer), 0))
+    if (!TEST_true(VR_OCSP_resp_get0_signer(bs, &tmp, extra_certs))
+        || !TEST_int_eq(VR_X509_cmp(tmp, signer), 0))
         goto err;
-    OCSP_BASICRESP_free(bs);
+    VR_OCSP_BASICRESP_free(bs);
 
     /* Do it again but include the signer cert */
     bs = make_dummy_resp();
     tmp = NULL;
     if (!TEST_ptr(bs)
-        || !TEST_true(OCSP_basic_sign(bs, signer, key, EVP_sha1(),
+        || !TEST_true(VR_OCSP_basic_sign(bs, signer, key, VR_EVP_sha1(),
                                       NULL, 0)))
         goto err;
-    if (!TEST_true(OCSP_resp_get0_signer(bs, &tmp, NULL))
-        || !TEST_int_eq(X509_cmp(tmp, signer), 0))
+    if (!TEST_true(VR_OCSP_resp_get0_signer(bs, &tmp, NULL))
+        || !TEST_int_eq(VR_X509_cmp(tmp, signer), 0))
         goto err;
     ret = 1;
  err:
-    OCSP_BASICRESP_free(bs);
-    sk_X509_free(extra_certs);
-    X509_free(signer);
-    EVP_PKEY_free(key);
+    VR_OCSP_BASICRESP_free(bs);
+    sk_VR_X509_free(extra_certs);
+    VR_X509_free(signer);
+    VR_EVP_PKEY_free(key);
     return ret;
 }
 #endif

@@ -43,45 +43,45 @@ typedef int (*ASYNC_callback_fn)(void *arg);
 #define ASYNC_STATUS_OK             2
 #define ASYNC_STATUS_EAGAIN         3
 
-int ASYNC_init_thread(size_t max_size, size_t init_size);
-void ASYNC_cleanup_thread(void);
+int VR_ASYNC_init_thread(size_t max_size, size_t init_size);
+void VR_ASYNC_cleanup_thread(void);
 
 #ifdef OSSL_ASYNC_FD
-ASYNC_WAIT_CTX *ASYNC_WAIT_CTX_new(void);
-void ASYNC_WAIT_CTX_free(ASYNC_WAIT_CTX *ctx);
-int ASYNC_WAIT_CTX_set_wait_fd(ASYNC_WAIT_CTX *ctx, const void *key,
+ASYNC_WAIT_CTX *VR_ASYNC_WAIT_CTX_new(void);
+void VR_ASYNC_WAIT_CTX_free(ASYNC_WAIT_CTX *ctx);
+int VR_ASYNC_WAIT_CTX_set_wait_fd(ASYNC_WAIT_CTX *ctx, const void *key,
                                OSSL_ASYNC_FD fd,
                                void *custom_data,
                                void (*cleanup)(ASYNC_WAIT_CTX *, const void *,
                                                OSSL_ASYNC_FD, void *));
-int ASYNC_WAIT_CTX_get_fd(ASYNC_WAIT_CTX *ctx, const void *key,
+int VR_ASYNC_WAIT_CTX_get_fd(ASYNC_WAIT_CTX *ctx, const void *key,
                         OSSL_ASYNC_FD *fd, void **custom_data);
-int ASYNC_WAIT_CTX_get_all_fds(ASYNC_WAIT_CTX *ctx, OSSL_ASYNC_FD *fd,
+int VR_ASYNC_WAIT_CTX_get_all_fds(ASYNC_WAIT_CTX *ctx, OSSL_ASYNC_FD *fd,
                                size_t *numfds);
-int ASYNC_WAIT_CTX_get_callback(ASYNC_WAIT_CTX *ctx,
+int VR_ASYNC_WAIT_CTX_get_callback(ASYNC_WAIT_CTX *ctx,
                                 ASYNC_callback_fn *callback,
                                 void **callback_arg);
-int ASYNC_WAIT_CTX_set_callback(ASYNC_WAIT_CTX *ctx,
+int VR_ASYNC_WAIT_CTX_set_callback(ASYNC_WAIT_CTX *ctx,
                                 ASYNC_callback_fn callback,
                                 void *callback_arg);
-int ASYNC_WAIT_CTX_set_status(ASYNC_WAIT_CTX *ctx, int status);
-int ASYNC_WAIT_CTX_get_status(ASYNC_WAIT_CTX *ctx);
-int ASYNC_WAIT_CTX_get_changed_fds(ASYNC_WAIT_CTX *ctx, OSSL_ASYNC_FD *addfd,
+int VR_ASYNC_WAIT_CTX_set_status(ASYNC_WAIT_CTX *ctx, int status);
+int VR_ASYNC_WAIT_CTX_get_status(ASYNC_WAIT_CTX *ctx);
+int VR_ASYNC_WAIT_CTX_get_changed_fds(ASYNC_WAIT_CTX *ctx, OSSL_ASYNC_FD *addfd,
                                    size_t *numaddfds, OSSL_ASYNC_FD *delfd,
                                    size_t *numdelfds);
-int ASYNC_WAIT_CTX_clear_fd(ASYNC_WAIT_CTX *ctx, const void *key);
+int VR_ASYNC_WAIT_CTX_clear_fd(ASYNC_WAIT_CTX *ctx, const void *key);
 #endif
 
-int ASYNC_is_capable(void);
+int VR_ASYNC_is_capable(void);
 
-int ASYNC_start_job(ASYNC_JOB **job, ASYNC_WAIT_CTX *ctx, int *ret,
+int VR_ASYNC_start_job(ASYNC_JOB **job, ASYNC_WAIT_CTX *ctx, int *ret,
                     int (*func)(void *), void *args, size_t size);
-int ASYNC_pause_job(void);
+int VR_ASYNC_pause_job(void);
 
-ASYNC_JOB *ASYNC_get_current_job(void);
-ASYNC_WAIT_CTX *ASYNC_get_wait_ctx(ASYNC_JOB *job);
-void ASYNC_block_pause(void);
-void ASYNC_unblock_pause(void);
+ASYNC_JOB *VR_ASYNC_get_current_job(void);
+ASYNC_WAIT_CTX *VR_ASYNC_get_wait_ctx(ASYNC_JOB *job);
+void VR_ASYNC_block_pause(void);
+void VR_ASYNC_unblock_pause(void);
 
 
 # ifdef  __cplusplus

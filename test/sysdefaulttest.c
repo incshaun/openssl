@@ -30,7 +30,7 @@ static int test_func(void)
 
 int global_init(void)
 {
-    if (!OPENSSL_init_ssl(OPENSSL_INIT_ENGINE_ALL_BUILTIN
+    if (!VR_OPENSSL_init_ssl(OPENSSL_INIT_ENGINE_ALL_BUILTIN
                           | OPENSSL_INIT_LOAD_CONFIG, NULL))
         return 0;
     return 1;
@@ -38,7 +38,7 @@ int global_init(void)
 
 int setup_tests(void)
 {
-    if (!TEST_ptr(ctx = SSL_CTX_new(TLS_method())))
+    if (!TEST_ptr(ctx = VR_SSL_CTX_new(VR_TLS_method())))
         return 0;
     ADD_TEST(test_func);
     return 1;
@@ -46,5 +46,5 @@ int setup_tests(void)
 
 void cleanup_tests(void)
 {
-    SSL_CTX_free(ctx);
+    VR_SSL_CTX_free(ctx);
 }

@@ -55,13 +55,13 @@ static int test_idea_ecb(void)
 {
     IDEA_KEY_SCHEDULE key, dkey;
 
-    IDEA_set_encrypt_key(k, &key);
-    IDEA_ecb_encrypt(in, out, &key);
+    VR_IDEA_set_encrypt_key(k, &key);
+    VR_IDEA_ecb_encrypt(in, out, &key);
     if (!TEST_mem_eq(out, IDEA_BLOCK, c, sizeof(c)))
         return 0;
 
-    IDEA_set_decrypt_key(&key, &dkey);
-    IDEA_ecb_encrypt(c, out, &dkey);
+    VR_IDEA_set_decrypt_key(&key, &dkey);
+    VR_IDEA_ecb_encrypt(c, out, &dkey);
     return TEST_mem_eq(out, IDEA_BLOCK, in, sizeof(in));
 }
 
@@ -71,13 +71,13 @@ static int test_idea_cbc(void)
     unsigned char iv[IDEA_BLOCK];
     const size_t text_len = sizeof(text);
 
-    IDEA_set_encrypt_key(k, &key);
-    IDEA_set_decrypt_key(&key, &dkey);
+    VR_IDEA_set_encrypt_key(k, &key);
+    VR_IDEA_set_decrypt_key(&key, &dkey);
     memcpy(iv, k, sizeof(iv));
-    IDEA_cbc_encrypt(text, out, text_len, &key, iv, 1);
+    VR_IDEA_cbc_encrypt(text, out, text_len, &key, iv, 1);
     memcpy(iv, k, sizeof(iv));
-    IDEA_cbc_encrypt(out, out, IDEA_BLOCK, &dkey, iv, 0);
-    IDEA_cbc_encrypt(&out[8], &out[8], text_len - 8, &dkey, iv, 0);
+    VR_IDEA_cbc_encrypt(out, out, IDEA_BLOCK, &dkey, iv, 0);
+    VR_IDEA_cbc_encrypt(&out[8], &out[8], text_len - 8, &dkey, iv, 0);
     return TEST_mem_eq(text, text_len, out, text_len);
 }
 
@@ -86,22 +86,22 @@ static int test_idea_cfb64(void)
     IDEA_KEY_SCHEDULE eks, dks;
     int n;
 
-    IDEA_set_encrypt_key(cfb_key, &eks);
-    IDEA_set_decrypt_key(&eks, &dks);
+    VR_IDEA_set_encrypt_key(cfb_key, &eks);
+    VR_IDEA_set_decrypt_key(&eks, &dks);
     memcpy(cfb_tmp, cfb_iv, sizeof(cfb_tmp));
     n = 0;
-    IDEA_cfb64_encrypt(plain, cfb_buf1, (long)12, &eks,
+    VR_IDEA_cfb64_encrypt(plain, cfb_buf1, (long)12, &eks,
                        cfb_tmp, &n, IDEA_ENCRYPT);
-    IDEA_cfb64_encrypt(&plain[12], &cfb_buf1[12],
+    VR_IDEA_cfb64_encrypt(&plain[12], &cfb_buf1[12],
                        (long)CFB_TEST_SIZE - 12, &eks,
                        cfb_tmp, &n, IDEA_ENCRYPT);
     if (!TEST_mem_eq(cfb_cipher64, CFB_TEST_SIZE, cfb_buf1, CFB_TEST_SIZE))
         return 0;
     memcpy(cfb_tmp, cfb_iv, sizeof(cfb_tmp));
     n = 0;
-    IDEA_cfb64_encrypt(cfb_buf1, cfb_buf2, (long)13, &eks,
+    VR_IDEA_cfb64_encrypt(cfb_buf1, cfb_buf2, (long)13, &eks,
                        cfb_tmp, &n, IDEA_DECRYPT);
-    IDEA_cfb64_encrypt(&cfb_buf1[13], &cfb_buf2[13],
+    VR_IDEA_cfb64_encrypt(&cfb_buf1[13], &cfb_buf2[13],
                        (long)CFB_TEST_SIZE - 13, &eks,
                        cfb_tmp, &n, IDEA_DECRYPT);
     return TEST_mem_eq(plain, CFB_TEST_SIZE, cfb_buf2, CFB_TEST_SIZE);

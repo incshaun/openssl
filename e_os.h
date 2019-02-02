@@ -125,7 +125,7 @@
         * certain "discipline" for maintaining [broad] binary compatibility.
         * As long as structures are invariant among Winsock versions,
         * it's sufficient to check for specific Winsock2 API availability
-        * at run-time [DSO_global_lookup is recommended]...
+        * at run-time [VR_DSO_global_lookup is recommended]...
         */
 #    include <winsock2.h>
 #    include <ws2tcpip.h>
@@ -321,7 +321,7 @@ struct servent *getservbyname(const char *name, const char *proto);
 /* end vxworks */
 
 # ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
-#  define CRYPTO_memcmp memcmp
+#  define VR_CRYPTO_memcmp memcmp
 # endif
 
 /* unistd.h defines _POSIX_VERSION */

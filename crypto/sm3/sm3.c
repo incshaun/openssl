@@ -12,7 +12,7 @@
 #include <openssl/e_os2.h>
 #include "sm3_locl.h"
 
-int sm3_init(SM3_CTX *c)
+int VR_sm3_init(SM3_CTX *c)
 {
     memset(c, 0, sizeof(*c));
     c->A = SM3_A;
@@ -26,7 +26,7 @@ int sm3_init(SM3_CTX *c)
     return 1;
 }
 
-void sm3_block_data_order(SM3_CTX *ctx, const void *p, size_t num)
+void VR_sm3_block_data_order(SM3_CTX *ctx, const void *p, size_t num)
 {
     const unsigned char *data = p;
     register unsigned MD32_REG_T A, B, C, D, E, F, G, H;

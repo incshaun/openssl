@@ -58,7 +58,7 @@ DEFINE_STACK_OF(X509_LOOKUP)
 DEFINE_STACK_OF(X509_OBJECT)
 DEFINE_STACK_OF(X509_VERIFY_PARAM)
 
-int X509_STORE_set_depth(X509_STORE *store, int depth);
+int VR_X509_STORE_set_depth(X509_STORE *store, int depth);
 
 typedef int (*X509_STORE_CTX_verify_cb)(int, X509_STORE_CTX *);
 typedef int (*X509_STORE_CTX_verify_fn)(X509_STORE_CTX *);
@@ -77,24 +77,24 @@ typedef STACK_OF(X509) *(*X509_STORE_CTX_lookup_certs_fn)(X509_STORE_CTX *ctx,
                                                           X509_NAME *nm);
 typedef STACK_OF(X509_CRL) *(*X509_STORE_CTX_lookup_crls_fn)(X509_STORE_CTX *ctx,
                                                              X509_NAME *nm);
-typedef int (*X509_STORE_CTX_cleanup_fn)(X509_STORE_CTX *ctx);
+typedef int (*VR_X509_STORE_CTX_cleanup_fn)(X509_STORE_CTX *ctx);
 
 
-void X509_STORE_CTX_set_depth(X509_STORE_CTX *ctx, int depth);
+void VR_X509_STORE_CTX_set_depth(X509_STORE_CTX *ctx, int depth);
 
 # define X509_STORE_CTX_set_app_data(ctx,data) \
-        X509_STORE_CTX_set_ex_data(ctx,0,data)
+        VR_X509_STORE_CTX_set_ex_data(ctx,0,data)
 # define X509_STORE_CTX_get_app_data(ctx) \
-        X509_STORE_CTX_get_ex_data(ctx,0)
+        VR_X509_STORE_CTX_get_ex_data(ctx,0)
 
 # define X509_L_FILE_LOAD        1
 # define X509_L_ADD_DIR          2
 
 # define X509_LOOKUP_load_file(x,name,type) \
-                X509_LOOKUP_ctrl((x),X509_L_FILE_LOAD,(name),(long)(type),NULL)
+                VR_X509_LOOKUP_ctrl((x),X509_L_FILE_LOAD,(name),(long)(type),NULL)
 
 # define X509_LOOKUP_add_dir(x,name,type) \
-                X509_LOOKUP_ctrl((x),X509_L_ADD_DIR,(name),(long)(type),NULL)
+                VR_X509_LOOKUP_ctrl((x),X509_L_ADD_DIR,(name),(long)(type),NULL)
 
 # define         X509_V_OK                                       0
 # define         X509_V_ERR_UNSPECIFIED                          1
@@ -253,132 +253,132 @@ void X509_STORE_CTX_set_depth(X509_STORE_CTX *ctx, int depth);
                                 | X509_V_FLAG_INHIBIT_ANY \
                                 | X509_V_FLAG_INHIBIT_MAP)
 
-int X509_OBJECT_idx_by_subject(STACK_OF(X509_OBJECT) *h, X509_LOOKUP_TYPE type,
+int VR_X509_OBJECT_idx_by_subject(STACK_OF(X509_OBJECT) *h, X509_LOOKUP_TYPE type,
                                X509_NAME *name);
-X509_OBJECT *X509_OBJECT_retrieve_by_subject(STACK_OF(X509_OBJECT) *h,
+X509_OBJECT *VR_X509_OBJECT_retrieve_by_subject(STACK_OF(X509_OBJECT) *h,
                                              X509_LOOKUP_TYPE type,
                                              X509_NAME *name);
-X509_OBJECT *X509_OBJECT_retrieve_match(STACK_OF(X509_OBJECT) *h,
+X509_OBJECT *VR_X509_OBJECT_retrieve_match(STACK_OF(X509_OBJECT) *h,
                                         X509_OBJECT *x);
-int X509_OBJECT_up_ref_count(X509_OBJECT *a);
-X509_OBJECT *X509_OBJECT_new(void);
-void X509_OBJECT_free(X509_OBJECT *a);
-X509_LOOKUP_TYPE X509_OBJECT_get_type(const X509_OBJECT *a);
-X509 *X509_OBJECT_get0_X509(const X509_OBJECT *a);
-int X509_OBJECT_set1_X509(X509_OBJECT *a, X509 *obj);
-X509_CRL *X509_OBJECT_get0_X509_CRL(X509_OBJECT *a);
-int X509_OBJECT_set1_X509_CRL(X509_OBJECT *a, X509_CRL *obj);
-X509_STORE *X509_STORE_new(void);
-void X509_STORE_free(X509_STORE *v);
-int X509_STORE_lock(X509_STORE *ctx);
-int X509_STORE_unlock(X509_STORE *ctx);
-int X509_STORE_up_ref(X509_STORE *v);
-STACK_OF(X509_OBJECT) *X509_STORE_get0_objects(X509_STORE *v);
+int VR_X509_OBJECT_up_ref_count(X509_OBJECT *a);
+X509_OBJECT *VR_X509_OBJECT_new(void);
+void VR_X509_OBJECT_free(X509_OBJECT *a);
+X509_LOOKUP_TYPE VR_X509_OBJECT_get_type(const X509_OBJECT *a);
+X509 *VR_X509_OBJECT_get0_X509(const X509_OBJECT *a);
+int VR_X509_OBJECT_set1_X509(X509_OBJECT *a, X509 *obj);
+X509_CRL *VR_X509_OBJECT_get0_X509_CRL(X509_OBJECT *a);
+int VR_X509_OBJECT_set1_X509_CRL(X509_OBJECT *a, X509_CRL *obj);
+X509_STORE *VR_X509_STORE_new(void);
+void VR_X509_STORE_free(X509_STORE *v);
+int VR_X509_STORE_lock(X509_STORE *ctx);
+int VR_X509_STORE_unlock(X509_STORE *ctx);
+int VR_X509_STORE_up_ref(X509_STORE *v);
+STACK_OF(X509_OBJECT) *VR_X509_STORE_get0_objects(X509_STORE *v);
 
-STACK_OF(X509) *X509_STORE_CTX_get1_certs(X509_STORE_CTX *st, X509_NAME *nm);
-STACK_OF(X509_CRL) *X509_STORE_CTX_get1_crls(X509_STORE_CTX *st, X509_NAME *nm);
-int X509_STORE_set_flags(X509_STORE *ctx, unsigned long flags);
-int X509_STORE_set_purpose(X509_STORE *ctx, int purpose);
-int X509_STORE_set_trust(X509_STORE *ctx, int trust);
-int X509_STORE_set1_param(X509_STORE *ctx, X509_VERIFY_PARAM *pm);
-X509_VERIFY_PARAM *X509_STORE_get0_param(X509_STORE *ctx);
+STACK_OF(X509) *VR_X509_STORE_CTX_get1_certs(X509_STORE_CTX *st, X509_NAME *nm);
+STACK_OF(X509_CRL) *VR_X509_STORE_CTX_get1_crls(X509_STORE_CTX *st, X509_NAME *nm);
+int VR_X509_STORE_set_flags(X509_STORE *ctx, unsigned long flags);
+int VR_X509_STORE_set_purpose(X509_STORE *ctx, int purpose);
+int VR_X509_STORE_set_trust(X509_STORE *ctx, int trust);
+int VR_X509_STORE_set1_param(X509_STORE *ctx, X509_VERIFY_PARAM *pm);
+X509_VERIFY_PARAM *VR_X509_STORE_get0_param(X509_STORE *ctx);
 
-void X509_STORE_set_verify(X509_STORE *ctx, X509_STORE_CTX_verify_fn verify);
-#define X509_STORE_set_verify_func(ctx, func) \
-            X509_STORE_set_verify((ctx),(func))
-void X509_STORE_CTX_set_verify(X509_STORE_CTX *ctx,
+void VR_X509_STORE_set_verify(X509_STORE *ctx, X509_STORE_CTX_verify_fn verify);
+#define VR_X509_STORE_set_verify_func(ctx, func) \
+            VR_X509_STORE_set_verify((ctx),(func))
+void VR_X509_STORE_CTX_set_verify(X509_STORE_CTX *ctx,
                                X509_STORE_CTX_verify_fn verify);
-X509_STORE_CTX_verify_fn X509_STORE_get_verify(X509_STORE *ctx);
-void X509_STORE_set_verify_cb(X509_STORE *ctx,
+X509_STORE_CTX_verify_fn VR_X509_STORE_get_verify(X509_STORE *ctx);
+void VR_X509_STORE_set_verify_cb(X509_STORE *ctx,
                               X509_STORE_CTX_verify_cb verify_cb);
-# define X509_STORE_set_verify_cb_func(ctx,func) \
-            X509_STORE_set_verify_cb((ctx),(func))
-X509_STORE_CTX_verify_cb X509_STORE_get_verify_cb(X509_STORE *ctx);
-void X509_STORE_set_get_issuer(X509_STORE *ctx,
+# define VR_X509_STORE_set_verify_cb_func(ctx,func) \
+            VR_X509_STORE_set_verify_cb((ctx),(func))
+X509_STORE_CTX_verify_cb VR_X509_STORE_get_verify_cb(X509_STORE *ctx);
+void VR_X509_STORE_set_get_issuer(X509_STORE *ctx,
                                X509_STORE_CTX_get_issuer_fn get_issuer);
-X509_STORE_CTX_get_issuer_fn X509_STORE_get_get_issuer(X509_STORE *ctx);
-void X509_STORE_set_check_issued(X509_STORE *ctx,
+X509_STORE_CTX_get_issuer_fn VR_X509_STORE_get_get_issuer(X509_STORE *ctx);
+void VR_X509_STORE_set_check_issued(X509_STORE *ctx,
                                  X509_STORE_CTX_check_issued_fn check_issued);
-X509_STORE_CTX_check_issued_fn X509_STORE_get_check_issued(X509_STORE *ctx);
-void X509_STORE_set_check_revocation(X509_STORE *ctx,
+X509_STORE_CTX_check_issued_fn VR_X509_STORE_get_check_issued(X509_STORE *ctx);
+void VR_X509_STORE_set_check_revocation(X509_STORE *ctx,
                                      X509_STORE_CTX_check_revocation_fn check_revocation);
-X509_STORE_CTX_check_revocation_fn X509_STORE_get_check_revocation(X509_STORE *ctx);
-void X509_STORE_set_get_crl(X509_STORE *ctx,
+X509_STORE_CTX_check_revocation_fn VR_X509_STORE_get_check_revocation(X509_STORE *ctx);
+void VR_X509_STORE_set_get_crl(X509_STORE *ctx,
                             X509_STORE_CTX_get_crl_fn get_crl);
-X509_STORE_CTX_get_crl_fn X509_STORE_get_get_crl(X509_STORE *ctx);
-void X509_STORE_set_check_crl(X509_STORE *ctx,
+X509_STORE_CTX_get_crl_fn VR_X509_STORE_get_get_crl(X509_STORE *ctx);
+void VR_X509_STORE_set_check_crl(X509_STORE *ctx,
                               X509_STORE_CTX_check_crl_fn check_crl);
-X509_STORE_CTX_check_crl_fn X509_STORE_get_check_crl(X509_STORE *ctx);
-void X509_STORE_set_cert_crl(X509_STORE *ctx,
+X509_STORE_CTX_check_crl_fn VR_X509_STORE_get_check_crl(X509_STORE *ctx);
+void VR_X509_STORE_set_cert_crl(X509_STORE *ctx,
                              X509_STORE_CTX_cert_crl_fn cert_crl);
-X509_STORE_CTX_cert_crl_fn X509_STORE_get_cert_crl(X509_STORE *ctx);
-void X509_STORE_set_check_policy(X509_STORE *ctx,
+X509_STORE_CTX_cert_crl_fn VR_X509_STORE_get_cert_crl(X509_STORE *ctx);
+void VR_X509_STORE_set_check_policy(X509_STORE *ctx,
                                  X509_STORE_CTX_check_policy_fn check_policy);
-X509_STORE_CTX_check_policy_fn X509_STORE_get_check_policy(X509_STORE *ctx);
-void X509_STORE_set_lookup_certs(X509_STORE *ctx,
+X509_STORE_CTX_check_policy_fn VR_X509_STORE_get_check_policy(X509_STORE *ctx);
+void VR_X509_STORE_set_lookup_certs(X509_STORE *ctx,
                                  X509_STORE_CTX_lookup_certs_fn lookup_certs);
-X509_STORE_CTX_lookup_certs_fn X509_STORE_get_lookup_certs(X509_STORE *ctx);
-void X509_STORE_set_lookup_crls(X509_STORE *ctx,
+X509_STORE_CTX_lookup_certs_fn VR_X509_STORE_get_lookup_certs(X509_STORE *ctx);
+void VR_X509_STORE_set_lookup_crls(X509_STORE *ctx,
                                 X509_STORE_CTX_lookup_crls_fn lookup_crls);
-#define X509_STORE_set_lookup_crls_cb(ctx, func) \
-    X509_STORE_set_lookup_crls((ctx), (func))
-X509_STORE_CTX_lookup_crls_fn X509_STORE_get_lookup_crls(X509_STORE *ctx);
-void X509_STORE_set_cleanup(X509_STORE *ctx,
-                            X509_STORE_CTX_cleanup_fn cleanup);
-X509_STORE_CTX_cleanup_fn X509_STORE_get_cleanup(X509_STORE *ctx);
+#define VR_X509_STORE_set_lookup_crls_cb(ctx, func) \
+    VR_X509_STORE_set_lookup_crls((ctx), (func))
+X509_STORE_CTX_lookup_crls_fn VR_X509_STORE_get_lookup_crls(X509_STORE *ctx);
+void VR_X509_STORE_set_cleanup(X509_STORE *ctx,
+                            VR_X509_STORE_CTX_cleanup_fn cleanup);
+VR_X509_STORE_CTX_cleanup_fn VR_X509_STORE_get_cleanup(X509_STORE *ctx);
 
 #define X509_STORE_get_ex_new_index(l, p, newf, dupf, freef) \
-    CRYPTO_get_ex_new_index(CRYPTO_EX_INDEX_X509_STORE, l, p, newf, dupf, freef)
-int X509_STORE_set_ex_data(X509_STORE *ctx, int idx, void *data);
-void *X509_STORE_get_ex_data(X509_STORE *ctx, int idx);
+    VR_CRYPTO_get_ex_new_index(CRYPTO_EX_INDEX_X509_STORE, l, p, newf, dupf, freef)
+int VR_X509_STORE_set_ex_data(X509_STORE *ctx, int idx, void *data);
+void *VR_X509_STORE_get_ex_data(X509_STORE *ctx, int idx);
 
-X509_STORE_CTX *X509_STORE_CTX_new(void);
+X509_STORE_CTX *VR_X509_STORE_CTX_new(void);
 
-int X509_STORE_CTX_get1_issuer(X509 **issuer, X509_STORE_CTX *ctx, X509 *x);
+int VR_X509_STORE_CTX_get1_issuer(X509 **issuer, X509_STORE_CTX *ctx, X509 *x);
 
-void X509_STORE_CTX_free(X509_STORE_CTX *ctx);
-int X509_STORE_CTX_init(X509_STORE_CTX *ctx, X509_STORE *store,
+void VR_X509_STORE_CTX_free(X509_STORE_CTX *ctx);
+int VR_X509_STORE_CTX_init(X509_STORE_CTX *ctx, X509_STORE *store,
                         X509 *x509, STACK_OF(X509) *chain);
-void X509_STORE_CTX_set0_trusted_stack(X509_STORE_CTX *ctx, STACK_OF(X509) *sk);
-void X509_STORE_CTX_cleanup(X509_STORE_CTX *ctx);
+void VR_X509_STORE_CTX_set0_trusted_stack(X509_STORE_CTX *ctx, STACK_OF(X509) *sk);
+void VR_X509_STORE_CTX_cleanup(X509_STORE_CTX *ctx);
 
-X509_STORE *X509_STORE_CTX_get0_store(X509_STORE_CTX *ctx);
-X509 *X509_STORE_CTX_get0_cert(X509_STORE_CTX *ctx);
-STACK_OF(X509)* X509_STORE_CTX_get0_untrusted(X509_STORE_CTX *ctx);
-void X509_STORE_CTX_set0_untrusted(X509_STORE_CTX *ctx, STACK_OF(X509) *sk);
-void X509_STORE_CTX_set_verify_cb(X509_STORE_CTX *ctx,
+X509_STORE *VR_X509_STORE_CTX_get0_store(X509_STORE_CTX *ctx);
+X509 *VR_X509_STORE_CTX_get0_cert(X509_STORE_CTX *ctx);
+STACK_OF(X509)* VR_X509_STORE_CTX_get0_untrusted(X509_STORE_CTX *ctx);
+void VR_X509_STORE_CTX_set0_untrusted(X509_STORE_CTX *ctx, STACK_OF(X509) *sk);
+void VR_X509_STORE_CTX_set_verify_cb(X509_STORE_CTX *ctx,
                                   X509_STORE_CTX_verify_cb verify);
-X509_STORE_CTX_verify_cb X509_STORE_CTX_get_verify_cb(X509_STORE_CTX *ctx);
-X509_STORE_CTX_verify_fn X509_STORE_CTX_get_verify(X509_STORE_CTX *ctx);
-X509_STORE_CTX_get_issuer_fn X509_STORE_CTX_get_get_issuer(X509_STORE_CTX *ctx);
-X509_STORE_CTX_check_issued_fn X509_STORE_CTX_get_check_issued(X509_STORE_CTX *ctx);
-X509_STORE_CTX_check_revocation_fn X509_STORE_CTX_get_check_revocation(X509_STORE_CTX *ctx);
-X509_STORE_CTX_get_crl_fn X509_STORE_CTX_get_get_crl(X509_STORE_CTX *ctx);
-X509_STORE_CTX_check_crl_fn X509_STORE_CTX_get_check_crl(X509_STORE_CTX *ctx);
-X509_STORE_CTX_cert_crl_fn X509_STORE_CTX_get_cert_crl(X509_STORE_CTX *ctx);
-X509_STORE_CTX_check_policy_fn X509_STORE_CTX_get_check_policy(X509_STORE_CTX *ctx);
-X509_STORE_CTX_lookup_certs_fn X509_STORE_CTX_get_lookup_certs(X509_STORE_CTX *ctx);
-X509_STORE_CTX_lookup_crls_fn X509_STORE_CTX_get_lookup_crls(X509_STORE_CTX *ctx);
-X509_STORE_CTX_cleanup_fn X509_STORE_CTX_get_cleanup(X509_STORE_CTX *ctx);
+X509_STORE_CTX_verify_cb VR_X509_STORE_CTX_get_verify_cb(X509_STORE_CTX *ctx);
+X509_STORE_CTX_verify_fn VR_X509_STORE_CTX_get_verify(X509_STORE_CTX *ctx);
+X509_STORE_CTX_get_issuer_fn VR_X509_STORE_CTX_get_get_issuer(X509_STORE_CTX *ctx);
+X509_STORE_CTX_check_issued_fn VR_X509_STORE_CTX_get_check_issued(X509_STORE_CTX *ctx);
+X509_STORE_CTX_check_revocation_fn VR_X509_STORE_CTX_get_check_revocation(X509_STORE_CTX *ctx);
+X509_STORE_CTX_get_crl_fn VR_X509_STORE_CTX_get_get_crl(X509_STORE_CTX *ctx);
+X509_STORE_CTX_check_crl_fn VR_X509_STORE_CTX_get_check_crl(X509_STORE_CTX *ctx);
+X509_STORE_CTX_cert_crl_fn VR_X509_STORE_CTX_get_cert_crl(X509_STORE_CTX *ctx);
+X509_STORE_CTX_check_policy_fn VR_X509_STORE_CTX_get_check_policy(X509_STORE_CTX *ctx);
+X509_STORE_CTX_lookup_certs_fn VR_X509_STORE_CTX_get_lookup_certs(X509_STORE_CTX *ctx);
+X509_STORE_CTX_lookup_crls_fn VR_X509_STORE_CTX_get_lookup_crls(X509_STORE_CTX *ctx);
+VR_X509_STORE_CTX_cleanup_fn VR_X509_STORE_CTX_get_cleanup(X509_STORE_CTX *ctx);
 
 #if !OPENSSL_API_1_1_0
-# define X509_STORE_CTX_get_chain X509_STORE_CTX_get0_chain
-# define X509_STORE_CTX_set_chain X509_STORE_CTX_set0_untrusted
-# define X509_STORE_CTX_trusted_stack X509_STORE_CTX_set0_trusted_stack
-# define X509_STORE_get_by_subject X509_STORE_CTX_get_by_subject
-# define X509_STORE_get1_certs X509_STORE_CTX_get1_certs
-# define X509_STORE_get1_crls X509_STORE_CTX_get1_crls
+# define X509_STORE_CTX_get_chain VR_X509_STORE_CTX_get0_chain
+# define X509_STORE_CTX_set_chain VR_X509_STORE_CTX_set0_untrusted
+# define X509_STORE_CTX_trusted_stack VR_X509_STORE_CTX_set0_trusted_stack
+# define X509_STORE_get_by_subject VR_X509_STORE_CTX_get_by_subject
+# define X509_STORE_get1_certs VR_X509_STORE_CTX_get1_certs
+# define X509_STORE_get1_crls VR_X509_STORE_CTX_get1_crls
 /* the following macro is misspelled; use X509_STORE_get1_certs instead */
-# define X509_STORE_get1_cert X509_STORE_CTX_get1_certs
+# define X509_STORE_get1_cert VR_X509_STORE_CTX_get1_certs
 /* the following macro is misspelled; use X509_STORE_get1_crls instead */
-# define X509_STORE_get1_crl X509_STORE_CTX_get1_crls
+# define X509_STORE_get1_crl VR_X509_STORE_CTX_get1_crls
 #endif
 
-X509_LOOKUP *X509_STORE_add_lookup(X509_STORE *v, X509_LOOKUP_METHOD *m);
-X509_LOOKUP_METHOD *X509_LOOKUP_hash_dir(void);
-X509_LOOKUP_METHOD *X509_LOOKUP_file(void);
+X509_LOOKUP *VR_X509_STORE_add_lookup(X509_STORE *v, X509_LOOKUP_METHOD *m);
+X509_LOOKUP_METHOD *VR_X509_LOOKUP_hash_dir(void);
+X509_LOOKUP_METHOD *VR_X509_LOOKUP_file(void);
 
-typedef int (*X509_LOOKUP_ctrl_fn)(X509_LOOKUP *ctx, int cmd, const char *argc,
+typedef int (*VR_X509_LOOKUP_ctrl_fn)(X509_LOOKUP *ctx, int cmd, const char *argc,
                                    long argl, char **ret);
 typedef int (*X509_LOOKUP_get_by_subject_fn)(X509_LOOKUP *ctx,
                                              X509_LOOKUP_TYPE type,
@@ -400,187 +400,187 @@ typedef int (*X509_LOOKUP_get_by_alias_fn)(X509_LOOKUP *ctx,
                                            int len,
                                            X509_OBJECT *ret);
 
-X509_LOOKUP_METHOD *X509_LOOKUP_meth_new(const char *name);
-void X509_LOOKUP_meth_free(X509_LOOKUP_METHOD *method);
+X509_LOOKUP_METHOD *VR_X509_LOOKUP_meth_new(const char *name);
+void VR_X509_LOOKUP_meth_free(X509_LOOKUP_METHOD *method);
 
-int X509_LOOKUP_meth_set_new_item(X509_LOOKUP_METHOD *method,
+int VR_X509_LOOKUP_meth_set_new_item(X509_LOOKUP_METHOD *method,
                                   int (*new_item) (X509_LOOKUP *ctx));
-int (*X509_LOOKUP_meth_get_new_item(const X509_LOOKUP_METHOD* method))
+int (*VR_X509_LOOKUP_meth_get_new_item(const X509_LOOKUP_METHOD* method))
     (X509_LOOKUP *ctx);
 
-int X509_LOOKUP_meth_set_free(X509_LOOKUP_METHOD *method,
+int VR_X509_LOOKUP_meth_set_free(X509_LOOKUP_METHOD *method,
                               void (*free_fn) (X509_LOOKUP *ctx));
-void (*X509_LOOKUP_meth_get_free(const X509_LOOKUP_METHOD* method))
+void (*VR_X509_LOOKUP_meth_get_free(const X509_LOOKUP_METHOD* method))
     (X509_LOOKUP *ctx);
 
-int X509_LOOKUP_meth_set_init(X509_LOOKUP_METHOD *method,
+int VR_X509_LOOKUP_meth_set_init(X509_LOOKUP_METHOD *method,
                               int (*init) (X509_LOOKUP *ctx));
-int (*X509_LOOKUP_meth_get_init(const X509_LOOKUP_METHOD* method))
+int (*VR_X509_LOOKUP_meth_get_init(const X509_LOOKUP_METHOD* method))
     (X509_LOOKUP *ctx);
 
-int X509_LOOKUP_meth_set_shutdown(X509_LOOKUP_METHOD *method,
+int VR_X509_LOOKUP_meth_set_shutdown(X509_LOOKUP_METHOD *method,
                                   int (*shutdown) (X509_LOOKUP *ctx));
-int (*X509_LOOKUP_meth_get_shutdown(const X509_LOOKUP_METHOD* method))
+int (*VR_X509_LOOKUP_meth_get_shutdown(const X509_LOOKUP_METHOD* method))
     (X509_LOOKUP *ctx);
 
-int X509_LOOKUP_meth_set_ctrl(X509_LOOKUP_METHOD *method,
-                              X509_LOOKUP_ctrl_fn ctrl_fn);
-X509_LOOKUP_ctrl_fn X509_LOOKUP_meth_get_ctrl(const X509_LOOKUP_METHOD *method);
+int VR_X509_LOOKUP_meth_set_ctrl(X509_LOOKUP_METHOD *method,
+                              VR_X509_LOOKUP_ctrl_fn ctrl_fn);
+VR_X509_LOOKUP_ctrl_fn VR_X509_LOOKUP_meth_get_ctrl(const X509_LOOKUP_METHOD *method);
 
-int X509_LOOKUP_meth_set_get_by_subject(X509_LOOKUP_METHOD *method,
+int VR_X509_LOOKUP_meth_set_get_by_subject(X509_LOOKUP_METHOD *method,
                                         X509_LOOKUP_get_by_subject_fn fn);
-X509_LOOKUP_get_by_subject_fn X509_LOOKUP_meth_get_get_by_subject(
+X509_LOOKUP_get_by_subject_fn VR_X509_LOOKUP_meth_get_get_by_subject(
     const X509_LOOKUP_METHOD *method);
 
-int X509_LOOKUP_meth_set_get_by_issuer_serial(X509_LOOKUP_METHOD *method,
+int VR_X509_LOOKUP_meth_set_get_by_issuer_serial(X509_LOOKUP_METHOD *method,
     X509_LOOKUP_get_by_issuer_serial_fn fn);
-X509_LOOKUP_get_by_issuer_serial_fn X509_LOOKUP_meth_get_get_by_issuer_serial(
+X509_LOOKUP_get_by_issuer_serial_fn VR_X509_LOOKUP_meth_get_get_by_issuer_serial(
     const X509_LOOKUP_METHOD *method);
 
-int X509_LOOKUP_meth_set_get_by_fingerprint(X509_LOOKUP_METHOD *method,
+int VR_X509_LOOKUP_meth_set_get_by_fingerprint(X509_LOOKUP_METHOD *method,
     X509_LOOKUP_get_by_fingerprint_fn fn);
-X509_LOOKUP_get_by_fingerprint_fn X509_LOOKUP_meth_get_get_by_fingerprint(
+X509_LOOKUP_get_by_fingerprint_fn VR_X509_LOOKUP_meth_get_get_by_fingerprint(
     const X509_LOOKUP_METHOD *method);
 
-int X509_LOOKUP_meth_set_get_by_alias(X509_LOOKUP_METHOD *method,
+int VR_X509_LOOKUP_meth_set_get_by_alias(X509_LOOKUP_METHOD *method,
                                       X509_LOOKUP_get_by_alias_fn fn);
-X509_LOOKUP_get_by_alias_fn X509_LOOKUP_meth_get_get_by_alias(
+X509_LOOKUP_get_by_alias_fn VR_X509_LOOKUP_meth_get_get_by_alias(
     const X509_LOOKUP_METHOD *method);
 
 
-int X509_STORE_add_cert(X509_STORE *ctx, X509 *x);
-int X509_STORE_add_crl(X509_STORE *ctx, X509_CRL *x);
+int VR_X509_STORE_add_cert(X509_STORE *ctx, X509 *x);
+int VR_X509_STORE_add_crl(X509_STORE *ctx, X509_CRL *x);
 
-int X509_STORE_CTX_get_by_subject(X509_STORE_CTX *vs, X509_LOOKUP_TYPE type,
+int VR_X509_STORE_CTX_get_by_subject(X509_STORE_CTX *vs, X509_LOOKUP_TYPE type,
                                   X509_NAME *name, X509_OBJECT *ret);
-X509_OBJECT *X509_STORE_CTX_get_obj_by_subject(X509_STORE_CTX *vs,
+X509_OBJECT *VR_X509_STORE_CTX_get_obj_by_subject(X509_STORE_CTX *vs,
                                                X509_LOOKUP_TYPE type,
                                                X509_NAME *name);
 
-int X509_LOOKUP_ctrl(X509_LOOKUP *ctx, int cmd, const char *argc,
+int VR_X509_LOOKUP_ctrl(X509_LOOKUP *ctx, int cmd, const char *argc,
                      long argl, char **ret);
 
-int X509_load_cert_file(X509_LOOKUP *ctx, const char *file, int type);
-int X509_load_crl_file(X509_LOOKUP *ctx, const char *file, int type);
-int X509_load_cert_crl_file(X509_LOOKUP *ctx, const char *file, int type);
+int VR_X509_load_cert_file(X509_LOOKUP *ctx, const char *file, int type);
+int VR_X509_load_crl_file(X509_LOOKUP *ctx, const char *file, int type);
+int VR_X509_load_cert_crl_file(X509_LOOKUP *ctx, const char *file, int type);
 
-X509_LOOKUP *X509_LOOKUP_new(X509_LOOKUP_METHOD *method);
-void X509_LOOKUP_free(X509_LOOKUP *ctx);
-int X509_LOOKUP_init(X509_LOOKUP *ctx);
-int X509_LOOKUP_by_subject(X509_LOOKUP *ctx, X509_LOOKUP_TYPE type,
+X509_LOOKUP *VR_X509_LOOKUP_new(X509_LOOKUP_METHOD *method);
+void VR_X509_LOOKUP_free(X509_LOOKUP *ctx);
+int VR_X509_LOOKUP_init(X509_LOOKUP *ctx);
+int VR_X509_LOOKUP_by_subject(X509_LOOKUP *ctx, X509_LOOKUP_TYPE type,
                            X509_NAME *name, X509_OBJECT *ret);
-int X509_LOOKUP_by_issuer_serial(X509_LOOKUP *ctx, X509_LOOKUP_TYPE type,
+int VR_X509_LOOKUP_by_issuer_serial(X509_LOOKUP *ctx, X509_LOOKUP_TYPE type,
                                  X509_NAME *name, ASN1_INTEGER *serial,
                                  X509_OBJECT *ret);
-int X509_LOOKUP_by_fingerprint(X509_LOOKUP *ctx, X509_LOOKUP_TYPE type,
+int VR_X509_LOOKUP_by_fingerprint(X509_LOOKUP *ctx, X509_LOOKUP_TYPE type,
                                const unsigned char *bytes, int len,
                                X509_OBJECT *ret);
-int X509_LOOKUP_by_alias(X509_LOOKUP *ctx, X509_LOOKUP_TYPE type,
+int VR_X509_LOOKUP_by_alias(X509_LOOKUP *ctx, X509_LOOKUP_TYPE type,
                          const char *str, int len, X509_OBJECT *ret);
-int X509_LOOKUP_set_method_data(X509_LOOKUP *ctx, void *data);
-void *X509_LOOKUP_get_method_data(const X509_LOOKUP *ctx);
-X509_STORE *X509_LOOKUP_get_store(const X509_LOOKUP *ctx);
-int X509_LOOKUP_shutdown(X509_LOOKUP *ctx);
+int VR_X509_LOOKUP_set_method_data(X509_LOOKUP *ctx, void *data);
+void *VR_X509_LOOKUP_get_method_data(const X509_LOOKUP *ctx);
+X509_STORE *VR_X509_LOOKUP_get_store(const X509_LOOKUP *ctx);
+int VR_X509_LOOKUP_shutdown(X509_LOOKUP *ctx);
 
-int X509_STORE_load_locations(X509_STORE *ctx,
+int VR_X509_STORE_load_locations(X509_STORE *ctx,
                               const char *file, const char *dir);
-int X509_STORE_set_default_paths(X509_STORE *ctx);
+int VR_X509_STORE_set_default_paths(X509_STORE *ctx);
 
 #define X509_STORE_CTX_get_ex_new_index(l, p, newf, dupf, freef) \
-    CRYPTO_get_ex_new_index(CRYPTO_EX_INDEX_X509_STORE_CTX, l, p, newf, dupf, freef)
-int X509_STORE_CTX_set_ex_data(X509_STORE_CTX *ctx, int idx, void *data);
-void *X509_STORE_CTX_get_ex_data(X509_STORE_CTX *ctx, int idx);
-int X509_STORE_CTX_get_error(X509_STORE_CTX *ctx);
-void X509_STORE_CTX_set_error(X509_STORE_CTX *ctx, int s);
-int X509_STORE_CTX_get_error_depth(X509_STORE_CTX *ctx);
-void X509_STORE_CTX_set_error_depth(X509_STORE_CTX *ctx, int depth);
-X509 *X509_STORE_CTX_get_current_cert(X509_STORE_CTX *ctx);
-void X509_STORE_CTX_set_current_cert(X509_STORE_CTX *ctx, X509 *x);
-X509 *X509_STORE_CTX_get0_current_issuer(X509_STORE_CTX *ctx);
-X509_CRL *X509_STORE_CTX_get0_current_crl(X509_STORE_CTX *ctx);
-X509_STORE_CTX *X509_STORE_CTX_get0_parent_ctx(X509_STORE_CTX *ctx);
-STACK_OF(X509) *X509_STORE_CTX_get0_chain(X509_STORE_CTX *ctx);
-STACK_OF(X509) *X509_STORE_CTX_get1_chain(X509_STORE_CTX *ctx);
-void X509_STORE_CTX_set_cert(X509_STORE_CTX *c, X509 *x);
-void X509_STORE_CTX_set0_verified_chain(X509_STORE_CTX *c, STACK_OF(X509) *sk);
-void X509_STORE_CTX_set0_crls(X509_STORE_CTX *c, STACK_OF(X509_CRL) *sk);
-int X509_STORE_CTX_set_purpose(X509_STORE_CTX *ctx, int purpose);
-int X509_STORE_CTX_set_trust(X509_STORE_CTX *ctx, int trust);
-int X509_STORE_CTX_purpose_inherit(X509_STORE_CTX *ctx, int def_purpose,
+    VR_CRYPTO_get_ex_new_index(CRYPTO_EX_INDEX_X509_STORE_CTX, l, p, newf, dupf, freef)
+int VR_X509_STORE_CTX_set_ex_data(X509_STORE_CTX *ctx, int idx, void *data);
+void *VR_X509_STORE_CTX_get_ex_data(X509_STORE_CTX *ctx, int idx);
+int VR_X509_STORE_CTX_get_error(X509_STORE_CTX *ctx);
+void VR_X509_STORE_CTX_set_error(X509_STORE_CTX *ctx, int s);
+int VR_X509_STORE_CTX_get_error_depth(X509_STORE_CTX *ctx);
+void VR_X509_STORE_CTX_set_error_depth(X509_STORE_CTX *ctx, int depth);
+X509 *VR_X509_STORE_CTX_get_current_cert(X509_STORE_CTX *ctx);
+void VR_X509_STORE_CTX_set_current_cert(X509_STORE_CTX *ctx, X509 *x);
+X509 *VR_X509_STORE_CTX_get0_current_issuer(X509_STORE_CTX *ctx);
+X509_CRL *VR_X509_STORE_CTX_get0_current_crl(X509_STORE_CTX *ctx);
+X509_STORE_CTX *VR_X509_STORE_CTX_get0_parent_ctx(X509_STORE_CTX *ctx);
+STACK_OF(X509) *VR_X509_STORE_CTX_get0_chain(X509_STORE_CTX *ctx);
+STACK_OF(X509) *VR_X509_STORE_CTX_get1_chain(X509_STORE_CTX *ctx);
+void VR_X509_STORE_CTX_set_cert(X509_STORE_CTX *c, X509 *x);
+void VR_X509_STORE_CTX_set0_verified_chain(X509_STORE_CTX *c, STACK_OF(X509) *sk);
+void VR_X509_STORE_CTX_set0_crls(X509_STORE_CTX *c, STACK_OF(X509_CRL) *sk);
+int VR_X509_STORE_CTX_set_purpose(X509_STORE_CTX *ctx, int purpose);
+int VR_X509_STORE_CTX_set_trust(X509_STORE_CTX *ctx, int trust);
+int VR_X509_STORE_CTX_purpose_inherit(X509_STORE_CTX *ctx, int def_purpose,
                                    int purpose, int trust);
-void X509_STORE_CTX_set_flags(X509_STORE_CTX *ctx, unsigned long flags);
-void X509_STORE_CTX_set_time(X509_STORE_CTX *ctx, unsigned long flags,
+void VR_X509_STORE_CTX_set_flags(X509_STORE_CTX *ctx, unsigned long flags);
+void VR_X509_STORE_CTX_set_time(X509_STORE_CTX *ctx, unsigned long flags,
                              time_t t);
 
-X509_POLICY_TREE *X509_STORE_CTX_get0_policy_tree(X509_STORE_CTX *ctx);
-int X509_STORE_CTX_get_explicit_policy(X509_STORE_CTX *ctx);
-int X509_STORE_CTX_get_num_untrusted(X509_STORE_CTX *ctx);
+X509_POLICY_TREE *VR_X509_STORE_CTX_get0_policy_tree(X509_STORE_CTX *ctx);
+int VR_X509_STORE_CTX_get_explicit_policy(X509_STORE_CTX *ctx);
+int VR_X509_STORE_CTX_get_num_untrusted(X509_STORE_CTX *ctx);
 
-X509_VERIFY_PARAM *X509_STORE_CTX_get0_param(X509_STORE_CTX *ctx);
-void X509_STORE_CTX_set0_param(X509_STORE_CTX *ctx, X509_VERIFY_PARAM *param);
-int X509_STORE_CTX_set_default(X509_STORE_CTX *ctx, const char *name);
+X509_VERIFY_PARAM *VR_X509_STORE_CTX_get0_param(X509_STORE_CTX *ctx);
+void VR_X509_STORE_CTX_set0_param(X509_STORE_CTX *ctx, X509_VERIFY_PARAM *param);
+int VR_X509_STORE_CTX_set_default(X509_STORE_CTX *ctx, const char *name);
 
 /*
  * Bridge opacity barrier between libcrypt and libssl, also needed to support
  * offline testing in test/danetest.c
  */
-void X509_STORE_CTX_set0_dane(X509_STORE_CTX *ctx, SSL_DANE *dane);
+void VR_X509_STORE_CTX_set0_dane(X509_STORE_CTX *ctx, SSL_DANE *dane);
 #define DANE_FLAG_NO_DANE_EE_NAMECHECKS (1L << 0)
 
 /* X509_VERIFY_PARAM functions */
 
-X509_VERIFY_PARAM *X509_VERIFY_PARAM_new(void);
-void X509_VERIFY_PARAM_free(X509_VERIFY_PARAM *param);
-int X509_VERIFY_PARAM_inherit(X509_VERIFY_PARAM *to,
+X509_VERIFY_PARAM *VR_X509_VERIFY_PARAM_new(void);
+void VR_X509_VERIFY_PARAM_free(X509_VERIFY_PARAM *param);
+int VR_X509_VERIFY_PARAM_inherit(X509_VERIFY_PARAM *to,
                               const X509_VERIFY_PARAM *from);
-int X509_VERIFY_PARAM_set1(X509_VERIFY_PARAM *to,
+int VR_X509_VERIFY_PARAM_set1(X509_VERIFY_PARAM *to,
                            const X509_VERIFY_PARAM *from);
-int X509_VERIFY_PARAM_set1_name(X509_VERIFY_PARAM *param, const char *name);
-int X509_VERIFY_PARAM_set_flags(X509_VERIFY_PARAM *param,
+int VR_X509_VERIFY_PARAM_set1_name(X509_VERIFY_PARAM *param, const char *name);
+int VR_X509_VERIFY_PARAM_set_flags(X509_VERIFY_PARAM *param,
                                 unsigned long flags);
-int X509_VERIFY_PARAM_clear_flags(X509_VERIFY_PARAM *param,
+int VR_X509_VERIFY_PARAM_clear_flags(X509_VERIFY_PARAM *param,
                                   unsigned long flags);
-unsigned long X509_VERIFY_PARAM_get_flags(X509_VERIFY_PARAM *param);
-int X509_VERIFY_PARAM_set_purpose(X509_VERIFY_PARAM *param, int purpose);
-int X509_VERIFY_PARAM_set_trust(X509_VERIFY_PARAM *param, int trust);
-void X509_VERIFY_PARAM_set_depth(X509_VERIFY_PARAM *param, int depth);
-void X509_VERIFY_PARAM_set_auth_level(X509_VERIFY_PARAM *param, int auth_level);
-time_t X509_VERIFY_PARAM_get_time(const X509_VERIFY_PARAM *param);
-void X509_VERIFY_PARAM_set_time(X509_VERIFY_PARAM *param, time_t t);
-int X509_VERIFY_PARAM_add0_policy(X509_VERIFY_PARAM *param,
+unsigned long VR_X509_VERIFY_PARAM_get_flags(X509_VERIFY_PARAM *param);
+int VR_X509_VERIFY_PARAM_set_purpose(X509_VERIFY_PARAM *param, int purpose);
+int VR_X509_VERIFY_PARAM_set_trust(X509_VERIFY_PARAM *param, int trust);
+void VR_X509_VERIFY_PARAM_set_depth(X509_VERIFY_PARAM *param, int depth);
+void VR_X509_VERIFY_PARAM_set_auth_level(X509_VERIFY_PARAM *param, int auth_level);
+time_t VR_X509_VERIFY_PARAM_get_time(const X509_VERIFY_PARAM *param);
+void VR_X509_VERIFY_PARAM_set_time(X509_VERIFY_PARAM *param, time_t t);
+int VR_X509_VERIFY_PARAM_add0_policy(X509_VERIFY_PARAM *param,
                                   ASN1_OBJECT *policy);
-int X509_VERIFY_PARAM_set1_policies(X509_VERIFY_PARAM *param,
+int VR_X509_VERIFY_PARAM_set1_policies(X509_VERIFY_PARAM *param,
                                     STACK_OF(ASN1_OBJECT) *policies);
 
-int X509_VERIFY_PARAM_set_inh_flags(X509_VERIFY_PARAM *param,
+int VR_X509_VERIFY_PARAM_set_inh_flags(X509_VERIFY_PARAM *param,
                                     uint32_t flags);
-uint32_t X509_VERIFY_PARAM_get_inh_flags(const X509_VERIFY_PARAM *param);
+uint32_t VR_X509_VERIFY_PARAM_get_inh_flags(const X509_VERIFY_PARAM *param);
 
-int X509_VERIFY_PARAM_set1_host(X509_VERIFY_PARAM *param,
+int VR_X509_VERIFY_PARAM_set1_host(X509_VERIFY_PARAM *param,
                                 const char *name, size_t namelen);
-int X509_VERIFY_PARAM_add1_host(X509_VERIFY_PARAM *param,
+int VR_X509_VERIFY_PARAM_add1_host(X509_VERIFY_PARAM *param,
                                 const char *name, size_t namelen);
-void X509_VERIFY_PARAM_set_hostflags(X509_VERIFY_PARAM *param,
+void VR_X509_VERIFY_PARAM_set_hostflags(X509_VERIFY_PARAM *param,
                                      unsigned int flags);
-unsigned int X509_VERIFY_PARAM_get_hostflags(const X509_VERIFY_PARAM *param);
-char *X509_VERIFY_PARAM_get0_peername(X509_VERIFY_PARAM *);
-void X509_VERIFY_PARAM_move_peername(X509_VERIFY_PARAM *, X509_VERIFY_PARAM *);
-int X509_VERIFY_PARAM_set1_email(X509_VERIFY_PARAM *param,
+unsigned int VR_X509_VERIFY_PARAM_get_hostflags(const X509_VERIFY_PARAM *param);
+char *VR_X509_VERIFY_PARAM_get0_peername(X509_VERIFY_PARAM *);
+void VR_X509_VERIFY_PARAM_move_peername(X509_VERIFY_PARAM *, X509_VERIFY_PARAM *);
+int VR_X509_VERIFY_PARAM_set1_email(X509_VERIFY_PARAM *param,
                                  const char *email, size_t emaillen);
-int X509_VERIFY_PARAM_set1_ip(X509_VERIFY_PARAM *param,
+int VR_X509_VERIFY_PARAM_set1_ip(X509_VERIFY_PARAM *param,
                               const unsigned char *ip, size_t iplen);
-int X509_VERIFY_PARAM_set1_ip_asc(X509_VERIFY_PARAM *param,
+int VR_X509_VERIFY_PARAM_set1_ip_asc(X509_VERIFY_PARAM *param,
                                   const char *ipasc);
 
-int X509_VERIFY_PARAM_get_depth(const X509_VERIFY_PARAM *param);
-int X509_VERIFY_PARAM_get_auth_level(const X509_VERIFY_PARAM *param);
-const char *X509_VERIFY_PARAM_get0_name(const X509_VERIFY_PARAM *param);
+int VR_X509_VERIFY_PARAM_get_depth(const X509_VERIFY_PARAM *param);
+int VR_X509_VERIFY_PARAM_get_auth_level(const X509_VERIFY_PARAM *param);
+const char *VR_X509_VERIFY_PARAM_get0_name(const X509_VERIFY_PARAM *param);
 
-int X509_VERIFY_PARAM_add0_table(X509_VERIFY_PARAM *param);
-int X509_VERIFY_PARAM_get_count(void);
-const X509_VERIFY_PARAM *X509_VERIFY_PARAM_get0(int id);
-const X509_VERIFY_PARAM *X509_VERIFY_PARAM_lookup(const char *name);
-void X509_VERIFY_PARAM_table_cleanup(void);
+int VR_X509_VERIFY_PARAM_add0_table(X509_VERIFY_PARAM *param);
+int VR_X509_VERIFY_PARAM_get_count(void);
+const X509_VERIFY_PARAM *VR_X509_VERIFY_PARAM_get0(int id);
+const X509_VERIFY_PARAM *VR_X509_VERIFY_PARAM_lookup(const char *name);
+void VR_X509_VERIFY_PARAM_table_cleanup(void);
 
 /* Non positive return values are errors */
 #define X509_PCY_TREE_FAILURE  -2 /* Failure to satisfy explicit policy */
@@ -589,41 +589,41 @@ void X509_VERIFY_PARAM_table_cleanup(void);
 
 /*
  * Positive return values form a bit mask, all but the first are internal to
- * the library and don't appear in results from X509_policy_check().
+ * the library and don't appear in results from VR_X509_policy_check().
  */
 #define X509_PCY_TREE_VALID     1 /* The policy tree is valid */
 #define X509_PCY_TREE_EMPTY     2 /* The policy tree is empty */
 #define X509_PCY_TREE_EXPLICIT  4 /* Explicit policy required */
 
-int X509_policy_check(X509_POLICY_TREE **ptree, int *pexplicit_policy,
+int VR_X509_policy_check(X509_POLICY_TREE **ptree, int *pexplicit_policy,
                       STACK_OF(X509) *certs,
                       STACK_OF(ASN1_OBJECT) *policy_oids, unsigned int flags);
 
-void X509_policy_tree_free(X509_POLICY_TREE *tree);
+void VR_X509_policy_tree_free(X509_POLICY_TREE *tree);
 
-int X509_policy_tree_level_count(const X509_POLICY_TREE *tree);
-X509_POLICY_LEVEL *X509_policy_tree_get0_level(const X509_POLICY_TREE *tree,
+int VR_X509_policy_tree_level_count(const X509_POLICY_TREE *tree);
+X509_POLICY_LEVEL *VR_X509_policy_tree_get0_level(const X509_POLICY_TREE *tree,
                                                int i);
 
-STACK_OF(X509_POLICY_NODE) *X509_policy_tree_get0_policies(const
+STACK_OF(X509_POLICY_NODE) *VR_X509_policy_tree_get0_policies(const
                                                            X509_POLICY_TREE
                                                            *tree);
 
-STACK_OF(X509_POLICY_NODE) *X509_policy_tree_get0_user_policies(const
+STACK_OF(X509_POLICY_NODE) *VR_X509_policy_tree_get0_user_policies(const
                                                                 X509_POLICY_TREE
                                                                 *tree);
 
-int X509_policy_level_node_count(X509_POLICY_LEVEL *level);
+int VR_X509_policy_level_node_count(X509_POLICY_LEVEL *level);
 
-X509_POLICY_NODE *X509_policy_level_get0_node(X509_POLICY_LEVEL *level,
+X509_POLICY_NODE *VR_X509_policy_level_get0_node(X509_POLICY_LEVEL *level,
                                               int i);
 
-const ASN1_OBJECT *X509_policy_node_get0_policy(const X509_POLICY_NODE *node);
+const ASN1_OBJECT *VR_X509_policy_node_get0_policy(const X509_POLICY_NODE *node);
 
-STACK_OF(POLICYQUALINFO) *X509_policy_node_get0_qualifiers(const
+STACK_OF(POLICYQUALINFO) *VR_X509_policy_node_get0_qualifiers(const
                                                            X509_POLICY_NODE
                                                            *node);
-const X509_POLICY_NODE *X509_policy_node_get0_parent(const X509_POLICY_NODE
+const X509_POLICY_NODE *VR_X509_policy_node_get0_parent(const X509_POLICY_NODE
                                                      *node);
 
 #ifdef  __cplusplus

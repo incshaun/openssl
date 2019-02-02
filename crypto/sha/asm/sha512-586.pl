@@ -292,7 +292,7 @@ sub BODY_00_15_x86 {
 }
 
 
-&function_begin("sha512_block_data_order");
+&function_begin("VR_sha512_block_data_order");
 	&mov	("esi",wparam(0));	# ctx
 	&mov	("edi",wparam(1));	# inp
 	&mov	("eax",wparam(2));	# num
@@ -917,7 +917,7 @@ sub BODY_00_15_ssse3 {		# "phase-less" copy of BODY_00_15_sse2
 
 	&data_word(0x04050607,0x00010203);	# byte swap
 	&data_word(0x0c0d0e0f,0x08090a0b);	# mask
-&function_end_B("sha512_block_data_order");
+&function_end_B("VR_sha512_block_data_order");
 &asciz("SHA512 block transform for x86, CRYPTOGAMS by <appro\@openssl.org>");
 
 &asm_finish();

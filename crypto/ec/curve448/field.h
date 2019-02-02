@@ -46,24 +46,24 @@ static INLINE_UNUSED void gf_copy(gf out, const gf a)
     *out = *a;
 }
 
-static INLINE_UNUSED void gf_add_RAW(gf out, const gf a, const gf b);
-static INLINE_UNUSED void gf_sub_RAW(gf out, const gf a, const gf b);
+static INLINE_UNUSED void VR_gf_add_RAW(gf out, const gf a, const gf b);
+static INLINE_UNUSED void VR_gf_sub_RAW(gf out, const gf a, const gf b);
 static INLINE_UNUSED void gf_bias(gf inout, int amount);
 static INLINE_UNUSED void gf_weak_reduce(gf inout);
 
-void gf_strong_reduce(gf inout);
-void gf_add(gf out, const gf a, const gf b);
-void gf_sub(gf out, const gf a, const gf b);
-void gf_mul(gf_s * RESTRICT out, const gf a, const gf b);
-void gf_mulw_unsigned(gf_s * RESTRICT out, const gf a, uint32_t b);
-void gf_sqr(gf_s * RESTRICT out, const gf a);
-mask_t gf_isr(gf a, const gf x); /** a^2 x = 1, QNR, or 0 if x=0.  Return true if successful */
-mask_t gf_eq(const gf x, const gf y);
-mask_t gf_lobit(const gf x);
-mask_t gf_hibit(const gf x);
+void VR_gf_strong_reduce(gf inout);
+void VR_gf_add(gf out, const gf a, const gf b);
+void VR_gf_sub(gf out, const gf a, const gf b);
+void VR_gf_mul(gf_s * RESTRICT out, const gf a, const gf b);
+void VR_gf_mulw_unsigned(gf_s * RESTRICT out, const gf a, uint32_t b);
+void VR_gf_sqr(gf_s * RESTRICT out, const gf a);
+mask_t VR_gf_isr(gf a, const gf x); /** a^2 x = 1, QNR, or 0 if x=0.  Return true if successful */
+mask_t VR_gf_eq(const gf x, const gf y);
+mask_t VR_gf_lobit(const gf x);
+mask_t VR_gf_hibit(const gf x);
 
-void gf_serialize(uint8_t *serial, const gf x, int with_highbit);
-mask_t gf_deserialize(gf x, const uint8_t serial[SER_BYTES], int with_hibit,
+void VR_gf_serialize(uint8_t *serial, const gf x, int with_highbit);
+mask_t VR_gf_deserialize(gf x, const uint8_t serial[SER_BYTES], int with_hibit,
                       uint8_t hi_nmask);
 
 # include "f_impl.h"            /* Bring in the inline implementations */
@@ -74,53 +74,53 @@ mask_t gf_deserialize(gf x, const uint8_t serial[SER_BYTES], int with_hibit,
 static const gf ZERO = {{{0}}}, ONE = {{{1}}};
 
 /* Square x, n times. */
-static ossl_inline void gf_sqrn(gf_s * RESTRICT y, const gf x, int n)
+static ossl_inline void VR_gf_sqrn(gf_s * RESTRICT y, const gf x, int n)
 {
     gf tmp;
 
     assert(n > 0);
     if (n & 1) {
-        gf_sqr(y, x);
+        VR_gf_sqr(y, x);
         n--;
     } else {
-        gf_sqr(tmp, x);
-        gf_sqr(y, tmp);
+        VR_gf_sqr(tmp, x);
+        VR_gf_sqr(y, tmp);
         n -= 2;
     }
     for (; n; n -= 2) {
-        gf_sqr(tmp, y);
-        gf_sqr(y, tmp);
+        VR_gf_sqr(tmp, y);
+        VR_gf_sqr(y, tmp);
     }
 }
 
-# define gf_add_nr gf_add_RAW
+# define VR_gf_add_nr VR_gf_add_RAW
 
 /* Subtract mod p.  Bias by 2 and don't reduce  */
-static ossl_inline void gf_sub_nr(gf c, const gf a, const gf b)
+static ossl_inline void VR_gf_sub_nr(gf c, const gf a, const gf b)
 {
-    gf_sub_RAW(c, a, b);
+    VR_gf_sub_RAW(c, a, b);
     gf_bias(c, 2);
     if (GF_HEADROOM < 3)
         gf_weak_reduce(c);
 }
 
 /* Subtract mod p. Bias by amt but don't reduce.  */
-static ossl_inline void gf_subx_nr(gf c, const gf a, const gf b, int amt)
+static ossl_inline void VR_gf_subx_nr(gf c, const gf a, const gf b, int amt)
 {
-    gf_sub_RAW(c, a, b);
+    VR_gf_sub_RAW(c, a, b);
     gf_bias(c, amt);
     if (GF_HEADROOM < amt + 1)
         gf_weak_reduce(c);
 }
 
 /* Mul by signed int.  Not constant-time WRT the sign of that int. */
-static ossl_inline void gf_mulw(gf c, const gf a, int32_t w)
+static ossl_inline void VR_gf_mulw(gf c, const gf a, int32_t w)
 {
     if (w > 0) {
-        gf_mulw_unsigned(c, a, w);
+        VR_gf_mulw_unsigned(c, a, w);
     } else {
-        gf_mulw_unsigned(c, a, -w);
-        gf_sub(c, ZERO, c);
+        VR_gf_mulw_unsigned(c, a, -w);
+        VR_gf_sub(c, ZERO, c);
     }
 }
 
@@ -146,7 +146,7 @@ static ossl_inline void gf_cond_neg(gf x, mask_t neg)
 {
     gf y;
 
-    gf_sub(y, ZERO, x);
+    VR_gf_sub(y, ZERO, x);
     gf_cond_sel(x, x, y, neg);
 }
 

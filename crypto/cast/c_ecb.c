@@ -11,7 +11,7 @@
 #include "cast_lcl.h"
 #include <openssl/opensslv.h>
 
-void CAST_ecb_encrypt(const unsigned char *in, unsigned char *out,
+void VR_CAST_ecb_encrypt(const unsigned char *in, unsigned char *out,
                       const CAST_KEY *ks, int enc)
 {
     CAST_LONG l, d[2];
@@ -21,9 +21,9 @@ void CAST_ecb_encrypt(const unsigned char *in, unsigned char *out,
     n2l(in, l);
     d[1] = l;
     if (enc)
-        CAST_encrypt(d, ks);
+        VR_CAST_encrypt(d, ks);
     else
-        CAST_decrypt(d, ks);
+        VR_CAST_decrypt(d, ks);
     l = d[0];
     l2n(l, out);
     l = d[1];

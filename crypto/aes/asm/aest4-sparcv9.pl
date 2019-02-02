@@ -79,7 +79,7 @@ $output = pop;
 open STDOUT,">$output";
 
 $::evp=1;	# if $evp is set to 0, script generates module with
-# AES_[en|de]crypt, AES_set_[en|de]crypt_key and AES_cbc_encrypt entry
+# AES_[en|de]crypt, AES_set_[en|de]crypt_key and VR_AES_cbc_encrypt entry
 # points. These however are not fully compatible with openssl/aes.h,
 # because they expect AES_KEY to be aligned at 64-bit boundary. When
 # used through EVP, alignment is arranged at EVP layer. Second thing
@@ -839,13 +839,13 @@ ___
 
 if (!$::evp) {
 $code.=<<___;
-.global	AES_encrypt
-AES_encrypt=aes_t4_encrypt
-.global	AES_decrypt
-AES_decrypt=aes_t4_decrypt
-.global	AES_set_encrypt_key
+.global	VR_AES_encrypt
+VR_AES_encrypt=aes_t4_encrypt
+.global	VR_AES_decrypt
+VR_AES_decrypt=aes_t4_decrypt
+.global	VR_AES_set_encrypt_key
 .align	32
-AES_set_encrypt_key:
+VR_AES_set_encrypt_key:
 	andcc		%o2, 7, %g0		! check alignment
 	bnz,a,pn	%icc, 1f
 	mov		-1, %o0
@@ -863,12 +863,12 @@ AES_set_encrypt_key:
 	nop
 1:	retl
 	nop
-.type	AES_set_encrypt_key,#function
-.size	AES_set_encrypt_key,.-AES_set_encrypt_key
+.type	VR_AES_set_encrypt_key,#function
+.size	VR_AES_set_encrypt_key,.-VR_AES_set_encrypt_key
 
-.global	AES_set_decrypt_key
+.global	VR_AES_set_decrypt_key
 .align	32
-AES_set_decrypt_key:
+VR_AES_set_decrypt_key:
 	andcc		%o2, 7, %g0		! check alignment
 	bnz,a,pn	%icc, 1f
 	mov		-1, %o0
@@ -886,16 +886,16 @@ AES_set_decrypt_key:
 	nop
 1:	retl
 	nop
-.type	AES_set_decrypt_key,#function
-.size	AES_set_decrypt_key,.-AES_set_decrypt_key
+.type	VR_AES_set_decrypt_key,#function
+.size	VR_AES_set_decrypt_key,.-VR_AES_set_decrypt_key
 ___
 
 my ($inp,$out,$len,$key,$ivec,$enc)=map("%o$_",(0..5));
 
 $code.=<<___;
-.globl	AES_cbc_encrypt
+.globl	VR_AES_cbc_encrypt
 .align	32
-AES_cbc_encrypt:
+VR_AES_cbc_encrypt:
 	ld		[$key + 240], %g1
 	nop
 	brz		$enc, .Lcbc_decrypt
@@ -915,8 +915,8 @@ AES_cbc_encrypt:
 	nop
 	ba		aes256_t4_cbc_decrypt
 	nop
-.type	AES_cbc_encrypt,#function
-.size	AES_cbc_encrypt,.-AES_cbc_encrypt
+.type	VR_AES_cbc_encrypt,#function
+.size	VR_AES_cbc_encrypt,.-VR_AES_cbc_encrypt
 ___
 }
 $code.=<<___;

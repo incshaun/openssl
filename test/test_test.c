@@ -314,7 +314,7 @@ static int test_bignum(void)
     BIGNUM *a = NULL, *b = NULL, *c = NULL;
     int r = 0;
 
-    if (!TEST(1, TEST_int_eq(BN_dec2bn(&a, "0"), 1))
+    if (!TEST(1, TEST_int_eq(VR_BN_dec2bn(&a, "0"), 1))
         | !TEST(1, TEST_BN_eq_word(a, 0))
         | !TEST(0, TEST_BN_eq_word(a, 30))
         | !TEST(1, TEST_BN_abs_eq_word(a, 0))
@@ -330,7 +330,7 @@ static int test_bignum(void)
         | !TEST(1, TEST_BN_eq(b, c))
         | !TEST(0, TEST_BN_eq(a, b))
         | !TEST(0, TEST_BN_ne(NULL, c))
-        | !TEST(1, TEST_int_eq(BN_dec2bn(&b, "1"), 1))
+        | !TEST(1, TEST_int_eq(VR_BN_dec2bn(&b, "1"), 1))
         | !TEST(1, TEST_BN_eq_word(b, 1))
         | !TEST(1, TEST_BN_eq_one(b))
         | !TEST(0, TEST_BN_abs_eq_word(b, 0))
@@ -343,7 +343,7 @@ static int test_bignum(void)
         | !TEST(1, TEST_BN_gt_zero(b))
         | !TEST(0, TEST_BN_even(b))
         | !TEST(1, TEST_BN_odd(b))
-        | !TEST(1, TEST_int_eq(BN_dec2bn(&c, "-334739439"), 10))
+        | !TEST(1, TEST_int_eq(VR_BN_dec2bn(&c, "-334739439"), 10))
         | !TEST(0, TEST_BN_eq_word(c, 334739439))
         | !TEST(1, TEST_BN_abs_eq_word(c, 334739439))
         | !TEST(0, TEST_BN_eq_zero(c))
@@ -374,9 +374,9 @@ static int test_bignum(void)
 
     r = 1;
 err:
-    BN_free(a);
-    BN_free(b);
-    BN_free(c);
+    VR_BN_free(a);
+    VR_BN_free(b);
+    VR_BN_free(c);
     return r;
 }
 
@@ -421,20 +421,20 @@ static int test_long_bignum(void)
                       "123456789D123456789E123456789F"
                       "ABCD";
 
-    r = TEST_true(BN_hex2bn(&a, as))
-        && TEST_true(BN_hex2bn(&b, bs))
-        && TEST_true(BN_hex2bn(&c, cs))
-        && TEST_true(BN_hex2bn(&d, ds))
+    r = TEST_true(VR_BN_hex2bn(&a, as))
+        && TEST_true(VR_BN_hex2bn(&b, bs))
+        && TEST_true(VR_BN_hex2bn(&c, cs))
+        && TEST_true(VR_BN_hex2bn(&d, ds))
         && (TEST(0, TEST_BN_eq(a, b))
             & TEST(0, TEST_BN_eq(b, a))
             & TEST(0, TEST_BN_eq(b, NULL))
             & TEST(0, TEST_BN_eq(NULL, a))
             & TEST(1, TEST_BN_ne(a, NULL))
             & TEST(0, TEST_BN_eq(c, d)));
-    BN_free(a);
-    BN_free(b);
-    BN_free(c);
-    BN_free(d);
+    VR_BN_free(a);
+    VR_BN_free(b);
+    VR_BN_free(c);
+    VR_BN_free(d);
     return r;
 }
 
@@ -524,10 +524,10 @@ static int test_bn_output(int n)
     BIGNUM *b = NULL;
 
     if (bn_output_tests[n] != NULL
-            && !TEST_true(BN_hex2bn(&b, bn_output_tests[n])))
+            && !TEST_true(VR_BN_hex2bn(&b, bn_output_tests[n])))
         return 0;
     test_output_bignum(bn_output_tests[n], b);
-    BN_free(b);
+    VR_BN_free(b);
     return 1;
 }
 

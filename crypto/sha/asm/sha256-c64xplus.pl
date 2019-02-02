@@ -51,7 +51,7 @@ $code.=<<___;
 	.endif
 	.if	__TI_EABI__
 	.nocmp
-	.asg	sha256_block_data_order,_sha256_block_data_order
+	.asg	VR_sha256_block_data_order,_VR_sha256_block_data_order
 	.endif
 
 	.asg	B3,RA
@@ -63,8 +63,8 @@ $code.=<<___;
 	.asg	SWAP4,MV
 	.endif
 
-	.global	_sha256_block_data_order
-_sha256_block_data_order:
+	.global	_VR_sha256_block_data_order
+_VR_sha256_block_data_order:
 __sha256_block:
 	.asmfunc stack_usage(64)
 	MV	$NUM,A0				; reassign $NUM

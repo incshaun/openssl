@@ -124,8 +124,8 @@ my ($key0,$cnt)=($gp,$fp);
 # invoked with -mips3 -O3 arguments...
 $code.=<<___;
 .align	5
-.ent	_mips_AES_encrypt
-_mips_AES_encrypt:
+.ent	_mips_VR_AES_encrypt
+_mips_VR_AES_encrypt:
 	.frame	$sp,0,$ra
 	.set	reorder
 	lw	$t0,0($key)
@@ -610,12 +610,12 @@ _mips_AES_encrypt:
 	xor	$s3,$t3
 
 	jr	$ra
-.end	_mips_AES_encrypt
+.end	_mips_VR_AES_encrypt
 
 .align	5
-.globl	AES_encrypt
-.ent	AES_encrypt
-AES_encrypt:
+.globl	VR_AES_encrypt
+.ent	VR_AES_encrypt
+VR_AES_encrypt:
 	.frame	$sp,$FRAMESIZE,$ra
 	.mask	$SAVED_REGS_MASK,-$SZREG
 	.set	noreorder
@@ -645,7 +645,7 @@ $code.=<<___ if ($flavour =~ /nubi/i);	# optimize non-nubi prologue
 ___
 $code.=<<___ if ($flavour !~ /o32/i);	# non-o32 PIC-ification
 	.cplocal	$Tbl
-	.cpsetup	$pf,$zero,AES_encrypt
+	.cpsetup	$pf,$zero,VR_AES_encrypt
 ___
 $code.=<<___;
 	.set	reorder
@@ -667,7 +667,7 @@ $code.=<<___;
 	lwr	$s3,12+$LSB($inp)
 #endif
 
-	bal	_mips_AES_encrypt
+	bal	_mips_VR_AES_encrypt
 
 #if defined(_MIPS_ARCH_MIPS32R6) || defined(_MIPS_ARCH_MIPS64R6)
 	sw	$s0,0($out)
@@ -707,13 +707,13 @@ ___
 $code.=<<___;
 	jr	$ra
 	$PTR_ADD $sp,$FRAMESIZE
-.end	AES_encrypt
+.end	VR_AES_encrypt
 ___
 
 $code.=<<___;
 .align	5
-.ent	_mips_AES_decrypt
-_mips_AES_decrypt:
+.ent	_mips_VR_AES_decrypt
+_mips_VR_AES_decrypt:
 	.frame	$sp,0,$ra
 	.set	reorder
 	lw	$t0,0($key)
@@ -1195,12 +1195,12 @@ _mips_AES_decrypt:
 	xor	$s3,$t3
 
 	jr	$ra
-.end	_mips_AES_decrypt
+.end	_mips_VR_AES_decrypt
 
 .align	5
-.globl	AES_decrypt
-.ent	AES_decrypt
-AES_decrypt:
+.globl	VR_AES_decrypt
+.ent	VR_AES_decrypt
+VR_AES_decrypt:
 	.frame	$sp,$FRAMESIZE,$ra
 	.mask	$SAVED_REGS_MASK,-$SZREG
 	.set	noreorder
@@ -1230,7 +1230,7 @@ $code.=<<___ if ($flavour =~ /nubi/i);	# optimize non-nubi prologue
 ___
 $code.=<<___ if ($flavour !~ /o32/i);	# non-o32 PIC-ification
 	.cplocal	$Tbl
-	.cpsetup	$pf,$zero,AES_decrypt
+	.cpsetup	$pf,$zero,VR_AES_decrypt
 ___
 $code.=<<___;
 	.set	reorder
@@ -1252,7 +1252,7 @@ $code.=<<___;
 	lwr	$s3,12+$LSB($inp)
 #endif
 
-	bal	_mips_AES_decrypt
+	bal	_mips_VR_AES_decrypt
 
 #if defined(_MIPS_ARCH_MIPS32R6) || defined(_MIPS_ARCH_MIPS64R6)
 	sw	$s0,0($out)
@@ -1292,7 +1292,7 @@ ___
 $code.=<<___;
 	jr	$ra
 	$PTR_ADD $sp,$FRAMESIZE
-.end	AES_decrypt
+.end	VR_AES_decrypt
 ___
 }}}
 
@@ -1307,8 +1307,8 @@ my ($rcon,$cnt)=($gp,$fp);
 
 $code.=<<___;
 .align	5
-.ent	_mips_AES_set_encrypt_key
-_mips_AES_set_encrypt_key:
+.ent	_mips_VR_AES_set_encrypt_key
+_mips_VR_AES_set_encrypt_key:
 	.frame	$sp,0,$ra
 	.set	noreorder
 	beqz	$inp,.Lekey_done
@@ -1574,11 +1574,11 @@ _mips_AES_set_encrypt_key:
 .Lekey_done:
 	jr	$ra
 	nop
-.end	_mips_AES_set_encrypt_key
+.end	_mips_VR_AES_set_encrypt_key
 
-.globl	AES_set_encrypt_key
-.ent	AES_set_encrypt_key
-AES_set_encrypt_key:
+.globl	VR_AES_set_encrypt_key
+.ent	VR_AES_set_encrypt_key
+VR_AES_set_encrypt_key:
 	.frame	$sp,$FRAMESIZE,$ra
 	.mask	$SAVED_REGS_MASK,-$SZREG
 	.set	noreorder
@@ -1600,13 +1600,13 @@ $code.=<<___ if ($flavour =~ /nubi/i);	# optimize non-nubi prologue
 ___
 $code.=<<___ if ($flavour !~ /o32/i);	# non-o32 PIC-ification
 	.cplocal	$Tbl
-	.cpsetup	$pf,$zero,AES_set_encrypt_key
+	.cpsetup	$pf,$zero,VR_AES_set_encrypt_key
 ___
 $code.=<<___;
 	.set	reorder
 	$PTR_LA	$Tbl,AES_Te4		# PIC-ified 'load address'
 
-	bal	_mips_AES_set_encrypt_key
+	bal	_mips_VR_AES_set_encrypt_key
 
 	.set	noreorder
 	move	$a0,$t0
@@ -1623,7 +1623,7 @@ ___
 $code.=<<___;
 	jr	$ra
 	$PTR_ADD $sp,$FRAMESIZE
-.end	AES_set_encrypt_key
+.end	VR_AES_set_encrypt_key
 ___
 
 my ($head,$tail)=($inp,$bits);
@@ -1631,9 +1631,9 @@ my ($tp1,$tp2,$tp4,$tp8,$tp9,$tpb,$tpd,$tpe)=($a4,$a5,$a6,$a7,$s0,$s1,$s2,$s3);
 my ($m,$x80808080,$x7f7f7f7f,$x1b1b1b1b)=($at,$t0,$t1,$t2);
 $code.=<<___;
 .align	5
-.globl	AES_set_decrypt_key
-.ent	AES_set_decrypt_key
-AES_set_decrypt_key:
+.globl	VR_AES_set_decrypt_key
+.ent	VR_AES_set_decrypt_key
+VR_AES_set_decrypt_key:
 	.frame	$sp,$FRAMESIZE,$ra
 	.mask	$SAVED_REGS_MASK,-$SZREG
 	.set	noreorder
@@ -1655,13 +1655,13 @@ $code.=<<___ if ($flavour =~ /nubi/i);	# optimize non-nubi prologue
 ___
 $code.=<<___ if ($flavour !~ /o32/i);	# non-o32 PIC-ification
 	.cplocal	$Tbl
-	.cpsetup	$pf,$zero,AES_set_decrypt_key
+	.cpsetup	$pf,$zero,VR_AES_set_decrypt_key
 ___
 $code.=<<___;
 	.set	reorder
 	$PTR_LA	$Tbl,AES_Te4		# PIC-ified 'load address'
 
-	bal	_mips_AES_set_encrypt_key
+	bal	_mips_VR_AES_set_encrypt_key
 
 	bltz	$t0,.Ldkey_done
 
@@ -1777,7 +1777,7 @@ ___
 $code.=<<___;
 	jr	$ra
 	$PTR_ADD $sp,$FRAMESIZE
-.end	AES_set_decrypt_key
+.end	VR_AES_set_decrypt_key
 ___
 }}}
 

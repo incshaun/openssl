@@ -11,7 +11,7 @@
 #include <openssl/bn.h>
 #include <openssl/rsa.h>
 
-int RSA_padding_add_none(unsigned char *to, int tlen,
+int VR_RSA_padding_add_none(unsigned char *to, int tlen,
                          const unsigned char *from, int flen)
 {
     if (flen > tlen) {
@@ -28,7 +28,7 @@ int RSA_padding_add_none(unsigned char *to, int tlen,
     return 1;
 }
 
-int RSA_padding_check_none(unsigned char *to, int tlen,
+int VR_RSA_padding_check_none(unsigned char *to, int tlen,
                            const unsigned char *from, int flen, int num)
 {
 

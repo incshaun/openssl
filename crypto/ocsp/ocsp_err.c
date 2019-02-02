@@ -16,26 +16,26 @@
 static const ERR_STRING_DATA OCSP_str_functs[] = {
     {ERR_PACK(ERR_LIB_OCSP, OCSP_F_D2I_OCSP_NONCE, 0), "d2i_ocsp_nonce"},
     {ERR_PACK(ERR_LIB_OCSP, OCSP_F_OCSP_BASIC_ADD1_STATUS, 0),
-     "OCSP_basic_add1_status"},
-    {ERR_PACK(ERR_LIB_OCSP, OCSP_F_OCSP_BASIC_SIGN, 0), "OCSP_basic_sign"},
+     "VR_OCSP_basic_add1_status"},
+    {ERR_PACK(ERR_LIB_OCSP, OCSP_F_OCSP_BASIC_SIGN, 0), "VR_OCSP_basic_sign"},
     {ERR_PACK(ERR_LIB_OCSP, OCSP_F_OCSP_BASIC_SIGN_CTX, 0),
-     "OCSP_basic_sign_ctx"},
-    {ERR_PACK(ERR_LIB_OCSP, OCSP_F_OCSP_BASIC_VERIFY, 0), "OCSP_basic_verify"},
-    {ERR_PACK(ERR_LIB_OCSP, OCSP_F_OCSP_CERT_ID_NEW, 0), "OCSP_cert_id_new"},
+     "VR_OCSP_basic_sign_ctx"},
+    {ERR_PACK(ERR_LIB_OCSP, OCSP_F_OCSP_BASIC_VERIFY, 0), "VR_OCSP_basic_verify"},
+    {ERR_PACK(ERR_LIB_OCSP, OCSP_F_OCSP_CERT_ID_NEW, 0), "VR_OCSP_cert_id_new"},
     {ERR_PACK(ERR_LIB_OCSP, OCSP_F_OCSP_CHECK_DELEGATED, 0),
      "ocsp_check_delegated"},
     {ERR_PACK(ERR_LIB_OCSP, OCSP_F_OCSP_CHECK_IDS, 0), "ocsp_check_ids"},
     {ERR_PACK(ERR_LIB_OCSP, OCSP_F_OCSP_CHECK_ISSUER, 0), "ocsp_check_issuer"},
     {ERR_PACK(ERR_LIB_OCSP, OCSP_F_OCSP_CHECK_VALIDITY, 0),
-     "OCSP_check_validity"},
+     "VR_OCSP_check_validity"},
     {ERR_PACK(ERR_LIB_OCSP, OCSP_F_OCSP_MATCH_ISSUERID, 0),
      "ocsp_match_issuerid"},
-    {ERR_PACK(ERR_LIB_OCSP, OCSP_F_OCSP_PARSE_URL, 0), "OCSP_parse_url"},
-    {ERR_PACK(ERR_LIB_OCSP, OCSP_F_OCSP_REQUEST_SIGN, 0), "OCSP_request_sign"},
+    {ERR_PACK(ERR_LIB_OCSP, OCSP_F_OCSP_PARSE_URL, 0), "VR_OCSP_parse_url"},
+    {ERR_PACK(ERR_LIB_OCSP, OCSP_F_OCSP_REQUEST_SIGN, 0), "VR_OCSP_request_sign"},
     {ERR_PACK(ERR_LIB_OCSP, OCSP_F_OCSP_REQUEST_VERIFY, 0),
-     "OCSP_request_verify"},
+     "VR_OCSP_request_verify"},
     {ERR_PACK(ERR_LIB_OCSP, OCSP_F_OCSP_RESPONSE_GET1_BASIC, 0),
-     "OCSP_response_get1_basic"},
+     "VR_OCSP_response_get1_basic"},
     {ERR_PACK(ERR_LIB_OCSP, OCSP_F_PARSE_HTTP_LINE1, 0), "parse_http_line1"},
     {0, NULL}
 };
@@ -89,12 +89,12 @@ static const ERR_STRING_DATA OCSP_str_reasons[] = {
 
 #endif
 
-int ERR_load_OCSP_strings(void)
+int VR_ERR_load_OCSP_strings(void)
 {
 #ifndef OPENSSL_NO_ERR
-    if (ERR_func_error_string(OCSP_str_functs[0].error) == NULL) {
-        ERR_load_strings_const(OCSP_str_functs);
-        ERR_load_strings_const(OCSP_str_reasons);
+    if (VR_ERR_func_error_string(OCSP_str_functs[0].error) == NULL) {
+        VR_ERR_load_strings_const(OCSP_str_functs);
+        VR_ERR_load_strings_const(OCSP_str_reasons);
     }
 #endif
     return 1;

@@ -71,7 +71,7 @@ static void determine_days(struct tm *tm)
     tm->tm_wday = (d + (13 * m) / 5 + y + y / 4 + c / 4 + 5 * c + 6) % 7;
 }
 
-int asn1_time_to_tm(struct tm *tm, const ASN1_TIME *d)
+int VR_asn1_time_to_tm(struct tm *tm, const ASN1_TIME *d)
 {
     static const int min[9] = { 0, 0, 1, 1, 0, 0, 0, 0, 0 };
     static const int max[9] = { 99, 99, 12, 31, 23, 59, 59, 12, 59 };
@@ -242,7 +242,7 @@ int asn1_time_to_tm(struct tm *tm, const ASN1_TIME *d)
             }
             o++;
         }
-        if (offset && !OPENSSL_gmtime_adj(&tmp, 0, offset * offsign))
+        if (offset && !VR_OPENSSL_gmtime_adj(&tmp, 0, offset * offsign))
             goto err;
     } else {
         /* not Z, or not +/- in non-strict mode */
@@ -258,7 +258,7 @@ int asn1_time_to_tm(struct tm *tm, const ASN1_TIME *d)
     return 0;
 }
 
-ASN1_TIME *asn1_time_from_tm(ASN1_TIME *s, struct tm *ts, int type)
+ASN1_TIME *VR_asn1_time_from_tm(ASN1_TIME *s, struct tm *ts, int type)
 {
     char* p;
     ASN1_TIME *tmps = NULL;
@@ -277,25 +277,25 @@ ASN1_TIME *asn1_time_from_tm(ASN1_TIME *s, struct tm *ts, int type)
     }
 
     if (s == NULL)
-        tmps = ASN1_STRING_new();
+        tmps = VR_ASN1_STRING_new();
     else
         tmps = s;
     if (tmps == NULL)
         return NULL;
 
-    if (!ASN1_STRING_set(tmps, NULL, len))
+    if (!VR_ASN1_STRING_set(tmps, NULL, len))
         goto err;
 
     tmps->type = type;
     p = (char*)tmps->data;
 
     if (type == V_ASN1_GENERALIZEDTIME)
-        tmps->length = BIO_snprintf(p, len, "%04d%02d%02d%02d%02d%02dZ",
+        tmps->length = VR_BIO_snprintf(p, len, "%04d%02d%02d%02d%02d%02dZ",
                                     ts->tm_year + 1900, ts->tm_mon + 1,
                                     ts->tm_mday, ts->tm_hour, ts->tm_min,
                                     ts->tm_sec);
     else
-        tmps->length = BIO_snprintf(p, len, "%02d%02d%02d%02d%02d%02dZ",
+        tmps->length = VR_BIO_snprintf(p, len, "%02d%02d%02d%02d%02d%02dZ",
                                     ts->tm_year % 100, ts->tm_mon + 1,
                                     ts->tm_mday, ts->tm_hour, ts->tm_min,
                                     ts->tm_sec);
@@ -306,56 +306,56 @@ ASN1_TIME *asn1_time_from_tm(ASN1_TIME *s, struct tm *ts, int type)
     return tmps;
  err:
     if (tmps != s)
-        ASN1_STRING_free(tmps);
+        VR_ASN1_STRING_free(tmps);
     return NULL;
 }
 
-ASN1_TIME *ASN1_TIME_set(ASN1_TIME *s, time_t t)
+ASN1_TIME *VR_ASN1_TIME_set(ASN1_TIME *s, time_t t)
 {
-    return ASN1_TIME_adj(s, t, 0, 0);
+    return VR_ASN1_TIME_adj(s, t, 0, 0);
 }
 
-ASN1_TIME *ASN1_TIME_adj(ASN1_TIME *s, time_t t,
+ASN1_TIME *VR_ASN1_TIME_adj(ASN1_TIME *s, time_t t,
                          int offset_day, long offset_sec)
 {
     struct tm *ts;
     struct tm data;
 
-    ts = OPENSSL_gmtime(&t, &data);
+    ts = VR_OPENSSL_gmtime(&t, &data);
     if (ts == NULL) {
         ASN1err(ASN1_F_ASN1_TIME_ADJ, ASN1_R_ERROR_GETTING_TIME);
         return NULL;
     }
     if (offset_day || offset_sec) {
-        if (!OPENSSL_gmtime_adj(ts, offset_day, offset_sec))
+        if (!VR_OPENSSL_gmtime_adj(ts, offset_day, offset_sec))
             return NULL;
     }
-    return asn1_time_from_tm(s, ts, V_ASN1_UNDEF);
+    return VR_asn1_time_from_tm(s, ts, V_ASN1_UNDEF);
 }
 
-int ASN1_TIME_check(const ASN1_TIME *t)
+int VR_ASN1_TIME_check(const ASN1_TIME *t)
 {
     if (t->type == V_ASN1_GENERALIZEDTIME)
-        return ASN1_GENERALIZEDTIME_check(t);
+        return VR_ASN1_GENERALIZEDTIME_check(t);
     else if (t->type == V_ASN1_UTCTIME)
-        return ASN1_UTCTIME_check(t);
+        return VR_ASN1_UTCTIME_check(t);
     return 0;
 }
 
 /* Convert an ASN1_TIME structure to GeneralizedTime */
-ASN1_GENERALIZEDTIME *ASN1_TIME_to_generalizedtime(const ASN1_TIME *t,
+ASN1_GENERALIZEDTIME *VR_ASN1_TIME_to_generalizedtime(const ASN1_TIME *t,
                                                    ASN1_GENERALIZEDTIME **out)
 {
     ASN1_GENERALIZEDTIME *ret = NULL;
     struct tm tm;
 
-    if (!ASN1_TIME_to_tm(t, &tm))
+    if (!VR_ASN1_TIME_to_tm(t, &tm))
         return NULL;
 
     if (out != NULL)
         ret = *out;
 
-    ret = asn1_time_from_tm(ret, &tm, V_ASN1_GENERALIZEDTIME);
+    ret = VR_asn1_time_from_tm(ret, &tm, V_ASN1_GENERALIZEDTIME);
 
     if (out != NULL && ret != NULL)
         *out = ret;
@@ -363,15 +363,15 @@ ASN1_GENERALIZEDTIME *ASN1_TIME_to_generalizedtime(const ASN1_TIME *t,
     return ret;
 }
 
-int ASN1_TIME_set_string(ASN1_TIME *s, const char *str)
+int VR_ASN1_TIME_set_string(ASN1_TIME *s, const char *str)
 {
     /* Try UTC, if that fails, try GENERALIZED */
-    if (ASN1_UTCTIME_set_string(s, str))
+    if (VR_ASN1_UTCTIME_set_string(s, str))
         return 1;
-    return ASN1_GENERALIZEDTIME_set_string(s, str);
+    return VR_ASN1_GENERALIZEDTIME_set_string(s, str);
 }
 
-int ASN1_TIME_set_string_X509(ASN1_TIME *s, const char *str)
+int VR_ASN1_TIME_set_string_X509(ASN1_TIME *s, const char *str)
 {
     ASN1_TIME t;
     struct tm tm;
@@ -383,9 +383,9 @@ int ASN1_TIME_set_string_X509(ASN1_TIME *s, const char *str)
 
     t.type = V_ASN1_UTCTIME;
 
-    if (!ASN1_TIME_check(&t)) {
+    if (!VR_ASN1_TIME_check(&t)) {
         t.type = V_ASN1_GENERALIZEDTIME;
-        if (!ASN1_TIME_check(&t))
+        if (!VR_ASN1_TIME_check(&t))
             goto out;
     }
 
@@ -404,14 +404,14 @@ int ASN1_TIME_set_string_X509(ASN1_TIME *s, const char *str)
      */
 
     if (s != NULL && t.type == V_ASN1_GENERALIZEDTIME) {
-        if (!asn1_time_to_tm(&tm, &t))
+        if (!VR_asn1_time_to_tm(&tm, &t))
             goto out;
         if (is_utc(tm.tm_year)) {
             t.length -= 2;
             /*
              * it's OK to let original t.data go since that's assigned
              * to a piece of memory allocated outside of this function.
-             * new t.data would be freed after ASN1_STRING_copy is done.
+             * new t.data would be freed after VR_ASN1_STRING_copy is done.
              */
             t.data = OPENSSL_zalloc(t.length + 1);
             if (t.data == NULL)
@@ -421,40 +421,40 @@ int ASN1_TIME_set_string_X509(ASN1_TIME *s, const char *str)
         }
     }
 
-    if (s == NULL || ASN1_STRING_copy((ASN1_STRING *)s, (ASN1_STRING *)&t))
+    if (s == NULL || VR_ASN1_STRING_copy((ASN1_STRING *)s, (ASN1_STRING *)&t))
         rv = 1;
 
     if (t.data != (unsigned char *)str)
-        OPENSSL_free(t.data);
+        OPENVR_SSL_free(t.data);
 out:
     return rv;
 }
 
-int ASN1_TIME_to_tm(const ASN1_TIME *s, struct tm *tm)
+int VR_ASN1_TIME_to_tm(const ASN1_TIME *s, struct tm *tm)
 {
     if (s == NULL) {
         time_t now_t;
 
         time(&now_t);
         memset(tm, 0, sizeof(*tm));
-        if (OPENSSL_gmtime(&now_t, tm) != NULL)
+        if (VR_OPENSSL_gmtime(&now_t, tm) != NULL)
             return 1;
         return 0;
     }
 
-    return asn1_time_to_tm(tm, s);
+    return VR_asn1_time_to_tm(tm, s);
 }
 
-int ASN1_TIME_diff(int *pday, int *psec,
+int VR_ASN1_TIME_diff(int *pday, int *psec,
                    const ASN1_TIME *from, const ASN1_TIME *to)
 {
     struct tm tm_from, tm_to;
 
-    if (!ASN1_TIME_to_tm(from, &tm_from))
+    if (!VR_ASN1_TIME_to_tm(from, &tm_from))
         return 0;
-    if (!ASN1_TIME_to_tm(to, &tm_to))
+    if (!VR_ASN1_TIME_to_tm(to, &tm_to))
         return 0;
-    return OPENSSL_gmtime_diff(pday, psec, &tm_from, &tm_to);
+    return VR_OPENSSL_gmtime_diff(pday, psec, &tm_from, &tm_to);
 }
 
 static const char _asn1_mon[12][4] = {
@@ -462,14 +462,14 @@ static const char _asn1_mon[12][4] = {
     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 };
 
-int ASN1_TIME_print(BIO *bp, const ASN1_TIME *tm)
+int VR_ASN1_TIME_print(BIO *bp, const ASN1_TIME *tm)
 {
     char *v;
     int gmt = 0, l;
     struct tm stm;
 
-    if (!asn1_time_to_tm(&stm, tm)) {
-        /* asn1_time_to_tm will check the time type */
+    if (!VR_asn1_time_to_tm(&stm, tm)) {
+        /* VR_asn1_time_to_tm will check the time type */
         goto err;
     }
 
@@ -493,33 +493,33 @@ int ASN1_TIME_print(BIO *bp, const ASN1_TIME *tm)
                 ++f_len;
         }
 
-        return BIO_printf(bp, "%s %2d %02d:%02d:%02d%.*s %d%s",
+        return VR_BIO_printf(bp, "%s %2d %02d:%02d:%02d%.*s %d%s",
                           _asn1_mon[stm.tm_mon], stm.tm_mday, stm.tm_hour,
                           stm.tm_min, stm.tm_sec, f_len, f, stm.tm_year + 1900,
                           (gmt ? " GMT" : "")) > 0;
     } else {
-        return BIO_printf(bp, "%s %2d %02d:%02d:%02d %d%s",
+        return VR_BIO_printf(bp, "%s %2d %02d:%02d:%02d %d%s",
                           _asn1_mon[stm.tm_mon], stm.tm_mday, stm.tm_hour,
                           stm.tm_min, stm.tm_sec, stm.tm_year + 1900,
                           (gmt ? " GMT" : "")) > 0;
     }
  err:
-    BIO_write(bp, "Bad time value", 14);
+    VR_BIO_write(bp, "Bad time value", 14);
     return 0;
 }
 
-int ASN1_TIME_cmp_time_t(const ASN1_TIME *s, time_t t)
+int VR_ASN1_TIME_cmp_time_t(const ASN1_TIME *s, time_t t)
 {
     struct tm stm, ttm;
     int day, sec;
 
-    if (!ASN1_TIME_to_tm(s, &stm))
+    if (!VR_ASN1_TIME_to_tm(s, &stm))
         return -2;
 
-    if (!OPENSSL_gmtime(&t, &ttm))
+    if (!VR_OPENSSL_gmtime(&t, &ttm))
         return -2;
 
-    if (!OPENSSL_gmtime_diff(&day, &sec, &ttm, &stm))
+    if (!VR_OPENSSL_gmtime_diff(&day, &sec, &ttm, &stm))
         return -2;
 
     if (day > 0 || sec > 0)
@@ -529,21 +529,21 @@ int ASN1_TIME_cmp_time_t(const ASN1_TIME *s, time_t t)
     return 0;
 }
 
-int ASN1_TIME_normalize(ASN1_TIME *t)
+int VR_ASN1_TIME_normalize(ASN1_TIME *t)
 {
     struct tm tm;
 
-    if (!ASN1_TIME_to_tm(t, &tm))
+    if (!VR_ASN1_TIME_to_tm(t, &tm))
         return 0;
 
-    return asn1_time_from_tm(t, &tm, V_ASN1_UNDEF) != NULL;
+    return VR_asn1_time_from_tm(t, &tm, V_ASN1_UNDEF) != NULL;
 }
 
-int ASN1_TIME_compare(const ASN1_TIME *a, const ASN1_TIME *b)
+int VR_ASN1_TIME_compare(const ASN1_TIME *a, const ASN1_TIME *b)
 {
     int day, sec;
 
-    if (!ASN1_TIME_diff(&day, &sec, b, a))
+    if (!VR_ASN1_TIME_diff(&day, &sec, b, a))
         return -2;
     if (day > 0 || sec > 0)
         return 1;

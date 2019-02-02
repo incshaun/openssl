@@ -144,7 +144,7 @@ static void md2_block(MD2_CTX *c, const unsigned char *d)
         t = (t + i) & 0xff;
     }
     memcpy(sp1, state, 16 * sizeof(MD2_INT));
-    OPENSSL_cleanse(state, 48 * sizeof(MD2_INT));
+    VR_OPENSSL_cleanse(state, 48 * sizeof(MD2_INT));
 }
 
 int MD2_Final(unsigned char *md, MD2_CTX *c)
@@ -168,6 +168,6 @@ int MD2_Final(unsigned char *md, MD2_CTX *c)
 
     for (i = 0; i < 16; i++)
         md[i] = (UCHAR) (p1[i] & 0xff);
-    OPENSSL_cleanse(c, sizeof(*c));
+    VR_OPENSSL_cleanse(c, sizeof(*c));
     return 1;
 }

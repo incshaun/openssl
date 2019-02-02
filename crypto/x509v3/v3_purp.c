@@ -71,11 +71,11 @@ static int xp_cmp(const X509_PURPOSE *const *a, const X509_PURPOSE *const *b)
 }
 
 /*
- * As much as I'd like to make X509_check_purpose use a "const" X509* I
+ * As much as I'd like to make VR_X509_check_purpose use a "const" X509* I
  * really can't because it does recalculate hashes and do other non-const
  * things.
  */
-int X509_check_purpose(X509 *x, int id, int ca)
+int VR_X509_check_purpose(X509 *x, int id, int ca)
 {
     int idx;
     const X509_PURPOSE *pt;
@@ -85,16 +85,16 @@ int X509_check_purpose(X509 *x, int id, int ca)
     /* Return if side-effect only call */
     if (id == -1)
         return 1;
-    idx = X509_PURPOSE_get_by_id(id);
+    idx = VR_X509_PURPOSE_get_by_id(id);
     if (idx == -1)
         return -1;
-    pt = X509_PURPOSE_get0(idx);
+    pt = VR_X509_PURPOSE_get0(idx);
     return pt->check_purpose(pt, x, ca);
 }
 
-int X509_PURPOSE_set(int *p, int purpose)
+int VR_X509_PURPOSE_set(int *p, int purpose)
 {
-    if (X509_PURPOSE_get_by_id(purpose) == -1) {
+    if (VR_X509_PURPOSE_get_by_id(purpose) == -1) {
         X509V3err(X509V3_F_X509_PURPOSE_SET, X509V3_R_INVALID_PURPOSE);
         return 0;
     }
@@ -102,14 +102,14 @@ int X509_PURPOSE_set(int *p, int purpose)
     return 1;
 }
 
-int X509_PURPOSE_get_count(void)
+int VR_X509_PURPOSE_get_count(void)
 {
     if (!xptable)
         return X509_PURPOSE_COUNT;
     return sk_X509_PURPOSE_num(xptable) + X509_PURPOSE_COUNT;
 }
 
-X509_PURPOSE *X509_PURPOSE_get0(int idx)
+X509_PURPOSE *VR_X509_PURPOSE_get0(int idx)
 {
     if (idx < 0)
         return NULL;
@@ -118,19 +118,19 @@ X509_PURPOSE *X509_PURPOSE_get0(int idx)
     return sk_X509_PURPOSE_value(xptable, idx - X509_PURPOSE_COUNT);
 }
 
-int X509_PURPOSE_get_by_sname(const char *sname)
+int VR_X509_PURPOSE_get_by_sname(const char *sname)
 {
     int i;
     X509_PURPOSE *xptmp;
-    for (i = 0; i < X509_PURPOSE_get_count(); i++) {
-        xptmp = X509_PURPOSE_get0(i);
+    for (i = 0; i < VR_X509_PURPOSE_get_count(); i++) {
+        xptmp = VR_X509_PURPOSE_get0(i);
         if (strcmp(xptmp->sname, sname) == 0)
             return i;
     }
     return -1;
 }
 
-int X509_PURPOSE_get_by_id(int purpose)
+int VR_X509_PURPOSE_get_by_id(int purpose)
 {
     X509_PURPOSE tmp;
     int idx;
@@ -140,13 +140,13 @@ int X509_PURPOSE_get_by_id(int purpose)
     if (xptable == NULL)
         return -1;
     tmp.purpose = purpose;
-    idx = sk_X509_PURPOSE_find(xptable, &tmp);
+    idx = sk_VR_X509_PURPOSE_find(xptable, &tmp);
     if (idx < 0)
         return -1;
     return idx + X509_PURPOSE_COUNT;
 }
 
-int X509_PURPOSE_add(int id, int trust, int flags,
+int VR_X509_PURPOSE_add(int id, int trust, int flags,
                      int (*ck) (const X509_PURPOSE *, const X509 *, int),
                      const char *name, const char *sname, void *arg)
 {
@@ -159,7 +159,7 @@ int X509_PURPOSE_add(int id, int trust, int flags,
     /* This will always be set for application modified trust entries */
     flags |= X509_PURPOSE_DYNAMIC_NAME;
     /* Get existing entry if any */
-    idx = X509_PURPOSE_get_by_id(id);
+    idx = VR_X509_PURPOSE_get_by_id(id);
     /* Need a new entry */
     if (idx == -1) {
         if ((ptmp = OPENSSL_malloc(sizeof(*ptmp))) == NULL) {
@@ -168,12 +168,12 @@ int X509_PURPOSE_add(int id, int trust, int flags,
         }
         ptmp->flags = X509_PURPOSE_DYNAMIC;
     } else
-        ptmp = X509_PURPOSE_get0(idx);
+        ptmp = VR_X509_PURPOSE_get0(idx);
 
-    /* OPENSSL_free existing name if dynamic */
+    /* OPENVR_SSL_free existing name if dynamic */
     if (ptmp->flags & X509_PURPOSE_DYNAMIC_NAME) {
-        OPENSSL_free(ptmp->name);
-        OPENSSL_free(ptmp->sname);
+        OPENVR_SSL_free(ptmp->name);
+        OPENVR_SSL_free(ptmp->sname);
     }
     /* dup supplied name */
     ptmp->name = OPENSSL_strdup(name);
@@ -195,11 +195,11 @@ int X509_PURPOSE_add(int id, int trust, int flags,
     /* If its a new entry manage the dynamic table */
     if (idx == -1) {
         if (xptable == NULL
-            && (xptable = sk_X509_PURPOSE_new(xp_cmp)) == NULL) {
+            && (xptable = sk_VR_X509_PURPOSE_new(xp_cmp)) == NULL) {
             X509V3err(X509V3_F_X509_PURPOSE_ADD, ERR_R_MALLOC_FAILURE);
             goto err;
         }
-        if (!sk_X509_PURPOSE_push(xptable, ptmp)) {
+        if (!sk_VR_X509_PURPOSE_push(xptable, ptmp)) {
             X509V3err(X509V3_F_X509_PURPOSE_ADD, ERR_R_MALLOC_FAILURE);
             goto err;
         }
@@ -207,9 +207,9 @@ int X509_PURPOSE_add(int id, int trust, int flags,
     return 1;
  err:
     if (idx == -1) {
-        OPENSSL_free(ptmp->name);
-        OPENSSL_free(ptmp->sname);
-        OPENSSL_free(ptmp);
+        OPENVR_SSL_free(ptmp->name);
+        OPENVR_SSL_free(ptmp->sname);
+        OPENVR_SSL_free(ptmp);
     }
     return 0;
 }
@@ -220,35 +220,35 @@ static void xptable_free(X509_PURPOSE *p)
         return;
     if (p->flags & X509_PURPOSE_DYNAMIC) {
         if (p->flags & X509_PURPOSE_DYNAMIC_NAME) {
-            OPENSSL_free(p->name);
-            OPENSSL_free(p->sname);
+            OPENVR_SSL_free(p->name);
+            OPENVR_SSL_free(p->sname);
         }
-        OPENSSL_free(p);
+        OPENVR_SSL_free(p);
     }
 }
 
-void X509_PURPOSE_cleanup(void)
+void VR_X509_PURPOSE_cleanup(void)
 {
-    sk_X509_PURPOSE_pop_free(xptable, xptable_free);
+    sk_VR_X509_PURPOSE_pop_free(xptable, xptable_free);
     xptable = NULL;
 }
 
-int X509_PURPOSE_get_id(const X509_PURPOSE *xp)
+int VR_X509_PURPOSE_get_id(const X509_PURPOSE *xp)
 {
     return xp->purpose;
 }
 
-char *X509_PURPOSE_get0_name(const X509_PURPOSE *xp)
+char *VR_X509_PURPOSE_get0_name(const X509_PURPOSE *xp)
 {
     return xp->name;
 }
 
-char *X509_PURPOSE_get0_sname(const X509_PURPOSE *xp)
+char *VR_X509_PURPOSE_get0_sname(const X509_PURPOSE *xp)
 {
     return xp->sname;
 }
 
-int X509_PURPOSE_get_trust(const X509_PURPOSE *xp)
+int VR_X509_PURPOSE_get_trust(const X509_PURPOSE *xp)
 {
     return xp->trust;
 }
@@ -261,7 +261,7 @@ static int nid_cmp(const int *a, const int *b)
 DECLARE_OBJ_BSEARCH_CMP_FN(int, int, nid);
 IMPLEMENT_OBJ_BSEARCH_CMP_FN(int, int, nid);
 
-int X509_supported_extension(X509_EXTENSION *ex)
+int VR_X509_supported_extension(X509_EXTENSION *ex)
 {
     /*
      * This table is a list of the NIDs of supported extensions: that is
@@ -290,12 +290,12 @@ int X509_supported_extension(X509_EXTENSION *ex)
         NID_inhibit_any_policy  /* 748 */
     };
 
-    int ex_nid = OBJ_obj2nid(X509_EXTENSION_get_object(ex));
+    int ex_nid = VR_OBJ_obj2nid(VR_X509_EXTENSION_get_object(ex));
 
     if (ex_nid == NID_undef)
         return 0;
 
-    if (OBJ_bsearch_nid(&ex_nid, supported_nids, OSSL_NELEM(supported_nids)))
+    if (VR_OBJ_bsearch_nid(&ex_nid, supported_nids, OSSL_NELEM(supported_nids)))
         return 1;
     return 0;
 }
@@ -322,16 +322,16 @@ static void setup_dp(X509 *x, DIST_POINT *dp)
         }
     }
     if (!iname)
-        iname = X509_get_issuer_name(x);
+        iname = VR_X509_get_issuer_name(x);
 
-    DIST_POINT_set_dpname(dp->distpoint, iname);
+    VR_DIST_POINT_set_dpname(dp->distpoint, iname);
 
 }
 
 static void setup_crldp(X509 *x)
 {
     int i;
-    x->crldp = X509_get_ext_d2i(x, NID_crl_distribution_points, NULL, NULL);
+    x->crldp = VR_X509_get_ext_d2i(x, NID_crl_distribution_points, NULL, NULL);
     for (i = 0; i < sk_DIST_POINT_num(x->crldp); i++)
         setup_dp(x, sk_DIST_POINT_value(x->crldp, i));
 }
@@ -360,18 +360,18 @@ static void x509v3_cache_extensions(X509 *x)
         return;
 #endif
 
-    CRYPTO_THREAD_write_lock(x->lock);
+    VR_CRYPTO_THREAD_write_lock(x->lock);
     if (x->ex_flags & EXFLAG_SET) {
-        CRYPTO_THREAD_unlock(x->lock);
+        VR_CRYPTO_THREAD_unlock(x->lock);
         return;
     }
 
-    X509_digest(x, EVP_sha1(), x->sha1_hash, NULL);
+    VR_X509_digest(x, VR_EVP_sha1(), x->sha1_hash, NULL);
     /* V1 should mean no extensions ... */
-    if (!X509_get_version(x))
+    if (!VR_X509_get_version(x))
         x->ex_flags |= EXFLAG_V1;
     /* Handle basic constraints */
-    if ((bs = X509_get_ext_d2i(x, NID_basic_constraints, NULL, NULL))) {
+    if ((bs = VR_X509_get_ext_d2i(x, NID_basic_constraints, NULL, NULL))) {
         if (bs->ca)
             x->ex_flags |= EXFLAG_CA;
         if (bs->pathlen) {
@@ -380,28 +380,28 @@ static void x509v3_cache_extensions(X509 *x)
                 x->ex_flags |= EXFLAG_INVALID;
                 x->ex_pathlen = 0;
             } else
-                x->ex_pathlen = ASN1_INTEGER_get(bs->pathlen);
+                x->ex_pathlen = VR_ASN1_INTEGER_get(bs->pathlen);
         } else
             x->ex_pathlen = -1;
-        BASIC_CONSTRAINTS_free(bs);
+        VR_BASIC_CONSTRAINTS_free(bs);
         x->ex_flags |= EXFLAG_BCONS;
     }
     /* Handle proxy certificates */
-    if ((pci = X509_get_ext_d2i(x, NID_proxyCertInfo, NULL, NULL))) {
+    if ((pci = VR_X509_get_ext_d2i(x, NID_proxyCertInfo, NULL, NULL))) {
         if (x->ex_flags & EXFLAG_CA
-            || X509_get_ext_by_NID(x, NID_subject_alt_name, -1) >= 0
-            || X509_get_ext_by_NID(x, NID_issuer_alt_name, -1) >= 0) {
+            || VR_X509_get_ext_by_NID(x, NID_subject_alt_name, -1) >= 0
+            || VR_X509_get_ext_by_NID(x, NID_issuer_alt_name, -1) >= 0) {
             x->ex_flags |= EXFLAG_INVALID;
         }
         if (pci->pcPathLengthConstraint) {
-            x->ex_pcpathlen = ASN1_INTEGER_get(pci->pcPathLengthConstraint);
+            x->ex_pcpathlen = VR_ASN1_INTEGER_get(pci->pcPathLengthConstraint);
         } else
             x->ex_pcpathlen = -1;
-        PROXY_CERT_INFO_EXTENSION_free(pci);
+        VR_PROXY_CERT_INFO_EXTENSION_free(pci);
         x->ex_flags |= EXFLAG_PROXY;
     }
     /* Handle key usage */
-    if ((usage = X509_get_ext_d2i(x, NID_key_usage, NULL, NULL))) {
+    if ((usage = VR_X509_get_ext_d2i(x, NID_key_usage, NULL, NULL))) {
         if (usage->length > 0) {
             x->ex_kusage = usage->data[0];
             if (usage->length > 1)
@@ -409,13 +409,13 @@ static void x509v3_cache_extensions(X509 *x)
         } else
             x->ex_kusage = 0;
         x->ex_flags |= EXFLAG_KUSAGE;
-        ASN1_BIT_STRING_free(usage);
+        VR_ASN1_BIT_STRING_free(usage);
     }
     x->ex_xkusage = 0;
-    if ((extusage = X509_get_ext_d2i(x, NID_ext_key_usage, NULL, NULL))) {
+    if ((extusage = VR_X509_get_ext_d2i(x, NID_ext_key_usage, NULL, NULL))) {
         x->ex_flags |= EXFLAG_XKUSAGE;
         for (i = 0; i < sk_ASN1_OBJECT_num(extusage); i++) {
-            switch (OBJ_obj2nid(sk_ASN1_OBJECT_value(extusage, i))) {
+            switch (VR_OBJ_obj2nid(sk_ASN1_OBJECT_value(extusage, i))) {
             case NID_server_auth:
                 x->ex_xkusage |= XKU_SSL_SERVER;
                 break;
@@ -454,51 +454,51 @@ static void x509v3_cache_extensions(X509 *x)
                 break;
             }
         }
-        sk_ASN1_OBJECT_pop_free(extusage, ASN1_OBJECT_free);
+        sk_VR_ASN1_OBJECT_pop_free(extusage, VR_ASN1_OBJECT_free);
     }
 
-    if ((ns = X509_get_ext_d2i(x, NID_netscape_cert_type, NULL, NULL))) {
+    if ((ns = VR_X509_get_ext_d2i(x, NID_netscape_cert_type, NULL, NULL))) {
         if (ns->length > 0)
             x->ex_nscert = ns->data[0];
         else
             x->ex_nscert = 0;
         x->ex_flags |= EXFLAG_NSCERT;
-        ASN1_BIT_STRING_free(ns);
+        VR_ASN1_BIT_STRING_free(ns);
     }
-    x->skid = X509_get_ext_d2i(x, NID_subject_key_identifier, NULL, NULL);
-    x->akid = X509_get_ext_d2i(x, NID_authority_key_identifier, NULL, NULL);
+    x->skid = VR_X509_get_ext_d2i(x, NID_subject_key_identifier, NULL, NULL);
+    x->akid = VR_X509_get_ext_d2i(x, NID_authority_key_identifier, NULL, NULL);
     /* Does subject name match issuer ? */
-    if (!X509_NAME_cmp(X509_get_subject_name(x), X509_get_issuer_name(x))) {
+    if (!VR_X509_NAME_cmp(VR_X509_get_subject_name(x), VR_X509_get_issuer_name(x))) {
         x->ex_flags |= EXFLAG_SI;
         /* If SKID matches AKID also indicate self signed */
-        if (X509_check_akid(x, x->akid) == X509_V_OK &&
+        if (VR_X509_check_akid(x, x->akid) == X509_V_OK &&
             !ku_reject(x, KU_KEY_CERT_SIGN))
             x->ex_flags |= EXFLAG_SS;
     }
-    x->altname = X509_get_ext_d2i(x, NID_subject_alt_name, NULL, NULL);
-    x->nc = X509_get_ext_d2i(x, NID_name_constraints, &i, NULL);
+    x->altname = VR_X509_get_ext_d2i(x, NID_subject_alt_name, NULL, NULL);
+    x->nc = VR_X509_get_ext_d2i(x, NID_name_constraints, &i, NULL);
     if (!x->nc && (i != -1))
         x->ex_flags |= EXFLAG_INVALID;
     setup_crldp(x);
 
 #ifndef OPENSSL_NO_RFC3779
-    x->rfc3779_addr = X509_get_ext_d2i(x, NID_sbgp_ipAddrBlock, NULL, NULL);
-    x->rfc3779_asid = X509_get_ext_d2i(x, NID_sbgp_autonomousSysNum,
+    x->rfc3779_addr = VR_X509_get_ext_d2i(x, NID_sbgp_ipAddrBlock, NULL, NULL);
+    x->rfc3779_asid = VR_X509_get_ext_d2i(x, NID_sbgp_autonomousSysNum,
                                        NULL, NULL);
 #endif
-    for (i = 0; i < X509_get_ext_count(x); i++) {
-        ex = X509_get_ext(x, i);
-        if (OBJ_obj2nid(X509_EXTENSION_get_object(ex))
+    for (i = 0; i < VR_X509_get_ext_count(x); i++) {
+        ex = VR_X509_get_ext(x, i);
+        if (VR_OBJ_obj2nid(VR_X509_EXTENSION_get_object(ex))
             == NID_freshest_crl)
             x->ex_flags |= EXFLAG_FRESHEST;
-        if (!X509_EXTENSION_get_critical(ex))
+        if (!VR_X509_EXTENSION_get_critical(ex))
             continue;
-        if (!X509_supported_extension(ex)) {
+        if (!VR_X509_supported_extension(ex)) {
             x->ex_flags |= EXFLAG_CRITICAL;
             break;
         }
     }
-    x509_init_sig_info(x);
+    VR_x509_init_sig_info(x);
     x->ex_flags |= EXFLAG_SET;
 #ifdef tsan_st_rel
     tsan_st_rel((TSAN_QUALIFIER int *)&x->ex_cached, 1);
@@ -508,7 +508,7 @@ static void x509v3_cache_extensions(X509 *x)
      * all stores are visible on all processors. Hence the release fence.
      */
 #endif
-    CRYPTO_THREAD_unlock(x->lock);
+    VR_CRYPTO_THREAD_unlock(x->lock);
 }
 
 /*-
@@ -549,17 +549,17 @@ static int check_ca(const X509 *x)
     }
 }
 
-void X509_set_proxy_flag(X509 *x)
+void VR_X509_set_proxy_flag(X509 *x)
 {
     x->ex_flags |= EXFLAG_PROXY;
 }
 
-void X509_set_proxy_pathlen(X509 *x, long l)
+void VR_X509_set_proxy_pathlen(X509 *x, long l)
 {
     x->ex_pcpathlen = l;
 }
 
-int X509_check_ca(X509 *x)
+int VR_X509_check_ca(X509 *x)
 {
     x509v3_cache_extensions(x);
 
@@ -742,10 +742,10 @@ static int check_purpose_timestamp_sign(const X509_PURPOSE *xp, const X509 *x,
         return 0;
 
     /* Extended Key Usage MUST be critical */
-    i_ext = X509_get_ext_by_NID(x, NID_ext_key_usage, -1);
+    i_ext = VR_X509_get_ext_by_NID(x, NID_ext_key_usage, -1);
     if (i_ext >= 0) {
-        X509_EXTENSION *ext = X509_get_ext((X509 *)x, i_ext);
-        if (!X509_EXTENSION_get_critical(ext))
+        X509_EXTENSION *ext = VR_X509_get_ext((X509 *)x, i_ext);
+        if (!VR_X509_EXTENSION_get_critical(ext))
             return 0;
     }
 
@@ -768,20 +768,20 @@ static int no_check(const X509_PURPOSE *xp, const X509 *x, int ca)
  * 3. Check that issuer public key algorithm matches subject signature algorithm
  * 4. If key_usage(issuer) exists, check that it supports certificate signing
  * returns 0 for OK, positive for reason for mismatch, reasons match
- * codes for X509_verify_cert()
+ * codes for VR_X509_verify_cert()
  */
 
-int X509_check_issued(X509 *issuer, X509 *subject)
+int VR_X509_check_issued(X509 *issuer, X509 *subject)
 {
-    if (X509_NAME_cmp(X509_get_subject_name(issuer),
-                      X509_get_issuer_name(subject)))
+    if (VR_X509_NAME_cmp(VR_X509_get_subject_name(issuer),
+                      VR_X509_get_issuer_name(subject)))
         return X509_V_ERR_SUBJECT_ISSUER_MISMATCH;
 
     x509v3_cache_extensions(issuer);
     x509v3_cache_extensions(subject);
 
     if (subject->akid) {
-        int ret = X509_check_akid(issuer, subject->akid);
+        int ret = VR_X509_check_akid(issuer, subject->akid);
         if (ret != X509_V_OK)
             return ret;
     }
@@ -791,16 +791,16 @@ int X509_check_issued(X509 *issuer, X509 *subject)
          * Check if the subject signature algorithm matches the issuer's PUBKEY
          * algorithm
          */
-        EVP_PKEY *i_pkey = X509_get0_pubkey(issuer);
+        EVP_PKEY *i_pkey = VR_X509_get0_pubkey(issuer);
         X509_ALGOR *s_algor = &subject->cert_info.signature;
         int s_pknid = NID_undef, s_mdnid = NID_undef;
 
         if (i_pkey == NULL)
             return X509_V_ERR_NO_ISSUER_PUBLIC_KEY;
 
-        if (!OBJ_find_sigid_algs(OBJ_obj2nid(s_algor->algorithm),
+        if (!VR_OBJ_find_sigid_algs(VR_OBJ_obj2nid(s_algor->algorithm),
                                  &s_mdnid, &s_pknid)
-            || EVP_PKEY_type(s_pknid) != EVP_PKEY_base_id(i_pkey))
+            || VR_EVP_PKEY_type(s_pknid) != VR_EVP_PKEY_base_id(i_pkey))
             return X509_V_ERR_SIGNATURE_ALGORITHM_MISMATCH;
     }
 
@@ -812,7 +812,7 @@ int X509_check_issued(X509 *issuer, X509 *subject)
     return X509_V_OK;
 }
 
-int X509_check_akid(X509 *issuer, AUTHORITY_KEYID *akid)
+int VR_X509_check_akid(X509 *issuer, AUTHORITY_KEYID *akid)
 {
 
     if (!akid)
@@ -820,11 +820,11 @@ int X509_check_akid(X509 *issuer, AUTHORITY_KEYID *akid)
 
     /* Check key ids (if present) */
     if (akid->keyid && issuer->skid &&
-        ASN1_OCTET_STRING_cmp(akid->keyid, issuer->skid))
+        VR_ASN1_OCTET_STRING_cmp(akid->keyid, issuer->skid))
         return X509_V_ERR_AKID_SKID_MISMATCH;
     /* Check serial number */
     if (akid->serial &&
-        ASN1_INTEGER_cmp(X509_get_serialNumber(issuer), akid->serial))
+        VR_ASN1_INTEGER_cmp(VR_X509_get_serialNumber(issuer), akid->serial))
         return X509_V_ERR_AKID_ISSUER_SERIAL_MISMATCH;
     /* Check issuer name */
     if (akid->issuer) {
@@ -845,64 +845,64 @@ int X509_check_akid(X509 *issuer, AUTHORITY_KEYID *akid)
                 break;
             }
         }
-        if (nm && X509_NAME_cmp(nm, X509_get_issuer_name(issuer)))
+        if (nm && VR_X509_NAME_cmp(nm, VR_X509_get_issuer_name(issuer)))
             return X509_V_ERR_AKID_ISSUER_SERIAL_MISMATCH;
     }
     return X509_V_OK;
 }
 
-uint32_t X509_get_extension_flags(X509 *x)
+uint32_t VR_X509_get_extension_flags(X509 *x)
 {
     /* Call for side-effect of computing hash and caching extensions */
-    X509_check_purpose(x, -1, -1);
+    VR_X509_check_purpose(x, -1, -1);
     return x->ex_flags;
 }
 
-uint32_t X509_get_key_usage(X509 *x)
+uint32_t VR_X509_get_key_usage(X509 *x)
 {
     /* Call for side-effect of computing hash and caching extensions */
-    X509_check_purpose(x, -1, -1);
+    VR_X509_check_purpose(x, -1, -1);
     if (x->ex_flags & EXFLAG_KUSAGE)
         return x->ex_kusage;
     return UINT32_MAX;
 }
 
-uint32_t X509_get_extended_key_usage(X509 *x)
+uint32_t VR_X509_get_extended_key_usage(X509 *x)
 {
     /* Call for side-effect of computing hash and caching extensions */
-    X509_check_purpose(x, -1, -1);
+    VR_X509_check_purpose(x, -1, -1);
     if (x->ex_flags & EXFLAG_XKUSAGE)
         return x->ex_xkusage;
     return UINT32_MAX;
 }
 
-const ASN1_OCTET_STRING *X509_get0_subject_key_id(X509 *x)
+const ASN1_OCTET_STRING *VR_X509_get0_subject_key_id(X509 *x)
 {
     /* Call for side-effect of computing hash and caching extensions */
-    X509_check_purpose(x, -1, -1);
+    VR_X509_check_purpose(x, -1, -1);
     return x->skid;
 }
 
-const ASN1_OCTET_STRING *X509_get0_authority_key_id(X509 *x)
+const ASN1_OCTET_STRING *VR_X509_get0_authority_key_id(X509 *x)
 {
     /* Call for side-effect of computing hash and caching extensions */
-    X509_check_purpose(x, -1, -1);
+    VR_X509_check_purpose(x, -1, -1);
     return (x->akid != NULL ? x->akid->keyid : NULL);
 }
 
-long X509_get_pathlen(X509 *x)
+long VR_X509_get_pathlen(X509 *x)
 {
     /* Called for side effect of caching extensions */
-    if (X509_check_purpose(x, -1, -1) != 1
+    if (VR_X509_check_purpose(x, -1, -1) != 1
             || (x->ex_flags & EXFLAG_BCONS) == 0)
         return -1;
     return x->ex_pathlen;
 }
 
-long X509_get_proxy_pathlen(X509 *x)
+long VR_X509_get_proxy_pathlen(X509 *x)
 {
     /* Called for side effect of caching extensions */
-    if (X509_check_purpose(x, -1, -1) != 1
+    if (VR_X509_check_purpose(x, -1, -1) != 1
             || (x->ex_flags & EXFLAG_PROXY) == 0)
         return -1;
     return x->ex_pcpathlen;

@@ -80,7 +80,7 @@ static int test_int_lhash(void)
         { 34,       1 }
     };
     const unsigned int n_dels = OSSL_NELEM(dels);
-    LHASH_OF(int) *h = lh_int_new(&int_hash, &int_cmp);
+    LHASH_OF(int) *h = lh_VR_int_new(&int_hash, &int_cmp);
     unsigned int i;
     int testresult = 0, j, *p;
 
@@ -155,7 +155,7 @@ static int test_int_lhash(void)
 
     testresult = 1;
 end:
-    lh_int_free(h);
+    lh_VR_int_free(h);
     return testresult;
 }
 
@@ -166,7 +166,7 @@ static unsigned long int stress_hash(const int *p)
 
 static int test_stress(void)
 {
-    LHASH_OF(int) *h = lh_int_new(&stress_hash, &int_cmp);
+    LHASH_OF(int) *h = lh_VR_int_new(&stress_hash, &int_cmp);
     const unsigned int n = 2500000;
     unsigned int i;
     int testresult = 0, *p;
@@ -190,9 +190,9 @@ static int test_stress(void)
             goto end;
 
     TEST_info("hash full statistics:");
-    OPENSSL_LH_stats_bio((OPENSSL_LHASH *)h, bio_err);
+    VR_OPENSSL_LH_stats_bio((OPENSSL_LHASH *)h, bio_err);
     TEST_note("hash full node usage:");
-    OPENSSL_LH_node_usage_stats_bio((OPENSSL_LHASH *)h, bio_err);
+    VR_OPENSSL_LH_node_usage_stats_bio((OPENSSL_LHASH *)h, bio_err);
 
     /* delete in a different order */
     for (i = 0; i < n; i++) {
@@ -206,17 +206,17 @@ static int test_stress(void)
             TEST_info("lhash stress bad value %d", i);
             goto end;
         }
-        OPENSSL_free(p);
+        OPENVR_SSL_free(p);
     }
 
     TEST_info("hash empty statistics:");
-    OPENSSL_LH_stats_bio((OPENSSL_LHASH *)h, bio_err);
+    VR_OPENSSL_LH_stats_bio((OPENSSL_LHASH *)h, bio_err);
     TEST_note("hash empty node usage:");
-    OPENSSL_LH_node_usage_stats_bio((OPENSSL_LHASH *)h, bio_err);
+    VR_OPENSSL_LH_node_usage_stats_bio((OPENSSL_LHASH *)h, bio_err);
 
     testresult = 1;
 end:
-    lh_int_free(h);
+    lh_VR_int_free(h);
     return testresult;
 }
 

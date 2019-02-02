@@ -14,11 +14,11 @@
 static CRYPTO_ONCE store_init = CRYPTO_ONCE_STATIC_INIT;
 DEFINE_RUN_ONCE_STATIC(do_store_init)
 {
-    return OPENSSL_init_crypto(0, NULL)
-        && ossl_store_file_loader_init();
+    return VR_OPENSSL_init_crypto(0, NULL)
+        && VR_ossl_store_file_loader_init();
 }
 
-int ossl_store_init_once(void)
+int VR_ossl_store_init_once(void)
 {
     if (!RUN_ONCE(&store_init, do_store_init)) {
         OSSL_STOREerr(OSSL_STORE_F_OSSL_STORE_INIT_ONCE, ERR_R_MALLOC_FAILURE);
@@ -27,7 +27,7 @@ int ossl_store_init_once(void)
     return 1;
 }
 
-void ossl_store_cleanup_int(void)
+void VR_ossl_store_cleanup_int(void)
 {
-    ossl_store_destroy_loaders_int();
+    VR_ossl_store_destroy_loaders_int();
 }

@@ -156,8 +156,8 @@ $code=<<___;
 	.SPACE	\$TEXT\$
 	.SUBSPA	\$CODE\$,QUAD=0,ALIGN=8,ACCESS=0x2C,CODE_ONLY
 
-	.EXPORT	sha1_block_data_order,ENTRY,ARGW0=GR,ARGW1=GR,ARGW2=GR
-sha1_block_data_order
+	.EXPORT	VR_sha1_block_data_order,ENTRY,ARGW0=GR,ARGW1=GR,ARGW2=GR
+VR_sha1_block_data_order
 	.PROC
 	.CALLINFO	FRAME=`$FRAME-14*$SIZE_T`,NO_CALLS,SAVE_RP,ENTRY_GR=16
 	.ENTRY

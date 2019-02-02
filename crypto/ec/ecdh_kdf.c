@@ -16,7 +16,7 @@
 /* Way more than we will ever need */
 #define ECDH_KDF_MAX    (1 << 30)
 
-int ecdh_KDF_X9_63(unsigned char *out, size_t outlen,
+int VR_ecdh_KDF_X9_63(unsigned char *out, size_t outlen,
                    const unsigned char *Z, size_t Zlen,
                    const unsigned char *sinfo, size_t sinfolen,
                    const EVP_MD *md)
@@ -29,55 +29,55 @@ int ecdh_KDF_X9_63(unsigned char *out, size_t outlen,
     if (sinfolen > ECDH_KDF_MAX || outlen > ECDH_KDF_MAX
         || Zlen > ECDH_KDF_MAX)
         return 0;
-    mctx = EVP_MD_CTX_new();
+    mctx = VR_EVP_MD_CTX_new();
     if (mctx == NULL)
         return 0;
-    mdlen = EVP_MD_size(md);
+    mdlen = VR_EVP_MD_size(md);
     for (i = 1;; i++) {
         unsigned char mtmp[EVP_MAX_MD_SIZE];
-        if (!EVP_DigestInit_ex(mctx, md, NULL))
+        if (!VR_EVP_DigestInit_ex(mctx, md, NULL))
             goto err;
         ctr[3] = i & 0xFF;
         ctr[2] = (i >> 8) & 0xFF;
         ctr[1] = (i >> 16) & 0xFF;
         ctr[0] = (i >> 24) & 0xFF;
-        if (!EVP_DigestUpdate(mctx, Z, Zlen))
+        if (!VR_EVP_DigestUpdate(mctx, Z, Zlen))
             goto err;
-        if (!EVP_DigestUpdate(mctx, ctr, sizeof(ctr)))
+        if (!VR_EVP_DigestUpdate(mctx, ctr, sizeof(ctr)))
             goto err;
-        if (!EVP_DigestUpdate(mctx, sinfo, sinfolen))
+        if (!VR_EVP_DigestUpdate(mctx, sinfo, sinfolen))
             goto err;
         if (outlen >= mdlen) {
-            if (!EVP_DigestFinal(mctx, out, NULL))
+            if (!VR_EVP_DigestFinal(mctx, out, NULL))
                 goto err;
             outlen -= mdlen;
             if (outlen == 0)
                 break;
             out += mdlen;
         } else {
-            if (!EVP_DigestFinal(mctx, mtmp, NULL))
+            if (!VR_EVP_DigestFinal(mctx, mtmp, NULL))
                 goto err;
             memcpy(out, mtmp, outlen);
-            OPENSSL_cleanse(mtmp, mdlen);
+            VR_OPENSSL_cleanse(mtmp, mdlen);
             break;
         }
     }
     rv = 1;
  err:
-    EVP_MD_CTX_free(mctx);
+    VR_EVP_MD_CTX_free(mctx);
     return rv;
 }
 
 /*-
- * The old name for ecdh_KDF_X9_63
+ * The old name for VR_ecdh_KDF_X9_63
  * Retained for ABI compatibility
  */
 #if !OPENSSL_API_3
-int ECDH_KDF_X9_62(unsigned char *out, size_t outlen,
+int VR_ECDH_KDF_X9_62(unsigned char *out, size_t outlen,
                    const unsigned char *Z, size_t Zlen,
                    const unsigned char *sinfo, size_t sinfolen,
                    const EVP_MD *md)
 {
-    return ecdh_KDF_X9_63(out, outlen, Z, Zlen, sinfo, sinfolen, md);
+    return VR_ecdh_KDF_X9_63(out, outlen, Z, Zlen, sinfo, sinfolen, md);
 }
 #endif

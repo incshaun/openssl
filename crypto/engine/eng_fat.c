@@ -11,35 +11,35 @@
 #include "eng_int.h"
 #include <openssl/conf.h>
 
-int ENGINE_set_default(ENGINE *e, unsigned int flags)
+int VR_ENGINE_set_default(ENGINE *e, unsigned int flags)
 {
-    if ((flags & ENGINE_METHOD_CIPHERS) && !ENGINE_set_default_ciphers(e))
+    if ((flags & ENGINE_METHOD_CIPHERS) && !VR_ENGINE_set_default_ciphers(e))
         return 0;
-    if ((flags & ENGINE_METHOD_DIGESTS) && !ENGINE_set_default_digests(e))
+    if ((flags & ENGINE_METHOD_DIGESTS) && !VR_ENGINE_set_default_digests(e))
         return 0;
 #ifndef OPENSSL_NO_RSA
-    if ((flags & ENGINE_METHOD_RSA) && !ENGINE_set_default_RSA(e))
+    if ((flags & ENGINE_METHOD_RSA) && !VR_ENGINE_set_default_RSA(e))
         return 0;
 #endif
 #ifndef OPENSSL_NO_DSA
-    if ((flags & ENGINE_METHOD_DSA) && !ENGINE_set_default_DSA(e))
+    if ((flags & ENGINE_METHOD_DSA) && !VR_ENGINE_set_default_DSA(e))
         return 0;
 #endif
 #ifndef OPENSSL_NO_DH
-    if ((flags & ENGINE_METHOD_DH) && !ENGINE_set_default_DH(e))
+    if ((flags & ENGINE_METHOD_DH) && !VR_ENGINE_set_default_DH(e))
         return 0;
 #endif
 #ifndef OPENSSL_NO_EC
-    if ((flags & ENGINE_METHOD_EC) && !ENGINE_set_default_EC(e))
+    if ((flags & ENGINE_METHOD_EC) && !VR_ENGINE_set_default_EC(e))
         return 0;
 #endif
-    if ((flags & ENGINE_METHOD_RAND) && !ENGINE_set_default_RAND(e))
+    if ((flags & ENGINE_METHOD_RAND) && !VR_ENGINE_set_default_RAND(e))
         return 0;
     if ((flags & ENGINE_METHOD_PKEY_METHS)
-        && !ENGINE_set_default_pkey_meths(e))
+        && !VR_ENGINE_set_default_pkey_meths(e))
         return 0;
     if ((flags & ENGINE_METHOD_PKEY_ASN1_METHS)
-        && !ENGINE_set_default_pkey_asn1_meths(e))
+        && !VR_ENGINE_set_default_pkey_asn1_meths(e))
         return 0;
     return 1;
 }
@@ -78,46 +78,46 @@ static int int_def_cb(const char *alg, int len, void *arg)
     return 1;
 }
 
-int ENGINE_set_default_string(ENGINE *e, const char *def_list)
+int VR_ENGINE_set_default_string(ENGINE *e, const char *def_list)
 {
     unsigned int flags = 0;
-    if (!CONF_parse_list(def_list, ',', 1, int_def_cb, &flags)) {
+    if (!VR_CONF_parse_list(def_list, ',', 1, int_def_cb, &flags)) {
         ENGINEerr(ENGINE_F_ENGINE_SET_DEFAULT_STRING,
                   ENGINE_R_INVALID_STRING);
-        ERR_add_error_data(2, "str=", def_list);
+        VR_ERR_add_error_data(2, "str=", def_list);
         return 0;
     }
-    return ENGINE_set_default(e, flags);
+    return VR_ENGINE_set_default(e, flags);
 }
 
-int ENGINE_register_complete(ENGINE *e)
+int VR_ENGINE_register_complete(ENGINE *e)
 {
-    ENGINE_register_ciphers(e);
-    ENGINE_register_digests(e);
+    VR_ENGINE_register_ciphers(e);
+    VR_ENGINE_register_digests(e);
 #ifndef OPENSSL_NO_RSA
-    ENGINE_register_RSA(e);
+    VR_ENGINE_register_RSA(e);
 #endif
 #ifndef OPENSSL_NO_DSA
-    ENGINE_register_DSA(e);
+    VR_ENGINE_register_DSA(e);
 #endif
 #ifndef OPENSSL_NO_DH
-    ENGINE_register_DH(e);
+    VR_ENGINE_register_DH(e);
 #endif
 #ifndef OPENSSL_NO_EC
-    ENGINE_register_EC(e);
+    VR_ENGINE_register_EC(e);
 #endif
-    ENGINE_register_RAND(e);
-    ENGINE_register_pkey_meths(e);
-    ENGINE_register_pkey_asn1_meths(e);
+    VR_ENGINE_register_RAND(e);
+    VR_ENGINE_register_pkey_meths(e);
+    VR_ENGINE_register_pkey_asn1_meths(e);
     return 1;
 }
 
-int ENGINE_register_all_complete(void)
+int VR_ENGINE_register_all_complete(void)
 {
     ENGINE *e;
 
-    for (e = ENGINE_get_first(); e; e = ENGINE_get_next(e))
+    for (e = VR_ENGINE_get_first(); e; e = VR_ENGINE_get_next(e))
         if (!(e->flags & ENGINE_FLAGS_NO_REGISTER_ALL))
-            ENGINE_register_complete(e);
+            VR_ENGINE_register_complete(e);
     return 1;
 }

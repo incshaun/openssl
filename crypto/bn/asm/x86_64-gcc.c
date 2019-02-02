@@ -107,7 +107,7 @@
                 : "a"(a)                \
                 : "cc");
 
-BN_ULONG bn_mul_add_words(BN_ULONG *rp, const BN_ULONG *ap, int num,
+BN_ULONG VR_bn_mul_add_words(BN_ULONG *rp, const BN_ULONG *ap, int num,
                           BN_ULONG w)
 {
     BN_ULONG c1 = 0;
@@ -138,7 +138,7 @@ BN_ULONG bn_mul_add_words(BN_ULONG *rp, const BN_ULONG *ap, int num,
     return c1;
 }
 
-BN_ULONG bn_mul_words(BN_ULONG *rp, const BN_ULONG *ap, int num, BN_ULONG w)
+BN_ULONG VR_bn_mul_words(BN_ULONG *rp, const BN_ULONG *ap, int num, BN_ULONG w)
 {
     BN_ULONG c1 = 0;
 
@@ -166,7 +166,7 @@ BN_ULONG bn_mul_words(BN_ULONG *rp, const BN_ULONG *ap, int num, BN_ULONG w)
     return c1;
 }
 
-void bn_sqr_words(BN_ULONG *r, const BN_ULONG *a, int n)
+void VR_bn_sqr_words(BN_ULONG *r, const BN_ULONG *a, int n)
 {
     if (n <= 0)
         return;
@@ -191,7 +191,7 @@ void bn_sqr_words(BN_ULONG *r, const BN_ULONG *a, int n)
     }
 }
 
-BN_ULONG bn_div_words(BN_ULONG h, BN_ULONG l, BN_ULONG d)
+BN_ULONG VR_bn_div_words(BN_ULONG h, BN_ULONG l, BN_ULONG d)
 {
     BN_ULONG ret, waste;
 
@@ -202,7 +202,7 @@ BN_ULONG bn_div_words(BN_ULONG h, BN_ULONG l, BN_ULONG d)
     return ret;
 }
 
-BN_ULONG bn_add_words(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
+BN_ULONG VR_bn_add_words(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
                       int n)
 {
     BN_ULONG ret;
@@ -229,7 +229,7 @@ BN_ULONG bn_add_words(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
 }
 
 # ifndef SIMICS
-BN_ULONG bn_sub_words(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
+BN_ULONG VR_bn_sub_words(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
                       int n)
 {
     BN_ULONG ret;
@@ -257,7 +257,7 @@ BN_ULONG bn_sub_words(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
 # else
 /* Simics 1.4<7 has buggy sbbq:-( */
 #  define BN_MASK2 0xffffffffffffffffL
-BN_ULONG bn_sub_words(BN_ULONG *r, BN_ULONG *a, BN_ULONG *b, int n)
+BN_ULONG VR_bn_sub_words(BN_ULONG *r, BN_ULONG *a, BN_ULONG *b, int n)
 {
     BN_ULONG t1, t2;
     int c = 0;
@@ -390,7 +390,7 @@ BN_ULONG bn_sub_words(BN_ULONG *r, BN_ULONG *a, BN_ULONG *b, int n)
 # define sqr_add_c2(a,i,j,c0,c1,c2)      \
         mul_add_c2((a)[i],(a)[j],c0,c1,c2)
 
-void bn_mul_comba8(BN_ULONG *r, BN_ULONG *a, BN_ULONG *b)
+void VR_bn_mul_comba8(BN_ULONG *r, BN_ULONG *a, BN_ULONG *b)
 {
     BN_ULONG c1, c2, c3;
 
@@ -493,7 +493,7 @@ void bn_mul_comba8(BN_ULONG *r, BN_ULONG *a, BN_ULONG *b)
     r[15] = c1;
 }
 
-void bn_mul_comba4(BN_ULONG *r, BN_ULONG *a, BN_ULONG *b)
+void VR_bn_mul_comba4(BN_ULONG *r, BN_ULONG *a, BN_ULONG *b)
 {
     BN_ULONG c1, c2, c3;
 
@@ -532,7 +532,7 @@ void bn_mul_comba4(BN_ULONG *r, BN_ULONG *a, BN_ULONG *b)
     r[7] = c2;
 }
 
-void bn_sqr_comba8(BN_ULONG *r, const BN_ULONG *a)
+void VR_bn_sqr_comba8(BN_ULONG *r, const BN_ULONG *a)
 {
     BN_ULONG c1, c2, c3;
 
@@ -607,7 +607,7 @@ void bn_sqr_comba8(BN_ULONG *r, const BN_ULONG *a)
     r[15] = c1;
 }
 
-void bn_sqr_comba4(BN_ULONG *r, const BN_ULONG *a)
+void VR_bn_sqr_comba4(BN_ULONG *r, const BN_ULONG *a)
 {
     BN_ULONG c1, c2, c3;
 

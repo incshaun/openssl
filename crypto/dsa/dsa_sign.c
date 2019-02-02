@@ -11,13 +11,13 @@
 #include "dsa_locl.h"
 #include <openssl/bn.h>
 
-DSA_SIG *DSA_do_sign(const unsigned char *dgst, int dlen, DSA *dsa)
+DSA_SIG *VR_DSA_do_sign(const unsigned char *dgst, int dlen, DSA *dsa)
 {
     return dsa->meth->dsa_do_sign(dgst, dlen, dsa);
 }
 
 #if !OPENSSL_API_3
-int DSA_sign_setup(DSA *dsa, BN_CTX *ctx_in, BIGNUM **kinvp, BIGNUM **rp)
+int VR_DSA_sign_setup(DSA *dsa, BN_CTX *ctx_in, BIGNUM **kinvp, BIGNUM **rp)
 {
     return dsa->meth->dsa_sign_setup(dsa, ctx_in, kinvp, rp);
 }

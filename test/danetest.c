@@ -59,35 +59,35 @@ static int verify_chain(SSL *ssl, STACK_OF(X509) *chain)
     X509_STORE *store = NULL;
     X509 *cert = NULL;
     int ret = 0;
-    int store_ctx_idx = SSL_get_ex_data_X509_STORE_CTX_idx();
+    int store_ctx_idx = VR_SSL_get_ex_data_X509_STORE_CTX_idx();
 
-    if (!TEST_ptr(store_ctx = X509_STORE_CTX_new())
-            || !TEST_ptr(ssl_ctx = SSL_get_SSL_CTX(ssl))
-            || !TEST_ptr(store = SSL_CTX_get_cert_store(ssl_ctx))
+    if (!TEST_ptr(store_ctx = VR_X509_STORE_CTX_new())
+            || !TEST_ptr(ssl_ctx = VR_SSL_get_SSL_CTX(ssl))
+            || !TEST_ptr(store = VR_SSL_CTX_get_cert_store(ssl_ctx))
             || !TEST_ptr(cert = sk_X509_value(chain, 0))
-            || !TEST_true(X509_STORE_CTX_init(store_ctx, store, cert, chain))
-            || !TEST_true(X509_STORE_CTX_set_ex_data(store_ctx, store_ctx_idx,
+            || !TEST_true(VR_X509_STORE_CTX_init(store_ctx, store, cert, chain))
+            || !TEST_true(VR_X509_STORE_CTX_set_ex_data(store_ctx, store_ctx_idx,
                                                      ssl)))
         goto end;
 
-    X509_STORE_CTX_set_default(store_ctx,
-            SSL_is_server(ssl) ? "ssl_client" : "ssl_server");
-    X509_VERIFY_PARAM_set1(X509_STORE_CTX_get0_param(store_ctx),
-            SSL_get0_param(ssl));
+    VR_X509_STORE_CTX_set_default(store_ctx,
+            VR_SSL_is_server(ssl) ? "ssl_client" : "ssl_server");
+    VR_X509_VERIFY_PARAM_set1(VR_X509_STORE_CTX_get0_param(store_ctx),
+            VR_SSL_get0_param(ssl));
     store_ctx_dane_init(store_ctx, ssl);
 
-    if (SSL_get_verify_callback(ssl) != NULL)
-        X509_STORE_CTX_set_verify_cb(store_ctx, SSL_get_verify_callback(ssl));
+    if (VR_SSL_get_verify_callback(ssl) != NULL)
+        VR_X509_STORE_CTX_set_verify_cb(store_ctx, VR_SSL_get_verify_callback(ssl));
 
     /* Mask "internal failures" (-1) from our return value. */
-    if (!TEST_int_ge(ret = X509_verify_cert(store_ctx), 0))
+    if (!TEST_int_ge(ret = VR_X509_verify_cert(store_ctx), 0))
         ret = 0;
 
-    SSL_set_verify_result(ssl, X509_STORE_CTX_get_error(store_ctx));
-    X509_STORE_CTX_cleanup(store_ctx);
+    VR_SSL_set_verify_result(ssl, VR_X509_STORE_CTX_get_error(store_ctx));
+    VR_X509_STORE_CTX_cleanup(store_ctx);
 
 end:
-    X509_STORE_CTX_free(store_ctx);
+    VR_X509_STORE_CTX_free(store_ctx);
     return ret;
 }
 
@@ -100,20 +100,20 @@ static STACK_OF(X509) *load_chain(BIO *fp, int nelem)
     long len;
     char *errtype = 0;                /* if error: cert or pkey? */
     STACK_OF(X509) *chain;
-    typedef X509 *(*d2i_X509_t)(X509 **, const unsigned char **, long);
+    typedef X509 *(*VR_d2i_X509_t)(X509 **, const unsigned char **, long);
 
-    if (!TEST_ptr(chain = sk_X509_new_null()))
+    if (!TEST_ptr(chain = sk_VR_X509_new_null()))
         goto err;
 
     for (count = 0;
          count < nelem && errtype == 0
-         && PEM_read_bio(fp, &name, &header, &data, &len) == 1;
+         && VR_PEM_read_bio(fp, &name, &header, &data, &len) == 1;
          ++count) {
         if (strcmp(name, PEM_STRING_X509) == 0
                     || strcmp(name, PEM_STRING_X509_TRUSTED) == 0
                     || strcmp(name, PEM_STRING_X509_OLD) == 0) {
-            d2i_X509_t d = strcmp(name, PEM_STRING_X509_TRUSTED) != 0
-                ? d2i_X509_AUX : d2i_X509;
+            VR_d2i_X509_t d = strcmp(name, PEM_STRING_X509_TRUSTED) != 0
+                ? VR_d2i_X509_AUX : VR_d2i_X509;
             X509 *cert;
             const unsigned char *p = data;
 
@@ -123,30 +123,30 @@ static STACK_OF(X509) *load_chain(BIO *fp, int nelem)
                 goto err;
             }
 
-            if (!TEST_true(sk_X509_push(chain, cert)))
+            if (!TEST_true(sk_VR_X509_push(chain, cert)))
                 goto err;
         } else {
             TEST_info("Unknown chain file object %s", name);
             goto err;
         }
 
-        OPENSSL_free(name);
-        OPENSSL_free(header);
-        OPENSSL_free(data);
+        OPENVR_SSL_free(name);
+        OPENVR_SSL_free(header);
+        OPENVR_SSL_free(data);
         name = header = NULL;
         data = NULL;
     }
 
     if (count == nelem) {
-        ERR_clear_error();
+        VR_ERR_clear_error();
         return chain;
     }
 
 err:
-    OPENSSL_free(name);
-    OPENSSL_free(header);
-    OPENSSL_free(data);
-    sk_X509_pop_free(chain, X509_free);
+    OPENVR_SSL_free(name);
+    OPENVR_SSL_free(header);
+    OPENVR_SSL_free(data);
+    sk_VR_X509_pop_free(chain, VR_X509_free);
     return NULL;
 }
 
@@ -155,7 +155,7 @@ static char *read_to_eol(BIO *f)
     static char buf[1024];
     int n;
 
-    if (!BIO_gets(f, buf, sizeof(buf)))
+    if (!VR_BIO_gets(f, buf, sizeof(buf)))
         return NULL;
 
     n = strlen(buf);
@@ -194,9 +194,9 @@ static ossl_ssize_t hexdecode(const char *in, void *result)
 
         if (isspace(_UC(*in)))
             continue;
-        x = OPENSSL_hexchar2int(*in);
+        x = VR_OPENSSL_hexchar2int(*in);
         if (x < 0) {
-            OPENSSL_free(ret);
+            OPENVR_SSL_free(ret);
             return 0;
         }
         byte |= (char)x;
@@ -208,7 +208,7 @@ static ossl_ssize_t hexdecode(const char *in, void *result)
         }
     }
     if (nibble != 0) {
-        OPENSSL_free(ret);
+        OPENVR_SSL_free(ret);
         return 0;
     }
 
@@ -268,8 +268,8 @@ static int tlsa_import_rr(SSL *ssl, const char *rrdata)
         }
     }
 
-    ret = SSL_dane_tlsa_add(ssl, usage, selector, mtype, data, len);
-    OPENSSL_free(data);
+    ret = VR_SSL_dane_tlsa_add(ssl, usage, selector, mtype, data, len);
+    OPENVR_SSL_free(data);
     if (ret == 0) {
         TEST_info("unusable TLSA rrdata: %s", rrdata);
         return 0;
@@ -322,48 +322,48 @@ static int test_tlsafile(SSL_CTX *ctx, const char *base_name,
             return 0;
         }
 
-        if (!TEST_ptr(ssl = SSL_new(ctx)))
+        if (!TEST_ptr(ssl = VR_SSL_new(ctx)))
             return 0;
-        SSL_set_connect_state(ssl);
-        if (SSL_dane_enable(ssl, base_name) <= 0) {
-            SSL_free(ssl);
+        VR_SSL_set_connect_state(ssl);
+        if (VR_SSL_dane_enable(ssl, base_name) <= 0) {
+            VR_SSL_free(ssl);
             return 0;
         }
         if (noncheck)
-            SSL_dane_set_flags(ssl, DANE_FLAG_NO_DANE_EE_NAMECHECKS);
+            VR_SSL_dane_set_flags(ssl, DANE_FLAG_NO_DANE_EE_NAMECHECKS);
 
         for (i = 0; i < ntlsa; ++i) {
             if ((line = read_to_eol(f)) == NULL || !tlsa_import_rr(ssl, line)) {
-                SSL_free(ssl);
+                VR_SSL_free(ssl);
                 return 0;
             }
         }
 
         /* Don't report old news */
-        ERR_clear_error();
+        VR_ERR_clear_error();
         if (!TEST_ptr(chain = load_chain(f, ncert))) {
-            SSL_free(ssl);
+            VR_SSL_free(ssl);
             return 0;
         }
 
         ok = verify_chain(ssl, chain);
-        sk_X509_pop_free(chain, X509_free);
-        err = SSL_get_verify_result(ssl);
+        sk_VR_X509_pop_free(chain, VR_X509_free);
+        err = VR_SSL_get_verify_result(ssl);
         /*
          * Peek under the hood, normally TLSA match data is hidden when
          * verification fails, we can obtain any suppressed data by setting the
          * verification result to X509_V_OK before looking.
          */
-        SSL_set_verify_result(ssl, X509_V_OK);
-        mdpth = SSL_get0_dane_authority(ssl, NULL, NULL);
+        VR_SSL_set_verify_result(ssl, X509_V_OK);
+        mdpth = VR_SSL_get0_dane_authority(ssl, NULL, NULL);
         /* Not needed any more, but lead by example and put the error back. */
-        SSL_set_verify_result(ssl, err);
-        SSL_free(ssl);
+        VR_SSL_set_verify_result(ssl, err);
+        VR_SSL_free(ssl);
 
         if (!TEST_int_eq(err, want)) {
             if (want == X509_V_OK)
                 TEST_info("Verification failure in test %d: %d=%s",
-                          testno, err, X509_verify_cert_error_string(err));
+                          testno, err, VR_X509_verify_cert_error_string(err));
             else
                 TEST_info("Unexpected error in test %d", testno);
             ret = 0;
@@ -379,7 +379,7 @@ static int test_tlsafile(SSL_CTX *ctx, const char *base_name,
             ret = 0;
         }
     }
-    ERR_clear_error();
+    VR_ERR_clear_error();
 
     return ret;
 }
@@ -390,21 +390,21 @@ static int run_tlsatest(void)
     BIO *f = NULL;
     int ret = 0;
 
-    if (!TEST_ptr(f = BIO_new_file(tlsafile, "r"))
-            || !TEST_ptr(ctx = SSL_CTX_new(TLS_client_method()))
-            || !TEST_int_gt(SSL_CTX_dane_enable(ctx), 0)
-            || !TEST_true(SSL_CTX_load_verify_locations(ctx, CAfile, NULL))
-            || !TEST_int_gt(SSL_CTX_dane_mtype_set(ctx, EVP_sha512(), 2, 1),
+    if (!TEST_ptr(f = VR_BIO_new_file(tlsafile, "r"))
+            || !TEST_ptr(ctx = VR_SSL_CTX_new(VR_TLS_client_method()))
+            || !TEST_int_gt(VR_SSL_CTX_dane_enable(ctx), 0)
+            || !TEST_true(VR_SSL_CTX_load_verify_locations(ctx, CAfile, NULL))
+            || !TEST_int_gt(VR_SSL_CTX_dane_mtype_set(ctx, VR_EVP_sha512(), 2, 1),
                             0)
-            || !TEST_int_gt(SSL_CTX_dane_mtype_set(ctx, EVP_sha256(), 1, 2),
+            || !TEST_int_gt(VR_SSL_CTX_dane_mtype_set(ctx, VR_EVP_sha256(), 1, 2),
                             0)
             || !TEST_int_gt(test_tlsafile(ctx, basedomain, f, tlsafile), 0))
         goto end;
     ret = 1;
 
 end:
-    BIO_free(f);
-    SSL_CTX_free(ctx);
+    VR_BIO_free(f);
+    VR_SSL_CTX_free(ctx);
 
     return ret;
 }
@@ -426,5 +426,5 @@ int setup_tests(void)
 
 static void store_ctx_dane_init(X509_STORE_CTX *store_ctx, SSL *ssl)
 {
-    X509_STORE_CTX_set0_dane(store_ctx, SSL_get0_dane(ssl));
+    VR_X509_STORE_CTX_set0_dane(store_ctx, VR_SSL_get0_dane(ssl));
 }

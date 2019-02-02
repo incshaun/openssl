@@ -17,7 +17,7 @@
 
 #define STACKSIZE       32768
 
-int ASYNC_is_capable(void)
+int VR_ASYNC_is_capable(void)
 {
     ucontext_t ctx;
 
@@ -28,11 +28,11 @@ int ASYNC_is_capable(void)
     return getcontext(&ctx) == 0;
 }
 
-void async_local_cleanup(void)
+void VR_async_local_cleanup(void)
 {
 }
 
-int async_fibre_makecontext(async_fibre *fibre)
+int VR_async_fibre_makecontext(async_fibre *fibre)
 {
     fibre->env_init = 0;
     if (getcontext(&fibre->fibre) == 0) {
@@ -40,7 +40,7 @@ int async_fibre_makecontext(async_fibre *fibre)
         if (fibre->fibre.uc_stack.ss_sp != NULL) {
             fibre->fibre.uc_stack.ss_size = STACKSIZE;
             fibre->fibre.uc_link = NULL;
-            makecontext(&fibre->fibre, async_start_func, 0);
+            makecontext(&fibre->fibre, VR_async_start_func, 0);
             return 1;
         }
     } else {
@@ -49,9 +49,9 @@ int async_fibre_makecontext(async_fibre *fibre)
     return 0;
 }
 
-void async_fibre_free(async_fibre *fibre)
+void VR_async_fibre_free(async_fibre *fibre)
 {
-    OPENSSL_free(fibre->fibre.uc_stack.ss_sp);
+    OPENVR_SSL_free(fibre->fibre.uc_stack.ss_sp);
     fibre->fibre.uc_stack.ss_sp = NULL;
 }
 

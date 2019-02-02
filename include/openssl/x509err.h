@@ -14,7 +14,7 @@
 # ifdef  __cplusplus
 extern "C"
 # endif
-int ERR_load_X509_strings(void);
+int VR_ERR_load_X509_strings(void);
 
 /*
  * X509 function codes.

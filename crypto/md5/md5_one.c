@@ -16,17 +16,17 @@
 # include <openssl/ebcdic.h>
 #endif
 
-unsigned char *MD5(const unsigned char *d, size_t n, unsigned char *md)
+unsigned char *VR_MD5(const unsigned char *d, size_t n, unsigned char *md)
 {
-    MD5_CTX c;
-    static unsigned char m[MD5_DIGEST_LENGTH];
+    VR_MD5_CTX c;
+    static unsigned char m[VR_MD5_DIGEST_LENGTH];
 
     if (md == NULL)
         md = m;
-    if (!MD5_Init(&c))
+    if (!VR_MD5_Init(&c))
         return NULL;
 #ifndef CHARSET_EBCDIC
-    MD5_Update(&c, d, n);
+    VR_MD5_Update(&c, d, n);
 #else
     {
         char temp[1024];
@@ -35,13 +35,13 @@ unsigned char *MD5(const unsigned char *d, size_t n, unsigned char *md)
         while (n > 0) {
             chunk = (n > sizeof(temp)) ? sizeof(temp) : n;
             ebcdic2ascii(temp, d, chunk);
-            MD5_Update(&c, temp, chunk);
+            VR_MD5_Update(&c, temp, chunk);
             n -= chunk;
             d += chunk;
         }
     }
 #endif
-    MD5_Final(md, &c);
-    OPENSSL_cleanse(&c, sizeof(c)); /* security consideration */
+    VR_MD5_Final(md, &c);
+    VR_OPENSSL_cleanse(&c, sizeof(c)); /* security consideration */
     return md;
 }

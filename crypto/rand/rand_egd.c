@@ -128,7 +128,7 @@ int RAND_query_egd_bytes(const char *path, unsigned char *buf, int bytes)
         goto err;
     ret = numbytes;
     if (mybuffer)
-        RAND_add(tempbuf, i, i);
+        VR_RAND_add(tempbuf, i, i);
 
  err:
     if (fp != NULL)
@@ -143,7 +143,7 @@ int RAND_egd_bytes(const char *path, int bytes)
     num = RAND_query_egd_bytes(path, NULL, bytes);
     if (num < 0)
         return -1;
-    if (RAND_status() != 1)
+    if (VR_RAND_status() != 1)
         return -1;
     return num;
 }

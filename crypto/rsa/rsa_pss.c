@@ -22,14 +22,14 @@ static const unsigned char zeroes[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 # pragma optimize("g", off)
 #endif
 
-int RSA_verify_PKCS1_PSS(RSA *rsa, const unsigned char *mHash,
+int VR_RSA_verify_PKCS1_PSS(RSA *rsa, const unsigned char *mHash,
                          const EVP_MD *Hash, const unsigned char *EM,
                          int sLen)
 {
-    return RSA_verify_PKCS1_PSS_mgf1(rsa, mHash, Hash, NULL, EM, sLen);
+    return VR_RSA_verify_PKCS1_PSS_mgf1(rsa, mHash, Hash, NULL, EM, sLen);
 }
 
-int RSA_verify_PKCS1_PSS_mgf1(RSA *rsa, const unsigned char *mHash,
+int VR_RSA_verify_PKCS1_PSS_mgf1(RSA *rsa, const unsigned char *mHash,
                               const EVP_MD *Hash, const EVP_MD *mgf1Hash,
                               const unsigned char *EM, int sLen)
 {
@@ -38,7 +38,7 @@ int RSA_verify_PKCS1_PSS_mgf1(RSA *rsa, const unsigned char *mHash,
     int hLen, maskedDBLen, MSBits, emLen;
     const unsigned char *H;
     unsigned char *DB = NULL;
-    EVP_MD_CTX *ctx = EVP_MD_CTX_new();
+    EVP_MD_CTX *ctx = VR_EVP_MD_CTX_new();
     unsigned char H_[EVP_MAX_MD_SIZE];
 
     if (ctx == NULL)
@@ -47,7 +47,7 @@ int RSA_verify_PKCS1_PSS_mgf1(RSA *rsa, const unsigned char *mHash,
     if (mgf1Hash == NULL)
         mgf1Hash = Hash;
 
-    hLen = EVP_MD_size(Hash);
+    hLen = VR_EVP_MD_size(Hash);
     if (hLen < 0)
         goto err;
     /*-
@@ -64,8 +64,8 @@ int RSA_verify_PKCS1_PSS_mgf1(RSA *rsa, const unsigned char *mHash,
         goto err;
     }
 
-    MSBits = (BN_num_bits(rsa->n) - 1) & 0x7;
-    emLen = RSA_size(rsa);
+    MSBits = (VR_BN_num_bits(rsa->n) - 1) & 0x7;
+    emLen = VR_RSA_size(rsa);
     if (EM[0] & (0xFF << MSBits)) {
         RSAerr(RSA_F_RSA_VERIFY_PKCS1_PSS_MGF1, RSA_R_FIRST_OCTET_INVALID);
         goto err;
@@ -95,7 +95,7 @@ int RSA_verify_PKCS1_PSS_mgf1(RSA *rsa, const unsigned char *mHash,
         RSAerr(RSA_F_RSA_VERIFY_PKCS1_PSS_MGF1, ERR_R_MALLOC_FAILURE);
         goto err;
     }
-    if (PKCS1_MGF1(DB, maskedDBLen, H, hLen, mgf1Hash) < 0)
+    if (VR_PKCS1_MGF1(DB, maskedDBLen, H, hLen, mgf1Hash) < 0)
         goto err;
     for (i = 0; i < maskedDBLen; i++)
         DB[i] ^= EM[i];
@@ -110,15 +110,15 @@ int RSA_verify_PKCS1_PSS_mgf1(RSA *rsa, const unsigned char *mHash,
         RSAerr(RSA_F_RSA_VERIFY_PKCS1_PSS_MGF1, RSA_R_SLEN_CHECK_FAILED);
         goto err;
     }
-    if (!EVP_DigestInit_ex(ctx, Hash, NULL)
-        || !EVP_DigestUpdate(ctx, zeroes, sizeof(zeroes))
-        || !EVP_DigestUpdate(ctx, mHash, hLen))
+    if (!VR_EVP_DigestInit_ex(ctx, Hash, NULL)
+        || !VR_EVP_DigestUpdate(ctx, zeroes, sizeof(zeroes))
+        || !VR_EVP_DigestUpdate(ctx, mHash, hLen))
         goto err;
     if (maskedDBLen - i) {
-        if (!EVP_DigestUpdate(ctx, DB + i, maskedDBLen - i))
+        if (!VR_EVP_DigestUpdate(ctx, DB + i, maskedDBLen - i))
             goto err;
     }
-    if (!EVP_DigestFinal_ex(ctx, H_, NULL))
+    if (!VR_EVP_DigestFinal_ex(ctx, H_, NULL))
         goto err;
     if (memcmp(H_, H, hLen)) {
         RSAerr(RSA_F_RSA_VERIFY_PKCS1_PSS_MGF1, RSA_R_BAD_SIGNATURE);
@@ -128,21 +128,21 @@ int RSA_verify_PKCS1_PSS_mgf1(RSA *rsa, const unsigned char *mHash,
     }
 
  err:
-    OPENSSL_free(DB);
-    EVP_MD_CTX_free(ctx);
+    OPENVR_SSL_free(DB);
+    VR_EVP_MD_CTX_free(ctx);
 
     return ret;
 
 }
 
-int RSA_padding_add_PKCS1_PSS(RSA *rsa, unsigned char *EM,
+int VR_RSA_padding_add_PKCS1_PSS(RSA *rsa, unsigned char *EM,
                               const unsigned char *mHash,
                               const EVP_MD *Hash, int sLen)
 {
-    return RSA_padding_add_PKCS1_PSS_mgf1(rsa, EM, mHash, Hash, NULL, sLen);
+    return VR_RSA_padding_add_PKCS1_PSS_mgf1(rsa, EM, mHash, Hash, NULL, sLen);
 }
 
-int RSA_padding_add_PKCS1_PSS_mgf1(RSA *rsa, unsigned char *EM,
+int VR_RSA_padding_add_PKCS1_PSS_mgf1(RSA *rsa, unsigned char *EM,
                                    const unsigned char *mHash,
                                    const EVP_MD *Hash, const EVP_MD *mgf1Hash,
                                    int sLen)
@@ -156,7 +156,7 @@ int RSA_padding_add_PKCS1_PSS_mgf1(RSA *rsa, unsigned char *EM,
     if (mgf1Hash == NULL)
         mgf1Hash = Hash;
 
-    hLen = EVP_MD_size(Hash);
+    hLen = VR_EVP_MD_size(Hash);
     if (hLen < 0)
         goto err;
     /*-
@@ -175,8 +175,8 @@ int RSA_padding_add_PKCS1_PSS_mgf1(RSA *rsa, unsigned char *EM,
         goto err;
     }
 
-    MSBits = (BN_num_bits(rsa->n) - 1) & 0x7;
-    emLen = RSA_size(rsa);
+    MSBits = (VR_BN_num_bits(rsa->n) - 1) & 0x7;
+    emLen = VR_RSA_size(rsa);
     if (MSBits == 0) {
         *EM++ = 0;
         emLen--;
@@ -200,25 +200,25 @@ int RSA_padding_add_PKCS1_PSS_mgf1(RSA *rsa, unsigned char *EM,
                    ERR_R_MALLOC_FAILURE);
             goto err;
         }
-        if (RAND_bytes(salt, sLen) <= 0)
+        if (VR_RAND_bytes(salt, sLen) <= 0)
             goto err;
     }
     maskedDBLen = emLen - hLen - 1;
     H = EM + maskedDBLen;
-    ctx = EVP_MD_CTX_new();
+    ctx = VR_EVP_MD_CTX_new();
     if (ctx == NULL)
         goto err;
-    if (!EVP_DigestInit_ex(ctx, Hash, NULL)
-        || !EVP_DigestUpdate(ctx, zeroes, sizeof(zeroes))
-        || !EVP_DigestUpdate(ctx, mHash, hLen))
+    if (!VR_EVP_DigestInit_ex(ctx, Hash, NULL)
+        || !VR_EVP_DigestUpdate(ctx, zeroes, sizeof(zeroes))
+        || !VR_EVP_DigestUpdate(ctx, mHash, hLen))
         goto err;
-    if (sLen && !EVP_DigestUpdate(ctx, salt, sLen))
+    if (sLen && !VR_EVP_DigestUpdate(ctx, salt, sLen))
         goto err;
-    if (!EVP_DigestFinal_ex(ctx, H, NULL))
+    if (!VR_EVP_DigestFinal_ex(ctx, H, NULL))
         goto err;
 
     /* Generate dbMask in place then perform XOR on it */
-    if (PKCS1_MGF1(EM, maskedDBLen, H, hLen, mgf1Hash))
+    if (VR_PKCS1_MGF1(EM, maskedDBLen, H, hLen, mgf1Hash))
         goto err;
 
     p = EM;
@@ -243,8 +243,8 @@ int RSA_padding_add_PKCS1_PSS_mgf1(RSA *rsa, unsigned char *EM,
     ret = 1;
 
  err:
-    EVP_MD_CTX_free(ctx);
-    OPENSSL_clear_free(salt, (size_t)sLen); /* salt != NULL implies sLen > 0 */
+    VR_EVP_MD_CTX_free(ctx);
+    OPENVR_SSL_clear_free(salt, (size_t)sLen); /* salt != NULL implies sLen > 0 */
 
     return ret;
 

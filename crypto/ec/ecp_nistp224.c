@@ -245,52 +245,52 @@ const EC_METHOD *EC_GFp_nistp224_method(void)
         EC_FLAGS_DEFAULT_OCT,
         NID_X9_62_prime_field,
         ec_GFp_nistp224_group_init,
-        ec_GFp_simple_group_finish,
-        ec_GFp_simple_group_clear_finish,
-        ec_GFp_nist_group_copy,
+        VR_ec_GFp_simple_group_finish,
+        VR_ec_GFp_simple_group_clear_finish,
+        VR_ec_GFp_nist_group_copy,
         ec_GFp_nistp224_group_set_curve,
-        ec_GFp_simple_group_get_curve,
-        ec_GFp_simple_group_get_degree,
-        ec_group_simple_order_bits,
-        ec_GFp_simple_group_check_discriminant,
-        ec_GFp_simple_point_init,
-        ec_GFp_simple_point_finish,
-        ec_GFp_simple_point_clear_finish,
-        ec_GFp_simple_point_copy,
-        ec_GFp_simple_point_set_to_infinity,
-        ec_GFp_simple_set_Jprojective_coordinates_GFp,
-        ec_GFp_simple_get_Jprojective_coordinates_GFp,
-        ec_GFp_simple_point_set_affine_coordinates,
+        VR_ec_GFp_simple_group_get_curve,
+        VR_ec_GFp_simple_group_get_degree,
+        VR_ec_group_simple_order_bits,
+        VR_ec_GFp_simple_group_check_discriminant,
+        VR_ec_GFp_simple_point_init,
+        VR_ec_GFp_simple_point_finish,
+        VR_ec_GFp_simple_point_clear_finish,
+        VR_ec_GFp_simple_point_copy,
+        VR_ec_GFp_simple_point_set_to_infinity,
+        VR_ec_GFp_simple_set_Jprojective_coordinates_GFp,
+        VR_ec_GFp_simple_get_Jprojective_coordinates_GFp,
+        VR_ec_GFp_simple_point_set_affine_coordinates,
         ec_GFp_nistp224_point_get_affine_coordinates,
         0 /* point_set_compressed_coordinates */ ,
         0 /* point2oct */ ,
         0 /* oct2point */ ,
-        ec_GFp_simple_add,
-        ec_GFp_simple_dbl,
-        ec_GFp_simple_invert,
-        ec_GFp_simple_is_at_infinity,
-        ec_GFp_simple_is_on_curve,
-        ec_GFp_simple_cmp,
-        ec_GFp_simple_make_affine,
-        ec_GFp_simple_points_make_affine,
+        VR_ec_GFp_simple_add,
+        VR_ec_GFp_simple_dbl,
+        VR_ec_GFp_simple_invert,
+        VR_ec_GFp_simple_is_at_infinity,
+        VR_ec_GFp_simple_is_on_curve,
+        VR_ec_GFp_simple_cmp,
+        VR_ec_GFp_simple_make_affine,
+        VR_ec_GFp_simple_points_make_affine,
         ec_GFp_nistp224_points_mul,
         ec_GFp_nistp224_precompute_mult,
         ec_GFp_nistp224_have_precompute_mult,
-        ec_GFp_nist_field_mul,
-        ec_GFp_nist_field_sqr,
+        VR_ec_GFp_nist_field_mul,
+        VR_ec_GFp_nist_field_sqr,
         0 /* field_div */ ,
         0 /* field_encode */ ,
         0 /* field_decode */ ,
         0,                      /* field_set_to_one */
-        ec_key_simple_priv2oct,
-        ec_key_simple_oct2priv,
+        VR_ec_key_simple_priv2oct,
+        VR_ec_key_simple_oct2priv,
         0, /* set private */
-        ec_key_simple_generate_key,
-        ec_key_simple_check_key,
-        ec_key_simple_generate_public_key,
+        VR_ec_key_simple_generate_key,
+        VR_ec_key_simple_check_key,
+        VR_ec_key_simple_generate_public_key,
         0, /* keycopy */
         0, /* keyfinish */
-        ecdh_simple_compute_key,
+        VR_ecdh_simple_compute_key,
         0, /* field_inverse_mod_ord */
         0, /* blind_coordinates */
         0, /* ladder_pre */
@@ -323,7 +323,7 @@ static void felem_to_bin28(u8 out[28], const felem in)
     }
 }
 
-/* To preserve endianness when using BN_bn2bin and BN_bin2bn */
+/* To preserve endianness when using VR_BN_bn2bin and VR_BN_bin2bn */
 static void flip_endian(u8 *out, const u8 *in, unsigned len)
 {
     unsigned i;
@@ -338,18 +338,18 @@ static int BN_to_felem(felem out, const BIGNUM *bn)
     felem_bytearray b_out;
     unsigned num_bytes;
 
-    /* BN_bn2bin eats leading zeroes */
+    /* VR_BN_bn2bin eats leading zeroes */
     memset(b_out, 0, sizeof(b_out));
     num_bytes = BN_num_bytes(bn);
     if (num_bytes > sizeof(b_out)) {
         ECerr(EC_F_BN_TO_FELEM, EC_R_BIGNUM_OUT_OF_RANGE);
         return 0;
     }
-    if (BN_is_negative(bn)) {
+    if (VR_BN_is_negative(bn)) {
         ECerr(EC_F_BN_TO_FELEM, EC_R_BIGNUM_OUT_OF_RANGE);
         return 0;
     }
-    num_bytes = BN_bn2bin(bn, b_in);
+    num_bytes = VR_BN_bn2bin(bn, b_in);
     flip_endian(b_out, b_in, num_bytes);
     bin28_to_felem(out, b_out);
     return 1;
@@ -361,7 +361,7 @@ static BIGNUM *felem_to_BN(BIGNUM *out, const felem in)
     felem_bytearray b_in, b_out;
     felem_to_bin28(b_in, in);
     flip_endian(b_out, b_in, sizeof(b_out));
-    return BN_bin2bn(b_out, sizeof(b_out), out);
+    return VR_BN_bin2bn(b_out, sizeof(b_out), out);
 }
 
 /******************************************************************************/
@@ -1226,10 +1226,10 @@ static NISTP224_PRE_COMP *nistp224_pre_comp_new(void)
 
     ret->references = 1;
 
-    ret->lock = CRYPTO_THREAD_lock_new();
+    ret->lock = VR_CRYPTO_THREAD_lock_new();
     if (ret->lock == NULL) {
         ECerr(EC_F_NISTP224_PRE_COMP_NEW, ERR_R_MALLOC_FAILURE);
-        OPENSSL_free(ret);
+        OPENVR_SSL_free(ret);
         return NULL;
     }
     return ret;
@@ -1256,8 +1256,8 @@ void EC_nistp224_pre_comp_free(NISTP224_PRE_COMP *p)
         return;
     REF_ASSERT_ISNT(i < 0);
 
-    CRYPTO_THREAD_lock_free(p->lock);
-    OPENSSL_free(p);
+    VR_CRYPTO_THREAD_lock_free(p->lock);
+    OPENVR_SSL_free(p);
 }
 
 /******************************************************************************/
@@ -1268,7 +1268,7 @@ void EC_nistp224_pre_comp_free(NISTP224_PRE_COMP *p)
 int ec_GFp_nistp224_group_init(EC_GROUP *group)
 {
     int ret;
-    ret = ec_GFp_simple_group_init(group);
+    ret = VR_ec_GFp_simple_group_init(group);
     group->a_is_minus3 = 1;
     return ret;
 }
@@ -1282,27 +1282,27 @@ int ec_GFp_nistp224_group_set_curve(EC_GROUP *group, const BIGNUM *p,
     BIGNUM *curve_p, *curve_a, *curve_b;
 
     if (ctx == NULL)
-        if ((ctx = new_ctx = BN_CTX_new()) == NULL)
+        if ((ctx = new_ctx = VR_BN_CTX_new()) == NULL)
             return 0;
-    BN_CTX_start(ctx);
-    curve_p = BN_CTX_get(ctx);
-    curve_a = BN_CTX_get(ctx);
-    curve_b = BN_CTX_get(ctx);
+    VR_BN_CTX_start(ctx);
+    curve_p = VR_BN_CTX_get(ctx);
+    curve_a = VR_BN_CTX_get(ctx);
+    curve_b = VR_BN_CTX_get(ctx);
     if (curve_b == NULL)
         goto err;
-    BN_bin2bn(nistp224_curve_params[0], sizeof(felem_bytearray), curve_p);
-    BN_bin2bn(nistp224_curve_params[1], sizeof(felem_bytearray), curve_a);
-    BN_bin2bn(nistp224_curve_params[2], sizeof(felem_bytearray), curve_b);
-    if ((BN_cmp(curve_p, p)) || (BN_cmp(curve_a, a)) || (BN_cmp(curve_b, b))) {
+    VR_BN_bin2bn(nistp224_curve_params[0], sizeof(felem_bytearray), curve_p);
+    VR_BN_bin2bn(nistp224_curve_params[1], sizeof(felem_bytearray), curve_a);
+    VR_BN_bin2bn(nistp224_curve_params[2], sizeof(felem_bytearray), curve_b);
+    if ((VR_BN_cmp(curve_p, p)) || (VR_BN_cmp(curve_a, a)) || (VR_BN_cmp(curve_b, b))) {
         ECerr(EC_F_EC_GFP_NISTP224_GROUP_SET_CURVE,
               EC_R_WRONG_CURVE_PARAMETERS);
         goto err;
     }
-    group->field_mod_func = BN_nist_mod_224;
-    ret = ec_GFp_simple_group_set_curve(group, p, a, b, ctx);
+    group->field_mod_func = VR_BN_nist_mod_224;
+    ret = VR_ec_GFp_simple_group_set_curve(group, p, a, b, ctx);
  err:
-    BN_CTX_end(ctx);
-    BN_CTX_free(new_ctx);
+    VR_BN_CTX_end(ctx);
+    VR_BN_CTX_free(new_ctx);
     return ret;
 }
 
@@ -1318,7 +1318,7 @@ int ec_GFp_nistp224_point_get_affine_coordinates(const EC_GROUP *group,
     felem z1, z2, x_in, y_in, x_out, y_out;
     widefelem tmp;
 
-    if (EC_POINT_is_at_infinity(group, point)) {
+    if (VR_EC_POINT_is_at_infinity(group, point)) {
         ECerr(EC_F_EC_GFP_NISTP224_POINT_GET_AFFINE_COORDINATES,
               EC_R_POINT_AT_INFINITY);
         return 0;
@@ -1412,11 +1412,11 @@ int ec_GFp_nistp224_points_mul(const EC_GROUP *group, EC_POINT *r,
     const EC_POINT *p = NULL;
     const BIGNUM *p_scalar = NULL;
 
-    BN_CTX_start(ctx);
-    x = BN_CTX_get(ctx);
-    y = BN_CTX_get(ctx);
-    z = BN_CTX_get(ctx);
-    tmp_scalar = BN_CTX_get(ctx);
+    VR_BN_CTX_start(ctx);
+    x = VR_BN_CTX_get(ctx);
+    y = VR_BN_CTX_get(ctx);
+    z = VR_BN_CTX_get(ctx);
+    tmp_scalar = VR_BN_CTX_get(ctx);
     if (tmp_scalar == NULL)
         goto err;
 
@@ -1428,7 +1428,7 @@ int ec_GFp_nistp224_points_mul(const EC_GROUP *group, EC_POINT *r,
         else
             /* try to use the standard precomputation */
             g_pre_comp = &gmul[0];
-        generator = EC_POINT_new(group);
+        generator = VR_EC_POINT_new(group);
         if (generator == NULL)
             goto err;
         /* get the generator from precomputation */
@@ -1438,11 +1438,11 @@ int ec_GFp_nistp224_points_mul(const EC_GROUP *group, EC_POINT *r,
             ECerr(EC_F_EC_GFP_NISTP224_POINTS_MUL, ERR_R_BN_LIB);
             goto err;
         }
-        if (!EC_POINT_set_Jprojective_coordinates_GFp(group,
+        if (!VR_EC_POINT_set_Jprojective_coordinates_GFp(group,
                                                       generator, x, y, z,
                                                       ctx))
             goto err;
-        if (0 == EC_POINT_cmp(group, generator, group->generator, ctx))
+        if (0 == VR_EC_POINT_cmp(group, generator, group->generator, ctx))
             /* precomputation matches generator */
             have_pre_comp = 1;
         else
@@ -1480,7 +1480,7 @@ int ec_GFp_nistp224_points_mul(const EC_GROUP *group, EC_POINT *r,
             if (i == num)
                 /* the generator */
             {
-                p = EC_GROUP_get0_generator(group);
+                p = VR_EC_GROUP_get0_generator(group);
                 p_scalar = scalar;
             } else
                 /* the i^th point */
@@ -1490,19 +1490,19 @@ int ec_GFp_nistp224_points_mul(const EC_GROUP *group, EC_POINT *r,
             }
             if ((p_scalar != NULL) && (p != NULL)) {
                 /* reduce scalar to 0 <= scalar < 2^224 */
-                if ((BN_num_bits(p_scalar) > 224)
-                    || (BN_is_negative(p_scalar))) {
+                if ((VR_BN_num_bits(p_scalar) > 224)
+                    || (VR_BN_is_negative(p_scalar))) {
                     /*
                      * this is an unusual input, and we don't guarantee
                      * constant-timeness
                      */
-                    if (!BN_nnmod(tmp_scalar, p_scalar, group->order, ctx)) {
+                    if (!VR_BN_nnmod(tmp_scalar, p_scalar, group->order, ctx)) {
                         ECerr(EC_F_EC_GFP_NISTP224_POINTS_MUL, ERR_R_BN_LIB);
                         goto err;
                     }
-                    num_bytes = BN_bn2bin(tmp_scalar, tmp);
+                    num_bytes = VR_BN_bn2bin(tmp_scalar, tmp);
                 } else
-                    num_bytes = BN_bn2bin(p_scalar, tmp);
+                    num_bytes = VR_BN_bn2bin(p_scalar, tmp);
                 flip_endian(secrets[i], tmp, num_bytes);
                 /* precompute multiples */
                 if ((!BN_to_felem(x_out, p->X)) ||
@@ -1537,18 +1537,18 @@ int ec_GFp_nistp224_points_mul(const EC_GROUP *group, EC_POINT *r,
     if ((scalar != NULL) && (have_pre_comp)) {
         memset(g_secret, 0, sizeof(g_secret));
         /* reduce scalar to 0 <= scalar < 2^224 */
-        if ((BN_num_bits(scalar) > 224) || (BN_is_negative(scalar))) {
+        if ((VR_BN_num_bits(scalar) > 224) || (VR_BN_is_negative(scalar))) {
             /*
              * this is an unusual input, and we don't guarantee
              * constant-timeness
              */
-            if (!BN_nnmod(tmp_scalar, scalar, group->order, ctx)) {
+            if (!VR_BN_nnmod(tmp_scalar, scalar, group->order, ctx)) {
                 ECerr(EC_F_EC_GFP_NISTP224_POINTS_MUL, ERR_R_BN_LIB);
                 goto err;
             }
-            num_bytes = BN_bn2bin(tmp_scalar, tmp);
+            num_bytes = VR_BN_bn2bin(tmp_scalar, tmp);
         } else
-            num_bytes = BN_bn2bin(scalar, tmp);
+            num_bytes = VR_BN_bn2bin(scalar, tmp);
         flip_endian(g_secret, tmp, num_bytes);
         /* do the multiplication with generator precomputation */
         batch_mul(x_out, y_out, z_out,
@@ -1569,14 +1569,14 @@ int ec_GFp_nistp224_points_mul(const EC_GROUP *group, EC_POINT *r,
         ECerr(EC_F_EC_GFP_NISTP224_POINTS_MUL, ERR_R_BN_LIB);
         goto err;
     }
-    ret = EC_POINT_set_Jprojective_coordinates_GFp(group, r, x, y, z, ctx);
+    ret = VR_EC_POINT_set_Jprojective_coordinates_GFp(group, r, x, y, z, ctx);
 
  err:
-    BN_CTX_end(ctx);
-    EC_POINT_free(generator);
-    OPENSSL_free(secrets);
-    OPENSSL_free(pre_comp);
-    OPENSSL_free(tmp_felems);
+    VR_BN_CTX_end(ctx);
+    VR_EC_POINT_free(generator);
+    OPENVR_SSL_free(secrets);
+    OPENVR_SSL_free(pre_comp);
+    OPENVR_SSL_free(tmp_felems);
     return ret;
 }
 
@@ -1591,31 +1591,31 @@ int ec_GFp_nistp224_precompute_mult(EC_GROUP *group, BN_CTX *ctx)
     felem tmp_felems[32];
 
     /* throw away old precomputation */
-    EC_pre_comp_free(group);
+    VR_EC_pre_comp_free(group);
     if (ctx == NULL)
-        if ((ctx = new_ctx = BN_CTX_new()) == NULL)
+        if ((ctx = new_ctx = VR_BN_CTX_new()) == NULL)
             return 0;
-    BN_CTX_start(ctx);
-    x = BN_CTX_get(ctx);
-    y = BN_CTX_get(ctx);
+    VR_BN_CTX_start(ctx);
+    x = VR_BN_CTX_get(ctx);
+    y = VR_BN_CTX_get(ctx);
     if (y == NULL)
         goto err;
     /* get the generator */
     if (group->generator == NULL)
         goto err;
-    generator = EC_POINT_new(group);
+    generator = VR_EC_POINT_new(group);
     if (generator == NULL)
         goto err;
-    BN_bin2bn(nistp224_curve_params[3], sizeof(felem_bytearray), x);
-    BN_bin2bn(nistp224_curve_params[4], sizeof(felem_bytearray), y);
-    if (!EC_POINT_set_affine_coordinates(group, generator, x, y, ctx))
+    VR_BN_bin2bn(nistp224_curve_params[3], sizeof(felem_bytearray), x);
+    VR_BN_bin2bn(nistp224_curve_params[4], sizeof(felem_bytearray), y);
+    if (!VR_EC_POINT_set_affine_coordinates(group, generator, x, y, ctx))
         goto err;
     if ((pre = nistp224_pre_comp_new()) == NULL)
         goto err;
     /*
      * if the generator is the standard one, use built-in precomputation
      */
-    if (0 == EC_POINT_cmp(group, generator, group->generator, ctx)) {
+    if (0 == VR_EC_POINT_cmp(group, generator, group->generator, ctx)) {
         memcpy(pre->g_pre_comp, gmul, sizeof(pre->g_pre_comp));
         goto done;
     }
@@ -1700,9 +1700,9 @@ int ec_GFp_nistp224_precompute_mult(EC_GROUP *group, BN_CTX *ctx)
     pre = NULL;
     ret = 1;
  err:
-    BN_CTX_end(ctx);
-    EC_POINT_free(generator);
-    BN_CTX_free(new_ctx);
+    VR_BN_CTX_end(ctx);
+    VR_EC_POINT_free(generator);
+    VR_BN_CTX_free(new_ctx);
     EC_nistp224_pre_comp_free(pre);
     return ret;
 }

@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include "internal/cryptlib.h"
 
-#ifndef OPENSSL_NO_MDC2
+#ifndef OPENSSL_NO_VR_MDC2
 
 # include <openssl/evp.h>
 # include <openssl/objects.h>
@@ -21,34 +21,34 @@
 
 static int init(EVP_MD_CTX *ctx)
 {
-    return MDC2_Init(EVP_MD_CTX_md_data(ctx));
+    return VR_MDC2_Init(VR_EVP_MD_CTX_md_data(ctx));
 }
 
 static int update(EVP_MD_CTX *ctx, const void *data, size_t count)
 {
-    return MDC2_Update(EVP_MD_CTX_md_data(ctx), data, count);
+    return VR_MDC2_Update(VR_EVP_MD_CTX_md_data(ctx), data, count);
 }
 
 static int final(EVP_MD_CTX *ctx, unsigned char *md)
 {
-    return MDC2_Final(md, EVP_MD_CTX_md_data(ctx));
+    return VR_MDC2_Final(md, VR_EVP_MD_CTX_md_data(ctx));
 }
 
 static const EVP_MD mdc2_md = {
     NID_mdc2,
     NID_mdc2WithRSA,
-    MDC2_DIGEST_LENGTH,
+    VR_MDC2_DIGEST_LENGTH,
     0,
     init,
     update,
     final,
     NULL,
     NULL,
-    MDC2_BLOCK,
-    sizeof(EVP_MD *) + sizeof(MDC2_CTX),
+    VR_MDC2_BLOCK,
+    sizeof(EVP_MD *) + sizeof(VR_MDC2_CTX),
 };
 
-const EVP_MD *EVP_mdc2(void)
+const EVP_MD *VR_EVP_mdc2(void)
 {
     return &mdc2_md;
 }

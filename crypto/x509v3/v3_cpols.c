@@ -92,7 +92,7 @@ static STACK_OF(POLICYINFO) *r2i_certpol(X509V3_EXT_METHOD *method,
     char *pstr;
     POLICYINFO *pol;
     ASN1_OBJECT *pobj;
-    STACK_OF(CONF_VALUE) *vals = X509V3_parse_list(value);
+    STACK_OF(CONF_VALUE) *vals = VR_X509V3_parse_list(value);
     CONF_VALUE *cnf;
     const int num = sk_CONF_VALUE_num(vals);
     int i, ia5org;
@@ -102,7 +102,7 @@ static STACK_OF(POLICYINFO) *r2i_certpol(X509V3_EXT_METHOD *method,
         return NULL;
     }
 
-    pols = sk_POLICYINFO_new_reserve(NULL, num);
+    pols = sk_VR_POLICYINFO_new_reserve(NULL, num);
     if (pols == NULL) {
         X509V3err(X509V3_F_R2I_CERTPOL, ERR_R_MALLOC_FAILURE);
         goto err;
@@ -124,7 +124,7 @@ static STACK_OF(POLICYINFO) *r2i_certpol(X509V3_EXT_METHOD *method,
             continue;
         } else if (*pstr == '@') {
             STACK_OF(CONF_VALUE) *polsect;
-            polsect = X509V3_get_section(ctx, pstr + 1);
+            polsect = VR_X509V3_get_section(ctx, pstr + 1);
             if (!polsect) {
                 X509V3err(X509V3_F_R2I_CERTPOL, X509V3_R_INVALID_SECTION);
 
@@ -132,35 +132,35 @@ static STACK_OF(POLICYINFO) *r2i_certpol(X509V3_EXT_METHOD *method,
                 goto err;
             }
             pol = policy_section(ctx, polsect, ia5org);
-            X509V3_section_free(ctx, polsect);
+            VR_X509V3_section_free(ctx, polsect);
             if (pol == NULL)
                 goto err;
         } else {
-            if ((pobj = OBJ_txt2obj(cnf->name, 0)) == NULL) {
+            if ((pobj = VR_OBJ_txt2obj(cnf->name, 0)) == NULL) {
                 X509V3err(X509V3_F_R2I_CERTPOL,
                           X509V3_R_INVALID_OBJECT_IDENTIFIER);
                 X509V3_conf_err(cnf);
                 goto err;
             }
-            pol = POLICYINFO_new();
+            pol = VR_POLICYINFO_new();
             if (pol == NULL) {
-                ASN1_OBJECT_free(pobj);
+                VR_ASN1_OBJECT_free(pobj);
                 X509V3err(X509V3_F_R2I_CERTPOL, ERR_R_MALLOC_FAILURE);
                 goto err;
             }
             pol->policyid = pobj;
         }
-        if (!sk_POLICYINFO_push(pols, pol)) {
-            POLICYINFO_free(pol);
+        if (!sk_VR_POLICYINFO_push(pols, pol)) {
+            VR_POLICYINFO_free(pol);
             X509V3err(X509V3_F_R2I_CERTPOL, ERR_R_MALLOC_FAILURE);
             goto err;
         }
     }
-    sk_CONF_VALUE_pop_free(vals, X509V3_conf_free);
+    sk_VR_CONF_VALUE_pop_free(vals, VR_X509V3_conf_free);
     return pols;
  err:
-    sk_CONF_VALUE_pop_free(vals, X509V3_conf_free);
-    sk_POLICYINFO_pop_free(pols, POLICYINFO_free);
+    sk_VR_CONF_VALUE_pop_free(vals, VR_X509V3_conf_free);
+    sk_VR_POLICYINFO_pop_free(pols, VR_POLICYINFO_free);
     return NULL;
 }
 
@@ -172,13 +172,13 @@ static POLICYINFO *policy_section(X509V3_CTX *ctx,
     POLICYINFO *pol;
     POLICYQUALINFO *qual;
 
-    if ((pol = POLICYINFO_new()) == NULL)
+    if ((pol = VR_POLICYINFO_new()) == NULL)
         goto merr;
     for (i = 0; i < sk_CONF_VALUE_num(polstrs); i++) {
         cnf = sk_CONF_VALUE_value(polstrs, i);
         if (strcmp(cnf->name, "policyIdentifier") == 0) {
             ASN1_OBJECT *pobj;
-            if ((pobj = OBJ_txt2obj(cnf->value, 0)) == NULL) {
+            if ((pobj = VR_OBJ_txt2obj(cnf->value, 0)) == NULL) {
                 X509V3err(X509V3_F_POLICY_SECTION,
                           X509V3_R_INVALID_OBJECT_IDENTIFIER);
                 X509V3_conf_err(cnf);
@@ -186,23 +186,23 @@ static POLICYINFO *policy_section(X509V3_CTX *ctx,
             }
             pol->policyid = pobj;
 
-        } else if (!name_cmp(cnf->name, "CPS")) {
+        } else if (!VR_name_cmp(cnf->name, "CPS")) {
             if (pol->qualifiers == NULL)
-                pol->qualifiers = sk_POLICYQUALINFO_new_null();
-            if ((qual = POLICYQUALINFO_new()) == NULL)
+                pol->qualifiers = sk_VR_POLICYQUALINFO_new_null();
+            if ((qual = VR_POLICYQUALINFO_new()) == NULL)
                 goto merr;
-            if (!sk_POLICYQUALINFO_push(pol->qualifiers, qual))
+            if (!sk_VR_POLICYQUALINFO_push(pol->qualifiers, qual))
                 goto merr;
-            if ((qual->pqualid = OBJ_nid2obj(NID_id_qt_cps)) == NULL) {
+            if ((qual->pqualid = VR_OBJ_nid2obj(NID_id_qt_cps)) == NULL) {
                 X509V3err(X509V3_F_POLICY_SECTION, ERR_R_INTERNAL_ERROR);
                 goto err;
             }
-            if ((qual->d.cpsuri = ASN1_IA5STRING_new()) == NULL)
+            if ((qual->d.cpsuri = VR_ASN1_IA5STRING_new()) == NULL)
                 goto merr;
-            if (!ASN1_STRING_set(qual->d.cpsuri, cnf->value,
+            if (!VR_ASN1_STRING_set(qual->d.cpsuri, cnf->value,
                                  strlen(cnf->value)))
                 goto merr;
-        } else if (!name_cmp(cnf->name, "userNotice")) {
+        } else if (!VR_name_cmp(cnf->name, "userNotice")) {
             STACK_OF(CONF_VALUE) *unot;
             if (*cnf->value != '@') {
                 X509V3err(X509V3_F_POLICY_SECTION,
@@ -210,7 +210,7 @@ static POLICYINFO *policy_section(X509V3_CTX *ctx,
                 X509V3_conf_err(cnf);
                 goto err;
             }
-            unot = X509V3_get_section(ctx, cnf->value + 1);
+            unot = VR_X509V3_get_section(ctx, cnf->value + 1);
             if (!unot) {
                 X509V3err(X509V3_F_POLICY_SECTION, X509V3_R_INVALID_SECTION);
 
@@ -218,12 +218,12 @@ static POLICYINFO *policy_section(X509V3_CTX *ctx,
                 goto err;
             }
             qual = notice_section(ctx, unot, ia5org);
-            X509V3_section_free(ctx, unot);
+            VR_X509V3_section_free(ctx, unot);
             if (!qual)
                 goto err;
             if (!pol->qualifiers)
-                pol->qualifiers = sk_POLICYQUALINFO_new_null();
-            if (!sk_POLICYQUALINFO_push(pol->qualifiers, qual))
+                pol->qualifiers = sk_VR_POLICYQUALINFO_new_null();
+            if (!sk_VR_POLICYQUALINFO_push(pol->qualifiers, qual))
                 goto merr;
         } else {
             X509V3err(X509V3_F_POLICY_SECTION, X509V3_R_INVALID_OPTION);
@@ -243,7 +243,7 @@ static POLICYINFO *policy_section(X509V3_CTX *ctx,
     X509V3err(X509V3_F_POLICY_SECTION, ERR_R_MALLOC_FAILURE);
 
  err:
-    POLICYINFO_free(pol);
+    VR_POLICYINFO_free(pol);
     return NULL;
 }
 
@@ -290,13 +290,13 @@ static POLICYQUALINFO *notice_section(X509V3_CTX *ctx,
     POLICYQUALINFO *qual;
     char *value = NULL;
 
-    if ((qual = POLICYQUALINFO_new()) == NULL)
+    if ((qual = VR_POLICYQUALINFO_new()) == NULL)
         goto merr;
-    if ((qual->pqualid = OBJ_nid2obj(NID_id_qt_unotice)) == NULL) {
+    if ((qual->pqualid = VR_OBJ_nid2obj(NID_id_qt_unotice)) == NULL) {
         X509V3err(X509V3_F_NOTICE_SECTION, ERR_R_INTERNAL_ERROR);
         goto err;
     }
-    if ((not = USERNOTICE_new()) == NULL)
+    if ((not = VR_USERNOTICE_new()) == NULL)
         goto merr;
     qual->d.usernotice = not;
     for (i = 0; i < sk_CONF_VALUE_num(unot); i++) {
@@ -304,17 +304,17 @@ static POLICYQUALINFO *notice_section(X509V3_CTX *ctx,
         value = cnf->value;
         if (strcmp(cnf->name, "explicitText") == 0) {
             tag = displaytext_str2tag(value, &tag_len);
-            if ((not->exptext = ASN1_STRING_type_new(tag)) == NULL)
+            if ((not->exptext = VR_ASN1_STRING_type_new(tag)) == NULL)
                 goto merr;
             if (tag_len != 0)
                 value += tag_len + 1;
             len = strlen(value);
-            if (!ASN1_STRING_set(not->exptext, value, len))
+            if (!VR_ASN1_STRING_set(not->exptext, value, len))
                 goto merr;
         } else if (strcmp(cnf->name, "organization") == 0) {
             NOTICEREF *nref;
             if (!not->noticeref) {
-                if ((nref = NOTICEREF_new()) == NULL)
+                if ((nref = VR_NOTICEREF_new()) == NULL)
                     goto merr;
                 not->noticeref = nref;
             } else
@@ -323,27 +323,27 @@ static POLICYQUALINFO *notice_section(X509V3_CTX *ctx,
                 nref->organization->type = V_ASN1_IA5STRING;
             else
                 nref->organization->type = V_ASN1_VISIBLESTRING;
-            if (!ASN1_STRING_set(nref->organization, cnf->value,
+            if (!VR_ASN1_STRING_set(nref->organization, cnf->value,
                                  strlen(cnf->value)))
                 goto merr;
         } else if (strcmp(cnf->name, "noticeNumbers") == 0) {
             NOTICEREF *nref;
             STACK_OF(CONF_VALUE) *nos;
             if (!not->noticeref) {
-                if ((nref = NOTICEREF_new()) == NULL)
+                if ((nref = VR_NOTICEREF_new()) == NULL)
                     goto merr;
                 not->noticeref = nref;
             } else
                 nref = not->noticeref;
-            nos = X509V3_parse_list(cnf->value);
+            nos = VR_X509V3_parse_list(cnf->value);
             if (!nos || !sk_CONF_VALUE_num(nos)) {
                 X509V3err(X509V3_F_NOTICE_SECTION, X509V3_R_INVALID_NUMBERS);
                 X509V3_conf_err(cnf);
-                sk_CONF_VALUE_pop_free(nos, X509V3_conf_free);
+                sk_VR_CONF_VALUE_pop_free(nos, VR_X509V3_conf_free);
                 goto err;
             }
             ret = nref_nos(nref->noticenos, nos);
-            sk_CONF_VALUE_pop_free(nos, X509V3_conf_free);
+            sk_VR_CONF_VALUE_pop_free(nos, VR_X509V3_conf_free);
             if (!ret)
                 goto err;
         } else {
@@ -366,7 +366,7 @@ static POLICYQUALINFO *notice_section(X509V3_CTX *ctx,
     X509V3err(X509V3_F_NOTICE_SECTION, ERR_R_MALLOC_FAILURE);
 
  err:
-    POLICYQUALINFO_free(qual);
+    VR_POLICYQUALINFO_free(qual);
     return NULL;
 }
 
@@ -379,17 +379,17 @@ static int nref_nos(STACK_OF(ASN1_INTEGER) *nnums, STACK_OF(CONF_VALUE) *nos)
 
     for (i = 0; i < sk_CONF_VALUE_num(nos); i++) {
         cnf = sk_CONF_VALUE_value(nos, i);
-        if ((aint = s2i_ASN1_INTEGER(NULL, cnf->name)) == NULL) {
+        if ((aint = VR_s2i_ASN1_INTEGER(NULL, cnf->name)) == NULL) {
             X509V3err(X509V3_F_NREF_NOS, X509V3_R_INVALID_NUMBER);
             goto err;
         }
-        if (!sk_ASN1_INTEGER_push(nnums, aint))
+        if (!sk_VR_ASN1_INTEGER_push(nnums, aint))
             goto merr;
     }
     return 1;
 
  merr:
-    ASN1_INTEGER_free(aint);
+    VR_ASN1_INTEGER_free(aint);
     X509V3err(X509V3_F_NREF_NOS, ERR_R_MALLOC_FAILURE);
 
  err:
@@ -404,9 +404,9 @@ static int i2r_certpol(X509V3_EXT_METHOD *method, STACK_OF(POLICYINFO) *pol,
     /* First print out the policy OIDs */
     for (i = 0; i < sk_POLICYINFO_num(pol); i++) {
         pinfo = sk_POLICYINFO_value(pol, i);
-        BIO_printf(out, "%*sPolicy: ", indent, "");
-        i2a_ASN1_OBJECT(out, pinfo->policyid);
-        BIO_puts(out, "\n");
+        VR_BIO_printf(out, "%*sPolicy: ", indent, "");
+        VR_i2a_ASN1_OBJECT(out, pinfo->policyid);
+        VR_BIO_puts(out, "\n");
         if (pinfo->qualifiers)
             print_qualifiers(out, pinfo->qualifiers, indent + 2);
     }
@@ -420,22 +420,22 @@ static void print_qualifiers(BIO *out, STACK_OF(POLICYQUALINFO) *quals,
     int i;
     for (i = 0; i < sk_POLICYQUALINFO_num(quals); i++) {
         qualinfo = sk_POLICYQUALINFO_value(quals, i);
-        switch (OBJ_obj2nid(qualinfo->pqualid)) {
+        switch (VR_OBJ_obj2nid(qualinfo->pqualid)) {
         case NID_id_qt_cps:
-            BIO_printf(out, "%*sCPS: %s\n", indent, "",
+            VR_BIO_printf(out, "%*sCPS: %s\n", indent, "",
                        qualinfo->d.cpsuri->data);
             break;
 
         case NID_id_qt_unotice:
-            BIO_printf(out, "%*sUser Notice:\n", indent, "");
+            VR_BIO_printf(out, "%*sUser Notice:\n", indent, "");
             print_notice(out, qualinfo->d.usernotice, indent + 2);
             break;
 
         default:
-            BIO_printf(out, "%*sUnknown Qualifier: ", indent + 2, "");
+            VR_BIO_printf(out, "%*sUnknown Qualifier: ", indent + 2, "");
 
-            i2a_ASN1_OBJECT(out, qualinfo->pqualid);
-            BIO_puts(out, "\n");
+            VR_i2a_ASN1_OBJECT(out, qualinfo->pqualid);
+            VR_BIO_puts(out, "\n");
             break;
         }
     }
@@ -447,45 +447,45 @@ static void print_notice(BIO *out, USERNOTICE *notice, int indent)
     if (notice->noticeref) {
         NOTICEREF *ref;
         ref = notice->noticeref;
-        BIO_printf(out, "%*sOrganization: %s\n", indent, "",
+        VR_BIO_printf(out, "%*sOrganization: %s\n", indent, "",
                    ref->organization->data);
-        BIO_printf(out, "%*sNumber%s: ", indent, "",
+        VR_BIO_printf(out, "%*sNumber%s: ", indent, "",
                    sk_ASN1_INTEGER_num(ref->noticenos) > 1 ? "s" : "");
         for (i = 0; i < sk_ASN1_INTEGER_num(ref->noticenos); i++) {
             ASN1_INTEGER *num;
             char *tmp;
             num = sk_ASN1_INTEGER_value(ref->noticenos, i);
             if (i)
-                BIO_puts(out, ", ");
+                VR_BIO_puts(out, ", ");
             if (num == NULL)
-                BIO_puts(out, "(null)");
+                VR_BIO_puts(out, "(null)");
             else {
-                tmp = i2s_ASN1_INTEGER(NULL, num);
+                tmp = VR_i2s_ASN1_INTEGER(NULL, num);
                 if (tmp == NULL)
                     return;
-                BIO_puts(out, tmp);
-                OPENSSL_free(tmp);
+                VR_BIO_puts(out, tmp);
+                OPENVR_SSL_free(tmp);
             }
         }
-        BIO_puts(out, "\n");
+        VR_BIO_puts(out, "\n");
     }
     if (notice->exptext)
-        BIO_printf(out, "%*sExplicit Text: %s\n", indent, "",
+        VR_BIO_printf(out, "%*sExplicit Text: %s\n", indent, "",
                    notice->exptext->data);
 }
 
-void X509_POLICY_NODE_print(BIO *out, X509_POLICY_NODE *node, int indent)
+void VR_X509_POLICY_NODE_print(BIO *out, X509_POLICY_NODE *node, int indent)
 {
     const X509_POLICY_DATA *dat = node->data;
 
-    BIO_printf(out, "%*sPolicy: ", indent, "");
+    VR_BIO_printf(out, "%*sPolicy: ", indent, "");
 
-    i2a_ASN1_OBJECT(out, dat->valid_policy);
-    BIO_puts(out, "\n");
-    BIO_printf(out, "%*s%s\n", indent + 2, "",
+    VR_i2a_ASN1_OBJECT(out, dat->valid_policy);
+    VR_BIO_puts(out, "\n");
+    VR_BIO_printf(out, "%*s%s\n", indent + 2, "",
                node_data_critical(dat) ? "Critical" : "Non Critical");
     if (dat->qualifier_set)
         print_qualifiers(out, dat->qualifier_set, indent + 2);
     else
-        BIO_printf(out, "%*sNo Qualifiers\n", indent + 2, "");
+        VR_BIO_printf(out, "%*sNo Qualifiers\n", indent + 2, "");
 }

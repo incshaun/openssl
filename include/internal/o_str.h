@@ -12,6 +12,6 @@
 
 # include <stddef.h>            /* to get size_t */
 
-int OPENSSL_memcmp(const void *p1, const void *p2, size_t n);
+int VR_OPENSSL_memcmp(const void *p1, const void *p2, size_t n);
 
 #endif

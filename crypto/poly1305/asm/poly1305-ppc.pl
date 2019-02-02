@@ -18,7 +18,7 @@
 #
 # June 2015
 #
-# Numbers are cycles per processed byte with poly1305_blocks alone,
+# Numbers are cycles per processed byte with VR_poly1305_blocks alone,
 # and improvement coefficients relative to gcc-generated code.
 #
 #			-m32		-m64
@@ -99,9 +99,9 @@ ___
 my ($h0,$h1,$h2,$d0,$d1,$d2, $r0,$r1,$s1, $t0,$t1) = map("r$_",(7..12,27..31));
 
 $code.=<<___;
-.globl	.poly1305_init_int
+.globl	.VR_poly1305_init_int
 .align	4
-.poly1305_init_int:
+.VR_poly1305_init_int:
 	xor	r0,r0,r0
 	std	r0,0($ctx)		# zero hash value
 	std	r0,8($ctx)
@@ -143,12 +143,12 @@ Lno_key:
 	blr
 	.long	0
 	.byte	0,12,0x14,0,0,0,2,0
-.size	.poly1305_init_int,.-.poly1305_init_int
+.size	.VR_poly1305_init_int,.-.VR_poly1305_init_int
 
-.globl	.poly1305_blocks
+.globl	.VR_poly1305_blocks
 .align	4
-.poly1305_blocks:
-Lpoly1305_blocks:
+.VR_poly1305_blocks:
+LVR_poly1305_blocks:
 	srdi.	$len,$len,4
 	beq-	Labort
 
@@ -246,15 +246,15 @@ Labort:
 	blr
 	.long	0
 	.byte	0,12,4,1,0x80,5,4,0
-.size	.poly1305_blocks,.-.poly1305_blocks
+.size	.VR_poly1305_blocks,.-.VR_poly1305_blocks
 ___
 {
 my ($h0,$h1,$h2,$h3,$h4,$t0) = map("r$_",(7..12));
 
 $code.=<<___;
-.globl	.poly1305_emit
+.globl	.VR_poly1305_emit
 .align	5
-.poly1305_emit:
+.VR_poly1305_emit:
 	lwz	$h0,0($ctx)	# load hash value base 2^26
 	lwz	$h1,4($ctx)
 	lwz	$h2,8($ctx)
@@ -358,7 +358,7 @@ $code.=<<___;
 	blr
 	.long	0
 	.byte	0,12,0x14,0,0,0,3,0
-.size	.poly1305_emit,.-.poly1305_emit
+.size	.VR_poly1305_emit,.-.VR_poly1305_emit
 ___
 }							} else {
 ###############################################################################
@@ -369,9 +369,9 @@ my ($h0,$h1,$h2,$h3,$h4, $r0,$r1,$r2,$r3, $s1,$s2,$s3,
    ) = map("r$_",(7..12,14..31));
 
 $code.=<<___;
-.globl	.poly1305_init_int
+.globl	.VR_poly1305_init_int
 .align	4
-.poly1305_init_int:
+.VR_poly1305_init_int:
 	xor	r0,r0,r0
 	stw	r0,0($ctx)		# zero hash value
 	stw	r0,4($ctx)
@@ -418,12 +418,12 @@ Lno_key:
 	blr
 	.long	0
 	.byte	0,12,0x14,0,0,0,2,0
-.size	.poly1305_init_int,.-.poly1305_init_int
+.size	.VR_poly1305_init_int,.-.VR_poly1305_init_int
 
-.globl	.poly1305_blocks
+.globl	.VR_poly1305_blocks
 .align	4
-.poly1305_blocks:
-Lpoly1305_blocks:
+.VR_poly1305_blocks:
+LVR_poly1305_blocks:
 	srwi.	$len,$len,4
 	beq-	Labort
 
@@ -630,15 +630,15 @@ Labort:
 	blr
 	.long	0
 	.byte	0,12,4,1,0x80,18,4,0
-.size	.poly1305_blocks,.-.poly1305_blocks
+.size	.VR_poly1305_blocks,.-.VR_poly1305_blocks
 ___
 {
 my ($h0,$h1,$h2,$h3,$h4,$t0,$t1) = map("r$_",(6..12));
 
 $code.=<<___;
-.globl	.poly1305_emit
+.globl	.VR_poly1305_emit
 .align	5
-.poly1305_emit:
+.VR_poly1305_emit:
 	lwz	r0,24($ctx)	# is_base2_26
 	lwz	$h0,0($ctx)	# load hash value
 	lwz	$h1,4($ctx)
@@ -729,7 +729,7 @@ Lemit_base2_32:
 	blr
 	.long	0
 	.byte	0,12,0x14,0,0,0,3,0
-.size	.poly1305_emit,.-.poly1305_emit
+.size	.VR_poly1305_emit,.-.VR_poly1305_emit
 ___
 }							}
 {{{
@@ -770,19 +770,19 @@ my ($ctx_,$_ctx,$const) = map("r$_",(10..12));
 
 							if ($flavour =~ /64/) {
 ###############################################################################
-# setup phase of poly1305_blocks_vsx is different on 32- and 64-bit platforms,
+# setup phase of VR_poly1305_blocks_vsx is different on 32- and 64-bit platforms,
 # but the base 2^26 computational part is same...
 
 my ($h0,$h1,$h2,$d0,$d1,$d2, $r0,$r1,$s1, $t0,$t1) = map("r$_",(6..11,27..31));
 my $mask = "r0";
 
 $code.=<<___;
-.globl	.poly1305_blocks_vsx
+.globl	.VR_poly1305_blocks_vsx
 .align	5
-.poly1305_blocks_vsx:
+.VR_poly1305_blocks_vsx:
 	lwz	r7,24($ctx)		# is_base2_26
 	cmpldi	$len,128
-	bge	__poly1305_blocks_vsx
+	bge	__VR_poly1305_blocks_vsx
 
 	neg	r0,r7			# is_base2_26 as mask
 	lwz	r7,0($ctx)		# load hash base 2^26
@@ -823,10 +823,10 @@ $code.=<<___;
 	std	r11,16($ctx)
 	stw	r0,24($ctx)		# clear is_base2_26
 
-	b	Lpoly1305_blocks
+	b	LVR_poly1305_blocks
 	.long	0
 	.byte	0,12,0x14,0,0,0,4,0
-.size	.poly1305_blocks_vsx,.-.poly1305_blocks_vsx
+.size	.VR_poly1305_blocks_vsx,.-.VR_poly1305_blocks_vsx
 
 .align	5
 __poly1305_mul:
@@ -903,7 +903,7 @@ __poly1305_splat:
 .size	__poly1305_splat,.-__poly1305_splat
 
 .align	5
-__poly1305_blocks_vsx:
+__VR_poly1305_blocks_vsx:
 	$STU	$sp,-$VSXFRAME($sp)
 	mflr	r0
 	li	r10,`15+$LOCALS+128`
@@ -1006,14 +1006,14 @@ my ($h0,$h1,$h2,$h3,$h4,$t0,$t1) = map("r$_",(7..11,0,12));
 my ($R3,$S3,$R4,$S4)=($I1,$I2,$I3,$I4);
 
 $code.=<<___;
-.globl	.poly1305_blocks_vsx
+.globl	.VR_poly1305_blocks_vsx
 .align	5
-.poly1305_blocks_vsx:
+.VR_poly1305_blocks_vsx:
 	lwz	r7,24($ctx)		# is_base2_26
 	cmplwi	$len,128
-	bge	__poly1305_blocks_vsx
+	bge	__VR_poly1305_blocks_vsx
 	cmplwi	r7,0
-	beq	Lpoly1305_blocks
+	beq	LVR_poly1305_blocks
 
 	lwz	$h0,0($ctx)		# load hash
 	lwz	$h1,4($ctx)
@@ -1043,10 +1043,10 @@ $code.=<<___;
 	stw	$h4,16($ctx)
 	stw	$t0,24($ctx)		# clear is_base2_26
 
-	b	Lpoly1305_blocks
+	b	LVR_poly1305_blocks
 	.long	0
 	.byte	0,12,0x14,0,0,0,4,0
-.size	.poly1305_blocks_vsx,.-.poly1305_blocks_vsx
+.size	.VR_poly1305_blocks_vsx,.-.VR_poly1305_blocks_vsx
 
 .align	5
 __poly1305_mul:
@@ -1137,7 +1137,7 @@ __poly1305_mul:
 .size	__poly1305_mul,.-__poly1305_mul
 
 .align	5
-__poly1305_blocks_vsx:
+__VR_poly1305_blocks_vsx:
 	$STU	$sp,-$VSXFRAME($sp)
 	mflr	r0
 	li	r10,`15+$LOCALS+128`
@@ -1925,7 +1925,7 @@ Ldone_vsx:
 	.long	0
 	.byte	0,12,0x04,1,0x80,5,4,0
 	.long	0
-.size	__poly1305_blocks_vsx,.-__poly1305_blocks_vsx
+.size	__VR_poly1305_blocks_vsx,.-__VR_poly1305_blocks_vsx
 
 .align	6
 LPICmeup:

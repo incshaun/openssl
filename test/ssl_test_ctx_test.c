@@ -115,7 +115,7 @@ static SSL_TEST_CTX_TEST_FIXTURE *set_up(const char *const test_case_name)
         return NULL;
     fixture->test_case_name = test_case_name;
     if (!TEST_ptr(fixture->expected_ctx = SSL_TEST_CTX_new())) {
-        OPENSSL_free(fixture);
+        OPENVR_SSL_free(fixture);
         return NULL;
     }
     return fixture;
@@ -139,7 +139,7 @@ static int execute_test(SSL_TEST_CTX_TEST_FIXTURE *fixture)
 static void tear_down(SSL_TEST_CTX_TEST_FIXTURE *fixture)
 {
     SSL_TEST_CTX_free(fixture->expected_ctx);
-    OPENSSL_free(fixture);
+    OPENVR_SSL_free(fixture);
 }
 
 #define SETUP_SSL_TEST_CTX_TEST_FIXTURE() \
@@ -242,10 +242,10 @@ static int test_bad_configuration(int idx)
 
 int setup_tests(void)
 {
-    if (!TEST_ptr(conf = NCONF_new(NULL)))
+    if (!TEST_ptr(conf = VR_NCONF_new(NULL)))
         return 0;
     /* argument should point to test/ssl_test_ctx_test.conf */
-    if (!TEST_int_gt(NCONF_load(conf, test_get_argument(0), NULL), 0)) {
+    if (!TEST_int_gt(VR_NCONF_load(conf, test_get_argument(0), NULL), 0)) {
         TEST_note("Missing file argument");
         return 0;
     }
@@ -258,5 +258,5 @@ int setup_tests(void)
 
 void cleanup_tests(void)
 {
-    NCONF_free(conf);
+    VR_NCONF_free(conf);
 }

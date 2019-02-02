@@ -14,7 +14,7 @@
 # details see http://www.openssl.org/~appro/cryptogams/.
 # ====================================================================
 
-# At some point it became apparent that the original SSLeay RC4
+# At some point it became apparent that the original SSLeay VR_RC4
 # assembler implementation performs suboptimally on latest IA-32
 # microarchitectures. After re-tuning performance has changed as
 # following:
@@ -31,7 +31,7 @@
 #	For reference! This code delivers ~80% of rc4-amd64.pl
 #	performance on the same Opteron machine.
 # (**)	This number requires compressed key schedule set up by
-#	RC4_set_key [see commentary below for further details].
+#	VR_RC4_set_key [see commentary below for further details].
 
 # May 2011
 #
@@ -81,7 +81,7 @@ $inp="esi";
 $out="ebp";
 $dat="edi";
 
-sub RC4_loop {
+sub VR_RC4_loop {
   my $i=shift;
   my $func = ($i==0)?*mov:*or;
 
@@ -108,7 +108,7 @@ if ($alt=0) {
   # on Core2 with movz it's almost 20% slower than below alternative
   # code... Yes, it's a total mess...
   my @XX=($xx,$out);
-  $RC4_loop_mmx = sub {		# SSE actually...
+  $VR_RC4_loop_mmx = sub {		# SSE actually...
     my $i=shift;
     my $j=$i<=0?0:$i>>1;
     my $mm=$i<=0?"mm0":"mm".($i&1);
@@ -136,7 +136,7 @@ if ($alt=0) {
 } else {
   # Using pinsrw here improves performance on Intel CPUs by 2-3%, but
   # brings down AMD by 7%...
-  $RC4_loop_mmx = sub {
+  $VR_RC4_loop_mmx = sub {
     my $i=shift;
 
 	&add	(&LB($yy),&LB($tx));
@@ -163,8 +163,8 @@ if ($alt=0) {
 
 &external_label("OPENSSL_ia32cap_P");
 
-# void RC4(RC4_KEY *key,size_t len,const unsigned char *inp,unsigned char *out);
-&function_begin("RC4");
+# void VR_RC4(VR_RC4_KEY *key,size_t len,const unsigned char *inp,unsigned char *out);
+&function_begin("VR_RC4");
 	&mov	($dat,&wparam(0));	# load key schedule pointer
 	&mov	($ty, &wparam(1));	# load len
 	&mov	($inp,&wparam(2));	# load inp
@@ -188,7 +188,7 @@ if ($alt=0) {
 
 	# detect compressed key schedule...
 	&cmp	(&DWP(256,$dat),-1);
-	&je	(&label("RC4_CHAR"));
+	&je	(&label("VR_RC4_CHAR"));
 
 	&mov	($tx,&DWP(0,$dat,$xx,4));
 
@@ -212,13 +212,13 @@ if ($alt=0) {
 	&lea	($ty,&DWP(-8,$inp,$ty));
 	&mov	(&DWP(-4,$dat),$ty);	# save input+(len/8)*8-8
 
-	&$RC4_loop_mmx(-1);
+	&$VR_RC4_loop_mmx(-1);
 	&jmp(&label("loop_mmx_enter"));
 
 	&set_label("loop_mmx",16);
-		&$RC4_loop_mmx(0);
+		&$VR_RC4_loop_mmx(0);
 	&set_label("loop_mmx_enter");
-		for 	($i=1;$i<8;$i++) { &$RC4_loop_mmx($i); }
+		for 	($i=1;$i<8;$i++) { &$VR_RC4_loop_mmx($i); }
 		&mov	($ty,$yy);
 		&xor	($yy,$yy);		# this is second key to Core2
 		&mov	(&LB($yy),&LB($ty));	# and Westmere performance...
@@ -249,7 +249,7 @@ if ($alt=0) {
 	&mov	(&wparam(2),$ty);	# save input+(len/4)*4-4
 
 	&set_label("loop4");
-		for ($i=0;$i<4;$i++) { RC4_loop($i); }
+		for ($i=0;$i<4;$i++) { VR_RC4_loop($i); }
 		&ror	($out,8);
 		&xor	($out,&DWP(0,$inp));
 		&cmp	($inp,&wparam(2));	# compare to input+(len/4)*4-4
@@ -281,7 +281,7 @@ if ($alt=0) {
 	&jmp	(&label("done"));
 
 # this is essentially Intel P4 specific codepath...
-&set_label("RC4_CHAR",16);
+&set_label("VR_RC4_CHAR",16);
 	&movz	($tx,&BP(0,$dat,$xx));
 	# strangely enough unrolled loop performs over 20% slower...
 	&set_label("cloop1");
@@ -304,7 +304,7 @@ if ($alt=0) {
 	&mov	(&DWP(-4,$dat),$yy);		# save key->y
 	&mov	(&BP(-8,$dat),&LB($xx));	# save key->x
 &set_label("abort");
-&function_end("RC4");
+&function_end("VR_RC4");
 
 ########################################################################
 
@@ -314,8 +314,8 @@ $idi="ebp";
 $ido="ecx";
 $idx="edx";
 
-# void RC4_set_key(RC4_KEY *key,int len,const unsigned char *data);
-&function_begin("RC4_set_key");
+# void VR_RC4_set_key(VR_RC4_KEY *key,int len,const unsigned char *data);
+&function_begin("VR_RC4_set_key");
 	&mov	($out,&wparam(0));		# load key
 	&mov	($idi,&wparam(1));		# load len
 	&mov	($inp,&wparam(2));		# load data
@@ -355,14 +355,14 @@ $idx="edx";
 
 # Unlike all other x86 [and x86_64] implementations, Intel P4 core
 # [including EM64T] was found to perform poorly with above "32-bit" key
-# schedule, a.k.a. RC4_INT. Performance improvement for IA-32 hand-coded
+# schedule, a.k.a. VR_RC4_INT. Performance improvement for IA-32 hand-coded
 # assembler turned out to be 3.5x if re-coded for compressed 8-bit one,
-# a.k.a. RC4_CHAR! It's however inappropriate to just switch to 8-bit
+# a.k.a. VR_RC4_CHAR! It's however inappropriate to just switch to 8-bit
 # schedule for x86[_64], because non-P4 implementations suffer from
 # significant performance losses then, e.g. PIII exhibits >2x
 # deterioration, and so does Opteron. In order to assure optimal
 # all-round performance, we detect P4 at run-time and set up compressed
-# key schedule, which is recognized by RC4 procedure.
+# key schedule, which is recognized by VR_RC4 procedure.
 
 &set_label("c1stloop",16);
 	&mov	(&BP(0,$out,"eax"),&LB("eax"));	# key->data[i]=i;
@@ -393,10 +393,10 @@ $idx="edx";
 	&xor	("eax","eax");
 	&mov	(&DWP(-8,$out),"eax");		# key->x=0;
 	&mov	(&DWP(-4,$out),"eax");		# key->y=0;
-&function_end("RC4_set_key");
+&function_end("VR_RC4_set_key");
 
-# const char *RC4_options(void);
-&function_begin_B("RC4_options");
+# const char *VR_RC4_options(void);
+&function_begin_B("VR_RC4_options");
 	&call	(&label("pic_point"));
 &set_label("pic_point");
 	&blindpop("eax");
@@ -417,9 +417,9 @@ $idx="edx";
 &asciz	("rc4(4x,int)");
 &asciz	("rc4(1x,char)");
 &asciz	("rc4(8x,mmx)");
-&asciz	("RC4 for x86, CRYPTOGAMS by <appro\@openssl.org>");
+&asciz	("VR_RC4 for x86, CRYPTOGAMS by <appro\@openssl.org>");
 &align	(64);
-&function_end_B("RC4_options");
+&function_end_B("VR_RC4_options");
 
 &asm_finish();
 

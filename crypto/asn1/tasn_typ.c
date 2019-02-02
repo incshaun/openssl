@@ -16,13 +16,13 @@
 #define IMPLEMENT_ASN1_STRING_FUNCTIONS(sname) \
     IMPLEMENT_ASN1_TYPE(sname) \
     IMPLEMENT_ASN1_ENCODE_FUNCTIONS_fname(sname, sname, sname) \
-sname *sname##_new(void) \
+sname *VR_##sname##_new(void) \
 { \
-    return ASN1_STRING_type_new(V_##sname); \
+    return VR_ASN1_STRING_type_new(V_##sname); \
 } \
-void sname##_free(sname *x) \
+void VR_##sname##_free(sname *x) \
 { \
-    ASN1_STRING_free(x); \
+    VR_ASN1_STRING_free(x); \
 }
 
 IMPLEMENT_ASN1_STRING_FUNCTIONS(ASN1_OCTET_STRING)

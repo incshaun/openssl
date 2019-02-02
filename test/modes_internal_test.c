@@ -105,7 +105,7 @@ static AES_KEY *cts128_encrypt_key_schedule(void)
     static AES_KEY ks;
 
     if (init_key) {
-        AES_set_encrypt_key(cts128_test_key, 128, &ks);
+        VR_AES_set_encrypt_key(cts128_test_key, 128, &ks);
         init_key = 0;
     }
     return &ks;
@@ -117,7 +117,7 @@ static AES_KEY *cts128_decrypt_key_schedule(void)
     static AES_KEY ks;
 
     if (init_key) {
-        AES_set_decrypt_key(cts128_test_key, 128, &ks);
+        VR_AES_set_decrypt_key(cts128_test_key, 128, &ks);
         init_key = 0;
     }
     return &ks;
@@ -196,7 +196,7 @@ static int execute_cts128(const CTS128_FIXTURE *fixture, int num)
     memcpy(iv, test_iv, test_iv_len);
     if (!TEST_size_t_eq(fixture->encrypt_block(test_input, ciphertext, len,
                                                encrypt_key_schedule, iv,
-                                               (block128_f)AES_encrypt), len)
+                                               (block128_f)VR_AES_encrypt), len)
             || !TEST_mem_eq(ciphertext, len, vector, len)
             || !TEST_mem_eq(iv, sizeof(iv), vector + len - tail, sizeof(iv)))
         return 0;
@@ -205,7 +205,7 @@ static int execute_cts128(const CTS128_FIXTURE *fixture, int num)
     memcpy(iv, test_iv, test_iv_len);
     size = fixture->decrypt_block(ciphertext, cleartext, len,
                                   decrypt_key_schedule, iv,
-                                  (block128_f)AES_decrypt);
+                                  (block128_f)VR_AES_decrypt);
     if (!TEST_true(len == size || len + 16 == size)
             || !TEST_mem_eq(cleartext, len, test_input, len)
             || !TEST_mem_eq(iv, sizeof(iv), vector + len - tail, sizeof(iv)))
@@ -215,7 +215,7 @@ static int execute_cts128(const CTS128_FIXTURE *fixture, int num)
     memcpy(iv, test_iv, test_iv_len);
     if (!TEST_size_t_eq(fixture->encrypt_stream(test_input, ciphertext, len,
                                                 encrypt_key_schedule, iv,
-                                                (cbc128_f) AES_cbc_encrypt),
+                                                (cbc128_f) VR_AES_cbc_encrypt),
                         len)
             || !TEST_mem_eq(ciphertext, len, vector, len)
             || !TEST_mem_eq(iv, sizeof(iv), vector + len - tail, sizeof(iv)))
@@ -225,7 +225,7 @@ static int execute_cts128(const CTS128_FIXTURE *fixture, int num)
     memcpy(iv, test_iv, test_iv_len);
     if (!TEST_size_t_eq(fixture->decrypt_stream(ciphertext, cleartext, len,
                                                 decrypt_key_schedule, iv,
-                                                (cbc128_f)AES_cbc_encrypt),
+                                                (cbc128_f)VR_AES_cbc_encrypt),
                         len)
             || !TEST_mem_eq(cleartext, len, test_input, len)
             || !TEST_mem_eq(iv, sizeof(iv), vector + len - tail, sizeof(iv)))
@@ -238,8 +238,8 @@ static int test_aes_cts128(int idx)
 {
     static const CTS128_FIXTURE fixture_cts128 = {
         "aes_cts128", last_blocks_correction,
-        CRYPTO_cts128_encrypt_block, CRYPTO_cts128_encrypt,
-        CRYPTO_cts128_decrypt_block, CRYPTO_cts128_decrypt
+        VR_CRYPTO_cts128_encrypt_block, VR_CRYPTO_cts128_encrypt,
+        VR_CRYPTO_cts128_decrypt_block, VR_CRYPTO_cts128_decrypt
     };
 
     return execute_cts128(&fixture_cts128, idx);
@@ -249,8 +249,8 @@ static int test_aes_cts128_nist(int idx)
 {
     static const CTS128_FIXTURE fixture_cts128_nist = {
         "aes_cts128_nist", last_blocks_correction_nist,
-        CRYPTO_nistcts128_encrypt_block, CRYPTO_nistcts128_encrypt,
-        CRYPTO_nistcts128_decrypt_block, CRYPTO_nistcts128_decrypt
+        VR_CRYPTO_nistcts128_encrypt_block, VR_CRYPTO_nistcts128_encrypt,
+        VR_CRYPTO_nistcts128_decrypt_block, VR_CRYPTO_nistcts128_decrypt
     };
 
     return execute_cts128(&fixture_cts128_nist, idx);
@@ -855,27 +855,27 @@ static int test_gcm128(int idx)
     if (C.size == 1)
         C.data = NULL;
 
-    AES_set_encrypt_key(K.data, K.size * 8, &key);
+    VR_AES_set_encrypt_key(K.data, K.size * 8, &key);
 
-    CRYPTO_gcm128_init(&ctx, &key, (block128_f)AES_encrypt);
-    CRYPTO_gcm128_setiv(&ctx, IV.data, IV.size);
+    VR_CRYPTO_gcm128_init(&ctx, &key, (block128_f)VR_AES_encrypt);
+    VR_CRYPTO_gcm128_setiv(&ctx, IV.data, IV.size);
     memset(out, 0, P.size);
     if (A.data != NULL)
-        CRYPTO_gcm128_aad(&ctx, A.data, A.size);
+        VR_CRYPTO_gcm128_aad(&ctx, A.data, A.size);
     if (P.data != NULL)
-        CRYPTO_gcm128_encrypt( &ctx, P.data, out, P.size);
-    if (!TEST_false(CRYPTO_gcm128_finish(&ctx, T.data, 16))
+        VR_CRYPTO_gcm128_encrypt( &ctx, P.data, out, P.size);
+    if (!TEST_false(VR_CRYPTO_gcm128_finish(&ctx, T.data, 16))
             || (C.data != NULL
                     && !TEST_mem_eq(out, P.size, C.data, P.size)))
         return 0;
 
-    CRYPTO_gcm128_setiv(&ctx, IV.data, IV.size);
+    VR_CRYPTO_gcm128_setiv(&ctx, IV.data, IV.size);
     memset(out, 0, P.size);
     if (A.data != NULL)
-        CRYPTO_gcm128_aad(&ctx, A.data, A.size);
+        VR_CRYPTO_gcm128_aad(&ctx, A.data, A.size);
     if (C.data != NULL)
-        CRYPTO_gcm128_decrypt(&ctx, C.data, out, P.size);
-    if (!TEST_false(CRYPTO_gcm128_finish(&ctx, T.data, 16))
+        VR_CRYPTO_gcm128_decrypt(&ctx, C.data, out, P.size);
+    if (!TEST_false(VR_CRYPTO_gcm128_finish(&ctx, T.data, 16))
             || (P.data != NULL
                     && !TEST_mem_eq(out, P.size, P.data, P.size)))
         return 0;

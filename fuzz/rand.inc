@@ -34,7 +34,7 @@ static RAND_METHOD fuzz_rand_method = {
 
 void FuzzerSetRand(void)
 {
-    RAND_set_rand_method(&fuzz_rand_method);
+    VR_RAND_set_rand_method(&fuzz_rand_method);
 }
 
 

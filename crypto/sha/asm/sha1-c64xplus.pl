@@ -50,7 +50,7 @@ $code=<<___;
 	.asg	0,__TI_EABI__
 	.endif
 	.if	__TI_EABI__
-	.asg	sha1_block_data_order,_sha1_block_data_order
+	.asg	VR_sha1_block_data_order,_VR_sha1_block_data_order
 	.endif
 
 	.asg	B3,RA
@@ -62,8 +62,8 @@ $code=<<___;
 	.asg	MV,SWAP4
 	.endif
 
-	.global	_sha1_block_data_order
-_sha1_block_data_order:
+	.global	_VR_sha1_block_data_order
+_VR_sha1_block_data_order:
 	.asmfunc stack_usage(64)
 	MV	$NUM,A0			; reassign $NUM
 ||	MVK	-64,B0

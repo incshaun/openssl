@@ -39,10 +39,10 @@ static const BIO_METHOD methods_biop = {
     BIO_TYPE_BIO,
     "BIO pair",
     /* TODO: Convert to new style write function */
-    bwrite_conv,
+    VR_bwrite_conv,
     bio_write,
     /* TODO: Convert to new style read function */
-    bread_conv,
+    VR_bread_conv,
     bio_read,
     bio_puts,
     NULL /* no bio_gets */ ,
@@ -52,7 +52,7 @@ static const BIO_METHOD methods_biop = {
     NULL                        /* no bio_callback_ctrl */
 };
 
-const BIO_METHOD *BIO_s_bio(void)
+const BIO_METHOD *VR_BIO_s_bio(void)
 {
     return &methods_biop;
 }
@@ -102,8 +102,8 @@ static int bio_free(BIO *bio)
     if (b->peer)
         bio_destroy_pair(bio);
 
-    OPENSSL_free(b->buf);
-    OPENSSL_free(b);
+    OPENVR_SSL_free(b->buf);
+    OPENVR_SSL_free(b);
 
     return 1;
 }
@@ -380,7 +380,7 @@ static ossl_ssize_t bio_nwrite0(BIO *bio, char **buf)
     if (write_offset + num > b->size)
         /*
          * no ring buffer wrap-around for non-copying interface (to fulfil
-         * the promise by BIO_ctrl_get_write_guarantee, BIO_nwrite may have
+         * the promise by VR_BIO_ctrl_get_write_guarantee, VR_BIO_nwrite may have
          * to be called twice)
          */
         num = b->size - write_offset;
@@ -436,7 +436,7 @@ static long bio_ctrl(BIO *bio, int cmd, long num, void *ptr)
             size_t new_size = num;
 
             if (b->size != new_size) {
-                OPENSSL_free(b->buf);
+                OPENVR_SSL_free(b->buf);
                 b->buf = NULL;
                 b->size = new_size;
             }
@@ -462,7 +462,7 @@ static long bio_ctrl(BIO *bio, int cmd, long num, void *ptr)
     case BIO_C_DESTROY_BIO_PAIR:
         /*
          * Affects both BIOs in the pair -- call just once! Or let
-         * BIO_free(bio1); BIO_free(bio2); do the job.
+         * VR_BIO_free(bio1); VR_BIO_free(bio2); do the job.
          */
         bio_destroy_pair(bio);
         ret = 1;
@@ -491,7 +491,7 @@ static long bio_ctrl(BIO *bio, int cmd, long num, void *ptr)
     case BIO_C_RESET_READ_REQUEST:
         /*
          * Reset request.  (Can be useful after read attempts at the other
-         * side that are meant to be non-blocking, e.g. when probing SSL_read
+         * side that are meant to be non-blocking, e.g. when probing VR_SSL_read
          * to see if any data is available.)
          */
         b->request = 0;
@@ -560,7 +560,7 @@ static long bio_ctrl(BIO *bio, int cmd, long num, void *ptr)
         break;
 
     case BIO_CTRL_DUP:
-        /* See BIO_dup_chain for circumstances we have to expect. */
+        /* See VR_BIO_dup_chain for circumstances we have to expect. */
         {
             BIO *other_bio = ptr;
             struct bio_bio_st *other_b;
@@ -682,17 +682,17 @@ static void bio_destroy_pair(BIO *bio)
 }
 
 /* Exported convenience functions */
-int BIO_new_bio_pair(BIO **bio1_p, size_t writebuf1,
+int VR_BIO_new_bio_pair(BIO **bio1_p, size_t writebuf1,
                      BIO **bio2_p, size_t writebuf2)
 {
     BIO *bio1 = NULL, *bio2 = NULL;
     long r;
     int ret = 0;
 
-    bio1 = BIO_new(BIO_s_bio());
+    bio1 = VR_BIO_new(VR_BIO_s_bio());
     if (bio1 == NULL)
         goto err;
-    bio2 = BIO_new(BIO_s_bio());
+    bio2 = VR_BIO_new(VR_BIO_s_bio());
     if (bio2 == NULL)
         goto err;
 
@@ -714,9 +714,9 @@ int BIO_new_bio_pair(BIO **bio1_p, size_t writebuf1,
 
  err:
     if (ret == 0) {
-        BIO_free(bio1);
+        VR_BIO_free(bio1);
         bio1 = NULL;
-        BIO_free(bio2);
+        VR_BIO_free(bio2);
         bio2 = NULL;
     }
 
@@ -725,27 +725,27 @@ int BIO_new_bio_pair(BIO **bio1_p, size_t writebuf1,
     return ret;
 }
 
-size_t BIO_ctrl_get_write_guarantee(BIO *bio)
+size_t VR_BIO_ctrl_get_write_guarantee(BIO *bio)
 {
-    return BIO_ctrl(bio, BIO_C_GET_WRITE_GUARANTEE, 0, NULL);
+    return VR_BIO_ctrl(bio, BIO_C_GET_WRITE_GUARANTEE, 0, NULL);
 }
 
-size_t BIO_ctrl_get_read_request(BIO *bio)
+size_t VR_BIO_ctrl_get_read_request(BIO *bio)
 {
-    return BIO_ctrl(bio, BIO_C_GET_READ_REQUEST, 0, NULL);
+    return VR_BIO_ctrl(bio, BIO_C_GET_READ_REQUEST, 0, NULL);
 }
 
-int BIO_ctrl_reset_read_request(BIO *bio)
+int VR_BIO_ctrl_reset_read_request(BIO *bio)
 {
-    return (BIO_ctrl(bio, BIO_C_RESET_READ_REQUEST, 0, NULL) != 0);
+    return (VR_BIO_ctrl(bio, BIO_C_RESET_READ_REQUEST, 0, NULL) != 0);
 }
 
 /*
- * BIO_nread0/nread/nwrite0/nwrite are available only for BIO pairs for now
+ * VR_BIO_nread0/nread/nwrite0/nwrite are available only for BIO pairs for now
  * (conceivably some other BIOs could allow non-copying reads and writes
  * too.)
  */
-int BIO_nread0(BIO *bio, char **buf)
+int VR_BIO_nread0(BIO *bio, char **buf)
 {
     long ret;
 
@@ -754,14 +754,14 @@ int BIO_nread0(BIO *bio, char **buf)
         return -2;
     }
 
-    ret = BIO_ctrl(bio, BIO_C_NREAD0, 0, buf);
+    ret = VR_BIO_ctrl(bio, BIO_C_NREAD0, 0, buf);
     if (ret > INT_MAX)
         return INT_MAX;
     else
         return (int)ret;
 }
 
-int BIO_nread(BIO *bio, char **buf, int num)
+int VR_BIO_nread(BIO *bio, char **buf, int num)
 {
     int ret;
 
@@ -770,13 +770,13 @@ int BIO_nread(BIO *bio, char **buf, int num)
         return -2;
     }
 
-    ret = (int)BIO_ctrl(bio, BIO_C_NREAD, num, buf);
+    ret = (int)VR_BIO_ctrl(bio, BIO_C_NREAD, num, buf);
     if (ret > 0)
         bio->num_read += ret;
     return ret;
 }
 
-int BIO_nwrite0(BIO *bio, char **buf)
+int VR_BIO_nwrite0(BIO *bio, char **buf)
 {
     long ret;
 
@@ -785,14 +785,14 @@ int BIO_nwrite0(BIO *bio, char **buf)
         return -2;
     }
 
-    ret = BIO_ctrl(bio, BIO_C_NWRITE0, 0, buf);
+    ret = VR_BIO_ctrl(bio, BIO_C_NWRITE0, 0, buf);
     if (ret > INT_MAX)
         return INT_MAX;
     else
         return (int)ret;
 }
 
-int BIO_nwrite(BIO *bio, char **buf, int num)
+int VR_BIO_nwrite(BIO *bio, char **buf, int num)
 {
     int ret;
 
@@ -801,7 +801,7 @@ int BIO_nwrite(BIO *bio, char **buf, int num)
         return -2;
     }
 
-    ret = BIO_ctrl(bio, BIO_C_NWRITE, num, buf);
+    ret = VR_BIO_ctrl(bio, BIO_C_NWRITE, num, buf);
     if (ret > 0)
         bio->num_write += ret;
     return ret;

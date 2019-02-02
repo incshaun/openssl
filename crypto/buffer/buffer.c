@@ -18,17 +18,17 @@
  */
 #define LIMIT_BEFORE_EXPANSION 0x5ffffffc
 
-BUF_MEM *BUF_MEM_new_ex(unsigned long flags)
+BUF_MEM *VR_BUF_MEM_new_ex(unsigned long flags)
 {
     BUF_MEM *ret;
 
-    ret = BUF_MEM_new();
+    ret = VR_BUF_MEM_new();
     if (ret != NULL)
         ret->flags = flags;
     return ret;
 }
 
-BUF_MEM *BUF_MEM_new(void)
+BUF_MEM *VR_BUF_MEM_new(void)
 {
     BUF_MEM *ret;
 
@@ -40,7 +40,7 @@ BUF_MEM *BUF_MEM_new(void)
     return ret;
 }
 
-void BUF_MEM_free(BUF_MEM *a)
+void VR_BUF_MEM_free(BUF_MEM *a)
 {
     if (a == NULL)
         return;
@@ -48,9 +48,9 @@ void BUF_MEM_free(BUF_MEM *a)
         if (a->flags & BUF_MEM_FLAG_SECURE)
             OPENSSL_secure_clear_free(a->data, a->max);
         else
-            OPENSSL_clear_free(a->data, a->max);
+            OPENVR_SSL_clear_free(a->data, a->max);
     }
-    OPENSSL_free(a);
+    OPENVR_SSL_free(a);
 }
 
 /* Allocate a block of secure memory; copy over old data if there
@@ -70,7 +70,7 @@ static char *sec_alloc_realloc(BUF_MEM *str, size_t len)
     return ret;
 }
 
-size_t BUF_MEM_grow(BUF_MEM *str, size_t len)
+size_t VR_BUF_MEM_grow(BUF_MEM *str, size_t len)
 {
     char *ret;
     size_t n;
@@ -107,7 +107,7 @@ size_t BUF_MEM_grow(BUF_MEM *str, size_t len)
     return len;
 }
 
-size_t BUF_MEM_grow_clean(BUF_MEM *str, size_t len)
+size_t VR_BUF_MEM_grow_clean(BUF_MEM *str, size_t len)
 {
     char *ret;
     size_t n;
@@ -132,7 +132,7 @@ size_t BUF_MEM_grow_clean(BUF_MEM *str, size_t len)
     if ((str->flags & BUF_MEM_FLAG_SECURE))
         ret = sec_alloc_realloc(str, n);
     else
-        ret = OPENSSL_clear_realloc(str->data, str->max, n);
+        ret = OPENVR_SSL_clear_realloc(str->data, str->max, n);
     if (ret == NULL) {
         BUFerr(BUF_F_BUF_MEM_GROW_CLEAN, ERR_R_MALLOC_FAILURE);
         len = 0;
@@ -145,7 +145,7 @@ size_t BUF_MEM_grow_clean(BUF_MEM *str, size_t len)
     return len;
 }
 
-void BUF_reverse(unsigned char *out, const unsigned char *in, size_t size)
+void VR_BUF_reverse(unsigned char *out, const unsigned char *in, size_t size)
 {
     size_t i;
     if (in) {

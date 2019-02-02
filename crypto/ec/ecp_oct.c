@@ -13,7 +13,7 @@
 
 #include "ec_lcl.h"
 
-int ec_GFp_simple_set_compressed_coordinates(const EC_GROUP *group,
+int VR_ec_GFp_simple_set_compressed_coordinates(const EC_GROUP *group,
                                              EC_POINT *point,
                                              const BIGNUM *x_, int y_bit,
                                              BN_CTX *ctx)
@@ -23,21 +23,21 @@ int ec_GFp_simple_set_compressed_coordinates(const EC_GROUP *group,
     int ret = 0;
 
     /* clear error queue */
-    ERR_clear_error();
+    VR_ERR_clear_error();
 
     if (ctx == NULL) {
-        ctx = new_ctx = BN_CTX_new();
+        ctx = new_ctx = VR_BN_CTX_new();
         if (ctx == NULL)
             return 0;
     }
 
     y_bit = (y_bit != 0);
 
-    BN_CTX_start(ctx);
-    tmp1 = BN_CTX_get(ctx);
-    tmp2 = BN_CTX_get(ctx);
-    x = BN_CTX_get(ctx);
-    y = BN_CTX_get(ctx);
+    VR_BN_CTX_start(ctx);
+    tmp1 = VR_BN_CTX_get(ctx);
+    tmp2 = VR_BN_CTX_get(ctx);
+    x = VR_BN_CTX_get(ctx);
+    y = VR_BN_CTX_get(ctx);
     if (y == NULL)
         goto err;
 
@@ -48,7 +48,7 @@ int ec_GFp_simple_set_compressed_coordinates(const EC_GROUP *group,
      */
 
     /* tmp1 := x^3 */
-    if (!BN_nnmod(x, x_, group->field, ctx))
+    if (!VR_BN_nnmod(x, x_, group->field, ctx))
         goto err;
     if (group->meth->field_decode == 0) {
         /* field_{sqr,mul} work on standard representation */
@@ -57,25 +57,25 @@ int ec_GFp_simple_set_compressed_coordinates(const EC_GROUP *group,
         if (!group->meth->field_mul(group, tmp1, tmp2, x_, ctx))
             goto err;
     } else {
-        if (!BN_mod_sqr(tmp2, x_, group->field, ctx))
+        if (!VR_BN_mod_sqr(tmp2, x_, group->field, ctx))
             goto err;
-        if (!BN_mod_mul(tmp1, tmp2, x_, group->field, ctx))
+        if (!VR_BN_mod_mul(tmp1, tmp2, x_, group->field, ctx))
             goto err;
     }
 
     /* tmp1 := tmp1 + a*x */
     if (group->a_is_minus3) {
-        if (!BN_mod_lshift1_quick(tmp2, x, group->field))
+        if (!VR_BN_mod_lshift1_quick(tmp2, x, group->field))
             goto err;
-        if (!BN_mod_add_quick(tmp2, tmp2, x, group->field))
+        if (!VR_BN_mod_add_quick(tmp2, tmp2, x, group->field))
             goto err;
-        if (!BN_mod_sub_quick(tmp1, tmp1, tmp2, group->field))
+        if (!VR_BN_mod_sub_quick(tmp1, tmp1, tmp2, group->field))
             goto err;
     } else {
         if (group->meth->field_decode) {
             if (!group->meth->field_decode(group, tmp2, group->a, ctx))
                 goto err;
-            if (!BN_mod_mul(tmp2, tmp2, x, group->field, ctx))
+            if (!VR_BN_mod_mul(tmp2, tmp2, x, group->field, ctx))
                 goto err;
         } else {
             /* field_mul works on standard representation */
@@ -83,7 +83,7 @@ int ec_GFp_simple_set_compressed_coordinates(const EC_GROUP *group,
                 goto err;
         }
 
-        if (!BN_mod_add_quick(tmp1, tmp1, tmp2, group->field))
+        if (!VR_BN_mod_add_quick(tmp1, tmp1, tmp2, group->field))
             goto err;
     }
 
@@ -91,19 +91,19 @@ int ec_GFp_simple_set_compressed_coordinates(const EC_GROUP *group,
     if (group->meth->field_decode) {
         if (!group->meth->field_decode(group, tmp2, group->b, ctx))
             goto err;
-        if (!BN_mod_add_quick(tmp1, tmp1, tmp2, group->field))
+        if (!VR_BN_mod_add_quick(tmp1, tmp1, tmp2, group->field))
             goto err;
     } else {
-        if (!BN_mod_add_quick(tmp1, tmp1, group->b, group->field))
+        if (!VR_BN_mod_add_quick(tmp1, tmp1, group->b, group->field))
             goto err;
     }
 
-    if (!BN_mod_sqrt(y, tmp1, group->field, ctx)) {
-        unsigned long err = ERR_peek_last_error();
+    if (!VR_BN_mod_sqrt(y, tmp1, group->field, ctx)) {
+        unsigned long err = VR_ERR_peek_last_error();
 
         if (ERR_GET_LIB(err) == ERR_LIB_BN
             && ERR_GET_REASON(err) == BN_R_NOT_A_SQUARE) {
-            ERR_clear_error();
+            VR_ERR_clear_error();
             ECerr(EC_F_EC_GFP_SIMPLE_SET_COMPRESSED_COORDINATES,
                   EC_R_INVALID_COMPRESSED_POINT);
         } else
@@ -112,11 +112,11 @@ int ec_GFp_simple_set_compressed_coordinates(const EC_GROUP *group,
         goto err;
     }
 
-    if (y_bit != BN_is_odd(y)) {
-        if (BN_is_zero(y)) {
+    if (y_bit != VR_BN_is_odd(y)) {
+        if (VR_BN_is_zero(y)) {
             int kron;
 
-            kron = BN_kronecker(x, group->field, ctx);
+            kron = VR_BN_kronecker(x, group->field, ctx);
             if (kron == -2)
                 goto err;
 
@@ -125,33 +125,33 @@ int ec_GFp_simple_set_compressed_coordinates(const EC_GROUP *group,
                       EC_R_INVALID_COMPRESSION_BIT);
             else
                 /*
-                 * BN_mod_sqrt() should have caught this error (not a square)
+                 * VR_BN_mod_sqrt() should have caught this error (not a square)
                  */
                 ECerr(EC_F_EC_GFP_SIMPLE_SET_COMPRESSED_COORDINATES,
                       EC_R_INVALID_COMPRESSED_POINT);
             goto err;
         }
-        if (!BN_usub(y, group->field, y))
+        if (!VR_BN_usub(y, group->field, y))
             goto err;
     }
-    if (y_bit != BN_is_odd(y)) {
+    if (y_bit != VR_BN_is_odd(y)) {
         ECerr(EC_F_EC_GFP_SIMPLE_SET_COMPRESSED_COORDINATES,
               ERR_R_INTERNAL_ERROR);
         goto err;
     }
 
-    if (!EC_POINT_set_affine_coordinates(group, point, x, y, ctx))
+    if (!VR_EC_POINT_set_affine_coordinates(group, point, x, y, ctx))
         goto err;
 
     ret = 1;
 
  err:
-    BN_CTX_end(ctx);
-    BN_CTX_free(new_ctx);
+    VR_BN_CTX_end(ctx);
+    VR_BN_CTX_free(new_ctx);
     return ret;
 }
 
-size_t ec_GFp_simple_point2oct(const EC_GROUP *group, const EC_POINT *point,
+size_t VR_ec_GFp_simple_point2oct(const EC_GROUP *group, const EC_POINT *point,
                                point_conversion_form_t form,
                                unsigned char *buf, size_t len, BN_CTX *ctx)
 {
@@ -168,7 +168,7 @@ size_t ec_GFp_simple_point2oct(const EC_GROUP *group, const EC_POINT *point,
         goto err;
     }
 
-    if (EC_POINT_is_at_infinity(group, point)) {
+    if (VR_EC_POINT_is_at_infinity(group, point)) {
         /* encodes to a single 0 octet */
         if (buf != NULL) {
             if (len < 1) {
@@ -194,23 +194,23 @@ size_t ec_GFp_simple_point2oct(const EC_GROUP *group, const EC_POINT *point,
         }
 
         if (ctx == NULL) {
-            ctx = new_ctx = BN_CTX_new();
+            ctx = new_ctx = VR_BN_CTX_new();
             if (ctx == NULL)
                 return 0;
         }
 
-        BN_CTX_start(ctx);
+        VR_BN_CTX_start(ctx);
         used_ctx = 1;
-        x = BN_CTX_get(ctx);
-        y = BN_CTX_get(ctx);
+        x = VR_BN_CTX_get(ctx);
+        y = VR_BN_CTX_get(ctx);
         if (y == NULL)
             goto err;
 
-        if (!EC_POINT_get_affine_coordinates(group, point, x, y, ctx))
+        if (!VR_EC_POINT_get_affine_coordinates(group, point, x, y, ctx))
             goto err;
 
         if ((form == POINT_CONVERSION_COMPRESSED
-             || form == POINT_CONVERSION_HYBRID) && BN_is_odd(y))
+             || form == POINT_CONVERSION_HYBRID) && VR_BN_is_odd(y))
             buf[0] = form + 1;
         else
             buf[0] = form;
@@ -226,7 +226,7 @@ size_t ec_GFp_simple_point2oct(const EC_GROUP *group, const EC_POINT *point,
             buf[i++] = 0;
             skip--;
         }
-        skip = BN_bn2bin(x, buf + i);
+        skip = VR_BN_bn2bin(x, buf + i);
         i += skip;
         if (i != 1 + field_len) {
             ECerr(EC_F_EC_GFP_SIMPLE_POINT2OCT, ERR_R_INTERNAL_ERROR);
@@ -244,7 +244,7 @@ size_t ec_GFp_simple_point2oct(const EC_GROUP *group, const EC_POINT *point,
                 buf[i++] = 0;
                 skip--;
             }
-            skip = BN_bn2bin(y, buf + i);
+            skip = VR_BN_bn2bin(y, buf + i);
             i += skip;
         }
 
@@ -255,18 +255,18 @@ size_t ec_GFp_simple_point2oct(const EC_GROUP *group, const EC_POINT *point,
     }
 
     if (used_ctx)
-        BN_CTX_end(ctx);
-    BN_CTX_free(new_ctx);
+        VR_BN_CTX_end(ctx);
+    VR_BN_CTX_free(new_ctx);
     return ret;
 
  err:
     if (used_ctx)
-        BN_CTX_end(ctx);
-    BN_CTX_free(new_ctx);
+        VR_BN_CTX_end(ctx);
+    VR_BN_CTX_free(new_ctx);
     return 0;
 }
 
-int ec_GFp_simple_oct2point(const EC_GROUP *group, EC_POINT *point,
+int VR_ec_GFp_simple_oct2point(const EC_GROUP *group, EC_POINT *point,
                             const unsigned char *buf, size_t len, BN_CTX *ctx)
 {
     point_conversion_form_t form;
@@ -300,7 +300,7 @@ int ec_GFp_simple_oct2point(const EC_GROUP *group, EC_POINT *point,
             return 0;
         }
 
-        return EC_POINT_set_to_infinity(group, point);
+        return VR_EC_POINT_set_to_infinity(group, point);
     }
 
     field_len = BN_num_bytes(group->field);
@@ -314,53 +314,53 @@ int ec_GFp_simple_oct2point(const EC_GROUP *group, EC_POINT *point,
     }
 
     if (ctx == NULL) {
-        ctx = new_ctx = BN_CTX_new();
+        ctx = new_ctx = VR_BN_CTX_new();
         if (ctx == NULL)
             return 0;
     }
 
-    BN_CTX_start(ctx);
-    x = BN_CTX_get(ctx);
-    y = BN_CTX_get(ctx);
+    VR_BN_CTX_start(ctx);
+    x = VR_BN_CTX_get(ctx);
+    y = VR_BN_CTX_get(ctx);
     if (y == NULL)
         goto err;
 
-    if (!BN_bin2bn(buf + 1, field_len, x))
+    if (!VR_BN_bin2bn(buf + 1, field_len, x))
         goto err;
-    if (BN_ucmp(x, group->field) >= 0) {
+    if (VR_BN_ucmp(x, group->field) >= 0) {
         ECerr(EC_F_EC_GFP_SIMPLE_OCT2POINT, EC_R_INVALID_ENCODING);
         goto err;
     }
 
     if (form == POINT_CONVERSION_COMPRESSED) {
-        if (!EC_POINT_set_compressed_coordinates(group, point, x, y_bit, ctx))
+        if (!VR_EC_POINT_set_compressed_coordinates(group, point, x, y_bit, ctx))
             goto err;
     } else {
-        if (!BN_bin2bn(buf + 1 + field_len, field_len, y))
+        if (!VR_BN_bin2bn(buf + 1 + field_len, field_len, y))
             goto err;
-        if (BN_ucmp(y, group->field) >= 0) {
+        if (VR_BN_ucmp(y, group->field) >= 0) {
             ECerr(EC_F_EC_GFP_SIMPLE_OCT2POINT, EC_R_INVALID_ENCODING);
             goto err;
         }
         if (form == POINT_CONVERSION_HYBRID) {
-            if (y_bit != BN_is_odd(y)) {
+            if (y_bit != VR_BN_is_odd(y)) {
                 ECerr(EC_F_EC_GFP_SIMPLE_OCT2POINT, EC_R_INVALID_ENCODING);
                 goto err;
             }
         }
 
         /*
-         * EC_POINT_set_affine_coordinates is responsible for checking that
+         * VR_EC_POINT_set_affine_coordinates is responsible for checking that
          * the point is on the curve.
          */
-        if (!EC_POINT_set_affine_coordinates(group, point, x, y, ctx))
+        if (!VR_EC_POINT_set_affine_coordinates(group, point, x, y, ctx))
             goto err;
     }
 
     ret = 1;
 
  err:
-    BN_CTX_end(ctx);
-    BN_CTX_free(new_ctx);
+    VR_BN_CTX_end(ctx);
+    VR_BN_CTX_free(new_ctx);
     return ret;
 }

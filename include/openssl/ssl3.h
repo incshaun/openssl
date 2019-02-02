@@ -32,12 +32,12 @@ extern "C" {
  */
 # define SSL3_CK_FALLBACK_SCSV                   0x03005600
 
-# define SSL3_CK_RSA_NULL_MD5                    0x03000001
+# define SSL3_CK_RSA_NULL_VR_MD5                    0x03000001
 # define SSL3_CK_RSA_NULL_SHA                    0x03000002
-# define SSL3_CK_RSA_RC4_40_MD5                  0x03000003
-# define SSL3_CK_RSA_RC4_128_MD5                 0x03000004
-# define SSL3_CK_RSA_RC4_128_SHA                 0x03000005
-# define SSL3_CK_RSA_RC2_40_MD5                  0x03000006
+# define SSL3_CK_RSA_VR_RC4_40_VR_MD5                  0x03000003
+# define SSL3_CK_RSA_VR_RC4_128_VR_MD5                 0x03000004
+# define SSL3_CK_RSA_VR_RC4_128_SHA                 0x03000005
+# define SSL3_CK_RSA_RC2_40_VR_MD5                  0x03000006
 # define SSL3_CK_RSA_IDEA_128_SHA                0x03000007
 # define SSL3_CK_RSA_DES_40_CBC_SHA              0x03000008
 # define SSL3_CK_RSA_DES_64_CBC_SHA              0x03000009
@@ -63,30 +63,30 @@ extern "C" {
 # define SSL3_CK_DHE_RSA_DES_192_CBC3_SHA        0x03000016
 # define SSL3_CK_EDH_RSA_DES_192_CBC3_SHA        SSL3_CK_DHE_RSA_DES_192_CBC3_SHA
 
-# define SSL3_CK_ADH_RC4_40_MD5                  0x03000017
-# define SSL3_CK_ADH_RC4_128_MD5                 0x03000018
+# define SSL3_CK_ADH_VR_RC4_40_VR_MD5                  0x03000017
+# define SSL3_CK_ADH_VR_RC4_128_VR_MD5                 0x03000018
 # define SSL3_CK_ADH_DES_40_CBC_SHA              0x03000019
 # define SSL3_CK_ADH_DES_64_CBC_SHA              0x0300001A
 # define SSL3_CK_ADH_DES_192_CBC_SHA             0x0300001B
 
 /* a bundle of RFC standard cipher names, generated from ssl3_ciphers[] */
-# define SSL3_RFC_RSA_NULL_MD5                   "TLS_RSA_WITH_NULL_MD5"
+# define SSL3_RFC_RSA_NULL_VR_MD5                   "TLS_RSA_WITH_NULL_VR_MD5"
 # define SSL3_RFC_RSA_NULL_SHA                   "TLS_RSA_WITH_NULL_SHA"
 # define SSL3_RFC_RSA_DES_192_CBC3_SHA           "TLS_RSA_WITH_3DES_EDE_CBC_SHA"
 # define SSL3_RFC_DHE_DSS_DES_192_CBC3_SHA       "TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA"
 # define SSL3_RFC_DHE_RSA_DES_192_CBC3_SHA       "TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA"
 # define SSL3_RFC_ADH_DES_192_CBC_SHA            "TLS_DH_anon_WITH_3DES_EDE_CBC_SHA"
 # define SSL3_RFC_RSA_IDEA_128_SHA               "TLS_RSA_WITH_IDEA_CBC_SHA"
-# define SSL3_RFC_RSA_RC4_128_MD5                "TLS_RSA_WITH_RC4_128_MD5"
-# define SSL3_RFC_RSA_RC4_128_SHA                "TLS_RSA_WITH_RC4_128_SHA"
-# define SSL3_RFC_ADH_RC4_128_MD5                "TLS_DH_anon_WITH_RC4_128_MD5"
+# define SSL3_RFC_RSA_VR_RC4_128_VR_MD5                "TLS_RSA_WITH_VR_RC4_128_VR_MD5"
+# define SSL3_RFC_RSA_VR_RC4_128_SHA                "TLS_RSA_WITH_VR_RC4_128_SHA"
+# define SSL3_RFC_ADH_VR_RC4_128_VR_MD5                "TLS_DH_anon_WITH_VR_RC4_128_VR_MD5"
 
-# define SSL3_TXT_RSA_NULL_MD5                   "NULL-MD5"
+# define SSL3_TXT_RSA_NULL_VR_MD5                   "NULL-VR_MD5"
 # define SSL3_TXT_RSA_NULL_SHA                   "NULL-SHA"
-# define SSL3_TXT_RSA_RC4_40_MD5                 "EXP-RC4-MD5"
-# define SSL3_TXT_RSA_RC4_128_MD5                "RC4-MD5"
-# define SSL3_TXT_RSA_RC4_128_SHA                "RC4-SHA"
-# define SSL3_TXT_RSA_RC2_40_MD5                 "EXP-RC2-CBC-MD5"
+# define SSL3_TXT_RSA_VR_RC4_40_VR_MD5                 "EXP-VR_RC4-VR_MD5"
+# define SSL3_TXT_RSA_VR_RC4_128_VR_MD5                "VR_RC4-VR_MD5"
+# define SSL3_TXT_RSA_VR_RC4_128_SHA                "VR_RC4-SHA"
+# define SSL3_TXT_RSA_RC2_40_VR_MD5                 "EXP-RC2-CBC-VR_MD5"
 # define SSL3_TXT_RSA_IDEA_128_SHA               "IDEA-CBC-SHA"
 # define SSL3_TXT_RSA_DES_40_CBC_SHA             "EXP-DES-CBC-SHA"
 # define SSL3_TXT_RSA_DES_64_CBC_SHA             "DES-CBC-SHA"
@@ -118,8 +118,8 @@ extern "C" {
 # define SSL3_TXT_EDH_RSA_DES_64_CBC_SHA         "EDH-RSA-DES-CBC-SHA"
 # define SSL3_TXT_EDH_RSA_DES_192_CBC3_SHA       "EDH-RSA-DES-CBC3-SHA"
 
-# define SSL3_TXT_ADH_RC4_40_MD5                 "EXP-ADH-RC4-MD5"
-# define SSL3_TXT_ADH_RC4_128_MD5                "ADH-RC4-MD5"
+# define SSL3_TXT_ADH_VR_RC4_40_VR_MD5                 "EXP-ADH-VR_RC4-VR_MD5"
+# define SSL3_TXT_ADH_VR_RC4_128_VR_MD5                "ADH-VR_RC4-VR_MD5"
 # define SSL3_TXT_ADH_DES_40_CBC_SHA             "EXP-ADH-DES-CBC-SHA"
 # define SSL3_TXT_ADH_DES_64_CBC_SHA             "ADH-DES-CBC-SHA"
 # define SSL3_TXT_ADH_DES_192_CBC_SHA            "ADH-DES-CBC3-SHA"
@@ -153,7 +153,7 @@ extern "C" {
 
 /*
  * This is the maximum MAC (digest) size used by the SSL library. Currently
- * maximum of 20 is used by SHA1, but we reserve for future extension for
+ * maximum of 20 is used by VR_SHA1, but we reserve for future extension for
  * 512-bit hashes.
  */
 

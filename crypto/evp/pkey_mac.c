@@ -28,7 +28,7 @@ typedef struct {
      *
      * (one might wonder why the second form isn't used for all)
      */
-#define MAC_TYPE_RAW    1   /* HMAC like MAC type (all but CMAC so far) */
+#define MAC_TYPE_RAW    1   /* VR_HMAC like MAC type (all but CMAC so far) */
 #define MAC_TYPE_MAC    2   /* CMAC like MAC type (only CMAC known so far) */
     int type;
 
@@ -50,9 +50,9 @@ static int pkey_mac_init(EVP_PKEY_CTX *ctx)
     }
 
     /* We're being smart and using the same base NIDs for PKEY and for MAC */
-    hctx->ctx = EVP_MAC_CTX_new_id(nid);
+    hctx->ctx = VR_EVP_MAC_CTX_new_id(nid);
     if (hctx->ctx == NULL) {
-        OPENSSL_free(hctx);
+        OPENVR_SSL_free(hctx);
         return 0;
     }
 
@@ -63,7 +63,7 @@ static int pkey_mac_init(EVP_PKEY_CTX *ctx)
         hctx->raw_data.ktmp.type = V_ASN1_OCTET_STRING;
     }
 
-    EVP_PKEY_CTX_set_data(ctx, hctx);
+    VR_EVP_PKEY_CTX_set_data(ctx, hctx);
     ctx->keygen_info_count = 0;
 
     return 1;
@@ -78,17 +78,17 @@ static int pkey_mac_copy(EVP_PKEY_CTX *dst, EVP_PKEY_CTX *src)
     if (!pkey_mac_init(dst))
         return 0;
 
-    sctx = EVP_PKEY_CTX_get_data(src);
-    dctx = EVP_PKEY_CTX_get_data(dst);
+    sctx = VR_EVP_PKEY_CTX_get_data(src);
+    dctx = VR_EVP_PKEY_CTX_get_data(dst);
 
-    if (!EVP_MAC_CTX_copy(dctx->ctx, sctx->ctx))
+    if (!VR_EVP_MAC_CTX_copy(dctx->ctx, sctx->ctx))
         goto err;
 
     switch (dctx->type) {
     case MAC_TYPE_RAW:
         dctx->raw_data.md = sctx->raw_data.md;
-        if (ASN1_STRING_get0_data(&sctx->raw_data.ktmp) != NULL &&
-            !ASN1_STRING_copy(&dctx->raw_data.ktmp, &sctx->raw_data.ktmp))
+        if (VR_ASN1_STRING_get0_data(&sctx->raw_data.ktmp) != NULL &&
+            !VR_ASN1_STRING_copy(&dctx->raw_data.ktmp, &sctx->raw_data.ktmp))
             goto err;
         break;
     case MAC_TYPE_MAC:
@@ -106,24 +106,24 @@ static int pkey_mac_copy(EVP_PKEY_CTX *dst, EVP_PKEY_CTX *src)
 
 static void pkey_mac_cleanup(EVP_PKEY_CTX *ctx)
 {
-    MAC_PKEY_CTX *hctx = EVP_PKEY_CTX_get_data(ctx);
+    MAC_PKEY_CTX *hctx = VR_EVP_PKEY_CTX_get_data(ctx);
 
     if (hctx != NULL) {
         switch (hctx->type) {
         case MAC_TYPE_RAW:
-            OPENSSL_clear_free(hctx->raw_data.ktmp.data,
+            OPENVR_SSL_clear_free(hctx->raw_data.ktmp.data,
                                hctx->raw_data.ktmp.length);
             break;
         }
-        EVP_MAC_CTX_free(hctx->ctx);
-        OPENSSL_free(hctx);
-        EVP_PKEY_CTX_set_data(ctx, NULL);
+        VR_EVP_MAC_CTX_free(hctx->ctx);
+        OPENVR_SSL_free(hctx);
+        VR_EVP_PKEY_CTX_set_data(ctx, NULL);
     }
 }
 
 static int pkey_mac_keygen(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey)
 {
-    MAC_PKEY_CTX *hctx = EVP_PKEY_CTX_get_data(ctx);
+    MAC_PKEY_CTX *hctx = VR_EVP_PKEY_CTX_get_data(ctx);
     int nid = ctx->pmeth->pkey_id;
 
     switch (hctx->type) {
@@ -133,23 +133,23 @@ static int pkey_mac_keygen(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey)
 
             if (!hctx->raw_data.ktmp.data)
                 return 0;
-            hkey = ASN1_OCTET_STRING_dup(&hctx->raw_data.ktmp);
+            hkey = VR_ASN1_OCTET_STRING_dup(&hctx->raw_data.ktmp);
             if (!hkey)
                 return 0;
-            EVP_PKEY_assign(pkey, nid, hkey);
+            VR_EVP_PKEY_assign(pkey, nid, hkey);
         }
         break;
     case MAC_TYPE_MAC:
         {
-            EVP_MAC_CTX *cmkey = EVP_MAC_CTX_new_id(nid);
+            EVP_MAC_CTX *cmkey = VR_EVP_MAC_CTX_new_id(nid);
 
             if (cmkey == NULL)
                 return 0;
-            if (!EVP_MAC_CTX_copy(cmkey, hctx->ctx)) {
-                EVP_MAC_CTX_free(cmkey);
+            if (!VR_EVP_MAC_CTX_copy(cmkey, hctx->ctx)) {
+                VR_EVP_MAC_CTX_free(cmkey);
                 return 0;
             }
-            EVP_PKEY_assign(pkey, nid, cmkey);
+            VR_EVP_PKEY_assign(pkey, nid, cmkey);
         }
         break;
     default:
@@ -162,16 +162,16 @@ static int pkey_mac_keygen(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey)
 
 static int int_update(EVP_MD_CTX *ctx, const void *data, size_t count)
 {
-    MAC_PKEY_CTX *hctx = EVP_PKEY_CTX_get_data(EVP_MD_CTX_pkey_ctx(ctx));
+    MAC_PKEY_CTX *hctx = VR_EVP_PKEY_CTX_get_data(VR_EVP_MD_CTX_pkey_ctx(ctx));
 
-    if (!EVP_MAC_update(hctx->ctx, data, count))
+    if (!VR_EVP_MAC_update(hctx->ctx, data, count))
         return 0;
     return 1;
 }
 
 static int pkey_mac_signctx_init(EVP_PKEY_CTX *ctx, EVP_MD_CTX *mctx)
 {
-    MAC_PKEY_CTX *hctx = EVP_PKEY_CTX_get_data(ctx);
+    MAC_PKEY_CTX *hctx = VR_EVP_PKEY_CTX_get_data(ctx);
     ASN1_OCTET_STRING *key = NULL;
     int rv = 1;
     /*
@@ -187,23 +187,23 @@ static int pkey_mac_signctx_init(EVP_PKEY_CTX *ctx, EVP_MD_CTX *mctx)
         && (ctx->pmeth->flags & EVP_PKEY_FLAG_SIGCTX_CUSTOM) != 0;
 
     if (set_key) {
-        if (EVP_PKEY_id(EVP_PKEY_CTX_get0_pkey(ctx))
-            != EVP_MAC_nid(EVP_MAC_CTX_mac(hctx->ctx)))
+        if (VR_EVP_PKEY_id(VR_EVP_PKEY_CTX_get0_pkey(ctx))
+            != VR_EVP_MAC_nid(VR_EVP_MAC_CTX_mac(hctx->ctx)))
             return 0;
-        key = EVP_PKEY_get0(EVP_PKEY_CTX_get0_pkey(ctx));
+        key = VR_EVP_PKEY_get0(VR_EVP_PKEY_CTX_get0_pkey(ctx));
         if (key == NULL)
             return 0;
     }
 
     /* Some MACs don't support this control...  that's fine */
-    EVP_MAC_ctrl(hctx->ctx, EVP_MAC_CTRL_SET_FLAGS,
-                 EVP_MD_CTX_test_flags(mctx, ~EVP_MD_CTX_FLAG_NO_INIT));
+    VR_EVP_MAC_ctrl(hctx->ctx, EVP_MAC_CTRL_SET_FLAGS,
+                 VR_EVP_MD_CTX_test_flags(mctx, ~EVP_MD_CTX_FLAG_NO_INIT));
 
-    EVP_MD_CTX_set_flags(mctx, EVP_MD_CTX_FLAG_NO_INIT);
-    EVP_MD_CTX_set_update_fn(mctx, int_update);
+    VR_EVP_MD_CTX_set_flags(mctx, EVP_MD_CTX_FLAG_NO_INIT);
+    VR_EVP_MD_CTX_set_update_fn(mctx, int_update);
 
     if (set_key)
-        rv = EVP_MAC_ctrl(hctx->ctx, EVP_MAC_CTRL_SET_KEY, key->data,
+        rv = VR_EVP_MAC_ctrl(hctx->ctx, EVP_MAC_CTRL_SET_KEY, key->data,
                           key->length);
     return rv > 0;
 }
@@ -211,14 +211,14 @@ static int pkey_mac_signctx_init(EVP_PKEY_CTX *ctx, EVP_MD_CTX *mctx)
 static int pkey_mac_signctx(EVP_PKEY_CTX *ctx, unsigned char *sig,
                              size_t *siglen, EVP_MD_CTX *mctx)
 {
-    MAC_PKEY_CTX *hctx = EVP_PKEY_CTX_get_data(ctx);
+    MAC_PKEY_CTX *hctx = VR_EVP_PKEY_CTX_get_data(ctx);
 
-    return EVP_MAC_final(hctx->ctx, sig, siglen);
+    return VR_EVP_MAC_final(hctx->ctx, sig, siglen);
 }
 
 static int pkey_mac_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2)
 {
-    MAC_PKEY_CTX *hctx = EVP_PKEY_CTX_get_data(ctx);
+    MAC_PKEY_CTX *hctx = VR_EVP_PKEY_CTX_get_data(ctx);
 
     switch (type) {
 
@@ -230,11 +230,11 @@ static int pkey_mac_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2)
             {
                 int rv;
 
-                if ((rv = EVP_MAC_ctrl(hctx->ctx, EVP_MAC_CTRL_SET_ENGINE,
+                if ((rv = VR_EVP_MAC_ctrl(hctx->ctx, EVP_MAC_CTRL_SET_ENGINE,
                                        ctx->engine)) < 0
-                    || (rv = EVP_MAC_ctrl(hctx->ctx, EVP_MAC_CTRL_SET_CIPHER,
+                    || (rv = VR_EVP_MAC_ctrl(hctx->ctx, EVP_MAC_CTRL_SET_CIPHER,
                                           p2)) < 0
-                    || !(rv = EVP_MAC_init(hctx->ctx)))
+                    || !(rv = VR_EVP_MAC_init(hctx->ctx)))
                     return rv;
             }
             break;
@@ -251,10 +251,10 @@ static int pkey_mac_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2)
             break;
         case MAC_TYPE_MAC:
             if (ctx->pkey != NULL
-                && !EVP_MAC_CTX_copy(hctx->ctx,
+                && !VR_EVP_MAC_CTX_copy(hctx->ctx,
                                      (EVP_MAC_CTX *)ctx->pkey->pkey.ptr))
                 return 0;
-            if (!EVP_MAC_init(hctx->ctx))
+            if (!VR_EVP_MAC_init(hctx->ctx))
                 return 0;
             break;
         default:
@@ -264,18 +264,18 @@ static int pkey_mac_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2)
         break;
 
     case EVP_PKEY_CTRL_SET_DIGEST_SIZE:
-        return EVP_MAC_ctrl(hctx->ctx, EVP_MAC_CTRL_SET_SIZE, (size_t)p1);
+        return VR_EVP_MAC_ctrl(hctx->ctx, EVP_MAC_CTRL_SET_SIZE, (size_t)p1);
 
     case EVP_PKEY_CTRL_SET_MAC_KEY:
         switch (hctx->type) {
         case MAC_TYPE_RAW:
             if ((!p2 && p1 > 0) || (p1 < -1))
                 return 0;
-            if (!ASN1_OCTET_STRING_set(&hctx->raw_data.ktmp, p2, p1))
+            if (!VR_ASN1_OCTET_STRING_set(&hctx->raw_data.ktmp, p2, p1))
                 return 0;
             break;
         case MAC_TYPE_MAC:
-            if (!EVP_MAC_ctrl(hctx->ctx, EVP_MAC_CTRL_SET_KEY, p2, p1))
+            if (!VR_EVP_MAC_ctrl(hctx->ctx, EVP_MAC_CTRL_SET_KEY, p2, p1))
                 return 0;
             break;
         default:
@@ -288,18 +288,18 @@ static int pkey_mac_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2)
         switch (hctx->type) {
         case MAC_TYPE_RAW:
             /* Ensure that we have attached the implementation */
-            if (!EVP_MAC_init(hctx->ctx))
+            if (!VR_EVP_MAC_init(hctx->ctx))
                 return 0;
             {
                 int rv;
                 ASN1_OCTET_STRING *key =
                     (ASN1_OCTET_STRING *)ctx->pkey->pkey.ptr;
 
-                if ((rv = EVP_MAC_ctrl(hctx->ctx, EVP_MAC_CTRL_SET_ENGINE,
+                if ((rv = VR_EVP_MAC_ctrl(hctx->ctx, EVP_MAC_CTRL_SET_ENGINE,
                                        ctx->engine)) < 0
-                    || (rv = EVP_MAC_ctrl(hctx->ctx, EVP_MAC_CTRL_SET_MD,
+                    || (rv = VR_EVP_MAC_ctrl(hctx->ctx, EVP_MAC_CTRL_SET_MD,
                                           hctx->raw_data.md)) < 0
-                    || (rv = EVP_MAC_ctrl(hctx->ctx, EVP_MAC_CTRL_SET_KEY,
+                    || (rv = VR_EVP_MAC_ctrl(hctx->ctx, EVP_MAC_CTRL_SET_KEY,
                                           key->data, key->length)) < 0)
                     return rv;
             }
@@ -322,9 +322,9 @@ static int pkey_mac_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2)
 static int pkey_mac_ctrl_str(EVP_PKEY_CTX *ctx,
                               const char *type, const char *value)
 {
-    MAC_PKEY_CTX *hctx = EVP_PKEY_CTX_get_data(ctx);
+    MAC_PKEY_CTX *hctx = VR_EVP_PKEY_CTX_get_data(ctx);
 
-    return EVP_MAC_ctrl_str(hctx->ctx, type, value);
+    return VR_EVP_MAC_ctrl_str(hctx->ctx, type, value);
 }
 
 const EVP_PKEY_METHOD cmac_pkey_meth = {
@@ -361,7 +361,7 @@ const EVP_PKEY_METHOD cmac_pkey_meth = {
 };
 
 const EVP_PKEY_METHOD hmac_pkey_meth = {
-    EVP_PKEY_HMAC,
+    EVP_PKEY_VR_HMAC,
     0,
     pkey_mac_init,
     pkey_mac_copy,

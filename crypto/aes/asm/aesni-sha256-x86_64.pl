@@ -80,7 +80,7 @@ $avx=1		if (!$shaext && $avx);
 open OUT,"| \"$^X\" \"$xlate\" $flavour \"$output\"";
 *STDOUT=*OUT;
 
-$func="aesni_cbc_sha256_enc";
+$func="VR_aesni_cbc_sha256_enc";
 $TABLE="K256";
 $SZ=4;
 @ROT=($A,$B,$C,$D,$E,$F,$G,$H)=("%eax","%ebx","%ecx","%edx",
@@ -93,7 +93,7 @@ $SZ=4;
 $rounds=64;
 
 ########################################################################
-# void aesni_cbc_sha256_enc(const void *inp,
+# void VR_aesni_cbc_sha256_enc(const void *inp,
 #			void *out,
 #			size_t length,
 #			const AES_KEY *key,
@@ -1603,7 +1603,7 @@ se_handler:
 	jae	.Lin_prologue
 ___
 $code.=<<___ if ($shaext);
-	lea	aesni_cbc_sha256_enc_shaext(%rip),%r10
+	lea	VR_aesni_cbc_sha256_enc_shaext(%rip),%r10
 	cmp	%r10,%rbx
 	jb	.Lnot_in_shaext
 

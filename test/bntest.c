@@ -68,14 +68,14 @@ static const char *findattr(STANZA *s, const char *key)
 }
 
 /*
- * Parse BIGNUM from sparse hex-strings, return |BN_hex2bn| result.
+ * Parse BIGNUM from sparse hex-strings, return |VR_BN_hex2bn| result.
  */
 static int parse_bigBN(BIGNUM **out, const char *bn_strings[])
 {
     char *bigstring = glue_strings(bn_strings, NULL);
-    int ret = BN_hex2bn(out, bigstring);
+    int ret = VR_BN_hex2bn(out, bigstring);
 
-    OPENSSL_free(bigstring);
+    OPENVR_SSL_free(bigstring);
     return ret;
 }
 
@@ -85,13 +85,13 @@ static int parse_bigBN(BIGNUM **out, const char *bn_strings[])
 static int parseBN(BIGNUM **out, const char *in)
 {
     *out = NULL;
-    return BN_hex2bn(out, in);
+    return VR_BN_hex2bn(out, in);
 }
 
 static int parsedecBN(BIGNUM **out, const char *in)
 {
     *out = NULL;
-    return BN_dec2bn(out, in);
+    return VR_BN_dec2bn(out, in);
 }
 
 static BIGNUM *getBN(STANZA *s, const char *attribute)
@@ -118,19 +118,19 @@ static int getint(STANZA *s, int *out, const char *attribute)
     int st = 0;
 
     if (!TEST_ptr(ret = getBN(s, attribute))
-            || !TEST_ulong_le(word = BN_get_word(ret), INT_MAX))
+            || !TEST_ulong_le(word = VR_BN_get_word(ret), INT_MAX))
         goto err;
 
     *out = (int)word;
     st = 1;
 err:
-    BN_free(ret);
+    VR_BN_free(ret);
     return st;
 }
 
 static int equalBN(const char *op, const BIGNUM *expected, const BIGNUM *actual)
 {
-    if (BN_cmp(expected, actual) == 0)
+    if (VR_BN_cmp(expected, actual) == 0)
         return 1;
 
     TEST_error("unexpected %s value", op);
@@ -156,70 +156,70 @@ static int test_swap(void)
     BIGNUM *a = NULL, *b = NULL, *c = NULL, *d = NULL;
     int top, cond, st = 0;
 
-    if (!TEST_ptr(a = BN_new())
-            || !TEST_ptr(b = BN_new())
-            || !TEST_ptr(c = BN_new())
-            || !TEST_ptr(d = BN_new()))
+    if (!TEST_ptr(a = VR_BN_new())
+            || !TEST_ptr(b = VR_BN_new())
+            || !TEST_ptr(c = VR_BN_new())
+            || !TEST_ptr(d = VR_BN_new()))
         goto err;
 
-    BN_bntest_rand(a, 1024, 1, 0);
-    BN_bntest_rand(b, 1024, 1, 0);
-    BN_copy(c, a);
-    BN_copy(d, b);
-    top = BN_num_bits(a)/BN_BITS2;
+    VR_BN_bntest_rand(a, 1024, 1, 0);
+    VR_BN_bntest_rand(b, 1024, 1, 0);
+    VR_BN_copy(c, a);
+    VR_BN_copy(d, b);
+    top = VR_BN_num_bits(a)/BN_BITS2;
 
     /* regular swap */
-    BN_swap(a, b);
+    VR_BN_swap(a, b);
     if (!equalBN("swap", a, d)
             || !equalBN("swap", b, c))
         goto err;
 
     /* conditional swap: true */
     cond = 1;
-    BN_consttime_swap(cond, a, b, top);
+    VR_BN_consttime_swap(cond, a, b, top);
     if (!equalBN("cswap true", a, c)
             || !equalBN("cswap true", b, d))
         goto err;
 
     /* conditional swap: false */
     cond = 0;
-    BN_consttime_swap(cond, a, b, top);
+    VR_BN_consttime_swap(cond, a, b, top);
     if (!equalBN("cswap false", a, c)
             || !equalBN("cswap false", b, d))
         goto err;
 
     /* same tests but checking flag swap */
-    BN_set_flags(a, BN_FLG_CONSTTIME);
+    VR_BN_set_flags(a, BN_FLG_CONSTTIME);
 
-    BN_swap(a, b);
+    VR_BN_swap(a, b);
     if (!equalBN("swap, flags", a, d)
             || !equalBN("swap, flags", b, c)
-            || !TEST_true(BN_get_flags(b, BN_FLG_CONSTTIME))
-            || !TEST_false(BN_get_flags(a, BN_FLG_CONSTTIME)))
+            || !TEST_true(VR_BN_get_flags(b, BN_FLG_CONSTTIME))
+            || !TEST_false(VR_BN_get_flags(a, BN_FLG_CONSTTIME)))
         goto err;
 
     cond = 1;
-    BN_consttime_swap(cond, a, b, top);
+    VR_BN_consttime_swap(cond, a, b, top);
     if (!equalBN("cswap true, flags", a, c)
             || !equalBN("cswap true, flags", b, d)
-            || !TEST_true(BN_get_flags(a, BN_FLG_CONSTTIME))
-            || !TEST_false(BN_get_flags(b, BN_FLG_CONSTTIME)))
+            || !TEST_true(VR_BN_get_flags(a, BN_FLG_CONSTTIME))
+            || !TEST_false(VR_BN_get_flags(b, BN_FLG_CONSTTIME)))
         goto err;
 
     cond = 0;
-    BN_consttime_swap(cond, a, b, top);
+    VR_BN_consttime_swap(cond, a, b, top);
     if (!equalBN("cswap false, flags", a, c)
             || !equalBN("cswap false, flags", b, d)
-            || !TEST_true(BN_get_flags(a, BN_FLG_CONSTTIME))
-            || !TEST_false(BN_get_flags(b, BN_FLG_CONSTTIME)))
+            || !TEST_true(VR_BN_get_flags(a, BN_FLG_CONSTTIME))
+            || !TEST_false(VR_BN_get_flags(b, BN_FLG_CONSTTIME)))
         goto err;
 
     st = 1;
  err:
-    BN_free(a);
-    BN_free(b);
-    BN_free(c);
-    BN_free(d);
+    VR_BN_free(a);
+    VR_BN_free(b);
+    VR_BN_free(c);
+    VR_BN_free(d);
     return st;
 }
 
@@ -228,34 +228,34 @@ static int test_sub(void)
     BIGNUM *a = NULL, *b = NULL, *c = NULL;
     int i, st = 0;
 
-    if (!TEST_ptr(a = BN_new())
-            || !TEST_ptr(b = BN_new())
-            || !TEST_ptr(c = BN_new()))
+    if (!TEST_ptr(a = VR_BN_new())
+            || !TEST_ptr(b = VR_BN_new())
+            || !TEST_ptr(c = VR_BN_new()))
         goto err;
 
     for (i = 0; i < NUM0 + NUM1; i++) {
         if (i < NUM1) {
-            BN_bntest_rand(a, 512, 0, 0);
-            BN_copy(b, a);
-            if (!TEST_int_ne(BN_set_bit(a, i), 0))
+            VR_BN_bntest_rand(a, 512, 0, 0);
+            VR_BN_copy(b, a);
+            if (!TEST_int_ne(VR_BN_set_bit(a, i), 0))
                 goto err;
-            BN_add_word(b, i);
+            VR_BN_add_word(b, i);
         } else {
-            BN_bntest_rand(b, 400 + i - NUM1, 0, 0);
-            BN_set_negative(a, rand_neg());
-            BN_set_negative(b, rand_neg());
+            VR_BN_bntest_rand(b, 400 + i - NUM1, 0, 0);
+            VR_BN_set_negative(a, rand_neg());
+            VR_BN_set_negative(b, rand_neg());
         }
-        BN_sub(c, a, b);
-        BN_add(c, c, b);
-        BN_sub(c, c, a);
+        VR_BN_sub(c, a, b);
+        VR_BN_add(c, c, b);
+        VR_BN_sub(c, c, a);
         if (!TEST_BN_eq_zero(c))
             goto err;
     }
     st = 1;
 err:
-    BN_free(a);
-    BN_free(b);
-    BN_free(c);
+    VR_BN_free(a);
+    VR_BN_free(b);
+    VR_BN_free(c);
     return st;
 }
 
@@ -266,40 +266,40 @@ static int test_div_recip(void)
     BN_RECP_CTX *recp = NULL;
     int st = 0, i;
 
-    if (!TEST_ptr(a = BN_new())
-            || !TEST_ptr(b = BN_new())
-            || !TEST_ptr(c = BN_new())
-            || !TEST_ptr(d = BN_new())
-            || !TEST_ptr(e = BN_new())
-            || !TEST_ptr(recp = BN_RECP_CTX_new()))
+    if (!TEST_ptr(a = VR_BN_new())
+            || !TEST_ptr(b = VR_BN_new())
+            || !TEST_ptr(c = VR_BN_new())
+            || !TEST_ptr(d = VR_BN_new())
+            || !TEST_ptr(e = VR_BN_new())
+            || !TEST_ptr(recp = VR_BN_RECP_CTX_new()))
         goto err;
 
     for (i = 0; i < NUM0 + NUM1; i++) {
         if (i < NUM1) {
-            BN_bntest_rand(a, 400, 0, 0);
-            BN_copy(b, a);
-            BN_lshift(a, a, i);
-            BN_add_word(a, i);
+            VR_BN_bntest_rand(a, 400, 0, 0);
+            VR_BN_copy(b, a);
+            VR_BN_lshift(a, a, i);
+            VR_BN_add_word(a, i);
         } else
-            BN_bntest_rand(b, 50 + 3 * (i - NUM1), 0, 0);
-        BN_set_negative(a, rand_neg());
-        BN_set_negative(b, rand_neg());
-        BN_RECP_CTX_set(recp, b, ctx);
-        BN_div_recp(d, c, a, recp, ctx);
-        BN_mul(e, d, b, ctx);
-        BN_add(d, e, c);
-        BN_sub(d, d, a);
+            VR_BN_bntest_rand(b, 50 + 3 * (i - NUM1), 0, 0);
+        VR_BN_set_negative(a, rand_neg());
+        VR_BN_set_negative(b, rand_neg());
+        VR_BN_RECP_CTX_set(recp, b, ctx);
+        VR_BN_div_recp(d, c, a, recp, ctx);
+        VR_BN_mul(e, d, b, ctx);
+        VR_BN_add(d, e, c);
+        VR_BN_sub(d, d, a);
         if (!TEST_BN_eq_zero(d))
             goto err;
     }
     st = 1;
 err:
-    BN_free(a);
-    BN_free(b);
-    BN_free(c);
-    BN_free(d);
-    BN_free(e);
-    BN_RECP_CTX_free(recp);
+    VR_BN_free(a);
+    VR_BN_free(b);
+    VR_BN_free(c);
+    VR_BN_free(d);
+    VR_BN_free(e);
+    VR_BN_RECP_CTX_free(recp);
     return st;
 }
 
@@ -309,31 +309,31 @@ static int test_mod(void)
     BIGNUM *a = NULL, *b = NULL, *c = NULL, *d = NULL, *e = NULL;
     int st = 0, i;
 
-    if (!TEST_ptr(a = BN_new())
-            || !TEST_ptr(b = BN_new())
-            || !TEST_ptr(c = BN_new())
-            || !TEST_ptr(d = BN_new())
-            || !TEST_ptr(e = BN_new()))
+    if (!TEST_ptr(a = VR_BN_new())
+            || !TEST_ptr(b = VR_BN_new())
+            || !TEST_ptr(c = VR_BN_new())
+            || !TEST_ptr(d = VR_BN_new())
+            || !TEST_ptr(e = VR_BN_new()))
         goto err;
 
-    BN_bntest_rand(a, 1024, 0, 0);
+    VR_BN_bntest_rand(a, 1024, 0, 0);
     for (i = 0; i < NUM0; i++) {
-        BN_bntest_rand(b, 450 + i * 10, 0, 0);
-        BN_set_negative(a, rand_neg());
-        BN_set_negative(b, rand_neg());
+        VR_BN_bntest_rand(b, 450 + i * 10, 0, 0);
+        VR_BN_set_negative(a, rand_neg());
+        VR_BN_set_negative(b, rand_neg());
         BN_mod(c, a, b, ctx);
-        BN_div(d, e, a, b, ctx);
-        BN_sub(e, e, c);
+        VR_BN_div(d, e, a, b, ctx);
+        VR_BN_sub(e, e, c);
         if (!TEST_BN_eq_zero(e))
             goto err;
     }
     st = 1;
 err:
-    BN_free(a);
-    BN_free(b);
-    BN_free(c);
-    BN_free(d);
-    BN_free(e);
+    VR_BN_free(a);
+    VR_BN_free(b);
+    VR_BN_free(c);
+    VR_BN_free(d);
+    VR_BN_free(e);
     return st;
 }
 
@@ -388,60 +388,60 @@ static int test_modexp_mont5(void)
     BN_MONT_CTX *mont = NULL;
     int st = 0;
 
-    if (!TEST_ptr(a = BN_new())
-            || !TEST_ptr(p = BN_new())
-            || !TEST_ptr(m = BN_new())
-            || !TEST_ptr(d = BN_new())
-            || !TEST_ptr(e = BN_new())
-            || !TEST_ptr(b = BN_new())
-            || !TEST_ptr(n = BN_new())
-            || !TEST_ptr(c = BN_new())
-            || !TEST_ptr(mont = BN_MONT_CTX_new()))
+    if (!TEST_ptr(a = VR_BN_new())
+            || !TEST_ptr(p = VR_BN_new())
+            || !TEST_ptr(m = VR_BN_new())
+            || !TEST_ptr(d = VR_BN_new())
+            || !TEST_ptr(e = VR_BN_new())
+            || !TEST_ptr(b = VR_BN_new())
+            || !TEST_ptr(n = VR_BN_new())
+            || !TEST_ptr(c = VR_BN_new())
+            || !TEST_ptr(mont = VR_BN_MONT_CTX_new()))
         goto err;
 
-    BN_bntest_rand(m, 1024, 0, 1); /* must be odd for montgomery */
+    VR_BN_bntest_rand(m, 1024, 0, 1); /* must be odd for montgomery */
     /* Zero exponent */
-    BN_bntest_rand(a, 1024, 0, 0);
+    VR_BN_bntest_rand(a, 1024, 0, 0);
     BN_zero(p);
-    if (!TEST_true(BN_mod_exp_mont_consttime(d, a, p, m, ctx, NULL)))
+    if (!TEST_true(VR_BN_mod_exp_mont_consttime(d, a, p, m, ctx, NULL)))
         goto err;
     if (!TEST_BN_eq_one(d))
         goto err;
 
     /* Regression test for carry bug in mulx4x_mont */
-    BN_hex2bn(&a,
+    VR_BN_hex2bn(&a,
         "7878787878787878787878787878787878787878787878787878787878787878"
         "7878787878787878787878787878787878787878787878787878787878787878"
         "7878787878787878787878787878787878787878787878787878787878787878"
         "7878787878787878787878787878787878787878787878787878787878787878");
-    BN_hex2bn(&b,
+    VR_BN_hex2bn(&b,
         "095D72C08C097BA488C5E439C655A192EAFB6380073D8C2664668EDDB4060744"
         "E16E57FB4EDB9AE10A0CEFCDC28A894F689A128379DB279D48A2E20849D68593"
         "9B7803BCF46CEBF5C533FB0DD35B080593DE5472E3FE5DB951B8BFF9B4CB8F03"
         "9CC638A5EE8CDD703719F8000E6A9F63BEED5F2FCD52FF293EA05A251BB4AB81");
-    BN_hex2bn(&n,
+    VR_BN_hex2bn(&n,
         "D78AF684E71DB0C39CFF4E64FB9DB567132CB9C50CC98009FEB820B26F2DED9B"
         "91B9B5E2B83AE0AE4EB4E0523CA726BFBE969B89FD754F674CE99118C3F2D1C5"
         "D81FDC7C54E02B60262B241D53C040E99E45826ECA37A804668E690E1AFC1CA4"
         "2C9A15D84D4954425F0B7642FC0BD9D7B24E2618D2DCC9B729D944BADACFDDAF");
-    BN_MONT_CTX_set(mont, n, ctx);
-    BN_mod_mul_montgomery(c, a, b, mont, ctx);
-    BN_mod_mul_montgomery(d, b, a, mont, ctx);
+    VR_BN_MONT_CTX_set(mont, n, ctx);
+    VR_BN_mod_mul_montgomery(c, a, b, mont, ctx);
+    VR_BN_mod_mul_montgomery(d, b, a, mont, ctx);
     if (!TEST_BN_eq(c, d))
         goto err;
 
     /* Regression test for carry bug in sqr[x]8x_mont */
     parse_bigBN(&n, bn1strings);
     parse_bigBN(&a, bn2strings);
-    BN_free(b);
-    b = BN_dup(a);
-    BN_MONT_CTX_set(mont, n, ctx);
-    BN_mod_mul_montgomery(c, a, a, mont, ctx);
-    BN_mod_mul_montgomery(d, a, b, mont, ctx);
+    VR_BN_free(b);
+    b = VR_BN_dup(a);
+    VR_BN_MONT_CTX_set(mont, n, ctx);
+    VR_BN_mod_mul_montgomery(c, a, a, mont, ctx);
+    VR_BN_mod_mul_montgomery(d, a, b, mont, ctx);
     if (!TEST_BN_eq(c, d))
         goto err;
 
-    /* Regression test for carry bug in bn_sqrx8x_internal */
+    /* Regression test for carry bug in VR_bn_sqrx8x_internal */
     {
         static const char *ahex[] = {
                       "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
@@ -477,77 +477,77 @@ static int test_modexp_mont5(void)
         parse_bigBN(&a, ahex);
         parse_bigBN(&n, nhex);
     }
-    BN_free(b);
-    b = BN_dup(a);
-    BN_MONT_CTX_set(mont, n, ctx);
-    if (!TEST_true(BN_mod_mul_montgomery(c, a, a, mont, ctx))
-            || !TEST_true(BN_mod_mul_montgomery(d, a, b, mont, ctx))
+    VR_BN_free(b);
+    b = VR_BN_dup(a);
+    VR_BN_MONT_CTX_set(mont, n, ctx);
+    if (!TEST_true(VR_BN_mod_mul_montgomery(c, a, a, mont, ctx))
+            || !TEST_true(VR_BN_mod_mul_montgomery(d, a, b, mont, ctx))
             || !TEST_BN_eq(c, d))
         goto err;
 
-    /* Regression test for bug in BN_from_montgomery_word */
-    BN_hex2bn(&a,
+    /* Regression test for bug in VR_BN_from_montgomery_word */
+    VR_BN_hex2bn(&a,
         "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
         "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
         "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
-    BN_hex2bn(&n,
+    VR_BN_hex2bn(&n,
         "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
         "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
-    BN_MONT_CTX_set(mont, n, ctx);
-    if (!TEST_false(BN_mod_mul_montgomery(d, a, a, mont, ctx)))
+    VR_BN_MONT_CTX_set(mont, n, ctx);
+    if (!TEST_false(VR_BN_mod_mul_montgomery(d, a, a, mont, ctx)))
         goto err;
 
-    /* Regression test for bug in rsaz_1024_mul_avx2 */
-    BN_hex2bn(&a,
+    /* Regression test for bug in VR_rsaz_1024_mul_avx2 */
+    VR_BN_hex2bn(&a,
         "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
         "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
         "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
         "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF2020202020DF");
-    BN_hex2bn(&b,
+    VR_BN_hex2bn(&b,
         "2020202020202020202020202020202020202020202020202020202020202020"
         "2020202020202020202020202020202020202020202020202020202020202020"
         "20202020202020FF202020202020202020202020202020202020202020202020"
         "2020202020202020202020202020202020202020202020202020202020202020");
-    BN_hex2bn(&n,
+    VR_BN_hex2bn(&n,
         "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
         "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
         "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
         "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF2020202020FF");
-    BN_MONT_CTX_set(mont, n, ctx);
-    BN_mod_exp_mont_consttime(c, a, b, n, ctx, mont);
-    BN_mod_exp_mont(d, a, b, n, ctx, mont);
+    VR_BN_MONT_CTX_set(mont, n, ctx);
+    VR_BN_mod_exp_mont_consttime(c, a, b, n, ctx, mont);
+    VR_BN_mod_exp_mont(d, a, b, n, ctx, mont);
     if (!TEST_BN_eq(c, d))
         goto err;
 
     /*
-     * rsaz_1024_mul_avx2 expects fully-reduced inputs.
-     * BN_mod_exp_mont_consttime should reduce the input first.
+     * VR_rsaz_1024_mul_avx2 expects fully-reduced inputs.
+     * VR_BN_mod_exp_mont_consttime should reduce the input first.
      */
-    BN_hex2bn(&a,
+    VR_BN_hex2bn(&a,
         "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
         "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
         "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
         "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF2020202020DF");
-    BN_hex2bn(&b,
+    VR_BN_hex2bn(&b,
         "1FA53F26F8811C58BE0357897AA5E165693230BC9DF5F01DFA6A2D59229EC69D"
         "9DE6A89C36E3B6957B22D6FAAD5A3C73AE587B710DBE92E83D3A9A3339A085CB"
         "B58F508CA4F837924BB52CC1698B7FDC2FD74362456A595A5B58E38E38E38E38"
         "E38E38E38E38E38E38E38E38E38E38E38E38E38E38E38E38E38E38E38E38E38E");
-    BN_hex2bn(&n,
+    VR_BN_hex2bn(&n,
         "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
         "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
         "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
         "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF2020202020DF");
-    BN_MONT_CTX_set(mont, n, ctx);
-    BN_mod_exp_mont_consttime(c, a, b, n, ctx, mont);
+    VR_BN_MONT_CTX_set(mont, n, ctx);
+    VR_BN_mod_exp_mont_consttime(c, a, b, n, ctx, mont);
     BN_zero(d);
     if (!TEST_BN_eq(c, d))
         goto err;
 
     /* Zero input */
-    BN_bntest_rand(p, 1024, 0, 0);
+    VR_BN_bntest_rand(p, 1024, 0, 0);
     BN_zero(a);
-    if (!TEST_true(BN_mod_exp_mont_consttime(d, a, p, m, ctx, NULL))
+    if (!TEST_true(VR_BN_mod_exp_mont_consttime(d, a, p, m, ctx, NULL))
             || !TEST_BN_eq_zero(d))
         goto err;
 
@@ -557,32 +557,32 @@ static int test_modexp_mont5(void)
      * scattering/gathering.
      */
     BN_one(a);
-    BN_MONT_CTX_set(mont, m, ctx);
-    if (!TEST_true(BN_from_montgomery(e, a, mont, ctx))
-            || !TEST_true(BN_mod_exp_mont_consttime(d, e, p, m, ctx, NULL))
-            || !TEST_true(BN_mod_exp_simple(a, e, p, m, ctx))
+    VR_BN_MONT_CTX_set(mont, m, ctx);
+    if (!TEST_true(VR_BN_from_montgomery(e, a, mont, ctx))
+            || !TEST_true(VR_BN_mod_exp_mont_consttime(d, e, p, m, ctx, NULL))
+            || !TEST_true(VR_BN_mod_exp_simple(a, e, p, m, ctx))
             || !TEST_BN_eq(a, d))
         goto err;
 
     /* Finally, some regular test vectors. */
-    BN_bntest_rand(e, 1024, 0, 0);
-    if (!TEST_true(BN_mod_exp_mont_consttime(d, e, p, m, ctx, NULL))
-            || !TEST_true(BN_mod_exp_simple(a, e, p, m, ctx))
+    VR_BN_bntest_rand(e, 1024, 0, 0);
+    if (!TEST_true(VR_BN_mod_exp_mont_consttime(d, e, p, m, ctx, NULL))
+            || !TEST_true(VR_BN_mod_exp_simple(a, e, p, m, ctx))
             || !TEST_BN_eq(a, d))
         goto err;
 
     st = 1;
 
 err:
-    BN_MONT_CTX_free(mont);
-    BN_free(a);
-    BN_free(p);
-    BN_free(m);
-    BN_free(d);
-    BN_free(e);
-    BN_free(b);
-    BN_free(n);
-    BN_free(c);
+    VR_BN_MONT_CTX_free(mont);
+    VR_BN_free(a);
+    VR_BN_free(p);
+    VR_BN_free(m);
+    VR_BN_free(d);
+    VR_BN_free(e);
+    VR_BN_free(b);
+    VR_BN_free(n);
+    VR_BN_free(c);
     return st;
 }
 
@@ -592,31 +592,31 @@ static int test_gf2m_add(void)
     BIGNUM *a = NULL, *b = NULL, *c = NULL;
     int i, st = 0;
 
-    if (!TEST_ptr(a = BN_new())
-            || !TEST_ptr(b = BN_new())
-            || !TEST_ptr(c = BN_new()))
+    if (!TEST_ptr(a = VR_BN_new())
+            || !TEST_ptr(b = VR_BN_new())
+            || !TEST_ptr(c = VR_BN_new()))
         goto err;
 
     for (i = 0; i < NUM0; i++) {
-        BN_rand(a, 512, 0, 0);
-        BN_copy(b, BN_value_one());
-        BN_set_negative(a, rand_neg());
-        BN_set_negative(b, rand_neg());
-        BN_GF2m_add(c, a, b);
+        VR_BN_rand(a, 512, 0, 0);
+        VR_BN_copy(b, VR_BN_value_one());
+        VR_BN_set_negative(a, rand_neg());
+        VR_BN_set_negative(b, rand_neg());
+        VR_BN_GF2m_add(c, a, b);
         /* Test that two added values have the correct parity. */
-        if (!TEST_false((BN_is_odd(a) && BN_is_odd(c))
-                        || (!BN_is_odd(a) && !BN_is_odd(c))))
+        if (!TEST_false((VR_BN_is_odd(a) && VR_BN_is_odd(c))
+                        || (!VR_BN_is_odd(a) && !VR_BN_is_odd(c))))
             goto err;
-        BN_GF2m_add(c, c, c);
+        VR_BN_GF2m_add(c, c, c);
         /* Test that c + c = 0. */
         if (!TEST_BN_eq_zero(c))
             goto err;
     }
     st = 1;
  err:
-    BN_free(a);
-    BN_free(b);
-    BN_free(c);
+    VR_BN_free(a);
+    VR_BN_free(b);
+    VR_BN_free(c);
     return st;
 }
 
@@ -625,23 +625,23 @@ static int test_gf2m_mod(void)
     BIGNUM *a = NULL, *b[2] = {NULL,NULL}, *c = NULL, *d = NULL, *e = NULL;
     int i, j, st = 0;
 
-    if (!TEST_ptr(a = BN_new())
-            || !TEST_ptr(b[0] = BN_new())
-            || !TEST_ptr(b[1] = BN_new())
-            || !TEST_ptr(c = BN_new())
-            || !TEST_ptr(d = BN_new())
-            || !TEST_ptr(e = BN_new()))
+    if (!TEST_ptr(a = VR_BN_new())
+            || !TEST_ptr(b[0] = VR_BN_new())
+            || !TEST_ptr(b[1] = VR_BN_new())
+            || !TEST_ptr(c = VR_BN_new())
+            || !TEST_ptr(d = VR_BN_new())
+            || !TEST_ptr(e = VR_BN_new()))
         goto err;
 
-    BN_GF2m_arr2poly(p0, b[0]);
-    BN_GF2m_arr2poly(p1, b[1]);
+    VR_BN_GF2m_arr2poly(p0, b[0]);
+    VR_BN_GF2m_arr2poly(p1, b[1]);
 
     for (i = 0; i < NUM0; i++) {
-        BN_bntest_rand(a, 1024, 0, 0);
+        VR_BN_bntest_rand(a, 1024, 0, 0);
         for (j = 0; j < 2; j++) {
-            BN_GF2m_mod(c, a, b[j]);
-            BN_GF2m_add(d, a, c);
-            BN_GF2m_mod(e, d, b[j]);
+            VR_BN_GF2m_mod(c, a, b[j]);
+            VR_BN_GF2m_add(d, a, c);
+            VR_BN_GF2m_mod(e, d, b[j]);
             /* Test that a + (a mod p) mod p == 0. */
             if (!TEST_BN_eq_zero(e))
                 goto err;
@@ -649,12 +649,12 @@ static int test_gf2m_mod(void)
     }
     st = 1;
  err:
-    BN_free(a);
-    BN_free(b[0]);
-    BN_free(b[1]);
-    BN_free(c);
-    BN_free(d);
-    BN_free(e);
+    VR_BN_free(a);
+    VR_BN_free(b[0]);
+    VR_BN_free(b[1]);
+    VR_BN_free(c);
+    VR_BN_free(d);
+    VR_BN_free(e);
     return st;
 }
 
@@ -664,31 +664,31 @@ static int test_gf2m_mul(void)
     BIGNUM *e = NULL, *f = NULL, *g = NULL, *h = NULL;
     int i, j, st = 0;
 
-    if (!TEST_ptr(a = BN_new())
-            || !TEST_ptr(b[0] = BN_new())
-            || !TEST_ptr(b[1] = BN_new())
-            || !TEST_ptr(c = BN_new())
-            || !TEST_ptr(d = BN_new())
-            || !TEST_ptr(e = BN_new())
-            || !TEST_ptr(f = BN_new())
-            || !TEST_ptr(g = BN_new())
-            || !TEST_ptr(h = BN_new()))
+    if (!TEST_ptr(a = VR_BN_new())
+            || !TEST_ptr(b[0] = VR_BN_new())
+            || !TEST_ptr(b[1] = VR_BN_new())
+            || !TEST_ptr(c = VR_BN_new())
+            || !TEST_ptr(d = VR_BN_new())
+            || !TEST_ptr(e = VR_BN_new())
+            || !TEST_ptr(f = VR_BN_new())
+            || !TEST_ptr(g = VR_BN_new())
+            || !TEST_ptr(h = VR_BN_new()))
         goto err;
 
-    BN_GF2m_arr2poly(p0, b[0]);
-    BN_GF2m_arr2poly(p1, b[1]);
+    VR_BN_GF2m_arr2poly(p0, b[0]);
+    VR_BN_GF2m_arr2poly(p1, b[1]);
 
     for (i = 0; i < NUM0; i++) {
-        BN_bntest_rand(a, 1024, 0, 0);
-        BN_bntest_rand(c, 1024, 0, 0);
-        BN_bntest_rand(d, 1024, 0, 0);
+        VR_BN_bntest_rand(a, 1024, 0, 0);
+        VR_BN_bntest_rand(c, 1024, 0, 0);
+        VR_BN_bntest_rand(d, 1024, 0, 0);
         for (j = 0; j < 2; j++) {
-            BN_GF2m_mod_mul(e, a, c, b[j], ctx);
-            BN_GF2m_add(f, a, d);
-            BN_GF2m_mod_mul(g, f, c, b[j], ctx);
-            BN_GF2m_mod_mul(h, d, c, b[j], ctx);
-            BN_GF2m_add(f, e, g);
-            BN_GF2m_add(f, f, h);
+            VR_BN_GF2m_mod_mul(e, a, c, b[j], ctx);
+            VR_BN_GF2m_add(f, a, d);
+            VR_BN_GF2m_mod_mul(g, f, c, b[j], ctx);
+            VR_BN_GF2m_mod_mul(h, d, c, b[j], ctx);
+            VR_BN_GF2m_add(f, e, g);
+            VR_BN_GF2m_add(f, f, h);
             /* Test that (a+d)*c = a*c + d*c. */
             if (!TEST_BN_eq_zero(f))
                 goto err;
@@ -697,15 +697,15 @@ static int test_gf2m_mul(void)
     st = 1;
 
  err:
-    BN_free(a);
-    BN_free(b[0]);
-    BN_free(b[1]);
-    BN_free(c);
-    BN_free(d);
-    BN_free(e);
-    BN_free(f);
-    BN_free(g);
-    BN_free(h);
+    VR_BN_free(a);
+    VR_BN_free(b[0]);
+    VR_BN_free(b[1]);
+    VR_BN_free(c);
+    VR_BN_free(d);
+    VR_BN_free(e);
+    VR_BN_free(f);
+    VR_BN_free(g);
+    VR_BN_free(h);
     return st;
 }
 
@@ -714,23 +714,23 @@ static int test_gf2m_sqr(void)
     BIGNUM *a = NULL, *b[2] = {NULL,NULL}, *c = NULL, *d = NULL;
     int i, j, st = 0;
 
-    if (!TEST_ptr(a = BN_new())
-            || !TEST_ptr(b[0] = BN_new())
-            || !TEST_ptr(b[1] = BN_new())
-            || !TEST_ptr(c = BN_new())
-            || !TEST_ptr(d = BN_new()))
+    if (!TEST_ptr(a = VR_BN_new())
+            || !TEST_ptr(b[0] = VR_BN_new())
+            || !TEST_ptr(b[1] = VR_BN_new())
+            || !TEST_ptr(c = VR_BN_new())
+            || !TEST_ptr(d = VR_BN_new()))
         goto err;
 
-    BN_GF2m_arr2poly(p0, b[0]);
-    BN_GF2m_arr2poly(p1, b[1]);
+    VR_BN_GF2m_arr2poly(p0, b[0]);
+    VR_BN_GF2m_arr2poly(p1, b[1]);
 
     for (i = 0; i < NUM0; i++) {
-        BN_bntest_rand(a, 1024, 0, 0);
+        VR_BN_bntest_rand(a, 1024, 0, 0);
         for (j = 0; j < 2; j++) {
-            BN_GF2m_mod_sqr(c, a, b[j], ctx);
-            BN_copy(d, a);
-            BN_GF2m_mod_mul(d, a, d, b[j], ctx);
-            BN_GF2m_add(d, c, d);
+            VR_BN_GF2m_mod_sqr(c, a, b[j], ctx);
+            VR_BN_copy(d, a);
+            VR_BN_GF2m_mod_mul(d, a, d, b[j], ctx);
+            VR_BN_GF2m_add(d, c, d);
             /* Test that a*a = a^2. */
             if (!TEST_BN_eq_zero(d))
                 goto err;
@@ -738,11 +738,11 @@ static int test_gf2m_sqr(void)
     }
     st = 1;
  err:
-    BN_free(a);
-    BN_free(b[0]);
-    BN_free(b[1]);
-    BN_free(c);
-    BN_free(d);
+    VR_BN_free(a);
+    VR_BN_free(b[0]);
+    VR_BN_free(b[1]);
+    VR_BN_free(c);
+    VR_BN_free(d);
     return st;
 }
 
@@ -751,21 +751,21 @@ static int test_gf2m_modinv(void)
     BIGNUM *a = NULL, *b[2] = {NULL,NULL}, *c = NULL, *d = NULL;
     int i, j, st = 0;
 
-    if (!TEST_ptr(a = BN_new())
-            || !TEST_ptr(b[0] = BN_new())
-            || !TEST_ptr(b[1] = BN_new())
-            || !TEST_ptr(c = BN_new())
-            || !TEST_ptr(d = BN_new()))
+    if (!TEST_ptr(a = VR_BN_new())
+            || !TEST_ptr(b[0] = VR_BN_new())
+            || !TEST_ptr(b[1] = VR_BN_new())
+            || !TEST_ptr(c = VR_BN_new())
+            || !TEST_ptr(d = VR_BN_new()))
         goto err;
 
-    BN_GF2m_arr2poly(p0, b[0]);
-    BN_GF2m_arr2poly(p1, b[1]);
+    VR_BN_GF2m_arr2poly(p0, b[0]);
+    VR_BN_GF2m_arr2poly(p1, b[1]);
 
     for (i = 0; i < NUM0; i++) {
-        BN_bntest_rand(a, 512, 0, 0);
+        VR_BN_bntest_rand(a, 512, 0, 0);
         for (j = 0; j < 2; j++) {
-            BN_GF2m_mod_inv(c, a, b[j], ctx);
-            BN_GF2m_mod_mul(d, a, c, b[j], ctx);
+            VR_BN_GF2m_mod_inv(c, a, b[j], ctx);
+            VR_BN_GF2m_mod_mul(d, a, c, b[j], ctx);
             /* Test that ((1/a)*a) = 1. */
             if (!TEST_BN_eq_one(d))
                 goto err;
@@ -773,11 +773,11 @@ static int test_gf2m_modinv(void)
     }
     st = 1;
  err:
-    BN_free(a);
-    BN_free(b[0]);
-    BN_free(b[1]);
-    BN_free(c);
-    BN_free(d);
+    VR_BN_free(a);
+    VR_BN_free(b[0]);
+    VR_BN_free(b[1]);
+    VR_BN_free(c);
+    VR_BN_free(d);
     return st;
 }
 
@@ -787,25 +787,25 @@ static int test_gf2m_moddiv(void)
     BIGNUM *e = NULL, *f = NULL;
     int i, j, st = 0;
 
-    if (!TEST_ptr(a = BN_new())
-            || !TEST_ptr(b[0] = BN_new())
-            || !TEST_ptr(b[1] = BN_new())
-            || !TEST_ptr(c = BN_new())
-            || !TEST_ptr(d = BN_new())
-            || !TEST_ptr(e = BN_new())
-            || !TEST_ptr(f = BN_new()))
+    if (!TEST_ptr(a = VR_BN_new())
+            || !TEST_ptr(b[0] = VR_BN_new())
+            || !TEST_ptr(b[1] = VR_BN_new())
+            || !TEST_ptr(c = VR_BN_new())
+            || !TEST_ptr(d = VR_BN_new())
+            || !TEST_ptr(e = VR_BN_new())
+            || !TEST_ptr(f = VR_BN_new()))
         goto err;
 
-    BN_GF2m_arr2poly(p0, b[0]);
-    BN_GF2m_arr2poly(p1, b[1]);
+    VR_BN_GF2m_arr2poly(p0, b[0]);
+    VR_BN_GF2m_arr2poly(p1, b[1]);
 
     for (i = 0; i < NUM0; i++) {
-        BN_bntest_rand(a, 512, 0, 0);
-        BN_bntest_rand(c, 512, 0, 0);
+        VR_BN_bntest_rand(a, 512, 0, 0);
+        VR_BN_bntest_rand(c, 512, 0, 0);
         for (j = 0; j < 2; j++) {
-            BN_GF2m_mod_div(d, a, c, b[j], ctx);
-            BN_GF2m_mod_mul(e, d, c, b[j], ctx);
-            BN_GF2m_mod_div(f, a, e, b[j], ctx);
+            VR_BN_GF2m_mod_div(d, a, c, b[j], ctx);
+            VR_BN_GF2m_mod_mul(e, d, c, b[j], ctx);
+            VR_BN_GF2m_mod_div(f, a, e, b[j], ctx);
             /* Test that ((a/c)*c)/a = 1. */
             if (!TEST_BN_eq_one(f))
                 goto err;
@@ -813,13 +813,13 @@ static int test_gf2m_moddiv(void)
     }
     st = 1;
  err:
-    BN_free(a);
-    BN_free(b[0]);
-    BN_free(b[1]);
-    BN_free(c);
-    BN_free(d);
-    BN_free(e);
-    BN_free(f);
+    VR_BN_free(a);
+    VR_BN_free(b[0]);
+    VR_BN_free(b[1]);
+    VR_BN_free(c);
+    VR_BN_free(d);
+    VR_BN_free(e);
+    VR_BN_free(f);
     return st;
 }
 
@@ -829,29 +829,29 @@ static int test_gf2m_modexp(void)
     BIGNUM *e = NULL, *f = NULL;
     int i, j, st = 0;
 
-    if (!TEST_ptr(a = BN_new())
-            || !TEST_ptr(b[0] = BN_new())
-            || !TEST_ptr(b[1] = BN_new())
-            || !TEST_ptr(c = BN_new())
-            || !TEST_ptr(d = BN_new())
-            || !TEST_ptr(e = BN_new())
-            || !TEST_ptr(f = BN_new()))
+    if (!TEST_ptr(a = VR_BN_new())
+            || !TEST_ptr(b[0] = VR_BN_new())
+            || !TEST_ptr(b[1] = VR_BN_new())
+            || !TEST_ptr(c = VR_BN_new())
+            || !TEST_ptr(d = VR_BN_new())
+            || !TEST_ptr(e = VR_BN_new())
+            || !TEST_ptr(f = VR_BN_new()))
         goto err;
 
-    BN_GF2m_arr2poly(p0, b[0]);
-    BN_GF2m_arr2poly(p1, b[1]);
+    VR_BN_GF2m_arr2poly(p0, b[0]);
+    VR_BN_GF2m_arr2poly(p1, b[1]);
 
     for (i = 0; i < NUM0; i++) {
-        BN_bntest_rand(a, 512, 0, 0);
-        BN_bntest_rand(c, 512, 0, 0);
-        BN_bntest_rand(d, 512, 0, 0);
+        VR_BN_bntest_rand(a, 512, 0, 0);
+        VR_BN_bntest_rand(c, 512, 0, 0);
+        VR_BN_bntest_rand(d, 512, 0, 0);
         for (j = 0; j < 2; j++) {
-            BN_GF2m_mod_exp(e, a, c, b[j], ctx);
-            BN_GF2m_mod_exp(f, a, d, b[j], ctx);
-            BN_GF2m_mod_mul(e, e, f, b[j], ctx);
-            BN_add(f, c, d);
-            BN_GF2m_mod_exp(f, a, f, b[j], ctx);
-            BN_GF2m_add(f, e, f);
+            VR_BN_GF2m_mod_exp(e, a, c, b[j], ctx);
+            VR_BN_GF2m_mod_exp(f, a, d, b[j], ctx);
+            VR_BN_GF2m_mod_mul(e, e, f, b[j], ctx);
+            VR_BN_add(f, c, d);
+            VR_BN_GF2m_mod_exp(f, a, f, b[j], ctx);
+            VR_BN_GF2m_add(f, e, f);
             /* Test that a^(c+d)=a^c*a^d. */
             if (!TEST_BN_eq_zero(f))
                 goto err;
@@ -859,13 +859,13 @@ static int test_gf2m_modexp(void)
     }
     st = 1;
  err:
-    BN_free(a);
-    BN_free(b[0]);
-    BN_free(b[1]);
-    BN_free(c);
-    BN_free(d);
-    BN_free(e);
-    BN_free(f);
+    VR_BN_free(a);
+    VR_BN_free(b[0]);
+    VR_BN_free(b[1]);
+    VR_BN_free(c);
+    VR_BN_free(d);
+    VR_BN_free(e);
+    VR_BN_free(f);
     return st;
 }
 
@@ -875,25 +875,25 @@ static int test_gf2m_modsqrt(void)
     BIGNUM *e = NULL, *f = NULL;
     int i, j, st = 0;
 
-    if (!TEST_ptr(a = BN_new())
-            || !TEST_ptr(b[0] = BN_new())
-            || !TEST_ptr(b[1] = BN_new())
-            || !TEST_ptr(c = BN_new())
-            || !TEST_ptr(d = BN_new())
-            || !TEST_ptr(e = BN_new())
-            || !TEST_ptr(f = BN_new()))
+    if (!TEST_ptr(a = VR_BN_new())
+            || !TEST_ptr(b[0] = VR_BN_new())
+            || !TEST_ptr(b[1] = VR_BN_new())
+            || !TEST_ptr(c = VR_BN_new())
+            || !TEST_ptr(d = VR_BN_new())
+            || !TEST_ptr(e = VR_BN_new())
+            || !TEST_ptr(f = VR_BN_new()))
         goto err;
 
-    BN_GF2m_arr2poly(p0, b[0]);
-    BN_GF2m_arr2poly(p1, b[1]);
+    VR_BN_GF2m_arr2poly(p0, b[0]);
+    VR_BN_GF2m_arr2poly(p1, b[1]);
 
     for (i = 0; i < NUM0; i++) {
-        BN_bntest_rand(a, 512, 0, 0);
+        VR_BN_bntest_rand(a, 512, 0, 0);
         for (j = 0; j < 2; j++) {
-            BN_GF2m_mod(c, a, b[j]);
-            BN_GF2m_mod_sqrt(d, a, b[j], ctx);
-            BN_GF2m_mod_sqr(e, d, b[j], ctx);
-            BN_GF2m_add(f, c, e);
+            VR_BN_GF2m_mod(c, a, b[j]);
+            VR_BN_GF2m_mod_sqrt(d, a, b[j], ctx);
+            VR_BN_GF2m_mod_sqr(e, d, b[j], ctx);
+            VR_BN_GF2m_add(f, c, e);
             /* Test that d^2 = a, where d = sqrt(a). */
             if (!TEST_BN_eq_zero(f))
                 goto err;
@@ -901,13 +901,13 @@ static int test_gf2m_modsqrt(void)
     }
     st = 1;
  err:
-    BN_free(a);
-    BN_free(b[0]);
-    BN_free(b[1]);
-    BN_free(c);
-    BN_free(d);
-    BN_free(e);
-    BN_free(f);
+    VR_BN_free(a);
+    VR_BN_free(b[0]);
+    VR_BN_free(b[1]);
+    VR_BN_free(c);
+    VR_BN_free(d);
+    VR_BN_free(e);
+    VR_BN_free(f);
     return st;
 }
 
@@ -917,27 +917,27 @@ static int test_gf2m_modsolvequad(void)
     BIGNUM *e = NULL;
     int i, j, s = 0, t, st = 0;
 
-    if (!TEST_ptr(a = BN_new())
-            || !TEST_ptr(b[0] = BN_new())
-            || !TEST_ptr(b[1] = BN_new())
-            || !TEST_ptr(c = BN_new())
-            || !TEST_ptr(d = BN_new())
-            || !TEST_ptr(e = BN_new()))
+    if (!TEST_ptr(a = VR_BN_new())
+            || !TEST_ptr(b[0] = VR_BN_new())
+            || !TEST_ptr(b[1] = VR_BN_new())
+            || !TEST_ptr(c = VR_BN_new())
+            || !TEST_ptr(d = VR_BN_new())
+            || !TEST_ptr(e = VR_BN_new()))
         goto err;
 
-    BN_GF2m_arr2poly(p0, b[0]);
-    BN_GF2m_arr2poly(p1, b[1]);
+    VR_BN_GF2m_arr2poly(p0, b[0]);
+    VR_BN_GF2m_arr2poly(p1, b[1]);
 
     for (i = 0; i < NUM0; i++) {
-        BN_bntest_rand(a, 512, 0, 0);
+        VR_BN_bntest_rand(a, 512, 0, 0);
         for (j = 0; j < 2; j++) {
-            t = BN_GF2m_mod_solve_quad(c, a, b[j], ctx);
+            t = VR_BN_GF2m_mod_solve_quad(c, a, b[j], ctx);
             if (t) {
                 s++;
-                BN_GF2m_mod_sqr(d, c, b[j], ctx);
-                BN_GF2m_add(d, c, d);
-                BN_GF2m_mod(e, a, b[j]);
-                BN_GF2m_add(e, e, d);
+                VR_BN_GF2m_mod_sqr(d, c, b[j], ctx);
+                VR_BN_GF2m_add(d, c, d);
+                VR_BN_GF2m_mod(e, a, b[j]);
+                VR_BN_GF2m_add(e, e, d);
                 /*
                  * Test that solution of quadratic c satisfies c^2 + c = a.
                  */
@@ -952,12 +952,12 @@ static int test_gf2m_modsolvequad(void)
     }
     st = 1;
  err:
-    BN_free(a);
-    BN_free(b[0]);
-    BN_free(b[1]);
-    BN_free(c);
-    BN_free(d);
-    BN_free(e);
+    VR_BN_free(a);
+    VR_BN_free(b[0]);
+    VR_BN_free(b[1]);
+    VR_BN_free(c);
+    VR_BN_free(d);
+    VR_BN_free(e);
     return st;
 }
 #endif
@@ -967,64 +967,64 @@ static int test_kronecker(void)
     BIGNUM *a = NULL, *b = NULL, *r = NULL, *t = NULL;
     int i, legendre, kronecker, st = 0;
 
-    if (!TEST_ptr(a = BN_new())
-            || !TEST_ptr(b = BN_new())
-            || !TEST_ptr(r = BN_new())
-            || !TEST_ptr(t = BN_new()))
+    if (!TEST_ptr(a = VR_BN_new())
+            || !TEST_ptr(b = VR_BN_new())
+            || !TEST_ptr(r = VR_BN_new())
+            || !TEST_ptr(t = VR_BN_new()))
         goto err;
 
     /*
-     * We test BN_kronecker(a, b, ctx) just for b odd (Jacobi symbol). In
-     * this case we know that if b is prime, then BN_kronecker(a, b, ctx) is
+     * We test VR_BN_kronecker(a, b, ctx) just for b odd (Jacobi symbol). In
+     * this case we know that if b is prime, then VR_BN_kronecker(a, b, ctx) is
      * congruent to $a^{(b-1)/2}$, modulo $b$ (Legendre symbol). So we
      * generate a random prime b and compare these values for a number of
      * random a's.  (That is, we run the Solovay-Strassen primality test to
      * confirm that b is prime, except that we don't want to test whether b
-     * is prime but whether BN_kronecker works.)
+     * is prime but whether VR_BN_kronecker works.)
      */
 
-    if (!TEST_true(BN_generate_prime_ex(b, 512, 0, NULL, NULL, NULL)))
+    if (!TEST_true(VR_BN_generate_prime_ex(b, 512, 0, NULL, NULL, NULL)))
         goto err;
-    BN_set_negative(b, rand_neg());
+    VR_BN_set_negative(b, rand_neg());
 
     for (i = 0; i < NUM0; i++) {
-        if (!TEST_true(BN_bntest_rand(a, 512, 0, 0)))
+        if (!TEST_true(VR_BN_bntest_rand(a, 512, 0, 0)))
             goto err;
-        BN_set_negative(a, rand_neg());
+        VR_BN_set_negative(a, rand_neg());
 
         /* t := (|b|-1)/2  (note that b is odd) */
-        if (!TEST_true(BN_copy(t, b)))
+        if (!TEST_true(VR_BN_copy(t, b)))
             goto err;
-        BN_set_negative(t, 0);
-        if (!TEST_true(BN_sub_word(t, 1)))
+        VR_BN_set_negative(t, 0);
+        if (!TEST_true(VR_BN_sub_word(t, 1)))
             goto err;
-        if (!TEST_true(BN_rshift1(t, t)))
+        if (!TEST_true(VR_BN_rshift1(t, t)))
             goto err;
         /* r := a^t mod b */
-        BN_set_negative(b, 0);
+        VR_BN_set_negative(b, 0);
 
-        if (!TEST_true(BN_mod_exp_recp(r, a, t, b, ctx)))
+        if (!TEST_true(VR_BN_mod_exp_recp(r, a, t, b, ctx)))
             goto err;
-        BN_set_negative(b, 1);
+        VR_BN_set_negative(b, 1);
 
-        if (BN_is_word(r, 1))
+        if (VR_BN_is_word(r, 1))
             legendre = 1;
-        else if (BN_is_zero(r))
+        else if (VR_BN_is_zero(r))
             legendre = 0;
         else {
-            if (!TEST_true(BN_add_word(r, 1)))
+            if (!TEST_true(VR_BN_add_word(r, 1)))
                 goto err;
-            if (!TEST_int_eq(BN_ucmp(r, b), 0)) {
+            if (!TEST_int_eq(VR_BN_ucmp(r, b), 0)) {
                 TEST_info("Legendre symbol computation failed");
                 goto err;
             }
             legendre = -1;
         }
 
-        if (!TEST_int_ge(kronecker = BN_kronecker(a, b, ctx), -1))
+        if (!TEST_int_ge(kronecker = VR_BN_kronecker(a, b, ctx), -1))
             goto err;
-        /* we actually need BN_kronecker(a, |b|) */
-        if (BN_is_negative(a) && BN_is_negative(b))
+        /* we actually need VR_BN_kronecker(a, |b|) */
+        if (VR_BN_is_negative(a) && VR_BN_is_negative(b))
             kronecker = -kronecker;
 
         if (!TEST_int_eq(legendre, kronecker))
@@ -1033,10 +1033,10 @@ static int test_kronecker(void)
 
     st = 1;
  err:
-    BN_free(a);
-    BN_free(b);
-    BN_free(r);
-    BN_free(t);
+    VR_BN_free(a);
+    VR_BN_free(b);
+    VR_BN_free(r);
+    VR_BN_free(t);
     return st;
 }
 
@@ -1049,14 +1049,14 @@ static int file_sum(STANZA *s)
     if (!TEST_ptr(a = getBN(s, "A"))
             || !TEST_ptr(b = getBN(s, "B"))
             || !TEST_ptr(sum = getBN(s, "Sum"))
-            || !TEST_ptr(ret = BN_new()))
+            || !TEST_ptr(ret = VR_BN_new()))
         goto err;
 
-    if (!TEST_true(BN_add(ret, a, b))
+    if (!TEST_true(VR_BN_add(ret, a, b))
             || !equalBN("A + B", sum, ret)
-            || !TEST_true(BN_sub(ret, sum, a))
+            || !TEST_true(VR_BN_sub(ret, sum, a))
             || !equalBN("Sum - A", b, ret)
-            || !TEST_true(BN_sub(ret, sum, b))
+            || !TEST_true(VR_BN_sub(ret, sum, b))
             || !equalBN("Sum - B", a, ret))
         goto err;
 
@@ -1065,39 +1065,39 @@ static int file_sum(STANZA *s)
      * or when |r| and |b| point to the same BIGNUM.
      * TODO: Test where all of |r|, |a|, and |b| point to the same BIGNUM.
      */
-    if (!TEST_true(BN_copy(ret, a))
-            || !TEST_true(BN_add(ret, ret, b))
+    if (!TEST_true(VR_BN_copy(ret, a))
+            || !TEST_true(VR_BN_add(ret, ret, b))
             || !equalBN("A + B (r is a)", sum, ret)
-            || !TEST_true(BN_copy(ret, b))
-            || !TEST_true(BN_add(ret, a, ret))
+            || !TEST_true(VR_BN_copy(ret, b))
+            || !TEST_true(VR_BN_add(ret, a, ret))
             || !equalBN("A + B (r is b)", sum, ret)
-            || !TEST_true(BN_copy(ret, sum))
-            || !TEST_true(BN_sub(ret, ret, a))
+            || !TEST_true(VR_BN_copy(ret, sum))
+            || !TEST_true(VR_BN_sub(ret, ret, a))
             || !equalBN("Sum - A (r is a)", b, ret)
-            || !TEST_true(BN_copy(ret, a))
-            || !TEST_true(BN_sub(ret, sum, ret))
+            || !TEST_true(VR_BN_copy(ret, a))
+            || !TEST_true(VR_BN_sub(ret, sum, ret))
             || !equalBN("Sum - A (r is b)", b, ret)
-            || !TEST_true(BN_copy(ret, sum))
-            || !TEST_true(BN_sub(ret, ret, b))
+            || !TEST_true(VR_BN_copy(ret, sum))
+            || !TEST_true(VR_BN_sub(ret, ret, b))
             || !equalBN("Sum - B (r is a)", a, ret)
-            || !TEST_true(BN_copy(ret, b))
-            || !TEST_true(BN_sub(ret, sum, ret))
+            || !TEST_true(VR_BN_copy(ret, b))
+            || !TEST_true(VR_BN_sub(ret, sum, ret))
             || !equalBN("Sum - B (r is b)", a, ret))
         goto err;
 
     /*
-     * Test BN_uadd() and BN_usub() with the prerequisites they are
+     * Test VR_BN_uadd() and VR_BN_usub() with the prerequisites they are
      * documented as having. Note that these functions are frequently used
      * when the prerequisites don't hold. In those cases, they are supposed
      * to work as if the prerequisite hold, but we don't test that yet.
      * TODO: test that.
      */
-    if (!BN_is_negative(a) && !BN_is_negative(b) && BN_cmp(a, b) >= 0) {
-        if (!TEST_true(BN_uadd(ret, a, b))
+    if (!VR_BN_is_negative(a) && !VR_BN_is_negative(b) && VR_BN_cmp(a, b) >= 0) {
+        if (!TEST_true(VR_BN_uadd(ret, a, b))
                 || !equalBN("A +u B", sum, ret)
-                || !TEST_true(BN_usub(ret, sum, a))
+                || !TEST_true(VR_BN_usub(ret, sum, a))
                 || !equalBN("Sum -u A", b, ret)
-                || !TEST_true(BN_usub(ret, sum, b))
+                || !TEST_true(VR_BN_usub(ret, sum, b))
                 || !equalBN("Sum -u B", a, ret))
             goto err;
         /*
@@ -1105,47 +1105,47 @@ static int file_sum(STANZA *s)
          * BIGNUM, or when |r| and |b| point to the same BIGNUM.
          * TODO: Test where all of |r|, |a|, and |b| point to the same BIGNUM.
          */
-        if (!TEST_true(BN_copy(ret, a))
-                || !TEST_true(BN_uadd(ret, ret, b))
+        if (!TEST_true(VR_BN_copy(ret, a))
+                || !TEST_true(VR_BN_uadd(ret, ret, b))
                 || !equalBN("A +u B (r is a)", sum, ret)
-                || !TEST_true(BN_copy(ret, b))
-                || !TEST_true(BN_uadd(ret, a, ret))
+                || !TEST_true(VR_BN_copy(ret, b))
+                || !TEST_true(VR_BN_uadd(ret, a, ret))
                 || !equalBN("A +u B (r is b)", sum, ret)
-                || !TEST_true(BN_copy(ret, sum))
-                || !TEST_true(BN_usub(ret, ret, a))
+                || !TEST_true(VR_BN_copy(ret, sum))
+                || !TEST_true(VR_BN_usub(ret, ret, a))
                 || !equalBN("Sum -u A (r is a)", b, ret)
-                || !TEST_true(BN_copy(ret, a))
-                || !TEST_true(BN_usub(ret, sum, ret))
+                || !TEST_true(VR_BN_copy(ret, a))
+                || !TEST_true(VR_BN_usub(ret, sum, ret))
                 || !equalBN("Sum -u A (r is b)", b, ret)
-                || !TEST_true(BN_copy(ret, sum))
-                || !TEST_true(BN_usub(ret, ret, b))
+                || !TEST_true(VR_BN_copy(ret, sum))
+                || !TEST_true(VR_BN_usub(ret, ret, b))
                 || !equalBN("Sum -u B (r is a)", a, ret)
-                || !TEST_true(BN_copy(ret, b))
-                || !TEST_true(BN_usub(ret, sum, ret))
+                || !TEST_true(VR_BN_copy(ret, b))
+                || !TEST_true(VR_BN_usub(ret, sum, ret))
                 || !equalBN("Sum -u B (r is b)", a, ret))
             goto err;
     }
 
     /*
-     * Test with BN_add_word() and BN_sub_word() if |b| is small enough.
+     * Test with VR_BN_add_word() and VR_BN_sub_word() if |b| is small enough.
      */
-    b_word = BN_get_word(b);
-    if (!BN_is_negative(b) && b_word != (BN_ULONG)-1) {
-        if (!TEST_true(BN_copy(ret, a))
-                || !TEST_true(BN_add_word(ret, b_word))
+    b_word = VR_BN_get_word(b);
+    if (!VR_BN_is_negative(b) && b_word != (BN_ULONG)-1) {
+        if (!TEST_true(VR_BN_copy(ret, a))
+                || !TEST_true(VR_BN_add_word(ret, b_word))
                 || !equalBN("A + B (word)", sum, ret)
-                || !TEST_true(BN_copy(ret, sum))
-                || !TEST_true(BN_sub_word(ret, b_word))
+                || !TEST_true(VR_BN_copy(ret, sum))
+                || !TEST_true(VR_BN_sub_word(ret, b_word))
                 || !equalBN("Sum - B (word)", a, ret))
             goto err;
     }
     st = 1;
 
 err:
-    BN_free(a);
-    BN_free(b);
-    BN_free(sum);
-    BN_free(ret);
+    VR_BN_free(a);
+    VR_BN_free(b);
+    VR_BN_free(sum);
+    VR_BN_free(ret);
     return st;
 }
 
@@ -1157,46 +1157,46 @@ static int file_lshift1(STANZA *s)
 
     if (!TEST_ptr(a = getBN(s, "A"))
             || !TEST_ptr(lshift1 = getBN(s, "LShift1"))
-            || !TEST_ptr(zero = BN_new())
-            || !TEST_ptr(ret = BN_new())
-            || !TEST_ptr(two = BN_new())
-            || !TEST_ptr(remainder = BN_new()))
+            || !TEST_ptr(zero = VR_BN_new())
+            || !TEST_ptr(ret = VR_BN_new())
+            || !TEST_ptr(two = VR_BN_new())
+            || !TEST_ptr(remainder = VR_BN_new()))
         goto err;
 
     BN_zero(zero);
 
-    if (!TEST_true(BN_set_word(two, 2))
-            || !TEST_true(BN_add(ret, a, a))
+    if (!TEST_true(VR_BN_set_word(two, 2))
+            || !TEST_true(VR_BN_add(ret, a, a))
             || !equalBN("A + A", lshift1, ret)
-            || !TEST_true(BN_mul(ret, a, two, ctx))
+            || !TEST_true(VR_BN_mul(ret, a, two, ctx))
             || !equalBN("A * 2", lshift1, ret)
-            || !TEST_true(BN_div(ret, remainder, lshift1, two, ctx))
+            || !TEST_true(VR_BN_div(ret, remainder, lshift1, two, ctx))
             || !equalBN("LShift1 / 2", a, ret)
             || !equalBN("LShift1 % 2", zero, remainder)
-            || !TEST_true(BN_lshift1(ret, a))
+            || !TEST_true(VR_BN_lshift1(ret, a))
             || !equalBN("A << 1", lshift1, ret)
-            || !TEST_true(BN_rshift1(ret, lshift1))
+            || !TEST_true(VR_BN_rshift1(ret, lshift1))
             || !equalBN("LShift >> 1", a, ret)
-            || !TEST_true(BN_rshift1(ret, lshift1))
+            || !TEST_true(VR_BN_rshift1(ret, lshift1))
             || !equalBN("LShift >> 1", a, ret))
         goto err;
 
     /* Set the LSB to 1 and test rshift1 again. */
-    if (!TEST_true(BN_set_bit(lshift1, 0))
-            || !TEST_true(BN_div(ret, NULL /* rem */ , lshift1, two, ctx))
+    if (!TEST_true(VR_BN_set_bit(lshift1, 0))
+            || !TEST_true(VR_BN_div(ret, NULL /* rem */ , lshift1, two, ctx))
             || !equalBN("(LShift1 | 1) / 2", a, ret)
-            || !TEST_true(BN_rshift1(ret, lshift1))
+            || !TEST_true(VR_BN_rshift1(ret, lshift1))
             || !equalBN("(LShift | 1) >> 1", a, ret))
         goto err;
 
     st = 1;
 err:
-    BN_free(a);
-    BN_free(lshift1);
-    BN_free(zero);
-    BN_free(ret);
-    BN_free(two);
-    BN_free(remainder);
+    VR_BN_free(a);
+    VR_BN_free(lshift1);
+    VR_BN_free(zero);
+    VR_BN_free(ret);
+    VR_BN_free(two);
+    VR_BN_free(remainder);
 
     return st;
 }
@@ -1208,21 +1208,21 @@ static int file_lshift(STANZA *s)
 
     if (!TEST_ptr(a = getBN(s, "A"))
             || !TEST_ptr(lshift = getBN(s, "LShift"))
-            || !TEST_ptr(ret = BN_new())
+            || !TEST_ptr(ret = VR_BN_new())
             || !getint(s, &n, "N"))
         goto err;
 
-    if (!TEST_true(BN_lshift(ret, a, n))
+    if (!TEST_true(VR_BN_lshift(ret, a, n))
             || !equalBN("A << N", lshift, ret)
-            || !TEST_true(BN_rshift(ret, lshift, n))
+            || !TEST_true(VR_BN_rshift(ret, lshift, n))
             || !equalBN("A >> N", a, ret))
         goto err;
 
     st = 1;
 err:
-    BN_free(a);
-    BN_free(lshift);
-    BN_free(ret);
+    VR_BN_free(a);
+    VR_BN_free(lshift);
+    VR_BN_free(ret);
     return st;
 }
 
@@ -1233,26 +1233,26 @@ static int file_rshift(STANZA *s)
 
     if (!TEST_ptr(a = getBN(s, "A"))
             || !TEST_ptr(rshift = getBN(s, "RShift"))
-            || !TEST_ptr(ret = BN_new())
+            || !TEST_ptr(ret = VR_BN_new())
             || !getint(s, &n, "N"))
         goto err;
 
-    if (!TEST_true(BN_rshift(ret, a, n))
+    if (!TEST_true(VR_BN_rshift(ret, a, n))
             || !equalBN("A >> N", rshift, ret))
         goto err;
 
     /* If N == 1, try with rshift1 as well */
     if (n == 1) {
-        if (!TEST_true(BN_rshift1(ret, a))
+        if (!TEST_true(VR_BN_rshift1(ret, a))
                 || !equalBN("A >> 1 (rshift1)", rshift, ret))
             goto err;
     }
     st = 1;
 
 err:
-    BN_free(a);
-    BN_free(rshift);
-    BN_free(ret);
+    VR_BN_free(a);
+    VR_BN_free(rshift);
+    VR_BN_free(ret);
     return st;
 }
 
@@ -1264,55 +1264,55 @@ static int file_square(STANZA *s)
 
     if (!TEST_ptr(a = getBN(s, "A"))
             || !TEST_ptr(square = getBN(s, "Square"))
-            || !TEST_ptr(zero = BN_new())
-            || !TEST_ptr(ret = BN_new())
-            || !TEST_ptr(remainder = BN_new()))
+            || !TEST_ptr(zero = VR_BN_new())
+            || !TEST_ptr(ret = VR_BN_new())
+            || !TEST_ptr(remainder = VR_BN_new()))
         goto err;
 
     BN_zero(zero);
-    if (!TEST_true(BN_sqr(ret, a, ctx))
+    if (!TEST_true(VR_BN_sqr(ret, a, ctx))
             || !equalBN("A^2", square, ret)
-            || !TEST_true(BN_mul(ret, a, a, ctx))
+            || !TEST_true(VR_BN_mul(ret, a, a, ctx))
             || !equalBN("A * A", square, ret)
-            || !TEST_true(BN_div(ret, remainder, square, a, ctx))
+            || !TEST_true(VR_BN_div(ret, remainder, square, a, ctx))
             || !equalBN("Square / A", a, ret)
             || !equalBN("Square % A", zero, remainder))
         goto err;
 
 #if HAVE_BN_SQRT
-    BN_set_negative(a, 0);
-    if (!TEST_true(BN_sqrt(ret, square, ctx))
+    VR_BN_set_negative(a, 0);
+    if (!TEST_true(VR_BN_sqrt(ret, square, ctx))
             || !equalBN("sqrt(Square)", a, ret))
         goto err;
 
-    /* BN_sqrt should fail on non-squares and negative numbers. */
+    /* VR_BN_sqrt should fail on non-squares and negative numbers. */
     if (!TEST_BN_eq_zero(square)) {
-        if (!TEST_ptr(tmp = BN_new())
-                || !TEST_true(BN_copy(tmp, square)))
+        if (!TEST_ptr(tmp = VR_BN_new())
+                || !TEST_true(VR_BN_copy(tmp, square)))
             goto err;
-        BN_set_negative(tmp, 1);
+        VR_BN_set_negative(tmp, 1);
 
-        if (!TEST_int_eq(BN_sqrt(ret, tmp, ctx), 0))
+        if (!TEST_int_eq(VR_BN_sqrt(ret, tmp, ctx), 0))
             goto err;
-        ERR_clear_error();
+        VR_ERR_clear_error();
 
-        BN_set_negative(tmp, 0);
-        if (BN_add(tmp, tmp, BN_value_one()))
+        VR_BN_set_negative(tmp, 0);
+        if (VR_BN_add(tmp, tmp, VR_BN_value_one()))
             goto err;
-        if (!TEST_int_eq(BN_sqrt(ret, tmp, ctx)))
+        if (!TEST_int_eq(VR_BN_sqrt(ret, tmp, ctx)))
             goto err;
-        ERR_clear_error();
+        VR_ERR_clear_error();
     }
 #endif
 
     st = 1;
 err:
-    BN_free(a);
-    BN_free(square);
-    BN_free(zero);
-    BN_free(ret);
-    BN_free(remainder);
-    BN_free(tmp);
+    VR_BN_free(a);
+    VR_BN_free(square);
+    VR_BN_free(zero);
+    VR_BN_free(ret);
+    VR_BN_free(remainder);
+    VR_BN_free(tmp);
     return st;
 }
 
@@ -1325,31 +1325,31 @@ static int file_product(STANZA *s)
     if (!TEST_ptr(a = getBN(s, "A"))
             || !TEST_ptr(b = getBN(s, "B"))
             || !TEST_ptr(product = getBN(s, "Product"))
-            || !TEST_ptr(ret = BN_new())
-            || !TEST_ptr(remainder = BN_new())
-            || !TEST_ptr(zero = BN_new()))
+            || !TEST_ptr(ret = VR_BN_new())
+            || !TEST_ptr(remainder = VR_BN_new())
+            || !TEST_ptr(zero = VR_BN_new()))
         goto err;
 
     BN_zero(zero);
 
-    if (!TEST_true(BN_mul(ret, a, b, ctx))
+    if (!TEST_true(VR_BN_mul(ret, a, b, ctx))
             || !equalBN("A * B", product, ret)
-            || !TEST_true(BN_div(ret, remainder, product, a, ctx))
+            || !TEST_true(VR_BN_div(ret, remainder, product, a, ctx))
             || !equalBN("Product / A", b, ret)
             || !equalBN("Product % A", zero, remainder)
-            || !TEST_true(BN_div(ret, remainder, product, b, ctx))
+            || !TEST_true(VR_BN_div(ret, remainder, product, b, ctx))
             || !equalBN("Product / B", a, ret)
             || !equalBN("Product % B", zero, remainder))
         goto err;
 
     st = 1;
 err:
-    BN_free(a);
-    BN_free(b);
-    BN_free(product);
-    BN_free(ret);
-    BN_free(remainder);
-    BN_free(zero);
+    VR_BN_free(a);
+    VR_BN_free(b);
+    VR_BN_free(product);
+    VR_BN_free(ret);
+    VR_BN_free(remainder);
+    VR_BN_free(zero);
     return st;
 }
 
@@ -1364,31 +1364,31 @@ static int file_quotient(STANZA *s)
             || !TEST_ptr(b = getBN(s, "B"))
             || !TEST_ptr(quotient = getBN(s, "Quotient"))
             || !TEST_ptr(remainder = getBN(s, "Remainder"))
-            || !TEST_ptr(ret = BN_new())
-            || !TEST_ptr(ret2 = BN_new())
-            || !TEST_ptr(nnmod = BN_new()))
+            || !TEST_ptr(ret = VR_BN_new())
+            || !TEST_ptr(ret2 = VR_BN_new())
+            || !TEST_ptr(nnmod = VR_BN_new()))
         goto err;
 
-    if (!TEST_true(BN_div(ret, ret2, a, b, ctx))
+    if (!TEST_true(VR_BN_div(ret, ret2, a, b, ctx))
             || !equalBN("A / B", quotient, ret)
             || !equalBN("A % B", remainder, ret2)
-            || !TEST_true(BN_mul(ret, quotient, b, ctx))
-            || !TEST_true(BN_add(ret, ret, remainder))
+            || !TEST_true(VR_BN_mul(ret, quotient, b, ctx))
+            || !TEST_true(VR_BN_add(ret, ret, remainder))
             || !equalBN("Quotient * B + Remainder", a, ret))
         goto err;
 
     /*
-     * Test with BN_mod_word() and BN_div_word() if the divisor is
+     * Test with VR_BN_mod_word() and VR_BN_div_word() if the divisor is
      * small enough.
      */
-    b_word = BN_get_word(b);
-    if (!BN_is_negative(b) && b_word != (BN_ULONG)-1) {
-        BN_ULONG remainder_word = BN_get_word(remainder);
+    b_word = VR_BN_get_word(b);
+    if (!VR_BN_is_negative(b) && b_word != (BN_ULONG)-1) {
+        BN_ULONG remainder_word = VR_BN_get_word(remainder);
 
         assert(remainder_word != (BN_ULONG)-1);
-        if (!TEST_ptr(BN_copy(ret, a)))
+        if (!TEST_ptr(VR_BN_copy(ret, a)))
             goto err;
-        ret_word = BN_div_word(ret, b_word);
+        ret_word = VR_BN_div_word(ret, b_word);
         if (ret_word != remainder_word) {
 #ifdef BN_DEC_FMT1
             TEST_error(
@@ -1402,7 +1402,7 @@ static int file_quotient(STANZA *s)
         if (!equalBN ("A / B (word)", quotient, ret))
             goto err;
 
-        ret_word = BN_mod_word(a, b_word);
+        ret_word = VR_BN_mod_word(a, b_word);
         if (ret_word != remainder_word) {
 #ifdef BN_DEC_FMT1
             TEST_error(
@@ -1415,25 +1415,25 @@ static int file_quotient(STANZA *s)
         }
     }
 
-    /* Test BN_nnmod. */
-    if (!BN_is_negative(b)) {
-        if (!TEST_true(BN_copy(nnmod, remainder))
-                || (BN_is_negative(nnmod)
-                        && !TEST_true(BN_add(nnmod, nnmod, b)))
-                || !TEST_true(BN_nnmod(ret, a, b, ctx))
+    /* Test VR_BN_nnmod. */
+    if (!VR_BN_is_negative(b)) {
+        if (!TEST_true(VR_BN_copy(nnmod, remainder))
+                || (VR_BN_is_negative(nnmod)
+                        && !TEST_true(VR_BN_add(nnmod, nnmod, b)))
+                || !TEST_true(VR_BN_nnmod(ret, a, b, ctx))
                 || !equalBN("A % B (non-negative)", nnmod, ret))
             goto err;
     }
 
     st = 1;
 err:
-    BN_free(a);
-    BN_free(b);
-    BN_free(quotient);
-    BN_free(remainder);
-    BN_free(ret);
-    BN_free(ret2);
-    BN_free(nnmod);
+    VR_BN_free(a);
+    VR_BN_free(b);
+    VR_BN_free(quotient);
+    VR_BN_free(remainder);
+    VR_BN_free(ret);
+    VR_BN_free(ret2);
+    VR_BN_free(nnmod);
     return st;
 }
 
@@ -1446,46 +1446,46 @@ static int file_modmul(STANZA *s)
             || !TEST_ptr(b = getBN(s, "B"))
             || !TEST_ptr(m = getBN(s, "M"))
             || !TEST_ptr(mod_mul = getBN(s, "ModMul"))
-            || !TEST_ptr(ret = BN_new()))
+            || !TEST_ptr(ret = VR_BN_new()))
         goto err;
 
-    if (!TEST_true(BN_mod_mul(ret, a, b, m, ctx))
+    if (!TEST_true(VR_BN_mod_mul(ret, a, b, m, ctx))
             || !equalBN("A * B (mod M)", mod_mul, ret))
         goto err;
 
-    if (BN_is_odd(m)) {
+    if (VR_BN_is_odd(m)) {
         /* Reduce |a| and |b| and test the Montgomery version. */
-        BN_MONT_CTX *mont = BN_MONT_CTX_new();
-        BIGNUM *a_tmp = BN_new();
-        BIGNUM *b_tmp = BN_new();
+        BN_MONT_CTX *mont = VR_BN_MONT_CTX_new();
+        BIGNUM *a_tmp = VR_BN_new();
+        BIGNUM *b_tmp = VR_BN_new();
 
         if (mont == NULL || a_tmp == NULL || b_tmp == NULL
-                || !TEST_true(BN_MONT_CTX_set(mont, m, ctx))
-                || !TEST_true(BN_nnmod(a_tmp, a, m, ctx))
-                || !TEST_true(BN_nnmod(b_tmp, b, m, ctx))
-                || !TEST_true(BN_to_montgomery(a_tmp, a_tmp, mont, ctx))
-                || !TEST_true(BN_to_montgomery(b_tmp, b_tmp, mont, ctx))
-                || !TEST_true(BN_mod_mul_montgomery(ret, a_tmp, b_tmp,
+                || !TEST_true(VR_BN_MONT_CTX_set(mont, m, ctx))
+                || !TEST_true(VR_BN_nnmod(a_tmp, a, m, ctx))
+                || !TEST_true(VR_BN_nnmod(b_tmp, b, m, ctx))
+                || !TEST_true(VR_BN_to_montgomery(a_tmp, a_tmp, mont, ctx))
+                || !TEST_true(VR_BN_to_montgomery(b_tmp, b_tmp, mont, ctx))
+                || !TEST_true(VR_BN_mod_mul_montgomery(ret, a_tmp, b_tmp,
                                                     mont, ctx))
-                || !TEST_true(BN_from_montgomery(ret, ret, mont, ctx))
+                || !TEST_true(VR_BN_from_montgomery(ret, ret, mont, ctx))
                 || !equalBN("A * B (mod M) (mont)", mod_mul, ret))
             st = 0;
         else
             st = 1;
-        BN_MONT_CTX_free(mont);
-        BN_free(a_tmp);
-        BN_free(b_tmp);
+        VR_BN_MONT_CTX_free(mont);
+        VR_BN_free(a_tmp);
+        VR_BN_free(b_tmp);
         if (st == 0)
             goto err;
     }
 
     st = 1;
 err:
-    BN_free(a);
-    BN_free(b);
-    BN_free(m);
-    BN_free(mod_mul);
-    BN_free(ret);
+    VR_BN_free(a);
+    VR_BN_free(b);
+    VR_BN_free(m);
+    VR_BN_free(mod_mul);
+    VR_BN_free(ret);
     return st;
 }
 
@@ -1499,48 +1499,48 @@ static int file_modexp(STANZA *s)
             || !TEST_ptr(e = getBN(s, "E"))
             || !TEST_ptr(m = getBN(s, "M"))
             || !TEST_ptr(mod_exp = getBN(s, "ModExp"))
-            || !TEST_ptr(ret = BN_new())
-            || !TEST_ptr(d = BN_new()))
+            || !TEST_ptr(ret = VR_BN_new())
+            || !TEST_ptr(d = VR_BN_new()))
         goto err;
 
-    if (!TEST_true(BN_mod_exp(ret, a, e, m, ctx))
+    if (!TEST_true(VR_BN_mod_exp(ret, a, e, m, ctx))
             || !equalBN("A ^ E (mod M)", mod_exp, ret))
         goto err;
 
-    if (BN_is_odd(m)) {
-        if (!TEST_true(BN_mod_exp_mont(ret, a, e, m, ctx, NULL))
+    if (VR_BN_is_odd(m)) {
+        if (!TEST_true(VR_BN_mod_exp_mont(ret, a, e, m, ctx, NULL))
                 || !equalBN("A ^ E (mod M) (mont)", mod_exp, ret)
-                || !TEST_true(BN_mod_exp_mont_consttime(ret, a, e, m,
+                || !TEST_true(VR_BN_mod_exp_mont_consttime(ret, a, e, m,
                                                         ctx, NULL))
                 || !equalBN("A ^ E (mod M) (mont const", mod_exp, ret))
             goto err;
     }
 
     /* Regression test for carry propagation bug in sqr8x_reduction */
-    BN_hex2bn(&a, "050505050505");
-    BN_hex2bn(&b, "02");
-    BN_hex2bn(&c,
+    VR_BN_hex2bn(&a, "050505050505");
+    VR_BN_hex2bn(&b, "02");
+    VR_BN_hex2bn(&c,
         "4141414141414141414141274141414141414141414141414141414141414141"
         "4141414141414141414141414141414141414141414141414141414141414141"
         "4141414141414141414141800000000000000000000000000000000000000000"
         "0000000000000000000000000000000000000000000000000000000000000000"
         "0000000000000000000000000000000000000000000000000000000000000000"
         "0000000000000000000000000000000000000000000000000000000001");
-    if (!TEST_true(BN_mod_exp(d, a, b, c, ctx))
-        || !TEST_true(BN_mul(e, a, a, ctx))
+    if (!TEST_true(VR_BN_mod_exp(d, a, b, c, ctx))
+        || !TEST_true(VR_BN_mul(e, a, a, ctx))
         || !TEST_BN_eq(d, e))
         goto err;
 
     st = 1;
 err:
-    BN_free(a);
-    BN_free(b);
-    BN_free(c);
-    BN_free(d);
-    BN_free(e);
-    BN_free(m);
-    BN_free(mod_exp);
-    BN_free(ret);
+    VR_BN_free(a);
+    VR_BN_free(b);
+    VR_BN_free(c);
+    VR_BN_free(d);
+    VR_BN_free(e);
+    VR_BN_free(m);
+    VR_BN_free(mod_exp);
+    VR_BN_free(ret);
     return st;
 }
 
@@ -1552,19 +1552,19 @@ static int file_exp(STANZA *s)
     if (!TEST_ptr(a = getBN(s, "A"))
             || !TEST_ptr(e = getBN(s, "E"))
             || !TEST_ptr(exp = getBN(s, "Exp"))
-            || !TEST_ptr(ret = BN_new()))
+            || !TEST_ptr(ret = VR_BN_new()))
         goto err;
 
-    if (!TEST_true(BN_exp(ret, a, e, ctx))
+    if (!TEST_true(VR_BN_exp(ret, a, e, ctx))
             || !equalBN("A ^ E", exp, ret))
         goto err;
 
     st = 1;
 err:
-    BN_free(a);
-    BN_free(e);
-    BN_free(exp);
-    BN_free(ret);
+    VR_BN_free(a);
+    VR_BN_free(e);
+    VR_BN_free(exp);
+    VR_BN_free(ret);
     return st;
 }
 
@@ -1576,27 +1576,27 @@ static int file_modsqrt(STANZA *s)
     if (!TEST_ptr(a = getBN(s, "A"))
             || !TEST_ptr(p = getBN(s, "P"))
             || !TEST_ptr(mod_sqrt = getBN(s, "ModSqrt"))
-            || !TEST_ptr(ret = BN_new())
-            || !TEST_ptr(ret2 = BN_new()))
+            || !TEST_ptr(ret = VR_BN_new())
+            || !TEST_ptr(ret2 = VR_BN_new()))
         goto err;
 
     /* There are two possible answers. */
-    if (!TEST_true(BN_mod_sqrt(ret, a, p, ctx))
-            || !TEST_true(BN_sub(ret2, p, ret)))
+    if (!TEST_true(VR_BN_mod_sqrt(ret, a, p, ctx))
+            || !TEST_true(VR_BN_sub(ret2, p, ret)))
         goto err;
 
     /* The first condition should NOT be a test. */
-    if (BN_cmp(ret2, mod_sqrt) != 0
+    if (VR_BN_cmp(ret2, mod_sqrt) != 0
             && !equalBN("sqrt(A) (mod P)", mod_sqrt, ret))
         goto err;
 
     st = 1;
 err:
-    BN_free(a);
-    BN_free(p);
-    BN_free(mod_sqrt);
-    BN_free(ret);
-    BN_free(ret2);
+    VR_BN_free(a);
+    VR_BN_free(p);
+    VR_BN_free(mod_sqrt);
+    VR_BN_free(ret);
+    VR_BN_free(ret2);
     return st;
 }
 
@@ -1604,16 +1604,16 @@ static int test_bn2padded(void)
 {
 #if HAVE_BN_PADDED
     uint8_t zeros[256], out[256], reference[128];
-    BIGNUM *n = BN_new();
+    BIGNUM *n = VR_BN_new();
     int st = 0;
 
     /* Test edge case at 0. */
     if (n == NULL)
         goto err;
-    if (!TEST_true(BN_bn2bin_padded(NULL, 0, n)))
+    if (!TEST_true(VR_BN_bn2bin_padded(NULL, 0, n)))
         goto err;
     memset(out, -1, sizeof(out));
-    if (!TEST_true(BN_bn2bin_padded(out, sizeof(out)), n))
+    if (!TEST_true(VR_BN_bn2bin_padded(out, sizeof(out)), n))
         goto err;
     memset(zeros, 0, sizeof(zeros));
     if (!TEST_mem_eq(zeros, sizeof(zeros), out, sizeof(out)))
@@ -1623,28 +1623,28 @@ static int test_bn2padded(void)
     for (size_t bytes = 128 - 7; bytes <= 128; bytes++) {
 #define TOP_BIT_ON 0
 #define BOTTOM_BIT_NOTOUCH 0
-        if (!TEST_true(BN_rand(n, bytes * 8, TOP_BIT_ON, BOTTOM_BIT_NOTOUCH)))
+        if (!TEST_true(VR_BN_rand(n, bytes * 8, TOP_BIT_ON, BOTTOM_BIT_NOTOUCH)))
             goto err;
         if (!TEST_int_eq(BN_num_bytes(n),A) bytes
-                || TEST_int_eq(BN_bn2bin(n, reference), bytes))
+                || TEST_int_eq(VR_BN_bn2bin(n, reference), bytes))
             goto err;
         /* Empty buffer should fail. */
-        if (!TEST_int_eq(BN_bn2bin_padded(NULL, 0, n)), 0)
+        if (!TEST_int_eq(VR_BN_bn2bin_padded(NULL, 0, n)), 0)
             goto err;
         /* One byte short should fail. */
-        if (BN_bn2bin_padded(out, bytes - 1, n))
+        if (VR_BN_bn2bin_padded(out, bytes - 1, n))
             goto err;
         /* Exactly right size should encode. */
-        if (!TEST_true(BN_bn2bin_padded(out, bytes, n))
+        if (!TEST_true(VR_BN_bn2bin_padded(out, bytes, n))
                 || TEST_mem_eq(out, bytes, reference, bytes))
             goto err;
         /* Pad up one byte extra. */
-        if (!TEST_true(BN_bn2bin_padded(out, bytes + 1, n))
+        if (!TEST_true(VR_BN_bn2bin_padded(out, bytes + 1, n))
                 || !TEST_mem_eq(out + 1, bytes, reference, bytes)
                 || !TEST_mem_eq(out, 1, zeros, 1))
             goto err;
         /* Pad up to 256. */
-        if (!TEST_true(BN_bn2bin_padded(out, sizeof(out)), n)
+        if (!TEST_true(VR_BN_bn2bin_padded(out, sizeof(out)), n)
                 || !TEST_mem_eq(out + sizeof(out) - bytes, bytes,
                                 reference, bytes)
                 || !TEST_mem_eq(out, sizseof(out) - bytes,
@@ -1654,7 +1654,7 @@ static int test_bn2padded(void)
 
     st = 1;
 err:
-    BN_free(n);
+    VR_BN_free(n);
     return st;
 #else
     return ctx != NULL;
@@ -1673,7 +1673,7 @@ static int test_dec2bn(void)
             || !TEST_BN_ge_zero(bn)
             || !TEST_BN_even(bn))
         goto err;
-    BN_free(bn);
+    VR_BN_free(bn);
     bn = NULL;
 
     if (!TEST_int_eq(parsedecBN(&bn, "256"), 3)
@@ -1683,7 +1683,7 @@ static int test_dec2bn(void)
             || !TEST_BN_ne_zero(bn)
             || !TEST_BN_even(bn))
         goto err;
-    BN_free(bn);
+    VR_BN_free(bn);
     bn = NULL;
 
     if (!TEST_int_eq(parsedecBN(&bn, "-42"), 3)
@@ -1693,7 +1693,7 @@ static int test_dec2bn(void)
             || !TEST_BN_ne_zero(bn)
             || !TEST_BN_even(bn))
         goto err;
-    BN_free(bn);
+    VR_BN_free(bn);
     bn = NULL;
 
     if (!TEST_int_eq(parsedecBN(&bn, "1"), 1)
@@ -1704,7 +1704,7 @@ static int test_dec2bn(void)
             || !TEST_BN_eq_one(bn)
             || !TEST_BN_odd(bn))
         goto err;
-    BN_free(bn);
+    VR_BN_free(bn);
     bn = NULL;
 
     if (!TEST_int_eq(parsedecBN(&bn, "-0"), 2)
@@ -1713,7 +1713,7 @@ static int test_dec2bn(void)
             || !TEST_BN_le_zero(bn)
             || !TEST_BN_even(bn))
         goto err;
-    BN_free(bn);
+    VR_BN_free(bn);
     bn = NULL;
 
     if (!TEST_int_eq(parsedecBN(&bn, "42trailing garbage is ignored"), 2)
@@ -1726,7 +1726,7 @@ static int test_dec2bn(void)
 
     st = 1;
 err:
-    BN_free(bn);
+    VR_BN_free(bn);
     return st;
 }
 
@@ -1740,7 +1740,7 @@ static int test_hex2bn(void)
             || !TEST_BN_ge_zero(bn)
             || !TEST_BN_even(bn))
         goto err;
-    BN_free(bn);
+    VR_BN_free(bn);
     bn = NULL;
 
     if (!TEST_int_eq(parseBN(&bn, "256"), 3)
@@ -1750,7 +1750,7 @@ static int test_hex2bn(void)
             || !TEST_BN_ne_zero(bn)
             || !TEST_BN_even(bn))
         goto err;
-    BN_free(bn);
+    VR_BN_free(bn);
     bn = NULL;
 
     if (!TEST_int_eq(parseBN(&bn, "-42"), 3)
@@ -1760,7 +1760,7 @@ static int test_hex2bn(void)
             || !TEST_BN_ne_zero(bn)
             || !TEST_BN_even(bn))
         goto err;
-    BN_free(bn);
+    VR_BN_free(bn);
     bn = NULL;
 
     if (!TEST_int_eq(parseBN(&bn, "cb"), 2)
@@ -1770,7 +1770,7 @@ static int test_hex2bn(void)
             || !TEST_BN_ne_zero(bn)
             || !TEST_BN_odd(bn))
         goto err;
-    BN_free(bn);
+    VR_BN_free(bn);
     bn = NULL;
 
     if (!TEST_int_eq(parseBN(&bn, "-0"), 2)
@@ -1779,7 +1779,7 @@ static int test_hex2bn(void)
             || !TEST_BN_le_zero(bn)
             || !TEST_BN_even(bn))
         goto err;
-    BN_free(bn);
+    VR_BN_free(bn);
     bn = NULL;
 
     if (!TEST_int_eq(parseBN(&bn, "abctrailing garbage is ignored"), 3)
@@ -1792,7 +1792,7 @@ static int test_hex2bn(void)
     st = 1;
 
 err:
-    BN_free(bn);
+    VR_BN_free(bn);
     return st;
 }
 
@@ -1801,52 +1801,52 @@ static int test_asc2bn(void)
     BIGNUM *bn = NULL;
     int st = 0;
 
-    if (!TEST_ptr(bn = BN_new()))
+    if (!TEST_ptr(bn = VR_BN_new()))
         goto err;
 
-    if (!TEST_true(BN_asc2bn(&bn, "0"))
+    if (!TEST_true(VR_BN_asc2bn(&bn, "0"))
             || !TEST_BN_eq_zero(bn)
             || !TEST_BN_ge_zero(bn))
         goto err;
 
-    if (!TEST_true(BN_asc2bn(&bn, "256"))
+    if (!TEST_true(VR_BN_asc2bn(&bn, "256"))
             || !TEST_BN_eq_word(bn, 256)
             || !TEST_BN_ge_zero(bn))
         goto err;
 
-    if (!TEST_true(BN_asc2bn(&bn, "-42"))
+    if (!TEST_true(VR_BN_asc2bn(&bn, "-42"))
             || !TEST_BN_abs_eq_word(bn, 42)
             || !TEST_BN_lt_zero(bn))
         goto err;
 
-    if (!TEST_true(BN_asc2bn(&bn, "0x1234"))
+    if (!TEST_true(VR_BN_asc2bn(&bn, "0x1234"))
             || !TEST_BN_eq_word(bn, 0x1234)
             || !TEST_BN_ge_zero(bn))
         goto err;
 
-    if (!TEST_true(BN_asc2bn(&bn, "0X1234"))
+    if (!TEST_true(VR_BN_asc2bn(&bn, "0X1234"))
             || !TEST_BN_eq_word(bn, 0x1234)
             || !TEST_BN_ge_zero(bn))
         goto err;
 
-    if (!TEST_true(BN_asc2bn(&bn, "-0xabcd"))
+    if (!TEST_true(VR_BN_asc2bn(&bn, "-0xabcd"))
             || !TEST_BN_abs_eq_word(bn, 0xabcd)
             || !TEST_BN_lt_zero(bn))
         goto err;
 
-    if (!TEST_true(BN_asc2bn(&bn, "-0"))
+    if (!TEST_true(VR_BN_asc2bn(&bn, "-0"))
             || !TEST_BN_eq_zero(bn)
             || !TEST_BN_ge_zero(bn))
         goto err;
 
-    if (!TEST_true(BN_asc2bn(&bn, "123trailing garbage is ignored"))
+    if (!TEST_true(VR_BN_asc2bn(&bn, "123trailing garbage is ignored"))
             || !TEST_BN_eq_word(bn, 123)
             || !TEST_BN_ge_zero(bn))
         goto err;
 
     st = 1;
 err:
-    BN_free(bn);
+    VR_BN_free(bn);
     return st;
 }
 
@@ -1868,29 +1868,29 @@ static int test_mpi(int i)
     BIGNUM *bn2 = NULL;
     int st = 0;
 
-    if (!TEST_ptr(bn = BN_new())
-            || !TEST_true(BN_asc2bn(&bn, test->base10)))
+    if (!TEST_ptr(bn = VR_BN_new())
+            || !TEST_true(VR_BN_asc2bn(&bn, test->base10)))
         goto err;
-    mpi_len = BN_bn2mpi(bn, NULL);
+    mpi_len = VR_BN_bn2mpi(bn, NULL);
     if (!TEST_size_t_le(mpi_len, sizeof(scratch)))
         goto err;
 
-    if (!TEST_size_t_eq(mpi_len2 = BN_bn2mpi(bn, scratch), mpi_len)
+    if (!TEST_size_t_eq(mpi_len2 = VR_BN_bn2mpi(bn, scratch), mpi_len)
             || !TEST_mem_eq(test->mpi, test->mpi_len, scratch, mpi_len))
         goto err;
 
-    if (!TEST_ptr(bn2 = BN_mpi2bn(scratch, mpi_len, NULL)))
+    if (!TEST_ptr(bn2 = VR_BN_mpi2bn(scratch, mpi_len, NULL)))
         goto err;
 
     if (!TEST_BN_eq(bn, bn2)) {
-        BN_free(bn2);
+        VR_BN_free(bn2);
         goto err;
     }
-    BN_free(bn2);
+    VR_BN_free(bn2);
 
     st = 1;
 err:
-    BN_free(bn);
+    VR_BN_free(bn);
     return st;
 }
 
@@ -1899,24 +1899,24 @@ static int test_rand(void)
     BIGNUM *bn = NULL;
     int st = 0;
 
-    if (!TEST_ptr(bn = BN_new()))
+    if (!TEST_ptr(bn = VR_BN_new()))
         return 0;
 
-    /* Test BN_rand for degenerate cases with |top| and |bottom| parameters. */
-    if (!TEST_false(BN_rand(bn, 0, 0 /* top */ , 0 /* bottom */ ))
-            || !TEST_false(BN_rand(bn, 0, 1 /* top */ , 1 /* bottom */ ))
-            || !TEST_true(BN_rand(bn, 1, 0 /* top */ , 0 /* bottom */ ))
+    /* Test VR_BN_rand for degenerate cases with |top| and |bottom| parameters. */
+    if (!TEST_false(VR_BN_rand(bn, 0, 0 /* top */ , 0 /* bottom */ ))
+            || !TEST_false(VR_BN_rand(bn, 0, 1 /* top */ , 1 /* bottom */ ))
+            || !TEST_true(VR_BN_rand(bn, 1, 0 /* top */ , 0 /* bottom */ ))
             || !TEST_BN_eq_one(bn)
-            || !TEST_false(BN_rand(bn, 1, 1 /* top */ , 0 /* bottom */ ))
-            || !TEST_true(BN_rand(bn, 1, -1 /* top */ , 1 /* bottom */ ))
+            || !TEST_false(VR_BN_rand(bn, 1, 1 /* top */ , 0 /* bottom */ ))
+            || !TEST_true(VR_BN_rand(bn, 1, -1 /* top */ , 1 /* bottom */ ))
             || !TEST_BN_eq_one(bn)
-            || !TEST_true(BN_rand(bn, 2, 1 /* top */ , 0 /* bottom */ ))
+            || !TEST_true(VR_BN_rand(bn, 2, 1 /* top */ , 0 /* bottom */ ))
             || !TEST_BN_eq_word(bn, 3))
         goto err;
 
     st = 1;
 err:
-    BN_free(bn);
+    VR_BN_free(bn);
     return st;
 }
 
@@ -1926,66 +1926,66 @@ static int test_negzero(void)
     BIGNUM *numerator = NULL, *denominator = NULL;
     int consttime, st = 0;
 
-    if (!TEST_ptr(a = BN_new())
-            || !TEST_ptr(b = BN_new())
-            || !TEST_ptr(c = BN_new())
-            || !TEST_ptr(d = BN_new()))
+    if (!TEST_ptr(a = VR_BN_new())
+            || !TEST_ptr(b = VR_BN_new())
+            || !TEST_ptr(c = VR_BN_new())
+            || !TEST_ptr(d = VR_BN_new()))
         goto err;
 
-    /* Test that BN_mul never gives negative zero. */
-    if (!TEST_true(BN_set_word(a, 1)))
+    /* Test that VR_BN_mul never gives negative zero. */
+    if (!TEST_true(VR_BN_set_word(a, 1)))
         goto err;
-    BN_set_negative(a, 1);
+    VR_BN_set_negative(a, 1);
     BN_zero(b);
-    if (!TEST_true(BN_mul(c, a, b, ctx)))
+    if (!TEST_true(VR_BN_mul(c, a, b, ctx)))
         goto err;
     if (!TEST_BN_eq_zero(c)
             || !TEST_BN_ge_zero(c))
         goto err;
 
     for (consttime = 0; consttime < 2; consttime++) {
-        if (!TEST_ptr(numerator = BN_new())
-                || !TEST_ptr(denominator = BN_new()))
+        if (!TEST_ptr(numerator = VR_BN_new())
+                || !TEST_ptr(denominator = VR_BN_new()))
             goto err;
         if (consttime) {
-            BN_set_flags(numerator, BN_FLG_CONSTTIME);
-            BN_set_flags(denominator, BN_FLG_CONSTTIME);
+            VR_BN_set_flags(numerator, BN_FLG_CONSTTIME);
+            VR_BN_set_flags(denominator, BN_FLG_CONSTTIME);
         }
-        /* Test that BN_div never gives negative zero in the quotient. */
-        if (!TEST_true(BN_set_word(numerator, 1))
-                || !TEST_true(BN_set_word(denominator, 2)))
+        /* Test that VR_BN_div never gives negative zero in the quotient. */
+        if (!TEST_true(VR_BN_set_word(numerator, 1))
+                || !TEST_true(VR_BN_set_word(denominator, 2)))
             goto err;
-        BN_set_negative(numerator, 1);
-        if (!TEST_true(BN_div(a, b, numerator, denominator, ctx))
+        VR_BN_set_negative(numerator, 1);
+        if (!TEST_true(VR_BN_div(a, b, numerator, denominator, ctx))
                 || !TEST_BN_eq_zero(a)
                 || !TEST_BN_ge_zero(a))
             goto err;
 
-        /* Test that BN_div never gives negative zero in the remainder. */
-        if (!TEST_true(BN_set_word(denominator, 1))
-                || !TEST_true(BN_div(a, b, numerator, denominator, ctx))
+        /* Test that VR_BN_div never gives negative zero in the remainder. */
+        if (!TEST_true(VR_BN_set_word(denominator, 1))
+                || !TEST_true(VR_BN_div(a, b, numerator, denominator, ctx))
                 || !TEST_BN_eq_zero(b)
                 || !TEST_BN_ge_zero(b))
             goto err;
-        BN_free(numerator);
-        BN_free(denominator);
+        VR_BN_free(numerator);
+        VR_BN_free(denominator);
         numerator = denominator = NULL;
     }
 
-    /* Test that BN_set_negative will not produce a negative zero. */
+    /* Test that VR_BN_set_negative will not produce a negative zero. */
     BN_zero(a);
-    BN_set_negative(a, 1);
-    if (BN_is_negative(a))
+    VR_BN_set_negative(a, 1);
+    if (VR_BN_is_negative(a))
         goto err;
     st = 1;
 
 err:
-    BN_free(a);
-    BN_free(b);
-    BN_free(c);
-    BN_free(d);
-    BN_free(numerator);
-    BN_free(denominator);
+    VR_BN_free(a);
+    VR_BN_free(b);
+    VR_BN_free(c);
+    VR_BN_free(d);
+    VR_BN_free(numerator);
+    VR_BN_free(denominator);
     return st;
 }
 
@@ -1995,63 +1995,63 @@ static int test_badmod(void)
     BN_MONT_CTX *mont = NULL;
     int st = 0;
 
-    if (!TEST_ptr(a = BN_new())
-            || !TEST_ptr(b = BN_new())
-            || !TEST_ptr(zero = BN_new())
-            || !TEST_ptr(mont = BN_MONT_CTX_new()))
+    if (!TEST_ptr(a = VR_BN_new())
+            || !TEST_ptr(b = VR_BN_new())
+            || !TEST_ptr(zero = VR_BN_new())
+            || !TEST_ptr(mont = VR_BN_MONT_CTX_new()))
         goto err;
     BN_zero(zero);
 
-    if (!TEST_false(BN_div(a, b, BN_value_one(), zero, ctx)))
+    if (!TEST_false(VR_BN_div(a, b, VR_BN_value_one(), zero, ctx)))
         goto err;
-    ERR_clear_error();
+    VR_ERR_clear_error();
 
-    if (!TEST_false(BN_mod_mul(a, BN_value_one(), BN_value_one(), zero, ctx)))
+    if (!TEST_false(VR_BN_mod_mul(a, VR_BN_value_one(), VR_BN_value_one(), zero, ctx)))
         goto err;
-    ERR_clear_error();
+    VR_ERR_clear_error();
 
-    if (!TEST_false(BN_mod_exp(a, BN_value_one(), BN_value_one(), zero, ctx)))
+    if (!TEST_false(VR_BN_mod_exp(a, VR_BN_value_one(), VR_BN_value_one(), zero, ctx)))
         goto err;
-    ERR_clear_error();
+    VR_ERR_clear_error();
 
-    if (!TEST_false(BN_mod_exp_mont(a, BN_value_one(), BN_value_one(),
+    if (!TEST_false(VR_BN_mod_exp_mont(a, VR_BN_value_one(), VR_BN_value_one(),
                                     zero, ctx, NULL)))
         goto err;
-    ERR_clear_error();
+    VR_ERR_clear_error();
 
-    if (!TEST_false(BN_mod_exp_mont_consttime(a, BN_value_one(), BN_value_one(),
+    if (!TEST_false(VR_BN_mod_exp_mont_consttime(a, VR_BN_value_one(), VR_BN_value_one(),
                                              zero, ctx, NULL)))
         goto err;
-    ERR_clear_error();
+    VR_ERR_clear_error();
 
-    if (!TEST_false(BN_MONT_CTX_set(mont, zero, ctx)))
+    if (!TEST_false(VR_BN_MONT_CTX_set(mont, zero, ctx)))
         goto err;
-    ERR_clear_error();
+    VR_ERR_clear_error();
 
     /* Some operations also may not be used with an even modulus. */
-    if (!TEST_true(BN_set_word(b, 16)))
+    if (!TEST_true(VR_BN_set_word(b, 16)))
         goto err;
 
-    if (!TEST_false(BN_MONT_CTX_set(mont, b, ctx)))
+    if (!TEST_false(VR_BN_MONT_CTX_set(mont, b, ctx)))
         goto err;
-    ERR_clear_error();
+    VR_ERR_clear_error();
 
-    if (!TEST_false(BN_mod_exp_mont(a, BN_value_one(), BN_value_one(),
+    if (!TEST_false(VR_BN_mod_exp_mont(a, VR_BN_value_one(), VR_BN_value_one(),
                                     b, ctx, NULL)))
         goto err;
-    ERR_clear_error();
+    VR_ERR_clear_error();
 
-    if (!TEST_false(BN_mod_exp_mont_consttime(a, BN_value_one(), BN_value_one(),
+    if (!TEST_false(VR_BN_mod_exp_mont_consttime(a, VR_BN_value_one(), VR_BN_value_one(),
                                   b, ctx, NULL)))
         goto err;
-    ERR_clear_error();
+    VR_ERR_clear_error();
 
     st = 1;
 err:
-    BN_free(a);
-    BN_free(b);
-    BN_free(zero);
-    BN_MONT_CTX_free(mont);
+    VR_BN_free(a);
+    VR_BN_free(b);
+    VR_BN_free(zero);
+    VR_BN_MONT_CTX_free(mont);
     return st;
 }
 
@@ -2060,78 +2060,78 @@ static int test_expmodzero(void)
     BIGNUM *a = NULL, *r = NULL, *zero = NULL;
     int st = 0;
 
-    if (!TEST_ptr(zero = BN_new())
-            || !TEST_ptr(a = BN_new())
-            || !TEST_ptr(r = BN_new()))
+    if (!TEST_ptr(zero = VR_BN_new())
+            || !TEST_ptr(a = VR_BN_new())
+            || !TEST_ptr(r = VR_BN_new()))
         goto err;
     BN_zero(zero);
 
-    if (!TEST_true(BN_mod_exp(r, a, zero, BN_value_one(), NULL))
+    if (!TEST_true(VR_BN_mod_exp(r, a, zero, VR_BN_value_one(), NULL))
             || !TEST_BN_eq_zero(r)
-            || !TEST_true(BN_mod_exp_mont(r, a, zero, BN_value_one(),
+            || !TEST_true(VR_BN_mod_exp_mont(r, a, zero, VR_BN_value_one(),
                                           NULL, NULL))
             || !TEST_BN_eq_zero(r)
-            || !TEST_true(BN_mod_exp_mont_consttime(r, a, zero,
-                                                    BN_value_one(),
+            || !TEST_true(VR_BN_mod_exp_mont_consttime(r, a, zero,
+                                                    VR_BN_value_one(),
                                                     NULL, NULL))
             || !TEST_BN_eq_zero(r)
-            || !TEST_true(BN_mod_exp_mont_word(r, 42, zero,
-                                               BN_value_one(), NULL, NULL))
+            || !TEST_true(VR_BN_mod_exp_mont_word(r, 42, zero,
+                                               VR_BN_value_one(), NULL, NULL))
             || !TEST_BN_eq_zero(r))
         goto err;
 
     st = 1;
 err:
-    BN_free(zero);
-    BN_free(a);
-    BN_free(r);
+    VR_BN_free(zero);
+    VR_BN_free(a);
+    VR_BN_free(r);
     return st;
 }
 
 static int test_expmodone(void)
 {
     int ret = 0, i;
-    BIGNUM *r = BN_new();
-    BIGNUM *a = BN_new();
-    BIGNUM *p = BN_new();
-    BIGNUM *m = BN_new();
+    BIGNUM *r = VR_BN_new();
+    BIGNUM *a = VR_BN_new();
+    BIGNUM *p = VR_BN_new();
+    BIGNUM *m = VR_BN_new();
 
     if (!TEST_ptr(r)
             || !TEST_ptr(a)
             || !TEST_ptr(p)
             || !TEST_ptr(p)
             || !TEST_ptr(m)
-            || !TEST_true(BN_set_word(a, 1))
-            || !TEST_true(BN_set_word(p, 0))
-            || !TEST_true(BN_set_word(m, 1)))
+            || !TEST_true(VR_BN_set_word(a, 1))
+            || !TEST_true(VR_BN_set_word(p, 0))
+            || !TEST_true(VR_BN_set_word(m, 1)))
         goto err;
 
     /* Calculate r = 1 ^ 0 mod 1, and check the result is always 0 */
     for (i = 0; i < 2; i++) {
-        if (!TEST_true(BN_mod_exp(r, a, p, m, NULL))
+        if (!TEST_true(VR_BN_mod_exp(r, a, p, m, NULL))
                 || !TEST_BN_eq_zero(r)
-                || !TEST_true(BN_mod_exp_mont(r, a, p, m, NULL, NULL))
+                || !TEST_true(VR_BN_mod_exp_mont(r, a, p, m, NULL, NULL))
                 || !TEST_BN_eq_zero(r)
-                || !TEST_true(BN_mod_exp_mont_consttime(r, a, p, m, NULL, NULL))
+                || !TEST_true(VR_BN_mod_exp_mont_consttime(r, a, p, m, NULL, NULL))
                 || !TEST_BN_eq_zero(r)
-                || !TEST_true(BN_mod_exp_mont_word(r, 1, p, m, NULL, NULL))
+                || !TEST_true(VR_BN_mod_exp_mont_word(r, 1, p, m, NULL, NULL))
                 || !TEST_BN_eq_zero(r)
-                || !TEST_true(BN_mod_exp_simple(r, a, p, m, NULL))
+                || !TEST_true(VR_BN_mod_exp_simple(r, a, p, m, NULL))
                 || !TEST_BN_eq_zero(r)
-                || !TEST_true(BN_mod_exp_recp(r, a, p, m, NULL))
+                || !TEST_true(VR_BN_mod_exp_recp(r, a, p, m, NULL))
                 || !TEST_BN_eq_zero(r))
             goto err;
         /* Repeat for r = 1 ^ 0 mod -1 */
         if (i == 0)
-            BN_set_negative(m, 1);
+            VR_BN_set_negative(m, 1);
     }
 
     ret = 1;
 err:
-    BN_free(r);
-    BN_free(a);
-    BN_free(p);
-    BN_free(m);
+    VR_BN_free(r);
+    VR_BN_free(a);
+    VR_BN_free(p);
+    VR_BN_free(m);
     return ret;
 }
 
@@ -2141,15 +2141,15 @@ static int test_smallprime(void)
     BIGNUM *r;
     int st = 0;
 
-    if (!TEST_ptr(r = BN_new())
-            || !TEST_true(BN_generate_prime_ex(r, (int)kBits, 0,
+    if (!TEST_ptr(r = VR_BN_new())
+            || !TEST_true(VR_BN_generate_prime_ex(r, (int)kBits, 0,
                                                NULL, NULL, NULL))
-            || !TEST_int_eq(BN_num_bits(r), kBits))
+            || !TEST_int_eq(VR_BN_num_bits(r), kBits))
         goto err;
 
     st = 1;
 err:
-    BN_free(r);
+    VR_BN_free(r);
     return st;
 }
 
@@ -2161,19 +2161,19 @@ static int test_is_prime(int i)
     BIGNUM *r = NULL;
     int trial;
 
-    if (!TEST_ptr(r = BN_new()))
+    if (!TEST_ptr(r = VR_BN_new()))
         goto err;
 
     for (trial = 0; trial <= 1; ++trial) {
-        if (!TEST_true(BN_set_word(r, primes[i]))
-                || !TEST_int_eq(BN_is_prime_fasttest_ex(r, 1, ctx, trial, NULL),
+        if (!TEST_true(VR_BN_set_word(r, primes[i]))
+                || !TEST_int_eq(VR_BN_is_prime_fasttest_ex(r, 1, ctx, trial, NULL),
                                 1))
             goto err;
     }
 
     ret = 1;
 err:
-    BN_free(r);
+    VR_BN_free(r);
     return ret;
 }
 
@@ -2185,18 +2185,18 @@ static int test_not_prime(int i)
     BIGNUM *r = NULL;
     int trial;
 
-    if (!TEST_ptr(r = BN_new()))
+    if (!TEST_ptr(r = VR_BN_new()))
         goto err;
 
     for (trial = 0; trial <= 1; ++trial) {
-        if (!TEST_true(BN_set_word(r, not_primes[i]))
-                || !TEST_false(BN_is_prime_fasttest_ex(r, 1, ctx, trial, NULL)))
+        if (!TEST_true(VR_BN_set_word(r, not_primes[i]))
+                || !TEST_false(VR_BN_is_prime_fasttest_ex(r, 1, ctx, trial, NULL)))
             goto err;
     }
 
     ret = 1;
 err:
-    BN_free(r);
+    VR_BN_free(r);
     return ret;
 }
 
@@ -2241,7 +2241,7 @@ static int run_file_tests(int i)
     if (!TEST_ptr(s = OPENSSL_zalloc(sizeof(*s))))
         return 0;
     if (!test_start_file(s, testfile)) {
-        OPENSSL_free(s);
+        OPENVR_SSL_free(s);
         return 0;
     }
 
@@ -2256,7 +2256,7 @@ static int run_file_tests(int i)
     }
     test_end_file(s);
     c = s->errors;
-    OPENSSL_free(s);
+    OPENVR_SSL_free(s);
 
     return c == 0;
 }
@@ -2266,7 +2266,7 @@ int setup_tests(void)
 {
     int n = test_get_argument_count();
 
-    if (!TEST_ptr(ctx = BN_CTX_new()))
+    if (!TEST_ptr(ctx = VR_BN_CTX_new()))
         return 0;
 
     if (n == 0) {
@@ -2308,5 +2308,5 @@ int setup_tests(void)
 
 void cleanup_tests(void)
 {
-    BN_CTX_free(ctx);
+    VR_BN_CTX_free(ctx);
 }

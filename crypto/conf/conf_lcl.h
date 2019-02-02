@@ -7,5 +7,5 @@
  * https://www.openssl.org/source/license.html
  */
 
-void conf_add_ssl_module(void);
+void VR_conf_add_ssl_module(void);
 

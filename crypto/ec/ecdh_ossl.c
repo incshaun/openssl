@@ -19,7 +19,7 @@
 #include <openssl/ec.h>
 #include "ec_lcl.h"
 
-int ossl_ecdh_compute_key(unsigned char **psec, size_t *pseclen,
+int VR_ossl_ecdh_compute_key(unsigned char **psec, size_t *pseclen,
                           const EC_POINT *pub_key, const EC_KEY *ecdh)
 {
     if (ecdh->group->meth->ecdh_compute_key == NULL) {
@@ -35,7 +35,7 @@ int ossl_ecdh_compute_key(unsigned char **psec, size_t *pseclen,
  *  - ECKAS-DH1
  *  - ECSVDP-DH
  */
-int ecdh_simple_compute_key(unsigned char **pout, size_t *poutlen,
+int VR_ecdh_simple_compute_key(unsigned char **pout, size_t *poutlen,
                             const EC_POINT *pub_key, const EC_KEY *ecdh)
 {
     BN_CTX *ctx;
@@ -47,48 +47,48 @@ int ecdh_simple_compute_key(unsigned char **pout, size_t *poutlen,
     size_t buflen, len;
     unsigned char *buf = NULL;
 
-    if ((ctx = BN_CTX_new()) == NULL)
+    if ((ctx = VR_BN_CTX_new()) == NULL)
         goto err;
-    BN_CTX_start(ctx);
-    x = BN_CTX_get(ctx);
+    VR_BN_CTX_start(ctx);
+    x = VR_BN_CTX_get(ctx);
     if (x == NULL) {
         ECerr(EC_F_ECDH_SIMPLE_COMPUTE_KEY, ERR_R_MALLOC_FAILURE);
         goto err;
     }
 
-    priv_key = EC_KEY_get0_private_key(ecdh);
+    priv_key = VR_EC_KEY_get0_private_key(ecdh);
     if (priv_key == NULL) {
         ECerr(EC_F_ECDH_SIMPLE_COMPUTE_KEY, EC_R_NO_PRIVATE_VALUE);
         goto err;
     }
 
-    group = EC_KEY_get0_group(ecdh);
+    group = VR_EC_KEY_get0_group(ecdh);
 
-    if (EC_KEY_get_flags(ecdh) & EC_FLAG_COFACTOR_ECDH) {
-        if (!EC_GROUP_get_cofactor(group, x, NULL) ||
-            !BN_mul(x, x, priv_key, ctx)) {
+    if (VR_EC_KEY_get_flags(ecdh) & EC_FLAG_COFACTOR_ECDH) {
+        if (!VR_EC_GROUP_get_cofactor(group, x, NULL) ||
+            !VR_BN_mul(x, x, priv_key, ctx)) {
             ECerr(EC_F_ECDH_SIMPLE_COMPUTE_KEY, ERR_R_MALLOC_FAILURE);
             goto err;
         }
         priv_key = x;
     }
 
-    if ((tmp = EC_POINT_new(group)) == NULL) {
+    if ((tmp = VR_EC_POINT_new(group)) == NULL) {
         ECerr(EC_F_ECDH_SIMPLE_COMPUTE_KEY, ERR_R_MALLOC_FAILURE);
         goto err;
     }
 
-    if (!EC_POINT_mul(group, tmp, NULL, pub_key, priv_key, ctx)) {
+    if (!VR_EC_POINT_mul(group, tmp, NULL, pub_key, priv_key, ctx)) {
         ECerr(EC_F_ECDH_SIMPLE_COMPUTE_KEY, EC_R_POINT_ARITHMETIC_FAILURE);
         goto err;
     }
 
-    if (!EC_POINT_get_affine_coordinates(group, tmp, x, NULL, ctx)) {
+    if (!VR_EC_POINT_get_affine_coordinates(group, tmp, x, NULL, ctx)) {
         ECerr(EC_F_ECDH_SIMPLE_COMPUTE_KEY, EC_R_POINT_ARITHMETIC_FAILURE);
         goto err;
     }
 
-    buflen = (EC_GROUP_get_degree(group) + 7) / 8;
+    buflen = (VR_EC_GROUP_get_degree(group) + 7) / 8;
     len = BN_num_bytes(x);
     if (len > buflen) {
         ECerr(EC_F_ECDH_SIMPLE_COMPUTE_KEY, ERR_R_INTERNAL_ERROR);
@@ -100,7 +100,7 @@ int ecdh_simple_compute_key(unsigned char **pout, size_t *poutlen,
     }
 
     memset(buf, 0, buflen - len);
-    if (len != (size_t)BN_bn2bin(x, buf + buflen - len)) {
+    if (len != (size_t)VR_BN_bn2bin(x, buf + buflen - len)) {
         ECerr(EC_F_ECDH_SIMPLE_COMPUTE_KEY, ERR_R_BN_LIB);
         goto err;
     }
@@ -112,10 +112,10 @@ int ecdh_simple_compute_key(unsigned char **pout, size_t *poutlen,
     ret = 1;
 
  err:
-    EC_POINT_free(tmp);
+    VR_EC_POINT_free(tmp);
     if (ctx)
-        BN_CTX_end(ctx);
-    BN_CTX_free(ctx);
-    OPENSSL_free(buf);
+        VR_BN_CTX_end(ctx);
+    VR_BN_CTX_free(ctx);
+    OPENVR_SSL_free(buf);
     return ret;
 }

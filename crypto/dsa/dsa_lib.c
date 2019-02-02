@@ -16,12 +16,12 @@
 #include <openssl/engine.h>
 #include <openssl/dh.h>
 
-DSA *DSA_new(void)
+DSA *VR_DSA_new(void)
 {
-    return DSA_new_method(NULL);
+    return VR_DSA_new_method(NULL);
 }
 
-int DSA_set_method(DSA *dsa, const DSA_METHOD *meth)
+int VR_DSA_set_method(DSA *dsa, const DSA_METHOD *meth)
 {
     /*
      * NB: The caller is specifically setting a method, so it's not up to us
@@ -32,7 +32,7 @@ int DSA_set_method(DSA *dsa, const DSA_METHOD *meth)
     if (mtmp->finish)
         mtmp->finish(dsa);
 #ifndef OPENSSL_NO_ENGINE
-    ENGINE_finish(dsa->engine);
+    VR_ENGINE_finish(dsa->engine);
     dsa->engine = NULL;
 #endif
     dsa->meth = meth;
@@ -41,12 +41,12 @@ int DSA_set_method(DSA *dsa, const DSA_METHOD *meth)
     return 1;
 }
 
-const DSA_METHOD *DSA_get_method(DSA *d)
+const DSA_METHOD *VR_DSA_get_method(DSA *d)
 {
     return d->meth;
 }
 
-DSA *DSA_new_method(ENGINE *engine)
+DSA *VR_DSA_new_method(ENGINE *engine)
 {
     DSA *ret = OPENSSL_zalloc(sizeof(*ret));
 
@@ -56,26 +56,26 @@ DSA *DSA_new_method(ENGINE *engine)
     }
 
     ret->references = 1;
-    ret->lock = CRYPTO_THREAD_lock_new();
+    ret->lock = VR_CRYPTO_THREAD_lock_new();
     if (ret->lock == NULL) {
         DSAerr(DSA_F_DSA_NEW_METHOD, ERR_R_MALLOC_FAILURE);
-        OPENSSL_free(ret);
+        OPENVR_SSL_free(ret);
         return NULL;
     }
 
-    ret->meth = DSA_get_default_method();
+    ret->meth = VR_DSA_get_default_method();
 #ifndef OPENSSL_NO_ENGINE
     ret->flags = ret->meth->flags & ~DSA_FLAG_NON_FIPS_ALLOW; /* early default init */
     if (engine) {
-        if (!ENGINE_init(engine)) {
+        if (!VR_ENGINE_init(engine)) {
             DSAerr(DSA_F_DSA_NEW_METHOD, ERR_R_ENGINE_LIB);
             goto err;
         }
         ret->engine = engine;
     } else
-        ret->engine = ENGINE_get_default_DSA();
+        ret->engine = VR_ENGINE_get_default_DSA();
     if (ret->engine) {
-        ret->meth = ENGINE_get_DSA(ret->engine);
+        ret->meth = VR_ENGINE_get_DSA(ret->engine);
         if (ret->meth == NULL) {
             DSAerr(DSA_F_DSA_NEW_METHOD, ERR_R_ENGINE_LIB);
             goto err;
@@ -85,7 +85,7 @@ DSA *DSA_new_method(ENGINE *engine)
 
     ret->flags = ret->meth->flags & ~DSA_FLAG_NON_FIPS_ALLOW;
 
-    if (!CRYPTO_new_ex_data(CRYPTO_EX_INDEX_DSA, ret, &ret->ex_data))
+    if (!VR_CRYPTO_new_ex_data(CRYPTO_EX_INDEX_DSA, ret, &ret->ex_data))
         goto err;
 
     if ((ret->meth->init != NULL) && !ret->meth->init(ret)) {
@@ -96,11 +96,11 @@ DSA *DSA_new_method(ENGINE *engine)
     return ret;
 
  err:
-    DSA_free(ret);
+    VR_DSA_free(ret);
     return NULL;
 }
 
-void DSA_free(DSA *r)
+void VR_DSA_free(DSA *r)
 {
     int i;
 
@@ -116,22 +116,22 @@ void DSA_free(DSA *r)
     if (r->meth != NULL && r->meth->finish != NULL)
         r->meth->finish(r);
 #ifndef OPENSSL_NO_ENGINE
-    ENGINE_finish(r->engine);
+    VR_ENGINE_finish(r->engine);
 #endif
 
-    CRYPTO_free_ex_data(CRYPTO_EX_INDEX_DSA, r, &r->ex_data);
+    VR_CRYPTO_free_ex_data(CRYPTO_EX_INDEX_DSA, r, &r->ex_data);
 
-    CRYPTO_THREAD_lock_free(r->lock);
+    VR_CRYPTO_THREAD_lock_free(r->lock);
 
-    BN_clear_free(r->p);
-    BN_clear_free(r->q);
-    BN_clear_free(r->g);
-    BN_clear_free(r->pub_key);
-    BN_clear_free(r->priv_key);
-    OPENSSL_free(r);
+    VR_BN_clear_free(r->p);
+    VR_BN_clear_free(r->q);
+    VR_BN_clear_free(r->g);
+    VR_BN_clear_free(r->pub_key);
+    VR_BN_clear_free(r->priv_key);
+    OPENVR_SSL_free(r);
 }
 
-int DSA_up_ref(DSA *r)
+int VR_DSA_up_ref(DSA *r)
 {
     int i;
 
@@ -143,47 +143,47 @@ int DSA_up_ref(DSA *r)
     return ((i > 1) ? 1 : 0);
 }
 
-int DSA_size(const DSA *r)
+int VR_DSA_size(const DSA *r)
 {
     int ret, i;
     ASN1_INTEGER bs;
     unsigned char buf[4];       /* 4 bytes looks really small. However,
-                                 * i2d_ASN1_INTEGER() will not look beyond
+                                 * VR_i2d_ASN1_INTEGER() will not look beyond
                                  * the first byte, as long as the second
                                  * parameter is NULL. */
 
-    i = BN_num_bits(r->q);
+    i = VR_BN_num_bits(r->q);
     bs.length = (i + 7) / 8;
     bs.data = buf;
     bs.type = V_ASN1_INTEGER;
     /* If the top bit is set the asn1 encoding is 1 larger. */
     buf[0] = 0xff;
 
-    i = i2d_ASN1_INTEGER(&bs, NULL);
+    i = VR_i2d_ASN1_INTEGER(&bs, NULL);
     i += i;                     /* r and s */
-    ret = ASN1_object_size(1, i, V_ASN1_SEQUENCE);
+    ret = VR_ASN1_object_size(1, i, V_ASN1_SEQUENCE);
     return ret;
 }
 
-int DSA_set_ex_data(DSA *d, int idx, void *arg)
+int VR_DSA_set_ex_data(DSA *d, int idx, void *arg)
 {
-    return CRYPTO_set_ex_data(&d->ex_data, idx, arg);
+    return VR_CRYPTO_set_ex_data(&d->ex_data, idx, arg);
 }
 
-void *DSA_get_ex_data(DSA *d, int idx)
+void *VR_DSA_get_ex_data(DSA *d, int idx)
 {
-    return CRYPTO_get_ex_data(&d->ex_data, idx);
+    return VR_CRYPTO_get_ex_data(&d->ex_data, idx);
 }
 
-int DSA_security_bits(const DSA *d)
+int VR_DSA_security_bits(const DSA *d)
 {
     if (d->p && d->q)
-        return BN_security_bits(BN_num_bits(d->p), BN_num_bits(d->q));
+        return VR_BN_security_bits(VR_BN_num_bits(d->p), VR_BN_num_bits(d->q));
     return -1;
 }
 
 #ifndef OPENSSL_NO_DH
-DH *DSA_dup_DH(const DSA *r)
+DH *VR_DSA_dup_DH(const DSA *r)
 {
     /*
      * DSA has p, q, g, optional pub_key, optional priv_key. DH has p,
@@ -195,7 +195,7 @@ DH *DSA_dup_DH(const DSA *r)
 
     if (r == NULL)
         goto err;
-    ret = DH_new();
+    ret = VR_DH_new();
     if (ret == NULL)
         goto err;
     if (r->p != NULL || r->g != NULL || r->q != NULL) {
@@ -203,24 +203,24 @@ DH *DSA_dup_DH(const DSA *r)
             /* Shouldn't happen */
             goto err;
         }
-        p = BN_dup(r->p);
-        g = BN_dup(r->g);
-        q = BN_dup(r->q);
-        if (p == NULL || g == NULL || q == NULL || !DH_set0_pqg(ret, p, q, g))
+        p = VR_BN_dup(r->p);
+        g = VR_BN_dup(r->g);
+        q = VR_BN_dup(r->q);
+        if (p == NULL || g == NULL || q == NULL || !VR_DH_set0_pqg(ret, p, q, g))
             goto err;
         p = g = q = NULL;
     }
 
     if (r->pub_key != NULL) {
-        pub_key = BN_dup(r->pub_key);
+        pub_key = VR_BN_dup(r->pub_key);
         if (pub_key == NULL)
             goto err;
         if (r->priv_key != NULL) {
-            priv_key = BN_dup(r->priv_key);
+            priv_key = VR_BN_dup(r->priv_key);
             if (priv_key == NULL)
                 goto err;
         }
-        if (!DH_set0_key(ret, pub_key, priv_key))
+        if (!VR_DH_set0_key(ret, pub_key, priv_key))
             goto err;
     } else if (r->priv_key != NULL) {
         /* Shouldn't happen */
@@ -230,17 +230,17 @@ DH *DSA_dup_DH(const DSA *r)
     return ret;
 
  err:
-    BN_free(p);
-    BN_free(g);
-    BN_free(q);
-    BN_free(pub_key);
-    BN_free(priv_key);
-    DH_free(ret);
+    VR_BN_free(p);
+    VR_BN_free(g);
+    VR_BN_free(q);
+    VR_BN_free(pub_key);
+    VR_BN_free(priv_key);
+    VR_DH_free(ret);
     return NULL;
 }
 #endif
 
-void DSA_get0_pqg(const DSA *d,
+void VR_DSA_get0_pqg(const DSA *d,
                   const BIGNUM **p, const BIGNUM **q, const BIGNUM **g)
 {
     if (p != NULL)
@@ -251,7 +251,7 @@ void DSA_get0_pqg(const DSA *d,
         *g = d->g;
 }
 
-int DSA_set0_pqg(DSA *d, BIGNUM *p, BIGNUM *q, BIGNUM *g)
+int VR_DSA_set0_pqg(DSA *d, BIGNUM *p, BIGNUM *q, BIGNUM *g)
 {
     /* If the fields p, q and g in d are NULL, the corresponding input
      * parameters MUST be non-NULL.
@@ -262,22 +262,22 @@ int DSA_set0_pqg(DSA *d, BIGNUM *p, BIGNUM *q, BIGNUM *g)
         return 0;
 
     if (p != NULL) {
-        BN_free(d->p);
+        VR_BN_free(d->p);
         d->p = p;
     }
     if (q != NULL) {
-        BN_free(d->q);
+        VR_BN_free(d->q);
         d->q = q;
     }
     if (g != NULL) {
-        BN_free(d->g);
+        VR_BN_free(d->g);
         d->g = g;
     }
 
     return 1;
 }
 
-void DSA_get0_key(const DSA *d,
+void VR_DSA_get0_key(const DSA *d,
                   const BIGNUM **pub_key, const BIGNUM **priv_key)
 {
     if (pub_key != NULL)
@@ -286,7 +286,7 @@ void DSA_get0_key(const DSA *d,
         *priv_key = d->priv_key;
 }
 
-int DSA_set0_key(DSA *d, BIGNUM *pub_key, BIGNUM *priv_key)
+int VR_DSA_set0_key(DSA *d, BIGNUM *pub_key, BIGNUM *priv_key)
 {
     /* If the field pub_key in d is NULL, the corresponding input
      * parameters MUST be non-NULL.  The priv_key field may
@@ -296,63 +296,63 @@ int DSA_set0_key(DSA *d, BIGNUM *pub_key, BIGNUM *priv_key)
         return 0;
 
     if (pub_key != NULL) {
-        BN_free(d->pub_key);
+        VR_BN_free(d->pub_key);
         d->pub_key = pub_key;
     }
     if (priv_key != NULL) {
-        BN_free(d->priv_key);
+        VR_BN_free(d->priv_key);
         d->priv_key = priv_key;
     }
 
     return 1;
 }
 
-const BIGNUM *DSA_get0_p(const DSA *d)
+const BIGNUM *VR_DSA_get0_p(const DSA *d)
 {
     return d->p;
 }
 
-const BIGNUM *DSA_get0_q(const DSA *d)
+const BIGNUM *VR_DSA_get0_q(const DSA *d)
 {
     return d->q;
 }
 
-const BIGNUM *DSA_get0_g(const DSA *d)
+const BIGNUM *VR_DSA_get0_g(const DSA *d)
 {
     return d->g;
 }
 
-const BIGNUM *DSA_get0_pub_key(const DSA *d)
+const BIGNUM *VR_DSA_get0_pub_key(const DSA *d)
 {
     return d->pub_key;
 }
 
-const BIGNUM *DSA_get0_priv_key(const DSA *d)
+const BIGNUM *VR_DSA_get0_priv_key(const DSA *d)
 {
     return d->priv_key;
 }
 
-void DSA_clear_flags(DSA *d, int flags)
+void VR_DSA_clear_flags(DSA *d, int flags)
 {
     d->flags &= ~flags;
 }
 
-int DSA_test_flags(const DSA *d, int flags)
+int VR_DSA_test_flags(const DSA *d, int flags)
 {
     return d->flags & flags;
 }
 
-void DSA_set_flags(DSA *d, int flags)
+void VR_DSA_set_flags(DSA *d, int flags)
 {
     d->flags |= flags;
 }
 
-ENGINE *DSA_get0_engine(DSA *d)
+ENGINE *VR_DSA_get0_engine(DSA *d)
 {
     return d->engine;
 }
 
-int DSA_bits(const DSA *dsa)
+int VR_DSA_bits(const DSA *dsa)
 {
-    return BN_num_bits(dsa->p);
+    return VR_BN_num_bits(dsa->p);
 }

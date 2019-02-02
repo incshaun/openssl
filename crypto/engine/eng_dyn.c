@@ -119,7 +119,7 @@ static int dynamic_ex_data_idx = -1;
 
 static void int_free_str(char *s)
 {
-    OPENSSL_free(s);
+    OPENVR_SSL_free(s);
 }
 
 /*
@@ -137,11 +137,11 @@ static void dynamic_data_ctx_free_func(void *parent, void *ptr,
 {
     if (ptr) {
         dynamic_data_ctx *ctx = (dynamic_data_ctx *)ptr;
-        DSO_free(ctx->dynamic_dso);
-        OPENSSL_free(ctx->DYNAMIC_LIBNAME);
-        OPENSSL_free(ctx->engine_id);
-        sk_OPENSSL_STRING_pop_free(ctx->dirs, int_free_str);
-        OPENSSL_free(ctx);
+        VR_DSO_free(ctx->dynamic_dso);
+        OPENVR_SSL_free(ctx->DYNAMIC_LIBNAME);
+        OPENVR_SSL_free(ctx->engine_id);
+        sk_VR_OPENSSL_STRING_pop_free(ctx->dirs, int_free_str);
+        OPENVR_SSL_free(ctx);
     }
 }
 
@@ -160,34 +160,34 @@ static int dynamic_set_data_ctx(ENGINE *e, dynamic_data_ctx **ctx)
         ENGINEerr(ENGINE_F_DYNAMIC_SET_DATA_CTX, ERR_R_MALLOC_FAILURE);
         return 0;
     }
-    c->dirs = sk_OPENSSL_STRING_new_null();
+    c->dirs = sk_VR_OPENSSL_STRING_new_null();
     if (c->dirs == NULL) {
         ENGINEerr(ENGINE_F_DYNAMIC_SET_DATA_CTX, ERR_R_MALLOC_FAILURE);
-        OPENSSL_free(c);
+        OPENVR_SSL_free(c);
         return 0;
     }
     c->DYNAMIC_F1 = "v_check";
     c->DYNAMIC_F2 = "bind_engine";
     c->dir_load = 1;
-    CRYPTO_THREAD_write_lock(global_engine_lock);
-    if ((*ctx = (dynamic_data_ctx *)ENGINE_get_ex_data(e,
+    VR_CRYPTO_THREAD_write_lock(global_engine_lock);
+    if ((*ctx = (dynamic_data_ctx *)VR_ENGINE_get_ex_data(e,
                                                        dynamic_ex_data_idx))
         == NULL) {
         /* Good, we're the first */
-        ret = ENGINE_set_ex_data(e, dynamic_ex_data_idx, c);
+        ret = VR_ENGINE_set_ex_data(e, dynamic_ex_data_idx, c);
         if (ret) {
             *ctx = c;
             c = NULL;
         }
     }
-    CRYPTO_THREAD_unlock(global_engine_lock);
+    VR_CRYPTO_THREAD_unlock(global_engine_lock);
     /*
      * If we lost the race to set the context, c is non-NULL and *ctx is the
      * context of the thread that won.
      */
     if (c)
-        sk_OPENSSL_STRING_free(c->dirs);
-    OPENSSL_free(c);
+        sk_VR_OPENSSL_STRING_free(c->dirs);
+    OPENVR_SSL_free(c);
     return ret;
 }
 
@@ -210,20 +210,20 @@ static dynamic_data_ctx *dynamic_get_data_ctx(ENGINE *e)
             ENGINEerr(ENGINE_F_DYNAMIC_GET_DATA_CTX, ENGINE_R_NO_INDEX);
             return NULL;
         }
-        CRYPTO_THREAD_write_lock(global_engine_lock);
+        VR_CRYPTO_THREAD_write_lock(global_engine_lock);
         /* Avoid a race by checking again inside this lock */
         if (dynamic_ex_data_idx < 0) {
             /* Good, someone didn't beat us to it */
             dynamic_ex_data_idx = new_idx;
             new_idx = -1;
         }
-        CRYPTO_THREAD_unlock(global_engine_lock);
+        VR_CRYPTO_THREAD_unlock(global_engine_lock);
         /*
          * In theory we could "give back" the index here if (new_idx>-1), but
          * it's not possible and wouldn't gain us much if it were.
          */
     }
-    ctx = (dynamic_data_ctx *)ENGINE_get_ex_data(e, dynamic_ex_data_idx);
+    ctx = (dynamic_data_ctx *)VR_ENGINE_get_ex_data(e, dynamic_ex_data_idx);
     /* Check if the context needs to be created */
     if ((ctx == NULL) && !dynamic_set_data_ctx(e, &ctx))
         /* "set_data" will set errors if necessary */
@@ -233,39 +233,39 @@ static dynamic_data_ctx *dynamic_get_data_ctx(ENGINE *e)
 
 static ENGINE *engine_dynamic(void)
 {
-    ENGINE *ret = ENGINE_new();
+    ENGINE *ret = VR_ENGINE_new();
     if (ret == NULL)
         return NULL;
-    if (!ENGINE_set_id(ret, engine_dynamic_id) ||
-        !ENGINE_set_name(ret, engine_dynamic_name) ||
-        !ENGINE_set_init_function(ret, dynamic_init) ||
-        !ENGINE_set_finish_function(ret, dynamic_finish) ||
-        !ENGINE_set_ctrl_function(ret, dynamic_ctrl) ||
-        !ENGINE_set_flags(ret, ENGINE_FLAGS_BY_ID_COPY) ||
-        !ENGINE_set_cmd_defns(ret, dynamic_cmd_defns)) {
-        ENGINE_free(ret);
+    if (!VR_ENGINE_set_id(ret, engine_dynamic_id) ||
+        !VR_ENGINE_set_name(ret, engine_dynamic_name) ||
+        !VR_ENGINE_set_init_function(ret, dynamic_init) ||
+        !VR_ENGINE_set_finish_function(ret, dynamic_finish) ||
+        !VR_ENGINE_set_ctrl_function(ret, dynamic_ctrl) ||
+        !VR_ENGINE_set_flags(ret, ENGINE_FLAGS_BY_ID_COPY) ||
+        !VR_ENGINE_set_cmd_defns(ret, dynamic_cmd_defns)) {
+        VR_ENGINE_free(ret);
         return NULL;
     }
     return ret;
 }
 
-void engine_load_dynamic_int(void)
+void VR_engine_load_dynamic_int(void)
 {
     ENGINE *toadd = engine_dynamic();
     if (!toadd)
         return;
-    ENGINE_add(toadd);
+    VR_ENGINE_add(toadd);
     /*
      * If the "add" worked, it gets a structural reference. So either way, we
      * release our just-created reference.
      */
-    ENGINE_free(toadd);
+    VR_ENGINE_free(toadd);
     /*
      * If the "add" didn't work, it was probably a conflict because it was
      * already added (eg. someone calling ENGINE_load_blah then calling
-     * ENGINE_load_builtin_engines() perhaps).
+     * VR_ENGINE_load_builtin_engines() perhaps).
      */
-    ERR_clear_error();
+    VR_ERR_clear_error();
 }
 
 static int dynamic_init(ENGINE *e)
@@ -306,7 +306,7 @@ static int dynamic_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f) (void))
         /* a NULL 'p' or a string of zero-length is the same thing */
         if (p && (strlen((const char *)p) < 1))
             p = NULL;
-        OPENSSL_free(ctx->DYNAMIC_LIBNAME);
+        OPENVR_SSL_free(ctx->DYNAMIC_LIBNAME);
         if (p)
             ctx->DYNAMIC_LIBNAME = OPENSSL_strdup(p);
         else
@@ -319,7 +319,7 @@ static int dynamic_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f) (void))
         /* a NULL 'p' or a string of zero-length is the same thing */
         if (p && (strlen((const char *)p) < 1))
             p = NULL;
-        OPENSSL_free(ctx->engine_id);
+        OPENVR_SSL_free(ctx->engine_id);
         if (p)
             ctx->engine_id = OPENSSL_strdup(p);
         else
@@ -353,8 +353,8 @@ static int dynamic_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f) (void))
                 ENGINEerr(ENGINE_F_DYNAMIC_CTRL, ERR_R_MALLOC_FAILURE);
                 return 0;
             }
-            if (!sk_OPENSSL_STRING_push(ctx->dirs, tmp_str)) {
-                OPENSSL_free(tmp_str);
+            if (!sk_VR_OPENSSL_STRING_push(ctx->dirs, tmp_str)) {
+                OPENVR_SSL_free(tmp_str);
                 ENGINEerr(ENGINE_F_DYNAMIC_CTRL, ERR_R_MALLOC_FAILURE);
                 return 0;
             }
@@ -371,7 +371,7 @@ static int int_load(dynamic_data_ctx *ctx)
 {
     int num, loop;
     /* Unless told not to, try a direct load */
-    if ((ctx->dir_load != 2) && (DSO_load(ctx->dynamic_dso,
+    if ((ctx->dir_load != 2) && (VR_DSO_load(ctx->dynamic_dso,
                                           ctx->DYNAMIC_LIBNAME, NULL,
                                           0)) != NULL)
         return 1;
@@ -380,15 +380,15 @@ static int int_load(dynamic_data_ctx *ctx)
         return 0;
     for (loop = 0; loop < num; loop++) {
         const char *s = sk_OPENSSL_STRING_value(ctx->dirs, loop);
-        char *merge = DSO_merge(ctx->dynamic_dso, ctx->DYNAMIC_LIBNAME, s);
+        char *merge = VR_DSO_merge(ctx->dynamic_dso, ctx->DYNAMIC_LIBNAME, s);
         if (!merge)
             return 0;
-        if (DSO_load(ctx->dynamic_dso, merge, NULL, 0)) {
+        if (VR_DSO_load(ctx->dynamic_dso, merge, NULL, 0)) {
             /* Found what we're looking for */
-            OPENSSL_free(merge);
+            OPENVR_SSL_free(merge);
             return 1;
         }
-        OPENSSL_free(merge);
+        OPENVR_SSL_free(merge);
     }
     return 0;
 }
@@ -399,30 +399,30 @@ static int dynamic_load(ENGINE *e, dynamic_data_ctx *ctx)
     dynamic_fns fns;
 
     if (ctx->dynamic_dso == NULL)
-        ctx->dynamic_dso = DSO_new();
+        ctx->dynamic_dso = VR_DSO_new();
     if (ctx->dynamic_dso == NULL)
         return 0;
     if (!ctx->DYNAMIC_LIBNAME) {
         if (!ctx->engine_id)
             return 0;
-        DSO_ctrl(ctx->dynamic_dso, DSO_CTRL_SET_FLAGS,
+        VR_DSO_ctrl(ctx->dynamic_dso, DSO_CTRL_SET_FLAGS,
                  DSO_FLAG_NAME_TRANSLATION_EXT_ONLY, NULL);
         ctx->DYNAMIC_LIBNAME =
-            DSO_convert_filename(ctx->dynamic_dso, ctx->engine_id);
+            VR_DSO_convert_filename(ctx->dynamic_dso, ctx->engine_id);
     }
     if (!int_load(ctx)) {
         ENGINEerr(ENGINE_F_DYNAMIC_LOAD, ENGINE_R_DSO_NOT_FOUND);
-        DSO_free(ctx->dynamic_dso);
+        VR_DSO_free(ctx->dynamic_dso);
         ctx->dynamic_dso = NULL;
         return 0;
     }
     /* We have to find a bind function otherwise it'll always end badly */
     if (!
         (ctx->bind_engine =
-         (dynamic_bind_engine) DSO_bind_func(ctx->dynamic_dso,
+         (dynamic_bind_engine) VR_DSO_bind_func(ctx->dynamic_dso,
                                              ctx->DYNAMIC_F2))) {
         ctx->bind_engine = NULL;
-        DSO_free(ctx->dynamic_dso);
+        VR_DSO_free(ctx->dynamic_dso);
         ctx->dynamic_dso = NULL;
         ENGINEerr(ENGINE_F_DYNAMIC_LOAD, ENGINE_R_DSO_FAILURE);
         return 0;
@@ -435,7 +435,7 @@ static int dynamic_load(ENGINE *e, dynamic_data_ctx *ctx)
          * cope with failure if/when it fails.
          */
         ctx->v_check =
-            (dynamic_v_check_fn) DSO_bind_func(ctx->dynamic_dso,
+            (dynamic_v_check_fn) VR_DSO_bind_func(ctx->dynamic_dso,
                                                ctx->DYNAMIC_F1);
         if (ctx->v_check)
             vcheck_res = ctx->v_check(OSSL_DYNAMIC_VERSION);
@@ -448,7 +448,7 @@ static int dynamic_load(ENGINE *e, dynamic_data_ctx *ctx)
             /* Fail */
             ctx->bind_engine = NULL;
             ctx->v_check = NULL;
-            DSO_free(ctx->dynamic_dso);
+            VR_DSO_free(ctx->dynamic_dso);
             ctx->dynamic_dso = NULL;
             ENGINEerr(ENGINE_F_DYNAMIC_LOAD,
                       ENGINE_R_VERSION_INCOMPATIBILITY);
@@ -467,20 +467,20 @@ static int dynamic_load(ENGINE *e, dynamic_data_ctx *ctx)
      * provided its own "summary" structure of all related callbacks. It
      * would also increase opaqueness.
      */
-    fns.static_state = ENGINE_get_static_state();
-    CRYPTO_get_mem_functions(&fns.mem_fns.malloc_fn, &fns.mem_fns.realloc_fn,
+    fns.static_state = VR_ENGINE_get_static_state();
+    VR_CRYPTO_get_mem_functions(&fns.mem_fns.malloc_fn, &fns.mem_fns.realloc_fn,
                              &fns.mem_fns.free_fn);
     /*
      * Now that we've loaded the dynamic engine, make sure no "dynamic"
      * ENGINE elements will show through.
      */
-    engine_set_all_null(e);
+    VR_engine_set_all_null(e);
 
     /* Try to bind the ENGINE onto our own ENGINE structure */
     if (!ctx->bind_engine(e, ctx->engine_id, &fns)) {
         ctx->bind_engine = NULL;
         ctx->v_check = NULL;
-        DSO_free(ctx->dynamic_dso);
+        VR_DSO_free(ctx->dynamic_dso);
         ctx->dynamic_dso = NULL;
         ENGINEerr(ENGINE_F_DYNAMIC_LOAD, ENGINE_R_INIT_FAILED);
         /* Copy the original ENGINE structure back */
@@ -489,7 +489,7 @@ static int dynamic_load(ENGINE *e, dynamic_data_ctx *ctx)
     }
     /* Do we try to add this ENGINE to the internal list too? */
     if (ctx->list_add_value > 0) {
-        if (!ENGINE_add(e)) {
+        if (!VR_ENGINE_add(e)) {
             /* Do we tolerate this or fail? */
             if (ctx->list_add_value > 1) {
                 /*
@@ -503,7 +503,7 @@ static int dynamic_load(ENGINE *e, dynamic_data_ctx *ctx)
                 return 0;
             }
             /* Tolerate */
-            ERR_clear_error();
+            VR_ERR_clear_error();
         }
     }
     return 1;

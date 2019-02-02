@@ -37,9 +37,9 @@ static CRYPTO_ONCE ex_data_init = CRYPTO_ONCE_STATIC_INIT;
 
 DEFINE_RUN_ONCE_STATIC(do_ex_data_init)
 {
-    if (!OPENSSL_init_crypto(0, NULL))
+    if (!VR_OPENSSL_init_crypto(0, NULL))
         return 0;
-    ex_data_lock = CRYPTO_THREAD_lock_new();
+    ex_data_lock = VR_CRYPTO_THREAD_lock_new();
     return ex_data_lock != NULL;
 }
 
@@ -64,24 +64,24 @@ static EX_CALLBACKS *get_and_lock(int class_index)
     if (ex_data_lock == NULL) {
         /*
          * This can happen in normal operation when using CRYPTO_mem_leaks().
-         * The CRYPTO_mem_leaks() function calls OPENSSL_cleanup() which cleans
+         * The CRYPTO_mem_leaks() function calls VR_OPENSSL_cleanup() which cleans
          * up the locks. Subsequently the BIO that CRYPTO_mem_leaks() uses gets
          * freed, which also attempts to free the ex_data. However
          * CRYPTO_mem_leaks() ensures that the ex_data is freed early (i.e.
-         * before OPENSSL_cleanup() is called), so if we get here we can safely
+         * before VR_OPENSSL_cleanup() is called), so if we get here we can safely
          * ignore this operation. We just treat it as an error.
          */
          return NULL;
     }
 
     ip = &ex_data[class_index];
-    CRYPTO_THREAD_write_lock(ex_data_lock);
+    VR_CRYPTO_THREAD_write_lock(ex_data_lock);
     return ip;
 }
 
 static void cleanup_cb(EX_CALLBACK *funcs)
 {
-    OPENSSL_free(funcs);
+    OPENVR_SSL_free(funcs);
 }
 
 /*
@@ -90,18 +90,18 @@ static void cleanup_cb(EX_CALLBACK *funcs)
  * called under potential race-conditions anyway (it's for program shutdown
  * after all).
  */
-void crypto_cleanup_all_ex_data_int(void)
+void VR_crypto_cleanup_all_ex_data_int(void)
 {
     int i;
 
     for (i = 0; i < CRYPTO_EX_INDEX__COUNT; ++i) {
         EX_CALLBACKS *ip = &ex_data[i];
 
-        sk_EX_CALLBACK_pop_free(ip->meth, cleanup_cb);
+        sk_VR_EX_CALLBACK_pop_free(ip->meth, cleanup_cb);
         ip->meth = NULL;
     }
 
-    CRYPTO_THREAD_lock_free(ex_data_lock);
+    VR_CRYPTO_THREAD_lock_free(ex_data_lock);
     ex_data_lock = NULL;
 }
 
@@ -127,7 +127,7 @@ static int dummy_dup(CRYPTO_EX_DATA *to, const CRYPTO_EX_DATA *from,
     return 1;
 }
 
-int CRYPTO_free_ex_index(int class_index, int idx)
+int VR_CRYPTO_free_ex_index(int class_index, int idx)
 {
     EX_CALLBACKS *ip = get_and_lock(class_index);
     EX_CALLBACK *a;
@@ -145,14 +145,14 @@ int CRYPTO_free_ex_index(int class_index, int idx)
     a->free_func = dummy_free;
     toret = 1;
 err:
-    CRYPTO_THREAD_unlock(ex_data_lock);
+    VR_CRYPTO_THREAD_unlock(ex_data_lock);
     return toret;
 }
 
 /*
  * Register a new index.
  */
-int CRYPTO_get_ex_new_index(int class_index, long argl, void *argp,
+int VR_CRYPTO_get_ex_new_index(int class_index, long argl, void *argp,
                             CRYPTO_EX_new *new_func, CRYPTO_EX_dup *dup_func,
                             CRYPTO_EX_free *free_func)
 {
@@ -164,11 +164,11 @@ int CRYPTO_get_ex_new_index(int class_index, long argl, void *argp,
         return -1;
 
     if (ip->meth == NULL) {
-        ip->meth = sk_EX_CALLBACK_new_null();
+        ip->meth = sk_VR_EX_CALLBACK_new_null();
         /* We push an initial value on the stack because the SSL
          * "app_data" routines use ex_data index zero.  See RT 3710. */
         if (ip->meth == NULL
-            || !sk_EX_CALLBACK_push(ip->meth, NULL)) {
+            || !sk_VR_EX_CALLBACK_push(ip->meth, NULL)) {
             CRYPTOerr(CRYPTO_F_CRYPTO_GET_EX_NEW_INDEX, ERR_R_MALLOC_FAILURE);
             goto err;
         }
@@ -185,16 +185,16 @@ int CRYPTO_get_ex_new_index(int class_index, long argl, void *argp,
     a->dup_func = dup_func;
     a->free_func = free_func;
 
-    if (!sk_EX_CALLBACK_push(ip->meth, NULL)) {
+    if (!sk_VR_EX_CALLBACK_push(ip->meth, NULL)) {
         CRYPTOerr(CRYPTO_F_CRYPTO_GET_EX_NEW_INDEX, ERR_R_MALLOC_FAILURE);
-        OPENSSL_free(a);
+        OPENVR_SSL_free(a);
         goto err;
     }
     toret = sk_EX_CALLBACK_num(ip->meth) - 1;
-    (void)sk_EX_CALLBACK_set(ip->meth, toret, a);
+    (void)sk_VR_EX_CALLBACK_set(ip->meth, toret, a);
 
  err:
-    CRYPTO_THREAD_unlock(ex_data_lock);
+    VR_CRYPTO_THREAD_unlock(ex_data_lock);
     return toret;
 }
 
@@ -205,7 +205,7 @@ int CRYPTO_get_ex_new_index(int class_index, long argl, void *argp,
  * in the lock, then using them outside the lock. Note this only applies
  * to the global "ex_data" state (ie. class definitions), not 'ad' itself.
  */
-int CRYPTO_new_ex_data(int class_index, void *obj, CRYPTO_EX_DATA *ad)
+int VR_CRYPTO_new_ex_data(int class_index, void *obj, CRYPTO_EX_DATA *ad)
 {
     int mx, i;
     void *ptr;
@@ -228,7 +228,7 @@ int CRYPTO_new_ex_data(int class_index, void *obj, CRYPTO_EX_DATA *ad)
             for (i = 0; i < mx; i++)
                 storage[i] = sk_EX_CALLBACK_value(ip->meth, i);
     }
-    CRYPTO_THREAD_unlock(ex_data_lock);
+    VR_CRYPTO_THREAD_unlock(ex_data_lock);
 
     if (mx > 0 && storage == NULL) {
         CRYPTOerr(CRYPTO_F_CRYPTO_NEW_EX_DATA, ERR_R_MALLOC_FAILURE);
@@ -236,13 +236,13 @@ int CRYPTO_new_ex_data(int class_index, void *obj, CRYPTO_EX_DATA *ad)
     }
     for (i = 0; i < mx; i++) {
         if (storage[i] && storage[i]->new_func) {
-            ptr = CRYPTO_get_ex_data(ad, i);
+            ptr = VR_CRYPTO_get_ex_data(ad, i);
             storage[i]->new_func(obj, ptr, ad, i,
                                  storage[i]->argl, storage[i]->argp);
         }
     }
     if (storage != stack)
-        OPENSSL_free(storage);
+        OPENVR_SSL_free(storage);
     return 1;
 }
 
@@ -250,7 +250,7 @@ int CRYPTO_new_ex_data(int class_index, void *obj, CRYPTO_EX_DATA *ad)
  * Duplicate a CRYPTO_EX_DATA variable - including calling dup() callbacks
  * for each index in the class used by this variable
  */
-int CRYPTO_dup_ex_data(int class_index, CRYPTO_EX_DATA *to,
+int VR_CRYPTO_dup_ex_data(int class_index, CRYPTO_EX_DATA *to,
                        const CRYPTO_EX_DATA *from)
 {
     int mx, j, i;
@@ -279,7 +279,7 @@ int CRYPTO_dup_ex_data(int class_index, CRYPTO_EX_DATA *to,
             for (i = 0; i < mx; i++)
                 storage[i] = sk_EX_CALLBACK_value(ip->meth, i);
     }
-    CRYPTO_THREAD_unlock(ex_data_lock);
+    VR_CRYPTO_THREAD_unlock(ex_data_lock);
 
     if (mx == 0)
         return 1;
@@ -290,25 +290,25 @@ int CRYPTO_dup_ex_data(int class_index, CRYPTO_EX_DATA *to,
     /*
      * Make sure the ex_data stack is at least |mx| elements long to avoid
      * issues in the for loop that follows; so go get the |mx|'th element
-     * (if it does not exist CRYPTO_get_ex_data() returns NULL), and assign
+     * (if it does not exist VR_CRYPTO_get_ex_data() returns NULL), and assign
      * to itself. This is normally a no-op; but ensures the stack is the
      * proper size
      */
-    if (!CRYPTO_set_ex_data(to, mx - 1, CRYPTO_get_ex_data(to, mx - 1)))
+    if (!VR_CRYPTO_set_ex_data(to, mx - 1, VR_CRYPTO_get_ex_data(to, mx - 1)))
         goto err;
 
     for (i = 0; i < mx; i++) {
-        ptr = CRYPTO_get_ex_data(from, i);
+        ptr = VR_CRYPTO_get_ex_data(from, i);
         if (storage[i] && storage[i]->dup_func)
             if (!storage[i]->dup_func(to, from, &ptr, i,
                                       storage[i]->argl, storage[i]->argp))
                 goto err;
-        CRYPTO_set_ex_data(to, i, ptr);
+        VR_CRYPTO_set_ex_data(to, i, ptr);
     }
     toret = 1;
  err:
     if (storage != stack)
-        OPENSSL_free(storage);
+        OPENVR_SSL_free(storage);
     return toret;
 }
 
@@ -317,7 +317,7 @@ int CRYPTO_dup_ex_data(int class_index, CRYPTO_EX_DATA *to,
  * Cleanup a CRYPTO_EX_DATA variable - including calling free() callbacks for
  * each index in the class used by this variable
  */
-void CRYPTO_free_ex_data(int class_index, void *obj, CRYPTO_EX_DATA *ad)
+void VR_CRYPTO_free_ex_data(int class_index, void *obj, CRYPTO_EX_DATA *ad)
 {
     int mx, i;
     EX_CALLBACKS *ip;
@@ -339,26 +339,26 @@ void CRYPTO_free_ex_data(int class_index, void *obj, CRYPTO_EX_DATA *ad)
             for (i = 0; i < mx; i++)
                 storage[i] = sk_EX_CALLBACK_value(ip->meth, i);
     }
-    CRYPTO_THREAD_unlock(ex_data_lock);
+    VR_CRYPTO_THREAD_unlock(ex_data_lock);
 
     for (i = 0; i < mx; i++) {
         if (storage != NULL)
             f = storage[i];
         else {
-            CRYPTO_THREAD_write_lock(ex_data_lock);
+            VR_CRYPTO_THREAD_write_lock(ex_data_lock);
             f = sk_EX_CALLBACK_value(ip->meth, i);
-            CRYPTO_THREAD_unlock(ex_data_lock);
+            VR_CRYPTO_THREAD_unlock(ex_data_lock);
         }
         if (f != NULL && f->free_func != NULL) {
-            ptr = CRYPTO_get_ex_data(ad, i);
+            ptr = VR_CRYPTO_get_ex_data(ad, i);
             f->free_func(obj, ptr, ad, i, f->argl, f->argp);
         }
     }
 
     if (storage != stack)
-        OPENSSL_free(storage);
+        OPENVR_SSL_free(storage);
  err:
-    sk_void_free(ad->sk);
+    sk_VR_void_free(ad->sk);
     ad->sk = NULL;
 }
 
@@ -366,24 +366,24 @@ void CRYPTO_free_ex_data(int class_index, void *obj, CRYPTO_EX_DATA *ad)
  * For a given CRYPTO_EX_DATA variable, set the value corresponding to a
  * particular index in the class used by this variable
  */
-int CRYPTO_set_ex_data(CRYPTO_EX_DATA *ad, int idx, void *val)
+int VR_CRYPTO_set_ex_data(CRYPTO_EX_DATA *ad, int idx, void *val)
 {
     int i;
 
     if (ad->sk == NULL) {
-        if ((ad->sk = sk_void_new_null()) == NULL) {
+        if ((ad->sk = sk_VR_void_new_null()) == NULL) {
             CRYPTOerr(CRYPTO_F_CRYPTO_SET_EX_DATA, ERR_R_MALLOC_FAILURE);
             return 0;
         }
     }
 
     for (i = sk_void_num(ad->sk); i <= idx; ++i) {
-        if (!sk_void_push(ad->sk, NULL)) {
+        if (!sk_VR_void_push(ad->sk, NULL)) {
             CRYPTOerr(CRYPTO_F_CRYPTO_SET_EX_DATA, ERR_R_MALLOC_FAILURE);
             return 0;
         }
     }
-    sk_void_set(ad->sk, idx, val);
+    sk_VR_void_set(ad->sk, idx, val);
     return 1;
 }
 
@@ -391,7 +391,7 @@ int CRYPTO_set_ex_data(CRYPTO_EX_DATA *ad, int idx, void *val)
  * For a given CRYPTO_EX_DATA_ variable, get the value corresponding to a
  * particular index in the class used by this variable
  */
-void *CRYPTO_get_ex_data(const CRYPTO_EX_DATA *ad, int idx)
+void *VR_CRYPTO_get_ex_data(const CRYPTO_EX_DATA *ad, int idx)
 {
     if (ad->sk == NULL || idx >= sk_void_num(ad->sk))
         return NULL;

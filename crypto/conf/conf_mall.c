@@ -18,14 +18,14 @@
 
 /* Load all OpenSSL builtin modules */
 
-void OPENSSL_load_builtin_modules(void)
+void VR_OPENSSL_load_builtin_modules(void)
 {
     /* Add builtin modules here */
-    ASN1_add_oid_module();
-    ASN1_add_stable_module();
+    VR_ASN1_add_oid_module();
+    VR_ASN1_add_stable_module();
 #ifndef OPENSSL_NO_ENGINE
-    ENGINE_add_conf_module();
+    VR_ENGINE_add_conf_module();
 #endif
-    EVP_add_alg_module();
-    conf_add_ssl_module();
+    VR_EVP_add_alg_module();
+    VR_conf_add_ssl_module();
 }

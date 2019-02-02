@@ -45,7 +45,7 @@ ___
 ($n0,$m0,$m1,$lo0,$hi0, $lo1,$hi1,$aj,$alo,$nj,$nlo,$tj)=
 	(map("%g$_",(1..5)),map("%o$_",(0..5,7)));
 
-# int bn_mul_mont(
+# int VR_bn_mul_mont(
 $rp="%o0";	# BN_ULONG *rp,
 $ap="%o1";	# const BN_ULONG *ap,
 $bp="%o2";	# const BN_ULONG *bp,
@@ -54,9 +54,9 @@ $n0p="%o4";	# const BN_ULONG *n0,
 $num="%o5";	# int num);	# caller ensures that num is even
 				# and >=6
 $code.=<<___;
-.globl	bn_mul_mont_vis3
+.globl	VR_bn_mul_mont_vis3
 .align	32
-bn_mul_mont_vis3:
+VR_bn_mul_mont_vis3:
 	add	%sp,	$bias,	%g4	! real top of stack
 	sll	$num,	2,	$num	! size in bytes
 	add	$num,	63,	%g5
@@ -336,8 +336,8 @@ $code.=<<___;
 	mov	1,	%o0
 	ret
 	restore
-.type	bn_mul_mont_vis3, #function
-.size	bn_mul_mont_vis3, .-bn_mul_mont_vis3
+.type	VR_bn_mul_mont_vis3, #function
+.size	VR_bn_mul_mont_vis3, .-VR_bn_mul_mont_vis3
 .asciz  "Montgomery Multiplication for SPARCv9 VIS3, CRYPTOGAMS by <appro\@openssl.org>"
 .align	4
 ___

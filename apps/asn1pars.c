@@ -74,8 +74,8 @@ int asn1parse_main(int argc, char **argv)
 
     prog = opt_init(argc, argv, asn1parse_options);
 
-    if ((osk = sk_OPENSSL_STRING_new_null()) == NULL) {
-        BIO_printf(bio_err, "%s: Memory allocation failure\n", prog);
+    if ((osk = sk_VR_OPENSSL_STRING_new_null()) == NULL) {
+        VR_BIO_printf(bio_err, "%s: Memory allocation failure\n", prog);
         goto end;
     }
 
@@ -84,7 +84,7 @@ int asn1parse_main(int argc, char **argv)
         case OPT_EOF:
         case OPT_ERR:
  opthelp:
-            BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
+            VR_BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
             opt_help(asn1parse_options);
@@ -122,7 +122,7 @@ int asn1parse_main(int argc, char **argv)
             dump = strtol(opt_arg(), NULL, 0);
             break;
         case OPT_STRPARSE:
-            sk_OPENSSL_STRING_push(osk, opt_arg());
+            sk_VR_OPENSSL_STRING_push(osk, opt_arg());
             break;
         case OPT_GENSTR:
             genstr = opt_arg();
@@ -135,17 +135,17 @@ int asn1parse_main(int argc, char **argv)
             informat = FORMAT_PEM;
             break;
         case OPT_ITEM:
-            it = ASN1_ITEM_lookup(opt_arg());
+            it = VR_ASN1_ITEM_lookup(opt_arg());
             if (it == NULL) {
                 size_t tmp;
 
-                BIO_printf(bio_err, "Unknown item name %s\n", opt_arg());
-                BIO_puts(bio_err, "Supported types:\n");
+                VR_BIO_printf(bio_err, "Unknown item name %s\n", opt_arg());
+                VR_BIO_puts(bio_err, "Supported types:\n");
                 for (tmp = 0;; tmp++) {
-                    it = ASN1_ITEM_get(tmp);
+                    it = VR_ASN1_ITEM_get(tmp);
                     if (it == NULL)
                         break;
-                    BIO_printf(bio_err, "    %s\n", it->sname);
+                    VR_BIO_printf(bio_err, "    %s\n", it->sname);
                 }
                 goto end;
             }
@@ -160,8 +160,8 @@ int asn1parse_main(int argc, char **argv)
         in = bio_open_default(oidfile, 'r', FORMAT_TEXT);
         if (in == NULL)
             goto end;
-        OBJ_create_objects(in);
-        BIO_free(in);
+        VR_OBJ_create_objects(in);
+        VR_BIO_free(in);
     }
 
     if ((in = bio_open_default(infile, 'r', informat)) == NULL)
@@ -171,23 +171,23 @@ int asn1parse_main(int argc, char **argv)
         goto end;
 
     if (strictpem) {
-        if (PEM_read_bio(in, &name, &header, &str, &num) !=
+        if (VR_PEM_read_bio(in, &name, &header, &str, &num) !=
             1) {
-            BIO_printf(bio_err, "Error reading PEM file\n");
-            ERR_print_errors(bio_err);
+            VR_BIO_printf(bio_err, "Error reading PEM file\n");
+            VR_ERR_print_errors(bio_err);
             goto end;
         }
     } else {
 
-        if ((buf = BUF_MEM_new()) == NULL)
+        if ((buf = VR_BUF_MEM_new()) == NULL)
             goto end;
-        if (!BUF_MEM_grow(buf, BUFSIZ * 8))
+        if (!VR_BUF_MEM_grow(buf, BUFSIZ * 8))
             goto end;           /* Pre-allocate :-) */
 
         if (genstr || genconf) {
             num = do_generate(genstr, genconf, buf);
             if (num < 0) {
-                ERR_print_errors(bio_err);
+                VR_ERR_print_errors(bio_err);
                 goto end;
             }
         } else {
@@ -195,9 +195,9 @@ int asn1parse_main(int argc, char **argv)
             if (informat == FORMAT_PEM) {
                 BIO *tmp;
 
-                if ((b64 = BIO_new(BIO_f_base64())) == NULL)
+                if ((b64 = VR_BIO_new(VR_BIO_f_base64())) == NULL)
                     goto end;
-                BIO_push(b64, in);
+                VR_BIO_push(b64, in);
                 tmp = in;
                 in = b64;
                 b64 = tmp;
@@ -205,9 +205,9 @@ int asn1parse_main(int argc, char **argv)
 
             num = 0;
             for (;;) {
-                if (!BUF_MEM_grow(buf, num + BUFSIZ))
+                if (!VR_BUF_MEM_grow(buf, num + BUFSIZ))
                     goto end;
-                i = BIO_read(in, &(buf->data[num]), BUFSIZ);
+                i = VR_BIO_read(in, &(buf->data[num]), BUFSIZ);
                 if (i <= 0)
                     break;
                 num += i;
@@ -227,7 +227,7 @@ int asn1parse_main(int argc, char **argv)
             int typ;
             j = strtol(sk_OPENSSL_STRING_value(osk, i), NULL, 0);
             if (j <= 0 || j >= tmplen) {
-                BIO_printf(bio_err, "'%s' is out of range\n",
+                VR_BIO_printf(bio_err, "'%s' is out of range\n",
                            sk_OPENSSL_STRING_value(osk, i));
                 continue;
             }
@@ -235,19 +235,19 @@ int asn1parse_main(int argc, char **argv)
             tmplen -= j;
             atmp = at;
             ctmpbuf = tmpbuf;
-            at = d2i_ASN1_TYPE(NULL, &ctmpbuf, tmplen);
-            ASN1_TYPE_free(atmp);
+            at = VR_d2i_ASN1_TYPE(NULL, &ctmpbuf, tmplen);
+            VR_ASN1_TYPE_free(atmp);
             if (!at) {
-                BIO_printf(bio_err, "Error parsing structure\n");
-                ERR_print_errors(bio_err);
+                VR_BIO_printf(bio_err, "Error parsing structure\n");
+                VR_ERR_print_errors(bio_err);
                 goto end;
             }
-            typ = ASN1_TYPE_get(at);
+            typ = VR_ASN1_TYPE_get(at);
             if ((typ == V_ASN1_OBJECT)
                 || (typ == V_ASN1_BOOLEAN)
                 || (typ == V_ASN1_NULL)) {
-                BIO_printf(bio_err, "Can't parse %s type\n", ASN1_tag2str(typ));
-                ERR_print_errors(bio_err);
+                VR_BIO_printf(bio_err, "Can't parse %s type\n", VR_ASN1_tag2str(typ));
+                VR_ERR_print_errors(bio_err);
                 goto end;
             }
             /* hmm... this is a little evil but it works */
@@ -259,7 +259,7 @@ int asn1parse_main(int argc, char **argv)
     }
 
     if (offset < 0 || offset >= num) {
-        BIO_printf(bio_err, "Error: offset out of range\n");
+        VR_BIO_printf(bio_err, "Error: offset out of range\n");
         goto end;
     }
 
@@ -268,9 +268,9 @@ int asn1parse_main(int argc, char **argv)
     if (length == 0 || length > (unsigned int)num)
         length = (unsigned int)num;
     if (derout != NULL) {
-        if (BIO_write(derout, str + offset, length) != (int)length) {
-            BIO_printf(bio_err, "Error writing output\n");
-            ERR_print_errors(bio_err);
+        if (VR_BIO_write(derout, str + offset, length) != (int)length) {
+            VR_BIO_printf(bio_err, "Error writing output\n");
+            VR_ERR_print_errors(bio_err);
             goto end;
         }
     }
@@ -278,35 +278,35 @@ int asn1parse_main(int argc, char **argv)
         const unsigned char *p = str + offset;
 
         if (it != NULL) {
-            ASN1_VALUE *value = ASN1_item_d2i(NULL, &p, length, it);
+            ASN1_VALUE *value = VR_ASN1_item_d2i(NULL, &p, length, it);
             if (value == NULL) {
-                BIO_printf(bio_err, "Error parsing item %s\n", it->sname);
-                ERR_print_errors(bio_err);
+                VR_BIO_printf(bio_err, "Error parsing item %s\n", it->sname);
+                VR_ERR_print_errors(bio_err);
                 goto end;
             }
-            ASN1_item_print(bio_out, value, 0, it, NULL);
-            ASN1_item_free(value, it);
+            VR_ASN1_item_print(bio_out, value, 0, it, NULL);
+            VR_ASN1_item_free(value, it);
         } else {
-            if (!ASN1_parse_dump(bio_out, p, length, indent, dump)) {
-                ERR_print_errors(bio_err);
+            if (!VR_ASN1_parse_dump(bio_out, p, length, indent, dump)) {
+                VR_ERR_print_errors(bio_err);
                 goto end;
             }
         }
     }
     ret = 0;
  end:
-    BIO_free(derout);
-    BIO_free(in);
-    BIO_free(b64);
+    VR_BIO_free(derout);
+    VR_BIO_free(in);
+    VR_BIO_free(b64);
     if (ret != 0)
-        ERR_print_errors(bio_err);
-    BUF_MEM_free(buf);
-    OPENSSL_free(name);
-    OPENSSL_free(header);
+        VR_ERR_print_errors(bio_err);
+    VR_BUF_MEM_free(buf);
+    OPENVR_SSL_free(name);
+    OPENVR_SSL_free(header);
     if (strictpem)
-        OPENSSL_free(str);
-    ASN1_TYPE_free(at);
-    sk_OPENSSL_STRING_free(osk);
+        OPENVR_SSL_free(str);
+    VR_ASN1_TYPE_free(at);
+    sk_VR_OPENSSL_STRING_free(osk);
     return ret;
 }
 
@@ -321,37 +321,37 @@ static int do_generate(char *genstr, const char *genconf, BUF_MEM *buf)
         if ((cnf = app_load_config(genconf)) == NULL)
             goto err;
         if (genstr == NULL)
-            genstr = NCONF_get_string(cnf, "default", "asn1");
+            genstr = VR_NCONF_get_string(cnf, "default", "asn1");
         if (genstr == NULL) {
-            BIO_printf(bio_err, "Can't find 'asn1' in '%s'\n", genconf);
+            VR_BIO_printf(bio_err, "Can't find 'asn1' in '%s'\n", genconf);
             goto err;
         }
     }
 
-    atyp = ASN1_generate_nconf(genstr, cnf);
-    NCONF_free(cnf);
+    atyp = VR_ASN1_generate_nconf(genstr, cnf);
+    VR_NCONF_free(cnf);
     cnf = NULL;
 
     if (atyp == NULL)
         return -1;
 
-    len = i2d_ASN1_TYPE(atyp, NULL);
+    len = VR_i2d_ASN1_TYPE(atyp, NULL);
 
     if (len <= 0)
         goto err;
 
-    if (!BUF_MEM_grow(buf, len))
+    if (!VR_BUF_MEM_grow(buf, len))
         goto err;
 
     p = (unsigned char *)buf->data;
 
-    i2d_ASN1_TYPE(atyp, &p);
+    VR_i2d_ASN1_TYPE(atyp, &p);
 
-    ASN1_TYPE_free(atyp);
+    VR_ASN1_TYPE_free(atyp);
     return len;
 
  err:
-    NCONF_free(cnf);
-    ASN1_TYPE_free(atyp);
+    VR_NCONF_free(cnf);
+    VR_ASN1_TYPE_free(atyp);
     return -1;
 }

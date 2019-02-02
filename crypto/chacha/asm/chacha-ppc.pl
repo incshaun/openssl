@@ -152,10 +152,10 @@ $code.=<<___;
 .machine	"any"
 .text
 
-.globl	.ChaCha20_ctr32_int
+.globl	.VR_ChaCha20_ctr32_int
 .align	5
-.ChaCha20_ctr32_int:
-__ChaCha20_ctr32_int:
+.VR_ChaCha20_ctr32_int:
+__VR_ChaCha20_ctr32_int:
 	${UCMP}i $len,0
 	beqlr-
 
@@ -214,7 +214,7 @@ __ChaCha20_ctr32_int:
 	.long	0
 	.byte	0,12,4,1,0x80,18,5,0
 	.long	0
-.size	.ChaCha20_ctr32_int,.-.ChaCha20_ctr32_int
+.size	.VR_ChaCha20_ctr32_int,.-.VR_ChaCha20_ctr32_int
 
 .align	5
 __ChaCha20_1x:
@@ -446,11 +446,11 @@ my ($a,$b,$c,$d)=@_;
 
 $code.=<<___;
 
-.globl	.ChaCha20_ctr32_vmx
+.globl	.VR_ChaCha20_ctr32_vmx
 .align	5
-.ChaCha20_ctr32_vmx:
+.VR_ChaCha20_ctr32_vmx:
 	${UCMP}i $len,256
-	blt	__ChaCha20_ctr32_int
+	blt	__VR_ChaCha20_ctr32_int
 
 	$STU	$sp,-$FRAME($sp)
 	mflr	r0
@@ -904,7 +904,7 @@ Ldone_vmx:
 	.long	0
 	.byte	0,12,0x04,1,0x80,18,5,0
 	.long	0
-.size	.ChaCha20_ctr32_vmx,.-.ChaCha20_ctr32_vmx
+.size	.VR_ChaCha20_ctr32_vmx,.-.VR_ChaCha20_ctr32_vmx
 ___
 }}}
 {{{
@@ -984,9 +984,9 @@ my @x=map("\"v$_\"",(0..15));
 
 $code.=<<___;
 
-.globl	.ChaCha20_ctr32_vsx
+.globl	.VR_ChaCha20_ctr32_vsx
 .align	5
-.ChaCha20_ctr32_vsx:
+.VR_ChaCha20_ctr32_vsx:
 	$STU	$sp,-$FRAME($sp)
 	mflr	r0
 	li	r10,`15+$LOCALS+64`
@@ -1285,7 +1285,7 @@ Loop_tail_vsx:
 	.long	0
 	.byte	0,12,0x04,1,0x80,0,5,0
 	.long	0
-.size	.ChaCha20_ctr32_vsx,.-.ChaCha20_ctr32_vsx
+.size	.VR_ChaCha20_ctr32_vsx,.-.VR_ChaCha20_ctr32_vsx
 ___
 }}}
 $code.=<<___;

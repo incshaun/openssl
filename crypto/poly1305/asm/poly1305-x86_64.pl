@@ -34,7 +34,7 @@
 # as kind of "investment protection". Note that next *lake processor,
 # Cannolake, has AVX512IFMA code path to execute...
 #
-# Numbers are cycles per processed byte with poly1305_blocks alone,
+# Numbers are cycles per processed byte with VR_poly1305_blocks alone,
 # measured with rdtsc at fixed clock frequency.
 #
 #		IALU/gcc-4.8(*)	AVX(**)		AVX2	AVX-512
@@ -158,16 +158,16 @@ $code.=<<___;
 
 .extern	OPENSSL_ia32cap_P
 
-.globl	poly1305_init
-.hidden	poly1305_init
-.globl	poly1305_blocks
-.hidden	poly1305_blocks
-.globl	poly1305_emit
-.hidden	poly1305_emit
+.globl	VR_poly1305_init
+.hidden	VR_poly1305_init
+.globl	VR_poly1305_blocks
+.hidden	VR_poly1305_blocks
+.globl	VR_poly1305_emit
+.hidden	VR_poly1305_emit
 
-.type	poly1305_init,\@function,3
+.type	VR_poly1305_init,\@function,3
 .align	32
-poly1305_init:
+VR_poly1305_init:
 	xor	%rax,%rax
 	mov	%rax,0($ctx)		# initialize hash value
 	mov	%rax,8($ctx)
@@ -176,19 +176,19 @@ poly1305_init:
 	cmp	\$0,$inp
 	je	.Lno_key
 
-	lea	poly1305_blocks(%rip),%r10
-	lea	poly1305_emit(%rip),%r11
+	lea	VR_poly1305_blocks(%rip),%r10
+	lea	VR_poly1305_emit(%rip),%r11
 ___
 $code.=<<___	if ($avx);
 	mov	OPENSSL_ia32cap_P+4(%rip),%r9
-	lea	poly1305_blocks_avx(%rip),%rax
-	lea	poly1305_emit_avx(%rip),%rcx
+	lea	VR_poly1305_blocks_avx(%rip),%rax
+	lea	VR_poly1305_emit_avx(%rip),%rcx
 	bt	\$`60-32`,%r9		# AVX?
 	cmovc	%rax,%r10
 	cmovc	%rcx,%r11
 ___
 $code.=<<___	if ($avx>1);
-	lea	poly1305_blocks_avx2(%rip),%rax
+	lea	VR_poly1305_blocks_avx2(%rip),%rax
 	bt	\$`5+32`,%r9		# AVX2?
 	cmovc	%rax,%r10
 ___
@@ -219,11 +219,11 @@ $code.=<<___;
 	mov	\$1,%eax
 .Lno_key:
 	ret
-.size	poly1305_init,.-poly1305_init
+.size	VR_poly1305_init,.-VR_poly1305_init
 
-.type	poly1305_blocks,\@function,4
+.type	VR_poly1305_blocks,\@function,4
 .align	32
-poly1305_blocks:
+VR_poly1305_blocks:
 .cfi_startproc
 .Lblocks:
 	shr	\$4,$len
@@ -293,11 +293,11 @@ $code.=<<___;
 .Lblocks_epilogue:
 	ret
 .cfi_endproc
-.size	poly1305_blocks,.-poly1305_blocks
+.size	VR_poly1305_blocks,.-VR_poly1305_blocks
 
-.type	poly1305_emit,\@function,3
+.type	VR_poly1305_emit,\@function,3
 .align	32
-poly1305_emit:
+VR_poly1305_emit:
 .Lemit:
 	mov	0($ctx),%r8	# load hash value
 	mov	8($ctx),%r9
@@ -318,7 +318,7 @@ poly1305_emit:
 	mov	%rcx,8($mac)
 
 	ret
-.size	poly1305_emit,.-poly1305_emit
+.size	VR_poly1305_emit,.-VR_poly1305_emit
 ___
 if ($avx) {
 
@@ -348,9 +348,9 @@ $code.=<<___;
 	ret
 .size	__poly1305_block,.-__poly1305_block
 
-.type	__poly1305_init_avx,\@abi-omnipotent
+.type	__VR_poly1305_init_avx,\@abi-omnipotent
 .align	32
-__poly1305_init_avx:
+__VR_poly1305_init_avx:
 	mov	$r0,$h0
 	mov	$r1,$h1
 	xor	$h2,$h2
@@ -508,11 +508,11 @@ __poly1305_init_avx:
 
 	lea	-48-64($ctx),$ctx	# size [de-]optimization
 	ret
-.size	__poly1305_init_avx,.-__poly1305_init_avx
+.size	__VR_poly1305_init_avx,.-__VR_poly1305_init_avx
 
-.type	poly1305_blocks_avx,\@function,4
+.type	VR_poly1305_blocks_avx,\@function,4
 .align	32
-poly1305_blocks_avx:
+VR_poly1305_blocks_avx:
 .cfi_startproc
 	mov	20($ctx),%r8d		# is_base2_26
 	cmp	\$128,$len
@@ -732,7 +732,7 @@ poly1305_blocks_avx:
 	vmovd	$h2#d,$H4
 	movl	\$1,20($ctx)		# set is_base2_26
 
-	call	__poly1305_init_avx
+	call	__VR_poly1305_init_avx
 
 .Lproceed_avx:
 	mov	%r15,$len
@@ -1368,11 +1368,11 @@ $code.=<<___;
 	vzeroupper
 	ret
 .cfi_endproc
-.size	poly1305_blocks_avx,.-poly1305_blocks_avx
+.size	VR_poly1305_blocks_avx,.-VR_poly1305_blocks_avx
 
-.type	poly1305_emit_avx,\@function,3
+.type	VR_poly1305_emit_avx,\@function,3
 .align	32
-poly1305_emit_avx:
+VR_poly1305_emit_avx:
 	cmpl	\$0,20($ctx)	# is_base2_26?
 	je	.Lemit
 
@@ -1423,7 +1423,7 @@ poly1305_emit_avx:
 	mov	%rcx,8($mac)
 
 	ret
-.size	poly1305_emit_avx,.-poly1305_emit_avx
+.size	VR_poly1305_emit_avx,.-VR_poly1305_emit_avx
 ___
 
 if ($avx>1) {
@@ -1432,9 +1432,9 @@ my ($H0,$H1,$H2,$H3,$H4, $MASK, $T4,$T0,$T1,$T2,$T3, $D0,$D1,$D2,$D3,$D4) =
 my $S4=$MASK;
 
 $code.=<<___;
-.type	poly1305_blocks_avx2,\@function,4
+.type	VR_poly1305_blocks_avx2,\@function,4
 .align	32
-poly1305_blocks_avx2:
+VR_poly1305_blocks_avx2:
 .cfi_startproc
 	mov	20($ctx),%r8d		# is_base2_26
 	cmp	\$128,$len
@@ -1665,7 +1665,7 @@ poly1305_blocks_avx2:
 	vmovd	$h2#d,%x#$H4
 	movl	\$1,20($ctx)		# set is_base2_26
 
-	call	__poly1305_init_avx
+	call	__VR_poly1305_init_avx
 
 .Lproceed_avx2:
 	mov	%r15,$len			# restore $len
@@ -2108,14 +2108,14 @@ $code.=<<___;
 	vzeroupper
 	ret
 .cfi_endproc
-.size	poly1305_blocks_avx2,.-poly1305_blocks_avx2
+.size	VR_poly1305_blocks_avx2,.-VR_poly1305_blocks_avx2
 ___
 #######################################################################
 if ($avx>2) {
 # On entry we have input length divisible by 64. But since inner loop
 # processes 128 bytes per iteration, cases when length is not divisible
 # by 128 are handled by passing tail 64 bytes to .Ltail_avx2. For this
-# reason stack layout is kept identical to poly1305_blocks_avx2. If not
+# reason stack layout is kept identical to VR_poly1305_blocks_avx2. If not
 # for this tail, we wouldn't have to even allocate stack frame...
 
 my ($R0,$R1,$R2,$R3,$R4, $S1,$S2,$S3,$S4) = map("%zmm$_",(16..24));
@@ -2128,9 +2128,9 @@ map(s/%y/%z/,($H0,$H1,$H2,$H3,$H4));
 map(s/%y/%z/,($MASK));
 
 $code.=<<___;
-.type	poly1305_blocks_avx512,\@function,4
+.type	VR_poly1305_blocks_avx512,\@function,4
 .align	32
-poly1305_blocks_avx512:
+VR_poly1305_blocks_avx512:
 .cfi_startproc
 .Lblocks_avx512:
 	mov		\$15,%eax
@@ -2710,7 +2710,7 @@ ___
 $code.=<<___;
 	ret
 .cfi_endproc
-.size	poly1305_blocks_avx512,.-poly1305_blocks_avx512
+.size	VR_poly1305_blocks_avx512,.-VR_poly1305_blocks_avx512
 ___
 if ($avx>3) {
 ########################################################################
@@ -2738,17 +2738,17 @@ if ($avx>3) {
 #					# memory, R[3] is R[1]*20
 
 $code.=<<___;
-.type	poly1305_init_base2_44,\@function,3
+.type	VR_poly1305_init_base2_44,\@function,3
 .align	32
-poly1305_init_base2_44:
+VR_poly1305_init_base2_44:
 	xor	%rax,%rax
 	mov	%rax,0($ctx)		# initialize hash value
 	mov	%rax,8($ctx)
 	mov	%rax,16($ctx)
 
 .Linit_base2_44:
-	lea	poly1305_blocks_vpmadd52(%rip),%r10
-	lea	poly1305_emit_base2_44(%rip),%r11
+	lea	VR_poly1305_blocks_vpmadd52(%rip),%r10
+	lea	VR_poly1305_emit_base2_44(%rip),%r11
 
 	mov	\$0x0ffffffc0fffffff,%rax
 	mov	\$0x0ffffffc0ffffffc,%rcx
@@ -2782,7 +2782,7 @@ ___
 $code.=<<___;
 	mov	\$1,%eax
 	ret
-.size	poly1305_init_base2_44,.-poly1305_init_base2_44
+.size	VR_poly1305_init_base2_44,.-VR_poly1305_init_base2_44
 ___
 {
 my ($H0,$H1,$H2,$r2r1r0,$r1r0s2,$r0s2s1,$Dlo,$Dhi) = map("%ymm$_",(0..5,16,17));
@@ -2790,9 +2790,9 @@ my ($T0,$inp_permd,$inp_shift,$PAD) = map("%ymm$_",(18..21));
 my ($reduc_mask,$reduc_rght,$reduc_left) = map("%ymm$_",(22..25));
 
 $code.=<<___;
-.type	poly1305_blocks_vpmadd52,\@function,4
+.type	VR_poly1305_blocks_vpmadd52,\@function,4
 .align	32
-poly1305_blocks_vpmadd52:
+VR_poly1305_blocks_vpmadd52:
 	shr	\$4,$len
 	jz	.Lno_data_vpmadd52		# too short
 
@@ -2899,7 +2899,7 @@ poly1305_blocks_vpmadd52:
 
 .Lno_data_vpmadd52:
 	ret
-.size	poly1305_blocks_vpmadd52,.-poly1305_blocks_vpmadd52
+.size	VR_poly1305_blocks_vpmadd52,.-VR_poly1305_blocks_vpmadd52
 ___
 }
 {
@@ -2913,9 +2913,9 @@ my ($D0lo,$D0hi,$D1lo,$D1hi,$D2lo,$D2hi) = map("%ymm$_",(18..23));
 my ($T0,$T1,$T2,$T3,$mask44,$mask42,$tmp,$PAD) = map("%ymm$_",(24..31));
 
 $code.=<<___;
-.type	poly1305_blocks_vpmadd52_4x,\@function,4
+.type	VR_poly1305_blocks_vpmadd52_4x,\@function,4
 .align	32
-poly1305_blocks_vpmadd52_4x:
+VR_poly1305_blocks_vpmadd52_4x:
 	shr	\$4,$len
 	jz	.Lno_data_vpmadd52_4x		# too short
 
@@ -3340,7 +3340,7 @@ poly1305_blocks_vpmadd52_4x:
 
 .Lno_data_vpmadd52_4x:
 	ret
-.size	poly1305_blocks_vpmadd52_4x,.-poly1305_blocks_vpmadd52_4x
+.size	VR_poly1305_blocks_vpmadd52_4x,.-VR_poly1305_blocks_vpmadd52_4x
 ___
 }
 {
@@ -3355,9 +3355,9 @@ my ($T0,$T1,$T2,$T3,$mask44,$mask42,$tmp,$PAD) = map("%ymm$_",(24..31));
 my ($RR0,$RR1,$RR2,$SS1,$SS2) = map("%ymm$_",(6..10));
 
 $code.=<<___;
-.type	poly1305_blocks_vpmadd52_8x,\@function,4
+.type	VR_poly1305_blocks_vpmadd52_8x,\@function,4
 .align	32
-poly1305_blocks_vpmadd52_8x:
+VR_poly1305_blocks_vpmadd52_8x:
 	shr	\$4,$len
 	jz	.Lno_data_vpmadd52_8x		# too short
 
@@ -3713,13 +3713,13 @@ $code.=<<___;
 
 .Lno_data_vpmadd52_8x:
 	ret
-.size	poly1305_blocks_vpmadd52_8x,.-poly1305_blocks_vpmadd52_8x
+.size	VR_poly1305_blocks_vpmadd52_8x,.-VR_poly1305_blocks_vpmadd52_8x
 ___
 }
 $code.=<<___;
-.type	poly1305_emit_base2_44,\@function,3
+.type	VR_poly1305_emit_base2_44,\@function,3
 .align	32
-poly1305_emit_base2_44:
+VR_poly1305_emit_base2_44:
 	mov	0($ctx),%r8	# load hash value
 	mov	8($ctx),%r9
 	mov	16($ctx),%r10
@@ -3750,7 +3750,7 @@ poly1305_emit_base2_44:
 	mov	%rcx,8($mac)
 
 	ret
-.size	poly1305_emit_base2_44,.-poly1305_emit_base2_44
+.size	VR_poly1305_emit_base2_44,.-VR_poly1305_emit_base2_44
 ___
 }	}	}
 $code.=<<___;
@@ -3796,10 +3796,10 @@ ___
 my ($out,$inp,$otp,$len)=$win64 ? ("%rcx","%rdx","%r8", "%r9") :  # Win64 order
                                   ("%rdi","%rsi","%rdx","%rcx");  # Unix order
 $code.=<<___;
-.globl	xor128_encrypt_n_pad
-.type	xor128_encrypt_n_pad,\@abi-omnipotent
+.globl	VR_xor128_encrypt_n_pad
+.type	VR_xor128_encrypt_n_pad,\@abi-omnipotent
 .align	16
-xor128_encrypt_n_pad:
+VR_xor128_encrypt_n_pad:
 	sub	$otp,$inp
 	sub	$otp,$out
 	mov	$len,%r10		# put len aside
@@ -3841,12 +3841,12 @@ xor128_encrypt_n_pad:
 .Ldone_enc:
 	mov	$otp,%rax
 	ret
-.size	xor128_encrypt_n_pad,.-xor128_encrypt_n_pad
+.size	VR_xor128_encrypt_n_pad,.-VR_xor128_encrypt_n_pad
 
-.globl	xor128_decrypt_n_pad
-.type	xor128_decrypt_n_pad,\@abi-omnipotent
+.globl	VR_xor128_decrypt_n_pad
+.type	VR_xor128_decrypt_n_pad,\@abi-omnipotent
 .align	16
-xor128_decrypt_n_pad:
+VR_xor128_decrypt_n_pad:
 	sub	$otp,$inp
 	sub	$otp,$out
 	mov	$len,%r10		# put len aside
@@ -3892,7 +3892,7 @@ xor128_decrypt_n_pad:
 .Ldone_dec:
 	mov	$otp,%rax
 	ret
-.size	xor128_decrypt_n_pad,.-xor128_decrypt_n_pad
+.size	VR_xor128_decrypt_n_pad,.-VR_xor128_decrypt_n_pad
 ___
 }
 
@@ -4038,110 +4038,110 @@ avx_handler:
 
 .section	.pdata
 .align	4
-	.rva	.LSEH_begin_poly1305_init
-	.rva	.LSEH_end_poly1305_init
-	.rva	.LSEH_info_poly1305_init
+	.rva	.LSEH_begin_VR_poly1305_init
+	.rva	.LSEH_end_VR_poly1305_init
+	.rva	.LSEH_info_VR_poly1305_init
 
-	.rva	.LSEH_begin_poly1305_blocks
-	.rva	.LSEH_end_poly1305_blocks
-	.rva	.LSEH_info_poly1305_blocks
+	.rva	.LSEH_begin_VR_poly1305_blocks
+	.rva	.LSEH_end_VR_poly1305_blocks
+	.rva	.LSEH_info_VR_poly1305_blocks
 
-	.rva	.LSEH_begin_poly1305_emit
-	.rva	.LSEH_end_poly1305_emit
-	.rva	.LSEH_info_poly1305_emit
+	.rva	.LSEH_begin_VR_poly1305_emit
+	.rva	.LSEH_end_VR_poly1305_emit
+	.rva	.LSEH_info_VR_poly1305_emit
 ___
 $code.=<<___ if ($avx);
-	.rva	.LSEH_begin_poly1305_blocks_avx
+	.rva	.LSEH_begin_VR_poly1305_blocks_avx
 	.rva	.Lbase2_64_avx
-	.rva	.LSEH_info_poly1305_blocks_avx_1
+	.rva	.LSEH_info_VR_poly1305_blocks_avx_1
 
 	.rva	.Lbase2_64_avx
 	.rva	.Leven_avx
-	.rva	.LSEH_info_poly1305_blocks_avx_2
+	.rva	.LSEH_info_VR_poly1305_blocks_avx_2
 
 	.rva	.Leven_avx
-	.rva	.LSEH_end_poly1305_blocks_avx
-	.rva	.LSEH_info_poly1305_blocks_avx_3
+	.rva	.LSEH_end_VR_poly1305_blocks_avx
+	.rva	.LSEH_info_VR_poly1305_blocks_avx_3
 
-	.rva	.LSEH_begin_poly1305_emit_avx
-	.rva	.LSEH_end_poly1305_emit_avx
-	.rva	.LSEH_info_poly1305_emit_avx
+	.rva	.LSEH_begin_VR_poly1305_emit_avx
+	.rva	.LSEH_end_VR_poly1305_emit_avx
+	.rva	.LSEH_info_VR_poly1305_emit_avx
 ___
 $code.=<<___ if ($avx>1);
-	.rva	.LSEH_begin_poly1305_blocks_avx2
+	.rva	.LSEH_begin_VR_poly1305_blocks_avx2
 	.rva	.Lbase2_64_avx2
-	.rva	.LSEH_info_poly1305_blocks_avx2_1
+	.rva	.LSEH_info_VR_poly1305_blocks_avx2_1
 
 	.rva	.Lbase2_64_avx2
 	.rva	.Leven_avx2
-	.rva	.LSEH_info_poly1305_blocks_avx2_2
+	.rva	.LSEH_info_VR_poly1305_blocks_avx2_2
 
 	.rva	.Leven_avx2
-	.rva	.LSEH_end_poly1305_blocks_avx2
-	.rva	.LSEH_info_poly1305_blocks_avx2_3
+	.rva	.LSEH_end_VR_poly1305_blocks_avx2
+	.rva	.LSEH_info_VR_poly1305_blocks_avx2_3
 ___
 $code.=<<___ if ($avx>2);
-	.rva	.LSEH_begin_poly1305_blocks_avx512
-	.rva	.LSEH_end_poly1305_blocks_avx512
-	.rva	.LSEH_info_poly1305_blocks_avx512
+	.rva	.LSEH_begin_VR_poly1305_blocks_avx512
+	.rva	.LSEH_end_VR_poly1305_blocks_avx512
+	.rva	.LSEH_info_VR_poly1305_blocks_avx512
 ___
 $code.=<<___;
 .section	.xdata
 .align	8
-.LSEH_info_poly1305_init:
+.LSEH_info_VR_poly1305_init:
 	.byte	9,0,0,0
 	.rva	se_handler
-	.rva	.LSEH_begin_poly1305_init,.LSEH_begin_poly1305_init
+	.rva	.LSEH_begin_VR_poly1305_init,.LSEH_begin_VR_poly1305_init
 
-.LSEH_info_poly1305_blocks:
+.LSEH_info_VR_poly1305_blocks:
 	.byte	9,0,0,0
 	.rva	se_handler
 	.rva	.Lblocks_body,.Lblocks_epilogue
 
-.LSEH_info_poly1305_emit:
+.LSEH_info_VR_poly1305_emit:
 	.byte	9,0,0,0
 	.rva	se_handler
-	.rva	.LSEH_begin_poly1305_emit,.LSEH_begin_poly1305_emit
+	.rva	.LSEH_begin_VR_poly1305_emit,.LSEH_begin_VR_poly1305_emit
 ___
 $code.=<<___ if ($avx);
-.LSEH_info_poly1305_blocks_avx_1:
+.LSEH_info_VR_poly1305_blocks_avx_1:
 	.byte	9,0,0,0
 	.rva	se_handler
 	.rva	.Lblocks_avx_body,.Lblocks_avx_epilogue		# HandlerData[]
 
-.LSEH_info_poly1305_blocks_avx_2:
+.LSEH_info_VR_poly1305_blocks_avx_2:
 	.byte	9,0,0,0
 	.rva	se_handler
 	.rva	.Lbase2_64_avx_body,.Lbase2_64_avx_epilogue	# HandlerData[]
 
-.LSEH_info_poly1305_blocks_avx_3:
+.LSEH_info_VR_poly1305_blocks_avx_3:
 	.byte	9,0,0,0
 	.rva	avx_handler
 	.rva	.Ldo_avx_body,.Ldo_avx_epilogue			# HandlerData[]
 
-.LSEH_info_poly1305_emit_avx:
+.LSEH_info_VR_poly1305_emit_avx:
 	.byte	9,0,0,0
 	.rva	se_handler
-	.rva	.LSEH_begin_poly1305_emit_avx,.LSEH_begin_poly1305_emit_avx
+	.rva	.LSEH_begin_VR_poly1305_emit_avx,.LSEH_begin_VR_poly1305_emit_avx
 ___
 $code.=<<___ if ($avx>1);
-.LSEH_info_poly1305_blocks_avx2_1:
+.LSEH_info_VR_poly1305_blocks_avx2_1:
 	.byte	9,0,0,0
 	.rva	se_handler
 	.rva	.Lblocks_avx2_body,.Lblocks_avx2_epilogue	# HandlerData[]
 
-.LSEH_info_poly1305_blocks_avx2_2:
+.LSEH_info_VR_poly1305_blocks_avx2_2:
 	.byte	9,0,0,0
 	.rva	se_handler
 	.rva	.Lbase2_64_avx2_body,.Lbase2_64_avx2_epilogue	# HandlerData[]
 
-.LSEH_info_poly1305_blocks_avx2_3:
+.LSEH_info_VR_poly1305_blocks_avx2_3:
 	.byte	9,0,0,0
 	.rva	avx_handler
 	.rva	.Ldo_avx2_body,.Ldo_avx2_epilogue		# HandlerData[]
 ___
 $code.=<<___ if ($avx>2);
-.LSEH_info_poly1305_blocks_avx512:
+.LSEH_info_VR_poly1305_blocks_avx512:
 	.byte	9,0,0,0
 	.rva	avx_handler
 	.rva	.Ldo_avx512_body,.Ldo_avx512_epilogue		# HandlerData[]

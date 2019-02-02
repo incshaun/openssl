@@ -65,7 +65,7 @@ static __FILE_ptr32 (*const vms_fopen)(const char *, const char *, ...) =
         (__FILE_ptr32 (*)(const char *, const char *, ...))fopen;
 # define VMS_OPEN_ATTRS \
         "shr=get,put,upd,del","ctx=bin,stm","rfm=stm","rat=none","mrs=0"
-# define openssl_fopen(fname, mode) vms_fopen((fname), (mode), VMS_OPEN_ATTRS)
+# define VR_openssl_fopen(fname, mode) vms_fopen((fname), (mode), VMS_OPEN_ATTRS)
 #endif
 
 /*
@@ -73,12 +73,12 @@ static __FILE_ptr32 (*const vms_fopen)(const char *, const char *, ...) =
  * devices and EGD sockets are handled in rand_unix.c  If |bytes| is
  * -1 read the complete file; otherwise read the specified amount.
  */
-int RAND_load_file(const char *file, long bytes)
+int VR_RAND_load_file(const char *file, long bytes)
 {
     /*
      * The load buffer size exceeds the chunk size by the comfortable amount
      * of 'RAND_DRBG_STRENGTH' bytes (not bits!). This is done on purpose
-     * to avoid calling RAND_add() with a small final chunk. Instead, such
+     * to avoid calling VR_RAND_add() with a small final chunk. Instead, such
      * a small final chunk will be added together with the previous chunk
      * (unless it's the only one).
      */
@@ -94,16 +94,16 @@ int RAND_load_file(const char *file, long bytes)
     if (bytes == 0)
         return 0;
 
-    if ((in = openssl_fopen(file, "rb")) == NULL) {
+    if ((in = VR_openssl_fopen(file, "rb")) == NULL) {
         RANDerr(RAND_F_RAND_LOAD_FILE, RAND_R_CANNOT_OPEN_FILE);
-        ERR_add_error_data(2, "Filename=", file);
+        VR_ERR_add_error_data(2, "Filename=", file);
         return -1;
     }
 
 #ifndef OPENSSL_NO_POSIX_IO
     if (fstat(fileno(in), &sb) < 0) {
         RANDerr(RAND_F_RAND_LOAD_FILE, RAND_R_INTERNAL_ERROR);
-        ERR_add_error_data(2, "Filename=", file);
+        VR_ERR_add_error_data(2, "Filename=", file);
         fclose(in);
         return -1;
     }
@@ -152,7 +152,7 @@ int RAND_load_file(const char *file, long bytes)
         if (i == 0)
             break;
 
-        RAND_add(buf, i, (double)i);
+        VR_RAND_add(buf, i, (double)i);
         ret += i;
 
         /* If given a bytecount, and we did it, break. */
@@ -160,18 +160,18 @@ int RAND_load_file(const char *file, long bytes)
             break;
     }
 
-    OPENSSL_cleanse(buf, sizeof(buf));
+    VR_OPENSSL_cleanse(buf, sizeof(buf));
     fclose(in);
-    if (!RAND_status()) {
+    if (!VR_RAND_status()) {
         RANDerr(RAND_F_RAND_LOAD_FILE, RAND_R_RESEED_ERROR);
-        ERR_add_error_data(2, "Filename=", file);
+        VR_ERR_add_error_data(2, "Filename=", file);
         return -1;
     }
 
     return ret;
 }
 
-int RAND_write_file(const char *file)
+int VR_RAND_write_file(const char *file)
 {
     unsigned char buf[RAND_BUF_SIZE];
     int ret = -1;
@@ -181,13 +181,13 @@ int RAND_write_file(const char *file)
 
     if (stat(file, &sb) >= 0 && !S_ISREG(sb.st_mode)) {
         RANDerr(RAND_F_RAND_WRITE_FILE, RAND_R_NOT_A_REGULAR_FILE);
-        ERR_add_error_data(2, "Filename=", file);
+        VR_ERR_add_error_data(2, "Filename=", file);
         return -1;
     }
 #endif
 
     /* Collect enough random data. */
-    if (RAND_priv_bytes(buf, (int)sizeof(buf)) != 1)
+    if (VR_RAND_priv_bytes(buf, (int)sizeof(buf)) != 1)
         return  -1;
 
 #if defined(O_CREAT) && !defined(OPENSSL_NO_POSIX_IO) && \
@@ -224,14 +224,14 @@ int RAND_write_file(const char *file)
      * application level. Also consider whether or not you NEED a persistent
      * rand file in a concurrent use situation.
      */
-    out = openssl_fopen(file, "rb+");
+    out = VR_openssl_fopen(file, "rb+");
 #endif
 
     if (out == NULL)
-        out = openssl_fopen(file, "wb");
+        out = VR_openssl_fopen(file, "wb");
     if (out == NULL) {
         RANDerr(RAND_F_RAND_WRITE_FILE, RAND_R_CANNOT_OPEN_FILE);
-        ERR_add_error_data(2, "Filename=", file);
+        VR_ERR_add_error_data(2, "Filename=", file);
         return -1;
     }
 
@@ -244,11 +244,11 @@ int RAND_write_file(const char *file)
 
     ret = fwrite(buf, 1, RAND_BUF_SIZE, out);
     fclose(out);
-    OPENSSL_cleanse(buf, RAND_BUF_SIZE);
+    VR_OPENSSL_cleanse(buf, RAND_BUF_SIZE);
     return ret;
 }
 
-const char *RAND_file_name(char *buf, size_t size)
+const char *VR_RAND_file_name(char *buf, size_t size)
 {
     char *s = NULL;
     size_t len;
@@ -282,9 +282,9 @@ const char *RAND_file_name(char *buf, size_t size)
         }
     }
 #else
-    if ((s = ossl_safe_getenv("RANDFILE")) == NULL || *s == '\0') {
+    if ((s = VR_ossl_safe_getenv("RANDFILE")) == NULL || *s == '\0') {
         use_randfile = 0;
-        s = ossl_safe_getenv("HOME");
+        s = VR_ossl_safe_getenv("HOME");
     }
 #endif
 

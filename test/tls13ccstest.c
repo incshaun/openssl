@@ -40,16 +40,16 @@ static BIO_METHOD *method_watchccs = NULL;
 static const BIO_METHOD *bio_f_watchccs_filter(void)
 {
     if (method_watchccs == NULL) {
-        method_watchccs = BIO_meth_new(BIO_TYPE_WATCHCCS_FILTER,
+        method_watchccs = VR_BIO_meth_new(BIO_TYPE_WATCHCCS_FILTER,
                                        "Watch CCS filter");
         if (   method_watchccs == NULL
-            || !BIO_meth_set_write(method_watchccs, watchccs_write)
-            || !BIO_meth_set_read(method_watchccs, watchccs_read)
-            || !BIO_meth_set_puts(method_watchccs, watchccs_puts)
-            || !BIO_meth_set_gets(method_watchccs, watchccs_gets)
-            || !BIO_meth_set_ctrl(method_watchccs, watchccs_ctrl)
-            || !BIO_meth_set_create(method_watchccs, watchccs_new)
-            || !BIO_meth_set_destroy(method_watchccs, watchccs_free))
+            || !VR_BIO_meth_set_write(method_watchccs, watchccs_write)
+            || !VR_BIO_meth_set_read(method_watchccs, watchccs_read)
+            || !VR_BIO_meth_set_puts(method_watchccs, watchccs_puts)
+            || !VR_BIO_meth_set_gets(method_watchccs, watchccs_gets)
+            || !VR_BIO_meth_set_ctrl(method_watchccs, watchccs_ctrl)
+            || !VR_BIO_meth_set_create(method_watchccs, watchccs_new)
+            || !VR_BIO_meth_set_destroy(method_watchccs, watchccs_free))
             return NULL;
     }
     return method_watchccs;
@@ -57,20 +57,20 @@ static const BIO_METHOD *bio_f_watchccs_filter(void)
 
 static int watchccs_new(BIO *bio)
 {
-    BIO_set_init(bio, 1);
+    VR_BIO_set_init(bio, 1);
     return 1;
 }
 
 static int watchccs_free(BIO *bio)
 {
-    BIO_set_init(bio, 0);
+    VR_BIO_set_init(bio, 0);
     return 1;
 }
 
 static int watchccs_read(BIO *bio, char *out, int outl)
 {
     int ret = 0;
-    BIO *next = BIO_next(bio);
+    BIO *next = VR_BIO_next(bio);
 
     if (outl <= 0)
         return 0;
@@ -79,7 +79,7 @@ static int watchccs_read(BIO *bio, char *out, int outl)
 
     BIO_clear_retry_flags(bio);
 
-    ret = BIO_read(next, out, outl);
+    ret = VR_BIO_read(next, out, outl);
     if (ret <= 0 && BIO_should_read(next))
         BIO_set_retry_read(bio);
 
@@ -89,7 +89,7 @@ static int watchccs_read(BIO *bio, char *out, int outl)
 static int watchccs_write(BIO *bio, const char *in, int inl)
 {
     int ret = 0;
-    BIO *next = BIO_next(bio);
+    BIO *next = VR_BIO_next(bio);
     PACKET pkt, msg, msgbody, sessionid;
     unsigned int rectype, recvers, msgtype, expectedrecvers;
 
@@ -203,7 +203,7 @@ static int watchccs_write(BIO *bio, const char *in, int inl)
             badvers = 1;
     }
 
-    ret = BIO_write(next, in, inl);
+    ret = VR_BIO_write(next, in, inl);
     if (ret <= 0 && BIO_should_write(next))
         BIO_set_retry_write(bio);
 
@@ -213,7 +213,7 @@ static int watchccs_write(BIO *bio, const char *in, int inl)
 static long watchccs_ctrl(BIO *bio, int cmd, long num, void *ptr)
 {
     long ret;
-    BIO *next = BIO_next(bio);
+    BIO *next = VR_BIO_next(bio);
 
     if (next == NULL)
         return 0;
@@ -223,7 +223,7 @@ static long watchccs_ctrl(BIO *bio, int cmd, long num, void *ptr)
         ret = 0;
         break;
     default:
-        ret = BIO_ctrl(next, cmd, num, ptr);
+        ret = VR_BIO_ctrl(next, cmd, num, ptr);
         break;
     }
     return ret;
@@ -254,10 +254,10 @@ static int test_tls13ccs(int tst)
     sappdataseen = cappdataseen = badccs = badvers = badsessid = 0;
     chsessidlen = 0;
 
-    if (!TEST_true(create_ssl_ctx_pair(TLS_server_method(), TLS_client_method(),
+    if (!TEST_true(create_ssl_ctx_pair(VR_TLS_server_method(), VR_TLS_client_method(),
                                        TLS1_VERSION, 0,
                                        &sctx, &cctx, cert, privkey))
-        || !TEST_true(SSL_CTX_set_max_early_data(sctx,
+        || !TEST_true(VR_SSL_CTX_set_max_early_data(sctx,
                                                  SSL3_RT_MAX_PLAIN_LENGTH)))
         goto err;
 
@@ -285,13 +285,13 @@ static int test_tls13ccs(int tst)
     case 4:
     case 7:
     case 10:
-        SSL_CTX_clear_options(cctx, SSL_OP_ENABLE_MIDDLEBOX_COMPAT);
+        VR_SSL_CTX_clear_options(cctx, SSL_OP_ENABLE_MIDDLEBOX_COMPAT);
         break;
     case 2:
     case 5:
     case 8:
     case 11:
-        SSL_CTX_clear_options(sctx, SSL_OP_ENABLE_MIDDLEBOX_COMPAT);
+        VR_SSL_CTX_clear_options(sctx, SSL_OP_ENABLE_MIDDLEBOX_COMPAT);
         break;
     default:
         TEST_error("Invalid test value");
@@ -303,13 +303,13 @@ static int test_tls13ccs(int tst)
         if (!TEST_true(create_ssl_objects(sctx, cctx, &sssl, &cssl, NULL, NULL))
                 || !TEST_true(create_ssl_connection(sssl, cssl, SSL_ERROR_NONE)))
             goto err;
-        sess = SSL_get1_session(cssl);
+        sess = VR_SSL_get1_session(cssl);
         if (!TEST_ptr(sess))
             goto err;
-        SSL_shutdown(cssl);
-        SSL_shutdown(sssl);
-        SSL_free(sssl);
-        SSL_free(cssl);
+        VR_SSL_shutdown(cssl);
+        VR_SSL_shutdown(sssl);
+        VR_SSL_free(sssl);
+        VR_SSL_free(cssl);
         sssl = cssl = NULL;
     }
 
@@ -319,12 +319,12 @@ static int test_tls13ccs(int tst)
             goto err;
     }
 
-    s_to_c_fbio = BIO_new(bio_f_watchccs_filter());
-    c_to_s_fbio = BIO_new(bio_f_watchccs_filter());
+    s_to_c_fbio = VR_BIO_new(bio_f_watchccs_filter());
+    c_to_s_fbio = VR_BIO_new(bio_f_watchccs_filter());
     if (!TEST_ptr(s_to_c_fbio)
             || !TEST_ptr(c_to_s_fbio)) {
-        BIO_free(s_to_c_fbio);
-        BIO_free(c_to_s_fbio);
+        VR_BIO_free(s_to_c_fbio);
+        VR_BIO_free(c_to_s_fbio);
         goto err;
     }
 
@@ -335,22 +335,22 @@ static int test_tls13ccs(int tst)
 
     if (tst >= 6) {
         /* Early data */
-        if (!TEST_true(SSL_set_session(cssl, sess))
-                || !TEST_true(SSL_write_early_data(cssl, msg, strlen(msg),
+        if (!TEST_true(VR_SSL_set_session(cssl, sess))
+                || !TEST_true(VR_SSL_write_early_data(cssl, msg, strlen(msg),
                                                    &written))
                 || (tst <= 8
-                    && !TEST_int_eq(SSL_read_early_data(sssl, buf,  sizeof(buf),
+                    && !TEST_int_eq(VR_SSL_read_early_data(sssl, buf,  sizeof(buf),
                                                 &readbytes),
                                                 SSL_READ_EARLY_DATA_SUCCESS)))
             goto err;
         if (tst <= 8) {
-            if (!TEST_int_gt(SSL_connect(cssl), 0))
+            if (!TEST_int_gt(VR_SSL_connect(cssl), 0))
                 goto err;
         } else {
-            if (!TEST_int_le(SSL_connect(cssl), 0))
+            if (!TEST_int_le(VR_SSL_connect(cssl), 0))
                 goto err;
         }
-        if (!TEST_int_eq(SSL_read_early_data(sssl, buf,  sizeof(buf),
+        if (!TEST_int_eq(VR_SSL_read_early_data(sssl, buf,  sizeof(buf),
                                              &readbytes),
                          SSL_READ_EARLY_DATA_FINISH))
             goto err;
@@ -472,11 +472,11 @@ static int test_tls13ccs(int tst)
 
     ret = 1;
  err:
-    SSL_SESSION_free(sess);
-    SSL_free(sssl);
-    SSL_free(cssl);
-    SSL_CTX_free(sctx);
-    SSL_CTX_free(cctx);
+    VR_SSL_SESSION_free(sess);
+    VR_SSL_free(sssl);
+    VR_SSL_free(cssl);
+    VR_SSL_CTX_free(sctx);
+    VR_SSL_CTX_free(cctx);
 
     return ret;
 }
@@ -494,5 +494,5 @@ int setup_tests(void)
 
 void cleanup_tests(void)
 {
-    BIO_meth_free(method_watchccs);
+    VR_BIO_meth_free(method_watchccs);
 }

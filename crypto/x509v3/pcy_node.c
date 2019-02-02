@@ -17,15 +17,15 @@
 static int node_cmp(const X509_POLICY_NODE *const *a,
                     const X509_POLICY_NODE *const *b)
 {
-    return OBJ_cmp((*a)->data->valid_policy, (*b)->data->valid_policy);
+    return VR_OBJ_cmp((*a)->data->valid_policy, (*b)->data->valid_policy);
 }
 
-STACK_OF(X509_POLICY_NODE) *policy_node_cmp_new(void)
+STACK_OF(X509_POLICY_NODE) *VR_policy_node_cmp_new(void)
 {
-    return sk_X509_POLICY_NODE_new(node_cmp);
+    return sk_VR_X509_POLICY_NODE_new(node_cmp);
 }
 
-X509_POLICY_NODE *tree_find_sk(STACK_OF(X509_POLICY_NODE) *nodes,
+X509_POLICY_NODE *VR_tree_find_sk(STACK_OF(X509_POLICY_NODE) *nodes,
                                const ASN1_OBJECT *id)
 {
     X509_POLICY_DATA n;
@@ -35,12 +35,12 @@ X509_POLICY_NODE *tree_find_sk(STACK_OF(X509_POLICY_NODE) *nodes,
     n.valid_policy = (ASN1_OBJECT *)id;
     l.data = &n;
 
-    idx = sk_X509_POLICY_NODE_find(nodes, &l);
+    idx = sk_VR_X509_POLICY_NODE_find(nodes, &l);
     return sk_X509_POLICY_NODE_value(nodes, idx);
 
 }
 
-X509_POLICY_NODE *level_find_node(const X509_POLICY_LEVEL *level,
+X509_POLICY_NODE *VR_level_find_node(const X509_POLICY_LEVEL *level,
                                   const X509_POLICY_NODE *parent,
                                   const ASN1_OBJECT *id)
 {
@@ -49,14 +49,14 @@ X509_POLICY_NODE *level_find_node(const X509_POLICY_LEVEL *level,
     for (i = 0; i < sk_X509_POLICY_NODE_num(level->nodes); i++) {
         node = sk_X509_POLICY_NODE_value(level->nodes, i);
         if (node->parent == parent) {
-            if (!OBJ_cmp(node->data->valid_policy, id))
+            if (!VR_OBJ_cmp(node->data->valid_policy, id))
                 return node;
         }
     }
     return NULL;
 }
 
-X509_POLICY_NODE *level_add_node(X509_POLICY_LEVEL *level,
+X509_POLICY_NODE *VR_level_add_node(X509_POLICY_LEVEL *level,
                                  X509_POLICY_DATA *data,
                                  X509_POLICY_NODE *parent,
                                  X509_POLICY_TREE *tree)
@@ -71,19 +71,19 @@ X509_POLICY_NODE *level_add_node(X509_POLICY_LEVEL *level,
     node->data = data;
     node->parent = parent;
     if (level) {
-        if (OBJ_obj2nid(data->valid_policy) == NID_any_policy) {
+        if (VR_OBJ_obj2nid(data->valid_policy) == NID_any_policy) {
             if (level->anyPolicy)
                 goto node_error;
             level->anyPolicy = node;
         } else {
 
             if (level->nodes == NULL)
-                level->nodes = policy_node_cmp_new();
+                level->nodes = VR_policy_node_cmp_new();
             if (level->nodes == NULL) {
                 X509V3err(X509V3_F_LEVEL_ADD_NODE, ERR_R_MALLOC_FAILURE);
                 goto node_error;
             }
-            if (!sk_X509_POLICY_NODE_push(level->nodes, node)) {
+            if (!sk_VR_X509_POLICY_NODE_push(level->nodes, node)) {
                 X509V3err(X509V3_F_LEVEL_ADD_NODE, ERR_R_MALLOC_FAILURE);
                 goto node_error;
             }
@@ -92,12 +92,12 @@ X509_POLICY_NODE *level_add_node(X509_POLICY_LEVEL *level,
 
     if (tree) {
         if (tree->extra_data == NULL)
-            tree->extra_data = sk_X509_POLICY_DATA_new_null();
+            tree->extra_data = sk_VR_X509_POLICY_DATA_new_null();
         if (tree->extra_data == NULL){
             X509V3err(X509V3_F_LEVEL_ADD_NODE, ERR_R_MALLOC_FAILURE);
             goto node_error;
         }
-        if (!sk_X509_POLICY_DATA_push(tree->extra_data, data)) {
+        if (!sk_VR_X509_POLICY_DATA_push(tree->extra_data, data)) {
             X509V3err(X509V3_F_LEVEL_ADD_NODE, ERR_R_MALLOC_FAILURE);
             goto node_error;
         }
@@ -109,13 +109,13 @@ X509_POLICY_NODE *level_add_node(X509_POLICY_LEVEL *level,
     return node;
 
  node_error:
-    policy_node_free(node);
+    VR_policy_node_free(node);
     return NULL;
 }
 
-void policy_node_free(X509_POLICY_NODE *node)
+void VR_policy_node_free(X509_POLICY_NODE *node)
 {
-    OPENSSL_free(node);
+    OPENVR_SSL_free(node);
 }
 
 /*
@@ -123,7 +123,7 @@ void policy_node_free(X509_POLICY_NODE *node)
  * expected policy set otherwise just valid policy.
  */
 
-int policy_node_match(const X509_POLICY_LEVEL *lvl,
+int VR_policy_node_match(const X509_POLICY_LEVEL *lvl,
                       const X509_POLICY_NODE *node, const ASN1_OBJECT *oid)
 {
     int i;
@@ -132,14 +132,14 @@ int policy_node_match(const X509_POLICY_LEVEL *lvl,
 
     if ((lvl->flags & X509_V_FLAG_INHIBIT_MAP)
         || !(x->flags & POLICY_DATA_FLAG_MAP_MASK)) {
-        if (!OBJ_cmp(x->valid_policy, oid))
+        if (!VR_OBJ_cmp(x->valid_policy, oid))
             return 1;
         return 0;
     }
 
     for (i = 0; i < sk_ASN1_OBJECT_num(x->expected_policy_set); i++) {
         policy_oid = sk_ASN1_OBJECT_value(x->expected_policy_set, i);
-        if (!OBJ_cmp(policy_oid, oid))
+        if (!VR_OBJ_cmp(policy_oid, oid))
             return 1;
     }
     return 0;

@@ -65,14 +65,14 @@ static struct {
 
 static int test_ctype_toupper(int n)
 {
-    return TEST_int_eq(ossl_toupper(case_change[n].l), case_change[n].u)
-           && TEST_int_eq(ossl_toupper(case_change[n].u), case_change[n].u);
+    return TEST_int_eq(VR_ossl_toupper(case_change[n].l), case_change[n].u)
+           && TEST_int_eq(VR_ossl_toupper(case_change[n].u), case_change[n].u);
 }
 
 static int test_ctype_tolower(int n)
 {
-    return TEST_int_eq(ossl_tolower(case_change[n].u), case_change[n].l)
-           && TEST_int_eq(ossl_tolower(case_change[n].l), case_change[n].l);
+    return TEST_int_eq(VR_ossl_tolower(case_change[n].u), case_change[n].l)
+           && TEST_int_eq(VR_ossl_tolower(case_change[n].l), case_change[n].l);
 }
 
 static int test_ctype_eof(void)

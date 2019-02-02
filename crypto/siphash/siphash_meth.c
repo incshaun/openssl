@@ -28,7 +28,7 @@ static EVP_MAC_IMPL *siphash_new(void)
 
 static void siphash_free(EVP_MAC_IMPL *sctx)
 {
-    OPENSSL_free(sctx);
+    OPENVR_SSL_free(sctx);
 }
 
 static int siphash_copy(EVP_MAC_IMPL *sdst, EVP_MAC_IMPL *ssrc)
@@ -39,7 +39,7 @@ static int siphash_copy(EVP_MAC_IMPL *sdst, EVP_MAC_IMPL *ssrc)
 
 static size_t siphash_size(EVP_MAC_IMPL *sctx)
 {
-    return SipHash_hash_size(&sctx->ctx);
+    return VR_SipHash_hash_size(&sctx->ctx);
 }
 
 static int siphash_init(EVP_MAC_IMPL *sctx)
@@ -51,7 +51,7 @@ static int siphash_init(EVP_MAC_IMPL *sctx)
 static int siphash_update(EVP_MAC_IMPL *sctx, const unsigned char *data,
                        size_t datalen)
 {
-    SipHash_Update(&sctx->ctx, data, datalen);
+    VR_SipHash_Update(&sctx->ctx, data, datalen);
     return 1;
 }
 
@@ -59,7 +59,7 @@ static int siphash_final(EVP_MAC_IMPL *sctx, unsigned char *out)
 {
     size_t hlen = siphash_size(sctx);
 
-    return SipHash_Final(&sctx->ctx, out, hlen);
+    return VR_SipHash_Final(&sctx->ctx, out, hlen);
 }
 
 static int siphash_ctrl(EVP_MAC_IMPL *sctx, int cmd, va_list args)
@@ -69,7 +69,7 @@ static int siphash_ctrl(EVP_MAC_IMPL *sctx, int cmd, va_list args)
         {
             size_t size = va_arg(args, size_t);
 
-            return SipHash_set_hash_size(&sctx->ctx, size);
+            return VR_SipHash_set_hash_size(&sctx->ctx, size);
         }
         break;
     case EVP_MAC_CTRL_SET_KEY:
@@ -80,7 +80,7 @@ static int siphash_ctrl(EVP_MAC_IMPL *sctx, int cmd, va_list args)
             if (key == NULL || keylen != SIPHASH_KEY_SIZE)
                 return 0;
 
-            return SipHash_Init(&sctx->ctx, key, 0, 0);
+            return VR_SipHash_Init(&sctx->ctx, key, 0, 0);
         }
         break;
     default:
@@ -117,10 +117,10 @@ static int siphash_ctrl_str(EVP_MAC_IMPL *ctx,
         return siphash_ctrl_int(ctx, EVP_MAC_CTRL_SET_SIZE, hash_size);
     }
     if (strcmp(type, "key") == 0)
-        return EVP_str2ctrl(siphash_ctrl_str_cb, ctx, EVP_MAC_CTRL_SET_KEY,
+        return VR_EVP_str2ctrl(siphash_ctrl_str_cb, ctx, EVP_MAC_CTRL_SET_KEY,
                             value);
     if (strcmp(type, "hexkey") == 0)
-        return EVP_hex2ctrl(siphash_ctrl_str_cb, ctx, EVP_MAC_CTRL_SET_KEY,
+        return VR_EVP_hex2ctrl(siphash_ctrl_str_cb, ctx, EVP_MAC_CTRL_SET_KEY,
                             value);
     return -2;
 }

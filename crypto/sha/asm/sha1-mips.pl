@@ -347,9 +347,9 @@ $code=<<___;
 .set	noat
 .set	noreorder
 .align	5
-.globl	sha1_block_data_order
-.ent	sha1_block_data_order
-sha1_block_data_order:
+.globl	VR_sha1_block_data_order
+.ent	VR_sha1_block_data_order
+VR_sha1_block_data_order:
 	.frame	$sp,$FRAMESIZE*$SZREG,$ra
 	.mask	$SAVED_REGS_MASK,-$SZREG
 	.set	noreorder
@@ -453,7 +453,7 @@ ___
 $code.=<<___;
 	jr	$ra
 	$PTR_ADD $sp,$FRAMESIZE*$SZREG
-.end	sha1_block_data_order
+.end	VR_sha1_block_data_order
 .rdata
 .asciiz	"SHA1 for MIPS, CRYPTOGAMS by <appro\@openssl.org>"
 ___

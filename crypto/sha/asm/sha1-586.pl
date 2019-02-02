@@ -326,7 +326,7 @@ if ($alt) {
 }
 	}
 
-&function_begin("sha1_block_data_order");
+&function_begin("VR_sha1_block_data_order");
 if ($xmm) {
   &static_label("shaext_shortcut")	if ($shaext);
   &static_label("ssse3_shortcut");
@@ -425,7 +425,7 @@ if ($xmm) {
 	&jb(&label("loop"));
 
 	&stack_pop(16+3);
-&function_end("sha1_block_data_order");
+&function_end("VR_sha1_block_data_order");
 
 if ($xmm) {
 if ($shaext) {
@@ -450,7 +450,7 @@ sub sha1nexte	{ sha1op38(0xc8,@_); }
 sub sha1msg1	{ sha1op38(0xc9,@_); }
 sub sha1msg2	{ sha1op38(0xca,@_); }
 
-&function_begin("_sha1_block_data_order_shaext");
+&function_begin("_VR_sha1_block_data_order_shaext");
 	&call	(&label("pic_point"));	# make it PIC!
 	&set_label("pic_point");
 	&blindpop($tmp1);
@@ -537,7 +537,7 @@ for($i=0;$i<20-4;$i+=2) {
 	&movdqu	(&QWP(0,$ctx),$ABCD)
 	&movd	(&DWP(16,$ctx),$E);
 	&mov	("esp","ebx");
-&function_end("_sha1_block_data_order_shaext");
+&function_end("_VR_sha1_block_data_order_shaext");
 }
 ######################################################################
 # The SSSE3 implementation.
@@ -573,7 +573,7 @@ my $inp;
 my $_rol=sub { &rol(@_) };
 my $_ror=sub { &ror(@_) };
 
-&function_begin("_sha1_block_data_order_ssse3");
+&function_begin("_VR_sha1_block_data_order_ssse3");
 	&call	(&label("pic_point"));	# make it PIC!
 	&set_label("pic_point");
 	&blindpop($tmp1);
@@ -1101,7 +1101,7 @@ sub bodyx_40_59 () {	# ((b^c)&(c^d))^c
 	&mov	(&DWP(12,@T[1]),$D);
 	&mov	(&DWP(16,@T[1]),$E);
 
-&function_end("_sha1_block_data_order_ssse3");
+&function_end("_VR_sha1_block_data_order_ssse3");
 
 $rx=0;	# reset
 
@@ -1116,7 +1116,7 @@ my $inp;
 my $_rol=sub { &shld(@_[0],@_) };
 my $_ror=sub { &shrd(@_[0],@_) };
 
-&function_begin("_sha1_block_data_order_avx");
+&function_begin("_VR_sha1_block_data_order_avx");
 	&call	(&label("pic_point"));	# make it PIC!
 	&set_label("pic_point");
 	&blindpop($tmp1);
@@ -1474,7 +1474,7 @@ sub Xtail_avx()
 	&mov	(&DWP(8,@T[1]),$C);
 	&mov	(&DWP(12,@T[1]),$D);
 	&mov	(&DWP(16,@T[1]),$E);
-&function_end("_sha1_block_data_order_avx");
+&function_end("_VR_sha1_block_data_order_avx");
 }
 &set_label("K_XX_XX",64);
 &data_word(0x5a827999,0x5a827999,0x5a827999,0x5a827999);	# K_00_19

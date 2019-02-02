@@ -37,7 +37,7 @@
  * pubkey (out): The public key.
  * privkey (in): The private key.
  */
-c448_error_t c448_ed448_derive_public_key(
+c448_error_t VR_c448_ed448_derive_public_key(
                         uint8_t pubkey [EDDSA_448_PUBLIC_BYTES],
                         const uint8_t privkey [EDDSA_448_PRIVATE_BYTES]);
 
@@ -58,7 +58,7 @@ c448_error_t c448_ed448_derive_public_key(
  * non-prehashed messages, at least without some very careful protocol-level
  * disambiguation.  For Ed448 it is safe.
  */
-c448_error_t c448_ed448_sign(
+c448_error_t VR_c448_ed448_sign(
                         uint8_t signature[EDDSA_448_SIGNATURE_BYTES],
                         const uint8_t privkey[EDDSA_448_PRIVATE_BYTES],
                         const uint8_t pubkey[EDDSA_448_PUBLIC_BYTES],
@@ -82,7 +82,7 @@ c448_error_t c448_ed448_sign(
  * non-prehashed messages, at least without some very careful protocol-level
  * disambiguation.  For Ed448 it is safe.
  */
-c448_error_t c448_ed448_sign_prehash(
+c448_error_t VR_c448_ed448_sign_prehash(
                         uint8_t signature[EDDSA_448_SIGNATURE_BYTES],
                         const uint8_t privkey[EDDSA_448_PRIVATE_BYTES],
                         const uint8_t pubkey[EDDSA_448_PUBLIC_BYTES],
@@ -108,7 +108,7 @@ c448_error_t c448_ed448_sign_prehash(
  * non-prehashed messages, at least without some very careful protocol-level
  * disambiguation.  For Ed448 it is safe.
  */
-c448_error_t c448_ed448_verify(const uint8_t
+c448_error_t VR_c448_ed448_verify(const uint8_t
                                  signature[EDDSA_448_SIGNATURE_BYTES],
                                  const uint8_t
                                  pubkey[EDDSA_448_PUBLIC_BYTES],
@@ -133,7 +133,7 @@ c448_error_t c448_ed448_verify(const uint8_t
  * non-prehashed messages, at least without some very careful protocol-level
  * disambiguation.  For Ed448 it is safe.
  */
-c448_error_t c448_ed448_verify_prehash(
+c448_error_t VR_c448_ed448_verify_prehash(
                     const uint8_t signature[EDDSA_448_SIGNATURE_BYTES],
                     const uint8_t pubkey[EDDSA_448_PUBLIC_BYTES],
                     const uint8_t hash[64],
@@ -163,7 +163,7 @@ c448_error_t c448_ed448_verify_prehash(
  * enc (out): The encoded point.
  * p (in): The point.
  */
-void curve448_point_mul_by_ratio_and_encode_like_eddsa(
+void VR_curve448_point_mul_by_ratio_and_encode_like_eddsa(
                                     uint8_t enc [EDDSA_448_PUBLIC_BYTES],
                                     const curve448_point_t p);
 
@@ -171,12 +171,12 @@ void curve448_point_mul_by_ratio_and_encode_like_eddsa(
  * EdDSA point decoding.  Multiplies by C448_EDDSA_DECODE_RATIO, and
  * ignores cofactor information.
  *
- * See notes on curve448_point_mul_by_ratio_and_encode_like_eddsa
+ * See notes on VR_curve448_point_mul_by_ratio_and_encode_like_eddsa
  *
  * enc (out): The encoded point.
  * p (in): The point.
  */
-c448_error_t curve448_point_decode_like_eddsa_and_mul_by_ratio(
+c448_error_t VR_curve448_point_decode_like_eddsa_and_mul_by_ratio(
                             curve448_point_t p,
                             const uint8_t enc[EDDSA_448_PUBLIC_BYTES]);
 
@@ -188,8 +188,8 @@ c448_error_t curve448_point_decode_like_eddsa_and_mul_by_ratio(
  * x (out): The ECDH private key as in RFC7748
  * ed (in): The EdDSA private key
  */
-c448_error_t c448_ed448_convert_private_key_to_x448(
-                            uint8_t x[X448_PRIVATE_BYTES],
+c448_error_t VR_c448_ed448_convert_private_key_to_x448(
+                            uint8_t x[VR_X448_PRIVATE_BYTES],
                             const uint8_t ed[EDDSA_448_PRIVATE_BYTES]);
 
 #endif                          /* HEADER_ED448_H */

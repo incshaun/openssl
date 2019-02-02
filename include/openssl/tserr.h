@@ -18,7 +18,7 @@
 #  ifdef  __cplusplus
 extern "C"
 #  endif
-int ERR_load_TS_strings(void);
+int VR_ERR_load_TS_strings(void);
 
 /*
  * TS function codes.

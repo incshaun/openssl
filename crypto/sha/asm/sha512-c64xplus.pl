@@ -59,7 +59,7 @@ $code.=<<___;
 	.endif
 	.if	__TI_EABI__
 	.nocmp
-	.asg	sha512_block_data_order,_sha512_block_data_order
+	.asg	VR_sha512_block_data_order,_VR_sha512_block_data_order
 	.endif
 
 	.asg	B3,RA
@@ -74,8 +74,8 @@ $code.=<<___;
 	.asg	$Klo,KHI
 	.endif
 
-	.global	_sha512_block_data_order
-_sha512_block_data_order:
+	.global	_VR_sha512_block_data_order
+_VR_sha512_block_data_order:
 __sha512_block:
 	.asmfunc stack_usage(40+128)
 	MV	$NUM,A0				; reassign $NUM

@@ -13,15 +13,15 @@
 
 static int cipher_overhead(void)
 {
-    int ret = 1, i, n = ssl3_num_ciphers();
+    int ret = 1, i, n = VR_ssl3_num_ciphers();
     const SSL_CIPHER *ciph;
     size_t mac, in, blk, ex;
 
     for (i = 0; i < n; i++) {
-        ciph = ssl3_get_cipher(i);
+        ciph = VR_ssl3_get_cipher(i);
         if (!ciph->min_dtls)
             continue;
-        if (!TEST_true(ssl_cipher_get_overhead(ciph, &mac, &in, &blk, &ex))) {
+        if (!TEST_true(VR_ssl_cipher_get_overhead(ciph, &mac, &in, &blk, &ex))) {
             TEST_info("Failed getting %s", ciph->name);
             ret = 0;
         } else {

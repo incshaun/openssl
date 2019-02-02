@@ -49,12 +49,12 @@ static int test_bio_callback(void)
 
     my_param_count = 0;
 
-    bio = BIO_new(BIO_s_mem());
+    bio = VR_BIO_new(VR_BIO_s_mem());
     if (bio == NULL)
         goto err;
 
-    BIO_set_callback(bio, my_bio_callback);
-    i = BIO_write(bio, test1, test1len);
+    VR_BIO_set_callback(bio, my_bio_callback);
+    i = VR_BIO_write(bio, test1, test1len);
     if (!TEST_int_eq(i, test1len)
             || !TEST_int_eq(my_param_count, 2)
             || !TEST_ptr_eq(my_param_b[0], bio)
@@ -72,7 +72,7 @@ static int test_bio_callback(void)
         goto err;
 
     my_param_count = 0;
-    i = BIO_read(bio, buf, sizeof(buf));
+    i = VR_BIO_read(bio, buf, sizeof(buf));
     if (!TEST_mem_eq(buf, i, test1, test1len)
             || !TEST_int_eq(my_param_count, 2)
             || !TEST_ptr_eq(my_param_b[0], bio)
@@ -91,7 +91,7 @@ static int test_bio_callback(void)
 
     /* By default a mem bio returns -1 if it has run out of data */
     my_param_count = 0;
-    i = BIO_read(bio, buf, sizeof(buf));
+    i = VR_BIO_read(bio, buf, sizeof(buf));
     if (!TEST_int_eq(i, -1)
             || !TEST_int_eq(my_param_count, 2)
             || !TEST_ptr_eq(my_param_b[0], bio)
@@ -111,7 +111,7 @@ static int test_bio_callback(void)
     /* Force the mem bio to return 0 if it has run out of data */
     BIO_set_mem_eof_return(bio, 0);
     my_param_count = 0;
-    i = BIO_read(bio, buf, sizeof(buf));
+    i = VR_BIO_read(bio, buf, sizeof(buf));
     if (!TEST_int_eq(i, 0)
             || !TEST_int_eq(my_param_count, 2)
             || !TEST_ptr_eq(my_param_b[0], bio)
@@ -129,7 +129,7 @@ static int test_bio_callback(void)
         goto err;
 
     my_param_count = 0;
-    i = BIO_puts(bio, test2);
+    i = VR_BIO_puts(bio, test2);
     if (!TEST_int_eq(i, 5)
             || !TEST_int_eq(my_param_count, 2)
             || !TEST_ptr_eq(my_param_b[0], bio)
@@ -147,7 +147,7 @@ static int test_bio_callback(void)
         goto err;
 
     my_param_count = 0;
-    i = BIO_free(bio);
+    i = VR_BIO_free(bio);
     if (!TEST_int_eq(i, 1)
             || !TEST_int_eq(my_param_count, 1)
             || !TEST_ptr_eq(my_param_b[0], bio)
@@ -162,7 +162,7 @@ static int test_bio_callback(void)
     goto finish;
 
 err:
-    BIO_free(bio);
+    VR_BIO_free(bio);
 
 finish:
     /* This helps finding memory leaks with ASAN */

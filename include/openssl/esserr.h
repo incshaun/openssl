@@ -16,7 +16,7 @@
 # ifdef  __cplusplus
 extern "C"
 # endif
-int ERR_load_ESS_strings(void);
+int VR_ERR_load_ESS_strings(void);
 
 /*
  * ESS function codes.

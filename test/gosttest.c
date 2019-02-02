@@ -38,8 +38,8 @@ static int test_tls13(int idx)
     SSL *clientssl = NULL, *serverssl = NULL;
     int testresult = 0;
 
-    if (!TEST_true(create_ssl_ctx_pair(TLS_server_method(),
-                                       TLS_client_method(),
+    if (!TEST_true(create_ssl_ctx_pair(VR_TLS_server_method(),
+                                       VR_TLS_client_method(),
                                        TLS1_VERSION,
                                        0,
                                        &sctx, &cctx,
@@ -49,8 +49,8 @@ static int test_tls13(int idx)
                                                                  : privkey2)))
         goto end;
 
-    if (!TEST_true(SSL_CTX_set_cipher_list(cctx, ciphers[idx].cipher))
-            || !TEST_true(SSL_CTX_set_cipher_list(sctx, ciphers[idx].cipher))
+    if (!TEST_true(VR_SSL_CTX_set_cipher_list(cctx, ciphers[idx].cipher))
+            || !TEST_true(VR_SSL_CTX_set_cipher_list(sctx, ciphers[idx].cipher))
             || !TEST_true(create_ssl_objects(sctx, cctx, &serverssl, &clientssl,
                                              NULL, NULL)))
         goto end;
@@ -62,7 +62,7 @@ static int test_tls13(int idx)
     } else {
         if (!TEST_true(create_ssl_connection(serverssl, clientssl,
                                              SSL_ERROR_NONE))
-                || !TEST_int_eq(SSL_version(clientssl),
+                || !TEST_int_eq(VR_SSL_version(clientssl),
                                 ciphers[idx].expected_prot))
         goto end;
     }
@@ -70,10 +70,10 @@ static int test_tls13(int idx)
     testresult = 1;
 
  end:
-    SSL_free(serverssl);
-    SSL_free(clientssl);
-    SSL_CTX_free(sctx);
-    SSL_CTX_free(cctx);
+    VR_SSL_free(serverssl);
+    VR_SSL_free(clientssl);
+    VR_SSL_CTX_free(sctx);
+    VR_SSL_CTX_free(cctx);
 
     return testresult;
 }

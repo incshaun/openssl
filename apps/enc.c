@@ -127,9 +127,9 @@ int enc_main(int argc, char **argv)
         do_zlib = 1;
 #endif
     } else {
-        cipher = EVP_get_cipherbyname(prog);
+        cipher = VR_EVP_get_cipherbyname(prog);
         if (cipher == NULL && strcmp(prog, "enc") != 0) {
-            BIO_printf(bio_err, "%s is not a known cipher\n", prog);
+            VR_BIO_printf(bio_err, "%s is not a known cipher\n", prog);
             goto end;
         }
     }
@@ -140,19 +140,19 @@ int enc_main(int argc, char **argv)
         case OPT_EOF:
         case OPT_ERR:
  opthelp:
-            BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
+            VR_BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
             opt_help(enc_options);
             ret = 0;
             goto end;
         case OPT_LIST:
-            BIO_printf(bio_out, "Supported ciphers:\n");
+            VR_BIO_printf(bio_out, "Supported ciphers:\n");
             dec.bio = bio_out;
             dec.n = 0;
-            OBJ_NAME_do_all_sorted(OBJ_NAME_TYPE_CIPHER_METH,
+            VR_OBJ_NAME_do_all_sorted(OBJ_NAME_TYPE_CIPHER_METH,
                                    show_ciphers, &dec);
-            BIO_printf(bio_out, "\n");
+            VR_BIO_printf(bio_out, "\n");
             ret = 0;
             goto end;
         case OPT_E:
@@ -225,18 +225,18 @@ int enc_main(int argc, char **argv)
             in = bio_open_default(opt_arg(), 'r', FORMAT_TEXT);
             if (in == NULL)
                 goto opthelp;
-            i = BIO_gets(in, buf, sizeof(buf));
-            BIO_free(in);
+            i = VR_BIO_gets(in, buf, sizeof(buf));
+            VR_BIO_free(in);
             in = NULL;
             if (i <= 0) {
-                BIO_printf(bio_err,
+                VR_BIO_printf(bio_err,
                            "%s Can't read key from %s\n", prog, opt_arg());
                 goto opthelp;
             }
             while (--i > 0 && (buf[i] == '\r' || buf[i] == '\n'))
                 buf[i] = '\0';
             if (i <= 0) {
-                BIO_printf(bio_err, "%s: zero length password\n", prog);
+                VR_BIO_printf(bio_err, "%s: zero length password\n", prog);
                 goto opthelp;
             }
             str = buf;
@@ -279,22 +279,22 @@ int enc_main(int argc, char **argv)
         }
     }
     if (opt_num_rest() != 0) {
-        BIO_printf(bio_err, "Extra arguments given.\n");
+        VR_BIO_printf(bio_err, "Extra arguments given.\n");
         goto opthelp;
     }
 
-    if (cipher && EVP_CIPHER_flags(cipher) & EVP_CIPH_FLAG_AEAD_CIPHER) {
-        BIO_printf(bio_err, "%s: AEAD ciphers not supported\n", prog);
+    if (cipher && VR_EVP_CIPHER_flags(cipher) & EVP_CIPH_FLAG_AEAD_CIPHER) {
+        VR_BIO_printf(bio_err, "%s: AEAD ciphers not supported\n", prog);
         goto end;
     }
 
     if (cipher && (EVP_CIPHER_mode(cipher) == EVP_CIPH_XTS_MODE)) {
-        BIO_printf(bio_err, "%s XTS ciphers not supported\n", prog);
+        VR_BIO_printf(bio_err, "%s XTS ciphers not supported\n", prog);
         goto end;
     }
 
     if (dgst == NULL)
-        dgst = EVP_sha256();
+        dgst = VR_EVP_sha256();
 
     if (iter == 0)
         iter = 1;
@@ -303,7 +303,7 @@ int enc_main(int argc, char **argv)
     if (base64 && bsize < 80)
         bsize = 80;
     if (verbose)
-        BIO_printf(bio_err, "bufsize=%d\n", bsize);
+        VR_BIO_printf(bio_err, "bufsize=%d\n", bsize);
 
 #ifdef ZLIB
     if (!do_zlib)
@@ -328,7 +328,7 @@ int enc_main(int argc, char **argv)
 
     if (str == NULL && passarg != NULL) {
         if (!app_passwd(passarg, NULL, &pass, NULL)) {
-            BIO_printf(bio_err, "Error getting password\n");
+            VR_BIO_printf(bio_err, "Error getting password\n");
             goto end;
         }
         str = pass;
@@ -340,11 +340,11 @@ int enc_main(int argc, char **argv)
             for (;;) {
                 char prompt[200];
 
-                BIO_snprintf(prompt, sizeof(prompt), "enter %s %s password:",
-                        OBJ_nid2ln(EVP_CIPHER_nid(cipher)),
+                VR_BIO_snprintf(prompt, sizeof(prompt), "enter %s %s password:",
+                        VR_OBJ_nid2ln(VR_EVP_CIPHER_nid(cipher)),
                         (enc) ? "encryption" : "decryption");
                 strbuf[0] = '\0';
-                i = EVP_read_pw_string((char *)strbuf, SIZE, prompt, enc);
+                i = VR_EVP_read_pw_string((char *)strbuf, SIZE, prompt, enc);
                 if (i == 0) {
                     if (strbuf[0] == '\0') {
                         ret = 1;
@@ -354,13 +354,13 @@ int enc_main(int argc, char **argv)
                     break;
                 }
                 if (i < 0) {
-                    BIO_printf(bio_err, "bad password read\n");
+                    VR_BIO_printf(bio_err, "bad password read\n");
                     goto end;
                 }
             }
         } else {
 #endif
-            BIO_printf(bio_err, "password required\n");
+            VR_BIO_printf(bio_err, "password required\n");
             goto end;
         }
     }
@@ -370,10 +370,10 @@ int enc_main(int argc, char **argv)
         goto end;
 
     if (debug) {
-        BIO_set_callback(in, BIO_debug_callback);
-        BIO_set_callback(out, BIO_debug_callback);
-        BIO_set_callback_arg(in, (char *)bio_err);
-        BIO_set_callback_arg(out, (char *)bio_err);
+        VR_BIO_set_callback(in, VR_BIO_debug_callback);
+        VR_BIO_set_callback(out, VR_BIO_debug_callback);
+        VR_BIO_set_callback_arg(in, (char *)bio_err);
+        VR_BIO_set_callback_arg(out, (char *)bio_err);
     }
 
     rbio = in;
@@ -381,32 +381,32 @@ int enc_main(int argc, char **argv)
 
 #ifdef ZLIB
     if (do_zlib) {
-        if ((bzl = BIO_new(BIO_f_zlib())) == NULL)
+        if ((bzl = VR_BIO_new(BIO_f_zlib())) == NULL)
             goto end;
         if (debug) {
-            BIO_set_callback(bzl, BIO_debug_callback);
-            BIO_set_callback_arg(bzl, (char *)bio_err);
+            VR_BIO_set_callback(bzl, VR_BIO_debug_callback);
+            VR_BIO_set_callback_arg(bzl, (char *)bio_err);
         }
         if (enc)
-            wbio = BIO_push(bzl, wbio);
+            wbio = VR_BIO_push(bzl, wbio);
         else
-            rbio = BIO_push(bzl, rbio);
+            rbio = VR_BIO_push(bzl, rbio);
     }
 #endif
 
     if (base64) {
-        if ((b64 = BIO_new(BIO_f_base64())) == NULL)
+        if ((b64 = VR_BIO_new(VR_BIO_f_base64())) == NULL)
             goto end;
         if (debug) {
-            BIO_set_callback(b64, BIO_debug_callback);
-            BIO_set_callback_arg(b64, (char *)bio_err);
+            VR_BIO_set_callback(b64, VR_BIO_debug_callback);
+            VR_BIO_set_callback_arg(b64, (char *)bio_err);
         }
         if (olb64)
-            BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
+            VR_BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
         if (enc)
-            wbio = BIO_push(b64, wbio);
+            wbio = VR_BIO_push(b64, wbio);
         else
-            rbio = BIO_push(b64, rbio);
+            rbio = VR_BIO_push(b64, rbio);
     }
 
     if (cipher != NULL) {
@@ -428,32 +428,32 @@ int enc_main(int argc, char **argv)
                 if (enc) {
                     if (hsalt) {
                         if (!set_hex(hsalt, salt, sizeof(salt))) {
-                            BIO_printf(bio_err, "invalid hex salt value\n");
+                            VR_BIO_printf(bio_err, "invalid hex salt value\n");
                             goto end;
                         }
-                    } else if (RAND_bytes(salt, sizeof(salt)) <= 0) {
+                    } else if (VR_RAND_bytes(salt, sizeof(salt)) <= 0) {
                         goto end;
                     }
                     /*
                      * If -P option then don't bother writing
                      */
                     if ((printkey != 2)
-                        && (BIO_write(wbio, magic,
+                        && (VR_BIO_write(wbio, magic,
                                       sizeof(magic) - 1) != sizeof(magic) - 1
-                            || BIO_write(wbio,
+                            || VR_BIO_write(wbio,
                                          (char *)salt,
                                          sizeof(salt)) != sizeof(salt))) {
-                        BIO_printf(bio_err, "error writing output file\n");
+                        VR_BIO_printf(bio_err, "error writing output file\n");
                         goto end;
                     }
-                } else if (BIO_read(rbio, mbuf, sizeof(mbuf)) != sizeof(mbuf)
-                           || BIO_read(rbio,
+                } else if (VR_BIO_read(rbio, mbuf, sizeof(mbuf)) != sizeof(mbuf)
+                           || VR_BIO_read(rbio,
                                        (unsigned char *)salt,
                                        sizeof(salt)) != sizeof(salt)) {
-                    BIO_printf(bio_err, "error reading input file\n");
+                    VR_BIO_printf(bio_err, "error reading input file\n");
                     goto end;
                 } else if (memcmp(mbuf, magic, sizeof(magic) - 1)) {
-                    BIO_printf(bio_err, "bad magic number\n");
+                    VR_BIO_printf(bio_err, "bad magic number\n");
                     goto end;
                 }
                 sptr = salt;
@@ -465,26 +465,26 @@ int enc_main(int argc, char **argv)
                 * concatenated into a temporary buffer
                 */
                 unsigned char tmpkeyiv[EVP_MAX_KEY_LENGTH + EVP_MAX_IV_LENGTH];
-                int iklen = EVP_CIPHER_key_length(cipher);
-                int ivlen = EVP_CIPHER_iv_length(cipher);
+                int iklen = VR_EVP_CIPHER_key_length(cipher);
+                int ivlen = VR_EVP_CIPHER_iv_length(cipher);
                 /* not needed if HASH_UPDATE() is fixed : */
                 int islen = (sptr != NULL ? sizeof(salt) : 0);
-                if (!PKCS5_PBKDF2_HMAC(str, str_len, sptr, islen,
+                if (!VR_PKCS5_PBKDF2_HMAC(str, str_len, sptr, islen,
                                        iter, dgst, iklen+ivlen, tmpkeyiv)) {
-                    BIO_printf(bio_err, "PKCS5_PBKDF2_HMAC failed\n");
+                    VR_BIO_printf(bio_err, "VR_PKCS5_PBKDF2_HMAC failed\n");
                     goto end;
                 }
                 /* split and move data back to global buffer */
                 memcpy(key, tmpkeyiv, iklen);
                 memcpy(iv, tmpkeyiv+iklen, ivlen);
             } else {
-                BIO_printf(bio_err, "*** WARNING : "
+                VR_BIO_printf(bio_err, "*** WARNING : "
                                     "deprecated key derivation used.\n"
                                     "Using -iter or -pbkdf2 would be better.\n");
-                if (!EVP_BytesToKey(cipher, dgst, sptr,
+                if (!VR_EVP_BytesToKey(cipher, dgst, sptr,
                                     (unsigned char *)str, str_len,
                                     1, key, iv)) {
-                    BIO_printf(bio_err, "EVP_BytesToKey failed\n");
+                    VR_BIO_printf(bio_err, "VR_EVP_BytesToKey failed\n");
                     goto end;
                 }
             }
@@ -493,67 +493,67 @@ int enc_main(int argc, char **argv)
              * line.
              */
             if (str == strbuf)
-                OPENSSL_cleanse(str, SIZE);
+                VR_OPENSSL_cleanse(str, SIZE);
             else
-                OPENSSL_cleanse(str, str_len);
+                VR_OPENSSL_cleanse(str, str_len);
         }
         if (hiv != NULL) {
-            int siz = EVP_CIPHER_iv_length(cipher);
+            int siz = VR_EVP_CIPHER_iv_length(cipher);
             if (siz == 0) {
-                BIO_printf(bio_err, "warning: iv not use by this cipher\n");
+                VR_BIO_printf(bio_err, "warning: iv not use by this cipher\n");
             } else if (!set_hex(hiv, iv, siz)) {
-                BIO_printf(bio_err, "invalid hex iv value\n");
+                VR_BIO_printf(bio_err, "invalid hex iv value\n");
                 goto end;
             }
         }
         if ((hiv == NULL) && (str == NULL)
-            && EVP_CIPHER_iv_length(cipher) != 0) {
+            && VR_EVP_CIPHER_iv_length(cipher) != 0) {
             /*
              * No IV was explicitly set and no IV was generated.
              * Hence the IV is undefined, making correct decryption impossible.
              */
-            BIO_printf(bio_err, "iv undefined\n");
+            VR_BIO_printf(bio_err, "iv undefined\n");
             goto end;
         }
         if (hkey != NULL) {
-            if (!set_hex(hkey, key, EVP_CIPHER_key_length(cipher))) {
-                BIO_printf(bio_err, "invalid hex key value\n");
+            if (!set_hex(hkey, key, VR_EVP_CIPHER_key_length(cipher))) {
+                VR_BIO_printf(bio_err, "invalid hex key value\n");
                 goto end;
             }
             /* wiping secret data as we no longer need it */
-            OPENSSL_cleanse(hkey, strlen(hkey));
+            VR_OPENSSL_cleanse(hkey, strlen(hkey));
         }
 
-        if ((benc = BIO_new(BIO_f_cipher())) == NULL)
+        if ((benc = VR_BIO_new(VR_BIO_f_cipher())) == NULL)
             goto end;
 
         /*
          * Since we may be changing parameters work on the encryption context
-         * rather than calling BIO_set_cipher().
+         * rather than calling VR_BIO_set_cipher().
          */
 
         BIO_get_cipher_ctx(benc, &ctx);
 
-        if (!EVP_CipherInit_ex(ctx, cipher, NULL, NULL, NULL, enc)) {
-            BIO_printf(bio_err, "Error setting cipher %s\n",
+        if (!VR_EVP_CipherInit_ex(ctx, cipher, NULL, NULL, NULL, enc)) {
+            VR_BIO_printf(bio_err, "Error setting cipher %s\n",
                        EVP_CIPHER_name(cipher));
-            ERR_print_errors(bio_err);
+            VR_ERR_print_errors(bio_err);
             goto end;
         }
 
         if (nopad)
-            EVP_CIPHER_CTX_set_padding(ctx, 0);
+            VR_EVP_CIPHER_CTX_set_padding(ctx, 0);
 
-        if (!EVP_CipherInit_ex(ctx, NULL, NULL, key, iv, enc)) {
-            BIO_printf(bio_err, "Error setting cipher %s\n",
+        if (!VR_EVP_CipherInit_ex(ctx, NULL, NULL, key, iv, enc)) {
+            VR_BIO_printf(bio_err, "Error setting cipher %s\n",
                        EVP_CIPHER_name(cipher));
-            ERR_print_errors(bio_err);
+            VR_ERR_print_errors(bio_err);
             goto end;
         }
 
         if (debug) {
-            BIO_set_callback(benc, BIO_debug_callback);
-            BIO_set_callback_arg(benc, (char *)bio_err);
+            VR_BIO_set_callback(benc, VR_BIO_debug_callback);
+            VR_BIO_set_callback_arg(benc, (char *)bio_err);
         }
 
         if (printkey) {
@@ -563,15 +563,15 @@ int enc_main(int argc, char **argv)
                     printf("%02X", salt[i]);
                 printf("\n");
             }
-            if (EVP_CIPHER_key_length(cipher) > 0) {
+            if (VR_EVP_CIPHER_key_length(cipher) > 0) {
                 printf("key=");
-                for (i = 0; i < EVP_CIPHER_key_length(cipher); i++)
+                for (i = 0; i < VR_EVP_CIPHER_key_length(cipher); i++)
                     printf("%02X", key[i]);
                 printf("\n");
             }
-            if (EVP_CIPHER_iv_length(cipher) > 0) {
+            if (VR_EVP_CIPHER_iv_length(cipher) > 0) {
                 printf("iv =");
-                for (i = 0; i < EVP_CIPHER_iv_length(cipher); i++)
+                for (i = 0; i < VR_EVP_CIPHER_iv_length(cipher); i++)
                     printf("%02X", iv[i]);
                 printf("\n");
             }
@@ -584,40 +584,40 @@ int enc_main(int argc, char **argv)
 
     /* Only encrypt/decrypt as we write the file */
     if (benc != NULL)
-        wbio = BIO_push(benc, wbio);
+        wbio = VR_BIO_push(benc, wbio);
 
     for (;;) {
-        inl = BIO_read(rbio, (char *)buff, bsize);
+        inl = VR_BIO_read(rbio, (char *)buff, bsize);
         if (inl <= 0)
             break;
-        if (BIO_write(wbio, (char *)buff, inl) != inl) {
-            BIO_printf(bio_err, "error writing output file\n");
+        if (VR_BIO_write(wbio, (char *)buff, inl) != inl) {
+            VR_BIO_printf(bio_err, "error writing output file\n");
             goto end;
         }
     }
     if (!BIO_flush(wbio)) {
-        BIO_printf(bio_err, "bad decrypt\n");
+        VR_BIO_printf(bio_err, "bad decrypt\n");
         goto end;
     }
 
     ret = 0;
     if (verbose) {
-        BIO_printf(bio_err, "bytes read   : %8ju\n", BIO_number_read(in));
-        BIO_printf(bio_err, "bytes written: %8ju\n", BIO_number_written(out));
+        VR_BIO_printf(bio_err, "bytes read   : %8ju\n", VR_BIO_number_read(in));
+        VR_BIO_printf(bio_err, "bytes written: %8ju\n", VR_BIO_number_written(out));
     }
  end:
-    ERR_print_errors(bio_err);
-    OPENSSL_free(strbuf);
-    OPENSSL_free(buff);
-    BIO_free(in);
-    BIO_free_all(out);
-    BIO_free(benc);
-    BIO_free(b64);
+    VR_ERR_print_errors(bio_err);
+    OPENVR_SSL_free(strbuf);
+    OPENVR_SSL_free(buff);
+    VR_BIO_free(in);
+    VR_BIO_free_all(out);
+    VR_BIO_free(benc);
+    VR_BIO_free(b64);
 #ifdef ZLIB
-    BIO_free(bzl);
+    VR_BIO_free(bzl);
 #endif
     release_engine(e);
-    OPENSSL_free(pass);
+    OPENVR_SSL_free(pass);
     return ret;
 }
 
@@ -630,18 +630,18 @@ static void show_ciphers(const OBJ_NAME *name, void *arg)
         return;
 
     /* Filter out ciphers that we cannot use */
-    cipher = EVP_get_cipherbyname(name->name);
+    cipher = VR_EVP_get_cipherbyname(name->name);
     if (cipher == NULL ||
-            (EVP_CIPHER_flags(cipher) & EVP_CIPH_FLAG_AEAD_CIPHER) != 0 ||
+            (VR_EVP_CIPHER_flags(cipher) & EVP_CIPH_FLAG_AEAD_CIPHER) != 0 ||
             EVP_CIPHER_mode(cipher) == EVP_CIPH_XTS_MODE)
         return;
 
-    BIO_printf(dec->bio, "-%-25s", name->name);
+    VR_BIO_printf(dec->bio, "-%-25s", name->name);
     if (++dec->n == 3) {
-        BIO_printf(dec->bio, "\n");
+        VR_BIO_printf(dec->bio, "\n");
         dec->n = 0;
     } else
-        BIO_printf(dec->bio, " ");
+        VR_BIO_printf(dec->bio, " ");
 }
 
 static int set_hex(const char *in, unsigned char *out, int size)
@@ -652,20 +652,20 @@ static int set_hex(const char *in, unsigned char *out, int size)
     i = size * 2;
     n = strlen(in);
     if (n > i) {
-        BIO_printf(bio_err, "hex string is too long, ignoring excess\n");
+        VR_BIO_printf(bio_err, "hex string is too long, ignoring excess\n");
         n = i; /* ignore exceeding part */
     } else if (n < i) {
-        BIO_printf(bio_err, "hex string is too short, padding with zero bytes to length\n");
+        VR_BIO_printf(bio_err, "hex string is too short, padding with zero bytes to length\n");
     }
 
     memset(out, 0, size);
     for (i = 0; i < n; i++) {
         j = (unsigned char)*in++;
         if (!isxdigit(j)) {
-            BIO_printf(bio_err, "non-hex digit\n");
+            VR_BIO_printf(bio_err, "non-hex digit\n");
             return 0;
         }
-        j = (unsigned char)OPENSSL_hexchar2int(j);
+        j = (unsigned char)VR_OPENSSL_hexchar2int(j);
         if (i & 1)
             out[i / 2] |= j;
         else

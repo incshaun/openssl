@@ -44,7 +44,7 @@
  */
 static void tls1_md5_final_raw(void *ctx, unsigned char *md_out)
 {
-    MD5_CTX *md5 = ctx;
+    VR_MD5_CTX *md5 = ctx;
     u32toLE(md5->A, md_out);
     u32toLE(md5->B, md_out);
     u32toLE(md5->C, md_out);
@@ -63,7 +63,7 @@ static void tls1_sha1_final_raw(void *ctx, unsigned char *md_out)
 
 static void tls1_sha256_final_raw(void *ctx, unsigned char *md_out)
 {
-    SHA256_CTX *sha256 = ctx;
+    VR_SHA256_CTX *sha256 = ctx;
     unsigned i;
 
     for (i = 0; i < 8; i++) {
@@ -73,7 +73,7 @@ static void tls1_sha256_final_raw(void *ctx, unsigned char *md_out)
 
 static void tls1_sha512_final_raw(void *ctx, unsigned char *md_out)
 {
-    SHA512_CTX *sha512 = ctx;
+    VR_SHA512_CTX *sha512 = ctx;
     unsigned i;
 
     for (i = 0; i < 8; i++) {
@@ -82,13 +82,13 @@ static void tls1_sha512_final_raw(void *ctx, unsigned char *md_out)
 }
 
 #undef  LARGEST_DIGEST_CTX
-#define LARGEST_DIGEST_CTX SHA512_CTX
+#define LARGEST_DIGEST_CTX VR_SHA512_CTX
 
 /*
- * ssl3_cbc_record_digest_supported returns 1 iff |ctx| uses a hash function
- * which ssl3_cbc_digest_record supports.
+ * VR_ssl3_cbc_record_digest_supported returns 1 iff |ctx| uses a hash function
+ * which VR_ssl3_cbc_digest_record supports.
  */
-char ssl3_cbc_record_digest_supported(const EVP_MD_CTX *ctx)
+char VR_ssl3_cbc_record_digest_supported(const EVP_MD_CTX *ctx)
 {
     switch (EVP_MD_CTX_type(ctx)) {
     case NID_md5:
@@ -104,11 +104,11 @@ char ssl3_cbc_record_digest_supported(const EVP_MD_CTX *ctx)
 }
 
 /*-
- * ssl3_cbc_digest_record computes the MAC of a decrypted, padded SSLv3/TLS
+ * VR_ssl3_cbc_digest_record computes the MAC of a decrypted, padded SSLv3/TLS
  * record.
  *
  *   ctx: the EVP_MD_CTX from which we take the hash function.
- *     ssl3_cbc_record_digest_supported must return true for this EVP_MD_CTX.
+ *     VR_ssl3_cbc_record_digest_supported must return true for this EVP_MD_CTX.
  *   md_out: the digest output. At most EVP_MAX_MD_SIZE bytes will be written.
  *   md_out_size: if non-NULL, the number of output bytes is written here.
  *   header: the 13-byte, TLS record header.
@@ -125,7 +125,7 @@ char ssl3_cbc_record_digest_supported(const EVP_MD_CTX *ctx)
  * padding too. )
  * Returns 1 on success or 0 on error
  */
-int ssl3_cbc_digest_record(const EVP_MD_CTX *ctx,
+int VR_ssl3_cbc_digest_record(const EVP_MD_CTX *ctx,
                            unsigned char *md_out,
                            size_t *md_out_size,
                            const unsigned char header[13],
@@ -147,7 +147,7 @@ int ssl3_cbc_digest_record(const EVP_MD_CTX *ctx,
         num_starting_blocks, k, mac_end_offset, c, index_a, index_b;
     size_t bits;          /* at most 18 bits */
     unsigned char length_bytes[MAX_HASH_BIT_COUNT_BYTES];
-    /* hmac_pad is the masked HMAC key. */
+    /* hmac_pad is the masked VR_HMAC key. */
     unsigned char hmac_pad[MAX_HASH_BLOCK_SIZE];
     unsigned char first_block[MAX_HASH_BLOCK_SIZE];
     unsigned char mac_out[EVP_MAX_MD_SIZE];
@@ -171,62 +171,62 @@ int ssl3_cbc_digest_record(const EVP_MD_CTX *ctx,
 
     switch (EVP_MD_CTX_type(ctx)) {
     case NID_md5:
-        if (MD5_Init((MD5_CTX *)md_state.c) <= 0)
+        if (VR_MD5_Init((VR_MD5_CTX *)md_state.c) <= 0)
             return 0;
         md_final_raw = tls1_md5_final_raw;
         md_transform =
-            (void (*)(void *ctx, const unsigned char *block))MD5_Transform;
+            (void (*)(void *ctx, const unsigned char *block))VR_MD5_Transform;
         md_size = 16;
         sslv3_pad_length = 48;
         length_is_big_endian = 0;
         break;
     case NID_sha1:
-        if (SHA1_Init((SHA_CTX *)md_state.c) <= 0)
+        if (VR_SHA1_Init((SHA_CTX *)md_state.c) <= 0)
             return 0;
         md_final_raw = tls1_sha1_final_raw;
         md_transform =
-            (void (*)(void *ctx, const unsigned char *block))SHA1_Transform;
+            (void (*)(void *ctx, const unsigned char *block))VR_SHA1_Transform;
         md_size = 20;
         break;
     case NID_sha224:
-        if (SHA224_Init((SHA256_CTX *)md_state.c) <= 0)
+        if (VR_SHA224_Init((VR_SHA256_CTX *)md_state.c) <= 0)
             return 0;
         md_final_raw = tls1_sha256_final_raw;
         md_transform =
-            (void (*)(void *ctx, const unsigned char *block))SHA256_Transform;
+            (void (*)(void *ctx, const unsigned char *block))VR_SHA256_Transform;
         md_size = 224 / 8;
         break;
     case NID_sha256:
-        if (SHA256_Init((SHA256_CTX *)md_state.c) <= 0)
+        if (VR_SHA256_Init((VR_SHA256_CTX *)md_state.c) <= 0)
             return 0;
         md_final_raw = tls1_sha256_final_raw;
         md_transform =
-            (void (*)(void *ctx, const unsigned char *block))SHA256_Transform;
+            (void (*)(void *ctx, const unsigned char *block))VR_SHA256_Transform;
         md_size = 32;
         break;
     case NID_sha384:
-        if (SHA384_Init((SHA512_CTX *)md_state.c) <= 0)
+        if (VR_SHA384_Init((VR_SHA512_CTX *)md_state.c) <= 0)
             return 0;
         md_final_raw = tls1_sha512_final_raw;
         md_transform =
-            (void (*)(void *ctx, const unsigned char *block))SHA512_Transform;
+            (void (*)(void *ctx, const unsigned char *block))VR_SHA512_Transform;
         md_size = 384 / 8;
         md_block_size = 128;
         md_length_size = 16;
         break;
     case NID_sha512:
-        if (SHA512_Init((SHA512_CTX *)md_state.c) <= 0)
+        if (VR_SHA512_Init((VR_SHA512_CTX *)md_state.c) <= 0)
             return 0;
         md_final_raw = tls1_sha512_final_raw;
         md_transform =
-            (void (*)(void *ctx, const unsigned char *block))SHA512_Transform;
+            (void (*)(void *ctx, const unsigned char *block))VR_SHA512_Transform;
         md_size = 64;
         md_block_size = 128;
         md_length_size = 16;
         break;
     default:
         /*
-         * ssl3_cbc_record_digest_supported should have been called first to
+         * VR_ssl3_cbc_record_digest_supported should have been called first to
          * check that the hash function is supported.
          */
         if (md_out_size != NULL)
@@ -313,7 +313,7 @@ int ssl3_cbc_digest_record(const EVP_MD_CTX *ctx,
     index_b = (mac_end_offset + md_length_size) / md_block_size;
     /*
      * bits is the hash-length in bits. It includes the additional hash block
-     * for the masked HMAC key, or whole of |header| in the case of SSLv3.
+     * for the masked VR_HMAC key, or whole of |header| in the case of SSLv3.
      */
 
     /*
@@ -328,7 +328,7 @@ int ssl3_cbc_digest_record(const EVP_MD_CTX *ctx,
     bits = 8 * mac_end_offset;
     if (!is_sslv3) {
         /*
-         * Compute the initial HMAC block. For SSLv3, the padding and secret
+         * Compute the initial VR_HMAC block. For SSLv3, the padding and secret
          * bytes are included in |header| because they take more than a
          * single block.
          */
@@ -364,8 +364,8 @@ int ssl3_cbc_digest_record(const EVP_MD_CTX *ctx,
             /*
              * The SSLv3 header is larger than a single block. overhang is
              * the number of bytes beyond a single block that the header
-             * consumes: either 7 bytes (SHA1) or 11 bytes (MD5). There are no
-             * ciphersuites in SSLv3 that are not SHA1 or MD5 based and
+             * consumes: either 7 bytes (VR_SHA1) or 11 bytes (VR_MD5). There are no
+             * ciphersuites in SSLv3 that are not VR_SHA1 or VR_MD5 based and
              * therefore we can be confident that the header_length will be
              * greater than |md_block_size|. However we add a sanity check just
              * in case
@@ -452,36 +452,36 @@ int ssl3_cbc_digest_record(const EVP_MD_CTX *ctx,
             mac_out[j] |= block[j] & is_block_b;
     }
 
-    md_ctx = EVP_MD_CTX_new();
+    md_ctx = VR_EVP_MD_CTX_new();
     if (md_ctx == NULL)
         goto err;
-    if (EVP_DigestInit_ex(md_ctx, EVP_MD_CTX_md(ctx), NULL /* engine */ ) <= 0)
+    if (VR_EVP_DigestInit_ex(md_ctx, VR_EVP_MD_CTX_md(ctx), NULL /* engine */ ) <= 0)
         goto err;
     if (is_sslv3) {
         /* We repurpose |hmac_pad| to contain the SSLv3 pad2 block. */
         memset(hmac_pad, 0x5c, sslv3_pad_length);
 
-        if (EVP_DigestUpdate(md_ctx, mac_secret, mac_secret_length) <= 0
-            || EVP_DigestUpdate(md_ctx, hmac_pad, sslv3_pad_length) <= 0
-            || EVP_DigestUpdate(md_ctx, mac_out, md_size) <= 0)
+        if (VR_EVP_DigestUpdate(md_ctx, mac_secret, mac_secret_length) <= 0
+            || VR_EVP_DigestUpdate(md_ctx, hmac_pad, sslv3_pad_length) <= 0
+            || VR_EVP_DigestUpdate(md_ctx, mac_out, md_size) <= 0)
             goto err;
     } else {
-        /* Complete the HMAC in the standard manner. */
+        /* Complete the VR_HMAC in the standard manner. */
         for (i = 0; i < md_block_size; i++)
             hmac_pad[i] ^= 0x6a;
 
-        if (EVP_DigestUpdate(md_ctx, hmac_pad, md_block_size) <= 0
-            || EVP_DigestUpdate(md_ctx, mac_out, md_size) <= 0)
+        if (VR_EVP_DigestUpdate(md_ctx, hmac_pad, md_block_size) <= 0
+            || VR_EVP_DigestUpdate(md_ctx, mac_out, md_size) <= 0)
             goto err;
     }
     /* TODO(size_t): Convert me */
-    ret = EVP_DigestFinal(md_ctx, md_out, &md_out_size_u);
+    ret = VR_EVP_DigestFinal(md_ctx, md_out, &md_out_size_u);
     if (ret && md_out_size)
         *md_out_size = md_out_size_u;
-    EVP_MD_CTX_free(md_ctx);
+    VR_EVP_MD_CTX_free(md_ctx);
 
     return 1;
  err:
-    EVP_MD_CTX_free(md_ctx);
+    VR_EVP_MD_CTX_free(md_ctx);
     return 0;
 }

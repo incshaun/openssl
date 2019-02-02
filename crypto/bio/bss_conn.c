@@ -45,8 +45,8 @@ static long conn_callback_ctrl(BIO *h, int cmd, BIO_info_cb *);
 
 static int conn_state(BIO *b, BIO_CONNECT *c);
 static void conn_close_socket(BIO *data);
-BIO_CONNECT *BIO_CONNECT_new(void);
-void BIO_CONNECT_free(BIO_CONNECT *a);
+BIO_CONNECT *VR_BIO_CONNECT_new(void);
+void VR_BIO_CONNECT_free(BIO_CONNECT *a);
 
 #define BIO_CONN_S_BEFORE                1
 #define BIO_CONN_S_GET_ADDR              2
@@ -59,10 +59,10 @@ static const BIO_METHOD methods_connectp = {
     BIO_TYPE_CONNECT,
     "socket connect",
     /* TODO: Convert to new style write function */
-    bwrite_conv,
+    VR_bwrite_conv,
     conn_write,
     /* TODO: Convert to new style read function */
-    bread_conv,
+    VR_bread_conv,
     conn_read,
     conn_puts,
     NULL,                       /* conn_gets, */
@@ -85,7 +85,7 @@ static int conn_state(BIO *b, BIO_CONNECT *c)
         case BIO_CONN_S_BEFORE:
             if (c->param_hostname == NULL && c->param_service == NULL) {
                 BIOerr(BIO_F_CONN_STATE, BIO_R_NO_HOSTNAME_OR_SERVICE_SPECIFIED);
-                ERR_add_error_data(4,
+                VR_ERR_add_error_data(4,
                                    "hostname=", c->param_hostname,
                                    " service=", c->param_service);
                 goto exit_loop;
@@ -120,7 +120,7 @@ static int conn_state(BIO *b, BIO_CONNECT *c)
                     BIOerr(BIO_F_CONN_STATE, BIO_R_UNSUPPORTED_IP_FAMILY);
                     goto exit_loop;
                 }
-                if (BIO_lookup(c->param_hostname, c->param_service,
+                if (VR_BIO_lookup(c->param_hostname, c->param_service,
                                BIO_LOOKUP_CLIENT,
                                family, SOCK_STREAM, &c->addr_first) == 0)
                     goto exit_loop;
@@ -134,12 +134,12 @@ static int conn_state(BIO *b, BIO_CONNECT *c)
             break;
 
         case BIO_CONN_S_CREATE_SOCKET:
-            ret = BIO_socket(BIO_ADDRINFO_family(c->addr_iter),
-                             BIO_ADDRINFO_socktype(c->addr_iter),
-                             BIO_ADDRINFO_protocol(c->addr_iter), 0);
+            ret = VR_BIO_socket(VR_BIO_ADDRINFO_family(c->addr_iter),
+                             VR_BIO_ADDRINFO_socktype(c->addr_iter),
+                             VR_BIO_ADDRINFO_protocol(c->addr_iter), 0);
             if (ret == (int)INVALID_SOCKET) {
                 SYSerr(SYS_F_SOCKET, get_last_socket_error());
-                ERR_add_error_data(4,
+                VR_ERR_add_error_data(4,
                                    "hostname=", c->param_hostname,
                                    " service=", c->param_service);
                 BIOerr(BIO_F_CONN_STATE, BIO_R_UNABLE_TO_CREATE_SOCKET);
@@ -151,27 +151,27 @@ static int conn_state(BIO *b, BIO_CONNECT *c)
 
         case BIO_CONN_S_CONNECT:
             BIO_clear_retry_flags(b);
-            ret = BIO_connect(b->num, BIO_ADDRINFO_address(c->addr_iter),
+            ret = VR_BIO_connect(b->num, VR_BIO_ADDRINFO_address(c->addr_iter),
                               BIO_SOCK_KEEPALIVE | c->connect_mode);
             b->retry_reason = 0;
             if (ret == 0) {
-                if (BIO_sock_should_retry(ret)) {
+                if (VR_BIO_sock_should_retry(ret)) {
                     BIO_set_retry_special(b);
                     c->state = BIO_CONN_S_BLOCKED_CONNECT;
                     b->retry_reason = BIO_RR_CONNECT;
-                    ERR_clear_error();
-                } else if ((c->addr_iter = BIO_ADDRINFO_next(c->addr_iter))
+                    VR_ERR_clear_error();
+                } else if ((c->addr_iter = VR_BIO_ADDRINFO_next(c->addr_iter))
                            != NULL) {
                     /*
                      * if there are more addresses to try, do that first
                      */
-                    BIO_closesocket(b->num);
+                    VR_BIO_closesocket(b->num);
                     c->state = BIO_CONN_S_CREATE_SOCKET;
-                    ERR_clear_error();
+                    VR_ERR_clear_error();
                     break;
                 } else {
                     SYSerr(SYS_F_CONNECT, get_last_socket_error());
-                    ERR_add_error_data(4,
+                    VR_ERR_add_error_data(4,
                                        "hostname=", c->param_hostname,
                                        " service=", c->param_service);
                     BIOerr(BIO_F_CONN_STATE, BIO_R_CONNECT_ERROR);
@@ -183,11 +183,11 @@ static int conn_state(BIO *b, BIO_CONNECT *c)
             break;
 
         case BIO_CONN_S_BLOCKED_CONNECT:
-            i = BIO_sock_error(b->num);
+            i = VR_BIO_sock_error(b->num);
             if (i) {
                 BIO_clear_retry_flags(b);
                 SYSerr(SYS_F_CONNECT, i);
-                ERR_add_error_data(4,
+                VR_ERR_add_error_data(4,
                                    "hostname=", c->param_hostname,
                                    " service=", c->param_service);
                 BIOerr(BIO_F_CONN_STATE, BIO_R_NBIO_CONNECT_ERROR);
@@ -219,7 +219,7 @@ static int conn_state(BIO *b, BIO_CONNECT *c)
     return ret;
 }
 
-BIO_CONNECT *BIO_CONNECT_new(void)
+BIO_CONNECT *VR_BIO_CONNECT_new(void)
 {
     BIO_CONNECT *ret;
 
@@ -232,17 +232,17 @@ BIO_CONNECT *BIO_CONNECT_new(void)
     return ret;
 }
 
-void BIO_CONNECT_free(BIO_CONNECT *a)
+void VR_BIO_CONNECT_free(BIO_CONNECT *a)
 {
     if (a == NULL)
         return;
-    OPENSSL_free(a->param_hostname);
-    OPENSSL_free(a->param_service);
-    BIO_ADDRINFO_free(a->addr_first);
-    OPENSSL_free(a);
+    OPENVR_SSL_free(a->param_hostname);
+    OPENVR_SSL_free(a->param_service);
+    VR_BIO_ADDRINFO_free(a->addr_first);
+    OPENVR_SSL_free(a);
 }
 
-const BIO_METHOD *BIO_s_connect(void)
+const BIO_METHOD *VR_BIO_s_connect(void)
 {
     return &methods_connectp;
 }
@@ -252,7 +252,7 @@ static int conn_new(BIO *bi)
     bi->init = 0;
     bi->num = (int)INVALID_SOCKET;
     bi->flags = 0;
-    if ((bi->ptr = (char *)BIO_CONNECT_new()) == NULL)
+    if ((bi->ptr = (char *)VR_BIO_CONNECT_new()) == NULL)
         return 0;
     else
         return 1;
@@ -267,7 +267,7 @@ static void conn_close_socket(BIO *bio)
         /* Only do a shutdown if things were established */
         if (c->state == BIO_CONN_S_OK)
             shutdown(bio->num, 2);
-        BIO_closesocket(bio->num);
+        VR_BIO_closesocket(bio->num);
         bio->num = (int)INVALID_SOCKET;
     }
 }
@@ -282,7 +282,7 @@ static int conn_free(BIO *a)
 
     if (a->shutdown) {
         conn_close_socket(a);
-        BIO_CONNECT_free(data);
+        VR_BIO_CONNECT_free(data);
         a->ptr = NULL;
         a->flags = 0;
         a->init = 0;
@@ -307,7 +307,7 @@ static int conn_read(BIO *b, char *out, int outl)
         ret = readsocket(b->num, out, outl);
         BIO_clear_retry_flags(b);
         if (ret <= 0) {
-            if (BIO_sock_should_retry(ret))
+            if (VR_BIO_sock_should_retry(ret))
                 BIO_set_retry_read(b);
         }
     }
@@ -330,7 +330,7 @@ static int conn_write(BIO *b, const char *in, int inl)
     ret = writesocket(b->num, in, inl);
     BIO_clear_retry_flags(b);
     if (ret <= 0) {
-        if (BIO_sock_should_retry(ret))
+        if (VR_BIO_sock_should_retry(ret))
             BIO_set_retry_write(b);
     }
     return ret;
@@ -351,7 +351,7 @@ static long conn_ctrl(BIO *b, int cmd, long num, void *ptr)
         ret = 0;
         data->state = BIO_CONN_S_BEFORE;
         conn_close_socket(b);
-        BIO_ADDRINFO_free(data->addr_first);
+        VR_BIO_ADDRINFO_free(data->addr_first);
         data->addr_first = NULL;
         b->flags = 0;
         break;
@@ -370,9 +370,9 @@ static long conn_ctrl(BIO *b, int cmd, long num, void *ptr)
             } else if (num == 1) {
                 *pptr = data->param_service;
             } else if (num == 2) {
-                *pptr = (const char *)BIO_ADDRINFO_address(data->addr_iter);
+                *pptr = (const char *)VR_BIO_ADDRINFO_address(data->addr_iter);
             } else if (num == 3) {
-                switch (BIO_ADDRINFO_family(data->addr_iter)) {
+                switch (VR_BIO_ADDRINFO_family(data->addr_iter)) {
 # ifdef AF_INET6
                 case AF_INET6:
                     ret = BIO_FAMILY_IPV6;
@@ -404,23 +404,23 @@ static long conn_ctrl(BIO *b, int cmd, long num, void *ptr)
                  * string might contain a host:service spec, so we must
                  * parse it, which might or might not affect the service
                  */
-                OPENSSL_free(data->param_hostname);
+                OPENVR_SSL_free(data->param_hostname);
                 data->param_hostname = NULL;
-                ret = BIO_parse_hostserv(ptr,
+                ret = VR_BIO_parse_hostserv(ptr,
                                          &data->param_hostname,
                                          &data->param_service,
                                          BIO_PARSE_PRIO_HOST);
                 if (hold_service != data->param_service)
-                    OPENSSL_free(hold_service);
+                    OPENVR_SSL_free(hold_service);
             } else if (num == 1) {
-                OPENSSL_free(data->param_service);
+                OPENVR_SSL_free(data->param_service);
                 data->param_service = BUF_strdup(ptr);
             } else if (num == 2) {
                 const BIO_ADDR *addr = (const BIO_ADDR *)ptr;
                 if (ret) {
-                    data->param_hostname = BIO_ADDR_hostname_string(addr, 1);
-                    data->param_service = BIO_ADDR_service_string(addr, 1);
-                    BIO_ADDRINFO_free(data->addr_first);
+                    data->param_hostname = VR_BIO_ADDR_hostname_string(addr, 1);
+                    data->param_service = VR_BIO_ADDR_service_string(addr, 1);
+                    VR_BIO_ADDRINFO_free(data->addr_first);
                     data->addr_first = NULL;
                     data->addr_iter = NULL;
                 }
@@ -524,16 +524,16 @@ static int conn_puts(BIO *bp, const char *str)
     return ret;
 }
 
-BIO *BIO_new_connect(const char *str)
+BIO *VR_BIO_new_connect(const char *str)
 {
     BIO *ret;
 
-    ret = BIO_new(BIO_s_connect());
+    ret = VR_BIO_new(VR_BIO_s_connect());
     if (ret == NULL)
         return NULL;
     if (BIO_set_conn_hostname(ret, str))
         return ret;
-    BIO_free(ret);
+    VR_BIO_free(ret);
     return NULL;
 }
 

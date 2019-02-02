@@ -61,7 +61,7 @@ struct ocsp_req_ctx_st {
 
 static int parse_http_line1(char *line);
 
-OCSP_REQ_CTX *OCSP_REQ_CTX_new(BIO *io, int maxline)
+OCSP_REQ_CTX *VR_OCSP_REQ_CTX_new(BIO *io, int maxline)
 {
     OCSP_REQ_CTX *rctx = OPENSSL_zalloc(sizeof(*rctx));
 
@@ -69,7 +69,7 @@ OCSP_REQ_CTX *OCSP_REQ_CTX_new(BIO *io, int maxline)
         return NULL;
     rctx->state = OHS_ERROR;
     rctx->max_resp_len = OCSP_MAX_RESP_LENGTH;
-    rctx->mem = BIO_new(BIO_s_mem());
+    rctx->mem = VR_BIO_new(VR_BIO_s_mem());
     rctx->io = io;
     if (maxline > 0)
         rctx->iobuflen = maxline;
@@ -77,27 +77,27 @@ OCSP_REQ_CTX *OCSP_REQ_CTX_new(BIO *io, int maxline)
         rctx->iobuflen = OCSP_MAX_LINE_LEN;
     rctx->iobuf = OPENSSL_malloc(rctx->iobuflen);
     if (rctx->iobuf == NULL || rctx->mem == NULL) {
-        OCSP_REQ_CTX_free(rctx);
+        VR_OCSP_REQ_CTX_free(rctx);
         return NULL;
     }
     return rctx;
 }
 
-void OCSP_REQ_CTX_free(OCSP_REQ_CTX *rctx)
+void VR_OCSP_REQ_CTX_free(OCSP_REQ_CTX *rctx)
 {
     if (!rctx)
         return;
-    BIO_free(rctx->mem);
-    OPENSSL_free(rctx->iobuf);
-    OPENSSL_free(rctx);
+    VR_BIO_free(rctx->mem);
+    OPENVR_SSL_free(rctx->iobuf);
+    OPENVR_SSL_free(rctx);
 }
 
-BIO *OCSP_REQ_CTX_get0_mem_bio(OCSP_REQ_CTX *rctx)
+BIO *VR_OCSP_REQ_CTX_get0_mem_bio(OCSP_REQ_CTX *rctx)
 {
     return rctx->mem;
 }
 
-void OCSP_set_max_response_length(OCSP_REQ_CTX *rctx, unsigned long len)
+void VR_OCSP_set_max_response_length(OCSP_REQ_CTX *rctx, unsigned long len)
 {
     if (len == 0)
         rctx->max_resp_len = OCSP_MAX_RESP_LENGTH;
@@ -105,32 +105,32 @@ void OCSP_set_max_response_length(OCSP_REQ_CTX *rctx, unsigned long len)
         rctx->max_resp_len = len;
 }
 
-int OCSP_REQ_CTX_i2d(OCSP_REQ_CTX *rctx, const ASN1_ITEM *it, ASN1_VALUE *val)
+int VR_OCSP_REQ_CTX_i2d(OCSP_REQ_CTX *rctx, const ASN1_ITEM *it, ASN1_VALUE *val)
 {
     static const char req_hdr[] =
         "Content-Type: application/ocsp-request\r\n"
         "Content-Length: %d\r\n\r\n";
-    int reqlen = ASN1_item_i2d(val, NULL, it);
-    if (BIO_printf(rctx->mem, req_hdr, reqlen) <= 0)
+    int reqlen = VR_ASN1_item_i2d(val, NULL, it);
+    if (VR_BIO_printf(rctx->mem, req_hdr, reqlen) <= 0)
         return 0;
-    if (ASN1_item_i2d_bio(it, rctx->mem, val) <= 0)
+    if (VR_ASN1_item_i2d_bio(it, rctx->mem, val) <= 0)
         return 0;
     rctx->state = OHS_ASN1_WRITE_INIT;
     return 1;
 }
 
-int OCSP_REQ_CTX_nbio_d2i(OCSP_REQ_CTX *rctx,
+int VR_OCSP_REQ_CTX_nbio_d2i(OCSP_REQ_CTX *rctx,
                           ASN1_VALUE **pval, const ASN1_ITEM *it)
 {
     int rv, len;
     const unsigned char *p;
 
-    rv = OCSP_REQ_CTX_nbio(rctx);
+    rv = VR_OCSP_REQ_CTX_nbio(rctx);
     if (rv != 1)
         return rv;
 
     len = BIO_get_mem_data(rctx->mem, &p);
-    *pval = ASN1_item_d2i(NULL, &p, len, it);
+    *pval = VR_ASN1_item_d2i(NULL, &p, len, it);
     if (*pval == NULL) {
         rctx->state = OHS_ERROR;
         return 0;
@@ -138,63 +138,63 @@ int OCSP_REQ_CTX_nbio_d2i(OCSP_REQ_CTX *rctx,
     return 1;
 }
 
-int OCSP_REQ_CTX_http(OCSP_REQ_CTX *rctx, const char *op, const char *path)
+int VR_OCSP_REQ_CTX_http(OCSP_REQ_CTX *rctx, const char *op, const char *path)
 {
     static const char http_hdr[] = "%s %s HTTP/1.0\r\n";
 
     if (!path)
         path = "/";
 
-    if (BIO_printf(rctx->mem, http_hdr, op, path) <= 0)
+    if (VR_BIO_printf(rctx->mem, http_hdr, op, path) <= 0)
         return 0;
     rctx->state = OHS_HTTP_HEADER;
     return 1;
 }
 
-int OCSP_REQ_CTX_set1_req(OCSP_REQ_CTX *rctx, OCSP_REQUEST *req)
+int VR_OCSP_REQ_CTX_set1_req(OCSP_REQ_CTX *rctx, OCSP_REQUEST *req)
 {
-    return OCSP_REQ_CTX_i2d(rctx, ASN1_ITEM_rptr(OCSP_REQUEST),
+    return VR_OCSP_REQ_CTX_i2d(rctx, ASN1_ITEM_rptr(OCSP_REQUEST),
                             (ASN1_VALUE *)req);
 }
 
-int OCSP_REQ_CTX_add1_header(OCSP_REQ_CTX *rctx,
+int VR_OCSP_REQ_CTX_add1_header(OCSP_REQ_CTX *rctx,
                              const char *name, const char *value)
 {
     if (!name)
         return 0;
-    if (BIO_puts(rctx->mem, name) <= 0)
+    if (VR_BIO_puts(rctx->mem, name) <= 0)
         return 0;
     if (value) {
-        if (BIO_write(rctx->mem, ": ", 2) != 2)
+        if (VR_BIO_write(rctx->mem, ": ", 2) != 2)
             return 0;
-        if (BIO_puts(rctx->mem, value) <= 0)
+        if (VR_BIO_puts(rctx->mem, value) <= 0)
             return 0;
     }
-    if (BIO_write(rctx->mem, "\r\n", 2) != 2)
+    if (VR_BIO_write(rctx->mem, "\r\n", 2) != 2)
         return 0;
     rctx->state = OHS_HTTP_HEADER;
     return 1;
 }
 
-OCSP_REQ_CTX *OCSP_sendreq_new(BIO *io, const char *path, OCSP_REQUEST *req,
+OCSP_REQ_CTX *VR_OCSP_sendreq_new(BIO *io, const char *path, OCSP_REQUEST *req,
                                int maxline)
 {
 
     OCSP_REQ_CTX *rctx = NULL;
-    rctx = OCSP_REQ_CTX_new(io, maxline);
+    rctx = VR_OCSP_REQ_CTX_new(io, maxline);
     if (rctx == NULL)
         return NULL;
 
-    if (!OCSP_REQ_CTX_http(rctx, "POST", path))
+    if (!VR_OCSP_REQ_CTX_http(rctx, "POST", path))
         goto err;
 
-    if (req && !OCSP_REQ_CTX_set1_req(rctx, req))
+    if (req && !VR_OCSP_REQ_CTX_set1_req(rctx, req))
         goto err;
 
     return rctx;
 
  err:
-    OCSP_REQ_CTX_free(rctx);
+    VR_OCSP_REQ_CTX_free(rctx);
     return NULL;
 }
 
@@ -259,9 +259,9 @@ static int parse_http_line1(char *line)
     if (retcode != 200) {
         OCSPerr(OCSP_F_PARSE_HTTP_LINE1, OCSP_R_SERVER_RESPONSE_ERROR);
         if (!*q)
-            ERR_add_error_data(2, "Code=", p);
+            VR_ERR_add_error_data(2, "Code=", p);
         else
-            ERR_add_error_data(4, "Code=", p, ",Reason=", q);
+            VR_ERR_add_error_data(4, "Code=", p, ",Reason=", q);
         return 0;
     }
 
@@ -269,13 +269,13 @@ static int parse_http_line1(char *line)
 
 }
 
-int OCSP_REQ_CTX_nbio(OCSP_REQ_CTX *rctx)
+int VR_OCSP_REQ_CTX_nbio(OCSP_REQ_CTX *rctx)
 {
     int i, n;
     const unsigned char *p;
  next_io:
     if (!(rctx->state & OHS_NOREAD)) {
-        n = BIO_read(rctx->io, rctx->iobuf, rctx->iobuflen);
+        n = VR_BIO_read(rctx->io, rctx->iobuf, rctx->iobuflen);
 
         if (n <= 0) {
             if (BIO_should_retry(rctx->io))
@@ -285,14 +285,14 @@ int OCSP_REQ_CTX_nbio(OCSP_REQ_CTX *rctx)
 
         /* Write data to memory BIO */
 
-        if (BIO_write(rctx->mem, rctx->iobuf, n) != n)
+        if (VR_BIO_write(rctx->mem, rctx->iobuf, n) != n)
             return 0;
     }
 
     switch (rctx->state) {
     case OHS_HTTP_HEADER:
         /* Last operation was adding headers: need a final \r\n */
-        if (BIO_write(rctx->mem, "\r\n", 2) != 2) {
+        if (VR_BIO_write(rctx->mem, "\r\n", 2) != 2) {
             rctx->state = OHS_ERROR;
             return 0;
         }
@@ -307,7 +307,7 @@ int OCSP_REQ_CTX_nbio(OCSP_REQ_CTX *rctx)
     case OHS_ASN1_WRITE:
         n = BIO_get_mem_data(rctx->mem, &p);
 
-        i = BIO_write(rctx->io, p + (n - rctx->asn1_len), rctx->asn1_len);
+        i = VR_BIO_write(rctx->io, p + (n - rctx->asn1_len), rctx->asn1_len);
 
         if (i <= 0) {
             if (BIO_should_retry(rctx->io))
@@ -351,8 +351,8 @@ int OCSP_REQ_CTX_nbio(OCSP_REQ_CTX *rctx)
 
  next_line:
         /*
-         * Due to &%^*$" memory BIO behaviour with BIO_gets we have to check
-         * there's a complete line in there before calling BIO_gets or we'll
+         * Due to &%^*$" memory BIO behaviour with VR_BIO_gets we have to check
+         * there's a complete line in there before calling VR_BIO_gets or we'll
          * just get a partial read.
          */
         n = BIO_get_mem_data(rctx->mem, &p);
@@ -363,7 +363,7 @@ int OCSP_REQ_CTX_nbio(OCSP_REQ_CTX *rctx)
             }
             goto next_io;
         }
-        n = BIO_gets(rctx->mem, (char *)rctx->iobuf, rctx->iobuflen);
+        n = VR_BIO_gets(rctx->mem, (char *)rctx->iobuf, rctx->iobuflen);
 
         if (n <= 0) {
             if (BIO_should_retry(rctx->mem))
@@ -469,31 +469,31 @@ int OCSP_REQ_CTX_nbio(OCSP_REQ_CTX *rctx)
 
 }
 
-int OCSP_sendreq_nbio(OCSP_RESPONSE **presp, OCSP_REQ_CTX *rctx)
+int VR_OCSP_sendreq_nbio(OCSP_RESPONSE **presp, OCSP_REQ_CTX *rctx)
 {
-    return OCSP_REQ_CTX_nbio_d2i(rctx,
+    return VR_OCSP_REQ_CTX_nbio_d2i(rctx,
                                  (ASN1_VALUE **)presp,
                                  ASN1_ITEM_rptr(OCSP_RESPONSE));
 }
 
 /* Blocking OCSP request handler: now a special case of non-blocking I/O */
 
-OCSP_RESPONSE *OCSP_sendreq_bio(BIO *b, const char *path, OCSP_REQUEST *req)
+OCSP_RESPONSE *VR_OCSP_sendreq_bio(BIO *b, const char *path, OCSP_REQUEST *req)
 {
     OCSP_RESPONSE *resp = NULL;
     OCSP_REQ_CTX *ctx;
     int rv;
 
-    ctx = OCSP_sendreq_new(b, path, req, -1);
+    ctx = VR_OCSP_sendreq_new(b, path, req, -1);
 
     if (ctx == NULL)
         return NULL;
 
     do {
-        rv = OCSP_sendreq_nbio(&resp, ctx);
+        rv = VR_OCSP_sendreq_nbio(&resp, ctx);
     } while ((rv == -1) && BIO_should_retry(b));
 
-    OCSP_REQ_CTX_free(ctx);
+    VR_OCSP_REQ_CTX_free(ctx);
 
     if (rv)
         return resp;

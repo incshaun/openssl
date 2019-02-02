@@ -55,14 +55,14 @@ static int sct_ctx_update(EVP_MD_CTX *ctx, const SCT_CTX *sctx, const SCT *sct)
     l2n8(sct->timestamp, p);
     s2n(sct->entry_type, p);
 
-    if (!EVP_DigestUpdate(ctx, tmpbuf, p - tmpbuf))
+    if (!VR_EVP_DigestUpdate(ctx, tmpbuf, p - tmpbuf))
         return 0;
 
     if (sct->entry_type == CT_LOG_ENTRY_TYPE_X509) {
         der = sctx->certder;
         derlen = sctx->certderlen;
     } else {
-        if (!EVP_DigestUpdate(ctx, sctx->ihash, sctx->ihashlen))
+        if (!VR_EVP_DigestUpdate(ctx, sctx->ihash, sctx->ihashlen))
             return 0;
         der = sctx->preder;
         derlen = sctx->prederlen;
@@ -76,29 +76,29 @@ static int sct_ctx_update(EVP_MD_CTX *ctx, const SCT_CTX *sctx, const SCT *sct)
     p = tmpbuf;
     l2n3(derlen, p);
 
-    if (!EVP_DigestUpdate(ctx, tmpbuf, 3))
+    if (!VR_EVP_DigestUpdate(ctx, tmpbuf, 3))
         return 0;
-    if (!EVP_DigestUpdate(ctx, der, derlen))
+    if (!VR_EVP_DigestUpdate(ctx, der, derlen))
         return 0;
 
     /* Add any extensions */
     p = tmpbuf;
     s2n(sct->ext_len, p);
-    if (!EVP_DigestUpdate(ctx, tmpbuf, 2))
+    if (!VR_EVP_DigestUpdate(ctx, tmpbuf, 2))
         return 0;
 
-    if (sct->ext_len && !EVP_DigestUpdate(ctx, sct->ext, sct->ext_len))
+    if (sct->ext_len && !VR_EVP_DigestUpdate(ctx, sct->ext, sct->ext_len))
         return 0;
 
     return 1;
 }
 
-int SCT_CTX_verify(const SCT_CTX *sctx, const SCT *sct)
+int VR_SCT_CTX_verify(const SCT_CTX *sctx, const SCT *sct)
 {
     EVP_MD_CTX *ctx = NULL;
     int ret = 0;
 
-    if (!SCT_is_complete(sct) || sctx->pkey == NULL ||
+    if (!VR_SCT_is_complete(sct) || sctx->pkey == NULL ||
         sct->entry_type == CT_LOG_ENTRY_TYPE_NOT_SET ||
         (sct->entry_type == CT_LOG_ENTRY_TYPE_PRECERT && sctx->ihash == NULL)) {
         CTerr(CT_F_SCT_CTX_VERIFY, CT_R_SCT_NOT_SET);
@@ -118,23 +118,23 @@ int SCT_CTX_verify(const SCT_CTX *sctx, const SCT *sct)
         return 0;
     }
 
-    ctx = EVP_MD_CTX_new();
+    ctx = VR_EVP_MD_CTX_new();
     if (ctx == NULL)
         goto end;
 
-    if (!EVP_DigestVerifyInit(ctx, NULL, EVP_sha256(), NULL, sctx->pkey))
+    if (!VR_EVP_DigestVerifyInit(ctx, NULL, VR_EVP_sha256(), NULL, sctx->pkey))
         goto end;
 
     if (!sct_ctx_update(ctx, sctx, sct))
         goto end;
 
     /* Verify signature */
-    ret = EVP_DigestVerifyFinal(ctx, sct->sig, sct->sig_len);
+    ret = VR_EVP_DigestVerifyFinal(ctx, sct->sig, sct->sig_len);
     /* If ret < 0 some other error: fall through without setting error */
     if (ret == 0)
         CTerr(CT_F_SCT_CTX_VERIFY, CT_R_SCT_INVALID_SIGNATURE);
 
 end:
-    EVP_MD_CTX_free(ctx);
+    VR_EVP_MD_CTX_free(ctx);
     return ret;
 }

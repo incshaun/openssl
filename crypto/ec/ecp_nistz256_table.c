@@ -26,9 +26,9 @@ __attribute((aligned(4096)))
 #elif defined(_MSC_VER)
 __declspec(align(4096))
 #elif defined(__SUNPRO_C)
-# pragma align 4096(ecp_nistz256_precomputed)
+# pragma align 4096(VR_ecp_nistz256_precomputed)
 #endif
-static const BN_ULONG ecp_nistz256_precomputed[37][64 *
+static const BN_ULONG VR_ecp_nistz256_precomputed[37][64 *
                                                    sizeof(P256_POINT_AFFINE) /
                                                    sizeof(BN_ULONG)] = {
     {TOBN(0x79e730d4, 0x18a9143c), TOBN(0x75ba95fc, 0x5fedb601),

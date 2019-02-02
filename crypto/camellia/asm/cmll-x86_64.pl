@@ -112,7 +112,7 @@ $code.=<<___;
 ___
 }
 
-# void Camellia_EncryptBlock_Rounds(
+# void VR_Camellia_EncryptBlock_Rounds(
 #		int grandRounds,
 #		const Byte plaintext[],
 #		const KEY_TABLE_TYPE keyTable,
@@ -121,22 +121,22 @@ $code=<<___;
 .text
 
 # V1.x API
-.globl	Camellia_EncryptBlock
-.type	Camellia_EncryptBlock,\@abi-omnipotent
+.globl	VR_Camellia_EncryptBlock
+.type	VR_Camellia_EncryptBlock,\@abi-omnipotent
 .align	16
-Camellia_EncryptBlock:
+VR_Camellia_EncryptBlock:
 	movl	\$128,%eax
 	subl	$arg0d,%eax
 	movl	\$3,$arg0d
 	adcl	\$0,$arg0d	# keyBitLength==128?3:4
 	jmp	.Lenc_rounds
-.size	Camellia_EncryptBlock,.-Camellia_EncryptBlock
+.size	VR_Camellia_EncryptBlock,.-VR_Camellia_EncryptBlock
 # V2
-.globl	Camellia_EncryptBlock_Rounds
-.type	Camellia_EncryptBlock_Rounds,\@function,4
+.globl	VR_Camellia_EncryptBlock_Rounds
+.type	VR_Camellia_EncryptBlock_Rounds,\@function,4
 .align	16
 .Lenc_rounds:
-Camellia_EncryptBlock_Rounds:
+VR_Camellia_EncryptBlock_Rounds:
 .cfi_startproc
 	push	%rbx
 .cfi_push	%rbx
@@ -193,7 +193,7 @@ Camellia_EncryptBlock_Rounds:
 .Lenc_epilogue:
 	ret
 .cfi_endproc
-.size	Camellia_EncryptBlock_Rounds,.-Camellia_EncryptBlock_Rounds
+.size	VR_Camellia_EncryptBlock_Rounds,.-VR_Camellia_EncryptBlock_Rounds
 
 .type	_x86_64_Camellia_encrypt,\@abi-omnipotent
 .align	16
@@ -244,22 +244,22 @@ $code.=<<___;
 .size	_x86_64_Camellia_encrypt,.-_x86_64_Camellia_encrypt
 
 # V1.x API
-.globl	Camellia_DecryptBlock
-.type	Camellia_DecryptBlock,\@abi-omnipotent
+.globl	VR_Camellia_DecryptBlock
+.type	VR_Camellia_DecryptBlock,\@abi-omnipotent
 .align	16
-Camellia_DecryptBlock:
+VR_Camellia_DecryptBlock:
 	movl	\$128,%eax
 	subl	$arg0d,%eax
 	movl	\$3,$arg0d
 	adcl	\$0,$arg0d	# keyBitLength==128?3:4
 	jmp	.Ldec_rounds
-.size	Camellia_DecryptBlock,.-Camellia_DecryptBlock
+.size	VR_Camellia_DecryptBlock,.-VR_Camellia_DecryptBlock
 # V2
-.globl	Camellia_DecryptBlock_Rounds
-.type	Camellia_DecryptBlock_Rounds,\@function,4
+.globl	VR_Camellia_DecryptBlock_Rounds
+.type	VR_Camellia_DecryptBlock_Rounds,\@function,4
 .align	16
 .Ldec_rounds:
-Camellia_DecryptBlock_Rounds:
+VR_Camellia_DecryptBlock_Rounds:
 .cfi_startproc
 	push	%rbx
 .cfi_push	%rbx
@@ -316,7 +316,7 @@ Camellia_DecryptBlock_Rounds:
 .Ldec_epilogue:
 	ret
 .cfi_endproc
-.size	Camellia_DecryptBlock_Rounds,.-Camellia_DecryptBlock_Rounds
+.size	VR_Camellia_DecryptBlock_Rounds,.-VR_Camellia_DecryptBlock_Rounds
 
 .type	_x86_64_Camellia_decrypt,\@abi-omnipotent
 .align	16
@@ -431,10 +431,10 @@ ___
 { my $step=0;
 
 $code.=<<___;
-.globl	Camellia_Ekeygen
-.type	Camellia_Ekeygen,\@function,3
+.globl	VR_Camellia_Ekeygen
+.type	VR_Camellia_Ekeygen,\@function,3
 .align	16
-Camellia_Ekeygen:
+VR_Camellia_Ekeygen:
 .cfi_startproc
 	push	%rbx
 .cfi_push	%rbx
@@ -619,7 +619,7 @@ $code.=<<___;
 .Lkey_epilogue:
 	ret
 .cfi_endproc
-.size	Camellia_Ekeygen,.-Camellia_Ekeygen
+.size	VR_Camellia_Ekeygen,.-VR_Camellia_Ekeygen
 ___
 }
 
@@ -660,7 +660,7 @@ sub data_word { $code.=".long\t".join(',',@_)."\n"; }
 for ($i=0;$i<256;$i++) { &data_word(&S1110($i),&S4404($i)); }
 for ($i=0;$i<256;$i++) { &data_word(&S0222($i),&S3033($i)); }
 
-# void Camellia_cbc_encrypt (const void char *inp, unsigned char *out,
+# void VR_Camellia_cbc_encrypt (const void char *inp, unsigned char *out,
 #			size_t length, const CAMELLIA_KEY *key,
 #			unsigned char *ivp,const int enc);
 {
@@ -672,10 +672,10 @@ $_ivp="40(%rsp)";
 $_rsp="48(%rsp)";
 
 $code.=<<___;
-.globl	Camellia_cbc_encrypt
-.type	Camellia_cbc_encrypt,\@function,6
+.globl	VR_Camellia_cbc_encrypt
+.type	VR_Camellia_cbc_encrypt,\@function,6
 .align	16
-Camellia_cbc_encrypt:
+VR_Camellia_cbc_encrypt:
 .cfi_startproc
 	cmp	\$0,%rdx
 	je	.Lcbc_abort
@@ -922,7 +922,7 @@ Camellia_cbc_encrypt:
 .Lcbc_abort:
 	ret
 .cfi_endproc
-.size	Camellia_cbc_encrypt,.-Camellia_cbc_encrypt
+.size	VR_Camellia_cbc_encrypt,.-VR_Camellia_cbc_encrypt
 
 .asciz	"Camellia for x86_64 by <appro\@openssl.org>"
 ___
@@ -1023,7 +1023,7 @@ cbc_se_handler:
 	cmp	%r10,%rbx		# context->Rip>=.Lcbc_abort
 	jae	.Lin_cbc_prologue
 
-	# handle pushf/popf in Camellia_cbc_encrypt
+	# handle pushf/popf in VR_Camellia_cbc_encrypt
 	lea	.Lcbc_enc_pushf(%rip),%r10
 	cmp	%r10,%rbx		# context->Rip<=.Lcbc_enc_pushf
 	jbe	.Lin_cbc_no_flag
@@ -1104,37 +1104,37 @@ cbc_se_handler:
 
 .section	.pdata
 .align	4
-	.rva	.LSEH_begin_Camellia_EncryptBlock_Rounds
-	.rva	.LSEH_end_Camellia_EncryptBlock_Rounds
-	.rva	.LSEH_info_Camellia_EncryptBlock_Rounds
+	.rva	.LSEH_begin_VR_Camellia_EncryptBlock_Rounds
+	.rva	.LSEH_end_VR_Camellia_EncryptBlock_Rounds
+	.rva	.LSEH_info_VR_Camellia_EncryptBlock_Rounds
 
-	.rva	.LSEH_begin_Camellia_DecryptBlock_Rounds
-	.rva	.LSEH_end_Camellia_DecryptBlock_Rounds
-	.rva	.LSEH_info_Camellia_DecryptBlock_Rounds
+	.rva	.LSEH_begin_VR_Camellia_DecryptBlock_Rounds
+	.rva	.LSEH_end_VR_Camellia_DecryptBlock_Rounds
+	.rva	.LSEH_info_VR_Camellia_DecryptBlock_Rounds
 
-	.rva	.LSEH_begin_Camellia_Ekeygen
-	.rva	.LSEH_end_Camellia_Ekeygen
-	.rva	.LSEH_info_Camellia_Ekeygen
+	.rva	.LSEH_begin_VR_Camellia_Ekeygen
+	.rva	.LSEH_end_VR_Camellia_Ekeygen
+	.rva	.LSEH_info_VR_Camellia_Ekeygen
 
-	.rva	.LSEH_begin_Camellia_cbc_encrypt
-	.rva	.LSEH_end_Camellia_cbc_encrypt
-	.rva	.LSEH_info_Camellia_cbc_encrypt
+	.rva	.LSEH_begin_VR_Camellia_cbc_encrypt
+	.rva	.LSEH_end_VR_Camellia_cbc_encrypt
+	.rva	.LSEH_info_VR_Camellia_cbc_encrypt
 
 .section	.xdata
 .align	8
-.LSEH_info_Camellia_EncryptBlock_Rounds:
+.LSEH_info_VR_Camellia_EncryptBlock_Rounds:
 	.byte	9,0,0,0
 	.rva	common_se_handler
 	.rva	.Lenc_prologue,.Lenc_epilogue	# HandlerData[]
-.LSEH_info_Camellia_DecryptBlock_Rounds:
+.LSEH_info_VR_Camellia_DecryptBlock_Rounds:
 	.byte	9,0,0,0
 	.rva	common_se_handler
 	.rva	.Ldec_prologue,.Ldec_epilogue	# HandlerData[]
-.LSEH_info_Camellia_Ekeygen:
+.LSEH_info_VR_Camellia_Ekeygen:
 	.byte	9,0,0,0
 	.rva	common_se_handler
 	.rva	.Lkey_prologue,.Lkey_epilogue	# HandlerData[]
-.LSEH_info_Camellia_cbc_encrypt:
+.LSEH_info_VR_Camellia_cbc_encrypt:
 	.byte	9,0,0,0
 	.rva	cbc_se_handler
 ___

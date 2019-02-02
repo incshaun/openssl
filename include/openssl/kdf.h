@@ -35,59 +35,59 @@ extern "C" {
 # define EVP_PKEY_HKDEF_MODE_EXPAND_ONLY        2
 
 # define EVP_PKEY_CTX_set_tls1_prf_md(pctx, md) \
-            EVP_PKEY_CTX_ctrl(pctx, -1, EVP_PKEY_OP_DERIVE, \
+            VR_EVP_PKEY_CTX_ctrl(pctx, -1, EVP_PKEY_OP_DERIVE, \
                               EVP_PKEY_CTRL_TLS_MD, 0, (void *)(md))
 
 # define EVP_PKEY_CTX_set1_tls1_prf_secret(pctx, sec, seclen) \
-            EVP_PKEY_CTX_ctrl(pctx, -1, EVP_PKEY_OP_DERIVE, \
+            VR_EVP_PKEY_CTX_ctrl(pctx, -1, EVP_PKEY_OP_DERIVE, \
                               EVP_PKEY_CTRL_TLS_SECRET, seclen, (void *)(sec))
 
 # define EVP_PKEY_CTX_add1_tls1_prf_seed(pctx, seed, seedlen) \
-            EVP_PKEY_CTX_ctrl(pctx, -1, EVP_PKEY_OP_DERIVE, \
+            VR_EVP_PKEY_CTX_ctrl(pctx, -1, EVP_PKEY_OP_DERIVE, \
                               EVP_PKEY_CTRL_TLS_SEED, seedlen, (void *)(seed))
 
 # define EVP_PKEY_CTX_set_hkdf_md(pctx, md) \
-            EVP_PKEY_CTX_ctrl(pctx, -1, EVP_PKEY_OP_DERIVE, \
+            VR_EVP_PKEY_CTX_ctrl(pctx, -1, EVP_PKEY_OP_DERIVE, \
                               EVP_PKEY_CTRL_HKDF_MD, 0, (void *)(md))
 
 # define EVP_PKEY_CTX_set1_hkdf_salt(pctx, salt, saltlen) \
-            EVP_PKEY_CTX_ctrl(pctx, -1, EVP_PKEY_OP_DERIVE, \
+            VR_EVP_PKEY_CTX_ctrl(pctx, -1, EVP_PKEY_OP_DERIVE, \
                               EVP_PKEY_CTRL_HKDF_SALT, saltlen, (void *)(salt))
 
 # define EVP_PKEY_CTX_set1_hkdf_key(pctx, key, keylen) \
-            EVP_PKEY_CTX_ctrl(pctx, -1, EVP_PKEY_OP_DERIVE, \
+            VR_EVP_PKEY_CTX_ctrl(pctx, -1, EVP_PKEY_OP_DERIVE, \
                               EVP_PKEY_CTRL_HKDF_KEY, keylen, (void *)(key))
 
 # define EVP_PKEY_CTX_add1_hkdf_info(pctx, info, infolen) \
-            EVP_PKEY_CTX_ctrl(pctx, -1, EVP_PKEY_OP_DERIVE, \
+            VR_EVP_PKEY_CTX_ctrl(pctx, -1, EVP_PKEY_OP_DERIVE, \
                               EVP_PKEY_CTRL_HKDF_INFO, infolen, (void *)(info))
 
 # define EVP_PKEY_CTX_hkdf_mode(pctx, mode) \
-            EVP_PKEY_CTX_ctrl(pctx, -1, EVP_PKEY_OP_DERIVE, \
+            VR_EVP_PKEY_CTX_ctrl(pctx, -1, EVP_PKEY_OP_DERIVE, \
                               EVP_PKEY_CTRL_HKDF_MODE, mode, NULL)
 
 # define EVP_PKEY_CTX_set1_pbe_pass(pctx, pass, passlen) \
-            EVP_PKEY_CTX_ctrl(pctx, -1, EVP_PKEY_OP_DERIVE, \
+            VR_EVP_PKEY_CTX_ctrl(pctx, -1, EVP_PKEY_OP_DERIVE, \
                             EVP_PKEY_CTRL_PASS, passlen, (void *)(pass))
 
 # define EVP_PKEY_CTX_set1_scrypt_salt(pctx, salt, saltlen) \
-            EVP_PKEY_CTX_ctrl(pctx, -1, EVP_PKEY_OP_DERIVE, \
+            VR_EVP_PKEY_CTX_ctrl(pctx, -1, EVP_PKEY_OP_DERIVE, \
                             EVP_PKEY_CTRL_SCRYPT_SALT, saltlen, (void *)(salt))
 
 # define EVP_PKEY_CTX_set_scrypt_N(pctx, n) \
-            EVP_PKEY_CTX_ctrl_uint64(pctx, -1, EVP_PKEY_OP_DERIVE, \
+            VR_EVP_PKEY_CTX_ctrl_uint64(pctx, -1, EVP_PKEY_OP_DERIVE, \
                             EVP_PKEY_CTRL_SCRYPT_N, n)
 
 # define EVP_PKEY_CTX_set_scrypt_r(pctx, r) \
-            EVP_PKEY_CTX_ctrl_uint64(pctx, -1, EVP_PKEY_OP_DERIVE, \
+            VR_EVP_PKEY_CTX_ctrl_uint64(pctx, -1, EVP_PKEY_OP_DERIVE, \
                             EVP_PKEY_CTRL_SCRYPT_R, r)
 
 # define EVP_PKEY_CTX_set_scrypt_p(pctx, p) \
-            EVP_PKEY_CTX_ctrl_uint64(pctx, -1, EVP_PKEY_OP_DERIVE, \
+            VR_EVP_PKEY_CTX_ctrl_uint64(pctx, -1, EVP_PKEY_OP_DERIVE, \
                             EVP_PKEY_CTRL_SCRYPT_P, p)
 
 # define EVP_PKEY_CTX_set_scrypt_maxmem_bytes(pctx, maxmem_bytes) \
-            EVP_PKEY_CTX_ctrl_uint64(pctx, -1, EVP_PKEY_OP_DERIVE, \
+            VR_EVP_PKEY_CTX_ctrl_uint64(pctx, -1, EVP_PKEY_OP_DERIVE, \
                             EVP_PKEY_CTRL_SCRYPT_MAXMEM_BYTES, maxmem_bytes)
 
 

@@ -13,7 +13,7 @@
 #include <openssl/rsa.h>
 #include <openssl/objects.h>
 
-int RSA_padding_add_X931(unsigned char *to, int tlen,
+int VR_RSA_padding_add_X931(unsigned char *to, int tlen,
                          const unsigned char *from, int flen)
 {
     int j;
@@ -50,7 +50,7 @@ int RSA_padding_add_X931(unsigned char *to, int tlen,
     return 1;
 }
 
-int RSA_padding_check_X931(unsigned char *to, int tlen,
+int VR_RSA_padding_check_X931(unsigned char *to, int tlen,
                            const unsigned char *from, int flen, int num)
 {
     int i = 0, j;
@@ -97,7 +97,7 @@ int RSA_padding_check_X931(unsigned char *to, int tlen,
 
 /* Translate between X931 hash ids and NIDs */
 
-int RSA_X931_hash_id(int nid)
+int VR_RSA_X931_hash_id(int nid)
 {
     switch (nid) {
     case NID_sha1:

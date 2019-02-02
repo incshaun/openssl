@@ -18,37 +18,37 @@ static const ERR_STRING_DATA RAND_str_functs[] = {
     {ERR_PACK(ERR_LIB_RAND, RAND_F_DRBG_GET_ENTROPY, 0), "drbg_get_entropy"},
     {ERR_PACK(ERR_LIB_RAND, RAND_F_DRBG_SETUP, 0), "drbg_setup"},
     {ERR_PACK(ERR_LIB_RAND, RAND_F_GET_ENTROPY, 0), "get_entropy"},
-    {ERR_PACK(ERR_LIB_RAND, RAND_F_RAND_BYTES, 0), "RAND_bytes"},
+    {ERR_PACK(ERR_LIB_RAND, RAND_F_RAND_BYTES, 0), "VR_RAND_bytes"},
     {ERR_PACK(ERR_LIB_RAND, RAND_F_RAND_DRBG_ENABLE_LOCKING, 0),
-     "rand_drbg_enable_locking"},
+     "VR_rand_drbg_enable_locking"},
     {ERR_PACK(ERR_LIB_RAND, RAND_F_RAND_DRBG_GENERATE, 0),
-     "RAND_DRBG_generate"},
+     "VR_RAND_DRBG_generate"},
     {ERR_PACK(ERR_LIB_RAND, RAND_F_RAND_DRBG_GET_ENTROPY, 0),
-     "rand_drbg_get_entropy"},
+     "VR_rand_drbg_get_entropy"},
     {ERR_PACK(ERR_LIB_RAND, RAND_F_RAND_DRBG_GET_NONCE, 0),
-     "rand_drbg_get_nonce"},
+     "VR_rand_drbg_get_nonce"},
     {ERR_PACK(ERR_LIB_RAND, RAND_F_RAND_DRBG_INSTANTIATE, 0),
-     "RAND_DRBG_instantiate"},
-    {ERR_PACK(ERR_LIB_RAND, RAND_F_RAND_DRBG_NEW, 0), "RAND_DRBG_new"},
-    {ERR_PACK(ERR_LIB_RAND, RAND_F_RAND_DRBG_RESEED, 0), "RAND_DRBG_reseed"},
-    {ERR_PACK(ERR_LIB_RAND, RAND_F_RAND_DRBG_RESTART, 0), "rand_drbg_restart"},
-    {ERR_PACK(ERR_LIB_RAND, RAND_F_RAND_DRBG_SET, 0), "RAND_DRBG_set"},
+     "VR_RAND_DRBG_instantiate"},
+    {ERR_PACK(ERR_LIB_RAND, RAND_F_RAND_DRBG_NEW, 0), "VR_RAND_DRBG_new"},
+    {ERR_PACK(ERR_LIB_RAND, RAND_F_RAND_DRBG_RESEED, 0), "VR_RAND_DRBG_reseed"},
+    {ERR_PACK(ERR_LIB_RAND, RAND_F_RAND_DRBG_RESTART, 0), "VR_rand_drbg_restart"},
+    {ERR_PACK(ERR_LIB_RAND, RAND_F_RAND_DRBG_SET, 0), "VR_RAND_DRBG_set"},
     {ERR_PACK(ERR_LIB_RAND, RAND_F_RAND_DRBG_SET_DEFAULTS, 0),
-     "RAND_DRBG_set_defaults"},
+     "VR_RAND_DRBG_set_defaults"},
     {ERR_PACK(ERR_LIB_RAND, RAND_F_RAND_DRBG_UNINSTANTIATE, 0),
-     "RAND_DRBG_uninstantiate"},
-    {ERR_PACK(ERR_LIB_RAND, RAND_F_RAND_LOAD_FILE, 0), "RAND_load_file"},
+     "VR_RAND_DRBG_uninstantiate"},
+    {ERR_PACK(ERR_LIB_RAND, RAND_F_RAND_LOAD_FILE, 0), "VR_RAND_load_file"},
     {ERR_PACK(ERR_LIB_RAND, RAND_F_RAND_POOL_ACQUIRE_ENTROPY, 0),
-     "rand_pool_acquire_entropy"},
-    {ERR_PACK(ERR_LIB_RAND, RAND_F_RAND_POOL_ADD, 0), "rand_pool_add"},
+     "VR_rand_pool_acquire_entropy"},
+    {ERR_PACK(ERR_LIB_RAND, RAND_F_RAND_POOL_ADD, 0), "VR_rand_pool_add"},
     {ERR_PACK(ERR_LIB_RAND, RAND_F_RAND_POOL_ADD_BEGIN, 0),
-     "rand_pool_add_begin"},
-    {ERR_PACK(ERR_LIB_RAND, RAND_F_RAND_POOL_ADD_END, 0), "rand_pool_add_end"},
-    {ERR_PACK(ERR_LIB_RAND, RAND_F_RAND_POOL_ATTACH, 0), "rand_pool_attach"},
+     "VR_rand_pool_add_begin"},
+    {ERR_PACK(ERR_LIB_RAND, RAND_F_RAND_POOL_ADD_END, 0), "VR_rand_pool_add_end"},
+    {ERR_PACK(ERR_LIB_RAND, RAND_F_RAND_POOL_ATTACH, 0), "VR_rand_pool_attach"},
     {ERR_PACK(ERR_LIB_RAND, RAND_F_RAND_POOL_BYTES_NEEDED, 0),
-     "rand_pool_bytes_needed"},
-    {ERR_PACK(ERR_LIB_RAND, RAND_F_RAND_POOL_NEW, 0), "rand_pool_new"},
-    {ERR_PACK(ERR_LIB_RAND, RAND_F_RAND_WRITE_FILE, 0), "RAND_write_file"},
+     "VR_rand_pool_bytes_needed"},
+    {ERR_PACK(ERR_LIB_RAND, RAND_F_RAND_POOL_NEW, 0), "VR_rand_pool_new"},
+    {ERR_PACK(ERR_LIB_RAND, RAND_F_RAND_WRITE_FILE, 0), "VR_RAND_write_file"},
     {0, NULL}
 };
 
@@ -123,12 +123,12 @@ static const ERR_STRING_DATA RAND_str_reasons[] = {
 
 #endif
 
-int ERR_load_RAND_strings(void)
+int VR_ERR_load_RAND_strings(void)
 {
 #ifndef OPENSSL_NO_ERR
-    if (ERR_func_error_string(RAND_str_functs[0].error) == NULL) {
-        ERR_load_strings_const(RAND_str_functs);
-        ERR_load_strings_const(RAND_str_reasons);
+    if (VR_ERR_func_error_string(RAND_str_functs[0].error) == NULL) {
+        VR_ERR_load_strings_const(RAND_str_functs);
+        VR_ERR_load_strings_const(RAND_str_reasons);
     }
 #endif
     return 1;

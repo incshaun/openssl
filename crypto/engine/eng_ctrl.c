@@ -122,16 +122,16 @@ static int int_ctrl_helper(ENGINE *e, int cmd, long i, void *p,
     return -1;
 }
 
-int ENGINE_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f) (void))
+int VR_ENGINE_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f) (void))
 {
     int ctrl_exists, ref_exists;
     if (e == NULL) {
         ENGINEerr(ENGINE_F_ENGINE_CTRL, ERR_R_PASSED_NULL_PARAMETER);
         return 0;
     }
-    CRYPTO_THREAD_write_lock(global_engine_lock);
+    VR_CRYPTO_THREAD_write_lock(global_engine_lock);
     ref_exists = ((e->struct_ref > 0) ? 1 : 0);
-    CRYPTO_THREAD_unlock(global_engine_lock);
+    VR_CRYPTO_THREAD_unlock(global_engine_lock);
     ctrl_exists = ((e->ctrl == NULL) ? 0 : 1);
     if (!ref_exists) {
         ENGINEerr(ENGINE_F_ENGINE_CTRL, ENGINE_R_NO_REFERENCE);
@@ -174,11 +174,11 @@ int ENGINE_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f) (void))
     return e->ctrl(e, cmd, i, p, f);
 }
 
-int ENGINE_cmd_is_executable(ENGINE *e, int cmd)
+int VR_ENGINE_cmd_is_executable(ENGINE *e, int cmd)
 {
     int flags;
     if ((flags =
-         ENGINE_ctrl(e, ENGINE_CTRL_GET_CMD_FLAGS, cmd, NULL, NULL)) < 0) {
+         VR_ENGINE_ctrl(e, ENGINE_CTRL_GET_CMD_FLAGS, cmd, NULL, NULL)) < 0) {
         ENGINEerr(ENGINE_F_ENGINE_CMD_IS_EXECUTABLE,
                   ENGINE_R_INVALID_CMD_NUMBER);
         return 0;
@@ -190,7 +190,7 @@ int ENGINE_cmd_is_executable(ENGINE *e, int cmd)
     return 1;
 }
 
-int ENGINE_ctrl_cmd(ENGINE *e, const char *cmd_name,
+int VR_ENGINE_ctrl_cmd(ENGINE *e, const char *cmd_name,
                     long i, void *p, void (*f) (void), int cmd_optional)
 {
     int num;
@@ -200,7 +200,7 @@ int ENGINE_ctrl_cmd(ENGINE *e, const char *cmd_name,
         return 0;
     }
     if (e->ctrl == NULL
-        || (num = ENGINE_ctrl(e, ENGINE_CTRL_GET_CMD_FROM_NAME,
+        || (num = VR_ENGINE_ctrl(e, ENGINE_CTRL_GET_CMD_FROM_NAME,
                               0, (void *)cmd_name, NULL)) <= 0) {
         /*
          * If the command didn't *have* to be supported, we fake success.
@@ -211,7 +211,7 @@ int ENGINE_ctrl_cmd(ENGINE *e, const char *cmd_name,
          * file, etc.
          */
         if (cmd_optional) {
-            ERR_clear_error();
+            VR_ERR_clear_error();
             return 1;
         }
         ENGINEerr(ENGINE_F_ENGINE_CTRL_CMD, ENGINE_R_INVALID_CMD_NAME);
@@ -221,12 +221,12 @@ int ENGINE_ctrl_cmd(ENGINE *e, const char *cmd_name,
      * Force the result of the control command to 0 or 1, for the reasons
      * mentioned before.
      */
-    if (ENGINE_ctrl(e, num, i, p, f) > 0)
+    if (VR_ENGINE_ctrl(e, num, i, p, f) > 0)
         return 1;
     return 0;
 }
 
-int ENGINE_ctrl_cmd_string(ENGINE *e, const char *cmd_name, const char *arg,
+int VR_ENGINE_ctrl_cmd_string(ENGINE *e, const char *cmd_name, const char *arg,
                            int cmd_optional)
 {
     int num, flags;
@@ -238,7 +238,7 @@ int ENGINE_ctrl_cmd_string(ENGINE *e, const char *cmd_name, const char *arg,
         return 0;
     }
     if (e->ctrl == NULL
-        || (num = ENGINE_ctrl(e, ENGINE_CTRL_GET_CMD_FROM_NAME,
+        || (num = VR_ENGINE_ctrl(e, ENGINE_CTRL_GET_CMD_FROM_NAME,
                               0, (void *)cmd_name, NULL)) <= 0) {
         /*
          * If the command didn't *have* to be supported, we fake success.
@@ -249,22 +249,22 @@ int ENGINE_ctrl_cmd_string(ENGINE *e, const char *cmd_name, const char *arg,
          * file, etc.
          */
         if (cmd_optional) {
-            ERR_clear_error();
+            VR_ERR_clear_error();
             return 1;
         }
         ENGINEerr(ENGINE_F_ENGINE_CTRL_CMD_STRING, ENGINE_R_INVALID_CMD_NAME);
         return 0;
     }
-    if (!ENGINE_cmd_is_executable(e, num)) {
+    if (!VR_ENGINE_cmd_is_executable(e, num)) {
         ENGINEerr(ENGINE_F_ENGINE_CTRL_CMD_STRING,
                   ENGINE_R_CMD_NOT_EXECUTABLE);
         return 0;
     }
 
-    flags = ENGINE_ctrl(e, ENGINE_CTRL_GET_CMD_FLAGS, num, NULL, NULL);
+    flags = VR_ENGINE_ctrl(e, ENGINE_CTRL_GET_CMD_FLAGS, num, NULL, NULL);
     if (flags < 0) {
         /*
-         * Shouldn't happen, given that ENGINE_cmd_is_executable() returned
+         * Shouldn't happen, given that VR_ENGINE_cmd_is_executable() returned
          * success.
          */
         ENGINEerr(ENGINE_F_ENGINE_CTRL_CMD_STRING,
@@ -281,12 +281,12 @@ int ENGINE_ctrl_cmd_string(ENGINE *e, const char *cmd_name, const char *arg,
             return 0;
         }
         /*
-         * We deliberately force the result of ENGINE_ctrl() to 0 or 1 rather
+         * We deliberately force the result of VR_ENGINE_ctrl() to 0 or 1 rather
          * than returning it as "return data". This is to ensure usage of
          * these commands is consistent across applications and that certain
          * applications don't understand it one way, and others another.
          */
-        if (ENGINE_ctrl(e, num, 0, (void *)arg, NULL) > 0)
+        if (VR_ENGINE_ctrl(e, num, 0, (void *)arg, NULL) > 0)
             return 1;
         return 0;
     }
@@ -299,14 +299,14 @@ int ENGINE_ctrl_cmd_string(ENGINE *e, const char *cmd_name, const char *arg,
     /* If it takes string input, that's easy */
     if (flags & ENGINE_CMD_FLAG_STRING) {
         /* Same explanation as above */
-        if (ENGINE_ctrl(e, num, 0, (void *)arg, NULL) > 0)
+        if (VR_ENGINE_ctrl(e, num, 0, (void *)arg, NULL) > 0)
             return 1;
         return 0;
     }
     /*
      * If it doesn't take numeric either, then it is unsupported for use in a
      * config-setting situation, which is what this function is for. This
-     * should never happen though, because ENGINE_cmd_is_executable() was
+     * should never happen though, because VR_ENGINE_cmd_is_executable() was
      * used.
      */
     if (!(flags & ENGINE_CMD_FLAG_NUMERIC)) {
@@ -324,7 +324,7 @@ int ENGINE_ctrl_cmd_string(ENGINE *e, const char *cmd_name, const char *arg,
      * Force the result of the control command to 0 or 1, for the reasons
      * mentioned before.
      */
-    if (ENGINE_ctrl(e, num, l, NULL, NULL) > 0)
+    if (VR_ENGINE_ctrl(e, num, l, NULL, NULL) > 0)
         return 1;
     return 0;
 }

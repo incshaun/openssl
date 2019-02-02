@@ -21,7 +21,7 @@
 # Performance improvement naturally varies among CPU implementations
 # and compilers. The code was observed to provide +65-35% improvement
 # [depending on key length, less for longer keys] on ARM920T, and
-# +115-80% on Intel IXP425. This is compared to pre-bn_mul_mont code
+# +115-80% on Intel IXP425. This is compared to pre-VR_bn_mul_mont code
 # base and compiler generated code with in-lined umull and even umlal
 # instructions. The latter means that this code didn't really have an
 # "advantage" of utilizing some "secret" instruction.
@@ -108,21 +108,21 @@ $code=<<___;
 #if __ARM_MAX_ARCH__>=7
 .align	5
 .LOPENSSL_armcap:
-.word	OPENSSL_armcap_P-.Lbn_mul_mont
+.word	OPENSSL_armcap_P-.LVR_bn_mul_mont
 #endif
 
-.global	bn_mul_mont
-.type	bn_mul_mont,%function
+.global	VR_bn_mul_mont
+.type	VR_bn_mul_mont,%function
 
 .align	5
-bn_mul_mont:
-.Lbn_mul_mont:
+VR_bn_mul_mont:
+.LVR_bn_mul_mont:
 	ldr	ip,[sp,#4]		@ load num
 	stmdb	sp!,{r0,r2}		@ sp points at argument block
 #if __ARM_MAX_ARCH__>=7
 	tst	ip,#7
 	bne	.Lialu
-	adr	r0,.Lbn_mul_mont
+	adr	r0,.LVR_bn_mul_mont
 	ldr	r2,.LOPENSSL_armcap
 	ldr	r0,[r0,r2]
 #ifdef	__APPLE__
@@ -286,7 +286,7 @@ bn_mul_mont:
 	moveq	pc,lr			@ be binary compatible with V4, yet
 	bx	lr			@ interoperable with Thumb ISA:-)
 #endif
-.size	bn_mul_mont,.-bn_mul_mont
+.size	VR_bn_mul_mont,.-VR_bn_mul_mont
 ___
 {
 my ($A0,$A1,$A2,$A3)=map("d$_",(0..3));

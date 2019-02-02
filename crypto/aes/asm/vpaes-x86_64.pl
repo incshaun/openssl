@@ -21,7 +21,7 @@
 # September 2011.
 #
 # Interface to OpenSSL as "almost" drop-in replacement for
-# aes-x86_64.pl. "Almost" refers to the fact that AES_cbc_encrypt
+# aes-x86_64.pl. "Almost" refers to the fact that VR_AES_cbc_encrypt
 # doesn't handle partial vectors (doesn't have to if called from
 # EVP only). "Drop-in" implies that this module doesn't share key
 # schedule structure with the original nor does it make assumption
@@ -88,9 +88,9 @@ $code.=<<___;
 ##  Preserves %xmm6 - %xmm8 so you get some local vectors
 ##
 ##
-.type	_vpaes_encrypt_core,\@abi-omnipotent
+.type	_VR_vpaes_encrypt_core,\@abi-omnipotent
 .align 16
-_vpaes_encrypt_core:
+_VR_vpaes_encrypt_core:
 	mov	%rdx,	%r9
 	mov	\$16,	%r11
 	mov	240(%rdx),%eax
@@ -171,16 +171,16 @@ _vpaes_encrypt_core:
 	pxor	%xmm4,	%xmm0	# 0 = A
 	pshufb	%xmm1,	%xmm0
 	ret
-.size	_vpaes_encrypt_core,.-_vpaes_encrypt_core
+.size	_VR_vpaes_encrypt_core,.-_VR_vpaes_encrypt_core
 
 ##
 ##  Decryption core
 ##
 ##  Same API as encryption core.
 ##
-.type	_vpaes_decrypt_core,\@abi-omnipotent
+.type	_VR_vpaes_decrypt_core,\@abi-omnipotent
 .align	16
-_vpaes_decrypt_core:
+_VR_vpaes_decrypt_core:
 	mov	%rdx,	%r9		# load key
 	mov	240(%rdx),%eax
 	movdqa	%xmm9,	%xmm1
@@ -277,7 +277,7 @@ _vpaes_decrypt_core:
 	pxor	%xmm4,	%xmm0	# 0 = A
 	pshufb	%xmm2,	%xmm0
 	ret
-.size	_vpaes_decrypt_core,.-_vpaes_decrypt_core
+.size	_VR_vpaes_decrypt_core,.-_VR_vpaes_decrypt_core
 
 ########################################################
 ##                                                    ##
@@ -677,10 +677,10 @@ _vpaes_schedule_mangle:
 #
 # Interface to OpenSSL
 #
-.globl	${PREFIX}_set_encrypt_key
-.type	${PREFIX}_set_encrypt_key,\@function,3
+.globl	VR_${PREFIX}_set_encrypt_key
+.type	VR_${PREFIX}_set_encrypt_key,\@function,3
 .align	16
-${PREFIX}_set_encrypt_key:
+VR_${PREFIX}_set_encrypt_key:
 ___
 $code.=<<___ if ($win64);
 	lea	-0xb8(%rsp),%rsp
@@ -723,12 +723,12 @@ ___
 $code.=<<___;
 	xor	%eax,%eax
 	ret
-.size	${PREFIX}_set_encrypt_key,.-${PREFIX}_set_encrypt_key
+.size	VR_${PREFIX}_set_encrypt_key,.-VR_${PREFIX}_set_encrypt_key
 
-.globl	${PREFIX}_set_decrypt_key
-.type	${PREFIX}_set_decrypt_key,\@function,3
+.globl	VR_${PREFIX}_set_decrypt_key
+.type	VR_${PREFIX}_set_decrypt_key,\@function,3
 .align	16
-${PREFIX}_set_decrypt_key:
+VR_${PREFIX}_set_decrypt_key:
 ___
 $code.=<<___ if ($win64);
 	lea	-0xb8(%rsp),%rsp
@@ -776,12 +776,12 @@ ___
 $code.=<<___;
 	xor	%eax,%eax
 	ret
-.size	${PREFIX}_set_decrypt_key,.-${PREFIX}_set_decrypt_key
+.size	VR_${PREFIX}_set_decrypt_key,.-VR_${PREFIX}_set_decrypt_key
 
-.globl	${PREFIX}_encrypt
-.type	${PREFIX}_encrypt,\@function,3
+.globl	VR_${PREFIX}_encrypt
+.type	VR_${PREFIX}_encrypt,\@function,3
 .align	16
-${PREFIX}_encrypt:
+VR_${PREFIX}_encrypt:
 ___
 $code.=<<___ if ($win64);
 	lea	-0xb8(%rsp),%rsp
@@ -800,7 +800,7 @@ ___
 $code.=<<___;
 	movdqu	(%rdi),%xmm0
 	call	_vpaes_preheat
-	call	_vpaes_encrypt_core
+	call	_VR_vpaes_encrypt_core
 	movdqu	%xmm0,(%rsi)
 ___
 $code.=<<___ if ($win64);
@@ -819,12 +819,12 @@ $code.=<<___ if ($win64);
 ___
 $code.=<<___;
 	ret
-.size	${PREFIX}_encrypt,.-${PREFIX}_encrypt
+.size	VR_${PREFIX}_encrypt,.-VR_${PREFIX}_encrypt
 
-.globl	${PREFIX}_decrypt
-.type	${PREFIX}_decrypt,\@function,3
+.globl	VR_${PREFIX}_decrypt
+.type	VR_${PREFIX}_decrypt,\@function,3
 .align	16
-${PREFIX}_decrypt:
+VR_${PREFIX}_decrypt:
 ___
 $code.=<<___ if ($win64);
 	lea	-0xb8(%rsp),%rsp
@@ -843,7 +843,7 @@ ___
 $code.=<<___;
 	movdqu	(%rdi),%xmm0
 	call	_vpaes_preheat
-	call	_vpaes_decrypt_core
+	call	_VR_vpaes_decrypt_core
 	movdqu	%xmm0,(%rsi)
 ___
 $code.=<<___ if ($win64);
@@ -862,18 +862,18 @@ $code.=<<___ if ($win64);
 ___
 $code.=<<___;
 	ret
-.size	${PREFIX}_decrypt,.-${PREFIX}_decrypt
+.size	VR_${PREFIX}_decrypt,.-VR_${PREFIX}_decrypt
 ___
 {
 my ($inp,$out,$len,$key,$ivp,$enc)=("%rdi","%rsi","%rdx","%rcx","%r8","%r9");
-# void AES_cbc_encrypt (const void char *inp, unsigned char *out,
+# void VR_AES_cbc_encrypt (const void char *inp, unsigned char *out,
 #                       size_t length, const AES_KEY *key,
 #                       unsigned char *ivp,const int enc);
 $code.=<<___;
-.globl	${PREFIX}_cbc_encrypt
-.type	${PREFIX}_cbc_encrypt,\@function,6
+.globl	VR_${PREFIX}_cbc_encrypt
+.type	VR_${PREFIX}_cbc_encrypt,\@function,6
 .align	16
-${PREFIX}_cbc_encrypt:
+VR_${PREFIX}_cbc_encrypt:
 	xchg	$key,$len
 ___
 ($len,$key)=($key,$len);
@@ -906,7 +906,7 @@ $code.=<<___;
 .Lcbc_enc_loop:
 	movdqu	($inp),%xmm0
 	pxor	%xmm6,%xmm0
-	call	_vpaes_encrypt_core
+	call	_VR_vpaes_encrypt_core
 	movdqa	%xmm0,%xmm6
 	movdqu	%xmm0,($out,$inp)
 	lea	16($inp),$inp
@@ -917,7 +917,7 @@ $code.=<<___;
 .Lcbc_dec_loop:
 	movdqu	($inp),%xmm0
 	movdqa	%xmm0,%xmm7
-	call	_vpaes_decrypt_core
+	call	_VR_vpaes_decrypt_core
 	pxor	%xmm6,%xmm0
 	movdqa	%xmm7,%xmm6
 	movdqu	%xmm0,($out,$inp)
@@ -944,7 +944,7 @@ ___
 $code.=<<___;
 .Lcbc_abort:
 	ret
-.size	${PREFIX}_cbc_encrypt,.-${PREFIX}_cbc_encrypt
+.size	VR_${PREFIX}_cbc_encrypt,.-VR_${PREFIX}_cbc_encrypt
 ___
 }
 $code.=<<___;

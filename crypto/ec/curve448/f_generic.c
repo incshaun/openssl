@@ -18,7 +18,7 @@ static const gf MODULUS = {
 };
 
 /* Serialize to wire format. */
-void gf_serialize(uint8_t serial[SER_BYTES], const gf x, int with_hibit)
+void VR_gf_serialize(uint8_t serial[SER_BYTES], const gf x, int with_hibit)
 {
     unsigned int j = 0, fill = 0;
     dword_t buffer = 0;
@@ -26,9 +26,9 @@ void gf_serialize(uint8_t serial[SER_BYTES], const gf x, int with_hibit)
     gf red;
 
     gf_copy(red, x);
-    gf_strong_reduce(red);
+    VR_gf_strong_reduce(red);
     if (!with_hibit)
-        assert(gf_hibit(red) == 0);
+        assert(VR_gf_hibit(red) == 0);
 
     for (i = 0; i < (with_hibit ? X_SER_BYTES : SER_BYTES); i++) {
         if (fill < 8 && j < NLIMBS) {
@@ -43,27 +43,27 @@ void gf_serialize(uint8_t serial[SER_BYTES], const gf x, int with_hibit)
 }
 
 /* Return high bit of x = low bit of 2x mod p */
-mask_t gf_hibit(const gf x)
+mask_t VR_gf_hibit(const gf x)
 {
     gf y;
 
-    gf_add(y, x, x);
-    gf_strong_reduce(y);
+    VR_gf_add(y, x, x);
+    VR_gf_strong_reduce(y);
     return 0 - (y->limb[0] & 1);
 }
 
 /* Return high bit of x = low bit of 2x mod p */
-mask_t gf_lobit(const gf x)
+mask_t VR_gf_lobit(const gf x)
 {
     gf y;
 
     gf_copy(y, x);
-    gf_strong_reduce(y);
+    VR_gf_strong_reduce(y);
     return 0 - (y->limb[0] & 1);
 }
 
 /* Deserialize from wire format; return -1 on success and 0 on failure. */
-mask_t gf_deserialize(gf x, const uint8_t serial[SER_BYTES], int with_hibit,
+mask_t VR_gf_deserialize(gf x, const uint8_t serial[SER_BYTES], int with_hibit,
                       uint8_t hi_nmask)
 {
     unsigned int j = 0, fill = 0;
@@ -92,12 +92,12 @@ mask_t gf_deserialize(gf x, const uint8_t serial[SER_BYTES], int with_hibit,
             (scarry + x->limb[LIMBPERM(i)] -
              MODULUS->limb[LIMBPERM(i)]) >> (8 * sizeof(word_t));
     }
-    succ = with_hibit ? 0 - (mask_t) 1 : ~gf_hibit(x);
+    succ = with_hibit ? 0 - (mask_t) 1 : ~VR_gf_hibit(x);
     return succ & word_is_zero((word_t)buffer) & ~word_is_zero((word_t)scarry);
 }
 
 /* Reduce to canonical form. */
-void gf_strong_reduce(gf a)
+void VR_gf_strong_reduce(gf a)
 {
     dsword_t scarry;
     word_t scarry_0;
@@ -139,29 +139,29 @@ void gf_strong_reduce(gf a)
 }
 
 /* Subtract two gf elements d=a-b */
-void gf_sub(gf d, const gf a, const gf b)
+void VR_gf_sub(gf d, const gf a, const gf b)
 {
-    gf_sub_RAW(d, a, b);
+    VR_gf_sub_RAW(d, a, b);
     gf_bias(d, 2);
     gf_weak_reduce(d);
 }
 
 /* Add two field elements d = a+b */
-void gf_add(gf d, const gf a, const gf b)
+void VR_gf_add(gf d, const gf a, const gf b)
 {
-    gf_add_RAW(d, a, b);
+    VR_gf_add_RAW(d, a, b);
     gf_weak_reduce(d);
 }
 
 /* Compare a==b */
-mask_t gf_eq(const gf a, const gf b)
+mask_t VR_gf_eq(const gf a, const gf b)
 {
     gf c;
     mask_t ret = 0;
     unsigned int i;
 
-    gf_sub(c, a, b);
-    gf_strong_reduce(c);
+    VR_gf_sub(c, a, b);
+    VR_gf_strong_reduce(c);
 
     for (i = 0; i < NLIMBS; i++)
         ret |= c->limb[LIMBPERM(i)];
@@ -169,36 +169,36 @@ mask_t gf_eq(const gf a, const gf b)
     return word_is_zero(ret);
 }
 
-mask_t gf_isr(gf a, const gf x)
+mask_t VR_gf_isr(gf a, const gf x)
 {
     gf L0, L1, L2;
 
-    gf_sqr(L1, x);
-    gf_mul(L2, x, L1);
-    gf_sqr(L1, L2);
-    gf_mul(L2, x, L1);
-    gf_sqrn(L1, L2, 3);
-    gf_mul(L0, L2, L1);
-    gf_sqrn(L1, L0, 3);
-    gf_mul(L0, L2, L1);
-    gf_sqrn(L2, L0, 9);
-    gf_mul(L1, L0, L2);
-    gf_sqr(L0, L1);
-    gf_mul(L2, x, L0);
-    gf_sqrn(L0, L2, 18);
-    gf_mul(L2, L1, L0);
-    gf_sqrn(L0, L2, 37);
-    gf_mul(L1, L2, L0);
-    gf_sqrn(L0, L1, 37);
-    gf_mul(L1, L2, L0);
-    gf_sqrn(L0, L1, 111);
-    gf_mul(L2, L1, L0);
-    gf_sqr(L0, L2);
-    gf_mul(L1, x, L0);
-    gf_sqrn(L0, L1, 223);
-    gf_mul(L1, L2, L0);
-    gf_sqr(L2, L1);
-    gf_mul(L0, L2, x);
+    VR_gf_sqr(L1, x);
+    VR_gf_mul(L2, x, L1);
+    VR_gf_sqr(L1, L2);
+    VR_gf_mul(L2, x, L1);
+    VR_gf_sqrn(L1, L2, 3);
+    VR_gf_mul(L0, L2, L1);
+    VR_gf_sqrn(L1, L0, 3);
+    VR_gf_mul(L0, L2, L1);
+    VR_gf_sqrn(L2, L0, 9);
+    VR_gf_mul(L1, L0, L2);
+    VR_gf_sqr(L0, L1);
+    VR_gf_mul(L2, x, L0);
+    VR_gf_sqrn(L0, L2, 18);
+    VR_gf_mul(L2, L1, L0);
+    VR_gf_sqrn(L0, L2, 37);
+    VR_gf_mul(L1, L2, L0);
+    VR_gf_sqrn(L0, L1, 37);
+    VR_gf_mul(L1, L2, L0);
+    VR_gf_sqrn(L0, L1, 111);
+    VR_gf_mul(L2, L1, L0);
+    VR_gf_sqr(L0, L2);
+    VR_gf_mul(L1, x, L0);
+    VR_gf_sqrn(L0, L1, 223);
+    VR_gf_mul(L1, L2, L0);
+    VR_gf_sqr(L2, L1);
+    VR_gf_mul(L0, L2, x);
     gf_copy(a, L1);
-    return gf_eq(L0, ONE);
+    return VR_gf_eq(L0, ONE);
 }

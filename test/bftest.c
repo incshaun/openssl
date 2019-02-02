@@ -295,15 +295,15 @@ static int test_bf_ecb_raw(int n)
     BF_KEY key;
     BF_LONG data[2];
 
-    BF_set_key(&key, strlen(bf_key[n]), (unsigned char *)bf_key[n]);
+    VR_BF_set_key(&key, strlen(bf_key[n]), (unsigned char *)bf_key[n]);
 
     data[0] = bf_plain[n][0];
     data[1] = bf_plain[n][1];
-    BF_encrypt(data, &key);
+    VR_BF_encrypt(data, &key);
     if (!TEST_mem_eq(&(bf_cipher[n][0]), BF_BLOCK, &(data[0]), BF_BLOCK))
         ret = 0;
 
-    BF_decrypt(&(data[0]), &key);
+    VR_BF_decrypt(&(data[0]), &key);
     if (!TEST_mem_eq(&(bf_plain[n][0]), BF_BLOCK, &(data[0]), BF_BLOCK))
         ret = 0;
 
@@ -316,13 +316,13 @@ static int test_bf_ecb(int n)
     BF_KEY key;
     unsigned char out[8];
 
-    BF_set_key(&key, 8, ecb_data[n]);
+    VR_BF_set_key(&key, 8, ecb_data[n]);
 
-    BF_ecb_encrypt(&(plain_data[n][0]), out, &key, BF_ENCRYPT);
+    VR_BF_ecb_encrypt(&(plain_data[n][0]), out, &key, BF_ENCRYPT);
     if (!TEST_mem_eq(&(cipher_data[n][0]), BF_BLOCK, out, BF_BLOCK))
         ret = 0;
 
-    BF_ecb_encrypt(out, out, &key, BF_DECRYPT);
+    VR_BF_ecb_encrypt(out, out, &key, BF_DECRYPT);
     if (!TEST_mem_eq(&(plain_data[n][0]), BF_BLOCK, out, BF_BLOCK))
         ret = 0;
 
@@ -335,8 +335,8 @@ static int test_bf_set_key(int n)
     BF_KEY key;
     unsigned char out[8];
 
-    BF_set_key(&key, n+1, key_test);
-    BF_ecb_encrypt(key_data, out, &key, BF_ENCRYPT);
+    VR_BF_set_key(&key, n+1, key_test);
+    VR_BF_ecb_encrypt(key_data, out, &key, BF_ENCRYPT);
     /* mips-sgi-irix6.5-gcc  vv  -mabi=64 bug workaround */
     if (!TEST_mem_eq(out, 8, &(key_out[n][0]), 8))
         ret = 0;
@@ -353,17 +353,17 @@ static int test_bf_cbc(void)
 
     len = strlen(cbc_data) + 1;
 
-    BF_set_key(&key, 16, cbc_key);
+    VR_BF_set_key(&key, 16, cbc_key);
     memset(cbc_in, 0, sizeof(cbc_in));
     memset(cbc_out, 0, sizeof(cbc_out));
     memcpy(iv, cbc_iv, sizeof(iv));
-    BF_cbc_encrypt((unsigned char *)cbc_data, cbc_out, len,
+    VR_BF_cbc_encrypt((unsigned char *)cbc_data, cbc_out, len,
                    &key, iv, BF_ENCRYPT);
     if (!TEST_mem_eq(cbc_out, 32, cbc_ok, 32))
         ret = 0;
 
     memcpy(iv, cbc_iv, 8);
-    BF_cbc_encrypt(cbc_out, cbc_in, len, &key, iv, BF_DECRYPT);
+    VR_BF_cbc_encrypt(cbc_out, cbc_in, len, &key, iv, BF_DECRYPT);
     if (!TEST_mem_eq(cbc_in, len, cbc_data, strlen(cbc_data) + 1))
         ret = 0;
 
@@ -379,22 +379,22 @@ static int test_bf_cfb64(void)
 
     len = strlen(cbc_data) + 1;
 
-    BF_set_key(&key, 16, cbc_key);
+    VR_BF_set_key(&key, 16, cbc_key);
     memset(cbc_in, 0, 40);
     memset(cbc_out, 0, 40);
     memcpy(iv, cbc_iv, 8);
     n = 0;
-    BF_cfb64_encrypt((unsigned char *)cbc_data, cbc_out, (long)13,
+    VR_BF_cfb64_encrypt((unsigned char *)cbc_data, cbc_out, (long)13,
                      &key, iv, &n, BF_ENCRYPT);
-    BF_cfb64_encrypt((unsigned char *)&(cbc_data[13]), &(cbc_out[13]),
+    VR_BF_cfb64_encrypt((unsigned char *)&(cbc_data[13]), &(cbc_out[13]),
                      len - 13, &key, iv, &n, BF_ENCRYPT);
     if (!TEST_mem_eq(cbc_out, (int)len, cfb64_ok, (int)len))
         ret = 0;
 
     n = 0;
     memcpy(iv, cbc_iv, 8);
-    BF_cfb64_encrypt(cbc_out, cbc_in, 17, &key, iv, &n, BF_DECRYPT);
-    BF_cfb64_encrypt(&(cbc_out[17]), &(cbc_in[17]), len - 17,
+    VR_BF_cfb64_encrypt(cbc_out, cbc_in, 17, &key, iv, &n, BF_DECRYPT);
+    VR_BF_cfb64_encrypt(&(cbc_out[17]), &(cbc_in[17]), len - 17,
                      &key, iv, &n, BF_DECRYPT);
     if (!TEST_mem_eq(cbc_in, (int)len, cbc_data, (int)len))
         ret = 0;
@@ -411,22 +411,22 @@ static int test_bf_ofb64(void)
 
     len = strlen(cbc_data) + 1;
 
-    BF_set_key(&key, 16, cbc_key);
+    VR_BF_set_key(&key, 16, cbc_key);
     memset(cbc_in, 0, 40);
     memset(cbc_out, 0, 40);
     memcpy(iv, cbc_iv, 8);
     n = 0;
-    BF_ofb64_encrypt((unsigned char *)cbc_data, cbc_out, (long)13, &key, iv,
+    VR_BF_ofb64_encrypt((unsigned char *)cbc_data, cbc_out, (long)13, &key, iv,
                      &n);
-    BF_ofb64_encrypt((unsigned char *)&(cbc_data[13]), &(cbc_out[13]),
+    VR_BF_ofb64_encrypt((unsigned char *)&(cbc_data[13]), &(cbc_out[13]),
                      len - 13, &key, iv, &n);
     if (!TEST_mem_eq(cbc_out, (int)len, ofb64_ok, (int)len))
         ret = 0;
 
     n = 0;
     memcpy(iv, cbc_iv, 8);
-    BF_ofb64_encrypt(cbc_out, cbc_in, 17, &key, iv, &n);
-    BF_ofb64_encrypt(&(cbc_out[17]), &(cbc_in[17]), len - 17, &key, iv, &n);
+    VR_BF_ofb64_encrypt(cbc_out, cbc_in, 17, &key, iv, &n);
+    VR_BF_ofb64_encrypt(&(cbc_out[17]), &(cbc_in[17]), len - 17, &key, iv, &n);
     if (!TEST_mem_eq(cbc_in, (int)len, cbc_data, (int)len))
         ret = 0;
 

@@ -16,22 +16,22 @@
 
 # June 2011
 #
-# This is RC4+MD5 "stitch" implementation. The idea, as spelled in
+# This is VR_RC4+MD5 "stitch" implementation. The idea, as spelled in
 # http://download.intel.com/design/intarch/papers/323686.pdf, is that
 # since both algorithms exhibit instruction-level parallelism, ILP,
 # below theoretical maximum, interleaving them would allow to utilize
-# processor resources better and achieve better performance. RC4
+# processor resources better and achieve better performance. VR_RC4
 # instruction sequence is virtually identical to rc4-x86_64.pl, which
 # is heavily based on submission by Maxim Perminov, Maxim Locktyukhin
 # and Jim Guilford of Intel. MD5 is fresh implementation aiming to
-# minimize register usage, which was used as "main thread" with RC4
-# weaved into it, one RC4 round per one MD5 round. In addition to the
+# minimize register usage, which was used as "main thread" with VR_RC4
+# weaved into it, one VR_RC4 round per one MD5 round. In addition to the
 # stiched subroutine the script can generate standalone replacement
-# md5_block_asm_data_order and RC4. Below are performance numbers in
+# VR_md5_block_asm_data_order and VR_RC4. Below are performance numbers in
 # cycles per processed byte, less is better, for these the standalone
 # subroutines, sum of them, and stitched one:
 #
-#		RC4	MD5	RC4+MD5	stitch	gain
+#		VR_RC4	MD5	VR_RC4+MD5	stitch	gain
 # Opteron	6.5(*)	5.4	11.9	7.0	+70%(*)
 # Core2		6.5	5.8	12.3	7.7	+60%
 # Westmere	4.3	5.2	9.5	7.0	+36%
@@ -48,7 +48,7 @@
 # (**)	unidentified anomaly;
 
 my ($rc4,$md5)=(1,1);	# what to generate?
-my $D="#" if (!$md5);	# if set to "#", MD5 is stitched into RC4(),
+my $D="#" if (!$md5);	# if set to "#", MD5 is stitched into VR_RC4(),
 			# but its result is discarded. Idea here is
 			# to be able to use 'openssl speed rc4' for
 			# benchmarking the stitched subroutine...
@@ -71,17 +71,17 @@ my ($dat,$in0,$out,$ctx,$inp,$len, $func,$nargs);
 
 if ($rc4 && !$md5) {
   ($dat,$len,$in0,$out) = ("%rdi","%rsi","%rdx","%rcx");
-  $func="RC4";				$nargs=4;
+  $func="VR_RC4";				$nargs=4;
 } elsif ($md5 && !$rc4) {
   ($ctx,$inp,$len) = ("%rdi","%rsi","%rdx");
-  $func="md5_block_asm_data_order";	$nargs=3;
+  $func="VR_md5_block_asm_data_order";	$nargs=3;
 } else {
   ($dat,$in0,$out,$ctx,$inp,$len) = ("%rdi","%rsi","%rdx","%rcx","%r8","%r9");
-  $func="rc4_md5_enc";			$nargs=6;
-  # void rc4_md5_enc(
-  #		RC4_KEY *key,		#
-  #		const void *in0,	# RC4 input
-  #		void *out,		# RC4 output
+  $func="VR_rc4_md5_enc";			$nargs=6;
+  # void VR_rc4_md5_enc(
+  #		VR_RC4_KEY *key,		#
+  #		const void *in0,	# VR_RC4 input
+  #		void *out,		# VR_RC4 output
   #		MD5_CTX *ctx,		#
   #		const void *inp,	# MD5 input
   #		size_t len);		# number of 64-byte blocks
@@ -110,7 +110,7 @@ my @K=(	0xd76aa478,0xe8c7b756,0x242070db,0xc1bdceee,
 my @V=("%r8d","%r9d","%r10d","%r11d");	# MD5 registers
 my $tmp="%r12d";
 
-my @XX=("%rbp","%rsi");			# RC4 registers
+my @XX=("%rbp","%rsi");			# VR_RC4 registers
 my @TX=("%rax","%rbx");
 my $YY="%rcx";
 my $TY="%rdx";
@@ -406,7 +406,7 @@ $code.=<<___;
 #md5#	add	2*4(%rsp),$V[2]
 #md5#	add	3*4(%rsp),$V[3]
 
-#rc4#	movdqu	%xmm2,($out,$in0)	# write RC4 output
+#rc4#	movdqu	%xmm2,($out,$in0)	# write VR_RC4 output
 #rc4#	movdqu	%xmm3,16($out,$in0)
 #rc4#	movdqu	%xmm4,32($out,$in0)
 #rc4#	movdqu	%xmm5,48($out,$in0)
@@ -480,10 +480,10 @@ my ($idx,$ido)=("%r8","%r9");
 my ($dat,$len,$inp)=("%rdi","%rsi","%rdx");
 
 $code.=<<___;
-.globl	RC4_set_key
-.type	RC4_set_key,\@function,3
+.globl	VR_RC4_set_key
+.type	VR_RC4_set_key,\@function,3
 .align	16
-RC4_set_key:
+VR_RC4_set_key:
 	lea	8($dat),$dat
 	lea	($inp,$len),$inp
 	neg	$len
@@ -519,19 +519,19 @@ RC4_set_key:
 	mov	%eax,-8($dat)
 	mov	%eax,-4($dat)
 	ret
-.size	RC4_set_key,.-RC4_set_key
+.size	VR_RC4_set_key,.-VR_RC4_set_key
 
-.globl	RC4_options
-.type	RC4_options,\@abi-omnipotent
+.globl	VR_RC4_options
+.type	VR_RC4_options,\@abi-omnipotent
 .align	16
-RC4_options:
+VR_RC4_options:
 	lea	.Lopts(%rip),%rax
 	ret
 .align	64
 .Lopts:
 .asciz	"rc4(64x,int)"
 .align	64
-.size	RC4_options,.-RC4_options
+.size	VR_RC4_options,.-VR_RC4_options
 ___
 }
 # EXCEPTION_DISPOSITION handler (EXCEPTION_RECORD *rec,ULONG64 frame,

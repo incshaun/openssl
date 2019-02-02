@@ -90,7 +90,7 @@ int ec_main(int argc, char **argv)
         case OPT_EOF:
         case OPT_ERR:
  opthelp:
-            BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
+            VR_BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
             opt_help(ec_options);
@@ -167,7 +167,7 @@ int ec_main(int argc, char **argv)
         private = 1;
 
     if (!app_passwd(passinarg, passoutarg, &passin, &passout)) {
-        BIO_printf(bio_err, "Error getting passwords\n");
+        VR_BIO_printf(bio_err, "Error getting passwords\n");
         goto end;
     }
 
@@ -177,12 +177,12 @@ int ec_main(int argc, char **argv)
             goto end;
     }
 
-    BIO_printf(bio_err, "read EC key\n");
+    VR_BIO_printf(bio_err, "read EC key\n");
     if (informat == FORMAT_ASN1) {
         if (pubin)
-            eckey = d2i_EC_PUBKEY_bio(in, NULL);
+            eckey = VR_d2i_EC_PUBKEY_bio(in, NULL);
         else
-            eckey = d2i_ECPrivateKey_bio(in, NULL);
+            eckey = VR_d2i_ECPrivateKey_bio(in, NULL);
     } else if (informat == FORMAT_ENGINE) {
         EVP_PKEY *pkey;
         if (pubin)
@@ -190,18 +190,18 @@ int ec_main(int argc, char **argv)
         else
             pkey = load_key(infile, informat, 1, passin, e, "Private Key");
         if (pkey != NULL) {
-            eckey = EVP_PKEY_get1_EC_KEY(pkey);
-            EVP_PKEY_free(pkey);
+            eckey = VR_EVP_PKEY_get1_EC_KEY(pkey);
+            VR_EVP_PKEY_free(pkey);
         }
     } else {
         if (pubin)
-            eckey = PEM_read_bio_EC_PUBKEY(in, NULL, NULL, NULL);
+            eckey = VR_PEM_read_bio_EC_PUBKEY(in, NULL, NULL, NULL);
         else
-            eckey = PEM_read_bio_ECPrivateKey(in, NULL, NULL, passin);
+            eckey = VR_PEM_read_bio_ECPrivateKey(in, NULL, NULL, passin);
     }
     if (eckey == NULL) {
-        BIO_printf(bio_err, "unable to load Key\n");
-        ERR_print_errors(bio_err);
+        VR_BIO_printf(bio_err, "unable to load Key\n");
+        VR_ERR_print_errors(bio_err);
         goto end;
     }
 
@@ -209,32 +209,32 @@ int ec_main(int argc, char **argv)
     if (out == NULL)
         goto end;
 
-    group = EC_KEY_get0_group(eckey);
+    group = VR_EC_KEY_get0_group(eckey);
 
     if (new_form)
-        EC_KEY_set_conv_form(eckey, form);
+        VR_EC_KEY_set_conv_form(eckey, form);
 
     if (new_asn1_flag)
-        EC_KEY_set_asn1_flag(eckey, asn1_flag);
+        VR_EC_KEY_set_asn1_flag(eckey, asn1_flag);
 
     if (no_public)
-        EC_KEY_set_enc_flags(eckey, EC_PKEY_NO_PUBKEY);
+        VR_EC_KEY_set_enc_flags(eckey, EC_PKEY_NO_PUBKEY);
 
     if (text) {
         assert(pubin || private);
-        if (!EC_KEY_print(out, eckey, 0)) {
+        if (!VR_EC_KEY_print(out, eckey, 0)) {
             perror(outfile);
-            ERR_print_errors(bio_err);
+            VR_ERR_print_errors(bio_err);
             goto end;
         }
     }
 
     if (check) {
-        if (EC_KEY_check_key(eckey) == 1) {
-            BIO_printf(bio_err, "EC Key valid.\n");
+        if (VR_EC_KEY_check_key(eckey) == 1) {
+            VR_BIO_printf(bio_err, "EC Key valid.\n");
         } else {
-            BIO_printf(bio_err, "EC Key Invalid!\n");
-            ERR_print_errors(bio_err);
+            VR_BIO_printf(bio_err, "EC Key Invalid!\n");
+            VR_ERR_print_errors(bio_err);
         }
     }
 
@@ -243,41 +243,41 @@ int ec_main(int argc, char **argv)
         goto end;
     }
 
-    BIO_printf(bio_err, "writing EC key\n");
+    VR_BIO_printf(bio_err, "writing EC key\n");
     if (outformat == FORMAT_ASN1) {
         if (param_out) {
-            i = i2d_ECPKParameters_bio(out, group);
+            i = VR_i2d_ECPKParameters_bio(out, group);
         } else if (pubin || pubout) {
-            i = i2d_EC_PUBKEY_bio(out, eckey);
+            i = VR_i2d_EC_PUBKEY_bio(out, eckey);
         } else {
             assert(private);
-            i = i2d_ECPrivateKey_bio(out, eckey);
+            i = VR_i2d_ECPrivateKey_bio(out, eckey);
         }
     } else {
         if (param_out) {
-            i = PEM_write_bio_ECPKParameters(out, group);
+            i = VR_PEM_write_bio_ECPKParameters(out, group);
         } else if (pubin || pubout) {
-            i = PEM_write_bio_EC_PUBKEY(out, eckey);
+            i = VR_PEM_write_bio_EC_PUBKEY(out, eckey);
         } else {
             assert(private);
-            i = PEM_write_bio_ECPrivateKey(out, eckey, enc,
+            i = VR_PEM_write_bio_ECPrivateKey(out, eckey, enc,
                                            NULL, 0, NULL, passout);
         }
     }
 
     if (!i) {
-        BIO_printf(bio_err, "unable to write private key\n");
-        ERR_print_errors(bio_err);
+        VR_BIO_printf(bio_err, "unable to write private key\n");
+        VR_ERR_print_errors(bio_err);
     } else {
         ret = 0;
     }
  end:
-    BIO_free(in);
-    BIO_free_all(out);
-    EC_KEY_free(eckey);
+    VR_BIO_free(in);
+    VR_BIO_free_all(out);
+    VR_EC_KEY_free(eckey);
     release_engine(e);
-    OPENSSL_free(passin);
-    OPENSSL_free(passout);
+    OPENVR_SSL_free(passin);
+    OPENVR_SSL_free(passout);
     return ret;
 }
 #endif

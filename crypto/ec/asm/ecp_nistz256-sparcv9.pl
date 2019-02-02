@@ -71,9 +71,9 @@ close TABLE;
 die "insane number of elements" if ($#arr != 64*16*37-1);
 
 $code.=<<___;
-.globl	ecp_nistz256_precomputed
+.globl	VR_ecp_nistz256_precomputed
 .align	4096
-ecp_nistz256_precomputed:
+VR_ecp_nistz256_precomputed:
 ___
 ########################################################################
 # this conversion smashes P256_POINT_AFFINE by individual bytes with
@@ -101,8 +101,8 @@ my ($bi,$a0,$mask,$carry)=(map("%i$_",(3..5)),"%g1");
 my ($rp_real,$ap_real)=("%g2","%g3");
 
 $code.=<<___;
-.type	ecp_nistz256_precomputed,#object
-.size	ecp_nistz256_precomputed,.-ecp_nistz256_precomputed
+.type	VR_ecp_nistz256_precomputed,#object
+.size	VR_ecp_nistz256_precomputed,.-VR_ecp_nistz256_precomputed
 .align	64
 .LRR:	! 2^512 mod P precomputed for NIST P256 polynomial
 .long	0x00000003, 0x00000000, 0xffffffff, 0xfffffffb
@@ -111,62 +111,62 @@ $code.=<<___;
 .long	1,0,0,0,0,0,0,0
 .asciz	"ECP_NISTZ256 for SPARCv9, CRYPTOGAMS by <appro\@openssl.org>"
 
-! void	ecp_nistz256_to_mont(BN_ULONG %i0[8],const BN_ULONG %i1[8]);
-.globl	ecp_nistz256_to_mont
+! void	VR_ecp_nistz256_to_mont(BN_ULONG %i0[8],const BN_ULONG %i1[8]);
+.globl	VR_ecp_nistz256_to_mont
 .align	64
-ecp_nistz256_to_mont:
+VR_ecp_nistz256_to_mont:
 	save	%sp,-STACK_FRAME,%sp
 	nop
 1:	call	.+8
 	add	%o7,.LRR-1b,$bp
-	call	__ecp_nistz256_mul_mont
+	call	__VR_ecp_nistz256_mul_mont
 	nop
 	ret
 	restore
-.type	ecp_nistz256_to_mont,#function
-.size	ecp_nistz256_to_mont,.-ecp_nistz256_to_mont
+.type	VR_ecp_nistz256_to_mont,#function
+.size	VR_ecp_nistz256_to_mont,.-VR_ecp_nistz256_to_mont
 
-! void	ecp_nistz256_from_mont(BN_ULONG %i0[8],const BN_ULONG %i1[8]);
-.globl	ecp_nistz256_from_mont
+! void	VR_ecp_nistz256_from_mont(BN_ULONG %i0[8],const BN_ULONG %i1[8]);
+.globl	VR_ecp_nistz256_from_mont
 .align	32
-ecp_nistz256_from_mont:
+VR_ecp_nistz256_from_mont:
 	save	%sp,-STACK_FRAME,%sp
 	nop
 1:	call	.+8
 	add	%o7,.Lone-1b,$bp
-	call	__ecp_nistz256_mul_mont
+	call	__VR_ecp_nistz256_mul_mont
 	nop
 	ret
 	restore
-.type	ecp_nistz256_from_mont,#function
-.size	ecp_nistz256_from_mont,.-ecp_nistz256_from_mont
+.type	VR_ecp_nistz256_from_mont,#function
+.size	VR_ecp_nistz256_from_mont,.-VR_ecp_nistz256_from_mont
 
-! void	ecp_nistz256_mul_mont(BN_ULONG %i0[8],const BN_ULONG %i1[8],
+! void	VR_ecp_nistz256_mul_mont(BN_ULONG %i0[8],const BN_ULONG %i1[8],
 !					      const BN_ULONG %i2[8]);
-.globl	ecp_nistz256_mul_mont
+.globl	VR_ecp_nistz256_mul_mont
 .align	32
-ecp_nistz256_mul_mont:
+VR_ecp_nistz256_mul_mont:
 	save	%sp,-STACK_FRAME,%sp
 	nop
-	call	__ecp_nistz256_mul_mont
+	call	__VR_ecp_nistz256_mul_mont
 	nop
 	ret
 	restore
-.type	ecp_nistz256_mul_mont,#function
-.size	ecp_nistz256_mul_mont,.-ecp_nistz256_mul_mont
+.type	VR_ecp_nistz256_mul_mont,#function
+.size	VR_ecp_nistz256_mul_mont,.-VR_ecp_nistz256_mul_mont
 
-! void	ecp_nistz256_sqr_mont(BN_ULONG %i0[8],const BN_ULONG %i2[8]);
-.globl	ecp_nistz256_sqr_mont
+! void	VR_ecp_nistz256_sqr_mont(BN_ULONG %i0[8],const BN_ULONG %i2[8]);
+.globl	VR_ecp_nistz256_sqr_mont
 .align	32
-ecp_nistz256_sqr_mont:
+VR_ecp_nistz256_sqr_mont:
 	save	%sp,-STACK_FRAME,%sp
 	mov	$ap,$bp
-	call	__ecp_nistz256_mul_mont
+	call	__VR_ecp_nistz256_mul_mont
 	nop
 	ret
 	restore
-.type	ecp_nistz256_sqr_mont,#function
-.size	ecp_nistz256_sqr_mont,.-ecp_nistz256_sqr_mont
+.type	VR_ecp_nistz256_sqr_mont,#function
+.size	VR_ecp_nistz256_sqr_mont,.-VR_ecp_nistz256_sqr_mont
 ___
 
 ########################################################################
@@ -180,7 +180,7 @@ ___
 
 $code.=<<___;
 .align	32
-__ecp_nistz256_mul_mont:
+__VR_ecp_nistz256_mul_mont:
 	ld	[$bp+0],$bi		! b[0]
 	mov	-1,$mask
 	ld	[$ap+0],$a0
@@ -365,14 +365,14 @@ $code.=<<___;
 	st	@acc[6],[$rp+24]
 	retl
 	st	@acc[7],[$rp+28]
-.type	__ecp_nistz256_mul_mont,#function
-.size	__ecp_nistz256_mul_mont,.-__ecp_nistz256_mul_mont
+.type	__VR_ecp_nistz256_mul_mont,#function
+.size	__VR_ecp_nistz256_mul_mont,.-__VR_ecp_nistz256_mul_mont
 
-! void	ecp_nistz256_add(BN_ULONG %i0[8],const BN_ULONG %i1[8],
+! void	VR_ecp_nistz256_add(BN_ULONG %i0[8],const BN_ULONG %i1[8],
 !					 const BN_ULONG %i2[8]);
-.globl	ecp_nistz256_add
+.globl	VR_ecp_nistz256_add
 .align	32
-ecp_nistz256_add:
+VR_ecp_nistz256_add:
 	save	%sp,-STACK_FRAME,%sp
 	ld	[$ap],@acc[0]
 	ld	[$ap+4],@acc[1]
@@ -381,15 +381,15 @@ ecp_nistz256_add:
 	ld	[$ap+16],@acc[4]
 	ld	[$ap+20],@acc[5]
 	ld	[$ap+24],@acc[6]
-	call	__ecp_nistz256_add
+	call	__VR_ecp_nistz256_add
 	ld	[$ap+28],@acc[7]
 	ret
 	restore
-.type	ecp_nistz256_add,#function
-.size	ecp_nistz256_add,.-ecp_nistz256_add
+.type	VR_ecp_nistz256_add,#function
+.size	VR_ecp_nistz256_add,.-VR_ecp_nistz256_add
 
 .align	32
-__ecp_nistz256_add:
+__VR_ecp_nistz256_add:
 	ld	[$bp+0],$t0		! b[0]
 	ld	[$bp+4],$t1
 	ld	[$bp+8],$t2
@@ -447,13 +447,13 @@ __ecp_nistz256_add:
 	st	@acc[6],[$rp+24]
 	retl
 	st	@acc[7],[$rp+28]
-.type	__ecp_nistz256_add,#function
-.size	__ecp_nistz256_add,.-__ecp_nistz256_add
+.type	__VR_ecp_nistz256_add,#function
+.size	__VR_ecp_nistz256_add,.-__VR_ecp_nistz256_add
 
-! void	ecp_nistz256_mul_by_2(BN_ULONG %i0[8],const BN_ULONG %i1[8]);
-.globl	ecp_nistz256_mul_by_2
+! void	VR_ecp_nistz256_mul_by_2(BN_ULONG %i0[8],const BN_ULONG %i1[8]);
+.globl	VR_ecp_nistz256_mul_by_2
 .align	32
-ecp_nistz256_mul_by_2:
+VR_ecp_nistz256_mul_by_2:
 	save	%sp,-STACK_FRAME,%sp
 	ld	[$ap],@acc[0]
 	ld	[$ap+4],@acc[1]
@@ -462,15 +462,15 @@ ecp_nistz256_mul_by_2:
 	ld	[$ap+16],@acc[4]
 	ld	[$ap+20],@acc[5]
 	ld	[$ap+24],@acc[6]
-	call	__ecp_nistz256_mul_by_2
+	call	__VR_ecp_nistz256_mul_by_2
 	ld	[$ap+28],@acc[7]
 	ret
 	restore
-.type	ecp_nistz256_mul_by_2,#function
-.size	ecp_nistz256_mul_by_2,.-ecp_nistz256_mul_by_2
+.type	VR_ecp_nistz256_mul_by_2,#function
+.size	VR_ecp_nistz256_mul_by_2,.-VR_ecp_nistz256_mul_by_2
 
 .align	32
-__ecp_nistz256_mul_by_2:
+__VR_ecp_nistz256_mul_by_2:
 	addcc	@acc[0],@acc[0],@acc[0]	! a+a=2*a
 	addccc	@acc[1],@acc[1],@acc[1]
 	addccc	@acc[2],@acc[2],@acc[2]
@@ -481,13 +481,13 @@ __ecp_nistz256_mul_by_2:
 	addccc	@acc[7],@acc[7],@acc[7]
 	b	.Lreduce_by_sub
 	addc	%g0,%g0,$carry
-.type	__ecp_nistz256_mul_by_2,#function
-.size	__ecp_nistz256_mul_by_2,.-__ecp_nistz256_mul_by_2
+.type	__VR_ecp_nistz256_mul_by_2,#function
+.size	__VR_ecp_nistz256_mul_by_2,.-__VR_ecp_nistz256_mul_by_2
 
-! void	ecp_nistz256_mul_by_3(BN_ULONG %i0[8],const BN_ULONG %i1[8]);
-.globl	ecp_nistz256_mul_by_3
+! void	VR_ecp_nistz256_mul_by_3(BN_ULONG %i0[8],const BN_ULONG %i1[8]);
+.globl	VR_ecp_nistz256_mul_by_3
 .align	32
-ecp_nistz256_mul_by_3:
+VR_ecp_nistz256_mul_by_3:
 	save	%sp,-STACK_FRAME,%sp
 	ld	[$ap],@acc[0]
 	ld	[$ap+4],@acc[1]
@@ -496,15 +496,15 @@ ecp_nistz256_mul_by_3:
 	ld	[$ap+16],@acc[4]
 	ld	[$ap+20],@acc[5]
 	ld	[$ap+24],@acc[6]
-	call	__ecp_nistz256_mul_by_3
+	call	__VR_ecp_nistz256_mul_by_3
 	ld	[$ap+28],@acc[7]
 	ret
 	restore
-.type	ecp_nistz256_mul_by_3,#function
-.size	ecp_nistz256_mul_by_3,.-ecp_nistz256_mul_by_3
+.type	VR_ecp_nistz256_mul_by_3,#function
+.size	VR_ecp_nistz256_mul_by_3,.-VR_ecp_nistz256_mul_by_3
 
 .align	32
-__ecp_nistz256_mul_by_3:
+__VR_ecp_nistz256_mul_by_3:
 	addcc	@acc[0],@acc[0],$t0	! a+a=2*a
 	addccc	@acc[1],@acc[1],$t1
 	addccc	@acc[2],@acc[2],$t2
@@ -545,14 +545,14 @@ __ecp_nistz256_mul_by_3:
 	addccc	$t7,@acc[7],@acc[7]
 	b	.Lreduce_by_sub
 	addc	%g0,%g0,$carry
-.type	__ecp_nistz256_mul_by_3,#function
-.size	__ecp_nistz256_mul_by_3,.-__ecp_nistz256_mul_by_3
+.type	__VR_ecp_nistz256_mul_by_3,#function
+.size	__VR_ecp_nistz256_mul_by_3,.-__VR_ecp_nistz256_mul_by_3
 
-! void	ecp_nistz256_sub(BN_ULONG %i0[8],const BN_ULONG %i1[8],
+! void	VR_ecp_nistz256_sub(BN_ULONG %i0[8],const BN_ULONG %i1[8],
 !				         const BN_ULONG %i2[8]);
-.globl	ecp_nistz256_sub
+.globl	VR_ecp_nistz256_sub
 .align	32
-ecp_nistz256_sub:
+VR_ecp_nistz256_sub:
 	save	%sp,-STACK_FRAME,%sp
 	ld	[$ap],@acc[0]
 	ld	[$ap+4],@acc[1]
@@ -561,17 +561,17 @@ ecp_nistz256_sub:
 	ld	[$ap+16],@acc[4]
 	ld	[$ap+20],@acc[5]
 	ld	[$ap+24],@acc[6]
-	call	__ecp_nistz256_sub_from
+	call	__VR_ecp_nistz256_sub_from
 	ld	[$ap+28],@acc[7]
 	ret
 	restore
-.type	ecp_nistz256_sub,#function
-.size	ecp_nistz256_sub,.-ecp_nistz256_sub
+.type	VR_ecp_nistz256_sub,#function
+.size	VR_ecp_nistz256_sub,.-VR_ecp_nistz256_sub
 
-! void	ecp_nistz256_neg(BN_ULONG %i0[8],const BN_ULONG %i1[8]);
-.globl	ecp_nistz256_neg
+! void	VR_ecp_nistz256_neg(BN_ULONG %i0[8],const BN_ULONG %i1[8]);
+.globl	VR_ecp_nistz256_neg
 .align	32
-ecp_nistz256_neg:
+VR_ecp_nistz256_neg:
 	save	%sp,-STACK_FRAME,%sp
 	mov	$ap,$bp
 	mov	0,@acc[0]
@@ -581,15 +581,15 @@ ecp_nistz256_neg:
 	mov	0,@acc[4]
 	mov	0,@acc[5]
 	mov	0,@acc[6]
-	call	__ecp_nistz256_sub_from
+	call	__VR_ecp_nistz256_sub_from
 	mov	0,@acc[7]
 	ret
 	restore
-.type	ecp_nistz256_neg,#function
-.size	ecp_nistz256_neg,.-ecp_nistz256_neg
+.type	VR_ecp_nistz256_neg,#function
+.size	VR_ecp_nistz256_neg,.-VR_ecp_nistz256_neg
 
 .align	32
-__ecp_nistz256_sub_from:
+__VR_ecp_nistz256_sub_from:
 	ld	[$bp+0],$t0		! b[0]
 	ld	[$bp+4],$t1
 	ld	[$bp+8],$t2
@@ -636,11 +636,11 @@ __ecp_nistz256_sub_from:
 	st	@acc[6],[$rp+24]
 	retl
 	st	@acc[7],[$rp+28]
-.type	__ecp_nistz256_sub_from,#function
-.size	__ecp_nistz256_sub_from,.-__ecp_nistz256_sub_from
+.type	__VR_ecp_nistz256_sub_from,#function
+.size	__VR_ecp_nistz256_sub_from,.-__VR_ecp_nistz256_sub_from
 
 .align	32
-__ecp_nistz256_sub_morf:
+__VR_ecp_nistz256_sub_morf:
 	ld	[$bp+0],$t0		! b[0]
 	ld	[$bp+4],$t1
 	ld	[$bp+8],$t2
@@ -659,13 +659,13 @@ __ecp_nistz256_sub_morf:
 	subccc	$t7,@acc[7],@acc[7]
 	b	.Lreduce_by_add
 	subc	%g0,%g0,$carry		! broadcast borrow bit
-.type	__ecp_nistz256_sub_morf,#function
-.size	__ecp_nistz256_sub_morf,.-__ecp_nistz256_sub_morf
+.type	__VR_ecp_nistz256_sub_morf,#function
+.size	__VR_ecp_nistz256_sub_morf,.-__VR_ecp_nistz256_sub_morf
 
-! void	ecp_nistz256_div_by_2(BN_ULONG %i0[8],const BN_ULONG %i1[8]);
-.globl	ecp_nistz256_div_by_2
+! void	VR_ecp_nistz256_div_by_2(BN_ULONG %i0[8],const BN_ULONG %i1[8]);
+.globl	VR_ecp_nistz256_div_by_2
 .align	32
-ecp_nistz256_div_by_2:
+VR_ecp_nistz256_div_by_2:
 	save	%sp,-STACK_FRAME,%sp
 	ld	[$ap],@acc[0]
 	ld	[$ap+4],@acc[1]
@@ -674,15 +674,15 @@ ecp_nistz256_div_by_2:
 	ld	[$ap+16],@acc[4]
 	ld	[$ap+20],@acc[5]
 	ld	[$ap+24],@acc[6]
-	call	__ecp_nistz256_div_by_2
+	call	__VR_ecp_nistz256_div_by_2
 	ld	[$ap+28],@acc[7]
 	ret
 	restore
-.type	ecp_nistz256_div_by_2,#function
-.size	ecp_nistz256_div_by_2,.-ecp_nistz256_div_by_2
+.type	VR_ecp_nistz256_div_by_2,#function
+.size	VR_ecp_nistz256_div_by_2,.-VR_ecp_nistz256_div_by_2
 
 .align	32
-__ecp_nistz256_div_by_2:
+__VR_ecp_nistz256_div_by_2:
 	! ret = (a is odd ? a+mod : a) >> 1
 
 	and	@acc[0],1,$bi
@@ -732,8 +732,8 @@ __ecp_nistz256_div_by_2:
 	st	@acc[6],[$rp+24]
 	retl
 	st	@acc[7],[$rp+28]
-.type	__ecp_nistz256_div_by_2,#function
-.size	__ecp_nistz256_div_by_2,.-__ecp_nistz256_div_by_2
+.type	__VR_ecp_nistz256_div_by_2,#function
+.size	__VR_ecp_nistz256_div_by_2,.-__VR_ecp_nistz256_div_by_2
 ___
 
 ########################################################################
@@ -741,7 +741,7 @@ ___
 # ecp_nistz256.c
 #
 ########################################################################
-# void ecp_nistz256_point_double(P256_POINT *out,const P256_POINT *inp);
+# void VR_ecp_nistz256_point_double(P256_POINT *out,const P256_POINT *inp);
 #
 {
 my ($S,$M,$Zsqr,$tmp0)=map(32*$_,(0..3));
@@ -753,14 +753,14 @@ $code.=<<___;
 SPARC_PIC_THUNK(%g1)
 #endif
 
-.globl	ecp_nistz256_point_double
+.globl	VR_ecp_nistz256_point_double
 .align	32
-ecp_nistz256_point_double:
+VR_ecp_nistz256_point_double:
 	SPARC_LOAD_ADDRESS_LEAF(OPENSSL_sparcv9cap_P,%g1,%g5)
 	ld	[%g1],%g1		! OPENSSL_sparcv9cap_P[0]
 	and	%g1,(SPARCV9_VIS3|SPARCV9_64BIT_STACK),%g1
 	cmp	%g1,(SPARCV9_VIS3|SPARCV9_64BIT_STACK)
-	be	ecp_nistz256_point_double_vis3
+	be	VR_ecp_nistz256_point_double_vis3
 	nop
 
 	save	%sp,-STACK_FRAME-32*4,%sp
@@ -777,21 +777,21 @@ ecp_nistz256_point_double:
 	ld	[$ap+32+20],@acc[5]
 	ld	[$ap+32+24],@acc[6]
 	ld	[$ap+32+28],@acc[7]
-	call	__ecp_nistz256_mul_by_2	! p256_mul_by_2(S, in_y);
+	call	__VR_ecp_nistz256_mul_by_2	! p256_mul_by_2(S, in_y);
 	add	%sp,LOCALS+$S,$rp
 
 	add	$ap_real,64,$bp
 	add	$ap_real,64,$ap
-	call	__ecp_nistz256_mul_mont	! p256_sqr_mont(Zsqr, in_z);
+	call	__VR_ecp_nistz256_mul_mont	! p256_sqr_mont(Zsqr, in_z);
 	add	%sp,LOCALS+$Zsqr,$rp
 
 	add	$ap_real,0,$bp
-	call	__ecp_nistz256_add	! p256_add(M, Zsqr, in_x);
+	call	__VR_ecp_nistz256_add	! p256_add(M, Zsqr, in_x);
 	add	%sp,LOCALS+$M,$rp
 
 	add	%sp,LOCALS+$S,$bp
 	add	%sp,LOCALS+$S,$ap
-	call	__ecp_nistz256_mul_mont	! p256_sqr_mont(S, S);
+	call	__VR_ecp_nistz256_mul_mont	! p256_sqr_mont(S, S);
 	add	%sp,LOCALS+$S,$rp
 
 	ld	[$ap_real],@acc[0]
@@ -803,72 +803,72 @@ ecp_nistz256_point_double:
 	ld	[$ap_real+20],@acc[5]
 	ld	[$ap_real+24],@acc[6]
 	ld	[$ap_real+28],@acc[7]
-	call	__ecp_nistz256_sub_from	! p256_sub(Zsqr, in_x, Zsqr);
+	call	__VR_ecp_nistz256_sub_from	! p256_sub(Zsqr, in_x, Zsqr);
 	add	%sp,LOCALS+$Zsqr,$rp
 
 	add	$ap_real,32,$bp
 	add	$ap_real,64,$ap
-	call	__ecp_nistz256_mul_mont	! p256_mul_mont(tmp0, in_z, in_y);
+	call	__VR_ecp_nistz256_mul_mont	! p256_mul_mont(tmp0, in_z, in_y);
 	add	%sp,LOCALS+$tmp0,$rp
 
-	call	__ecp_nistz256_mul_by_2	! p256_mul_by_2(res_z, tmp0);
+	call	__VR_ecp_nistz256_mul_by_2	! p256_mul_by_2(res_z, tmp0);
 	add	$rp_real,64,$rp
 
 	add	%sp,LOCALS+$Zsqr,$bp
 	add	%sp,LOCALS+$M,$ap
-	call	__ecp_nistz256_mul_mont	! p256_mul_mont(M, M, Zsqr);
+	call	__VR_ecp_nistz256_mul_mont	! p256_mul_mont(M, M, Zsqr);
 	add	%sp,LOCALS+$M,$rp
 
-	call	__ecp_nistz256_mul_by_3	! p256_mul_by_3(M, M);
+	call	__VR_ecp_nistz256_mul_by_3	! p256_mul_by_3(M, M);
 	add	%sp,LOCALS+$M,$rp
 
 	add	%sp,LOCALS+$S,$bp
 	add	%sp,LOCALS+$S,$ap
-	call	__ecp_nistz256_mul_mont	! p256_sqr_mont(tmp0, S);
+	call	__VR_ecp_nistz256_mul_mont	! p256_sqr_mont(tmp0, S);
 	add	%sp,LOCALS+$tmp0,$rp
 
-	call	__ecp_nistz256_div_by_2	! p256_div_by_2(res_y, tmp0);
+	call	__VR_ecp_nistz256_div_by_2	! p256_div_by_2(res_y, tmp0);
 	add	$rp_real,32,$rp
 
 	add	$ap_real,0,$bp
 	add	%sp,LOCALS+$S,$ap
-	call	__ecp_nistz256_mul_mont	! p256_mul_mont(S, S, in_x);
+	call	__VR_ecp_nistz256_mul_mont	! p256_mul_mont(S, S, in_x);
 	add	%sp,LOCALS+$S,$rp
 
-	call	__ecp_nistz256_mul_by_2	! p256_mul_by_2(tmp0, S);
+	call	__VR_ecp_nistz256_mul_by_2	! p256_mul_by_2(tmp0, S);
 	add	%sp,LOCALS+$tmp0,$rp
 
 	add	%sp,LOCALS+$M,$bp
 	add	%sp,LOCALS+$M,$ap
-	call	__ecp_nistz256_mul_mont	! p256_sqr_mont(res_x, M);
+	call	__VR_ecp_nistz256_mul_mont	! p256_sqr_mont(res_x, M);
 	add	$rp_real,0,$rp
 
 	add	%sp,LOCALS+$tmp0,$bp
-	call	__ecp_nistz256_sub_from	! p256_sub(res_x, res_x, tmp0);
+	call	__VR_ecp_nistz256_sub_from	! p256_sub(res_x, res_x, tmp0);
 	add	$rp_real,0,$rp
 
 	add	%sp,LOCALS+$S,$bp
-	call	__ecp_nistz256_sub_morf	! p256_sub(S, S, res_x);
+	call	__VR_ecp_nistz256_sub_morf	! p256_sub(S, S, res_x);
 	add	%sp,LOCALS+$S,$rp
 
 	add	%sp,LOCALS+$M,$bp
 	add	%sp,LOCALS+$S,$ap
-	call	__ecp_nistz256_mul_mont	! p256_mul_mont(S, S, M);
+	call	__VR_ecp_nistz256_mul_mont	! p256_mul_mont(S, S, M);
 	add	%sp,LOCALS+$S,$rp
 
 	add	$rp_real,32,$bp
-	call	__ecp_nistz256_sub_from	! p256_sub(res_y, S, res_y);
+	call	__VR_ecp_nistz256_sub_from	! p256_sub(res_y, S, res_y);
 	add	$rp_real,32,$rp
 
 	ret
 	restore
-.type	ecp_nistz256_point_double,#function
-.size	ecp_nistz256_point_double,.-ecp_nistz256_point_double
+.type	VR_ecp_nistz256_point_double,#function
+.size	VR_ecp_nistz256_point_double,.-VR_ecp_nistz256_point_double
 ___
 }
 
 ########################################################################
-# void ecp_nistz256_point_add(P256_POINT *out,const P256_POINT *in1,
+# void VR_ecp_nistz256_point_add(P256_POINT *out,const P256_POINT *in1,
 #			      const P256_POINT *in2);
 {
 my ($res_x,$res_y,$res_z,
@@ -883,14 +883,14 @@ my ($Z1sqr, $Z2sqr) = ($Hsqr, $Rsqr);
 my $bp_real=$rp_real;
 
 $code.=<<___;
-.globl	ecp_nistz256_point_add
+.globl	VR_ecp_nistz256_point_add
 .align	32
-ecp_nistz256_point_add:
+VR_ecp_nistz256_point_add:
 	SPARC_LOAD_ADDRESS_LEAF(OPENSSL_sparcv9cap_P,%g1,%g5)
 	ld	[%g1],%g1		! OPENSSL_sparcv9cap_P[0]
 	and	%g1,(SPARCV9_VIS3|SPARCV9_64BIT_STACK),%g1
 	cmp	%g1,(SPARCV9_VIS3|SPARCV9_64BIT_STACK)
-	be	ecp_nistz256_point_add_vis3
+	be	VR_ecp_nistz256_point_add_vis3
 	nop
 
 	save	%sp,-STACK_FRAME-32*12-32,%sp
@@ -937,36 +937,36 @@ ecp_nistz256_point_add:
 
 	add	$bp_real,64,$bp
 	add	$bp_real,64,$ap
-	call	__ecp_nistz256_mul_mont	! p256_sqr_mont(Z2sqr, in2_z);
+	call	__VR_ecp_nistz256_mul_mont	! p256_sqr_mont(Z2sqr, in2_z);
 	add	%sp,LOCALS+$Z2sqr,$rp
 
 	add	$ap_real,64,$bp
 	add	$ap_real,64,$ap
-	call	__ecp_nistz256_mul_mont	! p256_sqr_mont(Z1sqr, in1_z);
+	call	__VR_ecp_nistz256_mul_mont	! p256_sqr_mont(Z1sqr, in1_z);
 	add	%sp,LOCALS+$Z1sqr,$rp
 
 	add	$bp_real,64,$bp
 	add	%sp,LOCALS+$Z2sqr,$ap
-	call	__ecp_nistz256_mul_mont	! p256_mul_mont(S1, Z2sqr, in2_z);
+	call	__VR_ecp_nistz256_mul_mont	! p256_mul_mont(S1, Z2sqr, in2_z);
 	add	%sp,LOCALS+$S1,$rp
 
 	add	$ap_real,64,$bp
 	add	%sp,LOCALS+$Z1sqr,$ap
-	call	__ecp_nistz256_mul_mont	! p256_mul_mont(S2, Z1sqr, in1_z);
+	call	__VR_ecp_nistz256_mul_mont	! p256_mul_mont(S2, Z1sqr, in1_z);
 	add	%sp,LOCALS+$S2,$rp
 
 	add	$ap_real,32,$bp
 	add	%sp,LOCALS+$S1,$ap
-	call	__ecp_nistz256_mul_mont	! p256_mul_mont(S1, S1, in1_y);
+	call	__VR_ecp_nistz256_mul_mont	! p256_mul_mont(S1, S1, in1_y);
 	add	%sp,LOCALS+$S1,$rp
 
 	add	$bp_real,32,$bp
 	add	%sp,LOCALS+$S2,$ap
-	call	__ecp_nistz256_mul_mont	! p256_mul_mont(S2, S2, in2_y);
+	call	__VR_ecp_nistz256_mul_mont	! p256_mul_mont(S2, S2, in2_y);
 	add	%sp,LOCALS+$S2,$rp
 
 	add	%sp,LOCALS+$S1,$bp
-	call	__ecp_nistz256_sub_from	! p256_sub(R, S2, S1);
+	call	__VR_ecp_nistz256_sub_from	! p256_sub(R, S2, S1);
 	add	%sp,LOCALS+$R,$rp
 
 	or	@acc[1],@acc[0],@acc[0]	! see if result is zero
@@ -980,16 +980,16 @@ ecp_nistz256_point_add:
 
 	add	$ap_real,0,$bp
 	add	%sp,LOCALS+$Z2sqr,$ap
-	call	__ecp_nistz256_mul_mont	! p256_mul_mont(U1, in1_x, Z2sqr);
+	call	__VR_ecp_nistz256_mul_mont	! p256_mul_mont(U1, in1_x, Z2sqr);
 	add	%sp,LOCALS+$U1,$rp
 
 	add	$bp_real,0,$bp
 	add	%sp,LOCALS+$Z1sqr,$ap
-	call	__ecp_nistz256_mul_mont	! p256_mul_mont(U2, in2_x, Z1sqr);
+	call	__VR_ecp_nistz256_mul_mont	! p256_mul_mont(U2, in2_x, Z1sqr);
 	add	%sp,LOCALS+$U2,$rp
 
 	add	%sp,LOCALS+$U1,$bp
-	call	__ecp_nistz256_sub_from	! p256_sub(H, U2, U1);
+	call	__VR_ecp_nistz256_sub_from	! p256_sub(H, U2, U1);
 	add	%sp,LOCALS+$H,$rp
 
 	or	@acc[1],@acc[0],@acc[0]	! see if result is zero
@@ -1052,61 +1052,61 @@ ecp_nistz256_point_add:
 .Ladd_proceed:
 	add	%sp,LOCALS+$R,$bp
 	add	%sp,LOCALS+$R,$ap
-	call	__ecp_nistz256_mul_mont	! p256_sqr_mont(Rsqr, R);
+	call	__VR_ecp_nistz256_mul_mont	! p256_sqr_mont(Rsqr, R);
 	add	%sp,LOCALS+$Rsqr,$rp
 
 	add	$ap_real,64,$bp
 	add	%sp,LOCALS+$H,$ap
-	call	__ecp_nistz256_mul_mont	! p256_mul_mont(res_z, H, in1_z);
+	call	__VR_ecp_nistz256_mul_mont	! p256_mul_mont(res_z, H, in1_z);
 	add	%sp,LOCALS+$res_z,$rp
 
 	add	%sp,LOCALS+$H,$bp
 	add	%sp,LOCALS+$H,$ap
-	call	__ecp_nistz256_mul_mont	! p256_sqr_mont(Hsqr, H);
+	call	__VR_ecp_nistz256_mul_mont	! p256_sqr_mont(Hsqr, H);
 	add	%sp,LOCALS+$Hsqr,$rp
 
 	add	$bp_real,64,$bp
 	add	%sp,LOCALS+$res_z,$ap
-	call	__ecp_nistz256_mul_mont	! p256_mul_mont(res_z, res_z, in2_z);
+	call	__VR_ecp_nistz256_mul_mont	! p256_mul_mont(res_z, res_z, in2_z);
 	add	%sp,LOCALS+$res_z,$rp
 
 	add	%sp,LOCALS+$H,$bp
 	add	%sp,LOCALS+$Hsqr,$ap
-	call	__ecp_nistz256_mul_mont	! p256_mul_mont(Hcub, Hsqr, H);
+	call	__VR_ecp_nistz256_mul_mont	! p256_mul_mont(Hcub, Hsqr, H);
 	add	%sp,LOCALS+$Hcub,$rp
 
 	add	%sp,LOCALS+$U1,$bp
 	add	%sp,LOCALS+$Hsqr,$ap
-	call	__ecp_nistz256_mul_mont	! p256_mul_mont(U2, U1, Hsqr);
+	call	__VR_ecp_nistz256_mul_mont	! p256_mul_mont(U2, U1, Hsqr);
 	add	%sp,LOCALS+$U2,$rp
 
-	call	__ecp_nistz256_mul_by_2	! p256_mul_by_2(Hsqr, U2);
+	call	__VR_ecp_nistz256_mul_by_2	! p256_mul_by_2(Hsqr, U2);
 	add	%sp,LOCALS+$Hsqr,$rp
 
 	add	%sp,LOCALS+$Rsqr,$bp
-	call	__ecp_nistz256_sub_morf	! p256_sub(res_x, Rsqr, Hsqr);
+	call	__VR_ecp_nistz256_sub_morf	! p256_sub(res_x, Rsqr, Hsqr);
 	add	%sp,LOCALS+$res_x,$rp
 
 	add	%sp,LOCALS+$Hcub,$bp
-	call	__ecp_nistz256_sub_from	!  p256_sub(res_x, res_x, Hcub);
+	call	__VR_ecp_nistz256_sub_from	!  p256_sub(res_x, res_x, Hcub);
 	add	%sp,LOCALS+$res_x,$rp
 
 	add	%sp,LOCALS+$U2,$bp
-	call	__ecp_nistz256_sub_morf	! p256_sub(res_y, U2, res_x);
+	call	__VR_ecp_nistz256_sub_morf	! p256_sub(res_y, U2, res_x);
 	add	%sp,LOCALS+$res_y,$rp
 
 	add	%sp,LOCALS+$Hcub,$bp
 	add	%sp,LOCALS+$S1,$ap
-	call	__ecp_nistz256_mul_mont	! p256_mul_mont(S2, S1, Hcub);
+	call	__VR_ecp_nistz256_mul_mont	! p256_mul_mont(S2, S1, Hcub);
 	add	%sp,LOCALS+$S2,$rp
 
 	add	%sp,LOCALS+$R,$bp
 	add	%sp,LOCALS+$res_y,$ap
-	call	__ecp_nistz256_mul_mont	! p256_mul_mont(res_y, res_y, R);
+	call	__VR_ecp_nistz256_mul_mont	! p256_mul_mont(res_y, res_y, R);
 	add	%sp,LOCALS+$res_y,$rp
 
 	add	%sp,LOCALS+$S2,$bp
-	call	__ecp_nistz256_sub_from	! p256_sub(res_y, res_y, S2);
+	call	__VR_ecp_nistz256_sub_from	! p256_sub(res_y, res_y, S2);
 	add	%sp,LOCALS+$res_y,$rp
 
 	ld	[%fp+STACK_BIAS-16],$t1	! !in1infty
@@ -1133,13 +1133,13 @@ $code.=<<___;
 .Ladd_done:
 	ret
 	restore
-.type	ecp_nistz256_point_add,#function
-.size	ecp_nistz256_point_add,.-ecp_nistz256_point_add
+.type	VR_ecp_nistz256_point_add,#function
+.size	VR_ecp_nistz256_point_add,.-VR_ecp_nistz256_point_add
 ___
 }
 
 ########################################################################
-# void ecp_nistz256_point_add_affine(P256_POINT *out,const P256_POINT *in1,
+# void VR_ecp_nistz256_point_add_affine(P256_POINT *out,const P256_POINT *in1,
 #				     const P256_POINT_AFFINE *in2);
 {
 my ($res_x,$res_y,$res_z,
@@ -1153,14 +1153,14 @@ my @ONE_mont=(1,0,0,-1,-1,-1,-2,0);
 my $bp_real=$rp_real;
 
 $code.=<<___;
-.globl	ecp_nistz256_point_add_affine
+.globl	VR_ecp_nistz256_point_add_affine
 .align	32
-ecp_nistz256_point_add_affine:
+VR_ecp_nistz256_point_add_affine:
 	SPARC_LOAD_ADDRESS_LEAF(OPENSSL_sparcv9cap_P,%g1,%g5)
 	ld	[%g1],%g1		! OPENSSL_sparcv9cap_P[0]
 	and	%g1,(SPARCV9_VIS3|SPARCV9_64BIT_STACK),%g1
 	cmp	%g1,(SPARCV9_VIS3|SPARCV9_64BIT_STACK)
-	be	ecp_nistz256_point_add_affine_vis3
+	be	VR_ecp_nistz256_point_add_affine_vis3
 	nop
 
 	save	%sp,-STACK_FRAME-32*10-32,%sp
@@ -1223,84 +1223,84 @@ ecp_nistz256_point_add_affine:
 
 	add	$ap_real,64,$bp
 	add	$ap_real,64,$ap
-	call	__ecp_nistz256_mul_mont	! p256_sqr_mont(Z1sqr, in1_z);
+	call	__VR_ecp_nistz256_mul_mont	! p256_sqr_mont(Z1sqr, in1_z);
 	add	%sp,LOCALS+$Z1sqr,$rp
 
 	add	$bp_real,0,$bp
 	add	%sp,LOCALS+$Z1sqr,$ap
-	call	__ecp_nistz256_mul_mont	! p256_mul_mont(U2, Z1sqr, in2_x);
+	call	__VR_ecp_nistz256_mul_mont	! p256_mul_mont(U2, Z1sqr, in2_x);
 	add	%sp,LOCALS+$U2,$rp
 
 	add	$ap_real,0,$bp
-	call	__ecp_nistz256_sub_from	! p256_sub(H, U2, in1_x);
+	call	__VR_ecp_nistz256_sub_from	! p256_sub(H, U2, in1_x);
 	add	%sp,LOCALS+$H,$rp
 
 	add	$ap_real,64,$bp
 	add	%sp,LOCALS+$Z1sqr,$ap
-	call	__ecp_nistz256_mul_mont	! p256_mul_mont(S2, Z1sqr, in1_z);
+	call	__VR_ecp_nistz256_mul_mont	! p256_mul_mont(S2, Z1sqr, in1_z);
 	add	%sp,LOCALS+$S2,$rp
 
 	add	$ap_real,64,$bp
 	add	%sp,LOCALS+$H,$ap
-	call	__ecp_nistz256_mul_mont	! p256_mul_mont(res_z, H, in1_z);
+	call	__VR_ecp_nistz256_mul_mont	! p256_mul_mont(res_z, H, in1_z);
 	add	%sp,LOCALS+$res_z,$rp
 
 	add	$bp_real,32,$bp
 	add	%sp,LOCALS+$S2,$ap
-	call	__ecp_nistz256_mul_mont	! p256_mul_mont(S2, S2, in2_y);
+	call	__VR_ecp_nistz256_mul_mont	! p256_mul_mont(S2, S2, in2_y);
 	add	%sp,LOCALS+$S2,$rp
 
 	add	$ap_real,32,$bp
-	call	__ecp_nistz256_sub_from	! p256_sub(R, S2, in1_y);
+	call	__VR_ecp_nistz256_sub_from	! p256_sub(R, S2, in1_y);
 	add	%sp,LOCALS+$R,$rp
 
 	add	%sp,LOCALS+$H,$bp
 	add	%sp,LOCALS+$H,$ap
-	call	__ecp_nistz256_mul_mont	! p256_sqr_mont(Hsqr, H);
+	call	__VR_ecp_nistz256_mul_mont	! p256_sqr_mont(Hsqr, H);
 	add	%sp,LOCALS+$Hsqr,$rp
 
 	add	%sp,LOCALS+$R,$bp
 	add	%sp,LOCALS+$R,$ap
-	call	__ecp_nistz256_mul_mont	! p256_sqr_mont(Rsqr, R);
+	call	__VR_ecp_nistz256_mul_mont	! p256_sqr_mont(Rsqr, R);
 	add	%sp,LOCALS+$Rsqr,$rp
 
 	add	%sp,LOCALS+$H,$bp
 	add	%sp,LOCALS+$Hsqr,$ap
-	call	__ecp_nistz256_mul_mont	! p256_mul_mont(Hcub, Hsqr, H);
+	call	__VR_ecp_nistz256_mul_mont	! p256_mul_mont(Hcub, Hsqr, H);
 	add	%sp,LOCALS+$Hcub,$rp
 
 	add	$ap_real,0,$bp
 	add	%sp,LOCALS+$Hsqr,$ap
-	call	__ecp_nistz256_mul_mont	! p256_mul_mont(U2, in1_x, Hsqr);
+	call	__VR_ecp_nistz256_mul_mont	! p256_mul_mont(U2, in1_x, Hsqr);
 	add	%sp,LOCALS+$U2,$rp
 
-	call	__ecp_nistz256_mul_by_2	! p256_mul_by_2(Hsqr, U2);
+	call	__VR_ecp_nistz256_mul_by_2	! p256_mul_by_2(Hsqr, U2);
 	add	%sp,LOCALS+$Hsqr,$rp
 
 	add	%sp,LOCALS+$Rsqr,$bp
-	call	__ecp_nistz256_sub_morf	! p256_sub(res_x, Rsqr, Hsqr);
+	call	__VR_ecp_nistz256_sub_morf	! p256_sub(res_x, Rsqr, Hsqr);
 	add	%sp,LOCALS+$res_x,$rp
 
 	add	%sp,LOCALS+$Hcub,$bp
-	call	__ecp_nistz256_sub_from	!  p256_sub(res_x, res_x, Hcub);
+	call	__VR_ecp_nistz256_sub_from	!  p256_sub(res_x, res_x, Hcub);
 	add	%sp,LOCALS+$res_x,$rp
 
 	add	%sp,LOCALS+$U2,$bp
-	call	__ecp_nistz256_sub_morf	! p256_sub(res_y, U2, res_x);
+	call	__VR_ecp_nistz256_sub_morf	! p256_sub(res_y, U2, res_x);
 	add	%sp,LOCALS+$res_y,$rp
 
 	add	$ap_real,32,$bp
 	add	%sp,LOCALS+$Hcub,$ap
-	call	__ecp_nistz256_mul_mont	! p256_mul_mont(S2, in1_y, Hcub);
+	call	__VR_ecp_nistz256_mul_mont	! p256_mul_mont(S2, in1_y, Hcub);
 	add	%sp,LOCALS+$S2,$rp
 
 	add	%sp,LOCALS+$R,$bp
 	add	%sp,LOCALS+$res_y,$ap
-	call	__ecp_nistz256_mul_mont	! p256_mul_mont(res_y, res_y, R);
+	call	__VR_ecp_nistz256_mul_mont	! p256_mul_mont(res_y, res_y, R);
 	add	%sp,LOCALS+$res_y,$rp
 
 	add	%sp,LOCALS+$S2,$bp
-	call	__ecp_nistz256_sub_from	! p256_sub(res_y, res_y, S2);
+	call	__VR_ecp_nistz256_sub_from	! p256_sub(res_y, res_y, S2);
 	add	%sp,LOCALS+$res_y,$rp
 
 	ld	[%fp+STACK_BIAS-16],$t1	! !in1infty
@@ -1341,8 +1341,8 @@ ___
 $code.=<<___;
 	ret
 	restore
-.type	ecp_nistz256_point_add_affine,#function
-.size	ecp_nistz256_point_add_affine,.-ecp_nistz256_point_add_affine
+.type	VR_ecp_nistz256_point_add_affine,#function
+.size	VR_ecp_nistz256_point_add_affine,.-VR_ecp_nistz256_point_add_affine
 ___
 }								}}}
 {{{
@@ -1350,11 +1350,11 @@ my ($out,$inp,$index)=map("%i$_",(0..2));
 my $mask="%o0";
 
 $code.=<<___;
-! void	ecp_nistz256_scatter_w5(void *%i0,const P256_POINT *%i1,
+! void	VR_ecp_nistz256_scatter_w5(void *%i0,const P256_POINT *%i1,
 !					  int %i2);
-.globl	ecp_nistz256_scatter_w5
+.globl	VR_ecp_nistz256_scatter_w5
 .align	32
-ecp_nistz256_scatter_w5:
+VR_ecp_nistz256_scatter_w5:
 	save	%sp,-STACK_FRAME,%sp
 
 	sll	$index,2,$index
@@ -1417,14 +1417,14 @@ ecp_nistz256_scatter_w5:
 
 	ret
 	restore
-.type	ecp_nistz256_scatter_w5,#function
-.size	ecp_nistz256_scatter_w5,.-ecp_nistz256_scatter_w5
+.type	VR_ecp_nistz256_scatter_w5,#function
+.size	VR_ecp_nistz256_scatter_w5,.-VR_ecp_nistz256_scatter_w5
 
-! void	ecp_nistz256_gather_w5(P256_POINT *%i0,const void *%i1,
+! void	VR_ecp_nistz256_gather_w5(P256_POINT *%i0,const void *%i1,
 !					       int %i2);
-.globl	ecp_nistz256_gather_w5
+.globl	VR_ecp_nistz256_gather_w5
 .align	32
-ecp_nistz256_gather_w5:
+VR_ecp_nistz256_gather_w5:
 	save	%sp,-STACK_FRAME,%sp
 
 	neg	$index,$mask
@@ -1515,14 +1515,14 @@ ecp_nistz256_gather_w5:
 
 	ret
 	restore
-.type	ecp_nistz256_gather_w5,#function
-.size	ecp_nistz256_gather_w5,.-ecp_nistz256_gather_w5
+.type	VR_ecp_nistz256_gather_w5,#function
+.size	VR_ecp_nistz256_gather_w5,.-VR_ecp_nistz256_gather_w5
 
-! void	ecp_nistz256_scatter_w7(void *%i0,const P256_POINT_AFFINE *%i1,
+! void	VR_ecp_nistz256_scatter_w7(void *%i0,const P256_POINT_AFFINE *%i1,
 !					  int %i2);
-.globl	ecp_nistz256_scatter_w7
+.globl	VR_ecp_nistz256_scatter_w7
 .align	32
-ecp_nistz256_scatter_w7:
+VR_ecp_nistz256_scatter_w7:
 	save	%sp,-STACK_FRAME,%sp
 	nop
 	add	$out,$index,$out
@@ -1543,14 +1543,14 @@ ecp_nistz256_scatter_w7:
 
 	ret
 	restore
-.type	ecp_nistz256_scatter_w7,#function
-.size	ecp_nistz256_scatter_w7,.-ecp_nistz256_scatter_w7
+.type	VR_ecp_nistz256_scatter_w7,#function
+.size	VR_ecp_nistz256_scatter_w7,.-VR_ecp_nistz256_scatter_w7
 
-! void	ecp_nistz256_gather_w7(P256_POINT_AFFINE *%i0,const void *%i1,
+! void	VR_ecp_nistz256_gather_w7(P256_POINT_AFFINE *%i0,const void *%i1,
 !						      int %i2);
-.globl	ecp_nistz256_gather_w7
+.globl	VR_ecp_nistz256_gather_w7
 .align	32
-ecp_nistz256_gather_w7:
+VR_ecp_nistz256_gather_w7:
 	save	%sp,-STACK_FRAME,%sp
 
 	neg	$index,$mask
@@ -1584,8 +1584,8 @@ ecp_nistz256_gather_w7:
 
 	ret
 	restore
-.type	ecp_nistz256_gather_w7,#function
-.size	ecp_nistz256_gather_w7,.-ecp_nistz256_gather_w7
+.type	VR_ecp_nistz256_gather_w7,#function
+.size	VR_ecp_nistz256_gather_w7,.-VR_ecp_nistz256_gather_w7
 ___
 }}}
 {{{
@@ -1605,24 +1605,24 @@ my ($acc6,$acc7)=($bp,$bi);	# used in squaring
 
 $code.=<<___;
 .align	32
-__ecp_nistz256_mul_by_2_vis3:
+__VR_ecp_nistz256_mul_by_2_vis3:
 	addcc	$acc0,$acc0,$acc0
 	addxccc	$acc1,$acc1,$acc1
 	addxccc	$acc2,$acc2,$acc2
 	addxccc	$acc3,$acc3,$acc3
 	b	.Lreduce_by_sub_vis3
 	addxc	%g0,%g0,$acc4		! did it carry?
-.type	__ecp_nistz256_mul_by_2_vis3,#function
-.size	__ecp_nistz256_mul_by_2_vis3,.-__ecp_nistz256_mul_by_2_vis3
+.type	__VR_ecp_nistz256_mul_by_2_vis3,#function
+.size	__VR_ecp_nistz256_mul_by_2_vis3,.-__VR_ecp_nistz256_mul_by_2_vis3
 
 .align	32
-__ecp_nistz256_add_vis3:
+__VR_ecp_nistz256_add_vis3:
 	ldx	[$bp+0],$t0
 	ldx	[$bp+8],$t1
 	ldx	[$bp+16],$t2
 	ldx	[$bp+24],$t3
 
-__ecp_nistz256_add_noload_vis3:
+__VR_ecp_nistz256_add_noload_vis3:
 
 	addcc	$t0,$acc0,$acc0
 	addxccc	$t1,$acc1,$acc1
@@ -1647,8 +1647,8 @@ __ecp_nistz256_add_noload_vis3:
 	stx	$acc2,[$rp+16]
 	retl
 	stx	$acc3,[$rp+24]
-.type	__ecp_nistz256_add_vis3,#function
-.size	__ecp_nistz256_add_vis3,.-__ecp_nistz256_add_vis3
+.type	__VR_ecp_nistz256_add_vis3,#function
+.size	__VR_ecp_nistz256_add_vis3,.-__VR_ecp_nistz256_add_vis3
 
 ! Trouble with subtraction is that there is no subtraction with 64-bit
 ! borrow, only with 32-bit one. For this reason we "decompose" 64-bit
@@ -1657,7 +1657,7 @@ __ecp_nistz256_add_noload_vis3:
 ! b[4] is accessed as 4-0-12-8-20-16-28-24. And prior reduction we
 ! "collect" result back to 64-bit $acc0-$acc3.
 .align	32
-__ecp_nistz256_sub_from_vis3:
+__VR_ecp_nistz256_sub_from_vis3:
 	ld	[$bp+4],$t0
 	ld	[$bp+0],$t1
 	ld	[$bp+12],$t2
@@ -1694,11 +1694,11 @@ __ecp_nistz256_sub_from_vis3:
 	subc	%g0,%g0,$acc4		! did it borrow?
 	b	.Lreduce_by_add_vis3
 	or	$acc3,$acc5,$acc3
-.type	__ecp_nistz256_sub_from_vis3,#function
-.size	__ecp_nistz256_sub_from_vis3,.-__ecp_nistz256_sub_from_vis3
+.type	__VR_ecp_nistz256_sub_from_vis3,#function
+.size	__VR_ecp_nistz256_sub_from_vis3,.-__VR_ecp_nistz256_sub_from_vis3
 
 .align	32
-__ecp_nistz256_sub_morf_vis3:
+__VR_ecp_nistz256_sub_morf_vis3:
 	ld	[$bp+4],$t0
 	ld	[$bp+0],$t1
 	ld	[$bp+12],$t2
@@ -1753,11 +1753,11 @@ __ecp_nistz256_sub_morf_vis3:
 	stx	$acc2,[$rp+16]
 	retl
 	stx	$acc3,[$rp+24]
-.type	__ecp_nistz256_sub_morf_vis3,#function
-.size	__ecp_nistz256_sub_morf_vis3,.-__ecp_nistz256_sub_morf_vis3
+.type	__VR_ecp_nistz256_sub_morf_vis3,#function
+.size	__VR_ecp_nistz256_sub_morf_vis3,.-__VR_ecp_nistz256_sub_morf_vis3
 
 .align	32
-__ecp_nistz256_div_by_2_vis3:
+__VR_ecp_nistz256_div_by_2_vis3:
 	! ret = (a is odd ? a+mod : a) >> 1
 
 	not	$poly1,$t1
@@ -1794,13 +1794,13 @@ __ecp_nistz256_div_by_2_vis3:
 	stx	$acc2,[$rp+16]
 	retl
 	stx	$acc3,[$rp+24]
-.type	__ecp_nistz256_div_by_2_vis3,#function
-.size	__ecp_nistz256_div_by_2_vis3,.-__ecp_nistz256_div_by_2_vis3
+.type	__VR_ecp_nistz256_div_by_2_vis3,#function
+.size	__VR_ecp_nistz256_div_by_2_vis3,.-__VR_ecp_nistz256_div_by_2_vis3
 
-! compared to __ecp_nistz256_mul_mont it's almost 4x smaller and
+! compared to __VR_ecp_nistz256_mul_mont it's almost 4x smaller and
 ! 4x faster [on T4]...
 .align	32
-__ecp_nistz256_mul_mont_vis3:
+__VR_ecp_nistz256_mul_mont_vis3:
 	mulx	$a0,$bi,$acc0
 	not	$poly3,$poly3		! 0xFFFFFFFF00000001
 	umulxhi	$a0,$bi,$t0
@@ -1892,13 +1892,13 @@ $code.=<<___;
 	addxccc	$acc4,$t3,$acc3
 	b	.Lmul_final_vis3	! see below
 	addxc	$acc5,%g0,$acc4
-.type	__ecp_nistz256_mul_mont_vis3,#function
-.size	__ecp_nistz256_mul_mont_vis3,.-__ecp_nistz256_mul_mont_vis3
+.type	__VR_ecp_nistz256_mul_mont_vis3,#function
+.size	__VR_ecp_nistz256_mul_mont_vis3,.-__VR_ecp_nistz256_mul_mont_vis3
 
-! compared to above __ecp_nistz256_mul_mont_vis3 it's 21% less
+! compared to above __VR_ecp_nistz256_mul_mont_vis3 it's 21% less
 ! instructions, but only 14% faster [on T4]...
 .align	32
-__ecp_nistz256_sqr_mont_vis3:
+__VR_ecp_nistz256_sqr_mont_vis3:
 	!  |  |  |  |  |  |a1*a0|  |
 	!  |  |  |  |  |a2*a0|  |  |
 	!  |  |a3*a2|a3*a0|  |  |  |
@@ -2017,12 +2017,12 @@ $code.=<<___;
 	stx	$acc2,[$rp+16]
 	retl
 	stx	$acc3,[$rp+24]
-.type	__ecp_nistz256_sqr_mont_vis3,#function
-.size	__ecp_nistz256_sqr_mont_vis3,.-__ecp_nistz256_sqr_mont_vis3
+.type	__VR_ecp_nistz256_sqr_mont_vis3,#function
+.size	__VR_ecp_nistz256_sqr_mont_vis3,.-__VR_ecp_nistz256_sqr_mont_vis3
 ___
 
 ########################################################################
-# void ecp_nistz256_point_double(P256_POINT *out,const P256_POINT *inp);
+# void VR_ecp_nistz256_point_double(P256_POINT *out,const P256_POINT *inp);
 #
 {
 my ($res_x,$res_y,$res_z,
@@ -2033,7 +2033,7 @@ my ($res_x,$res_y,$res_z,
 
 $code.=<<___;
 .align	32
-ecp_nistz256_point_double_vis3:
+VR_ecp_nistz256_point_double_vis3:
 	save	%sp,-STACK64_FRAME-32*10,%sp
 
 	mov	$rp,$rp_real
@@ -2111,11 +2111,11 @@ ecp_nistz256_point_double_vis3:
 	stx	$a3,[%sp+LOCALS64+$in_z+24]
 
 	! in_y is still in $acc0-$acc3
-	call	__ecp_nistz256_mul_by_2_vis3	! p256_mul_by_2(S, in_y);
+	call	__VR_ecp_nistz256_mul_by_2_vis3	! p256_mul_by_2(S, in_y);
 	add	%sp,LOCALS64+$S,$rp
 
 	! in_z is still in $a0-$a3
-	call	__ecp_nistz256_sqr_mont_vis3	! p256_sqr_mont(Zsqr, in_z);
+	call	__VR_ecp_nistz256_sqr_mont_vis3	! p256_sqr_mont(Zsqr, in_z);
 	add	%sp,LOCALS64+$Zsqr,$rp
 
 	mov	$acc0,$a0			! put Zsqr aside
@@ -2124,7 +2124,7 @@ ecp_nistz256_point_double_vis3:
 	mov	$acc3,$a3
 
 	add	%sp,LOCALS64+$in_x,$bp
-	call	__ecp_nistz256_add_vis3		! p256_add(M, Zsqr, in_x);
+	call	__VR_ecp_nistz256_add_vis3		! p256_add(M, Zsqr, in_x);
 	add	%sp,LOCALS64+$M,$rp
 
 	mov	$a0,$acc0			! restore Zsqr
@@ -2137,10 +2137,10 @@ ecp_nistz256_point_double_vis3:
 	ldx	[%sp+LOCALS64+$S+24],$a3
 
 	add	%sp,LOCALS64+$in_x,$bp
-	call	__ecp_nistz256_sub_morf_vis3	! p256_sub(Zsqr, in_x, Zsqr);
+	call	__VR_ecp_nistz256_sub_morf_vis3	! p256_sub(Zsqr, in_x, Zsqr);
 	add	%sp,LOCALS64+$Zsqr,$rp
 
-	call	__ecp_nistz256_sqr_mont_vis3	! p256_sqr_mont(S, S);
+	call	__VR_ecp_nistz256_sqr_mont_vis3	! p256_sqr_mont(S, S);
 	add	%sp,LOCALS64+$S,$rp
 
 	ldx	[%sp+LOCALS64+$in_z],$bi
@@ -2149,7 +2149,7 @@ ecp_nistz256_point_double_vis3:
 	ldx	[%sp+LOCALS64+$in_y+16],$a2
 	ldx	[%sp+LOCALS64+$in_y+24],$a3
 	add	%sp,LOCALS64+$in_z,$bp
-	call	__ecp_nistz256_mul_mont_vis3	! p256_mul_mont(tmp0, in_z, in_y);
+	call	__VR_ecp_nistz256_mul_mont_vis3	! p256_mul_mont(tmp0, in_z, in_y);
 	add	%sp,LOCALS64+$tmp0,$rp
 
 	ldx	[%sp+LOCALS64+$M],$bi		! forward load
@@ -2158,18 +2158,18 @@ ecp_nistz256_point_double_vis3:
 	ldx	[%sp+LOCALS64+$Zsqr+16],$a2
 	ldx	[%sp+LOCALS64+$Zsqr+24],$a3
 
-	call	__ecp_nistz256_mul_by_2_vis3	! p256_mul_by_2(res_z, tmp0);
+	call	__VR_ecp_nistz256_mul_by_2_vis3	! p256_mul_by_2(res_z, tmp0);
 	add	%sp,LOCALS64+$res_z,$rp
 
 	add	%sp,LOCALS64+$M,$bp
-	call	__ecp_nistz256_mul_mont_vis3	! p256_mul_mont(M, M, Zsqr);
+	call	__VR_ecp_nistz256_mul_mont_vis3	! p256_mul_mont(M, M, Zsqr);
 	add	%sp,LOCALS64+$M,$rp
 
 	mov	$acc0,$a0			! put aside M
 	mov	$acc1,$a1
 	mov	$acc2,$a2
 	mov	$acc3,$a3
-	call	__ecp_nistz256_mul_by_2_vis3
+	call	__VR_ecp_nistz256_mul_by_2_vis3
 	add	%sp,LOCALS64+$M,$rp
 	mov	$a0,$t0				! copy M
 	ldx	[%sp+LOCALS64+$S],$a0		! forward load
@@ -2179,10 +2179,10 @@ ecp_nistz256_point_double_vis3:
 	ldx	[%sp+LOCALS64+$S+16],$a2
 	mov	$a3,$t3
 	ldx	[%sp+LOCALS64+$S+24],$a3
-	call	__ecp_nistz256_add_noload_vis3	! p256_mul_by_3(M, M);
+	call	__VR_ecp_nistz256_add_noload_vis3	! p256_mul_by_3(M, M);
 	add	%sp,LOCALS64+$M,$rp
 
-	call	__ecp_nistz256_sqr_mont_vis3	! p256_sqr_mont(tmp0, S);
+	call	__VR_ecp_nistz256_sqr_mont_vis3	! p256_sqr_mont(tmp0, S);
 	add	%sp,LOCALS64+$tmp0,$rp
 
 	ldx	[%sp+LOCALS64+$S],$bi		! forward load
@@ -2191,11 +2191,11 @@ ecp_nistz256_point_double_vis3:
 	ldx	[%sp+LOCALS64+$in_x+16],$a2
 	ldx	[%sp+LOCALS64+$in_x+24],$a3
 
-	call	__ecp_nistz256_div_by_2_vis3	! p256_div_by_2(res_y, tmp0);
+	call	__VR_ecp_nistz256_div_by_2_vis3	! p256_div_by_2(res_y, tmp0);
 	add	%sp,LOCALS64+$res_y,$rp
 
 	add	%sp,LOCALS64+$S,$bp
-	call	__ecp_nistz256_mul_mont_vis3	! p256_mul_mont(S, S, in_x);
+	call	__VR_ecp_nistz256_mul_mont_vis3	! p256_mul_mont(S, S, in_x);
 	add	%sp,LOCALS64+$S,$rp
 
 	ldx	[%sp+LOCALS64+$M],$a0		! forward load
@@ -2203,14 +2203,14 @@ ecp_nistz256_point_double_vis3:
 	ldx	[%sp+LOCALS64+$M+16],$a2
 	ldx	[%sp+LOCALS64+$M+24],$a3
 
-	call	__ecp_nistz256_mul_by_2_vis3	! p256_mul_by_2(tmp0, S);
+	call	__VR_ecp_nistz256_mul_by_2_vis3	! p256_mul_by_2(tmp0, S);
 	add	%sp,LOCALS64+$tmp0,$rp
 
-	call	__ecp_nistz256_sqr_mont_vis3	! p256_sqr_mont(res_x, M);
+	call	__VR_ecp_nistz256_sqr_mont_vis3	! p256_sqr_mont(res_x, M);
 	add	%sp,LOCALS64+$res_x,$rp
 
 	add	%sp,LOCALS64+$tmp0,$bp
-	call	__ecp_nistz256_sub_from_vis3	! p256_sub(res_x, res_x, tmp0);
+	call	__VR_ecp_nistz256_sub_from_vis3	! p256_sub(res_x, res_x, tmp0);
 	add	%sp,LOCALS64+$res_x,$rp
 
 	ldx	[%sp+LOCALS64+$M],$a0		! forward load
@@ -2219,11 +2219,11 @@ ecp_nistz256_point_double_vis3:
 	ldx	[%sp+LOCALS64+$M+24],$a3
 
 	add	%sp,LOCALS64+$S,$bp
-	call	__ecp_nistz256_sub_morf_vis3	! p256_sub(S, S, res_x);
+	call	__VR_ecp_nistz256_sub_morf_vis3	! p256_sub(S, S, res_x);
 	add	%sp,LOCALS64+$S,$rp
 
 	mov	$acc0,$bi
-	call	__ecp_nistz256_mul_mont_vis3	! p256_mul_mont(S, S, M);
+	call	__VR_ecp_nistz256_mul_mont_vis3	! p256_mul_mont(S, S, M);
 	add	%sp,LOCALS64+$S,$rp
 
 	ldx	[%sp+LOCALS64+$res_x],$a0	! forward load
@@ -2232,7 +2232,7 @@ ecp_nistz256_point_double_vis3:
 	ldx	[%sp+LOCALS64+$res_x+24],$a3
 
 	add	%sp,LOCALS64+$res_y,$bp
-	call	__ecp_nistz256_sub_from_vis3	! p256_sub(res_y, S, res_y);
+	call	__VR_ecp_nistz256_sub_from_vis3	! p256_sub(res_y, S, res_y);
 	add	%sp,LOCALS64+$res_y,$bp
 
 	! convert output to uint_32[8]
@@ -2281,12 +2281,12 @@ ecp_nistz256_point_double_vis3:
 
 	ret
 	restore
-.type	ecp_nistz256_point_double_vis3,#function
-.size	ecp_nistz256_point_double_vis3,.-ecp_nistz256_point_double_vis3
+.type	VR_ecp_nistz256_point_double_vis3,#function
+.size	VR_ecp_nistz256_point_double_vis3,.-VR_ecp_nistz256_point_double_vis3
 ___
 }
 ########################################################################
-# void ecp_nistz256_point_add(P256_POINT *out,const P256_POINT *in1,
+# void VR_ecp_nistz256_point_add(P256_POINT *out,const P256_POINT *in1,
 #			      const P256_POINT *in2);
 {
 my ($res_x,$res_y,$res_z,
@@ -2301,9 +2301,9 @@ my ($Z1sqr, $Z2sqr) = ($Hsqr, $Rsqr);
 # !in1infty, !in2infty and result of check for zero.
 
 $code.=<<___;
-.globl	ecp_nistz256_point_add_vis3
+.globl	VR_ecp_nistz256_point_add_vis3
 .align	32
-ecp_nistz256_point_add_vis3:
+VR_ecp_nistz256_point_add_vis3:
 	save	%sp,-STACK64_FRAME-32*18-32,%sp
 
 	mov	$rp,$rp_real
@@ -2454,14 +2454,14 @@ ecp_nistz256_point_add_vis3:
 	movrnz	$acc0,-1,$acc0			! !in1infty
 	stx	$acc0,[%fp+STACK_BIAS-16]
 
-	call	__ecp_nistz256_sqr_mont_vis3	! p256_sqr_mont(Z2sqr, in2_z);
+	call	__VR_ecp_nistz256_sqr_mont_vis3	! p256_sqr_mont(Z2sqr, in2_z);
 	add	%sp,LOCALS64+$Z2sqr,$rp
 
 	ldx	[%sp+LOCALS64+$in1_z],$a0
 	ldx	[%sp+LOCALS64+$in1_z+8],$a1
 	ldx	[%sp+LOCALS64+$in1_z+16],$a2
 	ldx	[%sp+LOCALS64+$in1_z+24],$a3
-	call	__ecp_nistz256_sqr_mont_vis3	! p256_sqr_mont(Z1sqr, in1_z);
+	call	__VR_ecp_nistz256_sqr_mont_vis3	! p256_sqr_mont(Z1sqr, in1_z);
 	add	%sp,LOCALS64+$Z1sqr,$rp
 
 	ldx	[%sp+LOCALS64+$Z2sqr],$bi
@@ -2470,7 +2470,7 @@ ecp_nistz256_point_add_vis3:
 	ldx	[%sp+LOCALS64+$in2_z+16],$a2
 	ldx	[%sp+LOCALS64+$in2_z+24],$a3
 	add	%sp,LOCALS64+$Z2sqr,$bp
-	call	__ecp_nistz256_mul_mont_vis3	! p256_mul_mont(S1, Z2sqr, in2_z);
+	call	__VR_ecp_nistz256_mul_mont_vis3	! p256_mul_mont(S1, Z2sqr, in2_z);
 	add	%sp,LOCALS64+$S1,$rp
 
 	ldx	[%sp+LOCALS64+$Z1sqr],$bi
@@ -2479,7 +2479,7 @@ ecp_nistz256_point_add_vis3:
 	ldx	[%sp+LOCALS64+$in1_z+16],$a2
 	ldx	[%sp+LOCALS64+$in1_z+24],$a3
 	add	%sp,LOCALS64+$Z1sqr,$bp
-	call	__ecp_nistz256_mul_mont_vis3	! p256_mul_mont(S2, Z1sqr, in1_z);
+	call	__VR_ecp_nistz256_mul_mont_vis3	! p256_mul_mont(S2, Z1sqr, in1_z);
 	add	%sp,LOCALS64+$S2,$rp
 
 	ldx	[%sp+LOCALS64+$S1],$bi
@@ -2488,7 +2488,7 @@ ecp_nistz256_point_add_vis3:
 	ldx	[%sp+LOCALS64+$in1_y+16],$a2
 	ldx	[%sp+LOCALS64+$in1_y+24],$a3
 	add	%sp,LOCALS64+$S1,$bp
-	call	__ecp_nistz256_mul_mont_vis3	! p256_mul_mont(S1, S1, in1_y);
+	call	__VR_ecp_nistz256_mul_mont_vis3	! p256_mul_mont(S1, S1, in1_y);
 	add	%sp,LOCALS64+$S1,$rp
 
 	ldx	[%sp+LOCALS64+$S2],$bi
@@ -2497,7 +2497,7 @@ ecp_nistz256_point_add_vis3:
 	ldx	[%sp+LOCALS64+$in2_y+16],$a2
 	ldx	[%sp+LOCALS64+$in2_y+24],$a3
 	add	%sp,LOCALS64+$S2,$bp
-	call	__ecp_nistz256_mul_mont_vis3	! p256_mul_mont(S2, S2, in2_y);
+	call	__VR_ecp_nistz256_mul_mont_vis3	! p256_mul_mont(S2, S2, in2_y);
 	add	%sp,LOCALS64+$S2,$rp
 
 	ldx	[%sp+LOCALS64+$Z2sqr],$bi	! forward load
@@ -2507,7 +2507,7 @@ ecp_nistz256_point_add_vis3:
 	ldx	[%sp+LOCALS64+$in1_x+24],$a3
 
 	add	%sp,LOCALS64+$S1,$bp
-	call	__ecp_nistz256_sub_from_vis3	! p256_sub(R, S2, S1);
+	call	__VR_ecp_nistz256_sub_from_vis3	! p256_sub(R, S2, S1);
 	add	%sp,LOCALS64+$R,$rp
 
 	or	$acc1,$acc0,$acc0		! see if result is zero
@@ -2516,7 +2516,7 @@ ecp_nistz256_point_add_vis3:
 	stx	$acc0,[%fp+STACK_BIAS-24]
 
 	add	%sp,LOCALS64+$Z2sqr,$bp
-	call	__ecp_nistz256_mul_mont_vis3	! p256_mul_mont(U1, in1_x, Z2sqr);
+	call	__VR_ecp_nistz256_mul_mont_vis3	! p256_mul_mont(U1, in1_x, Z2sqr);
 	add	%sp,LOCALS64+$U1,$rp
 
 	ldx	[%sp+LOCALS64+$Z1sqr],$bi
@@ -2525,7 +2525,7 @@ ecp_nistz256_point_add_vis3:
 	ldx	[%sp+LOCALS64+$in2_x+16],$a2
 	ldx	[%sp+LOCALS64+$in2_x+24],$a3
 	add	%sp,LOCALS64+$Z1sqr,$bp
-	call	__ecp_nistz256_mul_mont_vis3	! p256_mul_mont(U2, in2_x, Z1sqr);
+	call	__VR_ecp_nistz256_mul_mont_vis3	! p256_mul_mont(U2, in2_x, Z1sqr);
 	add	%sp,LOCALS64+$U2,$rp
 
 	ldx	[%sp+LOCALS64+$R],$a0		! forward load
@@ -2534,7 +2534,7 @@ ecp_nistz256_point_add_vis3:
 	ldx	[%sp+LOCALS64+$R+24],$a3
 
 	add	%sp,LOCALS64+$U1,$bp
-	call	__ecp_nistz256_sub_from_vis3	! p256_sub(H, U2, U1);
+	call	__VR_ecp_nistz256_sub_from_vis3	! p256_sub(H, U2, U1);
 	add	%sp,LOCALS64+$H,$rp
 
 	or	$acc1,$acc0,$acc0		! see if result is zero
@@ -2583,7 +2583,7 @@ ecp_nistz256_point_add_vis3:
 
 .align	16
 .Ladd_proceed_vis3:
-	call	__ecp_nistz256_sqr_mont_vis3	! p256_sqr_mont(Rsqr, R);
+	call	__VR_ecp_nistz256_sqr_mont_vis3	! p256_sqr_mont(Rsqr, R);
 	add	%sp,LOCALS64+$Rsqr,$rp
 
 	ldx	[%sp+LOCALS64+$H],$bi
@@ -2592,14 +2592,14 @@ ecp_nistz256_point_add_vis3:
 	ldx	[%sp+LOCALS64+$in1_z+16],$a2
 	ldx	[%sp+LOCALS64+$in1_z+24],$a3
 	add	%sp,LOCALS64+$H,$bp
-	call	__ecp_nistz256_mul_mont_vis3	! p256_mul_mont(res_z, H, in1_z);
+	call	__VR_ecp_nistz256_mul_mont_vis3	! p256_mul_mont(res_z, H, in1_z);
 	add	%sp,LOCALS64+$res_z,$rp
 
 	ldx	[%sp+LOCALS64+$H],$a0
 	ldx	[%sp+LOCALS64+$H+8],$a1
 	ldx	[%sp+LOCALS64+$H+16],$a2
 	ldx	[%sp+LOCALS64+$H+24],$a3
-	call	__ecp_nistz256_sqr_mont_vis3	! p256_sqr_mont(Hsqr, H);
+	call	__VR_ecp_nistz256_sqr_mont_vis3	! p256_sqr_mont(Hsqr, H);
 	add	%sp,LOCALS64+$Hsqr,$rp
 
 	ldx	[%sp+LOCALS64+$res_z],$bi
@@ -2608,7 +2608,7 @@ ecp_nistz256_point_add_vis3:
 	ldx	[%sp+LOCALS64+$in2_z+16],$a2
 	ldx	[%sp+LOCALS64+$in2_z+24],$a3
 	add	%sp,LOCALS64+$res_z,$bp
-	call	__ecp_nistz256_mul_mont_vis3	! p256_mul_mont(res_z, res_z, in2_z);
+	call	__VR_ecp_nistz256_mul_mont_vis3	! p256_mul_mont(res_z, res_z, in2_z);
 	add	%sp,LOCALS64+$res_z,$rp
 
 	ldx	[%sp+LOCALS64+$H],$bi
@@ -2617,7 +2617,7 @@ ecp_nistz256_point_add_vis3:
 	ldx	[%sp+LOCALS64+$Hsqr+16],$a2
 	ldx	[%sp+LOCALS64+$Hsqr+24],$a3
 	add	%sp,LOCALS64+$H,$bp
-	call	__ecp_nistz256_mul_mont_vis3	! p256_mul_mont(Hcub, Hsqr, H);
+	call	__VR_ecp_nistz256_mul_mont_vis3	! p256_mul_mont(Hcub, Hsqr, H);
 	add	%sp,LOCALS64+$Hcub,$rp
 
 	ldx	[%sp+LOCALS64+$U1],$bi
@@ -2626,18 +2626,18 @@ ecp_nistz256_point_add_vis3:
 	ldx	[%sp+LOCALS64+$Hsqr+16],$a2
 	ldx	[%sp+LOCALS64+$Hsqr+24],$a3
 	add	%sp,LOCALS64+$U1,$bp
-	call	__ecp_nistz256_mul_mont_vis3	! p256_mul_mont(U2, U1, Hsqr);
+	call	__VR_ecp_nistz256_mul_mont_vis3	! p256_mul_mont(U2, U1, Hsqr);
 	add	%sp,LOCALS64+$U2,$rp
 
-	call	__ecp_nistz256_mul_by_2_vis3	! p256_mul_by_2(Hsqr, U2);
+	call	__VR_ecp_nistz256_mul_by_2_vis3	! p256_mul_by_2(Hsqr, U2);
 	add	%sp,LOCALS64+$Hsqr,$rp
 
 	add	%sp,LOCALS64+$Rsqr,$bp
-	call	__ecp_nistz256_sub_morf_vis3	! p256_sub(res_x, Rsqr, Hsqr);
+	call	__VR_ecp_nistz256_sub_morf_vis3	! p256_sub(res_x, Rsqr, Hsqr);
 	add	%sp,LOCALS64+$res_x,$rp
 
 	add	%sp,LOCALS64+$Hcub,$bp
-	call	__ecp_nistz256_sub_from_vis3	!  p256_sub(res_x, res_x, Hcub);
+	call	__VR_ecp_nistz256_sub_from_vis3	!  p256_sub(res_x, res_x, Hcub);
 	add	%sp,LOCALS64+$res_x,$rp
 
 	ldx	[%sp+LOCALS64+$S1],$bi		! forward load
@@ -2647,11 +2647,11 @@ ecp_nistz256_point_add_vis3:
 	ldx	[%sp+LOCALS64+$Hcub+24],$a3
 
 	add	%sp,LOCALS64+$U2,$bp
-	call	__ecp_nistz256_sub_morf_vis3	! p256_sub(res_y, U2, res_x);
+	call	__VR_ecp_nistz256_sub_morf_vis3	! p256_sub(res_y, U2, res_x);
 	add	%sp,LOCALS64+$res_y,$rp
 
 	add	%sp,LOCALS64+$S1,$bp
-	call	__ecp_nistz256_mul_mont_vis3	! p256_mul_mont(S2, S1, Hcub);
+	call	__VR_ecp_nistz256_mul_mont_vis3	! p256_mul_mont(S2, S1, Hcub);
 	add	%sp,LOCALS64+$S2,$rp
 
 	ldx	[%sp+LOCALS64+$R],$bi
@@ -2660,11 +2660,11 @@ ecp_nistz256_point_add_vis3:
 	ldx	[%sp+LOCALS64+$res_y+16],$a2
 	ldx	[%sp+LOCALS64+$res_y+24],$a3
 	add	%sp,LOCALS64+$R,$bp
-	call	__ecp_nistz256_mul_mont_vis3	! p256_mul_mont(res_y, res_y, R);
+	call	__VR_ecp_nistz256_mul_mont_vis3	! p256_mul_mont(res_y, res_y, R);
 	add	%sp,LOCALS64+$res_y,$rp
 
 	add	%sp,LOCALS64+$S2,$bp
-	call	__ecp_nistz256_sub_from_vis3	! p256_sub(res_y, res_y, S2);
+	call	__VR_ecp_nistz256_sub_from_vis3	! p256_sub(res_y, res_y, S2);
 	add	%sp,LOCALS64+$res_y,$rp
 
 	ldx	[%fp+STACK_BIAS-16],$t1		! !in1infty
@@ -2694,12 +2694,12 @@ $code.=<<___;
 .Ladd_done_vis3:
 	ret
 	restore
-.type	ecp_nistz256_point_add_vis3,#function
-.size	ecp_nistz256_point_add_vis3,.-ecp_nistz256_point_add_vis3
+.type	VR_ecp_nistz256_point_add_vis3,#function
+.size	VR_ecp_nistz256_point_add_vis3,.-VR_ecp_nistz256_point_add_vis3
 ___
 }
 ########################################################################
-# void ecp_nistz256_point_add_affine(P256_POINT *out,const P256_POINT *in1,
+# void VR_ecp_nistz256_point_add_affine(P256_POINT *out,const P256_POINT *in1,
 #				     const P256_POINT_AFFINE *in2);
 {
 my ($res_x,$res_y,$res_z,
@@ -2713,7 +2713,7 @@ my $Z1sqr = $S2;
 
 $code.=<<___;
 .align	32
-ecp_nistz256_point_add_affine_vis3:
+VR_ecp_nistz256_point_add_affine_vis3:
 	save	%sp,-STACK64_FRAME-32*15-32,%sp
 
 	mov	$rp,$rp_real
@@ -2842,7 +2842,7 @@ ecp_nistz256_point_add_affine_vis3:
 	movrnz	$t0,-1,$t0			! !in1infty
 	stx	$t0,[%fp+STACK_BIAS-16]
 
-	call	__ecp_nistz256_sqr_mont_vis3	! p256_sqr_mont(Z1sqr, in1_z);
+	call	__VR_ecp_nistz256_sqr_mont_vis3	! p256_sqr_mont(Z1sqr, in1_z);
 	add	%sp,LOCALS64+$Z1sqr,$rp
 
 	ldx	[%sp+LOCALS64+$in2_x],$bi
@@ -2851,7 +2851,7 @@ ecp_nistz256_point_add_affine_vis3:
 	mov	$acc2,$a2
 	mov	$acc3,$a3
 	add	%sp,LOCALS64+$in2_x,$bp
-	call	__ecp_nistz256_mul_mont_vis3	! p256_mul_mont(U2, Z1sqr, in2_x);
+	call	__VR_ecp_nistz256_mul_mont_vis3	! p256_mul_mont(U2, Z1sqr, in2_x);
 	add	%sp,LOCALS64+$U2,$rp
 
 	ldx	[%sp+LOCALS64+$Z1sqr],$bi	! forward load
@@ -2861,11 +2861,11 @@ ecp_nistz256_point_add_affine_vis3:
 	ldx	[%sp+LOCALS64+$in1_z+24],$a3
 
 	add	%sp,LOCALS64+$in1_x,$bp
-	call	__ecp_nistz256_sub_from_vis3	! p256_sub(H, U2, in1_x);
+	call	__VR_ecp_nistz256_sub_from_vis3	! p256_sub(H, U2, in1_x);
 	add	%sp,LOCALS64+$H,$rp
 
 	add	%sp,LOCALS64+$Z1sqr,$bp
-	call	__ecp_nistz256_mul_mont_vis3	! p256_mul_mont(S2, Z1sqr, in1_z);
+	call	__VR_ecp_nistz256_mul_mont_vis3	! p256_mul_mont(S2, Z1sqr, in1_z);
 	add	%sp,LOCALS64+$S2,$rp
 
 	ldx	[%sp+LOCALS64+$H],$bi
@@ -2874,7 +2874,7 @@ ecp_nistz256_point_add_affine_vis3:
 	ldx	[%sp+LOCALS64+$in1_z+16],$a2
 	ldx	[%sp+LOCALS64+$in1_z+24],$a3
 	add	%sp,LOCALS64+$H,$bp
-	call	__ecp_nistz256_mul_mont_vis3	! p256_mul_mont(res_z, H, in1_z);
+	call	__VR_ecp_nistz256_mul_mont_vis3	! p256_mul_mont(res_z, H, in1_z);
 	add	%sp,LOCALS64+$res_z,$rp
 
 	ldx	[%sp+LOCALS64+$S2],$bi
@@ -2883,7 +2883,7 @@ ecp_nistz256_point_add_affine_vis3:
 	ldx	[%sp+LOCALS64+$in2_y+16],$a2
 	ldx	[%sp+LOCALS64+$in2_y+24],$a3
 	add	%sp,LOCALS64+$S2,$bp
-	call	__ecp_nistz256_mul_mont_vis3	! p256_mul_mont(S2, S2, in2_y);
+	call	__VR_ecp_nistz256_mul_mont_vis3	! p256_mul_mont(S2, S2, in2_y);
 	add	%sp,LOCALS64+$S2,$rp
 
 	ldx	[%sp+LOCALS64+$H],$a0		! forward load
@@ -2892,17 +2892,17 @@ ecp_nistz256_point_add_affine_vis3:
 	ldx	[%sp+LOCALS64+$H+24],$a3
 
 	add	%sp,LOCALS64+$in1_y,$bp
-	call	__ecp_nistz256_sub_from_vis3	! p256_sub(R, S2, in1_y);
+	call	__VR_ecp_nistz256_sub_from_vis3	! p256_sub(R, S2, in1_y);
 	add	%sp,LOCALS64+$R,$rp
 
-	call	__ecp_nistz256_sqr_mont_vis3	! p256_sqr_mont(Hsqr, H);
+	call	__VR_ecp_nistz256_sqr_mont_vis3	! p256_sqr_mont(Hsqr, H);
 	add	%sp,LOCALS64+$Hsqr,$rp
 
 	ldx	[%sp+LOCALS64+$R],$a0
 	ldx	[%sp+LOCALS64+$R+8],$a1
 	ldx	[%sp+LOCALS64+$R+16],$a2
 	ldx	[%sp+LOCALS64+$R+24],$a3
-	call	__ecp_nistz256_sqr_mont_vis3	! p256_sqr_mont(Rsqr, R);
+	call	__VR_ecp_nistz256_sqr_mont_vis3	! p256_sqr_mont(Rsqr, R);
 	add	%sp,LOCALS64+$Rsqr,$rp
 
 	ldx	[%sp+LOCALS64+$H],$bi
@@ -2911,7 +2911,7 @@ ecp_nistz256_point_add_affine_vis3:
 	ldx	[%sp+LOCALS64+$Hsqr+16],$a2
 	ldx	[%sp+LOCALS64+$Hsqr+24],$a3
 	add	%sp,LOCALS64+$H,$bp
-	call	__ecp_nistz256_mul_mont_vis3	! p256_mul_mont(Hcub, Hsqr, H);
+	call	__VR_ecp_nistz256_mul_mont_vis3	! p256_mul_mont(Hcub, Hsqr, H);
 	add	%sp,LOCALS64+$Hcub,$rp
 
 	ldx	[%sp+LOCALS64+$Hsqr],$bi
@@ -2920,18 +2920,18 @@ ecp_nistz256_point_add_affine_vis3:
 	ldx	[%sp+LOCALS64+$in1_x+16],$a2
 	ldx	[%sp+LOCALS64+$in1_x+24],$a3
 	add	%sp,LOCALS64+$Hsqr,$bp
-	call	__ecp_nistz256_mul_mont_vis3	! p256_mul_mont(U2, in1_x, Hsqr);
+	call	__VR_ecp_nistz256_mul_mont_vis3	! p256_mul_mont(U2, in1_x, Hsqr);
 	add	%sp,LOCALS64+$U2,$rp
 
-	call	__ecp_nistz256_mul_by_2_vis3	! p256_mul_by_2(Hsqr, U2);
+	call	__VR_ecp_nistz256_mul_by_2_vis3	! p256_mul_by_2(Hsqr, U2);
 	add	%sp,LOCALS64+$Hsqr,$rp
 
 	add	%sp,LOCALS64+$Rsqr,$bp
-	call	__ecp_nistz256_sub_morf_vis3	! p256_sub(res_x, Rsqr, Hsqr);
+	call	__VR_ecp_nistz256_sub_morf_vis3	! p256_sub(res_x, Rsqr, Hsqr);
 	add	%sp,LOCALS64+$res_x,$rp
 
 	add	%sp,LOCALS64+$Hcub,$bp
-	call	__ecp_nistz256_sub_from_vis3	!  p256_sub(res_x, res_x, Hcub);
+	call	__VR_ecp_nistz256_sub_from_vis3	!  p256_sub(res_x, res_x, Hcub);
 	add	%sp,LOCALS64+$res_x,$rp
 
 	ldx	[%sp+LOCALS64+$Hcub],$bi	! forward load
@@ -2941,11 +2941,11 @@ ecp_nistz256_point_add_affine_vis3:
 	ldx	[%sp+LOCALS64+$in1_y+24],$a3
 
 	add	%sp,LOCALS64+$U2,$bp
-	call	__ecp_nistz256_sub_morf_vis3	! p256_sub(res_y, U2, res_x);
+	call	__VR_ecp_nistz256_sub_morf_vis3	! p256_sub(res_y, U2, res_x);
 	add	%sp,LOCALS64+$res_y,$rp
 
 	add	%sp,LOCALS64+$Hcub,$bp
-	call	__ecp_nistz256_mul_mont_vis3	! p256_mul_mont(S2, in1_y, Hcub);
+	call	__VR_ecp_nistz256_mul_mont_vis3	! p256_mul_mont(S2, in1_y, Hcub);
 	add	%sp,LOCALS64+$S2,$rp
 
 	ldx	[%sp+LOCALS64+$R],$bi
@@ -2954,11 +2954,11 @@ ecp_nistz256_point_add_affine_vis3:
 	ldx	[%sp+LOCALS64+$res_y+16],$a2
 	ldx	[%sp+LOCALS64+$res_y+24],$a3
 	add	%sp,LOCALS64+$R,$bp
-	call	__ecp_nistz256_mul_mont_vis3	! p256_mul_mont(res_y, res_y, R);
+	call	__VR_ecp_nistz256_mul_mont_vis3	! p256_mul_mont(res_y, res_y, R);
 	add	%sp,LOCALS64+$res_y,$rp
 
 	add	%sp,LOCALS64+$S2,$bp
-	call	__ecp_nistz256_sub_from_vis3	! p256_sub(res_y, res_y, S2);
+	call	__VR_ecp_nistz256_sub_from_vis3	! p256_sub(res_y, res_y, S2);
 	add	%sp,LOCALS64+$res_y,$rp
 
 	ldx	[%fp+STACK_BIAS-16],$t1		! !in1infty
@@ -3009,8 +3009,8 @@ ___
 $code.=<<___;
 	ret
 	restore
-.type	ecp_nistz256_point_add_affine_vis3,#function
-.size	ecp_nistz256_point_add_affine_vis3,.-ecp_nistz256_point_add_affine_vis3
+.type	VR_ecp_nistz256_point_add_affine_vis3,#function
+.size	VR_ecp_nistz256_point_add_affine_vis3,.-VR_ecp_nistz256_point_add_affine_vis3
 .align	64
 .Lone_mont_vis3:
 .long	0x00000000,0x00000001, 0xffffffff,0x00000000

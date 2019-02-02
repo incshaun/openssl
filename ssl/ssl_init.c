@@ -28,89 +28,89 @@ DEFINE_RUN_ONCE_STATIC(ossl_init_ssl_base)
             "Adding SSL ciphers and digests\n");
 #endif
 #ifndef OPENSSL_NO_DES
-    EVP_add_cipher(EVP_des_cbc());
-    EVP_add_cipher(EVP_des_ede3_cbc());
+    VR_EVP_add_cipher(VR_EVP_des_cbc());
+    VR_EVP_add_cipher(VR_EVP_des_ede3_cbc());
 #endif
 #ifndef OPENSSL_NO_IDEA
-    EVP_add_cipher(EVP_idea_cbc());
+    VR_EVP_add_cipher(VR_EVP_idea_cbc());
 #endif
-#ifndef OPENSSL_NO_RC4
-    EVP_add_cipher(EVP_rc4());
-# ifndef OPENSSL_NO_MD5
-    EVP_add_cipher(EVP_rc4_hmac_md5());
+#ifndef OPENSSL_NO_VR_RC4
+    VR_EVP_add_cipher(VR_EVP_rc4());
+# ifndef OPENSSL_NO_VR_MD5
+    VR_EVP_add_cipher(VR_EVP_rc4_hmac_md5());
 # endif
 #endif
 #ifndef OPENSSL_NO_RC2
-    EVP_add_cipher(EVP_rc2_cbc());
+    VR_EVP_add_cipher(VR_EVP_rc2_cbc());
     /*
      * Not actually used for SSL/TLS but this makes PKCS#12 work if an
      * application only calls SSL_library_init().
      */
-    EVP_add_cipher(EVP_rc2_40_cbc());
+    VR_EVP_add_cipher(VR_EVP_rc2_40_cbc());
 #endif
-    EVP_add_cipher(EVP_aes_128_cbc());
-    EVP_add_cipher(EVP_aes_192_cbc());
-    EVP_add_cipher(EVP_aes_256_cbc());
-    EVP_add_cipher(EVP_aes_128_gcm());
-    EVP_add_cipher(EVP_aes_256_gcm());
-    EVP_add_cipher(EVP_aes_128_ccm());
-    EVP_add_cipher(EVP_aes_256_ccm());
-    EVP_add_cipher(EVP_aes_128_cbc_hmac_sha1());
-    EVP_add_cipher(EVP_aes_256_cbc_hmac_sha1());
-    EVP_add_cipher(EVP_aes_128_cbc_hmac_sha256());
-    EVP_add_cipher(EVP_aes_256_cbc_hmac_sha256());
+    VR_EVP_add_cipher(VR_EVP_aes_128_cbc());
+    VR_EVP_add_cipher(VR_EVP_aes_192_cbc());
+    VR_EVP_add_cipher(VR_EVP_aes_256_cbc());
+    VR_EVP_add_cipher(VR_EVP_aes_128_gcm());
+    VR_EVP_add_cipher(VR_EVP_aes_256_gcm());
+    VR_EVP_add_cipher(VR_EVP_aes_128_ccm());
+    VR_EVP_add_cipher(VR_EVP_aes_256_ccm());
+    VR_EVP_add_cipher(VR_EVP_aes_128_cbc_hmac_sha1());
+    VR_EVP_add_cipher(VR_EVP_aes_256_cbc_hmac_sha1());
+    VR_EVP_add_cipher(VR_EVP_aes_128_cbc_hmac_sha256());
+    VR_EVP_add_cipher(VR_EVP_aes_256_cbc_hmac_sha256());
 #ifndef OPENSSL_NO_ARIA
-    EVP_add_cipher(EVP_aria_128_gcm());
-    EVP_add_cipher(EVP_aria_256_gcm());
+    VR_EVP_add_cipher(VR_EVP_aria_128_gcm());
+    VR_EVP_add_cipher(VR_EVP_aria_256_gcm());
 #endif
 #ifndef OPENSSL_NO_CAMELLIA
-    EVP_add_cipher(EVP_camellia_128_cbc());
-    EVP_add_cipher(EVP_camellia_256_cbc());
+    VR_EVP_add_cipher(VR_EVP_camellia_128_cbc());
+    VR_EVP_add_cipher(VR_EVP_camellia_256_cbc());
 #endif
 #if !defined(OPENSSL_NO_CHACHA) && !defined(OPENSSL_NO_POLY1305)
-    EVP_add_cipher(EVP_chacha20_poly1305());
+    VR_EVP_add_cipher(VR_EVP_chacha20_poly1305());
 #endif
 
 #ifndef OPENSSL_NO_SEED
-    EVP_add_cipher(EVP_seed_cbc());
+    VR_EVP_add_cipher(VR_EVP_seed_cbc());
 #endif
 
-#ifndef OPENSSL_NO_MD5
-    EVP_add_digest(EVP_md5());
-    EVP_add_digest_alias(SN_md5, "ssl3-md5");
-    EVP_add_digest(EVP_md5_sha1());
+#ifndef OPENSSL_NO_VR_MD5
+    VR_EVP_add_digest(VR_EVP_md5());
+    VR_EVP_add_digest_alias(SN_md5, "ssl3-md5");
+    VR_EVP_add_digest(VR_EVP_md5_sha1());
 #endif
-    EVP_add_digest(EVP_sha1()); /* RSA with sha1 */
-    EVP_add_digest_alias(SN_sha1, "ssl3-sha1");
-    EVP_add_digest_alias(SN_sha1WithRSAEncryption, SN_sha1WithRSA);
-    EVP_add_digest(EVP_sha224());
-    EVP_add_digest(EVP_sha256());
-    EVP_add_digest(EVP_sha384());
-    EVP_add_digest(EVP_sha512());
+    VR_EVP_add_digest(VR_EVP_sha1()); /* RSA with sha1 */
+    VR_EVP_add_digest_alias(SN_sha1, "ssl3-sha1");
+    VR_EVP_add_digest_alias(SN_sha1WithRSAEncryption, SN_sha1WithRSA);
+    VR_EVP_add_digest(VR_EVP_sha224());
+    VR_EVP_add_digest(VR_EVP_sha256());
+    VR_EVP_add_digest(VR_EVP_sha384());
+    VR_EVP_add_digest(VR_EVP_sha512());
 #ifndef OPENSSL_NO_COMP
 # ifdef OPENSSL_INIT_DEBUG
     fprintf(stderr, "OPENSSL_INIT: ossl_init_ssl_base: "
-            "SSL_COMP_get_compression_methods()\n");
+            "VR_SSL_COMP_get_compression_methods()\n");
 # endif
     /*
      * This will initialise the built-in compression algorithms. The value
      * returned is a STACK_OF(SSL_COMP), but that can be discarded safely
      */
-    SSL_COMP_get_compression_methods();
+    VR_SSL_COMP_get_compression_methods();
 #endif
     /* initialize cipher/digest methods table */
-    if (!ssl_load_ciphers())
+    if (!VR_ssl_load_ciphers())
         return 0;
 
 #ifdef OPENSSL_INIT_DEBUG
     fprintf(stderr, "OPENSSL_INIT: ossl_init_ssl_base: "
-            "SSL_add_ssl_module()\n");
+            "VR_SSL_add_ssl_module()\n");
 #endif
     /*
      * We ignore an error return here. Not much we can do - but not that bad
      * either. We can still safely continue.
      */
-    OPENSSL_atexit(ssl_library_stop);
+    VR_OPENSSL_atexit(ssl_library_stop);
     ssl_base_inited = 1;
     return 1;
 }
@@ -126,9 +126,9 @@ DEFINE_RUN_ONCE_STATIC(ossl_init_load_ssl_strings)
 #if !defined(OPENSSL_NO_ERR) && !defined(OPENSSL_NO_AUTOERRINIT)
 # ifdef OPENSSL_INIT_DEBUG
     fprintf(stderr, "OPENSSL_INIT: ossl_init_load_ssl_strings: "
-            "ERR_load_SSL_strings()\n");
+            "VR_ERR_load_SSL_strings()\n");
 # endif
-    ERR_load_SSL_strings();
+    VR_ERR_load_SSL_strings();
     ssl_strings_inited = 1;
 #endif
     return 1;
@@ -152,24 +152,24 @@ static void ssl_library_stop(void)
 #ifndef OPENSSL_NO_COMP
 # ifdef OPENSSL_INIT_DEBUG
         fprintf(stderr, "OPENSSL_INIT: ssl_library_stop: "
-                "ssl_comp_free_compression_methods_int()\n");
+                "VR_ssl_comp_free_compression_methods_int()\n");
 # endif
-        ssl_comp_free_compression_methods_int();
+        VR_ssl_comp_free_compression_methods_int();
 #endif
     }
 
     if (ssl_strings_inited) {
 #ifdef OPENSSL_INIT_DEBUG
         fprintf(stderr, "OPENSSL_INIT: ssl_library_stop: "
-                "err_free_strings_int()\n");
+                "VR_err_free_strings_int()\n");
 #endif
         /*
          * If both crypto and ssl error strings are inited we will end up
-         * calling err_free_strings_int() twice - but that's ok. The second
+         * calling VR_err_free_strings_int() twice - but that's ok. The second
          * time will be a no-op. It's easier to do that than to try and track
          * between the two libraries whether they have both been inited.
          */
-        err_free_strings_int();
+        VR_err_free_strings_int();
     }
 }
 
@@ -178,7 +178,7 @@ static void ssl_library_stop(void)
  * called prior to any threads making calls to any OpenSSL functions,
  * i.e. passing a non-null settings value is assumed to be single-threaded.
  */
-int OPENSSL_init_ssl(uint64_t opts, const OPENSSL_INIT_SETTINGS * settings)
+int VR_OPENSSL_init_ssl(uint64_t opts, const OPENSSL_INIT_SETTINGS * settings)
 {
     static int stoperrset = 0;
 
@@ -203,7 +203,7 @@ int OPENSSL_init_ssl(uint64_t opts, const OPENSSL_INIT_SETTINGS * settings)
         opts |= OPENSSL_INIT_LOAD_CONFIG;
 #endif
 
-    if (!OPENSSL_init_crypto(opts, settings))
+    if (!VR_OPENSSL_init_crypto(opts, settings))
         return 0;
 
     if (!RUN_ONCE(&ssl_base, ossl_init_ssl_base))

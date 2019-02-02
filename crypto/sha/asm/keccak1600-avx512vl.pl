@@ -183,10 +183,10 @@ my ($A_flat,$inp,$len,$bsz) = ("%rdi","%rsi","%rdx","%rcx");
 my  $out = $inp;	# in squeeze
 
 $code.=<<___;
-.globl	SHA3_absorb
-.type	SHA3_absorb,\@function
+.globl	VR_SHA3_absorb
+.type	VR_SHA3_absorb,\@function
 .align	32
-SHA3_absorb:
+VR_SHA3_absorb:
 	mov	%rsp,%r11
 
 	lea	-240(%rsp),%rsp
@@ -270,12 +270,12 @@ $code.=<<___;
 	lea	(%r11),%rsp
 	lea	($len,$bsz),%rax		# return value
 	ret
-.size	SHA3_absorb,.-SHA3_absorb
+.size	VR_SHA3_absorb,.-VR_SHA3_absorb
 
-.globl	SHA3_squeeze
-.type	SHA3_squeeze,\@function
+.globl	VR_SHA3_squeeze
+.type	VR_SHA3_squeeze,\@function
 .align	32
-SHA3_squeeze:
+VR_SHA3_squeeze:
 	mov	%rsp,%r11
 
 	lea	96($A_flat),$A_flat
@@ -347,7 +347,7 @@ $code.=<<___;
 
 	lea	(%r11),%rsp
 	ret
-.size	SHA3_squeeze,.-SHA3_squeeze
+.size	VR_SHA3_squeeze,.-VR_SHA3_squeeze
 
 .align	64
 rhotates_left:

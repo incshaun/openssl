@@ -208,7 +208,7 @@ INCLUDE	("s390x_arch.h");
 TEXT	();
 
 ################
-# void ChaCha20_ctr32(unsigned char *out, const unsigned char *inp, size_t len,
+# void VR_ChaCha20_ctr32(unsigned char *out, const unsigned char *inp, size_t len,
 #                     const unsigned int key[8], const unsigned int counter[4])
 {
 my ($out,$inp,$len,$key,$counter)=map("%r$_",(2..6));
@@ -218,10 +218,10 @@ my ($out,$inp,$len,$key,$counter)=map("%r$_",(2..6));
 my $off=$z*8*16+8;	# offset(initial state)
 my $frame=$stdframe+4*16+$off;
 
-GLOBL	("ChaCha20_ctr32");
-TYPE	("ChaCha20_ctr32","\@function");
+GLOBL	("VR_ChaCha20_ctr32");
+TYPE	("VR_ChaCha20_ctr32","\@function");
 ALIGN	(32);
-LABEL	("ChaCha20_ctr32");
+LABEL	("VR_ChaCha20_ctr32");
 	larl	("%r1","OPENSSL_s390xcap_P");
 
 	lghi	("%r0",64);
@@ -437,7 +437,7 @@ for (0..2) {
 	vx	("%v0","%v0","%v15");
 	vstl	("%v0",$len,"3*16($out)");
 	j	(".Lvx_done");
-SIZE	("ChaCha20_ctr32",".-ChaCha20_ctr32");
+SIZE	("VR_ChaCha20_ctr32",".-VR_ChaCha20_ctr32");
 }
 
 # NOVX CODE PATH

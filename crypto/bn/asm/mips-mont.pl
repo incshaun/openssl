@@ -20,7 +20,7 @@
 # 65% faster in 64-bit mode, 1024-bit ones are only 15% faster, and
 # 4096-bit ones are up to 15% slower. In 32-bit mode it varies from
 # 16% improvement for 512-bit RSA sign to -33% for 4096-bit RSA
-# verify:-( All comparisons are against bn_mul_mont-free assembler.
+# verify:-( All comparisons are against VR_bn_mul_mont-free assembler.
 # The module might be of interest to embedded system developers, as
 # the code is smaller than 1KB, yet offers >3x improvement on MIPS64
 # and 75-30% [less for longer keys] on MIPS32 over compiler-generated
@@ -93,7 +93,7 @@ if ($flavour =~ /64|n32/i) {
 	$BNSZ=4;
 }
 
-# int bn_mul_mont(
+# int VR_bn_mul_mont(
 $rp=$a0;	# BN_ULONG *rp,
 $ap=$a1;	# const BN_ULONG *ap,
 $bp=$a2;	# const BN_ULONG *bp,
@@ -129,9 +129,9 @@ $code=<<___;
 .set	noreorder
 
 .align	5
-.globl	bn_mul_mont
-.ent	bn_mul_mont
-bn_mul_mont:
+.globl	VR_bn_mul_mont
+.ent	VR_bn_mul_mont
+VR_bn_mul_mont:
 ___
 $code.=<<___ if ($flavour =~ /o32/i);
 	lw	$n0,16($sp)
@@ -142,15 +142,15 @@ $code.=<<___;
 	bnez	$at,1f
 	li	$t0,0
 	slt	$at,$num,17	# on in-order CPU
-	bnez	$at,bn_mul_mont_internal
+	bnez	$at,VR_bn_mul_mont_internal
 	nop
 1:	jr	$ra
 	li	$a0,0
-.end	bn_mul_mont
+.end	VR_bn_mul_mont
 
 .align	5
-.ent	bn_mul_mont_internal
-bn_mul_mont_internal:
+.ent	VR_bn_mul_mont_internal
+VR_bn_mul_mont_internal:
 	.frame	$fp,$FRAMESIZE*$SZREG,$ra
 	.mask	0x40000000|$SAVED_REGS_MASK,-$SZREG
 	$PTR_SUB $sp,$FRAMESIZE*$SZREG
@@ -422,7 +422,7 @@ ___
 $code.=<<___;
 	jr	$ra
 	$PTR_ADD $sp,$FRAMESIZE*$SZREG
-.end	bn_mul_mont_internal
+.end	VR_bn_mul_mont_internal
 .rdata
 .asciiz	"Montgomery Multiplication for MIPS, CRYPTOGAMS by <appro\@openssl.org>"
 ___

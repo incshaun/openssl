@@ -19,13 +19,13 @@
 
 #define SPACE(buf, pos, n)   (sizeof(buf) - (pos) > (n))
 
-int BIO_dump_cb(int (*cb) (const void *data, size_t len, void *u),
+int VR_BIO_dump_cb(int (*cb) (const void *data, size_t len, void *u),
                 void *u, const void *s, int len)
 {
-    return BIO_dump_indent_cb(cb, u, s, len, 0);
+    return VR_BIO_dump_indent_cb(cb, u, s, len, 0);
 }
 
-int BIO_dump_indent_cb(int (*cb) (const void *data, size_t len, void *u),
+int VR_BIO_dump_indent_cb(int (*cb) (const void *data, size_t len, void *u),
                        void *u, const void *v, int len, int indent)
 {
     const unsigned char *s = v;
@@ -45,7 +45,7 @@ int BIO_dump_indent_cb(int (*cb) (const void *data, size_t len, void *u),
     if ((rows * dump_width) < len)
         rows++;
     for (i = 0; i < rows; i++) {
-        n = BIO_snprintf(buf, sizeof(buf), "%*s%04x - ", indent, "",
+        n = VR_BIO_snprintf(buf, sizeof(buf), "%*s%04x - ", indent, "",
                          i * dump_width);
         for (j = 0; j < dump_width; j++) {
             if (SPACE(buf, n, 3)) {
@@ -53,7 +53,7 @@ int BIO_dump_indent_cb(int (*cb) (const void *data, size_t len, void *u),
                     strcpy(buf + n, "   ");
                 } else {
                     ch = *(s + i * dump_width + j) & 0xff;
-                    BIO_snprintf(buf + n, 4, "%02x%c", ch,
+                    VR_BIO_snprintf(buf + n, 4, "%02x%c", ch,
                                  j == 7 ? '-' : ' ');
                 }
                 n += 3;
@@ -97,33 +97,33 @@ static int write_fp(const void *data, size_t len, void *fp)
     return UP_fwrite(data, len, 1, fp);
 }
 
-int BIO_dump_fp(FILE *fp, const void *s, int len)
+int VR_BIO_dump_fp(FILE *fp, const void *s, int len)
 {
-    return BIO_dump_cb(write_fp, fp, s, len);
+    return VR_BIO_dump_cb(write_fp, fp, s, len);
 }
 
-int BIO_dump_indent_fp(FILE *fp, const void *s, int len, int indent)
+int VR_BIO_dump_indent_fp(FILE *fp, const void *s, int len, int indent)
 {
-    return BIO_dump_indent_cb(write_fp, fp, s, len, indent);
+    return VR_BIO_dump_indent_cb(write_fp, fp, s, len, indent);
 }
 #endif
 
 static int write_bio(const void *data, size_t len, void *bp)
 {
-    return BIO_write((BIO *)bp, (const char *)data, len);
+    return VR_BIO_write((BIO *)bp, (const char *)data, len);
 }
 
-int BIO_dump(BIO *bp, const void *s, int len)
+int VR_BIO_dump(BIO *bp, const void *s, int len)
 {
-    return BIO_dump_cb(write_bio, bp, s, len);
+    return VR_BIO_dump_cb(write_bio, bp, s, len);
 }
 
-int BIO_dump_indent(BIO *bp, const void *s, int len, int indent)
+int VR_BIO_dump_indent(BIO *bp, const void *s, int len, int indent)
 {
-    return BIO_dump_indent_cb(write_bio, bp, s, len, indent);
+    return VR_BIO_dump_indent_cb(write_bio, bp, s, len, indent);
 }
 
-int BIO_hex_string(BIO *out, int indent, int width, const void *data,
+int VR_BIO_hex_string(BIO *out, int indent, int width, const void *data,
                    int datalen)
 {
     const unsigned char *d = data;
@@ -134,17 +134,17 @@ int BIO_hex_string(BIO *out, int indent, int width, const void *data,
 
     for (i = 0; i < datalen - 1; i++) {
         if (i && !j)
-            BIO_printf(out, "%*s", indent, "");
+            VR_BIO_printf(out, "%*s", indent, "");
 
-        BIO_printf(out, "%02X:", d[i]);
+        VR_BIO_printf(out, "%02X:", d[i]);
 
         j = (j + 1) % width;
         if (!j)
-            BIO_printf(out, "\n");
+            VR_BIO_printf(out, "\n");
     }
 
     if (i && !j)
-        BIO_printf(out, "%*s", indent, "");
-    BIO_printf(out, "%02X", d[datalen - 1]);
+        VR_BIO_printf(out, "%*s", indent, "");
+    VR_BIO_printf(out, "%02X", d[datalen - 1]);
     return 1;
 }

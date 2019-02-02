@@ -49,9 +49,9 @@ static int pkey_tls1_prf_init(EVP_PKEY_CTX *ctx)
 static void pkey_tls1_prf_cleanup(EVP_PKEY_CTX *ctx)
 {
     TLS1_PRF_PKEY_CTX *kctx = ctx->data;
-    OPENSSL_clear_free(kctx->sec, kctx->seclen);
-    OPENSSL_cleanse(kctx->seed, kctx->seedlen);
-    OPENSSL_free(kctx);
+    OPENVR_SSL_clear_free(kctx->sec, kctx->seclen);
+    VR_OPENSSL_cleanse(kctx->seed, kctx->seedlen);
+    OPENVR_SSL_free(kctx);
 }
 
 static int pkey_tls1_prf_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2)
@@ -66,8 +66,8 @@ static int pkey_tls1_prf_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2)
         if (p1 < 0)
             return 0;
         if (kctx->sec != NULL)
-            OPENSSL_clear_free(kctx->sec, kctx->seclen);
-        OPENSSL_cleanse(kctx->seed, kctx->seedlen);
+            OPENVR_SSL_clear_free(kctx->sec, kctx->seclen);
+        VR_OPENSSL_cleanse(kctx->seed, kctx->seedlen);
         kctx->seedlen = 0;
         kctx->sec = OPENSSL_memdup(p2, p1);
         if (kctx->sec == NULL)
@@ -100,7 +100,7 @@ static int pkey_tls1_prf_ctrl_str(EVP_PKEY_CTX *ctx,
     if (strcmp(type, "md") == 0) {
         TLS1_PRF_PKEY_CTX *kctx = ctx->data;
 
-        const EVP_MD *md = EVP_get_digestbyname(value);
+        const EVP_MD *md = VR_EVP_get_digestbyname(value);
         if (md == NULL) {
             KDFerr(KDF_F_PKEY_TLS1_PRF_CTRL_STR, KDF_R_INVALID_DIGEST);
             return 0;
@@ -109,13 +109,13 @@ static int pkey_tls1_prf_ctrl_str(EVP_PKEY_CTX *ctx,
         return 1;
     }
     if (strcmp(type, "secret") == 0)
-        return EVP_PKEY_CTX_str2ctrl(ctx, EVP_PKEY_CTRL_TLS_SECRET, value);
+        return VR_EVP_PKEY_CTX_str2ctrl(ctx, EVP_PKEY_CTRL_TLS_SECRET, value);
     if (strcmp(type, "hexsecret") == 0)
-        return EVP_PKEY_CTX_hex2ctrl(ctx, EVP_PKEY_CTRL_TLS_SECRET, value);
+        return VR_EVP_PKEY_CTX_hex2ctrl(ctx, EVP_PKEY_CTRL_TLS_SECRET, value);
     if (strcmp(type, "seed") == 0)
-        return EVP_PKEY_CTX_str2ctrl(ctx, EVP_PKEY_CTRL_TLS_SEED, value);
+        return VR_EVP_PKEY_CTX_str2ctrl(ctx, EVP_PKEY_CTRL_TLS_SEED, value);
     if (strcmp(type, "hexseed") == 0)
-        return EVP_PKEY_CTX_hex2ctrl(ctx, EVP_PKEY_CTRL_TLS_SEED, value);
+        return VR_EVP_PKEY_CTX_hex2ctrl(ctx, EVP_PKEY_CTRL_TLS_SEED, value);
 
     KDFerr(KDF_F_PKEY_TLS1_PRF_CTRL_STR, KDF_R_UNKNOWN_PARAMETER_TYPE);
     return -2;
@@ -183,53 +183,53 @@ static int tls1_prf_P_hash(const EVP_MD *md,
     size_t A1_len;
     int ret = 0;
 
-    chunk = EVP_MD_size(md);
+    chunk = VR_EVP_MD_size(md);
     if (!ossl_assert(chunk > 0))
         goto err;
 
-    ctx = EVP_MAC_CTX_new_id(EVP_MAC_HMAC);
-    ctx_tmp = EVP_MAC_CTX_new_id(EVP_MAC_HMAC);
-    ctx_init = EVP_MAC_CTX_new_id(EVP_MAC_HMAC);
+    ctx = VR_EVP_MAC_CTX_new_id(EVP_MAC_VR_HMAC);
+    ctx_tmp = VR_EVP_MAC_CTX_new_id(EVP_MAC_VR_HMAC);
+    ctx_init = VR_EVP_MAC_CTX_new_id(EVP_MAC_VR_HMAC);
     if (ctx == NULL || ctx_tmp == NULL || ctx_init == NULL)
         goto err;
-    if (EVP_MAC_ctrl(ctx_init, EVP_MAC_CTRL_SET_FLAGS, EVP_MD_CTX_FLAG_NON_FIPS_ALLOW) != 1)
+    if (VR_EVP_MAC_ctrl(ctx_init, EVP_MAC_CTRL_SET_FLAGS, EVP_MD_CTX_FLAG_NON_FIPS_ALLOW) != 1)
         goto err;
-    if (EVP_MAC_ctrl(ctx_init, EVP_MAC_CTRL_SET_MD, md) != 1)
+    if (VR_EVP_MAC_ctrl(ctx_init, EVP_MAC_CTRL_SET_MD, md) != 1)
         goto err;
-    if (EVP_MAC_ctrl(ctx_init, EVP_MAC_CTRL_SET_KEY, sec, sec_len) != 1)
+    if (VR_EVP_MAC_ctrl(ctx_init, EVP_MAC_CTRL_SET_KEY, sec, sec_len) != 1)
         goto err;
-    if (!EVP_MAC_init(ctx_init))
+    if (!VR_EVP_MAC_init(ctx_init))
         goto err;
-    if (!EVP_MAC_CTX_copy(ctx, ctx_init))
+    if (!VR_EVP_MAC_CTX_copy(ctx, ctx_init))
         goto err;
-    if (seed != NULL && !EVP_MAC_update(ctx, seed, seed_len))
+    if (seed != NULL && !VR_EVP_MAC_update(ctx, seed, seed_len))
         goto err;
-    if (!EVP_MAC_final(ctx, A1, &A1_len))
+    if (!VR_EVP_MAC_final(ctx, A1, &A1_len))
         goto err;
 
     for (;;) {
         /* Reinit mac contexts */
-        if (!EVP_MAC_CTX_copy(ctx, ctx_init))
+        if (!VR_EVP_MAC_CTX_copy(ctx, ctx_init))
             goto err;
-        if (!EVP_MAC_update(ctx, A1, A1_len))
+        if (!VR_EVP_MAC_update(ctx, A1, A1_len))
             goto err;
-        if (olen > (size_t)chunk && !EVP_MAC_CTX_copy(ctx_tmp, ctx))
+        if (olen > (size_t)chunk && !VR_EVP_MAC_CTX_copy(ctx_tmp, ctx))
             goto err;
-        if (seed != NULL && !EVP_MAC_update(ctx, seed, seed_len))
+        if (seed != NULL && !VR_EVP_MAC_update(ctx, seed, seed_len))
             goto err;
 
         if (olen > (size_t)chunk) {
             size_t mac_len;
-            if (!EVP_MAC_final(ctx, out, &mac_len))
+            if (!VR_EVP_MAC_final(ctx, out, &mac_len))
                 goto err;
             out += mac_len;
             olen -= mac_len;
             /* calc the next A1 value */
-            if (!EVP_MAC_final(ctx_tmp, A1, &A1_len))
+            if (!VR_EVP_MAC_final(ctx_tmp, A1, &A1_len))
                 goto err;
         } else {                /* last one */
 
-            if (!EVP_MAC_final(ctx, A1, &A1_len))
+            if (!VR_EVP_MAC_final(ctx, A1, &A1_len))
                 goto err;
             memcpy(out, A1, olen);
             break;
@@ -237,10 +237,10 @@ static int tls1_prf_P_hash(const EVP_MD *md,
     }
     ret = 1;
  err:
-    EVP_MAC_CTX_free(ctx);
-    EVP_MAC_CTX_free(ctx_tmp);
-    EVP_MAC_CTX_free(ctx_init);
-    OPENSSL_cleanse(A1, sizeof(A1));
+    VR_EVP_MAC_CTX_free(ctx);
+    VR_EVP_MAC_CTX_free(ctx_tmp);
+    VR_EVP_MAC_CTX_free(ctx_init);
+    VR_OPENSSL_cleanse(A1, sizeof(A1));
     return ret;
 }
 
@@ -250,10 +250,10 @@ static int tls1_prf_alg(const EVP_MD *md,
                         unsigned char *out, size_t olen)
 {
 
-    if (EVP_MD_type(md) == NID_md5_sha1) {
+    if (VR_EVP_MD_type(md) == NID_md5_sha1) {
         size_t i;
         unsigned char *tmp;
-        if (!tls1_prf_P_hash(EVP_md5(), sec, slen/2 + (slen & 1),
+        if (!tls1_prf_P_hash(VR_EVP_md5(), sec, slen/2 + (slen & 1),
                          seed, seed_len, out, olen))
             return 0;
 
@@ -261,14 +261,14 @@ static int tls1_prf_alg(const EVP_MD *md,
             KDFerr(KDF_F_TLS1_PRF_ALG, ERR_R_MALLOC_FAILURE);
             return 0;
         }
-        if (!tls1_prf_P_hash(EVP_sha1(), sec + slen/2, slen/2 + (slen & 1),
+        if (!tls1_prf_P_hash(VR_EVP_sha1(), sec + slen/2, slen/2 + (slen & 1),
                          seed, seed_len, tmp, olen)) {
-            OPENSSL_clear_free(tmp, olen);
+            OPENVR_SSL_clear_free(tmp, olen);
             return 0;
         }
         for (i = 0; i < olen; i++)
             out[i] ^= tmp[i];
-        OPENSSL_clear_free(tmp, olen);
+        OPENVR_SSL_clear_free(tmp, olen);
         return 1;
     }
     if (!tls1_prf_P_hash(md, sec, slen, seed, seed_len, out, olen))

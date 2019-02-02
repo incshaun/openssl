@@ -43,7 +43,7 @@ static int test_standard_exts(void)
         tmp = standard_exts;
         TEST_error("Extensions out of order!");
         for (i = 0; i < STANDARD_EXTENSION_COUNT; i++, tmp++)
-            TEST_note("%d : %s", (*tmp)->ext_nid, OBJ_nid2sn((*tmp)->ext_nid));
+            TEST_note("%d : %s", (*tmp)->ext_nid, VR_OBJ_nid2sn((*tmp)->ext_nid));
     }
     return good;
 }

@@ -15,9 +15,9 @@
 #include "internal/evp_int.h"
 #include "evp_locl.h"
 
-size_t SHA3_absorb(uint64_t A[5][5], const unsigned char *inp, size_t len,
+size_t VR_SHA3_absorb(uint64_t A[5][5], const unsigned char *inp, size_t len,
                    size_t r);
-void SHA3_squeeze(uint64_t A[5][5], unsigned char *out, size_t len, size_t r);
+void VR_SHA3_squeeze(uint64_t A[5][5], unsigned char *out, size_t len, size_t r);
 
 #define KECCAK1600_WIDTH 1600
 
@@ -89,13 +89,13 @@ static int sha3_update(EVP_MD_CTX *evp_ctx, const void *_inp, size_t len)
          */
         memcpy(ctx->buf + num, inp, rem);
         inp += rem, len -= rem;
-        (void)SHA3_absorb(ctx->A, ctx->buf, bsz, bsz);
+        (void)VR_SHA3_absorb(ctx->A, ctx->buf, bsz, bsz);
         ctx->num = 0;
         /* ctx->buf is processed, ctx->num is guaranteed to be zero */
     }
 
     if (len >= bsz)
-        rem = SHA3_absorb(ctx->A, inp, len, bsz);
+        rem = VR_SHA3_absorb(ctx->A, inp, len, bsz);
     else
         rem = len;
 
@@ -122,9 +122,9 @@ static int sha3_final(EVP_MD_CTX *evp_ctx, unsigned char *md)
     ctx->buf[num] = ctx->pad;
     ctx->buf[bsz - 1] |= 0x80;
 
-    (void)SHA3_absorb(ctx->A, ctx->buf, bsz, bsz);
+    (void)VR_SHA3_absorb(ctx->A, ctx->buf, bsz, bsz);
 
-    SHA3_squeeze(ctx->A, md, ctx->md_size, bsz);
+    VR_SHA3_squeeze(ctx->A, md, ctx->md_size, bsz);
 
     return 1;
 }
@@ -291,7 +291,7 @@ static int s390x_shake_final(EVP_MD_CTX *evp_ctx, unsigned char *md)
 }
 
 # define EVP_MD_SHA3(bitlen)                         \
-const EVP_MD *EVP_sha3_##bitlen(void)                \
+const EVP_MD *VR_##EVP_sha3_##bitlen(void)                \
 {                                                    \
     static const EVP_MD s390x_sha3_##bitlen##_md = { \
         NID_sha3_##bitlen,                           \
@@ -325,7 +325,7 @@ const EVP_MD *EVP_sha3_##bitlen(void)                \
 }
 
 # define EVP_MD_SHAKE(bitlen)                        \
-const EVP_MD *EVP_shake##bitlen(void)                \
+const EVP_MD *VR_##EVP_shake##bitlen(void)                \
 {                                                    \
     static const EVP_MD s390x_shake##bitlen##_md = { \
         NID_shake##bitlen,                           \
@@ -363,7 +363,7 @@ const EVP_MD *EVP_shake##bitlen(void)                \
 #else
 
 # define EVP_MD_SHA3(bitlen)                    \
-const EVP_MD *EVP_sha3_##bitlen(void)           \
+const EVP_MD *VR_##EVP_sha3_##bitlen(void)           \
 {                                               \
     static const EVP_MD sha3_##bitlen##_md = {  \
         NID_sha3_##bitlen,                      \
@@ -382,7 +382,7 @@ const EVP_MD *EVP_sha3_##bitlen(void)           \
 }
 
 # define EVP_MD_SHAKE(bitlen)                   \
-const EVP_MD *EVP_shake##bitlen(void)           \
+const EVP_MD *VR_##EVP_shake##bitlen(void)           \
 {                                               \
     static const EVP_MD shake##bitlen##_md = {  \
         NID_shake##bitlen,                      \
@@ -413,7 +413,7 @@ EVP_MD_SHAKE(256)
 
 
 # define EVP_MD_KECCAK_KMAC(bitlen)             \
-const EVP_MD *evp_keccak_kmac##bitlen(void)     \
+const EVP_MD *VR_evp_keccak_kmac##bitlen(void)     \
 {                                               \
     static const EVP_MD kmac_##bitlen##_md = {  \
         -1,                                     \

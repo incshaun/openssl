@@ -72,9 +72,9 @@ close TABLE;
 # amount of elements.
 die "insane number of elements" if ($#arr != 64*16*37-1);
 
-&public_label("ecp_nistz256_precomputed");
+&public_label("VR_ecp_nistz256_precomputed");
 &align(4096);
-&set_label("ecp_nistz256_precomputed");
+&set_label("VR_ecp_nistz256_precomputed");
 
 ########################################################################
 # this conversion smashes P256_POINT_AFFINE by individual bytes with
@@ -109,20 +109,20 @@ for(1..37) {
 &align(64);
 
 ########################################################################
-# void ecp_nistz256_mul_by_2(BN_ULONG edi[8],const BN_ULONG esi[8]);
-&function_begin("ecp_nistz256_mul_by_2");
+# void VR_ecp_nistz256_mul_by_2(BN_ULONG edi[8],const BN_ULONG esi[8]);
+&function_begin("VR_ecp_nistz256_mul_by_2");
 	&mov	("esi",&wparam(1));
 	&mov	("edi",&wparam(0));
 	&mov	("ebp","esi");
 ########################################################################
 # common pattern for internal functions is that %edi is result pointer,
 # %esi and %ebp are input ones, %ebp being optional. %edi is preserved.
-	&call	("_ecp_nistz256_add");
-&function_end("ecp_nistz256_mul_by_2");
+	&call	("_VR_ecp_nistz256_add");
+&function_end("VR_ecp_nistz256_mul_by_2");
 
 ########################################################################
-# void ecp_nistz256_mul_by_3(BN_ULONG edi[8],const BN_ULONG esi[8]);
-&function_begin("ecp_nistz256_mul_by_3");
+# void VR_ecp_nistz256_mul_by_3(BN_ULONG edi[8],const BN_ULONG esi[8]);
+&function_begin("VR_ecp_nistz256_mul_by_3");
 	&mov	("esi",&wparam(1));
 					# multiplication by 3 is performed
 					# as 2*n+n, but we can't use output
@@ -133,23 +133,23 @@ for(1..37) {
 					# 256-bit intermediate buffer.
 	&mov	("edi","esp");
 	&mov	("ebp","esi");
-	&call	("_ecp_nistz256_add");
+	&call	("_VR_ecp_nistz256_add");
 	&lea	("esi",&DWP(0,"edi"));
 	&mov	("ebp",&wparam(1));
 	&mov	("edi",&wparam(0));
-	&call	("_ecp_nistz256_add");
+	&call	("_VR_ecp_nistz256_add");
 	&stack_pop(8);
-&function_end("ecp_nistz256_mul_by_3");
+&function_end("VR_ecp_nistz256_mul_by_3");
 
 ########################################################################
-# void ecp_nistz256_div_by_2(BN_ULONG edi[8],const BN_ULONG esi[8]);
-&function_begin("ecp_nistz256_div_by_2");
+# void VR_ecp_nistz256_div_by_2(BN_ULONG edi[8],const BN_ULONG esi[8]);
+&function_begin("VR_ecp_nistz256_div_by_2");
 	&mov	("esi",&wparam(1));
 	&mov	("edi",&wparam(0));
-	&call	("_ecp_nistz256_div_by_2");
-&function_end("ecp_nistz256_div_by_2");
+	&call	("_VR_ecp_nistz256_div_by_2");
+&function_end("VR_ecp_nistz256_div_by_2");
 
-&function_begin_B("_ecp_nistz256_div_by_2");
+&function_begin_B("_VR_ecp_nistz256_div_by_2");
 	# tmp = a is odd ? a+mod : a
 	#
 	# note that because mod has special form, i.e. consists of
@@ -249,19 +249,19 @@ for(1..37) {
 	&mov	(&DWP(28,"edi"),"ebx");
 
 	&ret	();
-&function_end_B("_ecp_nistz256_div_by_2");
+&function_end_B("_VR_ecp_nistz256_div_by_2");
 
 ########################################################################
-# void ecp_nistz256_add(BN_ULONG edi[8],const BN_ULONG esi[8],
+# void VR_ecp_nistz256_add(BN_ULONG edi[8],const BN_ULONG esi[8],
 #					const BN_ULONG ebp[8]);
-&function_begin("ecp_nistz256_add");
+&function_begin("VR_ecp_nistz256_add");
 	&mov	("esi",&wparam(1));
 	&mov	("ebp",&wparam(2));
 	&mov	("edi",&wparam(0));
-	&call	("_ecp_nistz256_add");
-&function_end("ecp_nistz256_add");
+	&call	("_VR_ecp_nistz256_add");
+&function_end("VR_ecp_nistz256_add");
 
-&function_begin_B("_ecp_nistz256_add");
+&function_begin_B("_VR_ecp_nistz256_add");
 	&mov	("eax",&DWP(0,"esi"));
 	&mov	("ebx",&DWP(4,"esi"));
 	&mov	("ecx",&DWP(8,"esi"));
@@ -348,19 +348,19 @@ for(1..37) {
 	&mov	(&DWP(28,"edi"),"edx");
 
 	&ret	();
-&function_end_B("_ecp_nistz256_add");
+&function_end_B("_VR_ecp_nistz256_add");
 
 ########################################################################
-# void ecp_nistz256_sub(BN_ULONG edi[8],const BN_ULONG esi[8],
+# void VR_ecp_nistz256_sub(BN_ULONG edi[8],const BN_ULONG esi[8],
 #					const BN_ULONG ebp[8]);
-&function_begin("ecp_nistz256_sub");
+&function_begin("VR_ecp_nistz256_sub");
 	&mov	("esi",&wparam(1));
 	&mov	("ebp",&wparam(2));
 	&mov	("edi",&wparam(0));
-	&call	("_ecp_nistz256_sub");
-&function_end("ecp_nistz256_sub");
+	&call	("_VR_ecp_nistz256_sub");
+&function_end("VR_ecp_nistz256_sub");
 
-&function_begin_B("_ecp_nistz256_sub");
+&function_begin_B("_VR_ecp_nistz256_sub");
 	&mov	("eax",&DWP(0,"esi"));
 	&mov	("ebx",&DWP(4,"esi"));
 	&mov	("ecx",&DWP(8,"esi"));
@@ -424,11 +424,11 @@ for(1..37) {
 	&mov	(&DWP(28,"edi"),"edx");
 
 	&ret	();
-&function_end_B("_ecp_nistz256_sub");
+&function_end_B("_VR_ecp_nistz256_sub");
 
 ########################################################################
-# void ecp_nistz256_neg(BN_ULONG edi[8],const BN_ULONG esi[8]);
-&function_begin("ecp_nistz256_neg");
+# void VR_ecp_nistz256_neg(BN_ULONG edi[8],const BN_ULONG esi[8]);
+&function_begin("VR_ecp_nistz256_neg");
 	&mov	("ebp",&wparam(1));
 	&mov	("edi",&wparam(0));
 
@@ -444,10 +444,10 @@ for(1..37) {
 	&mov	(&DWP(24,"esp"),"eax");
 	&mov	(&DWP(28,"esp"),"eax");
 
-	&call	("_ecp_nistz256_sub");
+	&call	("_VR_ecp_nistz256_sub");
 
 	&stack_pop(8);
-&function_end("ecp_nistz256_neg");
+&function_end("VR_ecp_nistz256_neg");
 
 &function_begin_B("_picup_eax");
 	&mov	("eax",&DWP(0,"esp"));
@@ -455,8 +455,8 @@ for(1..37) {
 &function_end_B("_picup_eax");
 
 ########################################################################
-# void ecp_nistz256_to_mont(BN_ULONG edi[8],const BN_ULONG esi[8]);
-&function_begin("ecp_nistz256_to_mont");
+# void VR_ecp_nistz256_to_mont(BN_ULONG edi[8],const BN_ULONG esi[8]);
+&function_begin("VR_ecp_nistz256_to_mont");
 	&mov	("esi",&wparam(1));
 	&call	("_picup_eax");
     &set_label("pic");
@@ -465,12 +465,12 @@ for(1..37) {
 	&picmeup("eax","OPENSSL_ia32cap_P","eax",&label("pic"));
 	&mov	("eax",&DWP(0,"eax"));		}
 	&mov	("edi",&wparam(0));
-	&call	("_ecp_nistz256_mul_mont");
-&function_end("ecp_nistz256_to_mont");
+	&call	("_VR_ecp_nistz256_mul_mont");
+&function_end("VR_ecp_nistz256_to_mont");
 
 ########################################################################
-# void ecp_nistz256_from_mont(BN_ULONG edi[8],const BN_ULONG esi[8]);
-&function_begin("ecp_nistz256_from_mont");
+# void VR_ecp_nistz256_from_mont(BN_ULONG edi[8],const BN_ULONG esi[8]);
+&function_begin("VR_ecp_nistz256_from_mont");
 	&mov	("esi",&wparam(1));
 	&call	("_picup_eax");
     &set_label("pic");
@@ -479,13 +479,13 @@ for(1..37) {
 	&picmeup("eax","OPENSSL_ia32cap_P","eax",&label("pic"));
 	&mov	("eax",&DWP(0,"eax"));		}
 	&mov	("edi",&wparam(0));
-	&call	("_ecp_nistz256_mul_mont");
-&function_end("ecp_nistz256_from_mont");
+	&call	("_VR_ecp_nistz256_mul_mont");
+&function_end("VR_ecp_nistz256_from_mont");
 
 ########################################################################
-# void ecp_nistz256_mul_mont(BN_ULONG edi[8],const BN_ULONG esi[8],
+# void VR_ecp_nistz256_mul_mont(BN_ULONG edi[8],const BN_ULONG esi[8],
 #					     const BN_ULONG ebp[8]);
-&function_begin("ecp_nistz256_mul_mont");
+&function_begin("VR_ecp_nistz256_mul_mont");
 	&mov	("esi",&wparam(1));
 	&mov	("ebp",&wparam(2));
 						if ($sse2) {
@@ -494,12 +494,12 @@ for(1..37) {
 	&picmeup("eax","OPENSSL_ia32cap_P","eax",&label("pic"));
 	&mov	("eax",&DWP(0,"eax"));		}
 	&mov	("edi",&wparam(0));
-	&call	("_ecp_nistz256_mul_mont");
-&function_end("ecp_nistz256_mul_mont");
+	&call	("_VR_ecp_nistz256_mul_mont");
+&function_end("VR_ecp_nistz256_mul_mont");
 
 ########################################################################
-# void ecp_nistz256_sqr_mont(BN_ULONG edi[8],const BN_ULONG esi[8]);
-&function_begin("ecp_nistz256_sqr_mont");
+# void VR_ecp_nistz256_sqr_mont(BN_ULONG edi[8],const BN_ULONG esi[8]);
+&function_begin("VR_ecp_nistz256_sqr_mont");
 	&mov	("esi",&wparam(1));
 						if ($sse2) {
 	&call	("_picup_eax");
@@ -508,10 +508,10 @@ for(1..37) {
 	&mov	("eax",&DWP(0,"eax"));		}
 	&mov	("edi",&wparam(0));
 	&mov	("ebp","esi");
-	&call	("_ecp_nistz256_mul_mont");
-&function_end("ecp_nistz256_sqr_mont");
+	&call	("_VR_ecp_nistz256_mul_mont");
+&function_end("VR_ecp_nistz256_sqr_mont");
 
-&function_begin_B("_ecp_nistz256_mul_mont");
+&function_begin_B("_VR_ecp_nistz256_mul_mont");
 						if ($sse2) {
 	&and	("eax",1<<24|1<<26);
 	&cmp	("eax",1<<24|1<<26);		# see if XMM+SSE2 is on
@@ -1115,12 +1115,12 @@ for ($i=0;$i<7;$i++) {
 
 	&add	("esp",10*4);
 	&ret	();
-&function_end_B("_ecp_nistz256_mul_mont");
+&function_end_B("_VR_ecp_nistz256_mul_mont");
 
 ########################################################################
-# void ecp_nistz256_scatter_w5(void *edi,const P256_POINT *esi,
+# void VR_ecp_nistz256_scatter_w5(void *edi,const P256_POINT *esi,
 #					 int ebp);
-&function_begin("ecp_nistz256_scatter_w5");
+&function_begin("VR_ecp_nistz256_scatter_w5");
 	&mov	("edi",&wparam(0));
 	&mov	("esi",&wparam(1));
 	&mov	("ebp",&wparam(2));
@@ -1140,12 +1140,12 @@ for ($i=0;$i<7;$i++) {
 	&lea	("edi",&DWP(64*4,"edi"));
 	&dec	("ebp");
 	&jnz	(&label("scatter_w5_loop"));
-&function_end("ecp_nistz256_scatter_w5");
+&function_end("VR_ecp_nistz256_scatter_w5");
 
 ########################################################################
-# void ecp_nistz256_gather_w5(P256_POINT *edi,const void *esi,
+# void VR_ecp_nistz256_gather_w5(P256_POINT *edi,const void *esi,
 #					      int ebp);
-&function_begin("ecp_nistz256_gather_w5");
+&function_begin("VR_ecp_nistz256_gather_w5");
 	&mov	("esi",&wparam(1));
 	&mov	("ebp",&wparam(2));
 
@@ -1169,12 +1169,12 @@ for ($i=0;$i<7;$i++) {
 	&mov	(&DWP(4*($i+2),"edi"),"ecx");
 	&mov	(&DWP(4*($i+3),"edi"),"edx");
     }
-&function_end("ecp_nistz256_gather_w5");
+&function_end("VR_ecp_nistz256_gather_w5");
 
 ########################################################################
-# void ecp_nistz256_scatter_w7(void *edi,const P256_POINT_AFFINE *esi,
+# void VR_ecp_nistz256_scatter_w7(void *edi,const P256_POINT_AFFINE *esi,
 #					 int ebp);
-&function_begin("ecp_nistz256_scatter_w7");
+&function_begin("VR_ecp_nistz256_scatter_w7");
 	&mov	("edi",&wparam(0));
 	&mov	("esi",&wparam(1));
 	&mov	("ebp",&wparam(2));
@@ -1192,12 +1192,12 @@ for ($i=0;$i<7;$i++) {
 	&lea	("edi",&DWP(64*4,"edi"));
 	&dec	("ebp");
 	&jnz	(&label("scatter_w7_loop"));
-&function_end("ecp_nistz256_scatter_w7");
+&function_end("VR_ecp_nistz256_scatter_w7");
 
 ########################################################################
-# void ecp_nistz256_gather_w7(P256_POINT_AFFINE *edi,const void *esi,
+# void VR_ecp_nistz256_gather_w7(P256_POINT_AFFINE *edi,const void *esi,
 #						     int ebp);
-&function_begin("ecp_nistz256_gather_w7");
+&function_begin("VR_ecp_nistz256_gather_w7");
 	&mov	("esi",&wparam(1));
 	&mov	("ebp",&wparam(2));
 
@@ -1221,17 +1221,17 @@ for ($i=0;$i<7;$i++) {
 	&mov	(&BP($i+2,"edi"),"cl");
 	&mov	(&BP($i+3,"edi"),"dl");
     }
-&function_end("ecp_nistz256_gather_w7");
+&function_end("VR_ecp_nistz256_gather_w7");
 
 ########################################################################
 # following subroutines are "literal" implementation of those found in
 # ecp_nistz256.c
 #
 ########################################################################
-# void ecp_nistz256_point_double(P256_POINT *out,const P256_POINT *inp);
+# void VR_ecp_nistz256_point_double(P256_POINT *out,const P256_POINT *inp);
 #
 &static_label("point_double_shortcut");
-&function_begin("ecp_nistz256_point_double");
+&function_begin("VR_ecp_nistz256_point_double");
 {   my ($S,$M,$Zsqr,$in_x,$tmp0)=map(32*$_,(0..4));
 
 	&mov	("esi",&wparam(1));
@@ -1268,115 +1268,115 @@ for ($i=0;$i<7;$i++) {
 	&lea	("ebp",&DWP(32,"esi"));
 	&lea	("esi",&DWP(32,"esi"));
 	&lea	("edi",&DWP($S,"esp"));
-	&call	("_ecp_nistz256_add");		# p256_mul_by_2(S, in_y);
+	&call	("_VR_ecp_nistz256_add");		# p256_mul_by_2(S, in_y);
 
 	&mov	("eax",&DWP(32*5,"esp"));	# OPENSSL_ia32cap_P copy
 	&mov	("esi",64);
 	&add	("esi",&wparam(1));
 	&lea	("edi",&DWP($Zsqr,"esp"));
 	&mov	("ebp","esi");
-	&call	("_ecp_nistz256_mul_mont");	# p256_sqr_mont(Zsqr, in_z);
+	&call	("_VR_ecp_nistz256_mul_mont");	# p256_sqr_mont(Zsqr, in_z);
 
 	&mov	("eax",&DWP(32*5,"esp"));	# OPENSSL_ia32cap_P copy
 	&lea	("esi",&DWP($S,"esp"));
 	&lea	("ebp",&DWP($S,"esp"));
 	&lea	("edi",&DWP($S,"esp"));
-	&call	("_ecp_nistz256_mul_mont");	# p256_sqr_mont(S, S);
+	&call	("_VR_ecp_nistz256_mul_mont");	# p256_sqr_mont(S, S);
 
 	&mov	("eax",&DWP(32*5,"esp"));	# OPENSSL_ia32cap_P copy
 	&mov	("ebp",&wparam(1));
 	&lea	("esi",&DWP(32,"ebp"));
 	&lea	("ebp",&DWP(64,"ebp"));
 	&lea	("edi",&DWP($tmp0,"esp"));
-	&call	("_ecp_nistz256_mul_mont");	# p256_mul_mont(tmp0, in_z, in_y);
+	&call	("_VR_ecp_nistz256_mul_mont");	# p256_mul_mont(tmp0, in_z, in_y);
 
 	&lea	("esi",&DWP($in_x,"esp"));
 	&lea	("ebp",&DWP($Zsqr,"esp"));
 	&lea	("edi",&DWP($M,"esp"));
-	&call	("_ecp_nistz256_add");		# p256_add(M, in_x, Zsqr);
+	&call	("_VR_ecp_nistz256_add");		# p256_add(M, in_x, Zsqr);
 
 	&mov	("edi",64);
 	&lea	("esi",&DWP($tmp0,"esp"));
 	&lea	("ebp",&DWP($tmp0,"esp"));
 	&add	("edi",&wparam(0));
-	&call	("_ecp_nistz256_add");		# p256_mul_by_2(res_z, tmp0);
+	&call	("_VR_ecp_nistz256_add");		# p256_mul_by_2(res_z, tmp0);
 
 	&lea	("esi",&DWP($in_x,"esp"));
 	&lea	("ebp",&DWP($Zsqr,"esp"));
 	&lea	("edi",&DWP($Zsqr,"esp"));
-	&call	("_ecp_nistz256_sub");		# p256_sub(Zsqr, in_x, Zsqr);
+	&call	("_VR_ecp_nistz256_sub");		# p256_sub(Zsqr, in_x, Zsqr);
 
 	&mov	("eax",&DWP(32*5,"esp"));	# OPENSSL_ia32cap_P copy
 	&lea	("esi",&DWP($S,"esp"));
 	&lea	("ebp",&DWP($S,"esp"));
 	&lea	("edi",&DWP($tmp0,"esp"));
-	&call	("_ecp_nistz256_mul_mont");	# p256_sqr_mont(tmp0, S);
+	&call	("_VR_ecp_nistz256_mul_mont");	# p256_sqr_mont(tmp0, S);
 
 	&mov	("eax",&DWP(32*5,"esp"));	# OPENSSL_ia32cap_P copy
 	&lea	("esi",&DWP($M,"esp"));
 	&lea	("ebp",&DWP($Zsqr,"esp"));
 	&lea	("edi",&DWP($M,"esp"));
-	&call	("_ecp_nistz256_mul_mont");	# p256_mul_mont(M, M, Zsqr);
+	&call	("_VR_ecp_nistz256_mul_mont");	# p256_mul_mont(M, M, Zsqr);
 
 	&mov	("edi",32);
 	&lea	("esi",&DWP($tmp0,"esp"));
 	&add	("edi",&wparam(0));
-	&call	("_ecp_nistz256_div_by_2");	# p256_div_by_2(res_y, tmp0);
+	&call	("_VR_ecp_nistz256_div_by_2");	# p256_div_by_2(res_y, tmp0);
 
 	&lea	("esi",&DWP($M,"esp"));
 	&lea	("ebp",&DWP($M,"esp"));
 	&lea	("edi",&DWP($tmp0,"esp"));
-	&call	("_ecp_nistz256_add");		# 1/2 p256_mul_by_3(M, M);
+	&call	("_VR_ecp_nistz256_add");		# 1/2 p256_mul_by_3(M, M);
 
 	&mov	("eax",&DWP(32*5,"esp"));	# OPENSSL_ia32cap_P copy
 	&lea	("esi",&DWP($in_x,"esp"));
 	&lea	("ebp",&DWP($S,"esp"));
 	&lea	("edi",&DWP($S,"esp"));
-	&call	("_ecp_nistz256_mul_mont");	# p256_mul_mont(S, S, in_x);
+	&call	("_VR_ecp_nistz256_mul_mont");	# p256_mul_mont(S, S, in_x);
 
 	&lea	("esi",&DWP($tmp0,"esp"));
 	&lea	("ebp",&DWP($M,"esp"));
 	&lea	("edi",&DWP($M,"esp"));
-	&call	("_ecp_nistz256_add");		# 2/2 p256_mul_by_3(M, M);
+	&call	("_VR_ecp_nistz256_add");		# 2/2 p256_mul_by_3(M, M);
 
 	&lea	("esi",&DWP($S,"esp"));
 	&lea	("ebp",&DWP($S,"esp"));
 	&lea	("edi",&DWP($tmp0,"esp"));
-	&call	("_ecp_nistz256_add");		# p256_mul_by_2(tmp0, S);
+	&call	("_VR_ecp_nistz256_add");		# p256_mul_by_2(tmp0, S);
 
 	&mov	("eax",&DWP(32*5,"esp"));	# OPENSSL_ia32cap_P copy
 	&lea	("esi",&DWP($M,"esp"));
 	&lea	("ebp",&DWP($M,"esp"));
 	&mov	("edi",&wparam(0));
-	&call	("_ecp_nistz256_mul_mont");	# p256_sqr_mont(res_x, M);
+	&call	("_VR_ecp_nistz256_mul_mont");	# p256_sqr_mont(res_x, M);
 
 	&mov	("esi","edi");			# %edi is still res_x here
 	&lea	("ebp",&DWP($tmp0,"esp"));
-	&call	("_ecp_nistz256_sub");		# p256_sub(res_x, res_x, tmp0);
+	&call	("_VR_ecp_nistz256_sub");		# p256_sub(res_x, res_x, tmp0);
 
 	&lea	("esi",&DWP($S,"esp"));
 	&mov	("ebp","edi");			# %edi is still res_x
 	&lea	("edi",&DWP($S,"esp"));
-	&call	("_ecp_nistz256_sub");		# p256_sub(S, S, res_x);
+	&call	("_VR_ecp_nistz256_sub");		# p256_sub(S, S, res_x);
 
 	&mov	("eax",&DWP(32*5,"esp"));	# OPENSSL_ia32cap_P copy
 	&mov	("esi","edi");			# %edi is still &S
 	&lea	("ebp",&DWP($M,"esp"));
-	&call	("_ecp_nistz256_mul_mont");	# p256_mul_mont(S, S, M);
+	&call	("_VR_ecp_nistz256_mul_mont");	# p256_mul_mont(S, S, M);
 
 	&mov	("ebp",32);
 	&lea	("esi",&DWP($S,"esp"));
 	&add	("ebp",&wparam(0));
 	&mov	("edi","ebp");
-	&call	("_ecp_nistz256_sub");		# p256_sub(res_y, S, res_y);
+	&call	("_VR_ecp_nistz256_sub");		# p256_sub(res_y, S, res_y);
 
 	&stack_pop(8*5+1);
-} &function_end("ecp_nistz256_point_double");
+} &function_end("VR_ecp_nistz256_point_double");
 
 ########################################################################
-# void ecp_nistz256_point_add(P256_POINT *out,const P256_POINT *in1,
+# void VR_ecp_nistz256_point_add(P256_POINT *out,const P256_POINT *in1,
 #					      const P256_POINT *in2);
-&function_begin("ecp_nistz256_point_add");
+&function_begin("VR_ecp_nistz256_point_add");
 {   my ($res_x,$res_y,$res_z,
 	$in1_x,$in1_y,$in1_z,
 	$in2_x,$in2_y,$in2_z,
@@ -1447,42 +1447,42 @@ for ($i=0;$i<7;$i++) {
 	&lea	("esi",&DWP($in2_z,"esp"));
 	&lea	("ebp",&DWP($in2_z,"esp"));
 	&lea	("edi",&DWP($Z2sqr,"esp"));
-	&call	("_ecp_nistz256_mul_mont");	# p256_sqr_mont(Z2sqr, in2_z);
+	&call	("_VR_ecp_nistz256_mul_mont");	# p256_sqr_mont(Z2sqr, in2_z);
 
 	&mov	("eax",&DWP(32*18+12,"esp"));	# OPENSSL_ia32cap_P copy
 	&lea	("esi",&DWP($in1_z,"esp"));
 	&lea	("ebp",&DWP($in1_z,"esp"));
 	&lea	("edi",&DWP($Z1sqr,"esp"));
-	&call	("_ecp_nistz256_mul_mont");	# p256_sqr_mont(Z1sqr, in1_z);
+	&call	("_VR_ecp_nistz256_mul_mont");	# p256_sqr_mont(Z1sqr, in1_z);
 
 	&mov	("eax",&DWP(32*18+12,"esp"));	# OPENSSL_ia32cap_P copy
 	&lea	("esi",&DWP($Z2sqr,"esp"));
 	&lea	("ebp",&DWP($in2_z,"esp"));
 	&lea	("edi",&DWP($S1,"esp"));
-	&call	("_ecp_nistz256_mul_mont");	# p256_mul_mont(S1, Z2sqr, in2_z);
+	&call	("_VR_ecp_nistz256_mul_mont");	# p256_mul_mont(S1, Z2sqr, in2_z);
 
 	&mov	("eax",&DWP(32*18+12,"esp"));	# OPENSSL_ia32cap_P copy
 	&lea	("esi",&DWP($Z1sqr,"esp"));
 	&lea	("ebp",&DWP($in1_z,"esp"));
 	&lea	("edi",&DWP($S2,"esp"));
-	&call	("_ecp_nistz256_mul_mont");	# p256_mul_mont(S2, Z1sqr, in1_z);
+	&call	("_VR_ecp_nistz256_mul_mont");	# p256_mul_mont(S2, Z1sqr, in1_z);
 
 	&mov	("eax",&DWP(32*18+12,"esp"));	# OPENSSL_ia32cap_P copy
 	&lea	("esi",&DWP($in1_y,"esp"));
 	&lea	("ebp",&DWP($S1,"esp"));
 	&lea	("edi",&DWP($S1,"esp"));
-	&call	("_ecp_nistz256_mul_mont");	# p256_mul_mont(S1, S1, in1_y);
+	&call	("_VR_ecp_nistz256_mul_mont");	# p256_mul_mont(S1, S1, in1_y);
 
 	&mov	("eax",&DWP(32*18+12,"esp"));	# OPENSSL_ia32cap_P copy
 	&lea	("esi",&DWP($in2_y,"esp"));
 	&lea	("ebp",&DWP($S2,"esp"));
 	&lea	("edi",&DWP($S2,"esp"));
-	&call	("_ecp_nistz256_mul_mont");	# p256_mul_mont(S2, S2, in2_y);
+	&call	("_VR_ecp_nistz256_mul_mont");	# p256_mul_mont(S2, S2, in2_y);
 
 	&lea	("esi",&DWP($S2,"esp"));
 	&lea	("ebp",&DWP($S1,"esp"));
 	&lea	("edi",&DWP($R,"esp"));
-	&call	("_ecp_nistz256_sub");		# p256_sub(R, S2, S1);
+	&call	("_VR_ecp_nistz256_sub");		# p256_sub(R, S2, S1);
 
 	&or	("ebx","eax");			# see if result is zero
 	&mov	("eax",&DWP(32*18+12,"esp"));	# OPENSSL_ia32cap_P copy
@@ -1497,18 +1497,18 @@ for ($i=0;$i<7;$i++) {
 	 &lea	("edi",&DWP($U1,"esp"));
 	&mov	(&DWP(32*18+8,"esp"),"ebx");
 
-	&call	("_ecp_nistz256_mul_mont");	# p256_mul_mont(U1, in1_x, Z2sqr);
+	&call	("_VR_ecp_nistz256_mul_mont");	# p256_mul_mont(U1, in1_x, Z2sqr);
 
 	&mov	("eax",&DWP(32*18+12,"esp"));	# OPENSSL_ia32cap_P copy
 	&lea	("esi",&DWP($in2_x,"esp"));
 	&lea	("ebp",&DWP($Z1sqr,"esp"));
 	&lea	("edi",&DWP($U2,"esp"));
-	&call	("_ecp_nistz256_mul_mont");	# p256_mul_mont(U2, in2_x, Z1sqr);
+	&call	("_VR_ecp_nistz256_mul_mont");	# p256_mul_mont(U2, in2_x, Z1sqr);
 
 	&lea	("esi",&DWP($U2,"esp"));
 	&lea	("ebp",&DWP($U1,"esp"));
 	&lea	("edi",&DWP($H,"esp"));
-	&call	("_ecp_nistz256_sub");		# p256_sub(H, U2, U1);
+	&call	("_VR_ecp_nistz256_sub");		# p256_sub(H, U2, U1);
 
 	&or	("eax","ebx");			# see if result is zero
 	&or	("eax","ecx");
@@ -1545,74 +1545,74 @@ for ($i=0;$i<7;$i++) {
 	&lea	("esi",&DWP($R,"esp"));
 	&lea	("ebp",&DWP($R,"esp"));
 	&lea	("edi",&DWP($Rsqr,"esp"));
-	&call	("_ecp_nistz256_mul_mont");	# p256_sqr_mont(Rsqr, R);
+	&call	("_VR_ecp_nistz256_mul_mont");	# p256_sqr_mont(Rsqr, R);
 
 	&mov	("eax",&DWP(32*18+12,"esp"));	# OPENSSL_ia32cap_P copy
 	&lea	("esi",&DWP($H,"esp"));
 	&lea	("ebp",&DWP($in1_z,"esp"));
 	&lea	("edi",&DWP($res_z,"esp"));
-	&call	("_ecp_nistz256_mul_mont");	# p256_mul_mont(res_z, H, in1_z);
+	&call	("_VR_ecp_nistz256_mul_mont");	# p256_mul_mont(res_z, H, in1_z);
 
 	&mov	("eax",&DWP(32*18+12,"esp"));	# OPENSSL_ia32cap_P copy
 	&lea	("esi",&DWP($H,"esp"));
 	&lea	("ebp",&DWP($H,"esp"));
 	&lea	("edi",&DWP($Hsqr,"esp"));
-	&call	("_ecp_nistz256_mul_mont");	# p256_sqr_mont(Hsqr, H);
+	&call	("_VR_ecp_nistz256_mul_mont");	# p256_sqr_mont(Hsqr, H);
 
 	&mov	("eax",&DWP(32*18+12,"esp"));	# OPENSSL_ia32cap_P copy
 	&lea	("esi",&DWP($in2_z,"esp"));
 	&lea	("ebp",&DWP($res_z,"esp"));
 	&lea	("edi",&DWP($res_z,"esp"));
-	&call	("_ecp_nistz256_mul_mont");	# p256_mul_mont(res_z, res_z, in2_z);
+	&call	("_VR_ecp_nistz256_mul_mont");	# p256_mul_mont(res_z, res_z, in2_z);
 
 	&mov	("eax",&DWP(32*18+12,"esp"));	# OPENSSL_ia32cap_P copy
 	&lea	("esi",&DWP($Hsqr,"esp"));
 	&lea	("ebp",&DWP($U1,"esp"));
 	&lea	("edi",&DWP($U2,"esp"));
-	&call	("_ecp_nistz256_mul_mont");	# p256_mul_mont(U2, U1, Hsqr);
+	&call	("_VR_ecp_nistz256_mul_mont");	# p256_mul_mont(U2, U1, Hsqr);
 
 	&mov	("eax",&DWP(32*18+12,"esp"));	# OPENSSL_ia32cap_P copy
 	&lea	("esi",&DWP($H,"esp"));
 	&lea	("ebp",&DWP($Hsqr,"esp"));
 	&lea	("edi",&DWP($Hcub,"esp"));
-	&call	("_ecp_nistz256_mul_mont");	# p256_mul_mont(Hcub, Hsqr, H);
+	&call	("_VR_ecp_nistz256_mul_mont");	# p256_mul_mont(Hcub, Hsqr, H);
 
 	&lea	("esi",&DWP($U2,"esp"));
 	&lea	("ebp",&DWP($U2,"esp"));
 	&lea	("edi",&DWP($Hsqr,"esp"));
-	&call	("_ecp_nistz256_add");		# p256_mul_by_2(Hsqr, U2);
+	&call	("_VR_ecp_nistz256_add");		# p256_mul_by_2(Hsqr, U2);
 
 	&lea	("esi",&DWP($Rsqr,"esp"));
 	&lea	("ebp",&DWP($Hsqr,"esp"));
 	&lea	("edi",&DWP($res_x,"esp"));
-	&call	("_ecp_nistz256_sub");		# p256_sub(res_x, Rsqr, Hsqr);
+	&call	("_VR_ecp_nistz256_sub");		# p256_sub(res_x, Rsqr, Hsqr);
 
 	&lea	("esi",&DWP($res_x,"esp"));
 	&lea	("ebp",&DWP($Hcub,"esp"));
 	&lea	("edi",&DWP($res_x,"esp"));
-	&call	("_ecp_nistz256_sub");		# p256_sub(res_x, res_x, Hcub);
+	&call	("_VR_ecp_nistz256_sub");		# p256_sub(res_x, res_x, Hcub);
 
 	&lea	("esi",&DWP($U2,"esp"));
 	&lea	("ebp",&DWP($res_x,"esp"));
 	&lea	("edi",&DWP($res_y,"esp"));
-	&call	("_ecp_nistz256_sub");		# p256_sub(res_y, U2, res_x);
+	&call	("_VR_ecp_nistz256_sub");		# p256_sub(res_y, U2, res_x);
 
 	&mov	("eax",&DWP(32*18+12,"esp"));	# OPENSSL_ia32cap_P copy
 	&lea	("esi",&DWP($Hcub,"esp"));
 	&lea	("ebp",&DWP($S1,"esp"));
 	&lea	("edi",&DWP($S2,"esp"));
-	&call	("_ecp_nistz256_mul_mont");	# p256_mul_mont(S2, S1, Hcub);
+	&call	("_VR_ecp_nistz256_mul_mont");	# p256_mul_mont(S2, S1, Hcub);
 
 	&mov	("eax",&DWP(32*18+12,"esp"));	# OPENSSL_ia32cap_P copy
 	&lea	("esi",&DWP($R,"esp"));
 	&lea	("ebp",&DWP($res_y,"esp"));
 	&lea	("edi",&DWP($res_y,"esp"));
-	&call	("_ecp_nistz256_mul_mont");	# p256_mul_mont(res_y, R, res_y);
+	&call	("_VR_ecp_nistz256_mul_mont");	# p256_mul_mont(res_y, R, res_y);
 
 	&lea	("esi",&DWP($res_y,"esp"));
 	&lea	("ebp",&DWP($S2,"esp"));
 	&lea	("edi",&DWP($res_y,"esp"));
-	&call	("_ecp_nistz256_sub");		# p256_sub(res_y, res_y, S2);
+	&call	("_VR_ecp_nistz256_sub");		# p256_sub(res_y, res_y, S2);
 
 	&mov	("ebp",&DWP(32*18+0,"esp"));	# !in1infty
 	&mov	("esi",&DWP(32*18+4,"esp"));	# !in2infty
@@ -1649,13 +1649,13 @@ for ($i=0;$i<7;$i++) {
     }
     &set_label("add_done");
 	&stack_pop(8*18+5);
-} &function_end("ecp_nistz256_point_add");
+} &function_end("VR_ecp_nistz256_point_add");
 
 ########################################################################
-# void ecp_nistz256_point_add_affine(P256_POINT *out,
+# void VR_ecp_nistz256_point_add_affine(P256_POINT *out,
 #				     const P256_POINT *in1,
 #				     const P256_POINT_AFFINE *in2);
-&function_begin("ecp_nistz256_point_add_affine");
+&function_begin("VR_ecp_nistz256_point_add_affine");
 {
     my ($res_x,$res_y,$res_z,
 	$in1_x,$in1_y,$in1_z,
@@ -1726,102 +1726,102 @@ for ($i=0;$i<7;$i++) {
 	 &lea	("edi",&DWP($Z1sqr,"esp"));
 	&mov	(&DWP(32*15+4,"esp"),"ebx");	# !in2infty
 
-	&call	("_ecp_nistz256_mul_mont");	# p256_sqr_mont(Z1sqr, in1_z);
+	&call	("_VR_ecp_nistz256_mul_mont");	# p256_sqr_mont(Z1sqr, in1_z);
 
 	&mov	("eax",&DWP(32*15+8,"esp"));	# OPENSSL_ia32cap_P copy
 	&lea	("esi",&DWP($in2_x,"esp"));
 	&mov	("ebp","edi");			# %esi is stull &Z1sqr
 	&lea	("edi",&DWP($U2,"esp"));
-	&call	("_ecp_nistz256_mul_mont");	# p256_mul_mont(U2, Z1sqr, in2_x);
+	&call	("_VR_ecp_nistz256_mul_mont");	# p256_mul_mont(U2, Z1sqr, in2_x);
 
 	&mov	("eax",&DWP(32*15+8,"esp"));	# OPENSSL_ia32cap_P copy
 	&lea	("esi",&DWP($in1_z,"esp"));
 	&lea	("ebp",&DWP($Z1sqr,"esp"));
 	&lea	("edi",&DWP($S2,"esp"));
-	&call	("_ecp_nistz256_mul_mont");	# p256_mul_mont(S2, Z1sqr, in1_z);
+	&call	("_VR_ecp_nistz256_mul_mont");	# p256_mul_mont(S2, Z1sqr, in1_z);
 
 	&lea	("esi",&DWP($U2,"esp"));
 	&lea	("ebp",&DWP($in1_x,"esp"));
 	&lea	("edi",&DWP($H,"esp"));
-	&call	("_ecp_nistz256_sub");		# p256_sub(H, U2, in1_x);
+	&call	("_VR_ecp_nistz256_sub");		# p256_sub(H, U2, in1_x);
 
 	&mov	("eax",&DWP(32*15+8,"esp"));	# OPENSSL_ia32cap_P copy
 	&lea	("esi",&DWP($in2_y,"esp"));
 	&lea	("ebp",&DWP($S2,"esp"));
 	&lea	("edi",&DWP($S2,"esp"));
-	&call	("_ecp_nistz256_mul_mont");	# p256_mul_mont(S2, S2, in2_y);
+	&call	("_VR_ecp_nistz256_mul_mont");	# p256_mul_mont(S2, S2, in2_y);
 
 	&mov	("eax",&DWP(32*15+8,"esp"));	# OPENSSL_ia32cap_P copy
 	&lea	("esi",&DWP($in1_z,"esp"));
 	&lea	("ebp",&DWP($H,"esp"));
 	&lea	("edi",&DWP($res_z,"esp"));
-	&call	("_ecp_nistz256_mul_mont");	# p256_mul_mont(res_z, H, in1_z);
+	&call	("_VR_ecp_nistz256_mul_mont");	# p256_mul_mont(res_z, H, in1_z);
 
 	&lea	("esi",&DWP($S2,"esp"));
 	&lea	("ebp",&DWP($in1_y,"esp"));
 	&lea	("edi",&DWP($R,"esp"));
-	&call	("_ecp_nistz256_sub");		# p256_sub(R, S2, in1_y);
+	&call	("_VR_ecp_nistz256_sub");		# p256_sub(R, S2, in1_y);
 
 	&mov	("eax",&DWP(32*15+8,"esp"));	# OPENSSL_ia32cap_P copy
 	&lea	("esi",&DWP($H,"esp"));
 	&lea	("ebp",&DWP($H,"esp"));
 	&lea	("edi",&DWP($Hsqr,"esp"));
-	&call	("_ecp_nistz256_mul_mont");	# p256_sqr_mont(Hsqr, H);
+	&call	("_VR_ecp_nistz256_mul_mont");	# p256_sqr_mont(Hsqr, H);
 
 	&mov	("eax",&DWP(32*15+8,"esp"));	# OPENSSL_ia32cap_P copy
 	&lea	("esi",&DWP($R,"esp"));
 	&lea	("ebp",&DWP($R,"esp"));
 	&lea	("edi",&DWP($Rsqr,"esp"));
-	&call	("_ecp_nistz256_mul_mont");	# p256_sqr_mont(Rsqr, R);
+	&call	("_VR_ecp_nistz256_mul_mont");	# p256_sqr_mont(Rsqr, R);
 
 	&mov	("eax",&DWP(32*15+8,"esp"));	# OPENSSL_ia32cap_P copy
 	&lea	("esi",&DWP($in1_x,"esp"));
 	&lea	("ebp",&DWP($Hsqr,"esp"));
 	&lea	("edi",&DWP($U2,"esp"));
-	&call	("_ecp_nistz256_mul_mont");	# p256_mul_mont(U2, in1_x, Hsqr);
+	&call	("_VR_ecp_nistz256_mul_mont");	# p256_mul_mont(U2, in1_x, Hsqr);
 
 	&mov	("eax",&DWP(32*15+8,"esp"));	# OPENSSL_ia32cap_P copy
 	&lea	("esi",&DWP($H,"esp"));
 	&lea	("ebp",&DWP($Hsqr,"esp"));
 	&lea	("edi",&DWP($Hcub,"esp"));
-	&call	("_ecp_nistz256_mul_mont");	# p256_mul_mont(Hcub, Hsqr, H);
+	&call	("_VR_ecp_nistz256_mul_mont");	# p256_mul_mont(Hcub, Hsqr, H);
 
 	&lea	("esi",&DWP($U2,"esp"));
 	&lea	("ebp",&DWP($U2,"esp"));
 	&lea	("edi",&DWP($Hsqr,"esp"));
-	&call	("_ecp_nistz256_add");		# p256_mul_by_2(Hsqr, U2);
+	&call	("_VR_ecp_nistz256_add");		# p256_mul_by_2(Hsqr, U2);
 
 	&lea	("esi",&DWP($Rsqr,"esp"));
 	&lea	("ebp",&DWP($Hsqr,"esp"));
 	&lea	("edi",&DWP($res_x,"esp"));
-	&call	("_ecp_nistz256_sub");		# p256_sub(res_x, Rsqr, Hsqr);
+	&call	("_VR_ecp_nistz256_sub");		# p256_sub(res_x, Rsqr, Hsqr);
 
 	&lea	("esi",&DWP($res_x,"esp"));
 	&lea	("ebp",&DWP($Hcub,"esp"));
 	&lea	("edi",&DWP($res_x,"esp"));
-	&call	("_ecp_nistz256_sub");		# p256_sub(res_x, res_x, Hcub);
+	&call	("_VR_ecp_nistz256_sub");		# p256_sub(res_x, res_x, Hcub);
 
 	&lea	("esi",&DWP($U2,"esp"));
 	&lea	("ebp",&DWP($res_x,"esp"));
 	&lea	("edi",&DWP($res_y,"esp"));
-	&call	("_ecp_nistz256_sub");		# p256_sub(res_y, U2, res_x);
+	&call	("_VR_ecp_nistz256_sub");		# p256_sub(res_y, U2, res_x);
 
 	&mov	("eax",&DWP(32*15+8,"esp"));	# OPENSSL_ia32cap_P copy
 	&lea	("esi",&DWP($Hcub,"esp"));
 	&lea	("ebp",&DWP($in1_y,"esp"));
 	&lea	("edi",&DWP($S2,"esp"));
-	&call	("_ecp_nistz256_mul_mont");	# p256_mul_mont(S2, Hcub, in1_y);
+	&call	("_VR_ecp_nistz256_mul_mont");	# p256_mul_mont(S2, Hcub, in1_y);
 
 	&mov	("eax",&DWP(32*15+8,"esp"));	# OPENSSL_ia32cap_P copy
 	&lea	("esi",&DWP($R,"esp"));
 	&lea	("ebp",&DWP($res_y,"esp"));
 	&lea	("edi",&DWP($res_y,"esp"));
-	&call	("_ecp_nistz256_mul_mont");	# p256_mul_mont(res_y, res_y, R);
+	&call	("_VR_ecp_nistz256_mul_mont");	# p256_mul_mont(res_y, res_y, R);
 
 	&lea	("esi",&DWP($res_y,"esp"));
 	&lea	("ebp",&DWP($S2,"esp"));
 	&lea	("edi",&DWP($res_y,"esp"));
-	&call	("_ecp_nistz256_sub");		# p256_sub(res_y, res_y, S2);
+	&call	("_VR_ecp_nistz256_sub");		# p256_sub(res_y, res_y, S2);
 
 	&mov	("ebp",&DWP(32*15+0,"esp"));	# !in1infty
 	&mov	("esi",&DWP(32*15+4,"esp"));	# !in2infty
@@ -1859,7 +1859,7 @@ for ($i=0;$i<7;$i++) {
 	&mov	(&DWP($i,"edi"),"eax");
     }
 	&stack_pop(8*15+3);
-} &function_end("ecp_nistz256_point_add_affine");
+} &function_end("VR_ecp_nistz256_point_add_affine");
 
 &asm_finish();
 

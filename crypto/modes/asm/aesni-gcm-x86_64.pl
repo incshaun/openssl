@@ -405,10 +405,10 @@ ___
 #		const AES_KEY *key, unsigned char iv[16],
 #		struct { u128 Xi,H,Htbl[9]; } *Xip);
 $code.=<<___;
-.globl	aesni_gcm_decrypt
-.type	aesni_gcm_decrypt,\@function,6
+.globl	VR_aesni_gcm_decrypt
+.type	VR_aesni_gcm_decrypt,\@function,6
 .align	32
-aesni_gcm_decrypt:
+VR_aesni_gcm_decrypt:
 .cfi_startproc
 	xor	$ret,$ret
 	cmp	\$0x60,$len			# minimal accepted length
@@ -536,7 +536,7 @@ $code.=<<___;
 	mov	$ret,%rax		# return value
 	ret
 .cfi_endproc
-.size	aesni_gcm_decrypt,.-aesni_gcm_decrypt
+.size	VR_aesni_gcm_decrypt,.-VR_aesni_gcm_decrypt
 ___
 
 $code.=<<___;
@@ -631,10 +631,10 @@ _aesni_ctr32_6x:
 	jmp	.Loop_ctr32
 .size	_aesni_ctr32_6x,.-_aesni_ctr32_6x
 
-.globl	aesni_gcm_encrypt
-.type	aesni_gcm_encrypt,\@function,6
+.globl	VR_aesni_gcm_encrypt
+.type	VR_aesni_gcm_encrypt,\@function,6
 .align	32
-aesni_gcm_encrypt:
+VR_aesni_gcm_encrypt:
 .cfi_startproc
 	xor	$ret,$ret
 	cmp	\$0x60*3,$len			# minimal accepted length
@@ -933,7 +933,7 @@ $code.=<<___;
 	mov	$ret,%rax		# return value
 	ret
 .cfi_endproc
-.size	aesni_gcm_encrypt,.-aesni_gcm_encrypt
+.size	VR_aesni_gcm_encrypt,.-VR_aesni_gcm_encrypt
 ___
 
 $code.=<<___;
@@ -1053,12 +1053,12 @@ gcm_se_handler:
 
 .section	.pdata
 .align	4
-	.rva	.LSEH_begin_aesni_gcm_decrypt
-	.rva	.LSEH_end_aesni_gcm_decrypt
+	.rva	.LSEH_begin_VR_aesni_gcm_decrypt
+	.rva	.LSEH_end_VR_aesni_gcm_decrypt
 	.rva	.LSEH_gcm_dec_info
 
-	.rva	.LSEH_begin_aesni_gcm_encrypt
-	.rva	.LSEH_end_aesni_gcm_encrypt
+	.rva	.LSEH_begin_VR_aesni_gcm_encrypt
+	.rva	.LSEH_end_VR_aesni_gcm_encrypt
 	.rva	.LSEH_gcm_enc_info
 .section	.xdata
 .align	8
@@ -1076,19 +1076,19 @@ ___
 $code=<<___;	# assembler is too old
 .text
 
-.globl	aesni_gcm_encrypt
-.type	aesni_gcm_encrypt,\@abi-omnipotent
-aesni_gcm_encrypt:
+.globl	VR_aesni_gcm_encrypt
+.type	VR_aesni_gcm_encrypt,\@abi-omnipotent
+VR_aesni_gcm_encrypt:
 	xor	%eax,%eax
 	ret
-.size	aesni_gcm_encrypt,.-aesni_gcm_encrypt
+.size	VR_aesni_gcm_encrypt,.-VR_aesni_gcm_encrypt
 
-.globl	aesni_gcm_decrypt
-.type	aesni_gcm_decrypt,\@abi-omnipotent
-aesni_gcm_decrypt:
+.globl	VR_aesni_gcm_decrypt
+.type	VR_aesni_gcm_decrypt,\@abi-omnipotent
+VR_aesni_gcm_decrypt:
 	xor	%eax,%eax
 	ret
-.size	aesni_gcm_decrypt,.-aesni_gcm_decrypt
+.size	VR_aesni_gcm_decrypt,.-VR_aesni_gcm_decrypt
 ___
 }}}
 

@@ -250,13 +250,13 @@ int ocsp_main(int argc, char **argv)
     unsigned long sign_flags = 0, verify_flags = 0, rflags = 0;
     OPTION_CHOICE o;
 
-    reqnames = sk_OPENSSL_STRING_new_null();
+    reqnames = sk_VR_OPENSSL_STRING_new_null();
     if (reqnames == NULL)
         goto end;
-    ids = sk_OCSP_CERTID_new_null();
+    ids = sk_VR_OCSP_CERTID_new_null();
     if (ids == NULL)
         goto end;
-    if ((vpm = X509_VERIFY_PARAM_new()) == NULL)
+    if ((vpm = VR_X509_VERIFY_PARAM_new()) == NULL)
         return 1;
 
     prog = opt_init(argc, argv, ocsp_options);
@@ -265,7 +265,7 @@ int ocsp_main(int argc, char **argv)
         case OPT_EOF:
         case OPT_ERR:
  opthelp:
-            BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
+            VR_BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
             ret = 0;
@@ -280,12 +280,12 @@ int ocsp_main(int argc, char **argv)
 #endif
             break;
         case OPT_URL:
-            OPENSSL_free(thost);
-            OPENSSL_free(tport);
-            OPENSSL_free(tpath);
+            OPENVR_SSL_free(thost);
+            OPENVR_SSL_free(tport);
+            OPENVR_SSL_free(tpath);
             thost = tport = tpath = NULL;
-            if (!OCSP_parse_url(opt_arg(), &host, &port, &path, &use_ssl)) {
-                BIO_printf(bio_err, "%s Error parsing URL\n", prog);
+            if (!VR_OCSP_parse_url(opt_arg(), &host, &port, &path, &use_ssl)) {
+                VR_BIO_printf(bio_err, "%s Error parsing URL\n", prog);
                 goto end;
             }
             thost = host;
@@ -411,30 +411,30 @@ int ocsp_main(int argc, char **argv)
             if (issuer == NULL)
                 goto end;
             if (issuers == NULL) {
-                if ((issuers = sk_X509_new_null()) == NULL)
+                if ((issuers = sk_VR_X509_new_null()) == NULL)
                     goto end;
             }
-            sk_X509_push(issuers, issuer);
+            sk_VR_X509_push(issuers, issuer);
             break;
         case OPT_CERT:
-            X509_free(cert);
+            VR_X509_free(cert);
             cert = load_cert(opt_arg(), FORMAT_PEM, "certificate");
             if (cert == NULL)
                 goto end;
             if (cert_id_md == NULL)
-                cert_id_md = EVP_sha1();
+                cert_id_md = VR_EVP_sha1();
             if (!add_ocsp_cert(&req, cert, cert_id_md, issuer, ids))
                 goto end;
-            if (!sk_OPENSSL_STRING_push(reqnames, opt_arg()))
+            if (!sk_VR_OPENSSL_STRING_push(reqnames, opt_arg()))
                 goto end;
             trailing_md = 0;
             break;
         case OPT_SERIAL:
             if (cert_id_md == NULL)
-                cert_id_md = EVP_sha1();
+                cert_id_md = VR_EVP_sha1();
             if (!add_ocsp_serial(&req, opt_arg(), cert_id_md, issuer, ids))
                 goto end;
-            if (!sk_OPENSSL_STRING_push(reqnames, opt_arg()))
+            if (!sk_VR_OPENSSL_STRING_push(reqnames, opt_arg()))
                 goto end;
             trailing_md = 0;
             break;
@@ -470,24 +470,24 @@ int ocsp_main(int argc, char **argv)
             break;
         case OPT_RSIGOPT:
             if (rsign_sigopts == NULL)
-                rsign_sigopts = sk_OPENSSL_STRING_new_null();
-            if (rsign_sigopts == NULL || !sk_OPENSSL_STRING_push(rsign_sigopts, opt_arg()))
+                rsign_sigopts = sk_VR_OPENSSL_STRING_new_null();
+            if (rsign_sigopts == NULL || !sk_VR_OPENSSL_STRING_push(rsign_sigopts, opt_arg()))
                 goto end;
             break;
         case OPT_HEADER:
             header = opt_arg();
             value = strchr(header, '=');
             if (value == NULL) {
-                BIO_printf(bio_err, "Missing = in header key=value\n");
+                VR_BIO_printf(bio_err, "Missing = in header key=value\n");
                 goto opthelp;
             }
             *value++ = '\0';
-            if (!X509V3_add_value(header, value, &headers))
+            if (!VR_X509V3_add_value(header, value, &headers))
                 goto end;
             break;
         case OPT_MD:
             if (trailing_md) {
-                BIO_printf(bio_err,
+                VR_BIO_printf(bio_err,
                            "%s: Digest must be before -cert or -serial\n",
                            prog);
                 goto opthelp;
@@ -504,7 +504,7 @@ int ocsp_main(int argc, char **argv)
         }
     }
     if (trailing_md) {
-        BIO_printf(bio_err, "%s: Digest must be before -cert or -serial\n",
+        VR_BIO_printf(bio_err, "%s: Digest must be before -cert or -serial\n",
                    prog);
         goto opthelp;
     }
@@ -528,10 +528,10 @@ int ocsp_main(int argc, char **argv)
         derbio = bio_open_default(reqin, 'r', FORMAT_ASN1);
         if (derbio == NULL)
             goto end;
-        req = d2i_OCSP_REQUEST_bio(derbio, NULL);
-        BIO_free(derbio);
+        req = VR_d2i_OCSP_REQUEST_bio(derbio, NULL);
+        VR_BIO_free(derbio);
         if (req == NULL) {
-            BIO_printf(bio_err, "Error reading OCSP request\n");
+            VR_BIO_printf(bio_err, "Error reading OCSP request\n");
             goto end;
         }
     }
@@ -547,7 +547,7 @@ int ocsp_main(int argc, char **argv)
             rkeyfile = rsignfile;
         rsigner = load_cert(rsignfile, FORMAT_PEM, "responder certificate");
         if (rsigner == NULL) {
-            BIO_printf(bio_err, "Error loading responder certificate\n");
+            VR_BIO_printf(bio_err, "Error loading responder certificate\n");
             goto end;
         }
         if (!load_certs(rca_filename, &rca_cert, FORMAT_PEM,
@@ -566,7 +566,7 @@ int ocsp_main(int argc, char **argv)
 
     if (ridx_filename != NULL
         && (rkey == NULL || rsigner == NULL || rca_cert == NULL)) {
-        BIO_printf(bio_err,
+        VR_BIO_printf(bio_err,
                    "Responder mode requires certificate, key, and CA.\n");
         goto end;
     }
@@ -613,7 +613,7 @@ redo_accept:
 
         if (req == NULL) {
             resp =
-                OCSP_response_create(OCSP_RESPONSE_STATUS_MALFORMEDREQUEST,
+                VR_OCSP_response_create(OCSP_RESPONSE_STATUS_MALFORMEDREQUEST,
                                      NULL);
             send_ocsp_response(cbio, resp);
             goto done_resp;
@@ -623,19 +623,19 @@ redo_accept:
     if (req == NULL
         && (signfile != NULL || reqout != NULL
             || host != NULL || add_nonce || ridx_filename != NULL)) {
-        BIO_printf(bio_err, "Need an OCSP request for this operation!\n");
+        VR_BIO_printf(bio_err, "Need an OCSP request for this operation!\n");
         goto end;
     }
 
     if (req != NULL && add_nonce)
-        OCSP_request_add1_nonce(req, NULL, -1);
+        VR_OCSP_request_add1_nonce(req, NULL, -1);
 
     if (signfile != NULL) {
         if (keyfile == NULL)
             keyfile = signfile;
         signer = load_cert(signfile, FORMAT_PEM, "signer certificate");
         if (signer == NULL) {
-            BIO_printf(bio_err, "Error loading signer certificate\n");
+            VR_BIO_printf(bio_err, "Error loading signer certificate\n");
             goto end;
         }
         if (sign_certfile != NULL) {
@@ -648,22 +648,22 @@ redo_accept:
         if (key == NULL)
             goto end;
 
-        if (!OCSP_request_sign
+        if (!VR_OCSP_request_sign
             (req, signer, key, NULL, sign_other, sign_flags)) {
-            BIO_printf(bio_err, "Error signing OCSP request\n");
+            VR_BIO_printf(bio_err, "Error signing OCSP request\n");
             goto end;
         }
     }
 
     if (req_text && req != NULL)
-        OCSP_REQUEST_print(out, req, 0);
+        VR_OCSP_REQUEST_print(out, req, 0);
 
     if (reqout != NULL) {
         derbio = bio_open_default(reqout, 'w', FORMAT_ASN1);
         if (derbio == NULL)
             goto end;
-        i2d_OCSP_REQUEST_bio(derbio, req);
-        BIO_free(derbio);
+        VR_i2d_OCSP_REQUEST_bio(derbio, req);
+        VR_BIO_free(derbio);
     }
 
     if (rdb != NULL) {
@@ -678,7 +678,7 @@ redo_accept:
         if (resp == NULL)
             goto end;
 # else
-        BIO_printf(bio_err,
+        VR_BIO_printf(bio_err,
                    "Error creating connect BIO - sockets not supported.\n");
         goto end;
 # endif
@@ -686,10 +686,10 @@ redo_accept:
         derbio = bio_open_default(respin, 'r', FORMAT_ASN1);
         if (derbio == NULL)
             goto end;
-        resp = d2i_OCSP_RESPONSE_bio(derbio, NULL);
-        BIO_free(derbio);
+        resp = VR_d2i_OCSP_RESPONSE_bio(derbio, NULL);
+        VR_BIO_free(derbio);
         if (resp == NULL) {
-            BIO_printf(bio_err, "Error reading OCSP response\n");
+            VR_BIO_printf(bio_err, "Error reading OCSP response\n");
             goto end;
         }
     } else {
@@ -703,20 +703,20 @@ redo_accept:
         derbio = bio_open_default(respout, 'w', FORMAT_ASN1);
         if (derbio == NULL)
             goto end;
-        i2d_OCSP_RESPONSE_bio(derbio, resp);
-        BIO_free(derbio);
+        VR_i2d_OCSP_RESPONSE_bio(derbio, resp);
+        VR_BIO_free(derbio);
     }
 
-    i = OCSP_response_status(resp);
+    i = VR_OCSP_response_status(resp);
     if (i != OCSP_RESPONSE_STATUS_SUCCESSFUL) {
-        BIO_printf(out, "Responder Error: %s (%d)\n",
-                   OCSP_response_status_str(i), i);
+        VR_BIO_printf(out, "Responder Error: %s (%d)\n",
+                   VR_OCSP_response_status_str(i), i);
         if (!ignore_err)
                 goto end;
     }
 
     if (resp_text)
-        OCSP_RESPONSE_print(out, resp, 0);
+        VR_OCSP_RESPONSE_print(out, resp, 0);
 
     /* If running as responder don't verify our own response */
     if (cbio != NULL) {
@@ -725,11 +725,11 @@ redo_accept:
             ret = 0;
             goto end;
         }
-        BIO_free_all(cbio);
+        VR_BIO_free_all(cbio);
         cbio = NULL;
-        OCSP_REQUEST_free(req);
+        VR_OCSP_REQUEST_free(req);
         req = NULL;
-        OCSP_RESPONSE_free(resp);
+        VR_OCSP_RESPONSE_free(resp);
         resp = NULL;
         goto redo_accept;
     }
@@ -744,76 +744,76 @@ redo_accept:
             goto end;
     }
     if (vpmtouched)
-        X509_STORE_set1_param(store, vpm);
+        VR_X509_STORE_set1_param(store, vpm);
     if (verify_certfile != NULL) {
         if (!load_certs(verify_certfile, &verify_other, FORMAT_PEM, NULL,
                         "validator certificate"))
             goto end;
     }
 
-    bs = OCSP_response_get1_basic(resp);
+    bs = VR_OCSP_response_get1_basic(resp);
     if (bs == NULL) {
-        BIO_printf(bio_err, "Error parsing response\n");
+        VR_BIO_printf(bio_err, "Error parsing response\n");
         goto end;
     }
 
     ret = 0;
 
     if (!noverify) {
-        if (req != NULL && ((i = OCSP_check_nonce(req, bs)) <= 0)) {
+        if (req != NULL && ((i = VR_OCSP_check_nonce(req, bs)) <= 0)) {
             if (i == -1)
-                BIO_printf(bio_err, "WARNING: no nonce in response\n");
+                VR_BIO_printf(bio_err, "WARNING: no nonce in response\n");
             else {
-                BIO_printf(bio_err, "Nonce Verify error\n");
+                VR_BIO_printf(bio_err, "Nonce Verify error\n");
                 ret = 1;
                 goto end;
             }
         }
 
-        i = OCSP_basic_verify(bs, verify_other, store, verify_flags);
+        i = VR_OCSP_basic_verify(bs, verify_other, store, verify_flags);
         if (i <= 0 && issuers) {
-            i = OCSP_basic_verify(bs, issuers, store, OCSP_TRUSTOTHER);
+            i = VR_OCSP_basic_verify(bs, issuers, store, OCSP_TRUSTOTHER);
             if (i > 0)
-                ERR_clear_error();
+                VR_ERR_clear_error();
         }
         if (i <= 0) {
-            BIO_printf(bio_err, "Response Verify Failure\n");
-            ERR_print_errors(bio_err);
+            VR_BIO_printf(bio_err, "Response Verify Failure\n");
+            VR_ERR_print_errors(bio_err);
             ret = 1;
         } else {
-            BIO_printf(bio_err, "Response verify OK\n");
+            VR_BIO_printf(bio_err, "Response verify OK\n");
         }
     }
 
     print_ocsp_summary(out, bs, req, reqnames, ids, nsec, maxage);
 
  end:
-    ERR_print_errors(bio_err);
-    X509_free(signer);
-    X509_STORE_free(store);
-    X509_VERIFY_PARAM_free(vpm);
-    sk_OPENSSL_STRING_free(rsign_sigopts);
-    EVP_PKEY_free(key);
-    EVP_PKEY_free(rkey);
-    X509_free(cert);
-    sk_X509_pop_free(issuers, X509_free);
-    X509_free(rsigner);
-    sk_X509_pop_free(rca_cert, X509_free);
+    VR_ERR_print_errors(bio_err);
+    VR_X509_free(signer);
+    VR_X509_STORE_free(store);
+    VR_X509_VERIFY_PARAM_free(vpm);
+    sk_VR_OPENSSL_STRING_free(rsign_sigopts);
+    VR_EVP_PKEY_free(key);
+    VR_EVP_PKEY_free(rkey);
+    VR_X509_free(cert);
+    sk_VR_X509_pop_free(issuers, VR_X509_free);
+    VR_X509_free(rsigner);
+    sk_VR_X509_pop_free(rca_cert, VR_X509_free);
     free_index(rdb);
-    BIO_free_all(cbio);
-    BIO_free_all(acbio);
-    BIO_free_all(out);
-    OCSP_REQUEST_free(req);
-    OCSP_RESPONSE_free(resp);
-    OCSP_BASICRESP_free(bs);
-    sk_OPENSSL_STRING_free(reqnames);
-    sk_OCSP_CERTID_free(ids);
-    sk_X509_pop_free(sign_other, X509_free);
-    sk_X509_pop_free(verify_other, X509_free);
-    sk_CONF_VALUE_pop_free(headers, X509V3_conf_free);
-    OPENSSL_free(thost);
-    OPENSSL_free(tport);
-    OPENSSL_free(tpath);
+    VR_BIO_free_all(cbio);
+    VR_BIO_free_all(acbio);
+    VR_BIO_free_all(out);
+    VR_OCSP_REQUEST_free(req);
+    VR_OCSP_RESPONSE_free(resp);
+    VR_OCSP_BASICRESP_free(bs);
+    sk_VR_OPENSSL_STRING_free(reqnames);
+    sk_VR_OCSP_CERTID_free(ids);
+    sk_VR_X509_pop_free(sign_other, VR_X509_free);
+    sk_VR_X509_pop_free(verify_other, VR_X509_free);
+    sk_VR_CONF_VALUE_pop_free(headers, VR_X509V3_conf_free);
+    OPENVR_SSL_free(thost);
+    OPENVR_SSL_free(tport);
+    OPENVR_SSL_free(tpath);
 
     return ret;
 }
@@ -831,13 +831,13 @@ log_message(int level, const char *fmt, ...)
             syslog(level, "%s", buf);
         }
         if (level >= LOG_ERR)
-            ERR_print_errors_cb(print_syslog, &level);
+            VR_ERR_print_errors_cb(print_syslog, &level);
     }
 # endif
     if (!multi) {
-        BIO_printf(bio_err, "%s: ", prog);
-        BIO_vprintf(bio_err, fmt, ap);
-        BIO_printf(bio_err, "\n");
+        VR_BIO_printf(bio_err, "%s: ", prog);
+        VR_BIO_vprintf(bio_err, fmt, ap);
+        VR_BIO_printf(bio_err, "\n");
     }
     va_end(ap);
 }
@@ -877,7 +877,7 @@ static void killall(int ret, pid_t *kidpids)
     for (i = 0; i < multi; ++i)
         if (kidpids[i] != 0)
             (void)kill(kidpids[i], SIGTERM);
-    OPENSSL_free(kidpids);
+    OPENVR_SSL_free(kidpids);
     sleep(1);
     exit(ret);
 }
@@ -965,13 +965,13 @@ static void spawn_loop(void)
             sleep(30);
             break;
         case 0:             /* child */
-            OPENSSL_free(kidpids);
+            OPENVR_SSL_free(kidpids);
             signal(SIGINT, SIG_DFL);
             signal(SIGTERM, SIG_DFL);
             if (termsig)
                 _exit(0);
-            if (RAND_poll() <= 0) {
-                syslog(LOG_ERR, "fatal: RAND_poll() failed");
+            if (VR_RAND_poll() <= 0) {
+                syslog(LOG_ERR, "fatal: VR_RAND_poll() failed");
                 _exit(1);
             }
             return;
@@ -1004,22 +1004,22 @@ static int add_ocsp_cert(OCSP_REQUEST **req, X509 *cert,
     OCSP_CERTID *id;
 
     if (issuer == NULL) {
-        BIO_printf(bio_err, "No issuer certificate specified\n");
+        VR_BIO_printf(bio_err, "No issuer certificate specified\n");
         return 0;
     }
     if (*req == NULL)
-        *req = OCSP_REQUEST_new();
+        *req = VR_OCSP_REQUEST_new();
     if (*req == NULL)
         goto err;
-    id = OCSP_cert_to_id(cert_id_md, cert, issuer);
-    if (id == NULL || !sk_OCSP_CERTID_push(ids, id))
+    id = VR_OCSP_cert_to_id(cert_id_md, cert, issuer);
+    if (id == NULL || !sk_VR_OCSP_CERTID_push(ids, id))
         goto err;
-    if (!OCSP_request_add0_id(*req, id))
+    if (!VR_OCSP_request_add0_id(*req, id))
         goto err;
     return 1;
 
  err:
-    BIO_printf(bio_err, "Error Creating OCSP request\n");
+    VR_BIO_printf(bio_err, "Error Creating OCSP request\n");
     return 0;
 }
 
@@ -1033,30 +1033,30 @@ static int add_ocsp_serial(OCSP_REQUEST **req, char *serial,
     ASN1_INTEGER *sno;
 
     if (issuer == NULL) {
-        BIO_printf(bio_err, "No issuer certificate specified\n");
+        VR_BIO_printf(bio_err, "No issuer certificate specified\n");
         return 0;
     }
     if (*req == NULL)
-        *req = OCSP_REQUEST_new();
+        *req = VR_OCSP_REQUEST_new();
     if (*req == NULL)
         goto err;
-    iname = X509_get_subject_name(issuer);
-    ikey = X509_get0_pubkey_bitstr(issuer);
-    sno = s2i_ASN1_INTEGER(NULL, serial);
+    iname = VR_X509_get_subject_name(issuer);
+    ikey = VR_X509_get0_pubkey_bitstr(issuer);
+    sno = VR_s2i_ASN1_INTEGER(NULL, serial);
     if (sno == NULL) {
-        BIO_printf(bio_err, "Error converting serial number %s\n", serial);
+        VR_BIO_printf(bio_err, "Error converting serial number %s\n", serial);
         return 0;
     }
-    id = OCSP_cert_id_new(cert_id_md, iname, ikey, sno);
-    ASN1_INTEGER_free(sno);
-    if (id == NULL || !sk_OCSP_CERTID_push(ids, id))
+    id = VR_OCSP_cert_id_new(cert_id_md, iname, ikey, sno);
+    VR_ASN1_INTEGER_free(sno);
+    if (id == NULL || !sk_VR_OCSP_CERTID_push(ids, id))
         goto err;
-    if (!OCSP_request_add0_id(*req, id))
+    if (!VR_OCSP_request_add0_id(*req, id))
         goto err;
     return 1;
 
  err:
-    BIO_printf(bio_err, "Error Creating OCSP request\n");
+    VR_BIO_printf(bio_err, "Error Creating OCSP request\n");
     return 0;
 }
 
@@ -1077,11 +1077,11 @@ static void print_ocsp_summary(BIO *out, OCSP_BASICRESP *bs, OCSP_REQUEST *req,
     for (i = 0; i < sk_OCSP_CERTID_num(ids); i++) {
         id = sk_OCSP_CERTID_value(ids, i);
         name = sk_OPENSSL_STRING_value(names, i);
-        BIO_printf(out, "%s: ", name);
+        VR_BIO_printf(out, "%s: ", name);
 
-        if (!OCSP_resp_find_status(bs, id, &status, &reason,
+        if (!VR_OCSP_resp_find_status(bs, id, &status, &reason,
                                    &rev, &thisupd, &nextupd)) {
-            BIO_puts(out, "ERROR: No Status found.\n");
+            VR_BIO_puts(out, "ERROR: No Status found.\n");
             continue;
         }
 
@@ -1089,31 +1089,31 @@ static void print_ocsp_summary(BIO *out, OCSP_BASICRESP *bs, OCSP_REQUEST *req,
          * Check validity: if invalid write to output BIO so we know which
          * response this refers to.
          */
-        if (!OCSP_check_validity(thisupd, nextupd, nsec, maxage)) {
-            BIO_puts(out, "WARNING: Status times invalid.\n");
-            ERR_print_errors(out);
+        if (!VR_OCSP_check_validity(thisupd, nextupd, nsec, maxage)) {
+            VR_BIO_puts(out, "WARNING: Status times invalid.\n");
+            VR_ERR_print_errors(out);
         }
-        BIO_printf(out, "%s\n", OCSP_cert_status_str(status));
+        VR_BIO_printf(out, "%s\n", VR_OCSP_cert_status_str(status));
 
-        BIO_puts(out, "\tThis Update: ");
-        ASN1_GENERALIZEDTIME_print(out, thisupd);
-        BIO_puts(out, "\n");
+        VR_BIO_puts(out, "\tThis Update: ");
+        VR_ASN1_GENERALIZEDTIME_print(out, thisupd);
+        VR_BIO_puts(out, "\n");
 
         if (nextupd) {
-            BIO_puts(out, "\tNext Update: ");
-            ASN1_GENERALIZEDTIME_print(out, nextupd);
-            BIO_puts(out, "\n");
+            VR_BIO_puts(out, "\tNext Update: ");
+            VR_ASN1_GENERALIZEDTIME_print(out, nextupd);
+            VR_BIO_puts(out, "\n");
         }
 
         if (status != V_OCSP_CERTSTATUS_REVOKED)
             continue;
 
         if (reason != -1)
-            BIO_printf(out, "\tReason: %s\n", OCSP_crl_reason_str(reason));
+            VR_BIO_printf(out, "\tReason: %s\n", VR_OCSP_crl_reason_str(reason));
 
-        BIO_puts(out, "\tRevocation Time: ");
-        ASN1_GENERALIZEDTIME_print(out, rev);
-        BIO_puts(out, "\n");
+        VR_BIO_puts(out, "\tRevocation Time: ");
+        VR_ASN1_GENERALIZEDTIME_print(out, rev);
+        VR_BIO_puts(out, "\n");
     }
 }
 
@@ -1131,18 +1131,18 @@ static void make_ocsp_response(BIO *err, OCSP_RESPONSE **resp, OCSP_REQUEST *req
     EVP_MD_CTX *mctx = NULL;
     EVP_PKEY_CTX *pkctx = NULL;
 
-    id_count = OCSP_request_onereq_count(req);
+    id_count = VR_OCSP_request_onereq_count(req);
 
     if (id_count <= 0) {
         *resp =
-            OCSP_response_create(OCSP_RESPONSE_STATUS_MALFORMEDREQUEST, NULL);
+            VR_OCSP_response_create(OCSP_RESPONSE_STATUS_MALFORMEDREQUEST, NULL);
         goto end;
     }
 
-    bs = OCSP_BASICRESP_new();
-    thisupd = X509_gmtime_adj(NULL, 0);
+    bs = VR_OCSP_BASICRESP_new();
+    thisupd = VR_X509_gmtime_adj(NULL, 0);
     if (ndays != -1)
-        nextupd = X509_time_adj_ex(NULL, ndays, nmin * 60, NULL);
+        nextupd = VR_X509_time_adj_ex(NULL, ndays, nmin * 60, NULL);
 
     /* Examine each certificate id in the request */
     for (i = 0; i < id_count; i++) {
@@ -1153,41 +1153,41 @@ static void make_ocsp_response(BIO *err, OCSP_RESPONSE **resp, OCSP_REQUEST *req
         int found = 0;
         ASN1_OBJECT *cert_id_md_oid;
         const EVP_MD *cert_id_md;
-        one = OCSP_request_onereq_get0(req, i);
-        cid = OCSP_onereq_get0_id(one);
+        one = VR_OCSP_request_onereq_get0(req, i);
+        cid = VR_OCSP_onereq_get0_id(one);
 
-        OCSP_id_get0_info(NULL, &cert_id_md_oid, NULL, NULL, cid);
+        VR_OCSP_id_get0_info(NULL, &cert_id_md_oid, NULL, NULL, cid);
 
         cert_id_md = EVP_get_digestbyobj(cert_id_md_oid);
         if (cert_id_md == NULL) {
-            *resp = OCSP_response_create(OCSP_RESPONSE_STATUS_INTERNALERROR,
+            *resp = VR_OCSP_response_create(OCSP_RESPONSE_STATUS_INTERNALERROR,
                                          NULL);
             goto end;
         }
         for (jj = 0; jj < sk_X509_num(ca) && !found; jj++) {
             X509 *ca_cert = sk_X509_value(ca, jj);
-            OCSP_CERTID *ca_id = OCSP_cert_to_id(cert_id_md, NULL, ca_cert);
+            OCSP_CERTID *ca_id = VR_OCSP_cert_to_id(cert_id_md, NULL, ca_cert);
 
-            if (OCSP_id_issuer_cmp(ca_id, cid) == 0)
+            if (VR_OCSP_id_issuer_cmp(ca_id, cid) == 0)
                 found = 1;
 
-            OCSP_CERTID_free(ca_id);
+            VR_OCSP_CERTID_free(ca_id);
         }
 
         if (!found) {
-            OCSP_basic_add1_status(bs, cid,
+            VR_OCSP_basic_add1_status(bs, cid,
                                    V_OCSP_CERTSTATUS_UNKNOWN,
                                    0, NULL, thisupd, nextupd);
             continue;
         }
-        OCSP_id_get0_info(NULL, NULL, NULL, &serial, cid);
+        VR_OCSP_id_get0_info(NULL, NULL, NULL, &serial, cid);
         inf = lookup_serial(db, serial);
         if (inf == NULL) {
-            OCSP_basic_add1_status(bs, cid,
+            VR_OCSP_basic_add1_status(bs, cid,
                                    V_OCSP_CERTSTATUS_UNKNOWN,
                                    0, NULL, thisupd, nextupd);
         } else if (inf[DB_type][0] == DB_TYPE_VAL) {
-            OCSP_basic_add1_status(bs, cid,
+            VR_OCSP_basic_add1_status(bs, cid,
                                    V_OCSP_CERTSTATUS_GOOD,
                                    0, NULL, thisupd, nextupd);
         } else if (inf[DB_type][0] == DB_TYPE_REV) {
@@ -1197,54 +1197,54 @@ static void make_ocsp_response(BIO *err, OCSP_RESPONSE **resp, OCSP_REQUEST *req
             OCSP_SINGLERESP *single;
             int reason = -1;
             unpack_revinfo(&revtm, &reason, &inst, &invtm, inf[DB_rev_date]);
-            single = OCSP_basic_add1_status(bs, cid,
+            single = VR_OCSP_basic_add1_status(bs, cid,
                                             V_OCSP_CERTSTATUS_REVOKED,
                                             reason, revtm, thisupd, nextupd);
             if (invtm != NULL)
-                OCSP_SINGLERESP_add1_ext_i2d(single, NID_invalidity_date,
+                VR_OCSP_SINGLERESP_add1_ext_i2d(single, NID_invalidity_date,
                                              invtm, 0, 0);
             else if (inst != NULL)
-                OCSP_SINGLERESP_add1_ext_i2d(single,
+                VR_OCSP_SINGLERESP_add1_ext_i2d(single,
                                              NID_hold_instruction_code, inst,
                                              0, 0);
-            ASN1_OBJECT_free(inst);
-            ASN1_TIME_free(revtm);
-            ASN1_GENERALIZEDTIME_free(invtm);
+            VR_ASN1_OBJECT_free(inst);
+            VR_ASN1_TIME_free(revtm);
+            VR_ASN1_GENERALIZEDTIME_free(invtm);
         }
     }
 
-    OCSP_copy_nonce(bs, req);
+    VR_OCSP_copy_nonce(bs, req);
 
-    mctx = EVP_MD_CTX_new();
-    if ( mctx == NULL || !EVP_DigestSignInit(mctx, &pkctx, rmd, NULL, rkey)) {
-        *resp = OCSP_response_create(OCSP_RESPONSE_STATUS_INTERNALERROR, NULL);
+    mctx = VR_EVP_MD_CTX_new();
+    if ( mctx == NULL || !VR_EVP_DigestSignInit(mctx, &pkctx, rmd, NULL, rkey)) {
+        *resp = VR_OCSP_response_create(OCSP_RESPONSE_STATUS_INTERNALERROR, NULL);
         goto end;
     }
     for (i = 0; i < sk_OPENSSL_STRING_num(sigopts); i++) {
         char *sigopt = sk_OPENSSL_STRING_value(sigopts, i);
 
         if (pkey_ctrl_string(pkctx, sigopt) <= 0) {
-            BIO_printf(err, "parameter error \"%s\"\n", sigopt);
-            ERR_print_errors(bio_err);
-            *resp = OCSP_response_create(OCSP_RESPONSE_STATUS_INTERNALERROR,
+            VR_BIO_printf(err, "parameter error \"%s\"\n", sigopt);
+            VR_ERR_print_errors(bio_err);
+            *resp = VR_OCSP_response_create(OCSP_RESPONSE_STATUS_INTERNALERROR,
                                          NULL);
             goto end;
         }
     }
-    OCSP_basic_sign_ctx(bs, rcert, mctx, rother, flags);
+    VR_OCSP_basic_sign_ctx(bs, rcert, mctx, rother, flags);
 
     if (badsig) {
-        const ASN1_OCTET_STRING *sig = OCSP_resp_get0_signature(bs);
+        const ASN1_OCTET_STRING *sig = VR_OCSP_resp_get0_signature(bs);
         corrupt_signature(sig);
     }
 
-    *resp = OCSP_response_create(OCSP_RESPONSE_STATUS_SUCCESSFUL, bs);
+    *resp = VR_OCSP_response_create(OCSP_RESPONSE_STATUS_SUCCESSFUL, bs);
 
  end:
-    EVP_MD_CTX_free(mctx);
-    ASN1_TIME_free(thisupd);
-    ASN1_TIME_free(nextupd);
-    OCSP_BASICRESP_free(bs);
+    VR_EVP_MD_CTX_free(mctx);
+    VR_ASN1_TIME_free(thisupd);
+    VR_ASN1_TIME_free(nextupd);
+    VR_OCSP_BASICRESP_free(bs);
 }
 
 static char **lookup_serial(CA_DB *db, ASN1_INTEGER *ser)
@@ -1254,17 +1254,17 @@ static char **lookup_serial(CA_DB *db, ASN1_INTEGER *ser)
     char *itmp, *row[DB_NUMBER], **rrow;
     for (i = 0; i < DB_NUMBER; i++)
         row[i] = NULL;
-    bn = ASN1_INTEGER_to_BN(ser, NULL);
+    bn = VR_ASN1_INTEGER_to_BN(ser, NULL);
     OPENSSL_assert(bn);         /* FIXME: should report an error at this
                                  * point and abort */
-    if (BN_is_zero(bn))
+    if (VR_BN_is_zero(bn))
         itmp = OPENSSL_strdup("00");
     else
-        itmp = BN_bn2hex(bn);
+        itmp = VR_BN_bn2hex(bn);
     row[DB_serial] = itmp;
-    BN_free(bn);
-    rrow = TXT_DB_get_by_index(db->db, DB_serial, row);
-    OPENSSL_free(itmp);
+    VR_BN_free(bn);
+    rrow = VR_TXT_DB_get_by_index(db->db, DB_serial, row);
+    OPENVR_SSL_free(itmp);
     return rrow;
 }
 
@@ -1273,16 +1273,16 @@ static char **lookup_serial(CA_DB *db, ASN1_INTEGER *ser)
 static BIO *init_responder(const char *port)
 {
 # ifdef OPENSSL_NO_SOCK
-    BIO_printf(bio_err,
+    VR_BIO_printf(bio_err,
                "Error setting up accept BIO - sockets not supported.\n");
     return NULL;
 # else
     BIO *acbio = NULL, *bufbio = NULL;
 
-    bufbio = BIO_new(BIO_f_buffer());
+    bufbio = VR_BIO_new(VR_BIO_f_buffer());
     if (bufbio == NULL)
         goto err;
-    acbio = BIO_new(BIO_s_accept());
+    acbio = VR_BIO_new(VR_BIO_s_accept());
     if (acbio == NULL
         || BIO_set_bind_mode(acbio, BIO_BIND_REUSEADDR) < 0
         || BIO_set_accept_port(acbio, port) < 0) {
@@ -1300,8 +1300,8 @@ static BIO *init_responder(const char *port)
     return acbio;
 
  err:
-    BIO_free_all(acbio);
-    BIO_free(bufbio);
+    VR_BIO_free_all(acbio);
+    VR_BIO_free(bufbio);
     return NULL;
 # endif
 }
@@ -1320,8 +1320,8 @@ static int urldecode(char *p)
             *out++ = *p;
         else if (isxdigit(_UC(p[1])) && isxdigit(_UC(p[2]))) {
             /* Don't check, can't fail because of ixdigit() call. */
-            *out++ = (OPENSSL_hexchar2int(p[1]) << 4)
-                   | OPENSSL_hexchar2int(p[2]);
+            *out++ = (VR_OPENSSL_hexchar2int(p[1]) << 4)
+                   | VR_OPENSSL_hexchar2int(p[2]);
             p += 2;
         }
         else
@@ -1359,7 +1359,7 @@ static int do_responder(OCSP_REQUEST **preq, BIO **pcbio, BIO *acbio,
     if (BIO_do_accept(acbio) <= 0)
         return 0;
 
-    cbio = BIO_pop(acbio);
+    cbio = VR_BIO_pop(acbio);
     *pcbio = cbio;
     client = BIO_get_peer_name(cbio);
 
@@ -1371,7 +1371,7 @@ static int do_responder(OCSP_REQUEST **preq, BIO **pcbio, BIO *acbio,
 #  endif
 
     /* Read the request line. */
-    len = BIO_gets(cbio, reqbuf, sizeof(reqbuf));
+    len = VR_BIO_gets(cbio, reqbuf, sizeof(reqbuf));
     if (len <= 0)
         goto out;
 
@@ -1408,13 +1408,13 @@ static int do_responder(OCSP_REQUEST **preq, BIO **pcbio, BIO *acbio,
                         "Invalid request -- bad URL encoding: %s", client);
             goto out;
         }
-        if ((getbio = BIO_new_mem_buf(p, len)) == NULL
-            || (b64 = BIO_new(BIO_f_base64())) == NULL) {
+        if ((getbio = VR_BIO_new_mem_buf(p, len)) == NULL
+            || (b64 = VR_BIO_new(VR_BIO_f_base64())) == NULL) {
             log_message(LOG_ERR, "Could not allocate base64 bio: %s", client);
             goto out;
         }
-        BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
-        getbio = BIO_push(b64, getbio);
+        VR_BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
+        getbio = VR_BIO_push(b64, getbio);
     } else if (strncmp(reqbuf, "POST ", 5) != 0) {
         log_message(LOG_INFO, "Invalid request -- bad HTTP verb: %s", client);
         goto out;
@@ -1422,7 +1422,7 @@ static int do_responder(OCSP_REQUEST **preq, BIO **pcbio, BIO *acbio,
 
     /* Read and skip past the headers. */
     for (;;) {
-        len = BIO_gets(cbio, inbuf, sizeof(inbuf));
+        len = VR_BIO_gets(cbio, inbuf, sizeof(inbuf));
         if (len <= 0)
             goto out;
         if ((inbuf[0] == '\r') || (inbuf[0] == '\n'))
@@ -1437,10 +1437,10 @@ static int do_responder(OCSP_REQUEST **preq, BIO **pcbio, BIO *acbio,
 
     /* Try to read OCSP request */
     if (getbio != NULL) {
-        req = d2i_OCSP_REQUEST_bio(getbio, NULL);
-        BIO_free_all(getbio);
+        req = VR_d2i_OCSP_REQUEST_bio(getbio, NULL);
+        VR_BIO_free_all(getbio);
     } else {
-        req = d2i_OCSP_REQUEST_bio(cbio, NULL);
+        req = VR_d2i_OCSP_REQUEST_bio(cbio, NULL);
     }
 
     if (req == NULL)
@@ -1465,8 +1465,8 @@ static int send_ocsp_response(BIO *cbio, OCSP_RESPONSE *resp)
         "Content-Length: %d\r\n\r\n";
     if (cbio == NULL)
         return 0;
-    BIO_printf(cbio, http_resp, i2d_OCSP_RESPONSE(resp, NULL));
-    i2d_OCSP_RESPONSE_bio(cbio, resp);
+    VR_BIO_printf(cbio, http_resp, VR_i2d_OCSP_RESPONSE(resp, NULL));
+    VR_i2d_OCSP_RESPONSE_bio(cbio, resp);
     (void)BIO_flush(cbio);
     return 1;
 }
@@ -1492,12 +1492,12 @@ static OCSP_RESPONSE *query_responder(BIO *cbio, const char *host,
     rv = BIO_do_connect(cbio);
 
     if ((rv <= 0) && ((req_timeout == -1) || !BIO_should_retry(cbio))) {
-        BIO_puts(bio_err, "Error connecting BIO\n");
+        VR_BIO_puts(bio_err, "Error connecting BIO\n");
         return NULL;
     }
 
     if (BIO_get_fd(cbio, &fd) < 0) {
-        BIO_puts(bio_err, "Can't get connection fd\n");
+        VR_BIO_puts(bio_err, "Can't get connection fd\n");
         goto err;
     }
 
@@ -1508,12 +1508,12 @@ static OCSP_RESPONSE *query_responder(BIO *cbio, const char *host,
         tv.tv_sec = req_timeout;
         rv = select(fd + 1, NULL, (void *)&confds, NULL, &tv);
         if (rv == 0) {
-            BIO_puts(bio_err, "Timeout on connect\n");
+            VR_BIO_puts(bio_err, "Timeout on connect\n");
             return NULL;
         }
     }
 
-    ctx = OCSP_sendreq_new(cbio, path, NULL, -1);
+    ctx = VR_OCSP_sendreq_new(cbio, path, NULL, -1);
     if (ctx == NULL)
         return NULL;
 
@@ -1521,18 +1521,18 @@ static OCSP_RESPONSE *query_responder(BIO *cbio, const char *host,
         CONF_VALUE *hdr = sk_CONF_VALUE_value(headers, i);
         if (add_host == 1 && strcasecmp("host", hdr->name) == 0)
             add_host = 0;
-        if (!OCSP_REQ_CTX_add1_header(ctx, hdr->name, hdr->value))
+        if (!VR_OCSP_REQ_CTX_add1_header(ctx, hdr->name, hdr->value))
             goto err;
     }
 
-    if (add_host == 1 && OCSP_REQ_CTX_add1_header(ctx, "Host", host) == 0)
+    if (add_host == 1 && VR_OCSP_REQ_CTX_add1_header(ctx, "Host", host) == 0)
         goto err;
 
-    if (!OCSP_REQ_CTX_set1_req(ctx, req))
+    if (!VR_OCSP_REQ_CTX_set1_req(ctx, req))
         goto err;
 
     for (;;) {
-        rv = OCSP_sendreq_nbio(&rsp, ctx);
+        rv = VR_OCSP_sendreq_nbio(&rsp, ctx);
         if (rv != -1)
             break;
         if (req_timeout == -1)
@@ -1546,21 +1546,21 @@ static OCSP_RESPONSE *query_responder(BIO *cbio, const char *host,
         } else if (BIO_should_write(cbio)) {
             rv = select(fd + 1, NULL, (void *)&confds, NULL, &tv);
         } else {
-            BIO_puts(bio_err, "Unexpected retry condition\n");
+            VR_BIO_puts(bio_err, "Unexpected retry condition\n");
             goto err;
         }
         if (rv == 0) {
-            BIO_puts(bio_err, "Timeout on request\n");
+            VR_BIO_puts(bio_err, "Timeout on request\n");
             break;
         }
         if (rv == -1) {
-            BIO_puts(bio_err, "Select error\n");
+            VR_BIO_puts(bio_err, "Select error\n");
             break;
         }
 
     }
  err:
-    OCSP_REQ_CTX_free(ctx);
+    VR_OCSP_REQ_CTX_free(ctx);
 
     return rsp;
 }
@@ -1575,31 +1575,31 @@ OCSP_RESPONSE *process_responder(OCSP_REQUEST *req,
     SSL_CTX *ctx = NULL;
     OCSP_RESPONSE *resp = NULL;
 
-    cbio = BIO_new_connect(host);
+    cbio = VR_BIO_new_connect(host);
     if (cbio == NULL) {
-        BIO_printf(bio_err, "Error creating connect BIO\n");
+        VR_BIO_printf(bio_err, "Error creating connect BIO\n");
         goto end;
     }
     if (port != NULL)
         BIO_set_conn_port(cbio, port);
     if (use_ssl == 1) {
         BIO *sbio;
-        ctx = SSL_CTX_new(TLS_client_method());
+        ctx = VR_SSL_CTX_new(VR_TLS_client_method());
         if (ctx == NULL) {
-            BIO_printf(bio_err, "Error creating SSL context.\n");
+            VR_BIO_printf(bio_err, "Error creating SSL context.\n");
             goto end;
         }
         SSL_CTX_set_mode(ctx, SSL_MODE_AUTO_RETRY);
-        sbio = BIO_new_ssl(ctx, 1);
-        cbio = BIO_push(sbio, cbio);
+        sbio = VR_BIO_new_ssl(ctx, 1);
+        cbio = VR_BIO_push(sbio, cbio);
     }
 
     resp = query_responder(cbio, host, path, headers, req, req_timeout);
     if (resp == NULL)
-        BIO_printf(bio_err, "Error querying OCSP responder\n");
+        VR_BIO_printf(bio_err, "Error querying OCSP responder\n");
  end:
-    BIO_free_all(cbio);
-    SSL_CTX_free(ctx);
+    VR_BIO_free_all(cbio);
+    VR_SSL_CTX_free(ctx);
     return resp;
 }
 # endif

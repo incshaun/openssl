@@ -220,7 +220,7 @@
 
 extern const DES_LONG DES_SPtrans[8][64];
 
-void fcrypt_body(DES_LONG *out, DES_key_schedule *ks,
+void VR_fcrypt_body(DES_LONG *out, VR_DES_key_schedule *ks,
                  DES_LONG Eswap0, DES_LONG Eswap1);
 
 #endif

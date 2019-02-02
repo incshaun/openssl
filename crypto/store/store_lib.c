@@ -34,7 +34,7 @@ struct ossl_store_ctx_st {
     int loading;
 };
 
-OSSL_STORE_CTX *OSSL_STORE_open(const char *uri, const UI_METHOD *ui_method,
+OSSL_STORE_CTX *VR_OSSL_STORE_open(const char *uri, const UI_METHOD *ui_method,
                                 void *ui_data,
                                 OSSL_STORE_post_process_info_fn post_process,
                                 void *post_process_data)
@@ -60,7 +60,7 @@ OSSL_STORE_CTX *OSSL_STORE_open(const char *uri, const UI_METHOD *ui_method,
      * check that this isn't actually the file scheme, as there's no point
      * going through that one twice!
      */
-    OPENSSL_strlcpy(scheme_copy, uri, sizeof(scheme_copy));
+    VR_OPENSSL_strlcpy(scheme_copy, uri, sizeof(scheme_copy));
     if ((p = strchr(scheme_copy, ':')) != NULL) {
         *p++ = '\0';
         if (strcasecmp(scheme_copy, "file") != 0) {
@@ -70,11 +70,11 @@ OSSL_STORE_CTX *OSSL_STORE_open(const char *uri, const UI_METHOD *ui_method,
         }
     }
 
-    ERR_set_mark();
+    VR_ERR_set_mark();
 
     /* Try each scheme until we find one that could open the URI */
     for (i = 0; loader_ctx == NULL && i < schemes_n; i++) {
-        if ((loader = ossl_store_get0_loader_int(schemes[i])) != NULL)
+        if ((loader = VR_ossl_store_get0_loader_int(schemes[i])) != NULL)
             loader_ctx = loader->open(loader, uri, ui_method, ui_data);
     }
     if (loader_ctx == NULL)
@@ -97,12 +97,12 @@ OSSL_STORE_CTX *OSSL_STORE_open(const char *uri, const UI_METHOD *ui_method,
      * other scheme loader succeeded, the failure to open with the 'file'
      * scheme loader leaves an error on the error stack.  Let's remove it.
      */
-    ERR_pop_to_mark();
+    VR_ERR_pop_to_mark();
 
     return ctx;
 
  err:
-    ERR_clear_last_mark();
+    VR_ERR_clear_last_mark();
     if (loader_ctx != NULL) {
         /*
          * We ignore a returned error because we will return NULL anyway in
@@ -114,26 +114,26 @@ OSSL_STORE_CTX *OSSL_STORE_open(const char *uri, const UI_METHOD *ui_method,
     return NULL;
 }
 
-int OSSL_STORE_ctrl(OSSL_STORE_CTX *ctx, int cmd, ...)
+int VR_OSSL_STORE_ctrl(OSSL_STORE_CTX *ctx, int cmd, ...)
 {
     va_list args;
     int ret;
 
     va_start(args, cmd);
-    ret = OSSL_STORE_vctrl(ctx, cmd, args);
+    ret = VR_OSSL_STORE_vctrl(ctx, cmd, args);
     va_end(args);
 
     return ret;
 }
 
-int OSSL_STORE_vctrl(OSSL_STORE_CTX *ctx, int cmd, va_list args)
+int VR_OSSL_STORE_vctrl(OSSL_STORE_CTX *ctx, int cmd, va_list args)
 {
     if (ctx->loader->ctrl != NULL)
         return ctx->loader->ctrl(ctx->loader_ctx, cmd, args);
     return 0;
 }
 
-int OSSL_STORE_expect(OSSL_STORE_CTX *ctx, int expected_type)
+int VR_OSSL_STORE_expect(OSSL_STORE_CTX *ctx, int expected_type)
 {
     if (ctx->loading) {
         OSSL_STOREerr(OSSL_STORE_F_OSSL_STORE_EXPECT,
@@ -147,7 +147,7 @@ int OSSL_STORE_expect(OSSL_STORE_CTX *ctx, int expected_type)
     return 1;
 }
 
-int OSSL_STORE_find(OSSL_STORE_CTX *ctx, OSSL_STORE_SEARCH *search)
+int VR_OSSL_STORE_find(OSSL_STORE_CTX *ctx, OSSL_STORE_SEARCH *search)
 {
     if (ctx->loading) {
         OSSL_STOREerr(OSSL_STORE_F_OSSL_STORE_FIND,
@@ -163,13 +163,13 @@ int OSSL_STORE_find(OSSL_STORE_CTX *ctx, OSSL_STORE_SEARCH *search)
     return ctx->loader->find(ctx->loader_ctx, search);
 }
 
-OSSL_STORE_INFO *OSSL_STORE_load(OSSL_STORE_CTX *ctx)
+OSSL_STORE_INFO *VR_OSSL_STORE_load(OSSL_STORE_CTX *ctx)
 {
     OSSL_STORE_INFO *v = NULL;
 
     ctx->loading = 1;
  again:
-    if (OSSL_STORE_eof(ctx))
+    if (VR_OSSL_STORE_eof(ctx))
         return NULL;
 
     v = ctx->loader->load(ctx->loader_ctx, ctx->ui_method, ctx->ui_data);
@@ -186,7 +186,7 @@ OSSL_STORE_INFO *OSSL_STORE_load(OSSL_STORE_CTX *ctx)
     }
 
     if (v != NULL && ctx->expected_type != 0) {
-        int returned_type = OSSL_STORE_INFO_get_type(v);
+        int returned_type = VR_OSSL_STORE_INFO_get_type(v);
 
         if (returned_type != OSSL_STORE_INFO_NAME && returned_type != 0) {
             /*
@@ -197,7 +197,7 @@ OSSL_STORE_INFO *OSSL_STORE_load(OSSL_STORE_CTX *ctx)
                 assert(ctx->expected_type == returned_type);
 
             if (ctx->expected_type != returned_type) {
-                OSSL_STORE_INFO_free(v);
+                VR_OSSL_STORE_INFO_free(v);
                 goto again;
             }
         }
@@ -206,21 +206,21 @@ OSSL_STORE_INFO *OSSL_STORE_load(OSSL_STORE_CTX *ctx)
     return v;
 }
 
-int OSSL_STORE_error(OSSL_STORE_CTX *ctx)
+int VR_OSSL_STORE_error(OSSL_STORE_CTX *ctx)
 {
     return ctx->loader->error(ctx->loader_ctx);
 }
 
-int OSSL_STORE_eof(OSSL_STORE_CTX *ctx)
+int VR_OSSL_STORE_eof(OSSL_STORE_CTX *ctx)
 {
     return ctx->loader->eof(ctx->loader_ctx);
 }
 
-int OSSL_STORE_close(OSSL_STORE_CTX *ctx)
+int VR_OSSL_STORE_close(OSSL_STORE_CTX *ctx)
 {
     int loader_ret = ctx->loader->close(ctx->loader_ctx);
 
-    OPENSSL_free(ctx);
+    OPENVR_SSL_free(ctx);
     return loader_ret;
 }
 
@@ -243,7 +243,7 @@ static OSSL_STORE_INFO *store_info_new(int type, void *data)
     return info;
 }
 
-OSSL_STORE_INFO *OSSL_STORE_INFO_new_NAME(char *name)
+OSSL_STORE_INFO *VR_OSSL_STORE_INFO_new_NAME(char *name)
 {
     OSSL_STORE_INFO *info = store_info_new(OSSL_STORE_INFO_NAME, NULL);
 
@@ -259,7 +259,7 @@ OSSL_STORE_INFO *OSSL_STORE_INFO_new_NAME(char *name)
     return info;
 }
 
-int OSSL_STORE_INFO_set0_NAME_description(OSSL_STORE_INFO *info, char *desc)
+int VR_OSSL_STORE_INFO_set0_NAME_description(OSSL_STORE_INFO *info, char *desc)
 {
     if (info->type != OSSL_STORE_INFO_NAME) {
         OSSL_STOREerr(OSSL_STORE_F_OSSL_STORE_INFO_SET0_NAME_DESCRIPTION,
@@ -271,7 +271,7 @@ int OSSL_STORE_INFO_set0_NAME_description(OSSL_STORE_INFO *info, char *desc)
 
     return 1;
 }
-OSSL_STORE_INFO *OSSL_STORE_INFO_new_PARAMS(EVP_PKEY *params)
+OSSL_STORE_INFO *VR_OSSL_STORE_INFO_new_PARAMS(EVP_PKEY *params)
 {
     OSSL_STORE_INFO *info = store_info_new(OSSL_STORE_INFO_PARAMS, params);
 
@@ -281,7 +281,7 @@ OSSL_STORE_INFO *OSSL_STORE_INFO_new_PARAMS(EVP_PKEY *params)
     return info;
 }
 
-OSSL_STORE_INFO *OSSL_STORE_INFO_new_PKEY(EVP_PKEY *pkey)
+OSSL_STORE_INFO *VR_OSSL_STORE_INFO_new_PKEY(EVP_PKEY *pkey)
 {
     OSSL_STORE_INFO *info = store_info_new(OSSL_STORE_INFO_PKEY, pkey);
 
@@ -291,7 +291,7 @@ OSSL_STORE_INFO *OSSL_STORE_INFO_new_PKEY(EVP_PKEY *pkey)
     return info;
 }
 
-OSSL_STORE_INFO *OSSL_STORE_INFO_new_CERT(X509 *x509)
+OSSL_STORE_INFO *VR_OSSL_STORE_INFO_new_CERT(X509 *x509)
 {
     OSSL_STORE_INFO *info = store_info_new(OSSL_STORE_INFO_CERT, x509);
 
@@ -301,7 +301,7 @@ OSSL_STORE_INFO *OSSL_STORE_INFO_new_CERT(X509 *x509)
     return info;
 }
 
-OSSL_STORE_INFO *OSSL_STORE_INFO_new_CRL(X509_CRL *crl)
+OSSL_STORE_INFO *VR_OSSL_STORE_INFO_new_CRL(X509_CRL *crl)
 {
     OSSL_STORE_INFO *info = store_info_new(OSSL_STORE_INFO_CRL, crl);
 
@@ -314,19 +314,19 @@ OSSL_STORE_INFO *OSSL_STORE_INFO_new_CRL(X509_CRL *crl)
 /*
  * Functions to try to extract data from a OSSL_STORE_INFO.
  */
-int OSSL_STORE_INFO_get_type(const OSSL_STORE_INFO *info)
+int VR_OSSL_STORE_INFO_get_type(const OSSL_STORE_INFO *info)
 {
     return info->type;
 }
 
-const char *OSSL_STORE_INFO_get0_NAME(const OSSL_STORE_INFO *info)
+const char *VR_OSSL_STORE_INFO_get0_NAME(const OSSL_STORE_INFO *info)
 {
     if (info->type == OSSL_STORE_INFO_NAME)
         return info->_.name.name;
     return NULL;
 }
 
-char *OSSL_STORE_INFO_get1_NAME(const OSSL_STORE_INFO *info)
+char *VR_OSSL_STORE_INFO_get1_NAME(const OSSL_STORE_INFO *info)
 {
     if (info->type == OSSL_STORE_INFO_NAME) {
         char *ret = OPENSSL_strdup(info->_.name.name);
@@ -341,14 +341,14 @@ char *OSSL_STORE_INFO_get1_NAME(const OSSL_STORE_INFO *info)
     return NULL;
 }
 
-const char *OSSL_STORE_INFO_get0_NAME_description(const OSSL_STORE_INFO *info)
+const char *VR_OSSL_STORE_INFO_get0_NAME_description(const OSSL_STORE_INFO *info)
 {
     if (info->type == OSSL_STORE_INFO_NAME)
         return info->_.name.desc;
     return NULL;
 }
 
-char *OSSL_STORE_INFO_get1_NAME_description(const OSSL_STORE_INFO *info)
+char *VR_OSSL_STORE_INFO_get1_NAME_description(const OSSL_STORE_INFO *info)
 {
     if (info->type == OSSL_STORE_INFO_NAME) {
         char *ret = OPENSSL_strdup(info->_.name.desc
@@ -364,17 +364,17 @@ char *OSSL_STORE_INFO_get1_NAME_description(const OSSL_STORE_INFO *info)
     return NULL;
 }
 
-EVP_PKEY *OSSL_STORE_INFO_get0_PARAMS(const OSSL_STORE_INFO *info)
+EVP_PKEY *VR_OSSL_STORE_INFO_get0_PARAMS(const OSSL_STORE_INFO *info)
 {
     if (info->type == OSSL_STORE_INFO_PARAMS)
         return info->_.params;
     return NULL;
 }
 
-EVP_PKEY *OSSL_STORE_INFO_get1_PARAMS(const OSSL_STORE_INFO *info)
+EVP_PKEY *VR_OSSL_STORE_INFO_get1_PARAMS(const OSSL_STORE_INFO *info)
 {
     if (info->type == OSSL_STORE_INFO_PARAMS) {
-        EVP_PKEY_up_ref(info->_.params);
+        VR_EVP_PKEY_up_ref(info->_.params);
         return info->_.params;
     }
     OSSL_STOREerr(OSSL_STORE_F_OSSL_STORE_INFO_GET1_PARAMS,
@@ -382,17 +382,17 @@ EVP_PKEY *OSSL_STORE_INFO_get1_PARAMS(const OSSL_STORE_INFO *info)
     return NULL;
 }
 
-EVP_PKEY *OSSL_STORE_INFO_get0_PKEY(const OSSL_STORE_INFO *info)
+EVP_PKEY *VR_OSSL_STORE_INFO_get0_PKEY(const OSSL_STORE_INFO *info)
 {
     if (info->type == OSSL_STORE_INFO_PKEY)
         return info->_.pkey;
     return NULL;
 }
 
-EVP_PKEY *OSSL_STORE_INFO_get1_PKEY(const OSSL_STORE_INFO *info)
+EVP_PKEY *VR_OSSL_STORE_INFO_get1_PKEY(const OSSL_STORE_INFO *info)
 {
     if (info->type == OSSL_STORE_INFO_PKEY) {
-        EVP_PKEY_up_ref(info->_.pkey);
+        VR_EVP_PKEY_up_ref(info->_.pkey);
         return info->_.pkey;
     }
     OSSL_STOREerr(OSSL_STORE_F_OSSL_STORE_INFO_GET1_PKEY,
@@ -400,17 +400,17 @@ EVP_PKEY *OSSL_STORE_INFO_get1_PKEY(const OSSL_STORE_INFO *info)
     return NULL;
 }
 
-X509 *OSSL_STORE_INFO_get0_CERT(const OSSL_STORE_INFO *info)
+X509 *VR_OSSL_STORE_INFO_get0_CERT(const OSSL_STORE_INFO *info)
 {
     if (info->type == OSSL_STORE_INFO_CERT)
         return info->_.x509;
     return NULL;
 }
 
-X509 *OSSL_STORE_INFO_get1_CERT(const OSSL_STORE_INFO *info)
+X509 *VR_OSSL_STORE_INFO_get1_CERT(const OSSL_STORE_INFO *info)
 {
     if (info->type == OSSL_STORE_INFO_CERT) {
-        X509_up_ref(info->_.x509);
+        VR_X509_up_ref(info->_.x509);
         return info->_.x509;
     }
     OSSL_STOREerr(OSSL_STORE_F_OSSL_STORE_INFO_GET1_CERT,
@@ -418,17 +418,17 @@ X509 *OSSL_STORE_INFO_get1_CERT(const OSSL_STORE_INFO *info)
     return NULL;
 }
 
-X509_CRL *OSSL_STORE_INFO_get0_CRL(const OSSL_STORE_INFO *info)
+X509_CRL *VR_OSSL_STORE_INFO_get0_CRL(const OSSL_STORE_INFO *info)
 {
     if (info->type == OSSL_STORE_INFO_CRL)
         return info->_.crl;
     return NULL;
 }
 
-X509_CRL *OSSL_STORE_INFO_get1_CRL(const OSSL_STORE_INFO *info)
+X509_CRL *VR_OSSL_STORE_INFO_get1_CRL(const OSSL_STORE_INFO *info)
 {
     if (info->type == OSSL_STORE_INFO_CRL) {
-        X509_CRL_up_ref(info->_.crl);
+        VR_X509_CRL_up_ref(info->_.crl);
         return info->_.crl;
     }
     OSSL_STOREerr(OSSL_STORE_F_OSSL_STORE_INFO_GET1_CRL,
@@ -439,36 +439,36 @@ X509_CRL *OSSL_STORE_INFO_get1_CRL(const OSSL_STORE_INFO *info)
 /*
  * Free the OSSL_STORE_INFO
  */
-void OSSL_STORE_INFO_free(OSSL_STORE_INFO *info)
+void VR_OSSL_STORE_INFO_free(OSSL_STORE_INFO *info)
 {
     if (info != NULL) {
         switch (info->type) {
         case OSSL_STORE_INFO_EMBEDDED:
-            BUF_MEM_free(info->_.embedded.blob);
-            OPENSSL_free(info->_.embedded.pem_name);
+            VR_BUF_MEM_free(info->_.embedded.blob);
+            OPENVR_SSL_free(info->_.embedded.pem_name);
             break;
         case OSSL_STORE_INFO_NAME:
-            OPENSSL_free(info->_.name.name);
-            OPENSSL_free(info->_.name.desc);
+            OPENVR_SSL_free(info->_.name.name);
+            OPENVR_SSL_free(info->_.name.desc);
             break;
         case OSSL_STORE_INFO_PARAMS:
-            EVP_PKEY_free(info->_.params);
+            VR_EVP_PKEY_free(info->_.params);
             break;
         case OSSL_STORE_INFO_PKEY:
-            EVP_PKEY_free(info->_.pkey);
+            VR_EVP_PKEY_free(info->_.pkey);
             break;
         case OSSL_STORE_INFO_CERT:
-            X509_free(info->_.x509);
+            VR_X509_free(info->_.x509);
             break;
         case OSSL_STORE_INFO_CRL:
-            X509_CRL_free(info->_.crl);
+            VR_X509_CRL_free(info->_.crl);
             break;
         }
-        OPENSSL_free(info);
+        OPENVR_SSL_free(info);
     }
 }
 
-int OSSL_STORE_supports_search(OSSL_STORE_CTX *ctx, int search_type)
+int VR_OSSL_STORE_supports_search(OSSL_STORE_CTX *ctx, int search_type)
 {
     OSSL_STORE_SEARCH tmp_search;
 
@@ -479,7 +479,7 @@ int OSSL_STORE_supports_search(OSSL_STORE_CTX *ctx, int search_type)
 }
 
 /* Search term constructors */
-OSSL_STORE_SEARCH *OSSL_STORE_SEARCH_by_name(X509_NAME *name)
+OSSL_STORE_SEARCH *VR_OSSL_STORE_SEARCH_by_name(X509_NAME *name)
 {
     OSSL_STORE_SEARCH *search = OPENSSL_zalloc(sizeof(*search));
 
@@ -494,7 +494,7 @@ OSSL_STORE_SEARCH *OSSL_STORE_SEARCH_by_name(X509_NAME *name)
     return search;
 }
 
-OSSL_STORE_SEARCH *OSSL_STORE_SEARCH_by_issuer_serial(X509_NAME *name,
+OSSL_STORE_SEARCH *VR_OSSL_STORE_SEARCH_by_issuer_serial(X509_NAME *name,
                                                     const ASN1_INTEGER *serial)
 {
     OSSL_STORE_SEARCH *search = OPENSSL_zalloc(sizeof(*search));
@@ -511,7 +511,7 @@ OSSL_STORE_SEARCH *OSSL_STORE_SEARCH_by_issuer_serial(X509_NAME *name,
     return search;
 }
 
-OSSL_STORE_SEARCH *OSSL_STORE_SEARCH_by_key_fingerprint(const EVP_MD *digest,
+OSSL_STORE_SEARCH *VR_OSSL_STORE_SEARCH_by_key_fingerprint(const EVP_MD *digest,
                                                         const unsigned char
                                                         *bytes, size_t len)
 {
@@ -523,14 +523,14 @@ OSSL_STORE_SEARCH *OSSL_STORE_SEARCH_by_key_fingerprint(const EVP_MD *digest,
         return NULL;
     }
 
-    if (digest != NULL && len != (size_t)EVP_MD_size(digest)) {
+    if (digest != NULL && len != (size_t)VR_EVP_MD_size(digest)) {
         char buf1[20], buf2[20];
 
-        BIO_snprintf(buf1, sizeof(buf1), "%d", EVP_MD_size(digest));
-        BIO_snprintf(buf2, sizeof(buf2), "%zu", len);
+        VR_BIO_snprintf(buf1, sizeof(buf1), "%d", VR_EVP_MD_size(digest));
+        VR_BIO_snprintf(buf2, sizeof(buf2), "%zu", len);
         OSSL_STOREerr(OSSL_STORE_F_OSSL_STORE_SEARCH_BY_KEY_FINGERPRINT,
                       OSSL_STORE_R_FINGERPRINT_SIZE_DOES_NOT_MATCH_DIGEST);
-        ERR_add_error_data(5, EVP_MD_name(digest), " size is ", buf1,
+        VR_ERR_add_error_data(5, EVP_MD_name(digest), " size is ", buf1,
                            ", fingerprint size is ", buf2);
     }
 
@@ -541,7 +541,7 @@ OSSL_STORE_SEARCH *OSSL_STORE_SEARCH_by_key_fingerprint(const EVP_MD *digest,
     return search;
 }
 
-OSSL_STORE_SEARCH *OSSL_STORE_SEARCH_by_alias(const char *alias)
+OSSL_STORE_SEARCH *VR_OSSL_STORE_SEARCH_by_alias(const char *alias)
 {
     OSSL_STORE_SEARCH *search = OPENSSL_zalloc(sizeof(*search));
 
@@ -558,47 +558,47 @@ OSSL_STORE_SEARCH *OSSL_STORE_SEARCH_by_alias(const char *alias)
 }
 
 /* Search term destructor */
-void OSSL_STORE_SEARCH_free(OSSL_STORE_SEARCH *search)
+void VR_OSSL_STORE_SEARCH_free(OSSL_STORE_SEARCH *search)
 {
-    OPENSSL_free(search);
+    OPENVR_SSL_free(search);
 }
 
 /* Search term accessors */
-int OSSL_STORE_SEARCH_get_type(const OSSL_STORE_SEARCH *criterion)
+int VR_OSSL_STORE_SEARCH_get_type(const OSSL_STORE_SEARCH *criterion)
 {
     return criterion->search_type;
 }
 
-X509_NAME *OSSL_STORE_SEARCH_get0_name(OSSL_STORE_SEARCH *criterion)
+X509_NAME *VR_OSSL_STORE_SEARCH_get0_name(OSSL_STORE_SEARCH *criterion)
 {
     return criterion->name;
 }
 
-const ASN1_INTEGER *OSSL_STORE_SEARCH_get0_serial(const OSSL_STORE_SEARCH
+const ASN1_INTEGER *VR_OSSL_STORE_SEARCH_get0_serial(const OSSL_STORE_SEARCH
                                                  *criterion)
 {
     return criterion->serial;
 }
 
-const unsigned char *OSSL_STORE_SEARCH_get0_bytes(const OSSL_STORE_SEARCH
+const unsigned char *VR_OSSL_STORE_SEARCH_get0_bytes(const OSSL_STORE_SEARCH
                                                   *criterion, size_t *length)
 {
     *length = criterion->stringlength;
     return criterion->string;
 }
 
-const char *OSSL_STORE_SEARCH_get0_string(const OSSL_STORE_SEARCH *criterion)
+const char *VR_OSSL_STORE_SEARCH_get0_string(const OSSL_STORE_SEARCH *criterion)
 {
     return (const char *)criterion->string;
 }
 
-const EVP_MD *OSSL_STORE_SEARCH_get0_digest(const OSSL_STORE_SEARCH *criterion)
+const EVP_MD *VR_OSSL_STORE_SEARCH_get0_digest(const OSSL_STORE_SEARCH *criterion)
 {
     return criterion->digest;
 }
 
 /* Internal functions */
-OSSL_STORE_INFO *ossl_store_info_new_EMBEDDED(const char *new_pem_name,
+OSSL_STORE_INFO *VR_ossl_store_info_new_EMBEDDED(const char *new_pem_name,
                                               BUF_MEM *embedded)
 {
     OSSL_STORE_INFO *info = store_info_new(OSSL_STORE_INFO_EMBEDDED, NULL);
@@ -616,36 +616,36 @@ OSSL_STORE_INFO *ossl_store_info_new_EMBEDDED(const char *new_pem_name,
     if (new_pem_name != NULL && info->_.embedded.pem_name == NULL) {
         OSSL_STOREerr(OSSL_STORE_F_OSSL_STORE_INFO_NEW_EMBEDDED,
                       ERR_R_MALLOC_FAILURE);
-        OSSL_STORE_INFO_free(info);
+        VR_OSSL_STORE_INFO_free(info);
         info = NULL;
     }
 
     return info;
 }
 
-BUF_MEM *ossl_store_info_get0_EMBEDDED_buffer(OSSL_STORE_INFO *info)
+BUF_MEM *VR_ossl_store_info_get0_EMBEDDED_buffer(OSSL_STORE_INFO *info)
 {
     if (info->type == OSSL_STORE_INFO_EMBEDDED)
         return info->_.embedded.blob;
     return NULL;
 }
 
-char *ossl_store_info_get0_EMBEDDED_pem_name(OSSL_STORE_INFO *info)
+char *VR_ossl_store_info_get0_EMBEDDED_pem_name(OSSL_STORE_INFO *info)
 {
     if (info->type == OSSL_STORE_INFO_EMBEDDED)
         return info->_.embedded.pem_name;
     return NULL;
 }
 
-OSSL_STORE_CTX *ossl_store_attach_pem_bio(BIO *bp, const UI_METHOD *ui_method,
+OSSL_STORE_CTX *VR_ossl_store_attach_pem_bio(BIO *bp, const UI_METHOD *ui_method,
                                           void *ui_data)
 {
     OSSL_STORE_CTX *ctx = NULL;
     const OSSL_STORE_LOADER *loader = NULL;
     OSSL_STORE_LOADER_CTX *loader_ctx = NULL;
 
-    if ((loader = ossl_store_get0_loader_int("file")) == NULL
-        || ((loader_ctx = ossl_store_file_attach_pem_bio_int(bp)) == NULL))
+    if ((loader = VR_ossl_store_get0_loader_int("file")) == NULL
+        || ((loader_ctx = VR_ossl_store_file_attach_pem_bio_int(bp)) == NULL))
         goto done;
     if ((ctx = OPENSSL_zalloc(sizeof(*ctx))) == NULL) {
         OSSL_STOREerr(OSSL_STORE_F_OSSL_STORE_ATTACH_PEM_BIO,
@@ -672,10 +672,10 @@ OSSL_STORE_CTX *ossl_store_attach_pem_bio(BIO *bp, const UI_METHOD *ui_method,
     return ctx;
 }
 
-int ossl_store_detach_pem_bio(OSSL_STORE_CTX *ctx)
+int VR_ossl_store_detach_pem_bio(OSSL_STORE_CTX *ctx)
 {
-    int loader_ret = ossl_store_file_detach_pem_bio_int(ctx->loader_ctx);
+    int loader_ret = VR_ossl_store_file_detach_pem_bio_int(ctx->loader_ctx);
 
-    OPENSSL_free(ctx);
+    OPENVR_SSL_free(ctx);
     return loader_ret;
 }

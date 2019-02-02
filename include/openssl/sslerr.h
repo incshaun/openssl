@@ -14,7 +14,7 @@
 # ifdef  __cplusplus
 extern "C"
 # endif
-int ERR_load_SSL_strings(void);
+int VR_ERR_load_SSL_strings(void);
 
 /*
  * SSL function codes.
@@ -724,8 +724,8 @@ int ERR_load_SSL_strings(void);
 # define SSL_R_TOO_MUCH_EARLY_DATA                        164
 # define SSL_R_UNABLE_TO_FIND_ECDH_PARAMETERS             314
 # define SSL_R_UNABLE_TO_FIND_PUBLIC_KEY_PARAMETERS       239
-# define SSL_R_UNABLE_TO_LOAD_SSL3_MD5_ROUTINES           242
-# define SSL_R_UNABLE_TO_LOAD_SSL3_SHA1_ROUTINES          243
+# define SSL_R_UNABLE_TO_LOAD_SSL3_VR_MD5_ROUTINES           242
+# define SSL_R_UNABLE_TO_LOAD_SSL3_VR_SHA1_ROUTINES          243
 # define SSL_R_UNEXPECTED_CCS_MESSAGE                     262
 # define SSL_R_UNEXPECTED_END_OF_EARLY_DATA               178
 # define SSL_R_UNEXPECTED_MESSAGE                         244

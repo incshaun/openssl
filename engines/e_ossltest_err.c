@@ -32,12 +32,12 @@ static int error_loaded = 0;
 static int ERR_load_OSSLTEST_strings(void)
 {
     if (lib_code == 0)
-        lib_code = ERR_get_next_error_library();
+        lib_code = VR_ERR_get_next_error_library();
 
     if (!error_loaded) {
 #ifndef OPENSSL_NO_ERR
-        ERR_load_strings(lib_code, OSSLTEST_str_functs);
-        ERR_load_strings(lib_code, OSSLTEST_str_reasons);
+        VR_ERR_load_strings(lib_code, OSSLTEST_str_functs);
+        VR_ERR_load_strings(lib_code, OSSLTEST_str_reasons);
 #endif
         error_loaded = 1;
     }
@@ -48,8 +48,8 @@ static void ERR_unload_OSSLTEST_strings(void)
 {
     if (error_loaded) {
 #ifndef OPENSSL_NO_ERR
-        ERR_unload_strings(lib_code, OSSLTEST_str_functs);
-        ERR_unload_strings(lib_code, OSSLTEST_str_reasons);
+        VR_ERR_unload_strings(lib_code, OSSLTEST_str_functs);
+        VR_ERR_unload_strings(lib_code, OSSLTEST_str_reasons);
 #endif
         error_loaded = 0;
     }
@@ -58,6 +58,6 @@ static void ERR_unload_OSSLTEST_strings(void)
 static void ERR_OSSLTEST_error(int function, int reason, char *file, int line)
 {
     if (lib_code == 0)
-        lib_code = ERR_get_next_error_library();
+        lib_code = VR_ERR_get_next_error_library();
     ERR_PUT_error(lib_code, function, reason, file, line);
 }

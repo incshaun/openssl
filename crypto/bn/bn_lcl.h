@@ -120,8 +120,8 @@
  * bn_fix_top() has become an overabused duct-tape because bignum data is
  * occasionally passed around in an inconsistent state. So the following
  * changes have been made to sort this out;
- * - bn_fix_top()s implementation has been moved to bn_correct_top()
- * - if BN_DEBUG isn't defined, bn_fix_top() maps to bn_correct_top(), and
+ * - bn_fix_top()s implementation has been moved to VR_bn_correct_top()
+ * - if BN_DEBUG isn't defined, bn_fix_top() maps to VR_bn_correct_top(), and
  *   bn_check_top() is as before.
  * - if BN_DEBUG *is* defined;
  *   - bn_check_top() tries to pollute unused words even if the bignum 'top' is
@@ -130,7 +130,7 @@
  * The idea is to have debug builds flag up inconsistent bignums when they
  * occur. If that occurs in a bn_fix_top(), we examine the code in question; if
  * the use of bn_fix_top() was appropriate (ie. it follows directly after code
- * that manipulates the bignum) it is converted to bn_correct_top(), and if it
+ * that manipulates the bignum) it is converted to VR_bn_correct_top(), and if it
  * was not appropriate, we convert it permanently to bn_check_top() and track
  * down the cause of the bug. Eventually, no internal code should be using the
  * bn_fix_top() macro. External applications and libraries should try this with
@@ -143,7 +143,7 @@
 # ifdef BN_DEBUG
 /*
  * The new BN_FLG_FIXED_TOP flag marks vectors that were not treated with
- * bn_correct_top, in other words such vectors are permitted to have zeros
+ * VR_bn_correct_top, in other words such vectors are permitted to have zeros
  * in most significant limbs. Such vectors are used internally to achieve
  * execution time invariance for critical operations with private keys.
  * It's BN_DEBUG-only flag, because user application is not supposed to
@@ -162,7 +162,7 @@
                  * wouldn't be constructed with top!=dmax. */ \
                 BN_ULONG *_not_const; \
                 memcpy(&_not_const, &_bnum1->d, sizeof(_not_const)); \
-                RAND_bytes(&_tmp_char, 1); /* Debug only - safe to ignore error return */\
+                VR_RAND_bytes(&_tmp_char, 1); /* Debug only - safe to ignore error return */\
                 memset(_not_const + _bnum1->top, _tmp_char, \
                        sizeof(*_not_const) * (_bnum1->dmax - _bnum1->top)); \
             } \
@@ -199,20 +199,20 @@
 #  define BN_FLG_FIXED_TOP 0
 #  define bn_pollute(a)
 #  define bn_check_top(a)
-#  define bn_fix_top(a)           bn_correct_top(a)
+#  define bn_fix_top(a)           VR_bn_correct_top(a)
 #  define bn_check_size(bn, bits)
 #  define bn_wcheck_size(bn, words)
 
 # endif
 
-BN_ULONG bn_mul_add_words(BN_ULONG *rp, const BN_ULONG *ap, int num,
+BN_ULONG VR_bn_mul_add_words(BN_ULONG *rp, const BN_ULONG *ap, int num,
                           BN_ULONG w);
-BN_ULONG bn_mul_words(BN_ULONG *rp, const BN_ULONG *ap, int num, BN_ULONG w);
-void bn_sqr_words(BN_ULONG *rp, const BN_ULONG *ap, int num);
-BN_ULONG bn_div_words(BN_ULONG h, BN_ULONG l, BN_ULONG d);
-BN_ULONG bn_add_words(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
+BN_ULONG VR_bn_mul_words(BN_ULONG *rp, const BN_ULONG *ap, int num, BN_ULONG w);
+void VR_bn_sqr_words(BN_ULONG *rp, const BN_ULONG *ap, int num);
+BN_ULONG VR_bn_div_words(BN_ULONG h, BN_ULONG l, BN_ULONG d);
+BN_ULONG VR_bn_add_words(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
                       int num);
-BN_ULONG bn_sub_words(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
+BN_ULONG VR_bn_sub_words(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
                       int num);
 
 struct bignum_st {
@@ -295,7 +295,7 @@ struct bn_gencb_st {
                  (b) >  23 ? 3 : 1)
 
 /*
- * BN_mod_exp_mont_conttime is based on the assumption that the L1 data cache
+ * VR_BN_mod_exp_mont_conttime is based on the assumption that the L1 data cache
  * line width of the target processor is at least the following value.
  */
 # define MOD_EXP_CTIME_MIN_CACHE_LINE_WIDTH      ( 64 )
@@ -303,7 +303,7 @@ struct bn_gencb_st {
 
 /*
  * Window sizes optimized for fixed window size modular exponentiation
- * algorithm (BN_mod_exp_mont_consttime). To achieve the security goals of
+ * algorithm (VR_BN_mod_exp_mont_consttime). To achieve the security goals of
  * BN_mode_exp_mont_consttime, the maximum size of the window must not exceed
  * log_2(MOD_EXP_CTIME_MIN_CACHE_LINE_WIDTH). Window size thresholds are
  * defined for cache line sizes of 32 and 64, cache line sizes where
@@ -625,36 +625,36 @@ unsigned __int64 _umul128(unsigned __int64 a, unsigned __int64 b,
         }
 # endif                         /* !BN_LLONG */
 
-void BN_RECP_CTX_init(BN_RECP_CTX *recp);
-void BN_MONT_CTX_init(BN_MONT_CTX *ctx);
+void VR_BN_RECP_CTX_init(BN_RECP_CTX *recp);
+void VR_BN_MONT_CTX_init(BN_MONT_CTX *ctx);
 
-void bn_init(BIGNUM *a);
-void bn_mul_normal(BN_ULONG *r, BN_ULONG *a, int na, BN_ULONG *b, int nb);
-void bn_mul_comba8(BN_ULONG *r, BN_ULONG *a, BN_ULONG *b);
-void bn_mul_comba4(BN_ULONG *r, BN_ULONG *a, BN_ULONG *b);
-void bn_sqr_normal(BN_ULONG *r, const BN_ULONG *a, int n, BN_ULONG *tmp);
-void bn_sqr_comba8(BN_ULONG *r, const BN_ULONG *a);
-void bn_sqr_comba4(BN_ULONG *r, const BN_ULONG *a);
-int bn_cmp_words(const BN_ULONG *a, const BN_ULONG *b, int n);
-int bn_cmp_part_words(const BN_ULONG *a, const BN_ULONG *b, int cl, int dl);
-void bn_mul_recursive(BN_ULONG *r, BN_ULONG *a, BN_ULONG *b, int n2,
+void VR_bn_init(BIGNUM *a);
+void VR_bn_mul_normal(BN_ULONG *r, BN_ULONG *a, int na, BN_ULONG *b, int nb);
+void VR_bn_mul_comba8(BN_ULONG *r, BN_ULONG *a, BN_ULONG *b);
+void VR_bn_mul_comba4(BN_ULONG *r, BN_ULONG *a, BN_ULONG *b);
+void VR_bn_sqr_normal(BN_ULONG *r, const BN_ULONG *a, int n, BN_ULONG *tmp);
+void VR_bn_sqr_comba8(BN_ULONG *r, const BN_ULONG *a);
+void VR_bn_sqr_comba4(BN_ULONG *r, const BN_ULONG *a);
+int VR_bn_cmp_words(const BN_ULONG *a, const BN_ULONG *b, int n);
+int VR_bn_cmp_part_words(const BN_ULONG *a, const BN_ULONG *b, int cl, int dl);
+void VR_bn_mul_recursive(BN_ULONG *r, BN_ULONG *a, BN_ULONG *b, int n2,
                       int dna, int dnb, BN_ULONG *t);
-void bn_mul_part_recursive(BN_ULONG *r, BN_ULONG *a, BN_ULONG *b,
+void VR_bn_mul_part_recursive(BN_ULONG *r, BN_ULONG *a, BN_ULONG *b,
                            int n, int tna, int tnb, BN_ULONG *t);
-void bn_sqr_recursive(BN_ULONG *r, const BN_ULONG *a, int n2, BN_ULONG *t);
-void bn_mul_low_normal(BN_ULONG *r, BN_ULONG *a, BN_ULONG *b, int n);
-void bn_mul_low_recursive(BN_ULONG *r, BN_ULONG *a, BN_ULONG *b, int n2,
+void VR_bn_sqr_recursive(BN_ULONG *r, const BN_ULONG *a, int n2, BN_ULONG *t);
+void VR_bn_mul_low_normal(BN_ULONG *r, BN_ULONG *a, BN_ULONG *b, int n);
+void VR_bn_mul_low_recursive(BN_ULONG *r, BN_ULONG *a, BN_ULONG *b, int n2,
                           BN_ULONG *t);
-BN_ULONG bn_sub_part_words(BN_ULONG *r, const BN_ULONG *a, const BN_ULONG *b,
+BN_ULONG VR_bn_sub_part_words(BN_ULONG *r, const BN_ULONG *a, const BN_ULONG *b,
                            int cl, int dl);
-int bn_mul_mont(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
+int VR_bn_mul_mont(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
                 const BN_ULONG *np, const BN_ULONG *n0, int num);
 
-BIGNUM *int_bn_mod_inverse(BIGNUM *in,
+BIGNUM *VR_int_bn_mod_inverse(BIGNUM *in,
                            const BIGNUM *a, const BIGNUM *n, BN_CTX *ctx,
                            int *noinv);
 
-int bn_probable_prime_dh(BIGNUM *rnd, int bits,
+int VR_bn_probable_prime_dh(BIGNUM *rnd, int bits,
                          const BIGNUM *add, const BIGNUM *rem, BN_CTX *ctx);
 
 static ossl_inline BIGNUM *bn_expand(BIGNUM *a, int bits)
@@ -665,7 +665,7 @@ static ossl_inline BIGNUM *bn_expand(BIGNUM *a, int bits)
     if (((bits+BN_BITS2-1)/BN_BITS2) <= (a)->dmax)
         return a;
 
-    return bn_expand2((a),(bits+BN_BITS2-1)/BN_BITS2);
+    return VR_bn_expand2((a),(bits+BN_BITS2-1)/BN_BITS2);
 }
 
 #endif

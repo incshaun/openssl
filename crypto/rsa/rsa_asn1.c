@@ -23,12 +23,12 @@ static int rsa_cb(int operation, ASN1_VALUE **pval, const ASN1_ITEM *it,
                   void *exarg)
 {
     if (operation == ASN1_OP_NEW_PRE) {
-        *pval = (ASN1_VALUE *)RSA_new();
+        *pval = (ASN1_VALUE *)VR_RSA_new();
         if (*pval != NULL)
             return 2;
         return 0;
     } else if (operation == ASN1_OP_FREE_PRE) {
-        RSA_free((RSA *)*pval);
+        VR_RSA_free((RSA *)*pval);
         *pval = NULL;
         return 2;
     } else if (operation == ASN1_OP_D2I_POST) {
@@ -36,7 +36,7 @@ static int rsa_cb(int operation, ASN1_VALUE **pval, const ASN1_ITEM *it,
             /* not a multi-prime key, skip */
             return 1;
         }
-        return (rsa_multip_calc_product((RSA *)*pval) == 1) ? 2 : 0;
+        return (VR_rsa_multip_calc_product((RSA *)*pval) == 1) ? 2 : 0;
     }
     return 1;
 }
@@ -73,7 +73,7 @@ static int rsa_pss_cb(int operation, ASN1_VALUE **pval, const ASN1_ITEM *it,
 {
     if (operation == ASN1_OP_FREE_PRE) {
         RSA_PSS_PARAMS *pss = (RSA_PSS_PARAMS *)*pval;
-        X509_ALGOR_free(pss->maskHash);
+        VR_X509_ALGOR_free(pss->maskHash);
     }
     return 1;
 }
@@ -93,7 +93,7 @@ static int rsa_oaep_cb(int operation, ASN1_VALUE **pval, const ASN1_ITEM *it,
 {
     if (operation == ASN1_OP_FREE_PRE) {
         RSA_OAEP_PARAMS *oaep = (RSA_OAEP_PARAMS *)*pval;
-        X509_ALGOR_free(oaep->maskHash);
+        VR_X509_ALGOR_free(oaep->maskHash);
     }
     return 1;
 }
@@ -110,12 +110,12 @@ IMPLEMENT_ASN1_ENCODE_FUNCTIONS_const_fname(RSA, RSAPrivateKey, RSAPrivateKey)
 
 IMPLEMENT_ASN1_ENCODE_FUNCTIONS_const_fname(RSA, RSAPublicKey, RSAPublicKey)
 
-RSA *RSAPublicKey_dup(RSA *rsa)
+RSA *VR_RSAPublicKey_dup(RSA *rsa)
 {
-    return ASN1_item_dup(ASN1_ITEM_rptr(RSAPublicKey), rsa);
+    return VR_ASN1_item_dup(ASN1_ITEM_rptr(RSAPublicKey), rsa);
 }
 
-RSA *RSAPrivateKey_dup(RSA *rsa)
+RSA *VR_RSAPrivateKey_dup(RSA *rsa)
 {
-    return ASN1_item_dup(ASN1_ITEM_rptr(RSAPrivateKey), rsa);
+    return VR_ASN1_item_dup(ASN1_ITEM_rptr(RSAPrivateKey), rsa);
 }

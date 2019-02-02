@@ -11,7 +11,7 @@
 #include <string.h>
 #include <openssl/crypto.h>
 
-struct tm *OPENSSL_gmtime(const time_t *timer, struct tm *result)
+struct tm *VR_OPENSSL_gmtime(const time_t *timer, struct tm *result)
 {
     struct tm *ts = NULL;
 
@@ -69,7 +69,7 @@ static void julian_to_date(long jd, int *y, int *m, int *d);
 static int julian_adj(const struct tm *tm, int off_day, long offset_sec,
                       long *pday, int *psec);
 
-int OPENSSL_gmtime_adj(struct tm *tm, int off_day, long offset_sec)
+int VR_OPENSSL_gmtime_adj(struct tm *tm, int off_day, long offset_sec)
 {
     int time_sec, time_year, time_month, time_day;
     long time_jd;
@@ -99,7 +99,7 @@ int OPENSSL_gmtime_adj(struct tm *tm, int off_day, long offset_sec)
 
 }
 
-int OPENSSL_gmtime_diff(int *pday, int *psec,
+int VR_OPENSSL_gmtime_diff(int *pday, int *psec,
                         const struct tm *from, const struct tm *to)
 {
     int from_sec, to_sec, diff_sec;

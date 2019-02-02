@@ -43,7 +43,7 @@ static const EVP_MD null_md = {
     sizeof(EVP_MD *),
 };
 
-const EVP_MD *EVP_md_null(void)
+const EVP_MD *VR_EVP_md_null(void)
 {
     return &null_md;
 }

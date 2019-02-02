@@ -21,7 +21,7 @@
 
 #include "ct_locl.h"
 
-int o2i_SCT_signature(SCT *sct, const unsigned char **in, size_t len)
+int VR_o2i_SCT_signature(SCT *sct, const unsigned char **in, size_t len)
 {
     size_t siglen;
     size_t len_remaining = len;
@@ -47,7 +47,7 @@ int o2i_SCT_signature(SCT *sct, const unsigned char **in, size_t len)
     /* Get hash and signature algorithm */
     sct->hash_alg = *p++;
     sct->sig_alg = *p++;
-    if (SCT_get_signature_nid(sct) == NID_undef) {
+    if (VR_SCT_get_signature_nid(sct) == NID_undef) {
         CTerr(CT_F_O2I_SCT_SIGNATURE, CT_R_SCT_INVALID_SIGNATURE);
         return -1;
     }
@@ -59,7 +59,7 @@ int o2i_SCT_signature(SCT *sct, const unsigned char **in, size_t len)
         return -1;
     }
 
-    if (SCT_set1_signature(sct, p, siglen) != 1)
+    if (VR_SCT_set1_signature(sct, p, siglen) != 1)
         return -1;
     len_remaining -= siglen;
     *in = p + siglen;
@@ -67,7 +67,7 @@ int o2i_SCT_signature(SCT *sct, const unsigned char **in, size_t len)
     return len - len_remaining;
 }
 
-SCT *o2i_SCT(SCT **psct, const unsigned char **in, size_t len)
+SCT *VR_o2i_SCT(SCT **psct, const unsigned char **in, size_t len)
 {
     SCT *sct = NULL;
     const unsigned char *p;
@@ -77,7 +77,7 @@ SCT *o2i_SCT(SCT **psct, const unsigned char **in, size_t len)
         goto err;
     }
 
-    if ((sct = SCT_new()) == NULL)
+    if ((sct = VR_SCT_new()) == NULL)
         goto err;
 
     p = *in;
@@ -123,7 +123,7 @@ SCT *o2i_SCT(SCT **psct, const unsigned char **in, size_t len)
         p += len2;
         len -= len2;
 
-        sig_len = o2i_SCT_signature(sct, &p, len);
+        sig_len = VR_o2i_SCT_signature(sct, &p, len);
         if (sig_len <= 0) {
             CTerr(CT_F_O2I_SCT, CT_R_SCT_INVALID);
             goto err;
@@ -140,22 +140,22 @@ SCT *o2i_SCT(SCT **psct, const unsigned char **in, size_t len)
     }
 
     if (psct != NULL) {
-        SCT_free(*psct);
+        VR_SCT_free(*psct);
         *psct = sct;
     }
 
     return sct;
 err:
-    SCT_free(sct);
+    VR_SCT_free(sct);
     return NULL;
 }
 
-int i2o_SCT_signature(const SCT *sct, unsigned char **out)
+int VR_i2o_SCT_signature(const SCT *sct, unsigned char **out)
 {
     size_t len;
     unsigned char *p = NULL, *pstart = NULL;
 
-    if (!SCT_signature_is_complete(sct)) {
+    if (!VR_SCT_signature_is_complete(sct)) {
         CTerr(CT_F_I2O_SCT_SIGNATURE, CT_R_SCT_INVALID_SIGNATURE);
         goto err;
     }
@@ -193,16 +193,16 @@ int i2o_SCT_signature(const SCT *sct, unsigned char **out)
 
     return len;
 err:
-    OPENSSL_free(pstart);
+    OPENVR_SSL_free(pstart);
     return -1;
 }
 
-int i2o_SCT(const SCT *sct, unsigned char **out)
+int VR_i2o_SCT(const SCT *sct, unsigned char **out)
 {
     size_t len;
     unsigned char *p = NULL, *pstart = NULL;
 
-    if (!SCT_is_complete(sct)) {
+    if (!VR_SCT_is_complete(sct)) {
         CTerr(CT_F_I2O_SCT, CT_R_SCT_NOT_SET);
         goto err;
     }
@@ -242,7 +242,7 @@ int i2o_SCT(const SCT *sct, unsigned char **out)
             memcpy(p, sct->ext, sct->ext_len);
             p += sct->ext_len;
         }
-        if (i2o_SCT_signature(sct, &p) <= 0)
+        if (VR_i2o_SCT_signature(sct, &p) <= 0)
             goto err;
     } else {
         memcpy(p, sct->sct, len);
@@ -250,11 +250,11 @@ int i2o_SCT(const SCT *sct, unsigned char **out)
 
     return len;
 err:
-    OPENSSL_free(pstart);
+    OPENVR_SSL_free(pstart);
     return -1;
 }
 
-STACK_OF(SCT) *o2i_SCT_LIST(STACK_OF(SCT) **a, const unsigned char **pp,
+STACK_OF(SCT) *VR_o2i_SCT_LIST(STACK_OF(SCT) **a, const unsigned char **pp,
                             size_t len)
 {
     STACK_OF(SCT) *sk = NULL;
@@ -272,7 +272,7 @@ STACK_OF(SCT) *o2i_SCT_LIST(STACK_OF(SCT) **a, const unsigned char **pp,
     }
 
     if (a == NULL || *a == NULL) {
-        sk = sk_SCT_new_null();
+        sk = sk_VR_SCT_new_null();
         if (sk == NULL)
             return NULL;
     } else {
@@ -280,8 +280,8 @@ STACK_OF(SCT) *o2i_SCT_LIST(STACK_OF(SCT) **a, const unsigned char **pp,
 
         /* Use the given stack, but empty it first. */
         sk = *a;
-        while ((sct = sk_SCT_pop(sk)) != NULL)
-            SCT_free(sct);
+        while ((sct = sk_VR_SCT_pop(sk)) != NULL)
+            VR_SCT_free(sct);
     }
 
     while (list_len > 0) {
@@ -300,10 +300,10 @@ STACK_OF(SCT) *o2i_SCT_LIST(STACK_OF(SCT) **a, const unsigned char **pp,
         }
         list_len -= sct_len;
 
-        if ((sct = o2i_SCT(NULL, pp, sct_len)) == NULL)
+        if ((sct = VR_o2i_SCT(NULL, pp, sct_len)) == NULL)
             goto err;
-        if (!sk_SCT_push(sk, sct)) {
-            SCT_free(sct);
+        if (!sk_VR_SCT_push(sk, sct)) {
+            VR_SCT_free(sct);
             goto err;
         }
     }
@@ -314,11 +314,11 @@ STACK_OF(SCT) *o2i_SCT_LIST(STACK_OF(SCT) **a, const unsigned char **pp,
 
  err:
     if (a == NULL || *a == NULL)
-        SCT_LIST_free(sk);
+        VR_SCT_LIST_free(sk);
     return NULL;
 }
 
-int i2o_SCT_LIST(const STACK_OF(SCT) *a, unsigned char **pp)
+int VR_i2o_SCT_LIST(const STACK_OF(SCT) *a, unsigned char **pp)
 {
     int len, sct_len, i, is_pp_new = 0;
     size_t len2;
@@ -326,7 +326,7 @@ int i2o_SCT_LIST(const STACK_OF(SCT) *a, unsigned char **pp)
 
     if (pp != NULL) {
         if (*pp == NULL) {
-            if ((len = i2o_SCT_LIST(a, NULL)) == -1) {
+            if ((len = VR_i2o_SCT_LIST(a, NULL)) == -1) {
                 CTerr(CT_F_I2O_SCT_LIST, CT_R_SCT_LIST_INVALID);
                 return -1;
             }
@@ -344,11 +344,11 @@ int i2o_SCT_LIST(const STACK_OF(SCT) *a, unsigned char **pp)
         if (pp != NULL) {
             p2 = p;
             p += 2;
-            if ((sct_len = i2o_SCT(sk_SCT_value(a, i), &p)) == -1)
+            if ((sct_len = VR_i2o_SCT(sk_SCT_value(a, i), &p)) == -1)
                 goto err;
             s2n(sct_len, p2);
         } else {
-          if ((sct_len = i2o_SCT(sk_SCT_value(a, i), NULL)) == -1)
+          if ((sct_len = VR_i2o_SCT(sk_SCT_value(a, i), NULL)) == -1)
               goto err;
         }
         len2 += 2 + sct_len;
@@ -367,13 +367,13 @@ int i2o_SCT_LIST(const STACK_OF(SCT) *a, unsigned char **pp)
 
  err:
     if (is_pp_new) {
-        OPENSSL_free(*pp);
+        OPENVR_SSL_free(*pp);
         *pp = NULL;
     }
     return -1;
 }
 
-STACK_OF(SCT) *d2i_SCT_LIST(STACK_OF(SCT) **a, const unsigned char **pp,
+STACK_OF(SCT) *VR_d2i_SCT_LIST(STACK_OF(SCT) **a, const unsigned char **pp,
                             long len)
 {
     ASN1_OCTET_STRING *oct = NULL;
@@ -381,27 +381,27 @@ STACK_OF(SCT) *d2i_SCT_LIST(STACK_OF(SCT) **a, const unsigned char **pp,
     const unsigned char *p;
 
     p = *pp;
-    if (d2i_ASN1_OCTET_STRING(&oct, &p, len) == NULL)
+    if (VR_d2i_ASN1_OCTET_STRING(&oct, &p, len) == NULL)
         return NULL;
 
     p = oct->data;
-    if ((sk = o2i_SCT_LIST(a, &p, oct->length)) != NULL)
+    if ((sk = VR_o2i_SCT_LIST(a, &p, oct->length)) != NULL)
         *pp += len;
 
-    ASN1_OCTET_STRING_free(oct);
+    VR_ASN1_OCTET_STRING_free(oct);
     return sk;
 }
 
-int i2d_SCT_LIST(const STACK_OF(SCT) *a, unsigned char **out)
+int VR_i2d_SCT_LIST(const STACK_OF(SCT) *a, unsigned char **out)
 {
     ASN1_OCTET_STRING oct;
     int len;
 
     oct.data = NULL;
-    if ((oct.length = i2o_SCT_LIST(a, &oct.data)) == -1)
+    if ((oct.length = VR_i2o_SCT_LIST(a, &oct.data)) == -1)
         return -1;
 
-    len = i2d_ASN1_OCTET_STRING(&oct, out);
-    OPENSSL_free(oct.data);
+    len = VR_i2d_ASN1_OCTET_STRING(&oct, out);
+    OPENVR_SSL_free(oct.data);
     return len;
 }

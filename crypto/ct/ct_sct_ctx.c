@@ -20,7 +20,7 @@
 
 #include "ct_locl.h"
 
-SCT_CTX *SCT_CTX_new(void)
+SCT_CTX *VR_SCT_CTX_new(void)
 {
     SCT_CTX *sctx = OPENSSL_zalloc(sizeof(*sctx));
 
@@ -30,16 +30,16 @@ SCT_CTX *SCT_CTX_new(void)
     return sctx;
 }
 
-void SCT_CTX_free(SCT_CTX *sctx)
+void VR_SCT_CTX_free(SCT_CTX *sctx)
 {
     if (sctx == NULL)
         return;
-    EVP_PKEY_free(sctx->pkey);
-    OPENSSL_free(sctx->pkeyhash);
-    OPENSSL_free(sctx->ihash);
-    OPENSSL_free(sctx->certder);
-    OPENSSL_free(sctx->preder);
-    OPENSSL_free(sctx);
+    VR_EVP_PKEY_free(sctx->pkey);
+    OPENVR_SSL_free(sctx->pkeyhash);
+    OPENVR_SSL_free(sctx->ihash);
+    OPENVR_SSL_free(sctx->certder);
+    OPENVR_SSL_free(sctx->preder);
+    OPENVR_SSL_free(sctx);
 }
 
 /*
@@ -49,10 +49,10 @@ void SCT_CTX_free(SCT_CTX *sctx)
  */
 static int ct_x509_get_ext(X509 *cert, int nid, int *is_duplicated)
 {
-    int ret = X509_get_ext_by_NID(cert, nid, -1);
+    int ret = VR_X509_get_ext_by_NID(cert, nid, -1);
 
     if (is_duplicated != NULL)
-        *is_duplicated = ret >= 0 && X509_get_ext_by_NID(cert, nid, ret) >= 0;
+        *is_duplicated = ret >= 0 && VR_X509_get_ext_by_NID(cert, nid, ret) >= 0;
 
     return ret;
 }
@@ -87,26 +87,26 @@ __owur static int ct_x509_cert_fixup(X509 *cert, X509 *presigner)
     if (preidx == -1 && certidx >= 0)
         return 0;
     /* Copy issuer name */
-    if (!X509_set_issuer_name(cert, X509_get_issuer_name(presigner)))
+    if (!VR_X509_set_issuer_name(cert, VR_X509_get_issuer_name(presigner)))
         return 0;
     if (preidx != -1) {
         /* Retrieve and copy AKID encoding */
-        X509_EXTENSION *preext = X509_get_ext(presigner, preidx);
-        X509_EXTENSION *certext = X509_get_ext(cert, certidx);
+        X509_EXTENSION *preext = VR_X509_get_ext(presigner, preidx);
+        X509_EXTENSION *certext = VR_X509_get_ext(cert, certidx);
         ASN1_OCTET_STRING *preextdata;
 
         /* Should never happen */
         if (preext == NULL || certext == NULL)
             return 0;
-        preextdata = X509_EXTENSION_get_data(preext);
+        preextdata = VR_X509_EXTENSION_get_data(preext);
         if (preextdata == NULL ||
-            !X509_EXTENSION_set_data(certext, preextdata))
+            !VR_X509_EXTENSION_set_data(certext, preextdata))
             return 0;
     }
     return 1;
 }
 
-int SCT_CTX_set1_cert(SCT_CTX *sctx, X509 *cert, X509 *presigner)
+int VR_SCT_CTX_set1_cert(SCT_CTX *sctx, X509 *cert, X509 *presigner)
 {
     unsigned char *certder = NULL, *preder = NULL;
     X509 *pretmp = NULL;
@@ -125,7 +125,7 @@ int SCT_CTX_set1_cert(SCT_CTX *sctx, X509 *cert, X509 *presigner)
         if (presigner != NULL)
             goto err;
 
-        certderlen = i2d_X509(cert, &certder);
+        certderlen = VR_i2d_X509(cert, &certder);
         if (certderlen < 0)
             goto err;
     }
@@ -158,36 +158,36 @@ int SCT_CTX_set1_cert(SCT_CTX *sctx, X509 *cert, X509 *presigner)
         X509_EXTENSION *ext;
 
         /* Take a copy of certificate so we don't modify passed version */
-        pretmp = X509_dup(cert);
+        pretmp = VR_X509_dup(cert);
         if (pretmp == NULL)
             goto err;
 
-        ext = X509_delete_ext(pretmp, idx);
-        X509_EXTENSION_free(ext);
+        ext = VR_X509_delete_ext(pretmp, idx);
+        VR_X509_EXTENSION_free(ext);
 
         if (!ct_x509_cert_fixup(pretmp, presigner))
             goto err;
 
-        prederlen = i2d_re_X509_tbs(pretmp, &preder);
+        prederlen = VR_i2d_re_X509_tbs(pretmp, &preder);
         if (prederlen <= 0)
             goto err;
     }
 
-    X509_free(pretmp);
+    VR_X509_free(pretmp);
 
-    OPENSSL_free(sctx->certder);
+    OPENVR_SSL_free(sctx->certder);
     sctx->certder = certder;
     sctx->certderlen = certderlen;
 
-    OPENSSL_free(sctx->preder);
+    OPENVR_SSL_free(sctx->preder);
     sctx->preder = preder;
     sctx->prederlen = prederlen;
 
     return 1;
 err:
-    OPENSSL_free(certder);
-    OPENSSL_free(preder);
-    X509_free(pretmp);
+    OPENVR_SSL_free(certder);
+    OPENVR_SSL_free(preder);
+    VR_X509_free(pretmp);
     return 0;
 }
 
@@ -200,64 +200,64 @@ __owur static int ct_public_key_hash(X509_PUBKEY *pkey, unsigned char **hash,
     unsigned int md_len;
 
     /* Reuse buffer if possible */
-    if (*hash != NULL && *hash_len >= SHA256_DIGEST_LENGTH) {
+    if (*hash != NULL && *hash_len >= VR_SHA256_DIGEST_LENGTH) {
         md = *hash;
     } else {
-        md = OPENSSL_malloc(SHA256_DIGEST_LENGTH);
+        md = OPENSSL_malloc(VR_SHA256_DIGEST_LENGTH);
         if (md == NULL)
             goto err;
     }
 
     /* Calculate key hash */
-    der_len = i2d_X509_PUBKEY(pkey, &der);
+    der_len = VR_i2d_X509_PUBKEY(pkey, &der);
     if (der_len <= 0)
         goto err;
 
-    if (!EVP_Digest(der, der_len, md, &md_len, EVP_sha256(), NULL))
+    if (!VR_EVP_Digest(der, der_len, md, &md_len, VR_EVP_sha256(), NULL))
         goto err;
 
     if (md != *hash) {
-        OPENSSL_free(*hash);
+        OPENVR_SSL_free(*hash);
         *hash = md;
-        *hash_len = SHA256_DIGEST_LENGTH;
+        *hash_len = VR_SHA256_DIGEST_LENGTH;
     }
 
     md = NULL;
     ret = 1;
  err:
-    OPENSSL_free(md);
-    OPENSSL_free(der);
+    OPENVR_SSL_free(md);
+    OPENVR_SSL_free(der);
     return ret;
 }
 
-int SCT_CTX_set1_issuer(SCT_CTX *sctx, const X509 *issuer)
+int VR_SCT_CTX_set1_issuer(SCT_CTX *sctx, const X509 *issuer)
 {
-    return SCT_CTX_set1_issuer_pubkey(sctx, X509_get_X509_PUBKEY(issuer));
+    return VR_SCT_CTX_set1_issuer_pubkey(sctx, VR_X509_get_X509_PUBKEY(issuer));
 }
 
-int SCT_CTX_set1_issuer_pubkey(SCT_CTX *sctx, X509_PUBKEY *pubkey)
+int VR_SCT_CTX_set1_issuer_pubkey(SCT_CTX *sctx, X509_PUBKEY *pubkey)
 {
     return ct_public_key_hash(pubkey, &sctx->ihash, &sctx->ihashlen);
 }
 
-int SCT_CTX_set1_pubkey(SCT_CTX *sctx, X509_PUBKEY *pubkey)
+int VR_SCT_CTX_set1_pubkey(SCT_CTX *sctx, X509_PUBKEY *pubkey)
 {
-    EVP_PKEY *pkey = X509_PUBKEY_get(pubkey);
+    EVP_PKEY *pkey = VR_X509_PUBKEY_get(pubkey);
 
     if (pkey == NULL)
         return 0;
 
     if (!ct_public_key_hash(pubkey, &sctx->pkeyhash, &sctx->pkeyhashlen)) {
-        EVP_PKEY_free(pkey);
+        VR_EVP_PKEY_free(pkey);
         return 0;
     }
 
-    EVP_PKEY_free(sctx->pkey);
+    VR_EVP_PKEY_free(sctx->pkey);
     sctx->pkey = pkey;
     return 1;
 }
 
-void SCT_CTX_set_time(SCT_CTX *sctx, uint64_t time_in_ms)
+void VR_SCT_CTX_set_time(SCT_CTX *sctx, uint64_t time_in_ms)
 {
     sctx->epoch_time_in_ms = time_in_ms;
 }

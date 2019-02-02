@@ -82,13 +82,13 @@ static int wait_for_thread(thread_t thread)
 
 static int test_lock(void)
 {
-    CRYPTO_RWLOCK *lock = CRYPTO_THREAD_lock_new();
+    CRYPTO_RWLOCK *lock = VR_CRYPTO_THREAD_lock_new();
 
-    if (!TEST_true(CRYPTO_THREAD_read_lock(lock))
-        || !TEST_true(CRYPTO_THREAD_unlock(lock)))
+    if (!TEST_true(VR_CRYPTO_THREAD_read_lock(lock))
+        || !TEST_true(VR_CRYPTO_THREAD_unlock(lock)))
         return 0;
 
-    CRYPTO_THREAD_lock_free(lock);
+    VR_CRYPTO_THREAD_lock_free(lock);
 
     return 1;
 }
@@ -103,7 +103,7 @@ static void once_do_run(void)
 
 static void once_run_thread_cb(void)
 {
-    CRYPTO_THREAD_run_once(&once_run, once_do_run);
+    VR_CRYPTO_THREAD_run_once(&once_run, once_do_run);
 }
 
 static int test_once(void)
@@ -112,7 +112,7 @@ static int test_once(void)
 
     if (!TEST_true(run_thread(&thread, once_run_thread_cb))
         || !TEST_true(wait_for_thread(thread))
-        || !CRYPTO_THREAD_run_once(&once_run, once_do_run)
+        || !VR_CRYPTO_THREAD_run_once(&once_run, once_do_run)
         || !TEST_int_eq(once_run_count, 1))
         return 0;
     return 1;
@@ -138,13 +138,13 @@ static void thread_local_thread_cb(void)
 {
     void *ptr;
 
-    ptr = CRYPTO_THREAD_get_local(&thread_local_key);
+    ptr = VR_CRYPTO_THREAD_get_local(&thread_local_key);
     if (!TEST_ptr_null(ptr)
-        || !TEST_true(CRYPTO_THREAD_set_local(&thread_local_key,
+        || !TEST_true(VR_CRYPTO_THREAD_set_local(&thread_local_key,
                                               &destructor_run_count)))
         return;
 
-    ptr = CRYPTO_THREAD_get_local(&thread_local_key);
+    ptr = VR_CRYPTO_THREAD_get_local(&thread_local_key);
     if (!TEST_ptr_eq(ptr, &destructor_run_count))
         return;
 
@@ -156,11 +156,11 @@ static int test_thread_local(void)
     thread_t thread;
     void *ptr = NULL;
 
-    if (!TEST_true(CRYPTO_THREAD_init_local(&thread_local_key,
+    if (!TEST_true(VR_CRYPTO_THREAD_init_local(&thread_local_key,
                                             thread_local_destructor)))
         return 0;
 
-    ptr = CRYPTO_THREAD_get_local(&thread_local_key);
+    ptr = VR_CRYPTO_THREAD_get_local(&thread_local_key);
     if (!TEST_ptr_null(ptr)
         || !TEST_true(run_thread(&thread, thread_local_thread_cb))
         || !TEST_true(wait_for_thread(thread))
@@ -169,7 +169,7 @@ static int test_thread_local(void)
 
 #if defined(OPENSSL_THREADS) && !defined(CRYPTO_TDEBUG)
 
-    ptr = CRYPTO_THREAD_get_local(&thread_local_key);
+    ptr = VR_CRYPTO_THREAD_get_local(&thread_local_key);
     if (!TEST_ptr_null(ptr))
         return 0;
 
@@ -179,7 +179,7 @@ static int test_thread_local(void)
 # endif
 #endif
 
-    if (!TEST_true(CRYPTO_THREAD_cleanup_local(&thread_local_key)))
+    if (!TEST_true(VR_CRYPTO_THREAD_cleanup_local(&thread_local_key)))
         return 0;
     return 1;
 }

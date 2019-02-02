@@ -310,7 +310,7 @@ sub Rho() {				######### regular Rho step
 	&emms	();
 &function_end("KeccakF1600");
 
-&function_begin("SHA3_absorb");
+&function_begin("VR_SHA3_absorb");
 	&mov	("esi",&wparam(0));		# A[][]
 	&mov	("eax",&wparam(1));		# inp
 	&mov	("ecx",&wparam(2));		# len
@@ -355,9 +355,9 @@ sub Rho() {				######### regular Rho step
 	&mov	("eax","ecx");			# return value
 	&mov	("esp","ebp");
 	&emms	();
-&function_end("SHA3_absorb");
+&function_end("VR_SHA3_absorb");
 
-&function_begin("SHA3_squeeze");
+&function_begin("VR_SHA3_squeeze");
 	&mov	("esi",&wparam(0));		# A[][]
 	&mov	("eax",&wparam(1));		# out
 	&mov	("ecx",&wparam(2));		# len
@@ -406,7 +406,7 @@ sub Rho() {				######### regular Rho step
 &set_label("done");
 	&mov	("esp","ebp");
 	&emms	();
-&function_end("SHA3_squeeze");
+&function_end("VR_SHA3_squeeze");
 
 &set_label("iotas",32);
 	&data_word(0x00000001,0x00000000);

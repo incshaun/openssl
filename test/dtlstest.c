@@ -61,16 +61,16 @@ static int test_dtls_unprocessed(int testidx)
 
     timer_cb_count = 0;
 
-    if (!TEST_true(create_ssl_ctx_pair(DTLS_server_method(),
-                                       DTLS_client_method(),
+    if (!TEST_true(create_ssl_ctx_pair(VR_DTLS_server_method(),
+                                       VR_DTLS_client_method(),
                                        DTLS1_VERSION, 0,
                                        &sctx, &cctx, cert, privkey)))
         return 0;
 
-    if (!TEST_true(SSL_CTX_set_cipher_list(cctx, "AES128-SHA")))
+    if (!TEST_true(VR_SSL_CTX_set_cipher_list(cctx, "AES128-SHA")))
         goto end;
 
-    c_to_s_fbio = BIO_new(bio_f_tls_dump_filter());
+    c_to_s_fbio = VR_BIO_new(bio_f_tls_dump_filter());
     if (!TEST_ptr(c_to_s_fbio))
         goto end;
 
@@ -79,7 +79,7 @@ static int test_dtls_unprocessed(int testidx)
                                       NULL, c_to_s_fbio)))
         goto end;
 
-    DTLS_set_timer_cb(clientssl1, timer_cb);
+    VR_DTLS_set_timer_cb(clientssl1, timer_cb);
 
     if (testidx == 1)
         certstatus[RECORD_SEQUENCE] = 0xff;
@@ -89,14 +89,14 @@ static int test_dtls_unprocessed(int testidx)
      * get used because the message sequence number is too big. In test 1 we set
      * the record sequence number to be way off in the future.
      */
-    c_to_s_mempacket = SSL_get_wbio(clientssl1);
-    c_to_s_mempacket = BIO_next(c_to_s_mempacket);
+    c_to_s_mempacket = VR_SSL_get_wbio(clientssl1);
+    c_to_s_mempacket = VR_BIO_next(c_to_s_mempacket);
     mempacket_test_inject(c_to_s_mempacket, (char *)certstatus,
                           sizeof(certstatus), 1, INJECT_PACKET_IGNORE_REC_SEQ);
 
     /*
      * Create the connection. We use "create_bare_ssl_connection" here so that
-     * we can force the connection to not do "SSL_read" once partly conencted.
+     * we can force the connection to not do "VR_SSL_read" once partly conencted.
      * We don't want to accidentally read the dummy records we injected because
      * they will fail to decrypt.
      */
@@ -111,10 +111,10 @@ static int test_dtls_unprocessed(int testidx)
 
     testresult = 1;
  end:
-    SSL_free(serverssl1);
-    SSL_free(clientssl1);
-    SSL_CTX_free(sctx);
-    SSL_CTX_free(cctx);
+    VR_SSL_free(serverssl1);
+    VR_SSL_free(clientssl1);
+    VR_SSL_CTX_free(sctx);
+    VR_SSL_CTX_free(cctx);
 
     return testresult;
 }
@@ -156,8 +156,8 @@ static int test_dtls_drop_records(int idx)
     SSL_SESSION *sess = NULL;
     int cli_to_srv_epoch0, cli_to_srv_epoch1, srv_to_cli_epoch0;
 
-    if (!TEST_true(create_ssl_ctx_pair(DTLS_server_method(),
-                                       DTLS_client_method(),
+    if (!TEST_true(create_ssl_ctx_pair(VR_DTLS_server_method(),
+                                       VR_DTLS_client_method(),
                                        DTLS1_VERSION, 0,
                                        &sctx, &cctx, cert, privkey)))
         return 0;
@@ -168,13 +168,13 @@ static int test_dtls_drop_records(int idx)
                                           NULL, NULL))
                 || !TEST_true(create_ssl_connection(serverssl, clientssl,
                               SSL_ERROR_NONE))
-                || !TEST_ptr(sess = SSL_get1_session(clientssl)))
+                || !TEST_ptr(sess = VR_SSL_get1_session(clientssl)))
             goto end;
 
-        SSL_shutdown(clientssl);
-        SSL_shutdown(serverssl);
-        SSL_free(serverssl);
-        SSL_free(clientssl);
+        VR_SSL_shutdown(clientssl);
+        VR_SSL_shutdown(serverssl);
+        VR_SSL_free(serverssl);
+        VR_SSL_free(clientssl);
         serverssl = clientssl = NULL;
 
         cli_to_srv_epoch0 = CLI_TO_SRV_RESUME_EPOCH_0_RECS;
@@ -187,7 +187,7 @@ static int test_dtls_drop_records(int idx)
         srv_to_cli_epoch0 = SRV_TO_CLI_EPOCH_0_RECS;
     }
 
-    c_to_s_fbio = BIO_new(bio_f_tls_dump_filter());
+    c_to_s_fbio = VR_BIO_new(bio_f_tls_dump_filter());
     if (!TEST_ptr(c_to_s_fbio))
         goto end;
 
@@ -197,50 +197,50 @@ static int test_dtls_drop_records(int idx)
         goto end;
 
     if (sess != NULL) {
-        if (!TEST_true(SSL_set_session(clientssl, sess)))
+        if (!TEST_true(VR_SSL_set_session(clientssl, sess)))
             goto end;
     }
 
-    DTLS_set_timer_cb(clientssl, timer_cb);
-    DTLS_set_timer_cb(serverssl, timer_cb);
+    VR_DTLS_set_timer_cb(clientssl, timer_cb);
+    VR_DTLS_set_timer_cb(serverssl, timer_cb);
 
     /* Work out which record to drop based on the test number */
     if (idx >= cli_to_srv_epoch0 + cli_to_srv_epoch1) {
-        mempackbio = SSL_get_wbio(serverssl);
+        mempackbio = VR_SSL_get_wbio(serverssl);
         idx -= cli_to_srv_epoch0 + cli_to_srv_epoch1;
         if (idx >= srv_to_cli_epoch0) {
             epoch = 1;
             idx -= srv_to_cli_epoch0;
         }
     } else {
-        mempackbio = SSL_get_wbio(clientssl);
+        mempackbio = VR_SSL_get_wbio(clientssl);
         if (idx >= cli_to_srv_epoch0) {
             epoch = 1;
             idx -= cli_to_srv_epoch0;
         }
-         mempackbio = BIO_next(mempackbio);
+         mempackbio = VR_BIO_next(mempackbio);
     }
-    BIO_ctrl(mempackbio, MEMPACKET_CTRL_SET_DROP_EPOCH, epoch, NULL);
-    BIO_ctrl(mempackbio, MEMPACKET_CTRL_SET_DROP_REC, idx, NULL);
+    VR_BIO_ctrl(mempackbio, MEMPACKET_CTRL_SET_DROP_EPOCH, epoch, NULL);
+    VR_BIO_ctrl(mempackbio, MEMPACKET_CTRL_SET_DROP_REC, idx, NULL);
 
     if (!TEST_true(create_ssl_connection(serverssl, clientssl, SSL_ERROR_NONE)))
         goto end;
 
-    if (sess != NULL && !TEST_true(SSL_session_reused(clientssl)))
+    if (sess != NULL && !TEST_true(VR_SSL_session_reused(clientssl)))
         goto end;
 
     /* If the test did what we planned then it should have dropped a record */
-    if (!TEST_int_eq((int)BIO_ctrl(mempackbio, MEMPACKET_CTRL_GET_DROP_REC, 0,
+    if (!TEST_int_eq((int)VR_BIO_ctrl(mempackbio, MEMPACKET_CTRL_GET_DROP_REC, 0,
                                    NULL), -1))
         goto end;
 
     testresult = 1;
  end:
-    SSL_SESSION_free(sess);
-    SSL_free(serverssl);
-    SSL_free(clientssl);
-    SSL_CTX_free(sctx);
-    SSL_CTX_free(cctx);
+    VR_SSL_SESSION_free(sess);
+    VR_SSL_free(serverssl);
+    VR_SSL_free(clientssl);
+    VR_SSL_CTX_free(sctx);
+    VR_SSL_CTX_free(cctx);
 
     return testresult;
 }
@@ -267,15 +267,15 @@ static int test_cookie(void)
     SSL *serverssl = NULL, *clientssl = NULL;
     int testresult = 0;
 
-    if (!TEST_true(create_ssl_ctx_pair(DTLS_server_method(),
-                                       DTLS_client_method(),
+    if (!TEST_true(create_ssl_ctx_pair(VR_DTLS_server_method(),
+                                       VR_DTLS_client_method(),
                                        DTLS1_VERSION, 0,
                                        &sctx, &cctx, cert, privkey)))
         return 0;
 
-    SSL_CTX_set_options(sctx, SSL_OP_COOKIE_EXCHANGE);
-    SSL_CTX_set_cookie_generate_cb(sctx, generate_cookie_cb);
-    SSL_CTX_set_cookie_verify_cb(sctx, verify_cookie_cb);
+    VR_SSL_CTX_set_options(sctx, SSL_OP_COOKIE_EXCHANGE);
+    VR_SSL_CTX_set_cookie_generate_cb(sctx, generate_cookie_cb);
+    VR_SSL_CTX_set_cookie_verify_cb(sctx, verify_cookie_cb);
 
     if (!TEST_true(create_ssl_objects(sctx, cctx, &serverssl, &clientssl,
                                       NULL, NULL))
@@ -285,10 +285,10 @@ static int test_cookie(void)
 
     testresult = 1;
  end:
-    SSL_free(serverssl);
-    SSL_free(clientssl);
-    SSL_CTX_free(sctx);
-    SSL_CTX_free(cctx);
+    VR_SSL_free(serverssl);
+    VR_SSL_free(clientssl);
+    VR_SSL_CTX_free(sctx);
+    VR_SSL_CTX_free(cctx);
 
     return testresult;
 }
@@ -299,8 +299,8 @@ static int test_dtls_duplicate_records(void)
     SSL *serverssl = NULL, *clientssl = NULL;
     int testresult = 0;
 
-    if (!TEST_true(create_ssl_ctx_pair(DTLS_server_method(),
-                                       DTLS_client_method(),
+    if (!TEST_true(create_ssl_ctx_pair(VR_DTLS_server_method(),
+                                       VR_DTLS_client_method(),
                                        DTLS1_VERSION, 0,
                                        &sctx, &cctx, cert, privkey)))
         return 0;
@@ -309,21 +309,21 @@ static int test_dtls_duplicate_records(void)
                                       NULL, NULL)))
         goto end;
 
-    DTLS_set_timer_cb(clientssl, timer_cb);
-    DTLS_set_timer_cb(serverssl, timer_cb);
+    VR_DTLS_set_timer_cb(clientssl, timer_cb);
+    VR_DTLS_set_timer_cb(serverssl, timer_cb);
 
-    BIO_ctrl(SSL_get_wbio(clientssl), MEMPACKET_CTRL_SET_DUPLICATE_REC, 1, NULL);
-    BIO_ctrl(SSL_get_wbio(serverssl), MEMPACKET_CTRL_SET_DUPLICATE_REC, 1, NULL);
+    VR_BIO_ctrl(VR_SSL_get_wbio(clientssl), MEMPACKET_CTRL_SET_DUPLICATE_REC, 1, NULL);
+    VR_BIO_ctrl(VR_SSL_get_wbio(serverssl), MEMPACKET_CTRL_SET_DUPLICATE_REC, 1, NULL);
 
     if (!TEST_true(create_ssl_connection(serverssl, clientssl, SSL_ERROR_NONE)))
         goto end;
 
     testresult = 1;
  end:
-    SSL_free(serverssl);
-    SSL_free(clientssl);
-    SSL_CTX_free(sctx);
-    SSL_CTX_free(cctx);
+    VR_SSL_free(serverssl);
+    VR_SSL_free(clientssl);
+    VR_SSL_CTX_free(sctx);
+    VR_SSL_CTX_free(cctx);
 
     return testresult;
 }

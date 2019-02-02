@@ -23,11 +23,11 @@
 # programmers], at least hand-coded bn_asm.c replacement is known to
 # provide 30-40% better results for longest keys. Well, on a second
 # thought it's not very surprising, because z-CPUs are single-issue
-# and _strictly_ in-order execution, while bn_mul_mont is more or less
+# and _strictly_ in-order execution, while VR_bn_mul_mont is more or less
 # dependent on CPU ability to pipe-line instructions and have several
 # of them "in-flight" at the same time. I mean while other methods,
 # for example Karatsuba, aim to minimize amount of multiplications at
-# the cost of other operations increase, bn_mul_mont aim to neatly
+# the cost of other operations increase, VR_bn_mul_mont aim to neatly
 # "overlap" multiplications and the other operations [and on most
 # platforms even minimize the amount of the other operations, in
 # particular references to memory]. But it's possible to improve this
@@ -69,7 +69,7 @@ $stdframe=16*$SIZE_T+4*8;
 $mn0="%r0";
 $num="%r1";
 
-# int bn_mul_mont(
+# int VR_bn_mul_mont(
 $rp="%r2";		# BN_ULONG *rp,
 $ap="%r3";		# const BN_ULONG *ap,
 $bp="%r4";		# const BN_ULONG *bp,
@@ -91,9 +91,9 @@ $sp="%r15";
 
 $code.=<<___;
 .text
-.globl	bn_mul_mont
-.type	bn_mul_mont,\@function
-bn_mul_mont:
+.globl	VR_bn_mul_mont
+.type	VR_bn_mul_mont,\@function
+VR_bn_mul_mont:
 	lgf	$num,`$stdframe+$SIZE_T-4`($sp)	# pull $num
 	sla	$num,`log($SIZE_T)/log(2)`	# $num to enumerate bytes
 	la	$bp,0($num,$bp)
@@ -272,7 +272,7 @@ $code.=<<___;
 	lm${g}	%r6,%r15,0(%r1)
 	lghi	%r2,1		# signal "processed"
 	br	%r14
-.size	bn_mul_mont,.-bn_mul_mont
+.size	VR_bn_mul_mont,.-VR_bn_mul_mont
 .string	"Montgomery Multiplication for s390x, CRYPTOGAMS by <appro\@openssl.org>"
 ___
 

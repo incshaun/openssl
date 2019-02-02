@@ -78,7 +78,7 @@ ASN1_SEQUENCE(SSL_SESSION_ASN1) = {
 
 IMPLEMENT_STATIC_ASN1_ENCODE_FUNCTIONS(SSL_SESSION_ASN1)
 
-/* Utility functions for i2d_SSL_SESSION */
+/* Utility functions for VR_i2d_SSL_SESSION */
 
 /* Initialise OCTET STRING from buffer and length */
 
@@ -101,7 +101,7 @@ static void ssl_session_sinit(ASN1_OCTET_STRING **dest, ASN1_OCTET_STRING *os,
         *dest = NULL;
 }
 
-int i2d_SSL_SESSION(SSL_SESSION *in, unsigned char **pp)
+int VR_i2d_SSL_SESSION(SSL_SESSION *in, unsigned char **pp)
 {
 
     SSL_SESSION_ASN1 as;
@@ -200,17 +200,17 @@ int i2d_SSL_SESSION(SSL_SESSION *in, unsigned char **pp)
         ssl_session_oinit(&as.ticket_appdata, &ticket_appdata,
                           in->ticket_appdata, in->ticket_appdata_len);
 
-    return i2d_SSL_SESSION_ASN1(&as, pp);
+    return VR_i2d_SSL_SESSION_ASN1(&as, pp);
 
 }
 
-/* Utility functions for d2i_SSL_SESSION */
+/* Utility functions for VR_d2i_SSL_SESSION */
 
 /* OPENSSL_strndup an OCTET STRING */
 
 static int ssl_session_strndup(char **pdst, ASN1_OCTET_STRING *src)
 {
-    OPENSSL_free(*pdst);
+    OPENVR_SSL_free(*pdst);
     *pdst = NULL;
     if (src == NULL)
         return 1;
@@ -236,7 +236,7 @@ static int ssl_session_memcpy(unsigned char *dst, size_t *pdstlen,
     return 1;
 }
 
-SSL_SESSION *d2i_SSL_SESSION(SSL_SESSION **a, const unsigned char **pp,
+SSL_SESSION *VR_d2i_SSL_SESSION(SSL_SESSION **a, const unsigned char **pp,
                              long length)
 {
     long id;
@@ -245,13 +245,13 @@ SSL_SESSION *d2i_SSL_SESSION(SSL_SESSION **a, const unsigned char **pp,
     SSL_SESSION_ASN1 *as = NULL;
     SSL_SESSION *ret = NULL;
 
-    as = d2i_SSL_SESSION_ASN1(NULL, &p, length);
+    as = VR_d2i_SSL_SESSION_ASN1(NULL, &p, length);
     /* ASN.1 code returns suitable error */
     if (as == NULL)
         goto err;
 
     if (!a || !*a) {
-        ret = SSL_SESSION_new();
+        ret = VR_SSL_SESSION_new();
         if (ret == NULL)
             goto err;
     } else {
@@ -281,7 +281,7 @@ SSL_SESSION *d2i_SSL_SESSION(SSL_SESSION **a, const unsigned char **pp,
                      | (unsigned long)as->cipher->data[1];
 
     ret->cipher_id = id;
-    ret->cipher = ssl3_get_cipher_by_id(id);
+    ret->cipher = VR_ssl3_get_cipher_by_id(id);
     if (ret->cipher == NULL)
         goto err;
 
@@ -305,7 +305,7 @@ SSL_SESSION *d2i_SSL_SESSION(SSL_SESSION **a, const unsigned char **pp,
     else
         ret->timeout = 3;
 
-    X509_free(ret->peer);
+    VR_X509_free(ret->peer);
     ret->peer = as->peer;
     as->peer = NULL;
 
@@ -328,7 +328,7 @@ SSL_SESSION *d2i_SSL_SESSION(SSL_SESSION **a, const unsigned char **pp,
 
     ret->ext.tick_lifetime_hint = (unsigned long)as->tlsext_tick_lifetime_hint;
     ret->ext.tick_age_add = as->tlsext_tick_age_add;
-    OPENSSL_free(ret->ext.tick);
+    OPENVR_SSL_free(ret->ext.tick);
     if (as->tlsext_tick != NULL) {
         ret->ext.tick = as->tlsext_tick->data;
         ret->ext.ticklen = as->tlsext_tick->length;
@@ -356,7 +356,7 @@ SSL_SESSION *d2i_SSL_SESSION(SSL_SESSION **a, const unsigned char **pp,
     ret->flags = (int32_t)as->flags;
     ret->ext.max_early_data = as->max_early_data;
 
-    OPENSSL_free(ret->ext.alpn_selected);
+    OPENVR_SSL_free(ret->ext.alpn_selected);
     if (as->alpn_selected != NULL) {
         ret->ext.alpn_selected = as->alpn_selected->data;
         ret->ext.alpn_selected_len = as->alpn_selected->length;
@@ -368,7 +368,7 @@ SSL_SESSION *d2i_SSL_SESSION(SSL_SESSION **a, const unsigned char **pp,
 
     ret->ext.max_fragment_len_mode = as->tlsext_max_fragment_len_mode;
 
-    OPENSSL_free(ret->ticket_appdata);
+    OPENVR_SSL_free(ret->ticket_appdata);
     if (as->ticket_appdata != NULL) {
         ret->ticket_appdata = as->ticket_appdata->data;
         ret->ticket_appdata_len = as->ticket_appdata->length;
@@ -388,6 +388,6 @@ SSL_SESSION *d2i_SSL_SESSION(SSL_SESSION **a, const unsigned char **pp,
  err:
     M_ASN1_free_of(as, SSL_SESSION_ASN1);
     if ((a == NULL) || (*a != ret))
-        SSL_SESSION_free(ret);
+        VR_SSL_SESSION_free(ret);
     return NULL;
 }

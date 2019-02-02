@@ -39,7 +39,7 @@ static int ct_base64_decode(const char *in, unsigned char **out)
         goto err;
     }
 
-    outlen = EVP_DecodeBlock(outbuf, (unsigned char *)in, inlen);
+    outlen = VR_EVP_DecodeBlock(outbuf, (unsigned char *)in, inlen);
     if (outlen < 0) {
         CTerr(CT_F_CT_BASE64_DECODE, CT_R_BASE64_DECODE_ERROR);
         goto err;
@@ -56,16 +56,16 @@ static int ct_base64_decode(const char *in, unsigned char **out)
     *out = outbuf;
     return outlen;
 err:
-    OPENSSL_free(outbuf);
+    OPENVR_SSL_free(outbuf);
     return -1;
 }
 
-SCT *SCT_new_from_base64(unsigned char version, const char *logid_base64,
+SCT *VR_SCT_new_from_base64(unsigned char version, const char *logid_base64,
                          ct_log_entry_type_t entry_type, uint64_t timestamp,
                          const char *extensions_base64,
                          const char *signature_base64)
 {
-    SCT *sct = SCT_new();
+    SCT *sct = VR_SCT_new();
     unsigned char *dec = NULL;
     const unsigned char* p = NULL;
     int declen;
@@ -79,7 +79,7 @@ SCT *SCT_new_from_base64(unsigned char version, const char *logid_base64,
      * RFC6962 section 4.1 says we "MUST NOT expect this to be 0", but we
      * can only construct SCT versions that have been defined.
      */
-    if (!SCT_set_version(sct, version)) {
+    if (!VR_SCT_set_version(sct, version)) {
         CTerr(CT_F_SCT_NEW_FROM_BASE64, CT_R_SCT_UNSUPPORTED_VERSION);
         goto err;
     }
@@ -89,7 +89,7 @@ SCT *SCT_new_from_base64(unsigned char version, const char *logid_base64,
         CTerr(CT_F_SCT_NEW_FROM_BASE64, X509_R_BASE64_DECODE_ERROR);
         goto err;
     }
-    if (!SCT_set0_log_id(sct, dec, declen))
+    if (!VR_SCT_set0_log_id(sct, dec, declen))
         goto err;
     dec = NULL;
 
@@ -98,7 +98,7 @@ SCT *SCT_new_from_base64(unsigned char version, const char *logid_base64,
         CTerr(CT_F_SCT_NEW_FROM_BASE64, X509_R_BASE64_DECODE_ERROR);
         goto err;
     }
-    SCT_set0_extensions(sct, dec, declen);
+    VR_SCT_set0_extensions(sct, dec, declen);
     dec = NULL;
 
     declen = ct_base64_decode(signature_base64, &dec);
@@ -108,21 +108,21 @@ SCT *SCT_new_from_base64(unsigned char version, const char *logid_base64,
     }
 
     p = dec;
-    if (o2i_SCT_signature(sct, &p, declen) <= 0)
+    if (VR_o2i_SCT_signature(sct, &p, declen) <= 0)
         goto err;
-    OPENSSL_free(dec);
+    OPENVR_SSL_free(dec);
     dec = NULL;
 
-    SCT_set_timestamp(sct, timestamp);
+    VR_SCT_set_timestamp(sct, timestamp);
 
-    if (!SCT_set_log_entry_type(sct, entry_type))
+    if (!VR_SCT_set_log_entry_type(sct, entry_type))
         goto err;
 
     return sct;
 
  err:
-    OPENSSL_free(dec);
-    SCT_free(sct);
+    OPENVR_SSL_free(dec);
+    VR_SCT_free(sct);
     return NULL;
 }
 
@@ -132,7 +132,7 @@ SCT *SCT_new_from_base64(unsigned char version, const char *logid_base64,
  * 0 on decoding failure, or invalid parameter if any
  * -1 on internal (malloc) failure
  */
-int CTLOG_new_from_base64(CTLOG **ct_log, const char *pkey_base64, const char *name)
+int VR_CTLOG_new_from_base64(CTLOG **ct_log, const char *pkey_base64, const char *name)
 {
     unsigned char *pkey_der = NULL;
     int pkey_der_len;
@@ -151,16 +151,16 @@ int CTLOG_new_from_base64(CTLOG **ct_log, const char *pkey_base64, const char *n
     }
 
     p = pkey_der;
-    pkey = d2i_PUBKEY(NULL, &p, pkey_der_len);
-    OPENSSL_free(pkey_der);
+    pkey = VR_d2i_PUBKEY(NULL, &p, pkey_der_len);
+    OPENVR_SSL_free(pkey_der);
     if (pkey == NULL) {
         CTerr(CT_F_CTLOG_NEW_FROM_BASE64, CT_R_LOG_CONF_INVALID_KEY);
         return 0;
     }
 
-    *ct_log = CTLOG_new(pkey, name);
+    *ct_log = VR_CTLOG_new(pkey, name);
     if (*ct_log == NULL) {
-        EVP_PKEY_free(pkey);
+        VR_EVP_PKEY_free(pkey);
         return 0;
     }
 

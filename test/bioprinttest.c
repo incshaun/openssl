@@ -133,7 +133,7 @@ static int test_zu(int i)
     char bio_buf[80];
     const z_data *data = &zu_data[i];
 
-    BIO_snprintf(bio_buf, sizeof(bio_buf) - 1, data->format, data->value);
+    VR_BIO_snprintf(bio_buf, sizeof(bio_buf) - 1, data->format, data->value);
     if (!TEST_str_eq(bio_buf, data->expected))
         return 0;
     return 1;
@@ -161,7 +161,7 @@ static int test_j(int i)
     const j_data *data = &jf_data[i];
     char bio_buf[80];
 
-    BIO_snprintf(bio_buf, sizeof(bio_buf) - 1, data->format, data->value);
+    VR_BIO_snprintf(bio_buf, sizeof(bio_buf) - 1, data->format, data->value);
     if (!TEST_str_eq(bio_buf, data->expected))
         return 0;
     return 1;
@@ -196,11 +196,11 @@ static int dofptest(int test, int sub, double val, const char *width, int prec)
         const char *fspec = fspecs[i];
 
         if (prec >= 0)
-            BIO_snprintf(format, sizeof(format), "%%%s.%d%s", width, prec,
+            VR_BIO_snprintf(format, sizeof(format), "%%%s.%d%s", width, prec,
                          fspec);
         else
-            BIO_snprintf(format, sizeof(format), "%%%s%s", width, fspec);
-        BIO_snprintf(result, sizeof(result), format, val);
+            VR_BIO_snprintf(format, sizeof(format), "%%%s%s", width, fspec);
+        VR_BIO_snprintf(result, sizeof(result), format, val);
 
         if (justprint) {
             if (i == 0)
@@ -246,7 +246,7 @@ static int test_big(void)
     char buf[80];
 
     /* Test excessively big number. Should fail */
-    if (!TEST_int_eq(BIO_snprintf(buf, sizeof(buf),
+    if (!TEST_int_eq(VR_BIO_snprintf(buf, sizeof(buf),
                                   "%f\n", 2 * (double)ULONG_MAX), -1))
         return 0;
     return 1;

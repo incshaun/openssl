@@ -66,7 +66,7 @@ int pkey_main(int argc, char **argv)
         case OPT_EOF:
         case OPT_ERR:
  opthelp:
-            BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
+            VR_BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
             opt_help(pkey_options);
@@ -133,7 +133,7 @@ int pkey_main(int argc, char **argv)
         private = 1;
 
     if (!app_passwd(passinarg, passoutarg, &passin, &passout)) {
-        BIO_printf(bio_err, "Error getting passwords\n");
+        VR_BIO_printf(bio_err, "Error getting passwords\n");
         goto end;
     }
 
@@ -152,19 +152,19 @@ int pkey_main(int argc, char **argv)
         int r;
         EVP_PKEY_CTX *ctx;
 
-        ctx = EVP_PKEY_CTX_new(pkey, e);
+        ctx = VR_EVP_PKEY_CTX_new(pkey, e);
         if (ctx == NULL) {
-            ERR_print_errors(bio_err);
+            VR_ERR_print_errors(bio_err);
             goto end;
         }
 
         if (check)
-            r = EVP_PKEY_check(ctx);
+            r = VR_EVP_PKEY_check(ctx);
         else
-            r = EVP_PKEY_public_check(ctx);
+            r = VR_EVP_PKEY_public_check(ctx);
 
         if (r == 1) {
-            BIO_printf(out, "Key is valid\n");
+            VR_BIO_printf(out, "Key is valid\n");
         } else {
             /*
              * Note: at least for RSA keys if this function returns
@@ -172,57 +172,57 @@ int pkey_main(int argc, char **argv)
              */
             unsigned long err;
 
-            BIO_printf(out, "Key is invalid\n");
+            VR_BIO_printf(out, "Key is invalid\n");
 
-            while ((err = ERR_peek_error()) != 0) {
-                BIO_printf(out, "Detailed error: %s\n",
-                           ERR_reason_error_string(err));
-                ERR_get_error(); /* remove err from error stack */
+            while ((err = VR_ERR_peek_error()) != 0) {
+                VR_BIO_printf(out, "Detailed error: %s\n",
+                           VR_ERR_reason_error_string(err));
+                VR_ERR_get_error(); /* remove err from error stack */
             }
         }
-        EVP_PKEY_CTX_free(ctx);
+        VR_EVP_PKEY_CTX_free(ctx);
     }
 
     if (!noout) {
         if (outformat == FORMAT_PEM) {
             if (pubout) {
-                if (!PEM_write_bio_PUBKEY(out, pkey))
+                if (!VR_PEM_write_bio_PUBKEY(out, pkey))
                     goto end;
             } else {
                 assert(private);
                 if (traditional) {
-                    if (!PEM_write_bio_PrivateKey_traditional(out, pkey, cipher,
+                    if (!VR_PEM_write_bio_PrivateKey_traditional(out, pkey, cipher,
                                                               NULL, 0, NULL,
                                                               passout))
                         goto end;
                 } else {
-                    if (!PEM_write_bio_PrivateKey(out, pkey, cipher,
+                    if (!VR_PEM_write_bio_PrivateKey(out, pkey, cipher,
                                                   NULL, 0, NULL, passout))
                         goto end;
                 }
             }
         } else if (outformat == FORMAT_ASN1) {
             if (pubout) {
-                if (!i2d_PUBKEY_bio(out, pkey))
+                if (!VR_i2d_PUBKEY_bio(out, pkey))
                     goto end;
             } else {
                 assert(private);
-                if (!i2d_PrivateKey_bio(out, pkey))
+                if (!VR_i2d_PrivateKey_bio(out, pkey))
                     goto end;
             }
         } else {
-            BIO_printf(bio_err, "Bad format specified for key\n");
+            VR_BIO_printf(bio_err, "Bad format specified for key\n");
             goto end;
         }
     }
 
     if (text) {
         if (pubtext) {
-            if (EVP_PKEY_print_public(out, pkey, 0, NULL) <= 0)
+            if (VR_EVP_PKEY_print_public(out, pkey, 0, NULL) <= 0)
                 goto end;
         } else {
             assert(private);
-            if (EVP_PKEY_print_private(out, pkey, 0, NULL) <= 0)
+            if (VR_EVP_PKEY_print_private(out, pkey, 0, NULL) <= 0)
                 goto end;
         }
     }
@@ -231,13 +231,13 @@ int pkey_main(int argc, char **argv)
 
  end:
     if (ret != 0)
-        ERR_print_errors(bio_err);
-    EVP_PKEY_free(pkey);
+        VR_ERR_print_errors(bio_err);
+    VR_EVP_PKEY_free(pkey);
     release_engine(e);
-    BIO_free_all(out);
-    BIO_free(in);
-    OPENSSL_free(passin);
-    OPENSSL_free(passout);
+    VR_BIO_free_all(out);
+    VR_BIO_free(in);
+    OPENVR_SSL_free(passin);
+    OPENVR_SSL_free(passout);
 
     return ret;
 }

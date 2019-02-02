@@ -22,8 +22,8 @@ struct evp_mac_impl_st {
 static void gmac_free(EVP_MAC_IMPL *gctx)
 {
     if (gctx != NULL) {
-        EVP_CIPHER_CTX_free(gctx->ctx);
-        OPENSSL_free(gctx);
+        VR_EVP_CIPHER_CTX_free(gctx->ctx);
+        OPENVR_SSL_free(gctx);
     }
 }
 
@@ -32,7 +32,7 @@ static EVP_MAC_IMPL *gmac_new(void)
     EVP_MAC_IMPL *gctx;
 
     if ((gctx = OPENSSL_zalloc(sizeof(*gctx))) == NULL
-        || (gctx->ctx = EVP_CIPHER_CTX_new()) == NULL) {
+        || (gctx->ctx = VR_EVP_CIPHER_CTX_new()) == NULL) {
         gmac_free(gctx);
         return NULL;
     }
@@ -43,7 +43,7 @@ static int gmac_copy(EVP_MAC_IMPL *gdst, EVP_MAC_IMPL *gsrc)
 {
     gdst->cipher = gsrc->cipher;
     gdst->engine = gsrc->engine;
-    return EVP_CIPHER_CTX_copy(gdst->ctx, gsrc->ctx);
+    return VR_EVP_CIPHER_CTX_copy(gdst->ctx, gsrc->ctx);
 }
 
 static size_t gmac_size(EVP_MAC_IMPL *gctx)
@@ -63,20 +63,20 @@ static int gmac_update(EVP_MAC_IMPL *gctx, const unsigned char *data,
     int outlen;
 
     while (datalen > INT_MAX) {
-        if (!EVP_EncryptUpdate(ctx, NULL, &outlen, data, INT_MAX))
+        if (!VR_EVP_EncryptUpdate(ctx, NULL, &outlen, data, INT_MAX))
             return 0;
         data += INT_MAX;
         datalen -= INT_MAX;
     }
-    return EVP_EncryptUpdate(ctx, NULL, &outlen, data, datalen);
+    return VR_EVP_EncryptUpdate(ctx, NULL, &outlen, data, datalen);
 }
 
 static int gmac_final(EVP_MAC_IMPL *gctx, unsigned char *out)
 {
     int hlen;
 
-    if (!EVP_EncryptFinal_ex(gctx->ctx, out, &hlen)
-        || !EVP_CIPHER_CTX_ctrl(gctx->ctx, EVP_CTRL_AEAD_GET_TAG,
+    if (!VR_EVP_EncryptFinal_ex(gctx->ctx, out, &hlen)
+        || !VR_EVP_CIPHER_CTX_ctrl(gctx->ctx, EVP_CTRL_AEAD_GET_TAG,
                                 gmac_size(gctx), out))
         return 0;
     return 1;
@@ -99,26 +99,26 @@ static int gmac_ctrl(EVP_MAC_IMPL *gctx, int cmd, va_list args)
             EVPerr(EVP_F_GMAC_CTRL, EVP_R_CIPHER_NOT_GCM_MODE);
             return 0;
         }
-        return EVP_EncryptInit_ex(ctx, cipher, NULL, NULL, NULL);
+        return VR_EVP_EncryptInit_ex(ctx, cipher, NULL, NULL, NULL);
 
     case EVP_MAC_CTRL_SET_KEY:
         p = va_arg(args, const unsigned char *);
         len = va_arg(args, size_t);
-        if (len != (size_t)EVP_CIPHER_CTX_key_length(ctx)) {
+        if (len != (size_t)VR_EVP_CIPHER_CTX_key_length(ctx)) {
             EVPerr(EVP_F_GMAC_CTRL, EVP_R_INVALID_KEY_LENGTH);
             return 0;
         }
-        return EVP_EncryptInit_ex(ctx, NULL, NULL, p, NULL);
+        return VR_EVP_EncryptInit_ex(ctx, NULL, NULL, p, NULL);
 
     case EVP_MAC_CTRL_SET_IV:
         p = va_arg(args, const unsigned char *);
         len = va_arg(args, size_t);
-        return EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_SET_IVLEN, len, NULL)
-               && EVP_EncryptInit_ex(ctx, NULL, NULL, NULL, p);
+        return VR_EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_SET_IVLEN, len, NULL)
+               && VR_EVP_EncryptInit_ex(ctx, NULL, NULL, NULL, p);
 
     case EVP_MAC_CTRL_SET_ENGINE:
         engine = va_arg(args, ENGINE *);
-        return EVP_EncryptInit_ex(ctx, NULL, engine, NULL, NULL);
+        return VR_EVP_EncryptInit_ex(ctx, NULL, engine, NULL, NULL);
 
     default:
         return -2;
@@ -148,23 +148,23 @@ static int gmac_ctrl_str(EVP_MAC_IMPL *gctx, const char *type,
     if (!value)
         return 0;
     if (strcmp(type, "cipher") == 0) {
-        const EVP_CIPHER *c = EVP_get_cipherbyname(value);
+        const EVP_CIPHER *c = VR_EVP_get_cipherbyname(value);
 
         if (c == NULL)
             return 0;
         return gmac_ctrl_int(gctx, EVP_MAC_CTRL_SET_CIPHER, c);
     }
     if (strcmp(type, "key") == 0)
-        return EVP_str2ctrl(gmac_ctrl_str_cb, gctx, EVP_MAC_CTRL_SET_KEY,
+        return VR_EVP_str2ctrl(gmac_ctrl_str_cb, gctx, EVP_MAC_CTRL_SET_KEY,
                             value);
     if (strcmp(type, "hexkey") == 0)
-        return EVP_hex2ctrl(gmac_ctrl_str_cb, gctx, EVP_MAC_CTRL_SET_KEY,
+        return VR_EVP_hex2ctrl(gmac_ctrl_str_cb, gctx, EVP_MAC_CTRL_SET_KEY,
                             value);
     if (strcmp(type, "iv") == 0)
-        return EVP_str2ctrl(gmac_ctrl_str_cb, gctx, EVP_MAC_CTRL_SET_IV,
+        return VR_EVP_str2ctrl(gmac_ctrl_str_cb, gctx, EVP_MAC_CTRL_SET_IV,
                             value);
     if (strcmp(type, "hexiv") == 0)
-        return EVP_hex2ctrl(gmac_ctrl_str_cb, gctx, EVP_MAC_CTRL_SET_IV,
+        return VR_EVP_hex2ctrl(gmac_ctrl_str_cb, gctx, EVP_MAC_CTRL_SET_IV,
                             value);
     return -2;
 }

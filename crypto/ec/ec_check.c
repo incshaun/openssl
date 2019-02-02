@@ -10,7 +10,7 @@
 #include "ec_lcl.h"
 #include <openssl/err.h>
 
-int EC_GROUP_check(const EC_GROUP *group, BN_CTX *ctx)
+int VR_EC_GROUP_check(const EC_GROUP *group, BN_CTX *ctx)
 {
     int ret = 0;
     const BIGNUM *order;
@@ -22,7 +22,7 @@ int EC_GROUP_check(const EC_GROUP *group, BN_CTX *ctx)
         return 1;
 
     if (ctx == NULL) {
-        ctx = new_ctx = BN_CTX_new();
+        ctx = new_ctx = VR_BN_CTX_new();
         if (ctx == NULL) {
             ECerr(EC_F_EC_GROUP_CHECK, ERR_R_MALLOC_FAILURE);
             goto err;
@@ -30,7 +30,7 @@ int EC_GROUP_check(const EC_GROUP *group, BN_CTX *ctx)
     }
 
     /* check the discriminant */
-    if (!EC_GROUP_check_discriminant(group, ctx)) {
+    if (!VR_EC_GROUP_check_discriminant(group, ctx)) {
         ECerr(EC_F_EC_GROUP_CHECK, EC_R_DISCRIMINANT_IS_ZERO);
         goto err;
     }
@@ -40,25 +40,25 @@ int EC_GROUP_check(const EC_GROUP *group, BN_CTX *ctx)
         ECerr(EC_F_EC_GROUP_CHECK, EC_R_UNDEFINED_GENERATOR);
         goto err;
     }
-    if (EC_POINT_is_on_curve(group, group->generator, ctx) <= 0) {
+    if (VR_EC_POINT_is_on_curve(group, group->generator, ctx) <= 0) {
         ECerr(EC_F_EC_GROUP_CHECK, EC_R_POINT_IS_NOT_ON_CURVE);
         goto err;
     }
 
     /* check the order of the generator */
-    if ((point = EC_POINT_new(group)) == NULL)
+    if ((point = VR_EC_POINT_new(group)) == NULL)
         goto err;
-    order = EC_GROUP_get0_order(group);
+    order = VR_EC_GROUP_get0_order(group);
     if (order == NULL)
         goto err;
-    if (BN_is_zero(order)) {
+    if (VR_BN_is_zero(order)) {
         ECerr(EC_F_EC_GROUP_CHECK, EC_R_UNDEFINED_ORDER);
         goto err;
     }
 
-    if (!EC_POINT_mul(group, point, order, NULL, NULL, ctx))
+    if (!VR_EC_POINT_mul(group, point, order, NULL, NULL, ctx))
         goto err;
-    if (!EC_POINT_is_at_infinity(group, point)) {
+    if (!VR_EC_POINT_is_at_infinity(group, point)) {
         ECerr(EC_F_EC_GROUP_CHECK, EC_R_INVALID_GROUP_ORDER);
         goto err;
     }
@@ -66,7 +66,7 @@ int EC_GROUP_check(const EC_GROUP *group, BN_CTX *ctx)
     ret = 1;
 
  err:
-    BN_CTX_free(new_ctx);
-    EC_POINT_free(point);
+    VR_BN_CTX_free(new_ctx);
+    VR_EC_POINT_free(point);
     return ret;
 }

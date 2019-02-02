@@ -42,7 +42,7 @@
 # 8KB buffer ~7 faster than software implementation. It's not as
 # impressive for smaller buffer sizes and for smallest 16-bytes buffer
 # it's actually almost 2 times slower. Which is the reason why
-# KIMD-GHASH is not used in gcm_gmult_4bit.
+# KIMD-GHASH is not used in VR_gcm_gmult_4bit.
 
 $flavour = shift;
 
@@ -84,9 +84,9 @@ $code.=<<___;
 
 .text
 
-.globl	gcm_gmult_4bit
+.globl	VR_gcm_gmult_4bit
 .align	32
-gcm_gmult_4bit:
+VR_gcm_gmult_4bit:
 ___
 $code.=<<___ if(!$softonly && 0);	# hardware is slow for single block...
 	larl	%r1,OPENSSL_s390xcap_P
@@ -117,12 +117,12 @@ $code.=<<___;
 
 	lg	$Zlo,8+1($Xi)		# Xi
 	j	.Lgmult_shortcut
-.type	gcm_gmult_4bit,\@function
-.size	gcm_gmult_4bit,(.-gcm_gmult_4bit)
+.type	VR_gcm_gmult_4bit,\@function
+.size	VR_gcm_gmult_4bit,(.-VR_gcm_gmult_4bit)
 
-.globl	gcm_ghash_4bit
+.globl	VR_gcm_ghash_4bit
 .align	32
-gcm_ghash_4bit:
+VR_gcm_ghash_4bit:
 ___
 $code.=<<___ if(!$softonly);
 	larl	%r1,OPENSSL_s390xcap_P
@@ -243,8 +243,8 @@ $code.=<<___;
 	stg	$Zhi,0+1($Xi)
 	lm${g}	%r6,%r14,6*$SIZE_T($sp)
 	br	%r14
-.type	gcm_ghash_4bit,\@function
-.size	gcm_ghash_4bit,(.-gcm_ghash_4bit)
+.type	VR_gcm_ghash_4bit,\@function
+.size	VR_gcm_ghash_4bit,(.-VR_gcm_ghash_4bit)
 
 .align	64
 rem_4bit:

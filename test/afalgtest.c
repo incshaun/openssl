@@ -69,36 +69,36 @@ static int test_afalg_aes_cbc(int keysize_idx)
 
     switch (keysize_idx) {
         case 0:
-            cipher = EVP_aes_128_cbc();
+            cipher = VR_EVP_aes_128_cbc();
             enc_result = &encresult_128[0];
             break;
         case 1:
-            cipher = EVP_aes_192_cbc();
+            cipher = VR_EVP_aes_192_cbc();
             enc_result = &encresult_192[0];
             break;
         case 2:
-            cipher = EVP_aes_256_cbc();
+            cipher = VR_EVP_aes_256_cbc();
             enc_result = &encresult_256[0];
             break;
         default:
             cipher = NULL;
     }
-    if (!TEST_ptr(ctx = EVP_CIPHER_CTX_new()))
+    if (!TEST_ptr(ctx = VR_EVP_CIPHER_CTX_new()))
             return 0;
 
-    if (!TEST_true(EVP_CipherInit_ex(ctx, cipher, e, key, iv, 1))
-            || !TEST_true(EVP_CipherUpdate(ctx, ebuf, &encl, in, BUFFER_SIZE))
-            || !TEST_true(EVP_CipherFinal_ex(ctx, ebuf+encl, &encf)))
+    if (!TEST_true(VR_EVP_CipherInit_ex(ctx, cipher, e, key, iv, 1))
+            || !TEST_true(VR_EVP_CipherUpdate(ctx, ebuf, &encl, in, BUFFER_SIZE))
+            || !TEST_true(VR_EVP_CipherFinal_ex(ctx, ebuf+encl, &encf)))
         goto end;
     encl += encf;
 
     if (!TEST_mem_eq(enc_result, BUFFER_SIZE, ebuf, BUFFER_SIZE))
         goto end;
 
-    if (!TEST_true(EVP_CIPHER_CTX_reset(ctx))
-            || !TEST_true(EVP_CipherInit_ex(ctx, cipher, e, key, iv, 0))
-            || !TEST_true(EVP_CipherUpdate(ctx, dbuf, &decl, ebuf, encl))
-            || !TEST_true(EVP_CipherFinal_ex(ctx, dbuf+decl, &decf)))
+    if (!TEST_true(VR_EVP_CIPHER_CTX_reset(ctx))
+            || !TEST_true(VR_EVP_CipherInit_ex(ctx, cipher, e, key, iv, 0))
+            || !TEST_true(VR_EVP_CipherUpdate(ctx, dbuf, &decl, ebuf, encl))
+            || !TEST_true(VR_EVP_CipherFinal_ex(ctx, dbuf+decl, &decf)))
         goto end;
     decl += decf;
 
@@ -109,7 +109,7 @@ static int test_afalg_aes_cbc(int keysize_idx)
     ret = 1;
 
  end:
-    EVP_CIPHER_CTX_free(ctx);
+    VR_EVP_CIPHER_CTX_free(ctx);
     return ret;
 }
 #endif
@@ -117,9 +117,9 @@ static int test_afalg_aes_cbc(int keysize_idx)
 #ifndef OPENSSL_NO_ENGINE
 int global_init(void)
 {
-    ENGINE_load_builtin_engines();
+    VR_ENGINE_load_builtin_engines();
 # ifndef OPENSSL_NO_STATIC_ENGINE
-    OPENSSL_init_crypto(OPENSSL_INIT_ENGINE_AFALG, NULL);
+    VR_OPENSSL_init_crypto(OPENSSL_INIT_ENGINE_AFALG, NULL);
 # endif
     return 1;
 }
@@ -128,7 +128,7 @@ int global_init(void)
 int setup_tests(void)
 {
 #ifndef OPENSSL_NO_ENGINE
-    if ((e = ENGINE_by_id("afalg")) == NULL) {
+    if ((e = VR_ENGINE_by_id("afalg")) == NULL) {
         /* Probably a platform env issue, not a test failure. */
         TEST_info("Can't load AFALG engine");
     } else {
@@ -144,6 +144,6 @@ int setup_tests(void)
 #ifndef OPENSSL_NO_ENGINE
 void cleanup_tests(void)
 {
-    ENGINE_free(e);
+    VR_ENGINE_free(e);
 }
 #endif

@@ -12,7 +12,7 @@
 
 static BIGNUM *euclid(BIGNUM *a, BIGNUM *b);
 
-int BN_gcd(BIGNUM *r, const BIGNUM *in_a, const BIGNUM *in_b, BN_CTX *ctx)
+int VR_BN_gcd(BIGNUM *r, const BIGNUM *in_a, const BIGNUM *in_b, BN_CTX *ctx)
 {
     BIGNUM *a, *b, *t;
     int ret = 0;
@@ -20,20 +20,20 @@ int BN_gcd(BIGNUM *r, const BIGNUM *in_a, const BIGNUM *in_b, BN_CTX *ctx)
     bn_check_top(in_a);
     bn_check_top(in_b);
 
-    BN_CTX_start(ctx);
-    a = BN_CTX_get(ctx);
-    b = BN_CTX_get(ctx);
+    VR_BN_CTX_start(ctx);
+    a = VR_BN_CTX_get(ctx);
+    b = VR_BN_CTX_get(ctx);
     if (b == NULL)
         goto err;
 
-    if (BN_copy(a, in_a) == NULL)
+    if (VR_BN_copy(a, in_a) == NULL)
         goto err;
-    if (BN_copy(b, in_b) == NULL)
+    if (VR_BN_copy(b, in_b) == NULL)
         goto err;
     a->neg = 0;
     b->neg = 0;
 
-    if (BN_cmp(a, b) < 0) {
+    if (VR_BN_cmp(a, b) < 0) {
         t = a;
         a = b;
         b = t;
@@ -42,11 +42,11 @@ int BN_gcd(BIGNUM *r, const BIGNUM *in_a, const BIGNUM *in_b, BN_CTX *ctx)
     if (t == NULL)
         goto err;
 
-    if (BN_copy(r, t) == NULL)
+    if (VR_BN_copy(r, t) == NULL)
         goto err;
     ret = 1;
  err:
-    BN_CTX_end(ctx);
+    VR_BN_CTX_end(ctx);
     bn_check_top(r);
     return ret;
 }
@@ -60,25 +60,25 @@ static BIGNUM *euclid(BIGNUM *a, BIGNUM *b)
     bn_check_top(b);
 
     /* 0 <= b <= a */
-    while (!BN_is_zero(b)) {
+    while (!VR_BN_is_zero(b)) {
         /* 0 < b <= a */
 
-        if (BN_is_odd(a)) {
-            if (BN_is_odd(b)) {
-                if (!BN_sub(a, a, b))
+        if (VR_BN_is_odd(a)) {
+            if (VR_BN_is_odd(b)) {
+                if (!VR_BN_sub(a, a, b))
                     goto err;
-                if (!BN_rshift1(a, a))
+                if (!VR_BN_rshift1(a, a))
                     goto err;
-                if (BN_cmp(a, b) < 0) {
+                if (VR_BN_cmp(a, b) < 0) {
                     t = a;
                     a = b;
                     b = t;
                 }
             } else {            /* a odd - b even */
 
-                if (!BN_rshift1(b, b))
+                if (!VR_BN_rshift1(b, b))
                     goto err;
-                if (BN_cmp(a, b) < 0) {
+                if (VR_BN_cmp(a, b) < 0) {
                     t = a;
                     a = b;
                     b = t;
@@ -86,19 +86,19 @@ static BIGNUM *euclid(BIGNUM *a, BIGNUM *b)
             }
         } else {                /* a is even */
 
-            if (BN_is_odd(b)) {
-                if (!BN_rshift1(a, a))
+            if (VR_BN_is_odd(b)) {
+                if (!VR_BN_rshift1(a, a))
                     goto err;
-                if (BN_cmp(a, b) < 0) {
+                if (VR_BN_cmp(a, b) < 0) {
                     t = a;
                     a = b;
                     b = t;
                 }
             } else {            /* a even - b even */
 
-                if (!BN_rshift1(a, a))
+                if (!VR_BN_rshift1(a, a))
                     goto err;
-                if (!BN_rshift1(b, b))
+                if (!VR_BN_rshift1(b, b))
                     goto err;
                 shifts++;
             }
@@ -107,7 +107,7 @@ static BIGNUM *euclid(BIGNUM *a, BIGNUM *b)
     }
 
     if (shifts) {
-        if (!BN_lshift(a, a, shifts))
+        if (!VR_BN_lshift(a, a, shifts))
             goto err;
     }
     bn_check_top(a);
@@ -117,22 +117,22 @@ static BIGNUM *euclid(BIGNUM *a, BIGNUM *b)
 }
 
 /* solves ax == 1 (mod n) */
-static BIGNUM *BN_mod_inverse_no_branch(BIGNUM *in,
+static BIGNUM *VR_BN_mod_inverse_no_branch(BIGNUM *in,
                                         const BIGNUM *a, const BIGNUM *n,
                                         BN_CTX *ctx);
 
-BIGNUM *BN_mod_inverse(BIGNUM *in,
+BIGNUM *VR_BN_mod_inverse(BIGNUM *in,
                        const BIGNUM *a, const BIGNUM *n, BN_CTX *ctx)
 {
     BIGNUM *rv;
     int noinv;
-    rv = int_bn_mod_inverse(in, a, n, ctx, &noinv);
+    rv = VR_int_bn_mod_inverse(in, a, n, ctx, &noinv);
     if (noinv)
         BNerr(BN_F_BN_MOD_INVERSE, BN_R_NO_INVERSE);
     return rv;
 }
 
-BIGNUM *int_bn_mod_inverse(BIGNUM *in,
+BIGNUM *VR_int_bn_mod_inverse(BIGNUM *in,
                            const BIGNUM *a, const BIGNUM *n, BN_CTX *ctx,
                            int *pnoinv)
 {
@@ -141,7 +141,7 @@ BIGNUM *int_bn_mod_inverse(BIGNUM *in,
     int sign;
 
     /* This is invalid input so we don't worry about constant time here */
-    if (BN_abs_is_word(n, 1) || BN_is_zero(n)) {
+    if (VR_BN_abs_is_word(n, 1) || VR_BN_is_zero(n)) {
         if (pnoinv != NULL)
             *pnoinv = 1;
         return NULL;
@@ -150,27 +150,27 @@ BIGNUM *int_bn_mod_inverse(BIGNUM *in,
     if (pnoinv != NULL)
         *pnoinv = 0;
 
-    if ((BN_get_flags(a, BN_FLG_CONSTTIME) != 0)
-        || (BN_get_flags(n, BN_FLG_CONSTTIME) != 0)) {
-        return BN_mod_inverse_no_branch(in, a, n, ctx);
+    if ((VR_BN_get_flags(a, BN_FLG_CONSTTIME) != 0)
+        || (VR_BN_get_flags(n, BN_FLG_CONSTTIME) != 0)) {
+        return VR_BN_mod_inverse_no_branch(in, a, n, ctx);
     }
 
     bn_check_top(a);
     bn_check_top(n);
 
-    BN_CTX_start(ctx);
-    A = BN_CTX_get(ctx);
-    B = BN_CTX_get(ctx);
-    X = BN_CTX_get(ctx);
-    D = BN_CTX_get(ctx);
-    M = BN_CTX_get(ctx);
-    Y = BN_CTX_get(ctx);
-    T = BN_CTX_get(ctx);
+    VR_BN_CTX_start(ctx);
+    A = VR_BN_CTX_get(ctx);
+    B = VR_BN_CTX_get(ctx);
+    X = VR_BN_CTX_get(ctx);
+    D = VR_BN_CTX_get(ctx);
+    M = VR_BN_CTX_get(ctx);
+    Y = VR_BN_CTX_get(ctx);
+    T = VR_BN_CTX_get(ctx);
     if (T == NULL)
         goto err;
 
     if (in == NULL)
-        R = BN_new();
+        R = VR_BN_new();
     else
         R = in;
     if (R == NULL)
@@ -178,13 +178,13 @@ BIGNUM *int_bn_mod_inverse(BIGNUM *in,
 
     BN_one(X);
     BN_zero(Y);
-    if (BN_copy(B, a) == NULL)
+    if (VR_BN_copy(B, a) == NULL)
         goto err;
-    if (BN_copy(A, n) == NULL)
+    if (VR_BN_copy(A, n) == NULL)
         goto err;
     A->neg = 0;
-    if (B->neg || (BN_ucmp(B, A) >= 0)) {
-        if (!BN_nnmod(B, B, A, ctx))
+    if (B->neg || (VR_BN_ucmp(B, A) >= 0)) {
+        if (!VR_BN_nnmod(B, B, A, ctx))
             goto err;
     }
     sign = -1;
@@ -196,7 +196,7 @@ BIGNUM *int_bn_mod_inverse(BIGNUM *in,
      *      sign*Y*a  ==  A   (mod |n|).
      */
 
-    if (BN_is_odd(n) && (BN_num_bits(n) <= 2048)) {
+    if (VR_BN_is_odd(n) && (VR_BN_num_bits(n) <= 2048)) {
         /*
          * Binary inversion algorithm; requires odd modulus. This is faster
          * than the general algorithm if the modulus is sufficiently small
@@ -205,7 +205,7 @@ BIGNUM *int_bn_mod_inverse(BIGNUM *in,
          */
         int shift;
 
-        while (!BN_is_zero(B)) {
+        while (!VR_BN_is_zero(B)) {
             /*-
              *      0 < B < |n|,
              *      0 < A <= |n|,
@@ -219,21 +219,21 @@ BIGNUM *int_bn_mod_inverse(BIGNUM *in,
              * done, (1) still holds.
              */
             shift = 0;
-            while (!BN_is_bit_set(B, shift)) { /* note that 0 < B */
+            while (!VR_BN_is_bit_set(B, shift)) { /* note that 0 < B */
                 shift++;
 
-                if (BN_is_odd(X)) {
-                    if (!BN_uadd(X, X, n))
+                if (VR_BN_is_odd(X)) {
+                    if (!VR_BN_uadd(X, X, n))
                         goto err;
                 }
                 /*
                  * now X is even, so we can easily divide it by two
                  */
-                if (!BN_rshift1(X, X))
+                if (!VR_BN_rshift1(X, X))
                     goto err;
             }
             if (shift > 0) {
-                if (!BN_rshift(B, B, shift))
+                if (!VR_BN_rshift(B, B, shift))
                     goto err;
             }
 
@@ -241,19 +241,19 @@ BIGNUM *int_bn_mod_inverse(BIGNUM *in,
              * Same for A and Y.  Afterwards, (2) still holds.
              */
             shift = 0;
-            while (!BN_is_bit_set(A, shift)) { /* note that 0 < A */
+            while (!VR_BN_is_bit_set(A, shift)) { /* note that 0 < A */
                 shift++;
 
-                if (BN_is_odd(Y)) {
-                    if (!BN_uadd(Y, Y, n))
+                if (VR_BN_is_odd(Y)) {
+                    if (!VR_BN_uadd(Y, Y, n))
                         goto err;
                 }
                 /* now Y is even */
-                if (!BN_rshift1(Y, Y))
+                if (!VR_BN_rshift1(Y, Y))
                     goto err;
             }
             if (shift > 0) {
-                if (!BN_rshift(A, A, shift))
+                if (!VR_BN_rshift(A, A, shift))
                     goto err;
             }
 
@@ -269,31 +269,31 @@ BIGNUM *int_bn_mod_inverse(BIGNUM *in,
              *
              * and that either  A  or  B  is even in the next iteration.
              */
-            if (BN_ucmp(B, A) >= 0) {
+            if (VR_BN_ucmp(B, A) >= 0) {
                 /* -sign*(X + Y)*a == B - A  (mod |n|) */
-                if (!BN_uadd(X, X, Y))
+                if (!VR_BN_uadd(X, X, Y))
                     goto err;
                 /*
-                 * NB: we could use BN_mod_add_quick(X, X, Y, n), but that
+                 * NB: we could use VR_BN_mod_add_quick(X, X, Y, n), but that
                  * actually makes the algorithm slower
                  */
-                if (!BN_usub(B, B, A))
+                if (!VR_BN_usub(B, B, A))
                     goto err;
             } else {
                 /*  sign*(X + Y)*a == A - B  (mod |n|) */
-                if (!BN_uadd(Y, Y, X))
+                if (!VR_BN_uadd(Y, Y, X))
                     goto err;
                 /*
-                 * as above, BN_mod_add_quick(Y, Y, X, n) would slow things down
+                 * as above, VR_BN_mod_add_quick(Y, Y, X, n) would slow things down
                  */
-                if (!BN_usub(A, A, B))
+                if (!VR_BN_usub(A, A, B))
                     goto err;
             }
         }
     } else {
         /* general inversion algorithm */
 
-        while (!BN_is_zero(B)) {
+        while (!VR_BN_is_zero(B)) {
             BIGNUM *tmp;
 
             /*-
@@ -303,47 +303,47 @@ BIGNUM *int_bn_mod_inverse(BIGNUM *in,
              */
 
             /* (D, M) := (A/B, A%B) ... */
-            if (BN_num_bits(A) == BN_num_bits(B)) {
+            if (VR_BN_num_bits(A) == VR_BN_num_bits(B)) {
                 if (!BN_one(D))
                     goto err;
-                if (!BN_sub(M, A, B))
+                if (!VR_BN_sub(M, A, B))
                     goto err;
-            } else if (BN_num_bits(A) == BN_num_bits(B) + 1) {
+            } else if (VR_BN_num_bits(A) == VR_BN_num_bits(B) + 1) {
                 /* A/B is 1, 2, or 3 */
-                if (!BN_lshift1(T, B))
+                if (!VR_BN_lshift1(T, B))
                     goto err;
-                if (BN_ucmp(A, T) < 0) {
+                if (VR_BN_ucmp(A, T) < 0) {
                     /* A < 2*B, so D=1 */
                     if (!BN_one(D))
                         goto err;
-                    if (!BN_sub(M, A, B))
+                    if (!VR_BN_sub(M, A, B))
                         goto err;
                 } else {
                     /* A >= 2*B, so D=2 or D=3 */
-                    if (!BN_sub(M, A, T))
+                    if (!VR_BN_sub(M, A, T))
                         goto err;
-                    if (!BN_add(D, T, B))
+                    if (!VR_BN_add(D, T, B))
                         goto err; /* use D (:= 3*B) as temp */
-                    if (BN_ucmp(A, D) < 0) {
+                    if (VR_BN_ucmp(A, D) < 0) {
                         /* A < 3*B, so D=2 */
-                        if (!BN_set_word(D, 2))
+                        if (!VR_BN_set_word(D, 2))
                             goto err;
                         /*
                          * M (= A - 2*B) already has the correct value
                          */
                     } else {
                         /* only D=3 remains */
-                        if (!BN_set_word(D, 3))
+                        if (!VR_BN_set_word(D, 3))
                             goto err;
                         /*
                          * currently M = A - 2*B, but we need M = A - 3*B
                          */
-                        if (!BN_sub(M, M, B))
+                        if (!VR_BN_sub(M, M, B))
                             goto err;
                     }
                 }
             } else {
-                if (!BN_div(D, M, A, B, ctx))
+                if (!VR_BN_div(D, M, A, B, ctx))
                     goto err;
             }
 
@@ -384,26 +384,26 @@ BIGNUM *int_bn_mod_inverse(BIGNUM *in,
             /*
              * most of the time D is very small, so we can optimize tmp := D*X+Y
              */
-            if (BN_is_one(D)) {
-                if (!BN_add(tmp, X, Y))
+            if (VR_BN_is_one(D)) {
+                if (!VR_BN_add(tmp, X, Y))
                     goto err;
             } else {
-                if (BN_is_word(D, 2)) {
-                    if (!BN_lshift1(tmp, X))
+                if (VR_BN_is_word(D, 2)) {
+                    if (!VR_BN_lshift1(tmp, X))
                         goto err;
-                } else if (BN_is_word(D, 4)) {
-                    if (!BN_lshift(tmp, X, 2))
+                } else if (VR_BN_is_word(D, 4)) {
+                    if (!VR_BN_lshift(tmp, X, 2))
                         goto err;
                 } else if (D->top == 1) {
-                    if (!BN_copy(tmp, X))
+                    if (!VR_BN_copy(tmp, X))
                         goto err;
-                    if (!BN_mul_word(tmp, D->d[0]))
+                    if (!VR_BN_mul_word(tmp, D->d[0]))
                         goto err;
                 } else {
-                    if (!BN_mul(tmp, D, X, ctx))
+                    if (!VR_BN_mul(tmp, D, X, ctx))
                         goto err;
                 }
-                if (!BN_add(tmp, tmp, Y))
+                if (!VR_BN_add(tmp, tmp, Y))
                     goto err;
             }
 
@@ -423,18 +423,18 @@ BIGNUM *int_bn_mod_inverse(BIGNUM *in,
      */
 
     if (sign < 0) {
-        if (!BN_sub(Y, n, Y))
+        if (!VR_BN_sub(Y, n, Y))
             goto err;
     }
     /* Now  Y*a  ==  A  (mod |n|).  */
 
-    if (BN_is_one(A)) {
+    if (VR_BN_is_one(A)) {
         /* Y*a == 1  (mod |n|) */
-        if (!Y->neg && BN_ucmp(Y, n) < 0) {
-            if (!BN_copy(R, Y))
+        if (!Y->neg && VR_BN_ucmp(Y, n) < 0) {
+            if (!VR_BN_copy(R, Y))
                 goto err;
         } else {
-            if (!BN_nnmod(R, Y, n, ctx))
+            if (!VR_BN_nnmod(R, Y, n, ctx))
                 goto err;
         }
     } else {
@@ -445,17 +445,17 @@ BIGNUM *int_bn_mod_inverse(BIGNUM *in,
     ret = R;
  err:
     if ((ret == NULL) && (in == NULL))
-        BN_free(R);
-    BN_CTX_end(ctx);
+        VR_BN_free(R);
+    VR_BN_CTX_end(ctx);
     bn_check_top(ret);
     return ret;
 }
 
 /*
- * BN_mod_inverse_no_branch is a special version of BN_mod_inverse. It does
+ * VR_BN_mod_inverse_no_branch is a special version of VR_BN_mod_inverse. It does
  * not contain branches that may leak sensitive information.
  */
-static BIGNUM *BN_mod_inverse_no_branch(BIGNUM *in,
+static BIGNUM *VR_BN_mod_inverse_no_branch(BIGNUM *in,
                                         const BIGNUM *a, const BIGNUM *n,
                                         BN_CTX *ctx)
 {
@@ -466,19 +466,19 @@ static BIGNUM *BN_mod_inverse_no_branch(BIGNUM *in,
     bn_check_top(a);
     bn_check_top(n);
 
-    BN_CTX_start(ctx);
-    A = BN_CTX_get(ctx);
-    B = BN_CTX_get(ctx);
-    X = BN_CTX_get(ctx);
-    D = BN_CTX_get(ctx);
-    M = BN_CTX_get(ctx);
-    Y = BN_CTX_get(ctx);
-    T = BN_CTX_get(ctx);
+    VR_BN_CTX_start(ctx);
+    A = VR_BN_CTX_get(ctx);
+    B = VR_BN_CTX_get(ctx);
+    X = VR_BN_CTX_get(ctx);
+    D = VR_BN_CTX_get(ctx);
+    M = VR_BN_CTX_get(ctx);
+    Y = VR_BN_CTX_get(ctx);
+    T = VR_BN_CTX_get(ctx);
     if (T == NULL)
         goto err;
 
     if (in == NULL)
-        R = BN_new();
+        R = VR_BN_new();
     else
         R = in;
     if (R == NULL)
@@ -486,22 +486,22 @@ static BIGNUM *BN_mod_inverse_no_branch(BIGNUM *in,
 
     BN_one(X);
     BN_zero(Y);
-    if (BN_copy(B, a) == NULL)
+    if (VR_BN_copy(B, a) == NULL)
         goto err;
-    if (BN_copy(A, n) == NULL)
+    if (VR_BN_copy(A, n) == NULL)
         goto err;
     A->neg = 0;
 
-    if (B->neg || (BN_ucmp(B, A) >= 0)) {
+    if (B->neg || (VR_BN_ucmp(B, A) >= 0)) {
         /*
-         * Turn BN_FLG_CONSTTIME flag on, so that when BN_div is invoked,
-         * BN_div_no_branch will be called eventually.
+         * Turn BN_FLG_CONSTTIME flag on, so that when VR_BN_div is invoked,
+         * VR_BN_div_no_branch will be called eventually.
          */
          {
             BIGNUM local_B;
-            bn_init(&local_B);
-            BN_with_flags(&local_B, B, BN_FLG_CONSTTIME);
-            if (!BN_nnmod(B, &local_B, A, ctx))
+            VR_bn_init(&local_B);
+            VR_BN_with_flags(&local_B, B, BN_FLG_CONSTTIME);
+            if (!VR_BN_nnmod(B, &local_B, A, ctx))
                 goto err;
             /* Ensure local_B goes out of scope before any further use of B */
         }
@@ -515,7 +515,7 @@ static BIGNUM *BN_mod_inverse_no_branch(BIGNUM *in,
      *      sign*Y*a  ==  A   (mod |n|).
      */
 
-    while (!BN_is_zero(B)) {
+    while (!VR_BN_is_zero(B)) {
         BIGNUM *tmp;
 
         /*-
@@ -525,16 +525,16 @@ static BIGNUM *BN_mod_inverse_no_branch(BIGNUM *in,
          */
 
         /*
-         * Turn BN_FLG_CONSTTIME flag on, so that when BN_div is invoked,
-         * BN_div_no_branch will be called eventually.
+         * Turn BN_FLG_CONSTTIME flag on, so that when VR_BN_div is invoked,
+         * VR_BN_div_no_branch will be called eventually.
          */
         {
             BIGNUM local_A;
-            bn_init(&local_A);
-            BN_with_flags(&local_A, A, BN_FLG_CONSTTIME);
+            VR_bn_init(&local_A);
+            VR_BN_with_flags(&local_A, A, BN_FLG_CONSTTIME);
 
             /* (D, M) := (A/B, A%B) ... */
-            if (!BN_div(D, M, &local_A, B, ctx))
+            if (!VR_BN_div(D, M, &local_A, B, ctx))
                 goto err;
             /* Ensure local_A goes out of scope before any further use of A */
         }
@@ -574,9 +574,9 @@ static BIGNUM *BN_mod_inverse_no_branch(BIGNUM *in,
          * Note that  X  and  Y  stay non-negative all the time.
          */
 
-        if (!BN_mul(tmp, D, X, ctx))
+        if (!VR_BN_mul(tmp, D, X, ctx))
             goto err;
-        if (!BN_add(tmp, tmp, Y))
+        if (!VR_BN_add(tmp, tmp, Y))
             goto err;
 
         M = Y;                  /* keep the BIGNUM object, the value does not
@@ -595,18 +595,18 @@ static BIGNUM *BN_mod_inverse_no_branch(BIGNUM *in,
      */
 
     if (sign < 0) {
-        if (!BN_sub(Y, n, Y))
+        if (!VR_BN_sub(Y, n, Y))
             goto err;
     }
     /* Now  Y*a  ==  A  (mod |n|).  */
 
-    if (BN_is_one(A)) {
+    if (VR_BN_is_one(A)) {
         /* Y*a == 1  (mod |n|) */
-        if (!Y->neg && BN_ucmp(Y, n) < 0) {
-            if (!BN_copy(R, Y))
+        if (!Y->neg && VR_BN_ucmp(Y, n) < 0) {
+            if (!VR_BN_copy(R, Y))
                 goto err;
         } else {
-            if (!BN_nnmod(R, Y, n, ctx))
+            if (!VR_BN_nnmod(R, Y, n, ctx))
                 goto err;
         }
     } else {
@@ -616,8 +616,8 @@ static BIGNUM *BN_mod_inverse_no_branch(BIGNUM *in,
     ret = R;
  err:
     if ((ret == NULL) && (in == NULL))
-        BN_free(R);
-    BN_CTX_end(ctx);
+        VR_BN_free(R);
+    VR_BN_CTX_end(ctx);
     bn_check_top(ret);
     return ret;
 }

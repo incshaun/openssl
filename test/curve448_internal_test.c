@@ -16,7 +16,7 @@
 static unsigned int max = 1000;
 static unsigned int verbose = 0;
 
-/* Test vectors from RFC7748 for X448 */
+/* Test vectors from RFC7748 for VR_X448 */
 
 static const uint8_t in_scalar1[56] = {
     0x3d, 0x26, 0x2f, 0xdd, 0xf9, 0xec, 0x8e, 0x88, 0x49, 0x52, 0x66, 0xfe,
@@ -586,9 +586,9 @@ static const uint8_t *dohash(EVP_MD_CTX *hashctx, const uint8_t *msg,
 {
     static uint8_t hashout[64];
 
-    if (!EVP_DigestInit_ex(hashctx, EVP_shake256(), NULL)
-            || !EVP_DigestUpdate(hashctx, msg, msglen)
-            || !EVP_DigestFinalXOF(hashctx, hashout, sizeof(hashout)))
+    if (!VR_EVP_DigestInit_ex(hashctx, VR_EVP_shake256(), NULL)
+            || !VR_EVP_DigestUpdate(hashctx, msg, msglen)
+            || !VR_EVP_DigestFinalXOF(hashctx, hashout, sizeof(hashout)))
         return NULL;
 
     return hashout;
@@ -597,49 +597,49 @@ static const uint8_t *dohash(EVP_MD_CTX *hashctx, const uint8_t *msg,
 static int test_ed448(void)
 {
     uint8_t outsig[114];
-    EVP_MD_CTX *hashctx = EVP_MD_CTX_new();
+    EVP_MD_CTX *hashctx = VR_EVP_MD_CTX_new();
 
     if (!TEST_ptr(hashctx)
-            || !TEST_true(ED448_sign(outsig, NULL, 0, pubkey1, privkey1, NULL,
+            || !TEST_true(VR_ED448_sign(outsig, NULL, 0, pubkey1, privkey1, NULL,
                                      0))
             || !TEST_int_eq(memcmp(sig1, outsig, sizeof(sig1)), 0)
-            || !TEST_true(ED448_sign(outsig, msg2, sizeof(msg2), pubkey2,
+            || !TEST_true(VR_ED448_sign(outsig, msg2, sizeof(msg2), pubkey2,
                                      privkey2, NULL, 0))
             || !TEST_int_eq(memcmp(sig2, outsig, sizeof(sig2)), 0)
-            || !TEST_true(ED448_sign(outsig, msg3, sizeof(msg3), pubkey3,
+            || !TEST_true(VR_ED448_sign(outsig, msg3, sizeof(msg3), pubkey3,
                                      privkey3, context3, sizeof(context3)))
             || !TEST_int_eq(memcmp(sig3, outsig, sizeof(sig3)), 0)
-            || !TEST_true(ED448_sign(outsig, msg4, sizeof(msg4), pubkey4,
+            || !TEST_true(VR_ED448_sign(outsig, msg4, sizeof(msg4), pubkey4,
                                      privkey4, NULL, 0))
             || !TEST_int_eq(memcmp(sig4, outsig, sizeof(sig4)), 0)
-            || !TEST_true(ED448_sign(outsig, msg5, sizeof(msg5), pubkey5,
+            || !TEST_true(VR_ED448_sign(outsig, msg5, sizeof(msg5), pubkey5,
                                      privkey5, NULL, 0))
             || !TEST_int_eq(memcmp(sig5, outsig, sizeof(sig5)), 0)
-            || !TEST_true(ED448_sign(outsig, msg6, sizeof(msg6), pubkey6,
+            || !TEST_true(VR_ED448_sign(outsig, msg6, sizeof(msg6), pubkey6,
                                      privkey6, NULL, 0))
             || !TEST_int_eq(memcmp(sig6, outsig, sizeof(sig6)), 0)
-            || !TEST_true(ED448_sign(outsig, msg7, sizeof(msg7), pubkey7,
+            || !TEST_true(VR_ED448_sign(outsig, msg7, sizeof(msg7), pubkey7,
                                      privkey7, NULL, 0))
             || !TEST_int_eq(memcmp(sig7, outsig, sizeof(sig7)), 0)
-            || !TEST_true(ED448_sign(outsig, msg8, sizeof(msg8), pubkey8,
+            || !TEST_true(VR_ED448_sign(outsig, msg8, sizeof(msg8), pubkey8,
                                      privkey8, NULL, 0))
             || !TEST_int_eq(memcmp(sig8, outsig, sizeof(sig8)), 0)
-            || !TEST_true(ED448_sign(outsig, msg9, sizeof(msg9), pubkey9,
+            || !TEST_true(VR_ED448_sign(outsig, msg9, sizeof(msg9), pubkey9,
                                      privkey9, NULL, 0))
             || !TEST_int_eq(memcmp(sig9, outsig, sizeof(sig9)), 0)
-            || !TEST_true(ED448ph_sign(outsig, dohash(hashctx, phmsg1,
+            || !TEST_true(VR_ED448ph_sign(outsig, dohash(hashctx, phmsg1,
                                        sizeof(phmsg1)), phpubkey1, phprivkey1,
                                        NULL, 0))
             || !TEST_int_eq(memcmp(phsig1, outsig, sizeof(phsig1)), 0)
-            || !TEST_true(ED448ph_sign(outsig, dohash(hashctx, phmsg2,
+            || !TEST_true(VR_ED448ph_sign(outsig, dohash(hashctx, phmsg2,
                                        sizeof(phmsg2)), phpubkey2, phprivkey2,
                                        phcontext2, sizeof(phcontext2)))
             || !TEST_int_eq(memcmp(phsig2, outsig, sizeof(phsig2)), 0)) {
-        EVP_MD_CTX_free(hashctx);
+        VR_EVP_MD_CTX_free(hashctx);
         return 0;
     }
 
-    EVP_MD_CTX_free(hashctx);
+    VR_EVP_MD_CTX_free(hashctx);
     return 1;
 }
 
@@ -651,9 +651,9 @@ static int test_x448(void)
 
     /* Curve448 tests */
 
-    if (!TEST_true(X448(out, in_scalar1, in_u1))
+    if (!TEST_true(VR_X448(out, in_scalar1, in_u1))
           || !TEST_int_eq(memcmp(out, out_u1, sizeof(out)), 0)
-          || !TEST_true(X448(out, in_scalar2, in_u2))
+          || !TEST_true(VR_X448(out, in_scalar2, in_u2))
           || !TEST_int_eq(memcmp(out, out_u2, sizeof(out)), 0))
         return 0;
 
@@ -665,7 +665,7 @@ static int test_x448(void)
             fflush(stdout);
         }
 
-        if (!TEST_true(X448(out, k, u)))
+        if (!TEST_true(VR_X448(out, k, u)))
             return 0;
 
         if (i == 1 || i == 1000 || i == 1000000) {

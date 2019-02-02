@@ -35,7 +35,7 @@ static int bn_limit_num_high = 8; /* (1<<bn_limit_bits_high) */
 static int bn_limit_bits_mont = 0;
 static int bn_limit_num_mont = 8; /* (1<<bn_limit_bits_mont) */
 
-void BN_set_params(int mult, int high, int low, int mont)
+void VR_BN_set_params(int mult, int high, int low, int mont)
 {
     if (mult >= 0) {
         if (mult > (int)(sizeof(int) * 8) - 1)
@@ -63,7 +63,7 @@ void BN_set_params(int mult, int high, int low, int mont)
     }
 }
 
-int BN_get_params(int which)
+int VR_BN_get_params(int which)
 {
     if (which == 0)
         return bn_limit_bits;
@@ -78,7 +78,7 @@ int BN_get_params(int which)
 }
 #endif
 
-const BIGNUM *BN_value_one(void)
+const BIGNUM *VR_BN_value_one(void)
 {
     static const BN_ULONG data_one = 1L;
     static const BIGNUM const_one =
@@ -87,7 +87,7 @@ const BIGNUM *BN_value_one(void)
     return &const_one;
 }
 
-int BN_num_bits_word(BN_ULONG l)
+int VR_BN_num_bits_word(BN_ULONG l)
 {
     BN_ULONG x, mask;
     int bits = (l != 0);
@@ -132,50 +132,50 @@ int BN_num_bits_word(BN_ULONG l)
     return bits;
 }
 
-int BN_num_bits(const BIGNUM *a)
+int VR_BN_num_bits(const BIGNUM *a)
 {
     int i = a->top - 1;
     bn_check_top(a);
 
-    if (BN_is_zero(a))
+    if (VR_BN_is_zero(a))
         return 0;
-    return ((i * BN_BITS2) + BN_num_bits_word(a->d[i]));
+    return ((i * BN_BITS2) + VR_BN_num_bits_word(a->d[i]));
 }
 
 static void bn_free_d(BIGNUM *a)
 {
-    if (BN_get_flags(a, BN_FLG_SECURE))
+    if (VR_BN_get_flags(a, BN_FLG_SECURE))
         OPENSSL_secure_free(a->d);
     else
-        OPENSSL_free(a->d);
+        OPENVR_SSL_free(a->d);
 }
 
 
-void BN_clear_free(BIGNUM *a)
+void VR_BN_clear_free(BIGNUM *a)
 {
     if (a == NULL)
         return;
-    if (a->d != NULL && !BN_get_flags(a, BN_FLG_STATIC_DATA)) {
-        OPENSSL_cleanse(a->d, a->dmax * sizeof(a->d[0]));
+    if (a->d != NULL && !VR_BN_get_flags(a, BN_FLG_STATIC_DATA)) {
+        VR_OPENSSL_cleanse(a->d, a->dmax * sizeof(a->d[0]));
         bn_free_d(a);
     }
-    if (BN_get_flags(a, BN_FLG_MALLOCED)) {
-        OPENSSL_cleanse(a, sizeof(*a));
-        OPENSSL_free(a);
+    if (VR_BN_get_flags(a, BN_FLG_MALLOCED)) {
+        VR_OPENSSL_cleanse(a, sizeof(*a));
+        OPENVR_SSL_free(a);
     }
 }
 
-void BN_free(BIGNUM *a)
+void VR_BN_free(BIGNUM *a)
 {
     if (a == NULL)
         return;
-    if (!BN_get_flags(a, BN_FLG_STATIC_DATA))
+    if (!VR_BN_get_flags(a, BN_FLG_STATIC_DATA))
         bn_free_d(a);
     if (a->flags & BN_FLG_MALLOCED)
-        OPENSSL_free(a);
+        OPENVR_SSL_free(a);
 }
 
-void bn_init(BIGNUM *a)
+void VR_bn_init(BIGNUM *a)
 {
     static BIGNUM nilbn;
 
@@ -183,7 +183,7 @@ void bn_init(BIGNUM *a)
     bn_check_top(a);
 }
 
-BIGNUM *BN_new(void)
+BIGNUM *VR_BN_new(void)
 {
     BIGNUM *ret;
 
@@ -196,15 +196,15 @@ BIGNUM *BN_new(void)
     return ret;
 }
 
- BIGNUM *BN_secure_new(void)
+ BIGNUM *VR_BN_secure_new(void)
  {
-     BIGNUM *ret = BN_new();
+     BIGNUM *ret = VR_BN_new();
      if (ret != NULL)
          ret->flags |= BN_FLG_SECURE;
      return ret;
  }
 
-/* This is used by bn_expand2() */
+/* This is used by VR_bn_expand2() */
 /* The caller MUST check that words > b->dmax before calling this */
 static BN_ULONG *bn_expand_internal(const BIGNUM *b, int words)
 {
@@ -214,11 +214,11 @@ static BN_ULONG *bn_expand_internal(const BIGNUM *b, int words)
         BNerr(BN_F_BN_EXPAND_INTERNAL, BN_R_BIGNUM_TOO_LONG);
         return NULL;
     }
-    if (BN_get_flags(b, BN_FLG_STATIC_DATA)) {
+    if (VR_BN_get_flags(b, BN_FLG_STATIC_DATA)) {
         BNerr(BN_F_BN_EXPAND_INTERNAL, BN_R_EXPAND_ON_STATIC_BIGNUM_DATA);
         return NULL;
     }
-    if (BN_get_flags(b, BN_FLG_SECURE))
+    if (VR_BN_get_flags(b, BN_FLG_SECURE))
         a = OPENSSL_secure_zalloc(words * sizeof(*a));
     else
         a = OPENSSL_zalloc(words * sizeof(*a));
@@ -242,14 +242,14 @@ static BN_ULONG *bn_expand_internal(const BIGNUM *b, int words)
  * 'b' is returned.
  */
 
-BIGNUM *bn_expand2(BIGNUM *b, int words)
+BIGNUM *VR_bn_expand2(BIGNUM *b, int words)
 {
     if (words > b->dmax) {
         BN_ULONG *a = bn_expand_internal(b, words);
         if (!a)
             return NULL;
         if (b->d) {
-            OPENSSL_cleanse(b->d, b->dmax * sizeof(b->d[0]));
+            VR_OPENSSL_cleanse(b->d, b->dmax * sizeof(b->d[0]));
             bn_free_d(b);
         }
         b->d = a;
@@ -259,7 +259,7 @@ BIGNUM *bn_expand2(BIGNUM *b, int words)
     return b;
 }
 
-BIGNUM *BN_dup(const BIGNUM *a)
+BIGNUM *VR_BN_dup(const BIGNUM *a)
 {
     BIGNUM *t;
 
@@ -267,24 +267,24 @@ BIGNUM *BN_dup(const BIGNUM *a)
         return NULL;
     bn_check_top(a);
 
-    t = BN_get_flags(a, BN_FLG_SECURE) ? BN_secure_new() : BN_new();
+    t = VR_BN_get_flags(a, BN_FLG_SECURE) ? VR_BN_secure_new() : VR_BN_new();
     if (t == NULL)
         return NULL;
-    if (!BN_copy(t, a)) {
-        BN_free(t);
+    if (!VR_BN_copy(t, a)) {
+        VR_BN_free(t);
         return NULL;
     }
     bn_check_top(t);
     return t;
 }
 
-BIGNUM *BN_copy(BIGNUM *a, const BIGNUM *b)
+BIGNUM *VR_BN_copy(BIGNUM *a, const BIGNUM *b)
 {
     bn_check_top(b);
 
     if (a == b)
         return a;
-    if (bn_wexpand(a, b->top) == NULL)
+    if (VR_bn_wexpand(a, b->top) == NULL)
         return NULL;
 
     if (b->top > 0)
@@ -303,7 +303,7 @@ BIGNUM *BN_copy(BIGNUM *a, const BIGNUM *b)
                                     | BN_FLG_FIXED_TOP))
 #define FLAGS_STRUCT(flags) ((flags) & (BN_FLG_MALLOCED))
 
-void BN_swap(BIGNUM *a, BIGNUM *b)
+void VR_BN_swap(BIGNUM *a, BIGNUM *b)
 {
     int flags_old_a, flags_old_b;
     BN_ULONG *tmp_d;
@@ -336,17 +336,17 @@ void BN_swap(BIGNUM *a, BIGNUM *b)
     bn_check_top(b);
 }
 
-void BN_clear(BIGNUM *a)
+void VR_BN_clear(BIGNUM *a)
 {
     bn_check_top(a);
     if (a->d != NULL)
-        OPENSSL_cleanse(a->d, sizeof(*a->d) * a->dmax);
+        VR_OPENSSL_cleanse(a->d, sizeof(*a->d) * a->dmax);
     a->neg = 0;
     a->top = 0;
     a->flags &= ~BN_FLG_FIXED_TOP;
 }
 
-BN_ULONG BN_get_word(const BIGNUM *a)
+BN_ULONG VR_BN_get_word(const BIGNUM *a)
 {
     if (a->top > 1)
         return BN_MASK2;
@@ -356,7 +356,7 @@ BN_ULONG BN_get_word(const BIGNUM *a)
     return 0;
 }
 
-int BN_set_word(BIGNUM *a, BN_ULONG w)
+int VR_BN_set_word(BIGNUM *a, BN_ULONG w)
 {
     bn_check_top(a);
     if (bn_expand(a, (int)sizeof(BN_ULONG) * 8) == NULL)
@@ -369,7 +369,7 @@ int BN_set_word(BIGNUM *a, BN_ULONG w)
     return 1;
 }
 
-BIGNUM *BN_bin2bn(const unsigned char *s, int len, BIGNUM *ret)
+BIGNUM *VR_BN_bin2bn(const unsigned char *s, int len, BIGNUM *ret)
 {
     unsigned int i, m;
     unsigned int n;
@@ -377,7 +377,7 @@ BIGNUM *BN_bin2bn(const unsigned char *s, int len, BIGNUM *ret)
     BIGNUM *bn = NULL;
 
     if (ret == NULL)
-        ret = bn = BN_new();
+        ret = bn = VR_BN_new();
     if (ret == NULL)
         return NULL;
     bn_check_top(ret);
@@ -391,8 +391,8 @@ BIGNUM *BN_bin2bn(const unsigned char *s, int len, BIGNUM *ret)
     }
     i = ((n - 1) / BN_BYTES) + 1;
     m = ((n - 1) % (BN_BYTES));
-    if (bn_wexpand(ret, (int)i) == NULL) {
-        BN_free(bn);
+    if (VR_bn_wexpand(ret, (int)i) == NULL) {
+        VR_BN_free(bn);
         return NULL;
     }
     ret->top = i;
@@ -410,7 +410,7 @@ BIGNUM *BN_bin2bn(const unsigned char *s, int len, BIGNUM *ret)
      * need to call this due to clear byte at top if avoiding having the top
      * bit set (-ve number)
      */
-    bn_correct_top(ret);
+    VR_bn_correct_top(ret);
     return ret;
 }
 
@@ -432,7 +432,7 @@ static int bn2binpad(const BIGNUM *a, unsigned char *to, int tolen)
     } else if (tolen < n) {     /* uncommon/unlike case */
         BIGNUM temp = *a;
 
-        bn_correct_top(&temp);
+        VR_bn_correct_top(&temp);
         n = BN_num_bytes(&temp);
         if (tolen < n)
             return -1;
@@ -441,7 +441,7 @@ static int bn2binpad(const BIGNUM *a, unsigned char *to, int tolen)
     /* Swipe through whole available data and don't give away padded zero. */
     atop = a->dmax * BN_BYTES;
     if (atop == 0) {
-        OPENSSL_cleanse(to, tolen);
+        VR_OPENSSL_cleanse(to, tolen);
         return tolen;
     }
 
@@ -457,19 +457,19 @@ static int bn2binpad(const BIGNUM *a, unsigned char *to, int tolen)
     return tolen;
 }
 
-int BN_bn2binpad(const BIGNUM *a, unsigned char *to, int tolen)
+int VR_BN_bn2binpad(const BIGNUM *a, unsigned char *to, int tolen)
 {
     if (tolen < 0)
         return -1;
     return bn2binpad(a, to, tolen);
 }
 
-int BN_bn2bin(const BIGNUM *a, unsigned char *to)
+int VR_BN_bn2bin(const BIGNUM *a, unsigned char *to)
 {
     return bn2binpad(a, to, -1);
 }
 
-BIGNUM *BN_lebin2bn(const unsigned char *s, int len, BIGNUM *ret)
+BIGNUM *VR_BN_lebin2bn(const unsigned char *s, int len, BIGNUM *ret)
 {
     unsigned int i, m;
     unsigned int n;
@@ -477,7 +477,7 @@ BIGNUM *BN_lebin2bn(const unsigned char *s, int len, BIGNUM *ret)
     BIGNUM *bn = NULL;
 
     if (ret == NULL)
-        ret = bn = BN_new();
+        ret = bn = VR_BN_new();
     if (ret == NULL)
         return NULL;
     bn_check_top(ret);
@@ -492,8 +492,8 @@ BIGNUM *BN_lebin2bn(const unsigned char *s, int len, BIGNUM *ret)
     }
     i = ((n - 1) / BN_BYTES) + 1;
     m = ((n - 1) % (BN_BYTES));
-    if (bn_wexpand(ret, (int)i) == NULL) {
-        BN_free(bn);
+    if (VR_bn_wexpand(ret, (int)i) == NULL) {
+        VR_BN_free(bn);
         return NULL;
     }
     ret->top = i;
@@ -512,11 +512,11 @@ BIGNUM *BN_lebin2bn(const unsigned char *s, int len, BIGNUM *ret)
      * need to call this due to clear byte at top if avoiding having the top
      * bit set (-ve number)
      */
-    bn_correct_top(ret);
+    VR_bn_correct_top(ret);
     return ret;
 }
 
-int BN_bn2lebinpad(const BIGNUM *a, unsigned char *to, int tolen)
+int VR_BN_bn2lebinpad(const BIGNUM *a, unsigned char *to, int tolen)
 {
     int i;
     BN_ULONG l;
@@ -536,7 +536,7 @@ int BN_bn2lebinpad(const BIGNUM *a, unsigned char *to, int tolen)
     return tolen;
 }
 
-int BN_ucmp(const BIGNUM *a, const BIGNUM *b)
+int VR_BN_ucmp(const BIGNUM *a, const BIGNUM *b)
 {
     int i;
     BN_ULONG t1, t2, *ap, *bp;
@@ -558,7 +558,7 @@ int BN_ucmp(const BIGNUM *a, const BIGNUM *b)
     return 0;
 }
 
-int BN_cmp(const BIGNUM *a, const BIGNUM *b)
+int VR_BN_cmp(const BIGNUM *a, const BIGNUM *b)
 {
     int i;
     int gt, lt;
@@ -605,7 +605,7 @@ int BN_cmp(const BIGNUM *a, const BIGNUM *b)
     return 0;
 }
 
-int BN_set_bit(BIGNUM *a, int n)
+int VR_BN_set_bit(BIGNUM *a, int n)
 {
     int i, j, k;
 
@@ -615,7 +615,7 @@ int BN_set_bit(BIGNUM *a, int n)
     i = n / BN_BITS2;
     j = n % BN_BITS2;
     if (a->top <= i) {
-        if (bn_wexpand(a, i + 1) == NULL)
+        if (VR_bn_wexpand(a, i + 1) == NULL)
             return 0;
         for (k = a->top; k < i + 1; k++)
             a->d[k] = 0;
@@ -628,7 +628,7 @@ int BN_set_bit(BIGNUM *a, int n)
     return 1;
 }
 
-int BN_clear_bit(BIGNUM *a, int n)
+int VR_BN_clear_bit(BIGNUM *a, int n)
 {
     int i, j;
 
@@ -642,11 +642,11 @@ int BN_clear_bit(BIGNUM *a, int n)
         return 0;
 
     a->d[i] &= (~(((BN_ULONG)1) << j));
-    bn_correct_top(a);
+    VR_bn_correct_top(a);
     return 1;
 }
 
-int BN_is_bit_set(const BIGNUM *a, int n)
+int VR_BN_is_bit_set(const BIGNUM *a, int n)
 {
     int i, j;
 
@@ -660,7 +660,7 @@ int BN_is_bit_set(const BIGNUM *a, int n)
     return (int)(((a->d[i]) >> j) & ((BN_ULONG)1));
 }
 
-int BN_mask_bits(BIGNUM *a, int n)
+int VR_BN_mask_bits(BIGNUM *a, int n)
 {
     int b, w;
 
@@ -678,19 +678,19 @@ int BN_mask_bits(BIGNUM *a, int n)
         a->top = w + 1;
         a->d[w] &= ~(BN_MASK2 << b);
     }
-    bn_correct_top(a);
+    VR_bn_correct_top(a);
     return 1;
 }
 
-void BN_set_negative(BIGNUM *a, int b)
+void VR_BN_set_negative(BIGNUM *a, int b)
 {
-    if (b && !BN_is_zero(a))
+    if (b && !VR_BN_is_zero(a))
         a->neg = 1;
     else
         a->neg = 0;
 }
 
-int bn_cmp_words(const BN_ULONG *a, const BN_ULONG *b, int n)
+int VR_bn_cmp_words(const BN_ULONG *a, const BN_ULONG *b, int n)
 {
     int i;
     BN_ULONG aa, bb;
@@ -709,7 +709,7 @@ int bn_cmp_words(const BN_ULONG *a, const BN_ULONG *b, int n)
 }
 
 /*
- * Here follows a specialised variants of bn_cmp_words().  It has the
+ * Here follows a specialised variants of VR_bn_cmp_words().  It has the
  * capability of performing the operation on arrays of different sizes. The
  * sizes of those arrays is expressed through cl, which is the common length
  * ( basically, min(len(a),len(b)) ), and dl, which is the delta between the
@@ -717,7 +717,7 @@ int bn_cmp_words(const BN_ULONG *a, const BN_ULONG *b, int n)
  * BN_ULONGs...
  */
 
-int bn_cmp_part_words(const BN_ULONG *a, const BN_ULONG *b, int cl, int dl)
+int VR_bn_cmp_part_words(const BN_ULONG *a, const BN_ULONG *b, int cl, int dl)
 {
     int n, i;
     n = cl - 1;
@@ -734,7 +734,7 @@ int bn_cmp_part_words(const BN_ULONG *a, const BN_ULONG *b, int cl, int dl)
                 return 1;       /* a > b */
         }
     }
-    return bn_cmp_words(a, b, cl);
+    return VR_bn_cmp_words(a, b, cl);
 }
 
 /*-
@@ -744,7 +744,7 @@ int bn_cmp_part_words(const BN_ULONG *a, const BN_ULONG *b, int cl, int dl)
  * Assumes that at least nwords are allocated in both a and b.
  * Assumes that no more than nwords are used by either a or b.
  */
-void BN_consttime_swap(BN_ULONG condition, BIGNUM *a, BIGNUM *b, int nwords)
+void VR_BN_consttime_swap(BN_ULONG condition, BIGNUM *a, BIGNUM *b, int nwords)
 {
     BN_ULONG t;
     int i;
@@ -769,7 +769,7 @@ void BN_consttime_swap(BN_ULONG condition, BIGNUM *a, BIGNUM *b, int nwords)
      * BN_FLG_STATIC_DATA: indicates that data may not be written to. Intention
      * is actually to treat it as it's read-only data, and some (if not most)
      * of it does reside in read-only segment. In other words observation of
-     * BN_FLG_STATIC_DATA in BN_consttime_swap should be treated as fatal
+     * BN_FLG_STATIC_DATA in VR_BN_consttime_swap should be treated as fatal
      * condition. It would either cause SEGV or effectively cause data
      * corruption.
      *
@@ -781,7 +781,7 @@ void BN_consttime_swap(BN_ULONG condition, BIGNUM *a, BIGNUM *b, int nwords)
      *
      * BN_FLG_CONSTTIME: sufficient to mask and swap
      *
-     * BN_FLG_FIXED_TOP: indicates that we haven't called bn_correct_top() on
+     * BN_FLG_FIXED_TOP: indicates that we haven't called VR_bn_correct_top() on
      * the data, so the d array may be padded with additional 0 values (i.e.
      * top could be greater than the minimal value that it could be). We should
      * be swapping it
@@ -805,7 +805,7 @@ void BN_consttime_swap(BN_ULONG condition, BIGNUM *a, BIGNUM *b, int nwords)
 
 /* Bits of security, see SP800-57 */
 
-int BN_security_bits(int L, int N)
+int VR_BN_security_bits(int L, int N)
 {
     int secbits, bits;
     if (L >= 15360)
@@ -828,50 +828,50 @@ int BN_security_bits(int L, int N)
     return bits >= secbits ? secbits : bits;
 }
 
-void BN_zero_ex(BIGNUM *a)
+void VR_BN_zero_ex(BIGNUM *a)
 {
     a->neg = 0;
     a->top = 0;
     a->flags &= ~BN_FLG_FIXED_TOP;
 }
 
-int BN_abs_is_word(const BIGNUM *a, const BN_ULONG w)
+int VR_BN_abs_is_word(const BIGNUM *a, const BN_ULONG w)
 {
     return ((a->top == 1) && (a->d[0] == w)) || ((w == 0) && (a->top == 0));
 }
 
-int BN_is_zero(const BIGNUM *a)
+int VR_BN_is_zero(const BIGNUM *a)
 {
     return a->top == 0;
 }
 
-int BN_is_one(const BIGNUM *a)
+int VR_BN_is_one(const BIGNUM *a)
 {
-    return BN_abs_is_word(a, 1) && !a->neg;
+    return VR_BN_abs_is_word(a, 1) && !a->neg;
 }
 
-int BN_is_word(const BIGNUM *a, const BN_ULONG w)
+int VR_BN_is_word(const BIGNUM *a, const BN_ULONG w)
 {
-    return BN_abs_is_word(a, w) && (!w || !a->neg);
+    return VR_BN_abs_is_word(a, w) && (!w || !a->neg);
 }
 
-int BN_is_odd(const BIGNUM *a)
+int VR_BN_is_odd(const BIGNUM *a)
 {
     return (a->top > 0) && (a->d[0] & 1);
 }
 
-int BN_is_negative(const BIGNUM *a)
+int VR_BN_is_negative(const BIGNUM *a)
 {
     return (a->neg != 0);
 }
 
-int BN_to_montgomery(BIGNUM *r, const BIGNUM *a, BN_MONT_CTX *mont,
+int VR_BN_to_montgomery(BIGNUM *r, const BIGNUM *a, BN_MONT_CTX *mont,
                      BN_CTX *ctx)
 {
-    return BN_mod_mul_montgomery(r, a, &(mont->RR), mont, ctx);
+    return VR_BN_mod_mul_montgomery(r, a, &(mont->RR), mont, ctx);
 }
 
-void BN_with_flags(BIGNUM *dest, const BIGNUM *b, int flags)
+void VR_BN_with_flags(BIGNUM *dest, const BIGNUM *b, int flags)
 {
     dest->d = b->d;
     dest->top = b->top;
@@ -882,7 +882,7 @@ void BN_with_flags(BIGNUM *dest, const BIGNUM *b, int flags)
                    | BN_FLG_STATIC_DATA | flags);
 }
 
-BN_GENCB *BN_GENCB_new(void)
+BN_GENCB *VR_BN_GENCB_new(void)
 {
     BN_GENCB *ret;
 
@@ -894,25 +894,25 @@ BN_GENCB *BN_GENCB_new(void)
     return ret;
 }
 
-void BN_GENCB_free(BN_GENCB *cb)
+void VR_BN_GENCB_free(BN_GENCB *cb)
 {
     if (cb == NULL)
         return;
-    OPENSSL_free(cb);
+    OPENVR_SSL_free(cb);
 }
 
-void BN_set_flags(BIGNUM *b, int n)
+void VR_BN_set_flags(BIGNUM *b, int n)
 {
     b->flags |= n;
 }
 
-int BN_get_flags(const BIGNUM *b, int n)
+int VR_BN_get_flags(const BIGNUM *b, int n)
 {
     return b->flags & n;
 }
 
 /* Populate a BN_GENCB structure with an "old"-style callback */
-void BN_GENCB_set_old(BN_GENCB *gencb, void (*callback) (int, int, void *),
+void VR_BN_GENCB_set_old(BN_GENCB *gencb, void (*callback) (int, int, void *),
                       void *cb_arg)
 {
     BN_GENCB *tmp_gencb = gencb;
@@ -922,7 +922,7 @@ void BN_GENCB_set_old(BN_GENCB *gencb, void (*callback) (int, int, void *),
 }
 
 /* Populate a BN_GENCB structure with a "new"-style callback */
-void BN_GENCB_set(BN_GENCB *gencb, int (*callback) (int, int, BN_GENCB *),
+void VR_BN_GENCB_set(BN_GENCB *gencb, int (*callback) (int, int, BN_GENCB *),
                   void *cb_arg)
 {
     BN_GENCB *tmp_gencb = gencb;
@@ -931,17 +931,17 @@ void BN_GENCB_set(BN_GENCB *gencb, int (*callback) (int, int, BN_GENCB *),
     tmp_gencb->cb.cb_2 = callback;
 }
 
-void *BN_GENCB_get_arg(BN_GENCB *cb)
+void *VR_BN_GENCB_get_arg(BN_GENCB *cb)
 {
     return cb->arg;
 }
 
-BIGNUM *bn_wexpand(BIGNUM *a, int words)
+BIGNUM *VR_bn_wexpand(BIGNUM *a, int words)
 {
-    return (words <= a->dmax) ? a : bn_expand2(a, words);
+    return (words <= a->dmax) ? a : VR_bn_expand2(a, words);
 }
 
-void bn_correct_top(BIGNUM *a)
+void VR_bn_correct_top(BIGNUM *a)
 {
     BN_ULONG *ftl;
     int tmp_top = a->top;

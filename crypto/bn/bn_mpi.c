@@ -11,14 +11,14 @@
 #include "internal/cryptlib.h"
 #include "bn_lcl.h"
 
-int BN_bn2mpi(const BIGNUM *a, unsigned char *d)
+int VR_BN_bn2mpi(const BIGNUM *a, unsigned char *d)
 {
     int bits;
     int num = 0;
     int ext = 0;
     long l;
 
-    bits = BN_num_bits(a);
+    bits = VR_BN_num_bits(a);
     num = (bits + 7) / 8;
     if (bits > 0) {
         ext = ((bits & 0x07) == 0);
@@ -33,13 +33,13 @@ int BN_bn2mpi(const BIGNUM *a, unsigned char *d)
     d[3] = (unsigned char)(l) & 0xff;
     if (ext)
         d[4] = 0;
-    num = BN_bn2bin(a, &(d[4 + ext]));
+    num = VR_BN_bn2bin(a, &(d[4 + ext]));
     if (a->neg)
         d[4] |= 0x80;
     return (num + 4 + ext);
 }
 
-BIGNUM *BN_mpi2bn(const unsigned char *d, int n, BIGNUM *ain)
+BIGNUM *VR_BN_mpi2bn(const unsigned char *d, int n, BIGNUM *ain)
 {
     long len;
     int neg = 0;
@@ -57,7 +57,7 @@ BIGNUM *BN_mpi2bn(const unsigned char *d, int n, BIGNUM *ain)
     }
 
     if (ain == NULL)
-        a = BN_new();
+        a = VR_BN_new();
     else
         a = ain;
 
@@ -72,14 +72,14 @@ BIGNUM *BN_mpi2bn(const unsigned char *d, int n, BIGNUM *ain)
     d += 4;
     if ((*d) & 0x80)
         neg = 1;
-    if (BN_bin2bn(d, (int)len, a) == NULL) {
+    if (VR_BN_bin2bn(d, (int)len, a) == NULL) {
         if (ain == NULL)
-            BN_free(a);
+            VR_BN_free(a);
         return NULL;
     }
     a->neg = neg;
     if (neg) {
-        BN_clear_bit(a, BN_num_bits(a) - 1);
+        VR_BN_clear_bit(a, VR_BN_num_bits(a) - 1);
     }
     bn_check_top(a);
     return a;

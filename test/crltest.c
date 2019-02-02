@@ -78,7 +78,7 @@ static const char *kBasicCRL[] = {
     "HRQEAwIBATANBgkqhkiG9w0BAQsFAAOCAQEAnrBKKgvd9x9zwK9rtUvVeFeJ7+LN\n",
     "ZEAc+a5oxpPNEsJx6hXoApYEbzXMxuWBQoCs5iEBycSGudct21L+MVf27M38KrWo\n",
     "eOkq0a2siqViQZO2Fb/SUFR0k9zb8xl86Zf65lgPplALun0bV/HT7MJcl04Tc4os\n",
-    "dsAReBs5nqTGNEd5AlC1iKHvQZkM//MD51DspKnDpsDiUVi54h9C1SpfZmX8H2Vv\n",
+    "dsAReBs5nqTGNEd5AlC1iKHvQZkM//VR_MD51DspKnDpsDiUVi54h9C1SpfZmX8H2Vv\n",
     "diyu0fZ/bPAM3VAGawatf/SyWfBMyKpoPXEG39oAzmjjOj8en82psn7m474IGaho\n",
     "/vBbhl1ms5qQiLYPjm4YELtnXQoFyC72tBjbdFd/ZE9k4CNKDbxFUXFbkw==\n",
     "-----END X509 CRL-----\n",
@@ -192,7 +192,7 @@ static BIO *glue2bio(const char **pem, char **out)
     size_t s = 0;
 
     *out = glue_strings(pem, &s);
-    return BIO_new_mem_buf(*out, s);
+    return VR_BIO_new_mem_buf(*out, s);
 }
 
 /*
@@ -202,10 +202,10 @@ static X509_CRL *CRL_from_strings(const char **pem)
 {
     char *p;
     BIO *b = glue2bio(pem, &p);
-    X509_CRL *crl = PEM_read_bio_X509_CRL(b, NULL, NULL, NULL);
+    X509_CRL *crl = VR_PEM_read_bio_X509_CRL(b, NULL, NULL, NULL);
 
-    OPENSSL_free(p);
-    BIO_free(b);
+    OPENVR_SSL_free(p);
+    VR_BIO_free(b);
     return crl;
 }
 
@@ -216,10 +216,10 @@ static X509 *X509_from_strings(const char **pem)
 {
     char *p;
     BIO *b = glue2bio(pem, &p);
-    X509 *x = PEM_read_bio_X509(b, NULL, NULL, NULL);
+    X509 *x = VR_PEM_read_bio_X509(b, NULL, NULL, NULL);
 
-    OPENSSL_free(p);
-    BIO_free(b);
+    OPENVR_SSL_free(p);
+    VR_BIO_free(b);
     return x;
 }
 
@@ -232,10 +232,10 @@ static X509 *X509_from_strings(const char **pem)
 static int verify(X509 *leaf, X509 *root, STACK_OF(X509_CRL) *crls,
                   unsigned long flags)
 {
-    X509_STORE_CTX *ctx = X509_STORE_CTX_new();
-    X509_STORE *store = X509_STORE_new();
-    X509_VERIFY_PARAM *param = X509_VERIFY_PARAM_new();
-    STACK_OF(X509) *roots = sk_X509_new_null();
+    X509_STORE_CTX *ctx = VR_X509_STORE_CTX_new();
+    X509_STORE *store = VR_X509_STORE_new();
+    X509_VERIFY_PARAM *param = VR_X509_VERIFY_PARAM_new();
+    STACK_OF(X509) *roots = sk_VR_X509_new_null();
     int status = X509_V_ERR_UNSPECIFIED;
 
     if (!TEST_ptr(ctx)
@@ -245,30 +245,30 @@ static int verify(X509 *leaf, X509 *root, STACK_OF(X509_CRL) *crls,
         goto err;
 
     /* Create a stack; upref the cert because we free it below. */
-    X509_up_ref(root);
-    if (!TEST_true(sk_X509_push(roots, root))
-        || !TEST_true(X509_STORE_CTX_init(ctx, store, leaf, NULL)))
+    VR_X509_up_ref(root);
+    if (!TEST_true(sk_VR_X509_push(roots, root))
+        || !TEST_true(VR_X509_STORE_CTX_init(ctx, store, leaf, NULL)))
         goto err;
-    X509_STORE_CTX_set0_trusted_stack(ctx, roots);
-    X509_STORE_CTX_set0_crls(ctx, crls);
-    X509_VERIFY_PARAM_set_time(param, PARAM_TIME);
-    if (!TEST_long_eq((long)X509_VERIFY_PARAM_get_time(param), PARAM_TIME))
+    VR_X509_STORE_CTX_set0_trusted_stack(ctx, roots);
+    VR_X509_STORE_CTX_set0_crls(ctx, crls);
+    VR_X509_VERIFY_PARAM_set_time(param, PARAM_TIME);
+    if (!TEST_long_eq((long)VR_X509_VERIFY_PARAM_get_time(param), PARAM_TIME))
         goto err;
-    X509_VERIFY_PARAM_set_depth(param, 16);
+    VR_X509_VERIFY_PARAM_set_depth(param, 16);
     if (flags)
-        X509_VERIFY_PARAM_set_flags(param, flags);
-    X509_STORE_CTX_set0_param(ctx, param);
+        VR_X509_VERIFY_PARAM_set_flags(param, flags);
+    VR_X509_STORE_CTX_set0_param(ctx, param);
     param = NULL;
 
-    ERR_clear_error();
-    status = X509_verify_cert(ctx) == 1 ? X509_V_OK
-                                        : X509_STORE_CTX_get_error(ctx);
+    VR_ERR_clear_error();
+    status = VR_X509_verify_cert(ctx) == 1 ? X509_V_OK
+                                        : VR_X509_STORE_CTX_get_error(ctx);
 err:
-    sk_X509_pop_free(roots, X509_free);
-    sk_X509_CRL_pop_free(crls, X509_CRL_free);
-    X509_VERIFY_PARAM_free(param);
-    X509_STORE_CTX_free(ctx);
-    X509_STORE_free(store);
+    sk_VR_X509_pop_free(roots, VR_X509_free);
+    sk_VR_X509_CRL_pop_free(crls, VR_X509_CRL_free);
+    VR_X509_VERIFY_PARAM_free(param);
+    VR_X509_STORE_CTX_free(ctx);
+    VR_X509_STORE_free(store);
     return status;
 }
 
@@ -279,13 +279,13 @@ err:
  */
 static STACK_OF(X509_CRL) *make_CRL_stack(X509_CRL *x1, X509_CRL *x2)
 {
-    STACK_OF(X509_CRL) *sk = sk_X509_CRL_new_null();
+    STACK_OF(X509_CRL) *sk = sk_VR_X509_CRL_new_null();
 
-    sk_X509_CRL_push(sk, x1);
-    X509_CRL_up_ref(x1);
+    sk_VR_X509_CRL_push(sk, x1);
+    VR_X509_CRL_up_ref(x1);
     if (x2 != NULL) {
-        sk_X509_CRL_push(sk, x2);
-        X509_CRL_up_ref(x2);
+        sk_VR_X509_CRL_push(sk, x2);
+        VR_X509_CRL_up_ref(x2);
     }
     return sk;
 }
@@ -304,8 +304,8 @@ static int test_basic_crl(void)
         && TEST_int_eq(verify(test_leaf, test_root,
                               make_CRL_stack(basic_crl, revoked_crl),
                               X509_V_FLAG_CRL_CHECK), X509_V_ERR_CERT_REVOKED);
-    X509_CRL_free(basic_crl);
-    X509_CRL_free(revoked_crl);
+    VR_X509_CRL_free(basic_crl);
+    VR_X509_CRL_free(revoked_crl);
     return r;
 }
 
@@ -326,7 +326,7 @@ static int test_bad_issuer_crl(void)
                               make_CRL_stack(bad_issuer_crl, NULL),
                               X509_V_FLAG_CRL_CHECK),
                        X509_V_ERR_UNABLE_TO_GET_CRL);
-    X509_CRL_free(bad_issuer_crl);
+    VR_X509_CRL_free(bad_issuer_crl);
     return r;
 }
 
@@ -339,7 +339,7 @@ static int test_known_critical_crl(void)
         && TEST_int_eq(verify(test_leaf, test_root,
                               make_CRL_stack(known_critical_crl, NULL),
                               X509_V_FLAG_CRL_CHECK), X509_V_OK);
-    X509_CRL_free(known_critical_crl);
+    VR_X509_CRL_free(known_critical_crl);
     return r;
 }
 
@@ -353,7 +353,7 @@ static int test_unknown_critical_crl(int n)
                               make_CRL_stack(unknown_critical_crl, NULL),
                               X509_V_FLAG_CRL_CHECK),
                        X509_V_ERR_UNHANDLED_CRITICAL_CRL_EXTENSION);
-    X509_CRL_free(unknown_critical_crl);
+    VR_X509_CRL_free(unknown_critical_crl);
     return r;
 }
 
@@ -363,11 +363,11 @@ static int test_reuse_crl(void)
     char *p;
     BIO *b = glue2bio(kRevokedCRL, &p);
 
-    reused_crl = PEM_read_bio_X509_CRL(b, &reused_crl, NULL, NULL);
+    reused_crl = VR_PEM_read_bio_X509_CRL(b, &reused_crl, NULL, NULL);
 
-    OPENSSL_free(p);
-    BIO_free(b);
-    X509_CRL_free(reused_crl);
+    OPENVR_SSL_free(p);
+    VR_BIO_free(b);
+    VR_X509_CRL_free(reused_crl);
     return 1;
 }
 
@@ -388,6 +388,6 @@ int setup_tests(void)
 
 void cleanup_tests(void)
 {
-    X509_free(test_root);
-    X509_free(test_leaf);
+    VR_X509_free(test_root);
+    VR_X509_free(test_leaf);
 }

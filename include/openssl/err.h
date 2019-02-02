@@ -26,9 +26,9 @@ extern "C" {
 #endif
 
 # ifndef OPENSSL_NO_ERR
-#  define ERR_PUT_error(a,b,c,d,e)        ERR_put_error(a,b,c,d,e)
+#  define ERR_PUT_error(a,b,c,d,e)        VR_ERR_put_error(a,b,c,d,e)
 # else
-#  define ERR_PUT_error(a,b,c,d,e)        ERR_put_error(a,b,c,NULL,0)
+#  define ERR_PUT_error(a,b,c,d,e)        VR_ERR_put_error(a,b,c,NULL,0)
 # endif
 
 # include <errno.h>
@@ -88,7 +88,7 @@ typedef struct err_state_st {
 # define ERR_LIB_FIPS            45
 # define ERR_LIB_CMS             46
 # define ERR_LIB_TS              47
-# define ERR_LIB_HMAC            48
+# define ERR_LIB_VR_HMAC            48
 /* # define ERR_LIB_JPAKE       49 */
 # define ERR_LIB_CT              50
 # define ERR_LIB_ASYNC           51
@@ -129,7 +129,7 @@ typedef struct err_state_st {
 # define FIPSerr(f,r) ERR_PUT_error(ERR_LIB_FIPS,(f),(r),OPENSSL_FILE,OPENSSL_LINE)
 # define CMSerr(f,r) ERR_PUT_error(ERR_LIB_CMS,(f),(r),OPENSSL_FILE,OPENSSL_LINE)
 # define TSerr(f,r) ERR_PUT_error(ERR_LIB_TS,(f),(r),OPENSSL_FILE,OPENSSL_LINE)
-# define HMACerr(f,r) ERR_PUT_error(ERR_LIB_HMAC,(f),(r),OPENSSL_FILE,OPENSSL_LINE)
+# define VR_HMACerr(f,r) ERR_PUT_error(ERR_LIB_VR_HMAC,(f),(r),OPENSSL_FILE,OPENSSL_LINE)
 # define CTerr(f,r) ERR_PUT_error(ERR_LIB_CT,(f),(r),OPENSSL_FILE,OPENSSL_LINE)
 # define ASYNCerr(f,r) ERR_PUT_error(ERR_LIB_ASYNC,(f),(r),OPENSSL_FILE,OPENSSL_LINE)
 # define KDFerr(f,r) ERR_PUT_error(ERR_LIB_KDF,(f),(r),OPENSSL_FILE,OPENSSL_LINE)
@@ -218,55 +218,55 @@ typedef struct ERR_string_data_st {
 
 DEFINE_LHASH_OF(ERR_STRING_DATA);
 
-void ERR_put_error(int lib, int func, int reason, const char *file, int line);
-void ERR_set_error_data(char *data, int flags);
+void VR_ERR_put_error(int lib, int func, int reason, const char *file, int line);
+void VR_ERR_set_error_data(char *data, int flags);
 
-unsigned long ERR_get_error(void);
-unsigned long ERR_get_error_line(const char **file, int *line);
-unsigned long ERR_get_error_line_data(const char **file, int *line,
+unsigned long VR_ERR_get_error(void);
+unsigned long VR_ERR_get_error_line(const char **file, int *line);
+unsigned long VR_ERR_get_error_line_data(const char **file, int *line,
                                       const char **data, int *flags);
-unsigned long ERR_peek_error(void);
-unsigned long ERR_peek_error_line(const char **file, int *line);
-unsigned long ERR_peek_error_line_data(const char **file, int *line,
+unsigned long VR_ERR_peek_error(void);
+unsigned long VR_ERR_peek_error_line(const char **file, int *line);
+unsigned long VR_ERR_peek_error_line_data(const char **file, int *line,
                                        const char **data, int *flags);
-unsigned long ERR_peek_last_error(void);
-unsigned long ERR_peek_last_error_line(const char **file, int *line);
-unsigned long ERR_peek_last_error_line_data(const char **file, int *line,
+unsigned long VR_ERR_peek_last_error(void);
+unsigned long VR_ERR_peek_last_error_line(const char **file, int *line);
+unsigned long VR_ERR_peek_last_error_line_data(const char **file, int *line,
                                             const char **data, int *flags);
-void ERR_clear_error(void);
-char *ERR_error_string(unsigned long e, char *buf);
-void ERR_error_string_n(unsigned long e, char *buf, size_t len);
-const char *ERR_lib_error_string(unsigned long e);
-const char *ERR_func_error_string(unsigned long e);
-const char *ERR_reason_error_string(unsigned long e);
-void ERR_print_errors_cb(int (*cb) (const char *str, size_t len, void *u),
+void VR_ERR_clear_error(void);
+char *VR_ERR_error_string(unsigned long e, char *buf);
+void VR_ERR_error_string_n(unsigned long e, char *buf, size_t len);
+const char *VR_ERR_lib_error_string(unsigned long e);
+const char *VR_ERR_func_error_string(unsigned long e);
+const char *VR_ERR_reason_error_string(unsigned long e);
+void VR_ERR_print_errors_cb(int (*cb) (const char *str, size_t len, void *u),
                          void *u);
 # ifndef OPENSSL_NO_STDIO
-void ERR_print_errors_fp(FILE *fp);
+void VR_ERR_print_errors_fp(FILE *fp);
 # endif
-void ERR_print_errors(BIO *bp);
-void ERR_add_error_data(int num, ...);
-void ERR_add_error_vdata(int num, va_list args);
-int ERR_load_strings(int lib, ERR_STRING_DATA *str);
-int ERR_load_strings_const(const ERR_STRING_DATA *str);
-int ERR_unload_strings(int lib, ERR_STRING_DATA *str);
-int ERR_load_ERR_strings(void);
+void VR_ERR_print_errors(BIO *bp);
+void VR_ERR_add_error_data(int num, ...);
+void VR_ERR_add_error_vdata(int num, va_list args);
+int VR_ERR_load_strings(int lib, ERR_STRING_DATA *str);
+int VR_ERR_load_strings_const(const ERR_STRING_DATA *str);
+int VR_ERR_unload_strings(int lib, ERR_STRING_DATA *str);
+int VR_ERR_load_ERR_strings(void);
 
 #if !OPENSSL_API_1_1_0
 # define ERR_load_crypto_strings() \
-    OPENSSL_init_crypto(OPENSSL_INIT_LOAD_CRYPTO_STRINGS, NULL)
+    VR_OPENSSL_init_crypto(OPENSSL_INIT_LOAD_CRYPTO_STRINGS, NULL)
 # define ERR_free_strings() while(0) continue
 #endif
 
-DEPRECATEDIN_1_1_0(void ERR_remove_thread_state(void *))
-DEPRECATEDIN_1_0_0(void ERR_remove_state(unsigned long pid))
-ERR_STATE *ERR_get_state(void);
+DEPRECATEDIN_1_1_0(void VR_ERR_remove_thread_state(void *))
+DEPRECATEDIN_1_0_0(void VR_ERR_remove_state(unsigned long pid))
+ERR_STATE *VR_ERR_get_state(void);
 
-int ERR_get_next_error_library(void);
+int VR_ERR_get_next_error_library(void);
 
-int ERR_set_mark(void);
-int ERR_pop_to_mark(void);
-int ERR_clear_last_mark(void);
+int VR_ERR_set_mark(void);
+int VR_ERR_pop_to_mark(void);
+int VR_ERR_clear_last_mark(void);
 
 #ifdef  __cplusplus
 }

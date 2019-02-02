@@ -48,7 +48,7 @@ static int test_tbl_standard(void)
     TEST_info("asn1 tbl_standard: out of order");
     for (tmp = tbl_standard, i = 0; i < OSSL_NELEM(tbl_standard); i++, tmp++)
         TEST_note("asn1 tbl_standard: Index %zu, NID %d, Name=%s",
-                  i, tmp->nid, OBJ_nid2ln(tmp->nid));
+                  i, tmp->nid, VR_OBJ_nid2ln(tmp->nid));
 
     return 0;
 }
@@ -88,7 +88,7 @@ static int test_standard_methods(void)
         if (!TEST_true(((*tmp)->pem_str == NULL && ((*tmp)->pkey_flags & ASN1_PKEY_ALIAS) != 0)
                        || ((*tmp)->pem_str != NULL && ((*tmp)->pkey_flags & ASN1_PKEY_ALIAS) == 0))) {
             TEST_note("asn1 standard methods: Index %zu, pkey ID %d, Name=%s",
-                      i, (*tmp)->pkey_id, OBJ_nid2sn((*tmp)->pkey_id));
+                      i, (*tmp)->pkey_id, VR_OBJ_nid2sn((*tmp)->pkey_id));
             ok = 0;
         }
     }
@@ -102,7 +102,7 @@ static int test_standard_methods(void)
     for (tmp = standard_methods, i = 0; i < OSSL_NELEM(standard_methods);
          i++, tmp++)
         TEST_note("asn1 standard methods: Index %zu, pkey ID %d, Name=%s",
-                  i, (*tmp)->pkey_id, OBJ_nid2sn((*tmp)->pkey_id));
+                  i, (*tmp)->pkey_id, VR_OBJ_nid2sn((*tmp)->pkey_id));
 
     return 0;
 }

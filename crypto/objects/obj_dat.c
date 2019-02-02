@@ -68,10 +68,10 @@ static unsigned long added_obj_hash(const ADDED_OBJ *ca)
             ret ^= p[i] << ((i * 3) % 24);
         break;
     case ADDED_SNAME:
-        ret = OPENSSL_LH_strhash(a->sn);
+        ret = VR_OPENSSL_LH_strhash(a->sn);
         break;
     case ADDED_LNAME:
-        ret = OPENSSL_LH_strhash(a->ln);
+        ret = VR_OPENSSL_LH_strhash(a->ln);
         break;
     case ADDED_NID:
         ret = a->nid;
@@ -127,7 +127,7 @@ static int init_added(void)
 {
     if (added != NULL)
         return 1;
-    added = lh_ADDED_OBJ_new(added_obj_hash, added_obj_cmp);
+    added = lh_VR_ADDED_OBJ_new(added_obj_hash, added_obj_cmp);
     return added != NULL;
 }
 
@@ -146,11 +146,11 @@ static void cleanup2_doall(ADDED_OBJ *a)
 static void cleanup3_doall(ADDED_OBJ *a)
 {
     if (--a->obj->nid == 0)
-        ASN1_OBJECT_free(a->obj);
-    OPENSSL_free(a);
+        VR_ASN1_OBJECT_free(a->obj);
+    OPENVR_SSL_free(a);
 }
 
-void obj_cleanup_int(void)
+void VR_obj_cleanup_int(void)
 {
     if (added == NULL)
         return;
@@ -158,11 +158,11 @@ void obj_cleanup_int(void)
     lh_ADDED_OBJ_doall(added, cleanup1_doall); /* zero counters */
     lh_ADDED_OBJ_doall(added, cleanup2_doall); /* set counters */
     lh_ADDED_OBJ_doall(added, cleanup3_doall); /* free objects */
-    lh_ADDED_OBJ_free(added);
+    lh_VR_ADDED_OBJ_free(added);
     added = NULL;
 }
 
-int OBJ_new_nid(int num)
+int VR_OBJ_new_nid(int num)
 {
     int i;
 
@@ -171,7 +171,7 @@ int OBJ_new_nid(int num)
     return i;
 }
 
-int OBJ_add_object(const ASN1_OBJECT *obj)
+int VR_OBJ_add_object(const ASN1_OBJECT *obj)
 {
     ASN1_OBJECT *o;
     ADDED_OBJ *ao[4] = { NULL, NULL, NULL, NULL }, *aop;
@@ -180,7 +180,7 @@ int OBJ_add_object(const ASN1_OBJECT *obj)
     if (added == NULL)
         if (!init_added())
             return 0;
-    if ((o = OBJ_dup(obj)) == NULL)
+    if ((o = VR_OBJ_dup(obj)) == NULL)
         goto err;
     if ((ao[ADDED_NID] = OPENSSL_malloc(sizeof(*ao[0]))) == NULL)
         goto err2;
@@ -200,7 +200,7 @@ int OBJ_add_object(const ASN1_OBJECT *obj)
             ao[i]->obj = o;
             aop = lh_ADDED_OBJ_insert(added, ao[i]);
             /* memory leak, but should not normally matter */
-            OPENSSL_free(aop);
+            OPENVR_SSL_free(aop);
         }
     }
     o->flags &=
@@ -212,12 +212,12 @@ int OBJ_add_object(const ASN1_OBJECT *obj)
     OBJerr(OBJ_F_OBJ_ADD_OBJECT, ERR_R_MALLOC_FAILURE);
  err:
     for (i = ADDED_DATA; i <= ADDED_NID; i++)
-        OPENSSL_free(ao[i]);
-    ASN1_OBJECT_free(o);
+        OPENVR_SSL_free(ao[i]);
+    VR_ASN1_OBJECT_free(o);
     return NID_undef;
 }
 
-ASN1_OBJECT *OBJ_nid2obj(int n)
+ASN1_OBJECT *VR_OBJ_nid2obj(int n)
 {
     ADDED_OBJ ad, *adp;
     ASN1_OBJECT ob;
@@ -244,7 +244,7 @@ ASN1_OBJECT *OBJ_nid2obj(int n)
     }
 }
 
-const char *OBJ_nid2sn(int n)
+const char *VR_OBJ_nid2sn(int n)
 {
     ADDED_OBJ ad, *adp;
     ASN1_OBJECT ob;
@@ -271,7 +271,7 @@ const char *OBJ_nid2sn(int n)
     }
 }
 
-const char *OBJ_nid2ln(int n)
+const char *VR_OBJ_nid2ln(int n)
 {
     ADDED_OBJ ad, *adp;
     ASN1_OBJECT ob;
@@ -314,7 +314,7 @@ static int obj_cmp(const ASN1_OBJECT *const *ap, const unsigned int *bp)
 
 IMPLEMENT_OBJ_BSEARCH_CMP_FN(const ASN1_OBJECT *, unsigned int, obj);
 
-int OBJ_obj2nid(const ASN1_OBJECT *a)
+int VR_OBJ_obj2nid(const ASN1_OBJECT *a)
 {
     const unsigned int *op;
     ADDED_OBJ ad, *adp;
@@ -334,7 +334,7 @@ int OBJ_obj2nid(const ASN1_OBJECT *a)
         if (adp != NULL)
             return adp->obj->nid;
     }
-    op = OBJ_bsearch_obj(&a, obj_objs, NUM_OBJ);
+    op = VR_OBJ_bsearch_obj(&a, obj_objs, NUM_OBJ);
     if (op == NULL)
         return NID_undef;
     return nid_objs[*op].nid;
@@ -343,11 +343,11 @@ int OBJ_obj2nid(const ASN1_OBJECT *a)
 /*
  * Convert an object name into an ASN1_OBJECT if "noname" is not set then
  * search for short and long names first. This will convert the "dotted" form
- * into an object: unlike OBJ_txt2nid it can be used with any objects, not
+ * into an object: unlike VR_OBJ_txt2nid it can be used with any objects, not
  * just registered ones.
  */
 
-ASN1_OBJECT *OBJ_txt2obj(const char *s, int no_name)
+ASN1_OBJECT *VR_OBJ_txt2obj(const char *s, int no_name)
 {
     int nid = NID_undef;
     ASN1_OBJECT *op;
@@ -357,22 +357,22 @@ ASN1_OBJECT *OBJ_txt2obj(const char *s, int no_name)
     int i, j;
 
     if (!no_name) {
-        if (((nid = OBJ_sn2nid(s)) != NID_undef) ||
-            ((nid = OBJ_ln2nid(s)) != NID_undef))
-            return OBJ_nid2obj(nid);
+        if (((nid = VR_OBJ_sn2nid(s)) != NID_undef) ||
+            ((nid = VR_OBJ_ln2nid(s)) != NID_undef))
+            return VR_OBJ_nid2obj(nid);
     }
 
     /* Work out size of content octets */
-    i = a2d_ASN1_OBJECT(NULL, 0, s, -1);
+    i = VR_a2d_ASN1_OBJECT(NULL, 0, s, -1);
     if (i <= 0) {
         /* Don't clear the error */
         /*
-         * ERR_clear_error();
+         * VR_ERR_clear_error();
          */
         return NULL;
     }
     /* Work out total size */
-    j = ASN1_object_size(0, i, V_ASN1_OBJECT);
+    j = VR_ASN1_object_size(0, i, V_ASN1_OBJECT);
     if (j < 0)
         return NULL;
 
@@ -383,17 +383,17 @@ ASN1_OBJECT *OBJ_txt2obj(const char *s, int no_name)
 
     p = buf;
     /* Write out tag+length */
-    ASN1_put_object(&p, 0, i, V_ASN1_OBJECT, V_ASN1_UNIVERSAL);
+    VR_ASN1_put_object(&p, 0, i, V_ASN1_OBJECT, V_ASN1_UNIVERSAL);
     /* Write out contents */
-    a2d_ASN1_OBJECT(p, i, s, -1);
+    VR_a2d_ASN1_OBJECT(p, i, s, -1);
 
     cp = buf;
-    op = d2i_ASN1_OBJECT(NULL, &cp, j);
-    OPENSSL_free(buf);
+    op = VR_d2i_ASN1_OBJECT(NULL, &cp, j);
+    OPENVR_SSL_free(buf);
     return op;
 }
 
-int OBJ_obj2txt(char *buf, int buf_len, const ASN1_OBJECT *a, int no_name)
+int VR_OBJ_obj2txt(char *buf, int buf_len, const ASN1_OBJECT *a, int no_name)
 {
     int i, n = 0, len, nid, first, use_bn;
     BIGNUM *bl;
@@ -408,14 +408,14 @@ int OBJ_obj2txt(char *buf, int buf_len, const ASN1_OBJECT *a, int no_name)
     if ((a == NULL) || (a->data == NULL))
         return 0;
 
-    if (!no_name && (nid = OBJ_obj2nid(a)) != NID_undef) {
+    if (!no_name && (nid = VR_OBJ_obj2nid(a)) != NID_undef) {
         const char *s;
-        s = OBJ_nid2ln(nid);
+        s = VR_OBJ_nid2ln(nid);
         if (s == NULL)
-            s = OBJ_nid2sn(nid);
+            s = VR_OBJ_nid2sn(nid);
         if (s) {
             if (buf)
-                OPENSSL_strlcpy(buf, s, buf_len);
+                VR_OPENSSL_strlcpy(buf, s, buf_len);
             n = strlen(s);
             return n;
         }
@@ -436,21 +436,21 @@ int OBJ_obj2txt(char *buf, int buf_len, const ASN1_OBJECT *a, int no_name)
             if ((len == 0) && (c & 0x80))
                 goto err;
             if (use_bn) {
-                if (!BN_add_word(bl, c & 0x7f))
+                if (!VR_BN_add_word(bl, c & 0x7f))
                     goto err;
             } else
                 l |= c & 0x7f;
             if (!(c & 0x80))
                 break;
             if (!use_bn && (l > (ULONG_MAX >> 7L))) {
-                if (bl == NULL && (bl = BN_new()) == NULL)
+                if (bl == NULL && (bl = VR_BN_new()) == NULL)
                     goto err;
-                if (!BN_set_word(bl, l))
+                if (!VR_BN_set_word(bl, l))
                     goto err;
                 use_bn = 1;
             }
             if (use_bn) {
-                if (!BN_lshift(bl, bl, 7))
+                if (!VR_BN_lshift(bl, bl, 7))
                     goto err;
             } else
                 l <<= 7L;
@@ -461,7 +461,7 @@ int OBJ_obj2txt(char *buf, int buf_len, const ASN1_OBJECT *a, int no_name)
             if (l >= 80) {
                 i = 2;
                 if (use_bn) {
-                    if (!BN_sub_word(bl, 80))
+                    if (!VR_BN_sub_word(bl, 80))
                         goto err;
                 } else
                     l -= 80;
@@ -479,7 +479,7 @@ int OBJ_obj2txt(char *buf, int buf_len, const ASN1_OBJECT *a, int no_name)
 
         if (use_bn) {
             char *bndec;
-            bndec = BN_bn2dec(bl);
+            bndec = VR_BN_bn2dec(bl);
             if (!bndec)
                 goto err;
             i = strlen(bndec);
@@ -489,7 +489,7 @@ int OBJ_obj2txt(char *buf, int buf_len, const ASN1_OBJECT *a, int no_name)
                     *buf = '\0';
                     buf_len--;
                 }
-                OPENSSL_strlcpy(buf, bndec, buf_len);
+                VR_OPENSSL_strlcpy(buf, bndec, buf_len);
                 if (i > buf_len) {
                     buf += buf_len;
                     buf_len = 0;
@@ -500,12 +500,12 @@ int OBJ_obj2txt(char *buf, int buf_len, const ASN1_OBJECT *a, int no_name)
             }
             n++;
             n += i;
-            OPENSSL_free(bndec);
+            OPENVR_SSL_free(bndec);
         } else {
-            BIO_snprintf(tbuf, sizeof(tbuf), ".%lu", l);
+            VR_BIO_snprintf(tbuf, sizeof(tbuf), ".%lu", l);
             i = strlen(tbuf);
             if (buf && (buf_len > 0)) {
-                OPENSSL_strlcpy(buf, tbuf, buf_len);
+                VR_OPENSSL_strlcpy(buf, tbuf, buf_len);
                 if (i > buf_len) {
                     buf += buf_len;
                     buf_len = 0;
@@ -519,25 +519,25 @@ int OBJ_obj2txt(char *buf, int buf_len, const ASN1_OBJECT *a, int no_name)
         }
     }
 
-    BN_free(bl);
+    VR_BN_free(bl);
     return n;
 
  err:
-    BN_free(bl);
+    VR_BN_free(bl);
     return -1;
 }
 
-int OBJ_txt2nid(const char *s)
+int VR_OBJ_txt2nid(const char *s)
 {
     ASN1_OBJECT *obj;
     int nid;
-    obj = OBJ_txt2obj(s, 0);
-    nid = OBJ_obj2nid(obj);
-    ASN1_OBJECT_free(obj);
+    obj = VR_OBJ_txt2obj(s, 0);
+    nid = VR_OBJ_obj2nid(obj);
+    VR_ASN1_OBJECT_free(obj);
     return nid;
 }
 
-int OBJ_ln2nid(const char *s)
+int VR_OBJ_ln2nid(const char *s)
 {
     ASN1_OBJECT o;
     const ASN1_OBJECT *oo = &o;
@@ -552,13 +552,13 @@ int OBJ_ln2nid(const char *s)
         if (adp != NULL)
             return adp->obj->nid;
     }
-    op = OBJ_bsearch_ln(&oo, ln_objs, NUM_LN);
+    op = VR_OBJ_bsearch_ln(&oo, ln_objs, NUM_LN);
     if (op == NULL)
         return NID_undef;
     return nid_objs[*op].nid;
 }
 
-int OBJ_sn2nid(const char *s)
+int VR_OBJ_sn2nid(const char *s)
 {
     ASN1_OBJECT o;
     const ASN1_OBJECT *oo = &o;
@@ -573,19 +573,19 @@ int OBJ_sn2nid(const char *s)
         if (adp != NULL)
             return adp->obj->nid;
     }
-    op = OBJ_bsearch_sn(&oo, sn_objs, NUM_SN);
+    op = VR_OBJ_bsearch_sn(&oo, sn_objs, NUM_SN);
     if (op == NULL)
         return NID_undef;
     return nid_objs[*op].nid;
 }
 
-const void *OBJ_bsearch_(const void *key, const void *base, int num, int size,
+const void *VR_OBJ_bsearch_(const void *key, const void *base, int num, int size,
                          int (*cmp) (const void *, const void *))
 {
-    return OBJ_bsearch_ex_(key, base, num, size, cmp, 0);
+    return VR_OBJ_bsearch_ex_(key, base, num, size, cmp, 0);
 }
 
-const void *OBJ_bsearch_ex_(const void *key, const void *base_, int num,
+const void *VR_OBJ_bsearch_ex_(const void *key, const void *base_, int num,
                             int size,
                             int (*cmp) (const void *, const void *),
                             int flags)
@@ -638,7 +638,7 @@ const void *OBJ_bsearch_ex_(const void *key, const void *base_, int num,
  * Parse a BIO sink to create some extra oid's objects.
  * Line format:<OID:isdigit or '.']><isspace><SN><isspace><LN>
  */
-int OBJ_create_objects(BIO *in)
+int VR_OBJ_create_objects(BIO *in)
 {
     char buf[512];
     int i, num = 0;
@@ -646,7 +646,7 @@ int OBJ_create_objects(BIO *in)
 
     for (;;) {
         s = o = NULL;
-        i = BIO_gets(in, buf, 512);
+        i = VR_BIO_gets(in, buf, 512);
         if (i <= 0)
             return num;
         buf[i - 1] = '\0';
@@ -681,57 +681,57 @@ int OBJ_create_objects(BIO *in)
         }
         if (*o == '\0')
             return num;
-        if (!OBJ_create(o, s, l))
+        if (!VR_OBJ_create(o, s, l))
             return num;
         num++;
     }
 }
 
-int OBJ_create(const char *oid, const char *sn, const char *ln)
+int VR_OBJ_create(const char *oid, const char *sn, const char *ln)
 {
     ASN1_OBJECT *tmpoid = NULL;
     int ok = 0;
 
     /* Check to see if short or long name already present */
-    if ((sn != NULL && OBJ_sn2nid(sn) != NID_undef)
-            || (ln != NULL && OBJ_ln2nid(ln) != NID_undef)) {
+    if ((sn != NULL && VR_OBJ_sn2nid(sn) != NID_undef)
+            || (ln != NULL && VR_OBJ_ln2nid(ln) != NID_undef)) {
         OBJerr(OBJ_F_OBJ_CREATE, OBJ_R_OID_EXISTS);
         return 0;
     }
 
     /* Convert numerical OID string to an ASN1_OBJECT structure */
-    tmpoid = OBJ_txt2obj(oid, 1);
+    tmpoid = VR_OBJ_txt2obj(oid, 1);
     if (tmpoid == NULL)
         return 0;
 
     /* If NID is not NID_undef then object already exists */
-    if (OBJ_obj2nid(tmpoid) != NID_undef) {
+    if (VR_OBJ_obj2nid(tmpoid) != NID_undef) {
         OBJerr(OBJ_F_OBJ_CREATE, OBJ_R_OID_EXISTS);
         goto err;
     }
 
-    tmpoid->nid = OBJ_new_nid(1);
+    tmpoid->nid = VR_OBJ_new_nid(1);
     tmpoid->sn = (char *)sn;
     tmpoid->ln = (char *)ln;
 
-    ok = OBJ_add_object(tmpoid);
+    ok = VR_OBJ_add_object(tmpoid);
 
     tmpoid->sn = NULL;
     tmpoid->ln = NULL;
 
  err:
-    ASN1_OBJECT_free(tmpoid);
+    VR_ASN1_OBJECT_free(tmpoid);
     return ok;
 }
 
-size_t OBJ_length(const ASN1_OBJECT *obj)
+size_t VR_OBJ_length(const ASN1_OBJECT *obj)
 {
     if (obj == NULL)
         return 0;
     return obj->length;
 }
 
-const unsigned char *OBJ_get0_data(const ASN1_OBJECT *obj)
+const unsigned char *VR_OBJ_get0_data(const ASN1_OBJECT *obj)
 {
     if (obj == NULL)
         return NULL;

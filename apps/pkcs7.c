@@ -59,7 +59,7 @@ int pkcs7_main(int argc, char **argv)
         case OPT_EOF:
         case OPT_ERR:
  opthelp:
-            BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
+            VR_BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
             opt_help(pkcs7_options);
@@ -105,12 +105,12 @@ int pkcs7_main(int argc, char **argv)
         goto end;
 
     if (informat == FORMAT_ASN1)
-        p7 = d2i_PKCS7_bio(in, NULL);
+        p7 = VR_d2i_PKCS7_bio(in, NULL);
     else
-        p7 = PEM_read_bio_PKCS7(in, NULL, NULL, NULL);
+        p7 = VR_PEM_read_bio_PKCS7(in, NULL, NULL, NULL);
     if (p7 == NULL) {
-        BIO_printf(bio_err, "unable to load PKCS7 object\n");
-        ERR_print_errors(bio_err);
+        VR_BIO_printf(bio_err, "unable to load PKCS7 object\n");
+        VR_ERR_print_errors(bio_err);
         goto end;
     }
 
@@ -119,13 +119,13 @@ int pkcs7_main(int argc, char **argv)
         goto end;
 
     if (p7_print)
-        PKCS7_print_ctx(out, p7, 0, NULL);
+        VR_PKCS7_print_ctx(out, p7, 0, NULL);
 
     if (print_certs) {
         STACK_OF(X509) *certs = NULL;
         STACK_OF(X509_CRL) *crls = NULL;
 
-        i = OBJ_obj2nid(p7->type);
+        i = VR_OBJ_obj2nid(p7->type);
         switch (i) {
         case NID_pkcs7_signed:
             if (p7->d.sign != NULL) {
@@ -149,13 +149,13 @@ int pkcs7_main(int argc, char **argv)
             for (i = 0; i < sk_X509_num(certs); i++) {
                 x = sk_X509_value(certs, i);
                 if (text)
-                    X509_print(out, x);
+                    VR_X509_print(out, x);
                 else
                     dump_cert_text(out, x);
 
                 if (!noout)
-                    PEM_write_bio_X509(out, x);
-                BIO_puts(out, "\n");
+                    VR_PEM_write_bio_X509(out, x);
+                VR_BIO_puts(out, "\n");
             }
         }
         if (crls != NULL) {
@@ -164,11 +164,11 @@ int pkcs7_main(int argc, char **argv)
             for (i = 0; i < sk_X509_CRL_num(crls); i++) {
                 crl = sk_X509_CRL_value(crls, i);
 
-                X509_CRL_print_ex(out, crl, get_nameopt());
+                VR_X509_CRL_print_ex(out, crl, get_nameopt());
 
                 if (!noout)
-                    PEM_write_bio_X509_CRL(out, crl);
-                BIO_puts(out, "\n");
+                    VR_PEM_write_bio_X509_CRL(out, crl);
+                VR_BIO_puts(out, "\n");
             }
         }
 
@@ -178,21 +178,21 @@ int pkcs7_main(int argc, char **argv)
 
     if (!noout) {
         if (outformat == FORMAT_ASN1)
-            i = i2d_PKCS7_bio(out, p7);
+            i = VR_i2d_PKCS7_bio(out, p7);
         else
-            i = PEM_write_bio_PKCS7(out, p7);
+            i = VR_PEM_write_bio_PKCS7(out, p7);
 
         if (!i) {
-            BIO_printf(bio_err, "unable to write pkcs7 object\n");
-            ERR_print_errors(bio_err);
+            VR_BIO_printf(bio_err, "unable to write pkcs7 object\n");
+            VR_ERR_print_errors(bio_err);
             goto end;
         }
     }
     ret = 0;
  end:
-    PKCS7_free(p7);
+    VR_PKCS7_free(p7);
     release_engine(e);
-    BIO_free(in);
-    BIO_free_all(out);
+    VR_BIO_free(in);
+    VR_BIO_free_all(out);
     return ret;
 }

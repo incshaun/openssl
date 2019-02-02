@@ -63,22 +63,22 @@ static SUB_STATE_RETURN read_state_machine(SSL *s);
 static void init_write_state_machine(SSL *s);
 static SUB_STATE_RETURN write_state_machine(SSL *s);
 
-OSSL_HANDSHAKE_STATE SSL_get_state(const SSL *ssl)
+OSSL_HANDSHAKE_STATE VR_SSL_get_state(const SSL *ssl)
 {
     return ssl->statem.hand_state;
 }
 
-int SSL_in_init(const SSL *s)
+int VR_SSL_in_init(const SSL *s)
 {
     return s->statem.in_init;
 }
 
-int SSL_is_init_finished(const SSL *s)
+int VR_SSL_is_init_finished(const SSL *s)
 {
     return !(s->statem.in_init) && (s->statem.hand_state == TLS_ST_OK);
 }
 
-int SSL_in_before(const SSL *s)
+int VR_SSL_in_before(const SSL *s)
 {
     /*
      * Historically being "in before" meant before anything had happened. In the
@@ -94,7 +94,7 @@ int SSL_in_before(const SSL *s)
 /*
  * Clear the state machine state and reset back to MSG_FLOW_UNINITED
  */
-void ossl_statem_clear(SSL *s)
+void VR_ossl_statem_clear(SSL *s)
 {
     s->statem.state = MSG_FLOW_UNINITED;
     s->statem.hand_state = TLS_ST_BEFORE;
@@ -105,7 +105,7 @@ void ossl_statem_clear(SSL *s)
 /*
  * Set the state machine up ready for a renegotiation handshake
  */
-void ossl_statem_set_renegotiate(SSL *s)
+void VR_ossl_statem_set_renegotiate(SSL *s)
 {
     s->statem.in_init = 1;
     s->statem.request_state = TLS_ST_SW_HELLO_REQ;
@@ -115,10 +115,10 @@ void ossl_statem_set_renegotiate(SSL *s)
  * Put the state machine into an error state and send an alert if appropriate.
  * This is a permanent error for the current connection.
  */
-void ossl_statem_fatal(SSL *s, int al, int func, int reason, const char *file,
+void VR_ossl_statem_fatal(SSL *s, int al, int func, int reason, const char *file,
                        int line)
 {
-    ERR_put_error(ERR_LIB_SSL, func, reason, file, line);
+    VR_ERR_put_error(ERR_LIB_SSL, func, reason, file, line);
     /* We shouldn't call SSLfatal() twice. Once is enough */
     if (s->statem.in_init && s->statem.state == MSG_FLOW_ERROR)
       return;
@@ -126,7 +126,7 @@ void ossl_statem_fatal(SSL *s, int al, int func, int reason, const char *file,
     s->statem.state = MSG_FLOW_ERROR;
     if (al != SSL_AD_NO_ALERT
             && s->statem.enc_write_state != ENC_WRITE_STATE_INVALID)
-        ssl3_send_alert(s, SSL3_AL_FATAL, al);
+        VR_ssl3_send_alert(s, SSL3_AL_FATAL, al);
 }
 
 /*
@@ -149,7 +149,7 @@ void ossl_statem_fatal(SSL *s, int al, int func, int reason, const char *file,
  *   1: Yes
  *   0: No
  */
-int ossl_statem_in_error(const SSL *s)
+int VR_ossl_statem_in_error(const SSL *s)
 {
     if (s->statem.state == MSG_FLOW_ERROR)
         return 1;
@@ -157,17 +157,17 @@ int ossl_statem_in_error(const SSL *s)
     return 0;
 }
 
-void ossl_statem_set_in_init(SSL *s, int init)
+void VR_ossl_statem_set_in_init(SSL *s, int init)
 {
     s->statem.in_init = init;
 }
 
-int ossl_statem_get_in_handshake(SSL *s)
+int VR_ossl_statem_get_in_handshake(SSL *s)
 {
     return s->statem.in_handshake;
 }
 
-void ossl_statem_set_in_handshake(SSL *s, int inhand)
+void VR_ossl_statem_set_in_handshake(SSL *s, int inhand)
 {
     if (inhand)
         s->statem.in_handshake++;
@@ -176,7 +176,7 @@ void ossl_statem_set_in_handshake(SSL *s, int inhand)
 }
 
 /* Are we in a sensible state to skip over unreadable early data? */
-int ossl_statem_skip_early_data(SSL *s)
+int VR_ossl_statem_skip_early_data(SSL *s)
 {
     if (s->ext.early_data != SSL_EARLY_DATA_REJECTED)
         return 0;
@@ -190,22 +190,22 @@ int ossl_statem_skip_early_data(SSL *s)
 }
 
 /*
- * Called when we are in SSL_read*(), SSL_write*(), or SSL_accept()
- * /SSL_connect()/SSL_do_handshake(). Used to test whether we are in an early
+ * Called when we are in VR_SSL_read*(), VR_SSL_write*(), or VR_SSL_accept()
+ * /VR_SSL_connect()/VR_SSL_do_handshake(). Used to test whether we are in an early
  * data state and whether we should attempt to move the handshake on if so.
- * |sending| is 1 if we are attempting to send data (SSL_write*()), 0 if we are
- * attempting to read data (SSL_read*()), or -1 if we are in SSL_do_handshake()
+ * |sending| is 1 if we are attempting to send data (VR_SSL_write*()), 0 if we are
+ * attempting to read data (VR_SSL_read*()), or -1 if we are in VR_SSL_do_handshake()
  * or similar.
  */
-void ossl_statem_check_finish_init(SSL *s, int sending)
+void VR_ossl_statem_check_finish_init(SSL *s, int sending)
 {
     if (sending == -1) {
         if (s->statem.hand_state == TLS_ST_PENDING_EARLY_DATA_END
                 || s->statem.hand_state == TLS_ST_EARLY_DATA) {
-            ossl_statem_set_in_init(s, 1);
+            VR_ossl_statem_set_in_init(s, 1);
             if (s->early_data_state == SSL_EARLY_DATA_WRITE_RETRY) {
                 /*
-                 * SSL_connect() or SSL_do_handshake() has been called directly.
+                 * VR_SSL_connect() or VR_SSL_do_handshake() has been called directly.
                  * We don't allow any more writing of early data.
                  */
                 s->early_data_state = SSL_EARLY_DATA_FINISHED_WRITING;
@@ -216,9 +216,9 @@ void ossl_statem_check_finish_init(SSL *s, int sending)
                       || s->statem.hand_state == TLS_ST_EARLY_DATA)
                   && s->early_data_state != SSL_EARLY_DATA_WRITING)
                 || (!sending && s->statem.hand_state == TLS_ST_EARLY_DATA)) {
-            ossl_statem_set_in_init(s, 1);
+            VR_ossl_statem_set_in_init(s, 1);
             /*
-             * SSL_write() has been called directly. We don't allow any more
+             * VR_SSL_write() has been called directly. We don't allow any more
              * writing of early data.
              */
             if (sending && s->early_data_state == SSL_EARLY_DATA_WRITE_RETRY)
@@ -227,30 +227,30 @@ void ossl_statem_check_finish_init(SSL *s, int sending)
     } else {
         if (s->early_data_state == SSL_EARLY_DATA_FINISHED_READING
                 && s->statem.hand_state == TLS_ST_EARLY_DATA)
-            ossl_statem_set_in_init(s, 1);
+            VR_ossl_statem_set_in_init(s, 1);
     }
 }
 
-void ossl_statem_set_hello_verify_done(SSL *s)
+void VR_ossl_statem_set_hello_verify_done(SSL *s)
 {
     s->statem.state = MSG_FLOW_UNINITED;
     s->statem.in_init = 1;
     /*
      * This will get reset (briefly) back to TLS_ST_BEFORE when we enter
      * state_machine() because |state| is MSG_FLOW_UNINITED, but until then any
-     * calls to SSL_in_before() will return false. Also calls to
-     * SSL_state_string() and SSL_state_string_long() will return something
+     * calls to VR_SSL_in_before() will return false. Also calls to
+     * VR_SSL_state_string() and VR_SSL_state_string_long() will return something
      * sensible.
      */
     s->statem.hand_state = TLS_ST_SR_CLNT_HELLO;
 }
 
-int ossl_statem_connect(SSL *s)
+int VR_ossl_statem_connect(SSL *s)
 {
     return state_machine(s, 0);
 }
 
-int ossl_statem_accept(SSL *s)
+int VR_ossl_statem_accept(SSL *s)
 {
     return state_machine(s, 1);
 }
@@ -308,27 +308,27 @@ static int state_machine(SSL *s, int server)
         return -1;
     }
 
-    ERR_clear_error();
+    VR_ERR_clear_error();
     clear_sys_error();
 
     cb = get_callback(s);
 
     st->in_handshake++;
-    if (!SSL_in_init(s) || SSL_in_before(s)) {
+    if (!VR_SSL_in_init(s) || VR_SSL_in_before(s)) {
         /*
-         * If we are stateless then we already called SSL_clear() - don't do
+         * If we are stateless then we already called VR_SSL_clear() - don't do
          * it again and clear the STATELESS flag itself.
          */
-        if ((s->s3->flags & TLS1_FLAGS_STATELESS) == 0 && !SSL_clear(s))
+        if ((s->s3->flags & TLS1_FLAGS_STATELESS) == 0 && !VR_SSL_clear(s))
             return -1;
     }
 #ifndef OPENSSL_NO_SCTP
-    if (SSL_IS_DTLS(s) && BIO_dgram_is_sctp(SSL_get_wbio(s))) {
+    if (SSL_IS_DTLS(s) && BIO_dgram_is_sctp(VR_SSL_get_wbio(s))) {
         /*
          * Notify SCTP BIO socket to enter handshake mode and prevent stream
          * identifier other than 0.
          */
-        BIO_ctrl(SSL_get_wbio(s), BIO_CTRL_DGRAM_SCTP_SET_IN_HANDSHAKE,
+        VR_BIO_ctrl(VR_SSL_get_wbio(s), BIO_CTRL_DGRAM_SCTP_SET_IN_HANDSHAKE,
                  st->in_handshake, NULL);
     }
 #endif
@@ -366,19 +366,19 @@ static int state_machine(SSL *s, int server)
             }
         }
 
-        if (!ssl_security(s, SSL_SECOP_VERSION, 0, s->version, NULL)) {
+        if (!VR_ssl_security(s, SSL_SECOP_VERSION, 0, s->version, NULL)) {
             SSLfatal(s, SSL_AD_NO_ALERT, SSL_F_STATE_MACHINE,
                      ERR_R_INTERNAL_ERROR);
             goto end;
         }
 
         if (s->init_buf == NULL) {
-            if ((buf = BUF_MEM_new()) == NULL) {
+            if ((buf = VR_BUF_MEM_new()) == NULL) {
                 SSLfatal(s, SSL_AD_NO_ALERT, SSL_F_STATE_MACHINE,
                          ERR_R_INTERNAL_ERROR);
                 goto end;
             }
-            if (!BUF_MEM_grow(buf, SSL3_RT_MAX_PLAIN_LENGTH)) {
+            if (!VR_BUF_MEM_grow(buf, SSL3_RT_MAX_PLAIN_LENGTH)) {
                 SSLfatal(s, SSL_AD_NO_ALERT, SSL_F_STATE_MACHINE,
                          ERR_R_INTERNAL_ERROR);
                 goto end;
@@ -387,7 +387,7 @@ static int state_machine(SSL *s, int server)
             buf = NULL;
         }
 
-        if (!ssl3_setup_buffers(s)) {
+        if (!VR_ssl3_setup_buffers(s)) {
             SSLfatal(s, SSL_AD_NO_ALERT, SSL_F_STATE_MACHINE,
                      ERR_R_INTERNAL_ERROR);
             goto end;
@@ -395,7 +395,7 @@ static int state_machine(SSL *s, int server)
         s->init_num = 0;
 
         /*
-         * Should have been reset by tls_process_finished, too.
+         * Should have been reset by VR_tls_process_finished, too.
          */
         s->s3->change_cipher_spec = 0;
 
@@ -404,17 +404,17 @@ static int state_machine(SSL *s, int server)
          * SCTP
          */
 #ifndef OPENSSL_NO_SCTP
-        if (!SSL_IS_DTLS(s) || !BIO_dgram_is_sctp(SSL_get_wbio(s)))
+        if (!SSL_IS_DTLS(s) || !BIO_dgram_is_sctp(VR_SSL_get_wbio(s)))
 #endif
-            if (!ssl_init_wbio_buffer(s)) {
+            if (!VR_ssl_init_wbio_buffer(s)) {
                 SSLfatal(s, SSL_AD_NO_ALERT, SSL_F_STATE_MACHINE,
                          ERR_R_INTERNAL_ERROR);
                 goto end;
             }
 
-        if ((SSL_in_before(s))
+        if ((VR_SSL_in_before(s))
                 || s->renegotiate) {
-            if (!tls_setup_handshake(s)) {
+            if (!VR_tls_setup_handshake(s)) {
                 /* SSLfatal() already called */
                 goto end;
             }
@@ -462,17 +462,17 @@ static int state_machine(SSL *s, int server)
     st->in_handshake--;
 
 #ifndef OPENSSL_NO_SCTP
-    if (SSL_IS_DTLS(s) && BIO_dgram_is_sctp(SSL_get_wbio(s))) {
+    if (SSL_IS_DTLS(s) && BIO_dgram_is_sctp(VR_SSL_get_wbio(s))) {
         /*
          * Notify SCTP BIO socket to leave handshake mode and allow stream
          * identifier other than 0.
          */
-        BIO_ctrl(SSL_get_wbio(s), BIO_CTRL_DGRAM_SCTP_SET_IN_HANDSHAKE,
+        VR_BIO_ctrl(VR_SSL_get_wbio(s), BIO_CTRL_DGRAM_SCTP_SET_IN_HANDSHAKE,
                  st->in_handshake, NULL);
     }
 #endif
 
-    BUF_MEM_free(buf);
+    VR_BUF_MEM_free(buf);
     if (cb != NULL) {
         if (server)
             cb(s, SSL_CB_ACCEPT_EXIT, ret);
@@ -496,7 +496,7 @@ static int grow_init_buf(SSL *s, size_t size) {
 
     size_t msg_offset = (char *)s->init_msg - s->init_buf->data;
 
-    if (!BUF_MEM_grow_clean(s->init_buf, (int)size))
+    if (!VR_BUF_MEM_grow_clean(s->init_buf, (int)size))
         return 0;
 
     if (size < msg_offset)
@@ -548,15 +548,15 @@ static SUB_STATE_RETURN read_state_machine(SSL *s)
     cb = get_callback(s);
 
     if (s->server) {
-        transition = ossl_statem_server_read_transition;
-        process_message = ossl_statem_server_process_message;
-        max_message_size = ossl_statem_server_max_message_size;
-        post_process_message = ossl_statem_server_post_process_message;
+        transition = VR_ossl_statem_server_read_transition;
+        process_message = VR_ossl_statem_server_process_message;
+        max_message_size = VR_ossl_statem_server_max_message_size;
+        post_process_message = VR_ossl_statem_server_post_process_message;
     } else {
-        transition = ossl_statem_client_read_transition;
-        process_message = ossl_statem_client_process_message;
-        max_message_size = ossl_statem_client_max_message_size;
-        post_process_message = ossl_statem_client_post_process_message;
+        transition = VR_ossl_statem_client_read_transition;
+        process_message = VR_ossl_statem_client_process_message;
+        max_message_size = VR_ossl_statem_client_max_message_size;
+        post_process_message = VR_ossl_statem_client_post_process_message;
     }
 
     if (st->read_state_first_init) {
@@ -572,9 +572,9 @@ static SUB_STATE_RETURN read_state_machine(SSL *s)
                 /*
                  * In DTLS we get the whole message in one go - header and body
                  */
-                ret = dtls_get_message(s, &mt, &len);
+                ret = VR_dtls_get_message(s, &mt, &len);
             } else {
-                ret = tls_get_message_header(s, &mt);
+                ret = VR_tls_get_message_header(s, &mt);
             }
 
             if (ret == 0) {
@@ -602,7 +602,7 @@ static SUB_STATE_RETURN read_state_machine(SSL *s)
                 return SUB_STATE_ERROR;
             }
 
-            /* dtls_get_message already did this */
+            /* VR_dtls_get_message already did this */
             if (!SSL_IS_DTLS(s)
                     && s->s3->tmp.message_size > 0
                     && !grow_init_buf(s, s->s3->tmp.message_size
@@ -618,7 +618,7 @@ static SUB_STATE_RETURN read_state_machine(SSL *s)
         case READ_STATE_BODY:
             if (!SSL_IS_DTLS(s)) {
                 /* We already got this above for DTLS */
-                ret = tls_get_message_body(s, &len);
+                ret = VR_tls_get_message_body(s, &len);
                 if (ret == 0) {
                     /* Could be non-blocking IO */
                     return SUB_STATE_ERROR;
@@ -643,7 +643,7 @@ static SUB_STATE_RETURN read_state_machine(SSL *s)
 
             case MSG_PROCESS_FINISHED_READING:
                 if (SSL_IS_DTLS(s)) {
-                    dtls1_stop_timer(s);
+                    VR_dtls1_stop_timer(s);
                 }
                 return SUB_STATE_FINISHED;
 
@@ -675,7 +675,7 @@ static SUB_STATE_RETURN read_state_machine(SSL *s)
 
             case WORK_FINISHED_STOP:
                 if (SSL_IS_DTLS(s)) {
-                    dtls1_stop_timer(s);
+                    VR_dtls1_stop_timer(s);
                 }
                 return SUB_STATE_FINISHED;
             }
@@ -700,9 +700,9 @@ static int statem_do_write(SSL *s)
     if (st->hand_state == TLS_ST_CW_CHANGE
         || st->hand_state == TLS_ST_SW_CHANGE) {
         if (SSL_IS_DTLS(s))
-            return dtls1_do_write(s, SSL3_RT_CHANGE_CIPHER_SPEC);
+            return VR_dtls1_do_write(s, SSL3_RT_CHANGE_CIPHER_SPEC);
         else
-            return ssl3_do_write(s, SSL3_RT_CHANGE_CIPHER_SPEC);
+            return VR_ssl3_do_write(s, SSL3_RT_CHANGE_CIPHER_SPEC);
     } else {
         return ssl_do_write(s);
     }
@@ -767,15 +767,15 @@ static SUB_STATE_RETURN write_state_machine(SSL *s)
     cb = get_callback(s);
 
     if (s->server) {
-        transition = ossl_statem_server_write_transition;
-        pre_work = ossl_statem_server_pre_work;
-        post_work = ossl_statem_server_post_work;
-        get_construct_message_f = ossl_statem_server_construct_message;
+        transition = VR_ossl_statem_server_write_transition;
+        pre_work = VR_ossl_statem_server_pre_work;
+        post_work = VR_ossl_statem_server_post_work;
+        get_construct_message_f = VR_ossl_statem_server_construct_message;
     } else {
-        transition = ossl_statem_client_write_transition;
-        pre_work = ossl_statem_client_pre_work;
-        post_work = ossl_statem_client_post_work;
-        get_construct_message_f = ossl_statem_client_construct_message;
+        transition = VR_ossl_statem_client_write_transition;
+        pre_work = VR_ossl_statem_client_pre_work;
+        post_work = VR_ossl_statem_client_post_work;
+        get_construct_message_f = VR_ossl_statem_client_construct_message;
     }
 
     while (1) {
@@ -831,21 +831,21 @@ static SUB_STATE_RETURN write_state_machine(SSL *s)
                 st->write_state_work = WORK_MORE_A;
                 break;
             }
-            if (!WPACKET_init(&pkt, s->init_buf)
+            if (!VR_WPACKET_init(&pkt, s->init_buf)
                     || !ssl_set_handshake_header(s, &pkt, mt)) {
-                WPACKET_cleanup(&pkt);
+                VR_WPACKET_cleanup(&pkt);
                 SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_WRITE_STATE_MACHINE,
                          ERR_R_INTERNAL_ERROR);
                 return SUB_STATE_ERROR;
             }
             if (confunc != NULL && !confunc(s, &pkt)) {
-                WPACKET_cleanup(&pkt);
+                VR_WPACKET_cleanup(&pkt);
                 check_fatal(s, SSL_F_WRITE_STATE_MACHINE);
                 return SUB_STATE_ERROR;
             }
             if (!ssl_close_construct_packet(s, &pkt, mt)
-                    || !WPACKET_finish(&pkt)) {
-                WPACKET_cleanup(&pkt);
+                    || !VR_WPACKET_finish(&pkt)) {
+                VR_WPACKET_cleanup(&pkt);
                 SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_WRITE_STATE_MACHINE,
                          ERR_R_INTERNAL_ERROR);
                 return SUB_STATE_ERROR;
@@ -855,7 +855,7 @@ static SUB_STATE_RETURN write_state_machine(SSL *s)
 
         case WRITE_STATE_SEND:
             if (SSL_IS_DTLS(s) && st->use_timer) {
-                dtls1_start_timer(s);
+                VR_dtls1_start_timer(s);
             }
             ret = statem_do_write(s);
             if (ret <= 0) {
@@ -895,7 +895,7 @@ static SUB_STATE_RETURN write_state_machine(SSL *s)
 /*
  * Flush the write BIO
  */
-int statem_flush(SSL *s)
+int VR_statem_flush(SSL *s)
 {
     s->rwstate = SSL_WRITING;
     if (BIO_flush(s->wbio) <= 0) {
@@ -914,7 +914,7 @@ int statem_flush(SSL *s)
  *   1: Yes (application data allowed)
  *   0: No (application data not allowed)
  */
-int ossl_statem_app_data_allowed(SSL *s)
+int VR_ossl_statem_app_data_allowed(SSL *s)
 {
     OSSL_STATEM *st = &s->statem;
 
@@ -948,7 +948,7 @@ int ossl_statem_app_data_allowed(SSL *s)
  * This function returns 1 if TLS exporter is ready to export keying
  * material, or 0 if otherwise.
  */
-int ossl_statem_export_allowed(SSL *s)
+int VR_ossl_statem_export_allowed(SSL *s)
 {
     return s->s3->previous_server_finished_len != 0
            && s->statem.hand_state != TLS_ST_SW_FINISHED;
@@ -958,7 +958,7 @@ int ossl_statem_export_allowed(SSL *s)
  * Return 1 if early TLS exporter is ready to export keying material,
  * or 0 if otherwise.
  */
-int ossl_statem_export_early_allowed(SSL *s)
+int VR_ossl_statem_export_early_allowed(SSL *s)
 {
     /*
      * The early exporter secret is only present on the server if we

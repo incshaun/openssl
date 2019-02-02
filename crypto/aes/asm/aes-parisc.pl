@@ -74,9 +74,9 @@ $code=<<___;
 	.SPACE	\$TEXT\$
 	.SUBSPA	\$CODE\$,QUAD=0,ALIGN=8,ACCESS=0x2C,CODE_ONLY
 
-	.EXPORT	AES_encrypt,ENTRY,ARGW0=GR,ARGW1=GR,ARGW2=GR
+	.EXPORT	VR_AES_encrypt,ENTRY,ARGW0=GR,ARGW1=GR,ARGW2=GR
 	.ALIGN	64
-AES_encrypt
+VR_AES_encrypt
 	.PROC
 	.CALLINFO	FRAME=`$FRAME-16*$SIZE_T`,NO_CALLS,SAVE_RP,ENTRY_GR=18
 	.ENTRY
@@ -122,7 +122,7 @@ L\$enc_pic
 	vshd	$s3,$t1,$s3
 
 L\$enc_inp_aligned
-	bl	_parisc_AES_encrypt,%r31
+	bl	_parisc_VR_AES_encrypt,%r31
 	nop
 
 	extru,<> $out,31,2,%r0
@@ -188,7 +188,7 @@ L\$enc_done
 	.PROCEND
 
 	.ALIGN	16
-_parisc_AES_encrypt
+_parisc_VR_AES_encrypt
 	.PROC
 	.CALLINFO	MILLICODE
 	.ENTRY
@@ -543,9 +543,9 @@ L\$AES_Te
 ___
 
 $code.=<<___;
-	.EXPORT	AES_decrypt,ENTRY,ARGW0=GR,ARGW1=GR,ARGW2=GR
+	.EXPORT	VR_AES_decrypt,ENTRY,ARGW0=GR,ARGW1=GR,ARGW2=GR
 	.ALIGN	16
-AES_decrypt
+VR_AES_decrypt
 	.PROC
 	.CALLINFO	FRAME=`$FRAME-16*$SIZE_T`,NO_CALLS,SAVE_RP,ENTRY_GR=18
 	.ENTRY
@@ -591,7 +591,7 @@ L\$dec_pic
 	vshd	$s3,$t1,$s3
 
 L\$dec_inp_aligned
-	bl	_parisc_AES_decrypt,%r31
+	bl	_parisc_VR_AES_decrypt,%r31
 	nop
 
 	extru,<> $out,31,2,%r0
@@ -657,7 +657,7 @@ L\$dec_done
 	.PROCEND
 
 	.ALIGN	16
-_parisc_AES_decrypt
+_parisc_VR_AES_decrypt
 	.PROC
 	.CALLINFO	MILLICODE
 	.ENTRY

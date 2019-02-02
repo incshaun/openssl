@@ -13,7 +13,7 @@
 #include <openssl/objects.h>
 #include "asn1_locl.h"
 
-int ASN1_TYPE_get(const ASN1_TYPE *a)
+int VR_ASN1_TYPE_get(const ASN1_TYPE *a)
 {
     if ((a->value.ptr != NULL) || (a->type == V_ASN1_NULL))
         return a->type;
@@ -21,11 +21,11 @@ int ASN1_TYPE_get(const ASN1_TYPE *a)
         return 0;
 }
 
-void ASN1_TYPE_set(ASN1_TYPE *a, int type, void *value)
+void VR_ASN1_TYPE_set(ASN1_TYPE *a, int type, void *value)
 {
     if (a->value.ptr != NULL) {
         ASN1_TYPE **tmp_a = &a;
-        asn1_primitive_free((ASN1_VALUE **)tmp_a, NULL, 0);
+        VR_asn1_primitive_free((ASN1_VALUE **)tmp_a, NULL, 0);
     }
     a->type = type;
     if (type == V_ASN1_BOOLEAN)
@@ -34,29 +34,29 @@ void ASN1_TYPE_set(ASN1_TYPE *a, int type, void *value)
         a->value.ptr = value;
 }
 
-int ASN1_TYPE_set1(ASN1_TYPE *a, int type, const void *value)
+int VR_ASN1_TYPE_set1(ASN1_TYPE *a, int type, const void *value)
 {
     if (!value || (type == V_ASN1_BOOLEAN)) {
         void *p = (void *)value;
-        ASN1_TYPE_set(a, type, p);
+        VR_ASN1_TYPE_set(a, type, p);
     } else if (type == V_ASN1_OBJECT) {
         ASN1_OBJECT *odup;
-        odup = OBJ_dup(value);
+        odup = VR_OBJ_dup(value);
         if (!odup)
             return 0;
-        ASN1_TYPE_set(a, type, odup);
+        VR_ASN1_TYPE_set(a, type, odup);
     } else {
         ASN1_STRING *sdup;
-        sdup = ASN1_STRING_dup(value);
+        sdup = VR_ASN1_STRING_dup(value);
         if (!sdup)
             return 0;
-        ASN1_TYPE_set(a, type, sdup);
+        VR_ASN1_TYPE_set(a, type, sdup);
     }
     return 1;
 }
 
 /* Returns 0 if they are equal, != 0 otherwise. */
-int ASN1_TYPE_cmp(const ASN1_TYPE *a, const ASN1_TYPE *b)
+int VR_ASN1_TYPE_cmp(const ASN1_TYPE *a, const ASN1_TYPE *b)
 {
     int result = -1;
 
@@ -65,7 +65,7 @@ int ASN1_TYPE_cmp(const ASN1_TYPE *a, const ASN1_TYPE *b)
 
     switch (a->type) {
     case V_ASN1_OBJECT:
-        result = OBJ_cmp(a->value.object, b->value.object);
+        result = VR_OBJ_cmp(a->value.object, b->value.object);
         break;
     case V_ASN1_BOOLEAN:
         result = a->value.boolean - b->value.boolean;
@@ -94,7 +94,7 @@ int ASN1_TYPE_cmp(const ASN1_TYPE *a, const ASN1_TYPE *b)
     case V_ASN1_UTF8STRING:
     case V_ASN1_OTHER:
     default:
-        result = ASN1_STRING_cmp((ASN1_STRING *)a->value.ptr,
+        result = VR_ASN1_STRING_cmp((ASN1_STRING *)a->value.ptr,
                                  (ASN1_STRING *)b->value.ptr);
         break;
     }
@@ -102,33 +102,33 @@ int ASN1_TYPE_cmp(const ASN1_TYPE *a, const ASN1_TYPE *b)
     return result;
 }
 
-ASN1_TYPE *ASN1_TYPE_pack_sequence(const ASN1_ITEM *it, void *s, ASN1_TYPE **t)
+ASN1_TYPE *VR_ASN1_TYPE_pack_sequence(const ASN1_ITEM *it, void *s, ASN1_TYPE **t)
 {
     ASN1_OCTET_STRING *oct;
     ASN1_TYPE *rt;
 
-    oct = ASN1_item_pack(s, it, NULL);
+    oct = VR_ASN1_item_pack(s, it, NULL);
     if (oct == NULL)
         return NULL;
 
     if (t && *t) {
         rt = *t;
     } else {
-        rt = ASN1_TYPE_new();
+        rt = VR_ASN1_TYPE_new();
         if (rt == NULL) {
-            ASN1_OCTET_STRING_free(oct);
+            VR_ASN1_OCTET_STRING_free(oct);
             return NULL;
         }
         if (t)
             *t = rt;
     }
-    ASN1_TYPE_set(rt, V_ASN1_SEQUENCE, oct);
+    VR_ASN1_TYPE_set(rt, V_ASN1_SEQUENCE, oct);
     return rt;
 }
 
-void *ASN1_TYPE_unpack_sequence(const ASN1_ITEM *it, const ASN1_TYPE *t)
+void *VR_ASN1_TYPE_unpack_sequence(const ASN1_ITEM *it, const ASN1_TYPE *t)
 {
     if (t == NULL || t->type != V_ASN1_SEQUENCE || t->value.sequence == NULL)
         return NULL;
-    return ASN1_item_unpack(t->value.sequence, it);
+    return VR_ASN1_item_unpack(t->value.sequence, it);
 }

@@ -62,7 +62,7 @@ static void long_free(ASN1_VALUE **pval, const ASN1_ITEM *it)
 }
 
 /*
- * Originally BN_num_bits_word was called to perform this operation, but
+ * Originally VR_BN_num_bits_word was called to perform this operation, but
  * trouble is that there is no guarantee that sizeof(long) equals to
  * sizeof(BN_ULONG). BN_ULONG is a configurable type that can be as wide
  * as long, but also double or half...
@@ -196,6 +196,6 @@ static int long_print(BIO *out, ASN1_VALUE **pval, const ASN1_ITEM *it,
     long l;
 
     memcpy(&l, pval, COPY_SIZE(*pval, l));
-    return BIO_printf(out, "%ld\n", l);
+    return VR_BIO_printf(out, "%ld\n", l);
 }
 #endif

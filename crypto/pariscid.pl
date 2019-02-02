@@ -30,9 +30,9 @@ $code=<<___;
 	.SPACE	\$TEXT\$
 	.SUBSPA	\$CODE\$,QUAD=0,ALIGN=8,ACCESS=0x2C,CODE_ONLY
 
-	.EXPORT	OPENSSL_cpuid_setup,ENTRY
+	.EXPORT	VR_OPENSSL_cpuid_setup,ENTRY
 	.ALIGN	8
-OPENSSL_cpuid_setup
+VR_OPENSSL_cpuid_setup
 	.PROC
 	.CALLINFO	NO_CALLS
 	.ENTRY
@@ -41,9 +41,9 @@ OPENSSL_cpuid_setup
 	nop
 	.PROCEND
 
-	.EXPORT	OPENSSL_rdtsc,ENTRY
+	.EXPORT	VR_OPENSSL_rdtsc,ENTRY
 	.ALIGN	8
-OPENSSL_rdtsc
+VR_OPENSSL_rdtsc
 	.PROC
 	.CALLINFO	NO_CALLS
 	.ENTRY
@@ -53,9 +53,9 @@ OPENSSL_rdtsc
 	nop
 	.PROCEND
 
-	.EXPORT	OPENSSL_wipe_cpu,ENTRY
+	.EXPORT	VR_OPENSSL_wipe_cpu,ENTRY
 	.ALIGN	8
-OPENSSL_wipe_cpu
+VR_OPENSSL_wipe_cpu
 	.PROC
 	.CALLINFO	NO_CALLS
 	.ENTRY
@@ -98,9 +98,9 @@ my $inp="%r26";
 my $len="%r25";
 
 $code.=<<___;
-	.EXPORT	OPENSSL_cleanse,ENTRY,ARGW0=GR,ARGW1=GR
+	.EXPORT	VR_OPENSSL_cleanse,ENTRY,ARGW0=GR,ARGW1=GR
 	.ALIGN	8
-OPENSSL_cleanse
+VR_OPENSSL_cleanse
 	.PROC
 	.CALLINFO	NO_CALLS
 	.ENTRY
@@ -141,9 +141,9 @@ ___
 my ($in1,$in2,$len)=("%r26","%r25","%r24");
 
 $code.=<<___;
-	.EXPORT	CRYPTO_memcmp,ENTRY,ARGW0=GR,ARGW1=GR,ARGW1=GR
+	.EXPORT	VR_CRYPTO_memcmp,ENTRY,ARGW0=GR,ARGW1=GR,ARGW1=GR
 	.ALIGN	8
-CRYPTO_memcmp
+VR_CRYPTO_memcmp
 	.PROC
 	.CALLINFO	NO_CALLS
 	.ENTRY
@@ -174,9 +174,9 @@ my ($tick,$lasttick)=("%r23","%r22");
 my ($diff,$lastdiff)=("%r21","%r20");
 
 $code.=<<___;
-	.EXPORT	OPENSSL_instrument_bus,ENTRY,ARGW0=GR,ARGW1=GR
+	.EXPORT	VR_OPENSSL_instrument_bus,ENTRY,ARGW0=GR,ARGW1=GR
 	.ALIGN	8
-OPENSSL_instrument_bus
+VR_OPENSSL_instrument_bus
 	.PROC
 	.CALLINFO	NO_CALLS
 	.ENTRY
@@ -207,9 +207,9 @@ L\$oop
 	sub		$rv,$cnt,$rv
 	.PROCEND
 
-	.EXPORT	OPENSSL_instrument_bus2,ENTRY,ARGW0=GR,ARGW1=GR
+	.EXPORT	VR_OPENSSL_instrument_bus2,ENTRY,ARGW0=GR,ARGW1=GR
 	.ALIGN	8
-OPENSSL_instrument_bus2
+VR_OPENSSL_instrument_bus2
 	.PROC
 	.CALLINFO	NO_CALLS
 	.ENTRY

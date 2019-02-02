@@ -21,34 +21,34 @@
 
 static int init(EVP_MD_CTX *ctx)
 {
-    return RIPEMD160_Init(EVP_MD_CTX_md_data(ctx));
+    return VR_RIPEMD160_Init(VR_EVP_MD_CTX_md_data(ctx));
 }
 
 static int update(EVP_MD_CTX *ctx, const void *data, size_t count)
 {
-    return RIPEMD160_Update(EVP_MD_CTX_md_data(ctx), data, count);
+    return VR_RIPEMD160_Update(VR_EVP_MD_CTX_md_data(ctx), data, count);
 }
 
 static int final(EVP_MD_CTX *ctx, unsigned char *md)
 {
-    return RIPEMD160_Final(md, EVP_MD_CTX_md_data(ctx));
+    return VR_RIPEMD160_Final(md, VR_EVP_MD_CTX_md_data(ctx));
 }
 
 static const EVP_MD ripemd160_md = {
     NID_ripemd160,
     NID_ripemd160WithRSA,
-    RIPEMD160_DIGEST_LENGTH,
+    VR_RIPEMD160_DIGEST_LENGTH,
     0,
     init,
     update,
     final,
     NULL,
     NULL,
-    RIPEMD160_CBLOCK,
-    sizeof(EVP_MD *) + sizeof(RIPEMD160_CTX),
+    VR_RIPEMD160_CBLOCK,
+    sizeof(EVP_MD *) + sizeof(VR_RIPEMD160_CTX),
 };
 
-const EVP_MD *EVP_ripemd160(void)
+const EVP_MD *VR_EVP_ripemd160(void)
 {
     return &ripemd160_md;
 }

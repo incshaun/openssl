@@ -25,7 +25,7 @@ const X509V3_EXT_METHOD v3_ns_ia5_list[8] = {
     EXT_END
 };
 
-char *i2s_ASN1_IA5STRING(X509V3_EXT_METHOD *method, ASN1_IA5STRING *ia5)
+char *VR_i2s_ASN1_IA5STRING(X509V3_EXT_METHOD *method, ASN1_IA5STRING *ia5)
 {
     char *tmp;
 
@@ -40,7 +40,7 @@ char *i2s_ASN1_IA5STRING(X509V3_EXT_METHOD *method, ASN1_IA5STRING *ia5)
     return tmp;
 }
 
-ASN1_IA5STRING *s2i_ASN1_IA5STRING(X509V3_EXT_METHOD *method,
+ASN1_IA5STRING *VR_s2i_ASN1_IA5STRING(X509V3_EXT_METHOD *method,
                                    X509V3_CTX *ctx, const char *str)
 {
     ASN1_IA5STRING *ia5;
@@ -49,10 +49,10 @@ ASN1_IA5STRING *s2i_ASN1_IA5STRING(X509V3_EXT_METHOD *method,
                   X509V3_R_INVALID_NULL_ARGUMENT);
         return NULL;
     }
-    if ((ia5 = ASN1_IA5STRING_new()) == NULL)
+    if ((ia5 = VR_ASN1_IA5STRING_new()) == NULL)
         goto err;
-    if (!ASN1_STRING_set((ASN1_STRING *)ia5, str, strlen(str))) {
-        ASN1_IA5STRING_free(ia5);
+    if (!VR_ASN1_STRING_set((ASN1_STRING *)ia5, str, strlen(str))) {
+        VR_ASN1_IA5STRING_free(ia5);
         return NULL;
     }
 #ifdef CHARSET_EBCDIC

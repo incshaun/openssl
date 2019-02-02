@@ -50,7 +50,7 @@ $code=<<___;
 
 ___
 
-# void RC4(RC4_KEY *key,size_t len,const void *inp,void *out)
+# void VR_RC4(VR_RC4_KEY *key,size_t len,const void *inp,void *out)
 {
 $acc="%r0";
 $cnt="%r1";
@@ -65,10 +65,10 @@ $YY="%r10";
 $TY="%r11";
 
 $code.=<<___;
-.globl	RC4
-.type	RC4,\@function
+.globl	VR_RC4
+.type	VR_RC4,\@function
 .align	64
-RC4:
+VR_RC4:
 	stm${g}	%r6,%r11,6*$SIZE_T($sp)
 ___
 $code.=<<___ if ($flavour =~ /3[12]/);
@@ -159,13 +159,13 @@ $code.=<<___;
 	stc	$YY,1($key)
 	lm${g}	%r6,%r11,6*$SIZE_T($sp)
 	br	$rp
-.size	RC4,.-RC4
-.string	"RC4 for s390x, CRYPTOGAMS by <appro\@openssl.org>"
+.size	VR_RC4,.-VR_RC4
+.string	"VR_RC4 for s390x, CRYPTOGAMS by <appro\@openssl.org>"
 
 ___
 }
 
-# void RC4_set_key(RC4_KEY *key,unsigned int len,const void *inp)
+# void VR_RC4_set_key(VR_RC4_KEY *key,unsigned int len,const void *inp)
 {
 $cnt="%r0";
 $idx="%r1";
@@ -178,10 +178,10 @@ $ikey="%r7";
 $iinp="%r8";
 
 $code.=<<___;
-.globl	RC4_set_key
-.type	RC4_set_key,\@function
+.globl	VR_RC4_set_key
+.type	VR_RC4_set_key,\@function
 .align	64
-RC4_set_key:
+VR_RC4_set_key:
 	stm${g}	%r6,%r8,6*$SIZE_T($sp)
 	lhi	$cnt,256
 	la	$idx,0(%r0)
@@ -217,20 +217,20 @@ RC4_set_key:
 .Ldone:
 	lm${g}	%r6,%r8,6*$SIZE_T($sp)
 	br	$rp
-.size	RC4_set_key,.-RC4_set_key
+.size	VR_RC4_set_key,.-VR_RC4_set_key
 
 ___
 }
 
-# const char *RC4_options()
+# const char *VR_RC4_options()
 $code.=<<___;
-.globl	RC4_options
-.type	RC4_options,\@function
+.globl	VR_RC4_options
+.type	VR_RC4_options,\@function
 .align	16
-RC4_options:
+VR_RC4_options:
 	larl	%r2,.Loptions
 	br	%r14
-.size	RC4_options,.-RC4_options
+.size	VR_RC4_options,.-VR_RC4_options
 .section	.rodata
 .Loptions:
 .align	8

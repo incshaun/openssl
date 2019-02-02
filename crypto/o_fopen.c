@@ -35,7 +35,7 @@
 #  include <unistd.h>
 # endif
 
-FILE *openssl_fopen(const char *filename, const char *mode)
+FILE *VR_openssl_fopen(const char *filename, const char *mode)
 {
     FILE *file = NULL;
 # if defined(_WIN32) && defined(CP_UTF8)
@@ -108,7 +108,7 @@ FILE *openssl_fopen(const char *filename, const char *mode)
         }
         file = fopen(filename, mode);
 
-        OPENSSL_free(newname);
+        OPENVR_SSL_free(newname);
     }
 # else
     file = fopen(filename, mode);
@@ -118,7 +118,7 @@ FILE *openssl_fopen(const char *filename, const char *mode)
 
 #else
 
-void *openssl_fopen(const char *filename, const char *mode)
+void *VR_openssl_fopen(const char *filename, const char *mode)
 {
     return NULL;
 }

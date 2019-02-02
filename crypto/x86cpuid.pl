@@ -18,7 +18,7 @@ open OUT,">$output";
 
 for (@ARGV) { $sse2=1 if (/-DOPENSSL_IA32_SSE2/); }
 
-&function_begin("OPENSSL_ia32_cpuid");
+&function_begin("VR_OPENSSL_ia32_cpuid");
 	&xor	("edx","edx");
 	&pushf	();
 	&pop	("eax");
@@ -113,7 +113,7 @@ for (@ARGV) { $sse2=1 if (/-DOPENSSL_IA32_SSE2/); }
 	&and	(&HB("eax"),15);	# family ID
 	&cmp	(&HB("eax"),15);	# P4?
 	&jne	(&label("notintel"));
-	&or	("edx",1<<20);		# set reserved bit#20 to engage RC4_CHAR
+	&or	("edx",1<<20);		# set reserved bit#20 to engage VR_RC4_CHAR
 &set_label("notintel");
 	&bt	("edx",28);		# test hyper-threading bit
 	&jnc	(&label("generic"));
@@ -161,11 +161,11 @@ for (@ARGV) { $sse2=1 if (/-DOPENSSL_IA32_SSE2/); }
 	&mov	("eax","esi");
 	&mov	("edx","ebp");
 &set_label("nocpuid");
-&function_end("OPENSSL_ia32_cpuid");
+&function_end("VR_OPENSSL_ia32_cpuid");
 
 &external_label("OPENSSL_ia32cap_P");
 
-&function_begin_B("OPENSSL_rdtsc","EXTRN\t_OPENSSL_ia32cap_P:DWORD");
+&function_begin_B("VR_OPENSSL_rdtsc","EXTRN\t_OPENSSL_ia32cap_P:DWORD");
 	&xor	("eax","eax");
 	&xor	("edx","edx");
 	&picmeup("ecx","OPENSSL_ia32cap_P");
@@ -174,7 +174,7 @@ for (@ARGV) { $sse2=1 if (/-DOPENSSL_IA32_SSE2/); }
 	&rdtsc	();
 &set_label("notsc");
 	&ret	();
-&function_end_B("OPENSSL_rdtsc");
+&function_end_B("VR_OPENSSL_rdtsc");
 
 # This works in Ring 0 only [read DJGPP+MS-DOS+privileged DPMI host],
 # but it's safe to call it on any [supported] 32-bit platform...
@@ -246,7 +246,7 @@ for (@ARGV) { $sse2=1 if (/-DOPENSSL_IA32_SSE2/); }
 	&ret	();
 &function_end_B("OPENSSL_far_spin");
 
-&function_begin_B("OPENSSL_wipe_cpu","EXTRN\t_OPENSSL_ia32cap_P:DWORD");
+&function_begin_B("VR_OPENSSL_wipe_cpu","EXTRN\t_OPENSSL_ia32cap_P:DWORD");
 	&xor	("eax","eax");
 	&xor	("edx","edx");
 	&picmeup("ecx","OPENSSL_ia32cap_P");
@@ -272,9 +272,9 @@ for (@ARGV) { $sse2=1 if (/-DOPENSSL_IA32_SSE2/); }
 &set_label("no_x87");
 	&lea	("eax",&DWP(4,"esp"));
 	&ret	();
-&function_end_B("OPENSSL_wipe_cpu");
+&function_end_B("VR_OPENSSL_wipe_cpu");
 
-&function_begin_B("OPENSSL_atomic_add");
+&function_begin_B("VR_OPENSSL_atomic_add");
 	&mov	("edx",&DWP(4,"esp"));	# fetch the pointer, 1st arg
 	&mov	("ecx",&DWP(8,"esp"));	# fetch the increment, 2nd arg
 	&push	("ebx");
@@ -288,9 +288,9 @@ for (@ARGV) { $sse2=1 if (/-DOPENSSL_IA32_SSE2/); }
 	&mov	("eax","ebx");	# OpenSSL expects the new value
 	&pop	("ebx");
 	&ret	();
-&function_end_B("OPENSSL_atomic_add");
+&function_end_B("VR_OPENSSL_atomic_add");
 
-&function_begin_B("OPENSSL_cleanse");
+&function_begin_B("VR_OPENSSL_cleanse");
 	&mov	("edx",&wparam(0));
 	&mov	("ecx",&wparam(1));
 	&xor	("eax","eax");
@@ -322,9 +322,9 @@ for (@ARGV) { $sse2=1 if (/-DOPENSSL_IA32_SSE2/); }
 	&cmp	("ecx",0);
 	&jne	(&label("little"));
 	&ret	();
-&function_end_B("OPENSSL_cleanse");
+&function_end_B("VR_OPENSSL_cleanse");
 
-&function_begin_B("CRYPTO_memcmp");
+&function_begin_B("VR_CRYPTO_memcmp");
 	&push	("esi");
 	&push	("edi");
 	&mov	("esi",&wparam(0));
@@ -348,7 +348,7 @@ for (@ARGV) { $sse2=1 if (/-DOPENSSL_IA32_SSE2/); }
 	&pop	("edi");
 	&pop	("esi");
 	&ret	();
-&function_end_B("CRYPTO_memcmp");
+&function_end_B("VR_CRYPTO_memcmp");
 {
 my $lasttick = "esi";
 my $lastdiff = "ebx";
@@ -356,7 +356,7 @@ my $out = "edi";
 my $cnt = "ecx";
 my $max = "ebp";
 
-&function_begin("OPENSSL_instrument_bus");
+&function_begin("VR_OPENSSL_instrument_bus");
     &mov	("eax",0);
     if ($sse2) {
 	&picmeup("edx","OPENSSL_ia32cap_P");
@@ -393,9 +393,9 @@ my $max = "ebp";
 	&mov	("eax",&wparam(1));
 &set_label("nogo");
     }
-&function_end("OPENSSL_instrument_bus");
+&function_end("VR_OPENSSL_instrument_bus");
 
-&function_begin("OPENSSL_instrument_bus2");
+&function_begin("VR_OPENSSL_instrument_bus2");
     &mov	("eax",0);
     if ($sse2) {
 	&picmeup("edx","OPENSSL_ia32cap_P");
@@ -448,7 +448,7 @@ my $max = "ebp";
 	&sub	("eax",$cnt);
 &set_label("nogo");
     }
-&function_end("OPENSSL_instrument_bus2");
+&function_end("VR_OPENSSL_instrument_bus2");
 }
 
 sub gen_random {
@@ -499,9 +499,9 @@ my $rdop = shift;
 &gen_random("rdrand");
 &gen_random("rdseed");
 
-&initseg("OPENSSL_cpuid_setup");
+&initseg("VR_OPENSSL_cpuid_setup");
 
-&hidden("OPENSSL_cpuid_setup");
+&hidden("VR_OPENSSL_cpuid_setup");
 &hidden("OPENSSL_ia32cap_P");
 
 &asm_finish();

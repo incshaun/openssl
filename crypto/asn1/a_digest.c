@@ -20,7 +20,7 @@
 
 #ifndef NO_ASN1_OLD
 
-int ASN1_digest(i2d_of_void *i2d, const EVP_MD *type, char *data,
+int VR_ASN1_digest(i2d_of_void *i2d, const EVP_MD *type, char *data,
                 unsigned char *md, unsigned int *len)
 {
     int inl;
@@ -38,30 +38,30 @@ int ASN1_digest(i2d_of_void *i2d, const EVP_MD *type, char *data,
     p = str;
     i2d(data, &p);
 
-    if (!EVP_Digest(str, inl, md, len, type, NULL)) {
-        OPENSSL_free(str);
+    if (!VR_EVP_Digest(str, inl, md, len, type, NULL)) {
+        OPENVR_SSL_free(str);
         return 0;
     }
-    OPENSSL_free(str);
+    OPENVR_SSL_free(str);
     return 1;
 }
 
 #endif
 
-int ASN1_item_digest(const ASN1_ITEM *it, const EVP_MD *type, void *asn,
+int VR_ASN1_item_digest(const ASN1_ITEM *it, const EVP_MD *type, void *asn,
                      unsigned char *md, unsigned int *len)
 {
     int i;
     unsigned char *str = NULL;
 
-    i = ASN1_item_i2d(asn, &str, it);
+    i = VR_ASN1_item_i2d(asn, &str, it);
     if (!str)
         return 0;
 
-    if (!EVP_Digest(str, i, md, len, type, NULL)) {
-        OPENSSL_free(str);
+    if (!VR_EVP_Digest(str, i, md, len, type, NULL)) {
+        OPENVR_SSL_free(str);
         return 0;
     }
-    OPENSSL_free(str);
+    OPENVR_SSL_free(str);
     return 1;
 }

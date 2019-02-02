@@ -48,16 +48,16 @@ $code.=<<___;
 	.asg	0,__TI_EABI__
 	.endif
 	.if	__TI_EABI__
-	.asg	ChaCha20_ctr32,_ChaCha20_ctr32
+	.asg	VR_ChaCha20_ctr32,_VR_ChaCha20_ctr32
 	.endif
 
 	.asg	B3,RA
 	.asg	A15,FP
 	.asg	B15,SP
 
-	.global	_ChaCha20_ctr32
+	.global	_VR_ChaCha20_ctr32
 	.align	32
-_ChaCha20_ctr32:
+_VR_ChaCha20_ctr32:
 	.asmfunc	stack_usage(40+64)
 	MV	$LEN,A0			; reassign
   [!A0]	BNOP	RA			; no data

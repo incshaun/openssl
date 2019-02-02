@@ -105,7 +105,7 @@
     static int initalt(void)
 
 /*
- * RUN_ONCE - use CRYPTO_THREAD_run_once, and check if the init succeeded
+ * RUN_ONCE - use VR_CRYPTO_THREAD_run_once, and check if the init succeeded
  * @once: pointer to static object of type CRYPTO_ONCE
  * @init: function name that was previously given to DEFINE_RUN_ONCE,
  *        DEFINE_RUN_ONCE_STATIC or DECLARE_RUN_ONCE.  This function
@@ -116,10 +116,10 @@
  * (*) by convention, since the init function must return 1 on success.
  */
 #define RUN_ONCE(once, init)                                            \
-    (CRYPTO_THREAD_run_once(once, init##_ossl_) ? init##_ossl_ret_ : 0)
+    (VR_CRYPTO_THREAD_run_once(once, init##_ossl_) ? init##_ossl_ret_ : 0)
 
 /*
- * RUN_ONCE_ALT - use CRYPTO_THREAD_run_once, to run an alternative initialiser
+ * RUN_ONCE_ALT - use VR_CRYPTO_THREAD_run_once, to run an alternative initialiser
  *                function and check if that initialisation succeeded
  * @once:    pointer to static object of type CRYPTO_ONCE
  * @initalt: alternative initialiser function name that was previously given to
@@ -134,4 +134,4 @@
  * (*) by convention, since the init function must return 1 on success.
  */
 #define RUN_ONCE_ALT(once, initalt, init)                               \
-    (CRYPTO_THREAD_run_once(once, initalt##_ossl_) ? init##_ossl_ret_ : 0)
+    (VR_CRYPTO_THREAD_run_once(once, initalt##_ossl_) ? init##_ossl_ret_ : 0)

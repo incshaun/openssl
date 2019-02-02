@@ -110,4 +110,4 @@ struct asn1_pctx_st {
     unsigned long str_flags;
 } /* ASN1_PCTX */ ;
 
-int asn1_d2i_read_bio(BIO *in, BUF_MEM **pb);
+int VR_asn1_d2i_read_bio(BIO *in, BUF_MEM **pb);

@@ -192,22 +192,22 @@ $code.=<<___;
 .long	1,0,0,0
 #if __ARM_MAX_ARCH__>=7
 .LOPENSSL_armcap:
-.word   OPENSSL_armcap_P-.LChaCha20_ctr32
+.word   OPENSSL_armcap_P-.LVR_ChaCha20_ctr32
 #else
 .word	-1
 #endif
 
-.globl	ChaCha20_ctr32
-.type	ChaCha20_ctr32,%function
+.globl	VR_ChaCha20_ctr32
+.type	VR_ChaCha20_ctr32,%function
 .align	5
-ChaCha20_ctr32:
-.LChaCha20_ctr32:
+VR_ChaCha20_ctr32:
+.LVR_ChaCha20_ctr32:
 	ldr	r12,[sp,#0]		@ pull pointer to counter and nonce
 	stmdb	sp!,{r0-r2,r4-r11,lr}
 #if __ARM_ARCH__<7 && !defined(__thumb2__)
-	sub	r14,pc,#16		@ ChaCha20_ctr32
+	sub	r14,pc,#16		@ VR_ChaCha20_ctr32
 #else
-	adr	r14,.LChaCha20_ctr32
+	adr	r14,.LVR_ChaCha20_ctr32
 #endif
 	cmp	r2,#0			@ len==0?
 #ifdef	__thumb2__
@@ -622,7 +622,7 @@ $code.=<<___;
 	add	sp,sp,#4*(32+3)
 .Lno_data:
 	ldmia	sp!,{r4-r11,pc}
-.size	ChaCha20_ctr32,.-ChaCha20_ctr32
+.size	VR_ChaCha20_ctr32,.-VR_ChaCha20_ctr32
 ___
 
 {{{

@@ -35,7 +35,7 @@ static size_t kat_entropy(RAND_DRBG *drbg, unsigned char **pout,
                           int entropy, size_t min_len, size_t max_len,
                           int prediction_resistance)
 {
-    TEST_CTX *t = (TEST_CTX *)RAND_DRBG_get_ex_data(drbg, app_data_index);
+    TEST_CTX *t = (TEST_CTX *)VR_RAND_DRBG_get_ex_data(drbg, app_data_index);
 
     t->entropycnt++;
     *pout = (unsigned char *)t->entropy;
@@ -45,7 +45,7 @@ static size_t kat_entropy(RAND_DRBG *drbg, unsigned char **pout,
 static size_t kat_nonce(RAND_DRBG *drbg, unsigned char **pout,
                         int entropy, size_t min_len, size_t max_len)
 {
-    TEST_CTX *t = (TEST_CTX *)RAND_DRBG_get_ex_data(drbg, app_data_index);
+    TEST_CTX *t = (TEST_CTX *)VR_RAND_DRBG_get_ex_data(drbg, app_data_index);
 
     t->noncecnt++;
     *pout = (unsigned char *)t->nonce;
@@ -73,13 +73,13 @@ static int single_kat_no_reseed(const struct drbg_kat *td)
 
     if ((td->flags & USE_DF) == 0)
         flags |= RAND_DRBG_FLAG_CTR_NO_DF;
-    if ((td->flags & USE_HMAC) != 0)
-        flags |= RAND_DRBG_FLAG_HMAC;
+    if ((td->flags & USE_VR_HMAC) != 0)
+        flags |= RAND_DRBG_FLAG_VR_HMAC;
 
-    if (!TEST_ptr(drbg = RAND_DRBG_new(td->nid, flags, NULL)))
+    if (!TEST_ptr(drbg = VR_RAND_DRBG_new(td->nid, flags, NULL)))
         return 0;
 
-    if (!TEST_true(RAND_DRBG_set_callbacks(drbg, kat_entropy, NULL,
+    if (!TEST_true(VR_RAND_DRBG_set_callbacks(drbg, kat_entropy, NULL,
                                            kat_nonce, NULL))) {
         failures++;
         goto err;
@@ -89,26 +89,26 @@ static int single_kat_no_reseed(const struct drbg_kat *td)
     t.entropylen = td->entropyinlen;
     t.nonce = data->nonce;
     t.noncelen = td->noncelen;
-    RAND_DRBG_set_ex_data(drbg, app_data_index, &t);
+    VR_RAND_DRBG_set_ex_data(drbg, app_data_index, &t);
 
     buff = OPENSSL_malloc(td->retbyteslen);
     if (buff == NULL)
         goto err;
 
-    if (!TEST_true(RAND_DRBG_instantiate(drbg, data->persstr, td->persstrlen))
-        || !TEST_true(RAND_DRBG_generate(drbg, buff, td->retbyteslen, 0,
+    if (!TEST_true(VR_RAND_DRBG_instantiate(drbg, data->persstr, td->persstrlen))
+        || !TEST_true(VR_RAND_DRBG_generate(drbg, buff, td->retbyteslen, 0,
                                          data->addin1, td->addinlen))
-        || !TEST_true(RAND_DRBG_generate(drbg, buff, td->retbyteslen, 0,
+        || !TEST_true(VR_RAND_DRBG_generate(drbg, buff, td->retbyteslen, 0,
                                          data->addin2, td->addinlen))
-        || !TEST_true(RAND_DRBG_uninstantiate(drbg))
+        || !TEST_true(VR_RAND_DRBG_uninstantiate(drbg))
         || !TEST_mem_eq(data->retbytes, td->retbyteslen, buff,
                         td->retbyteslen))
         failures++;
 
 err:
-    OPENSSL_free(buff);
-    RAND_DRBG_uninstantiate(drbg);
-    RAND_DRBG_free(drbg);
+    OPENVR_SSL_free(buff);
+    VR_RAND_DRBG_uninstantiate(drbg);
+    VR_RAND_DRBG_free(drbg);
     return failures == 0;
 }
 
@@ -134,13 +134,13 @@ static int single_kat_pr_false(const struct drbg_kat *td)
 
     if ((td->flags & USE_DF) == 0)
         flags |= RAND_DRBG_FLAG_CTR_NO_DF;
-    if ((td->flags & USE_HMAC) != 0)
-        flags |= RAND_DRBG_FLAG_HMAC;
+    if ((td->flags & USE_VR_HMAC) != 0)
+        flags |= RAND_DRBG_FLAG_VR_HMAC;
 
-    if (!TEST_ptr(drbg = RAND_DRBG_new(td->nid, flags, NULL)))
+    if (!TEST_ptr(drbg = VR_RAND_DRBG_new(td->nid, flags, NULL)))
         return 0;
 
-    if (!TEST_true(RAND_DRBG_set_callbacks(drbg, kat_entropy, NULL,
+    if (!TEST_true(VR_RAND_DRBG_set_callbacks(drbg, kat_entropy, NULL,
                                            kat_nonce, NULL))) {
         failures++;
         goto err;
@@ -150,32 +150,32 @@ static int single_kat_pr_false(const struct drbg_kat *td)
     t.entropylen = td->entropyinlen;
     t.nonce = data->nonce;
     t.noncelen = td->noncelen;
-    RAND_DRBG_set_ex_data(drbg, app_data_index, &t);
+    VR_RAND_DRBG_set_ex_data(drbg, app_data_index, &t);
 
     buff = OPENSSL_malloc(td->retbyteslen);
     if (buff == NULL)
         goto err;
 
-    if (!TEST_true(RAND_DRBG_instantiate(drbg, data->persstr, td->persstrlen)))
+    if (!TEST_true(VR_RAND_DRBG_instantiate(drbg, data->persstr, td->persstrlen)))
         failures++;
 
     t.entropy = data->entropyinreseed;
     t.entropylen = td->entropyinlen;
 
-    if (!TEST_true(RAND_DRBG_reseed(drbg, data->addinreseed, td->addinlen, 0))
-        || !TEST_true(RAND_DRBG_generate(drbg, buff, td->retbyteslen, 0,
+    if (!TEST_true(VR_RAND_DRBG_reseed(drbg, data->addinreseed, td->addinlen, 0))
+        || !TEST_true(VR_RAND_DRBG_generate(drbg, buff, td->retbyteslen, 0,
                                          data->addin1, td->addinlen))
-        || !TEST_true(RAND_DRBG_generate(drbg, buff, td->retbyteslen, 0,
+        || !TEST_true(VR_RAND_DRBG_generate(drbg, buff, td->retbyteslen, 0,
                                          data->addin2, td->addinlen))
-        || !TEST_true(RAND_DRBG_uninstantiate(drbg))
+        || !TEST_true(VR_RAND_DRBG_uninstantiate(drbg))
         || !TEST_mem_eq(data->retbytes, td->retbyteslen, buff,
                         td->retbyteslen))
         failures++;
 
 err:
-    OPENSSL_free(buff);
-    RAND_DRBG_uninstantiate(drbg);
-    RAND_DRBG_free(drbg);
+    OPENVR_SSL_free(buff);
+    VR_RAND_DRBG_uninstantiate(drbg);
+    VR_RAND_DRBG_free(drbg);
     return failures == 0;
 }
 
@@ -200,13 +200,13 @@ static int single_kat_pr_true(const struct drbg_kat *td)
 
     if ((td->flags & USE_DF) == 0)
         flags |= RAND_DRBG_FLAG_CTR_NO_DF;
-    if ((td->flags & USE_HMAC) != 0)
-        flags |= RAND_DRBG_FLAG_HMAC;
+    if ((td->flags & USE_VR_HMAC) != 0)
+        flags |= RAND_DRBG_FLAG_VR_HMAC;
 
-    if (!TEST_ptr(drbg = RAND_DRBG_new(td->nid, flags, NULL)))
+    if (!TEST_ptr(drbg = VR_RAND_DRBG_new(td->nid, flags, NULL)))
         return 0;
 
-    if (!TEST_true(RAND_DRBG_set_callbacks(drbg, kat_entropy, NULL,
+    if (!TEST_true(VR_RAND_DRBG_set_callbacks(drbg, kat_entropy, NULL,
                                            kat_nonce, NULL))) {
         failures++;
         goto err;
@@ -216,36 +216,36 @@ static int single_kat_pr_true(const struct drbg_kat *td)
     t.noncelen = td->noncelen;
     t.entropy = data->entropyin;
     t.entropylen = td->entropyinlen;
-    RAND_DRBG_set_ex_data(drbg, app_data_index, &t);
+    VR_RAND_DRBG_set_ex_data(drbg, app_data_index, &t);
 
     buff = OPENSSL_malloc(td->retbyteslen);
     if (buff == NULL)
         goto err;
 
-    if (!TEST_true(RAND_DRBG_instantiate(drbg, data->persstr, td->persstrlen)))
+    if (!TEST_true(VR_RAND_DRBG_instantiate(drbg, data->persstr, td->persstrlen)))
         failures++;
 
     t.entropy = data->entropyinpr1;
     t.entropylen = td->entropyinlen;
 
-    if (!TEST_true(RAND_DRBG_generate(drbg, buff, td->retbyteslen, 1,
+    if (!TEST_true(VR_RAND_DRBG_generate(drbg, buff, td->retbyteslen, 1,
                                       data->addin1, td->addinlen)))
         failures++;
 
     t.entropy = data->entropyinpr2;
     t.entropylen = td->entropyinlen;
 
-    if (!TEST_true(RAND_DRBG_generate(drbg, buff, td->retbyteslen, 1,
+    if (!TEST_true(VR_RAND_DRBG_generate(drbg, buff, td->retbyteslen, 1,
                                       data->addin2, td->addinlen))
-        || !TEST_true(RAND_DRBG_uninstantiate(drbg))
+        || !TEST_true(VR_RAND_DRBG_uninstantiate(drbg))
         || !TEST_mem_eq(data->retbytes, td->retbyteslen, buff,
                         td->retbyteslen))
         failures++;
 
 err:
-    OPENSSL_free(buff);
-    RAND_DRBG_uninstantiate(drbg);
-    RAND_DRBG_free(drbg);
+    OPENVR_SSL_free(buff);
+    VR_RAND_DRBG_uninstantiate(drbg);
+    VR_RAND_DRBG_free(drbg);
     return failures == 0;
 }
 

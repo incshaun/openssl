@@ -108,11 +108,11 @@ $code=<<___;
 .text
 .code	16
 
-.global	sha1_block_data_order
-.type	sha1_block_data_order,%function
+.global	VR_sha1_block_data_order
+.type	VR_sha1_block_data_order,%function
 
 .align	2
-sha1_block_data_order:
+VR_sha1_block_data_order:
 ___
 if ($cheat_on_binutils) {
 $code.=<<___;
@@ -258,7 +258,7 @@ $code.=<<___;
 .LK_20_39:	.word	0x6ed9eba1
 .LK_40_59:	.word	0x8f1bbcdc
 .LK_60_79:	.word	0xca62c1d6
-.size	sha1_block_data_order,.-sha1_block_data_order
+.size	VR_sha1_block_data_order,.-VR_sha1_block_data_order
 .asciz	"SHA1 block transform for Thumb, CRYPTOGAMS by <appro\@openssl.org>"
 ___
 

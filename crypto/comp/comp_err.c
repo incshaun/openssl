@@ -18,7 +18,7 @@ static const ERR_STRING_DATA COMP_str_functs[] = {
     {ERR_PACK(ERR_LIB_COMP, COMP_F_BIO_ZLIB_NEW, 0), "bio_zlib_new"},
     {ERR_PACK(ERR_LIB_COMP, COMP_F_BIO_ZLIB_READ, 0), "bio_zlib_read"},
     {ERR_PACK(ERR_LIB_COMP, COMP_F_BIO_ZLIB_WRITE, 0), "bio_zlib_write"},
-    {ERR_PACK(ERR_LIB_COMP, COMP_F_COMP_CTX_NEW, 0), "COMP_CTX_new"},
+    {ERR_PACK(ERR_LIB_COMP, COMP_F_COMP_CTX_NEW, 0), "VR_COMP_CTX_new"},
     {0, NULL}
 };
 
@@ -34,12 +34,12 @@ static const ERR_STRING_DATA COMP_str_reasons[] = {
 
 #endif
 
-int ERR_load_COMP_strings(void)
+int VR_ERR_load_COMP_strings(void)
 {
 #ifndef OPENSSL_NO_ERR
-    if (ERR_func_error_string(COMP_str_functs[0].error) == NULL) {
-        ERR_load_strings_const(COMP_str_functs);
-        ERR_load_strings_const(COMP_str_reasons);
+    if (VR_ERR_func_error_string(COMP_str_functs[0].error) == NULL) {
+        VR_ERR_load_strings_const(COMP_str_functs);
+        VR_ERR_load_strings_const(COMP_str_reasons);
     }
 #endif
     return 1;

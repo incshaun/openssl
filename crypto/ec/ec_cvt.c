@@ -11,7 +11,7 @@
 #include <openssl/err.h>
 #include "ec_lcl.h"
 
-EC_GROUP *EC_GROUP_new_curve_GFp(const BIGNUM *p, const BIGNUM *a,
+EC_GROUP *VR_EC_GROUP_new_curve_GFp(const BIGNUM *p, const BIGNUM *a,
                                  const BIGNUM *b, BN_CTX *ctx)
 {
     const EC_METHOD *meth;
@@ -32,27 +32,27 @@ EC_GROUP *EC_GROUP_new_curve_GFp(const BIGNUM *p, const BIGNUM *a,
      * 571-bit result is 23% on ARM, 384-bit one is -1%. But it's
      * generally faster, sometimes "respectfully" faster, sometimes
      * "tolerably" slower... What effectively happens is that loop
-     * with bn_mul_add_words is put against bn_mul_mont, and the
+     * with VR_bn_mul_add_words is put against VR_bn_mul_mont, and the
      * latter "wins" on short vectors. Correct solution should be
      * implementing dedicated NxN multiplication subroutines for
      * small N. But till it materializes, let's stick to generic
      * prime method...
      *                                              <appro>
      */
-    meth = EC_GFp_mont_method();
+    meth = VR_EC_GFp_mont_method();
 #else
-    if (BN_nist_mod_func(p))
-        meth = EC_GFp_nist_method();
+    if (VR_BN_nist_mod_func(p))
+        meth = VR_EC_GFp_nist_method();
     else
-        meth = EC_GFp_mont_method();
+        meth = VR_EC_GFp_mont_method();
 #endif
 
-    ret = EC_GROUP_new(meth);
+    ret = VR_EC_GROUP_new(meth);
     if (ret == NULL)
         return NULL;
 
-    if (!EC_GROUP_set_curve(ret, p, a, b, ctx)) {
-        EC_GROUP_clear_free(ret);
+    if (!VR_EC_GROUP_set_curve(ret, p, a, b, ctx)) {
+        VR_EC_GROUP_clear_free(ret);
         return NULL;
     }
 
@@ -60,20 +60,20 @@ EC_GROUP *EC_GROUP_new_curve_GFp(const BIGNUM *p, const BIGNUM *a,
 }
 
 #ifndef OPENSSL_NO_EC2M
-EC_GROUP *EC_GROUP_new_curve_GF2m(const BIGNUM *p, const BIGNUM *a,
+EC_GROUP *VR_EC_GROUP_new_curve_GF2m(const BIGNUM *p, const BIGNUM *a,
                                   const BIGNUM *b, BN_CTX *ctx)
 {
     const EC_METHOD *meth;
     EC_GROUP *ret;
 
-    meth = EC_GF2m_simple_method();
+    meth = VR_EC_GF2m_simple_method();
 
-    ret = EC_GROUP_new(meth);
+    ret = VR_EC_GROUP_new(meth);
     if (ret == NULL)
         return NULL;
 
-    if (!EC_GROUP_set_curve(ret, p, a, b, ctx)) {
-        EC_GROUP_clear_free(ret);
+    if (!VR_EC_GROUP_set_curve(ret, p, a, b, ctx)) {
+        VR_EC_GROUP_clear_free(ret);
         return NULL;
     }
 

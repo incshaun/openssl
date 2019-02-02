@@ -182,7 +182,7 @@ struct CAPI_CTX_st {
 /* Info to dump with dumpcerts option */
 # define CAPI_DMP_SUMMARY        0x1    /* Issuer and serial name strings */
 # define CAPI_DMP_FNAME          0x2    /* Friendly name */
-# define CAPI_DMP_FULL           0x4    /* Full X509_print dump */
+# define CAPI_DMP_FULL           0x4    /* Full VR_X509_print dump */
 # define CAPI_DMP_PEM            0x8    /* Dump PEM format certificate */
 # define CAPI_DMP_PSKEY          0x10   /* Dump pseudo key (if possible) */
 # define CAPI_DMP_PKEYINFO       0x20   /* Dump key info (if possible) */
@@ -290,8 +290,8 @@ static int capi_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f) (void))
         CAPIerr(CAPI_F_CAPI_CTRL, CAPI_R_ENGINE_NOT_INITIALIZED);
         return 0;
     }
-    ctx = ENGINE_get_ex_data(e, capi_idx);
-    out = BIO_new_fp(stdout, BIO_NOCLOSE);
+    ctx = VR_ENGINE_get_ex_data(e, capi_idx);
+    out = VR_BIO_new_fp(stdout, BIO_NOCLOSE);
     if (out == NULL) {
         CAPIerr(CAPI_F_CAPI_CTRL, CAPI_R_FILE_OPEN_ERROR);
         return 0;
@@ -316,7 +316,7 @@ static int capi_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f) (void))
     case CAPI_CMD_STORE_NAME:
         tmpstr = OPENSSL_strdup(p);
         if (tmpstr != NULL) {
-            OPENSSL_free(ctx->storename);
+            OPENVR_SSL_free(ctx->storename);
             ctx->storename = tmpstr;
             CAPI_trace(ctx, "Setting store name to %s\n", p);
         } else {
@@ -368,7 +368,7 @@ static int capi_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f) (void))
     case CAPI_CMD_LOOKUP_METHOD:
         if (i < 1 || i > 3) {
             CAPIerr(CAPI_F_CAPI_CTRL, CAPI_R_INVALID_LOOKUP_METHOD);
-            BIO_free(out);
+            VR_BIO_free(out);
             return 0;
         }
         ctx->lookup_method = i;
@@ -387,7 +387,7 @@ static int capi_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f) (void))
         ret = 0;
     }
 
-    BIO_free(out);
+    VR_BIO_free(out);
     return ret;
 
 }
@@ -421,34 +421,34 @@ static int capi_init(ENGINE *e)
 
         /* Setup RSA_METHOD */
         rsa_capi_idx = RSA_get_ex_new_index(0, NULL, NULL, NULL, 0);
-        ossl_rsa_meth = RSA_PKCS1_OpenSSL();
-        if (   !RSA_meth_set_pub_enc(capi_rsa_method,
-                                     RSA_meth_get_pub_enc(ossl_rsa_meth))
-            || !RSA_meth_set_pub_dec(capi_rsa_method,
-                                     RSA_meth_get_pub_dec(ossl_rsa_meth))
-            || !RSA_meth_set_priv_enc(capi_rsa_method, capi_rsa_priv_enc)
-            || !RSA_meth_set_priv_dec(capi_rsa_method, capi_rsa_priv_dec)
-            || !RSA_meth_set_mod_exp(capi_rsa_method,
-                                     RSA_meth_get_mod_exp(ossl_rsa_meth))
-            || !RSA_meth_set_bn_mod_exp(capi_rsa_method,
-                                        RSA_meth_get_bn_mod_exp(ossl_rsa_meth))
-            || !RSA_meth_set_finish(capi_rsa_method, capi_rsa_free)
-            || !RSA_meth_set_sign(capi_rsa_method, capi_rsa_sign)) {
+        ossl_rsa_meth = VR_RSA_PKCS1_OpenSSL();
+        if (   !VR_RSA_meth_set_pub_enc(capi_rsa_method,
+                                     VR_RSA_meth_get_pub_enc(ossl_rsa_meth))
+            || !VR_RSA_meth_set_pub_dec(capi_rsa_method,
+                                     VR_RSA_meth_get_pub_dec(ossl_rsa_meth))
+            || !VR_RSA_meth_set_priv_enc(capi_rsa_method, capi_rsa_priv_enc)
+            || !VR_RSA_meth_set_priv_dec(capi_rsa_method, capi_rsa_priv_dec)
+            || !VR_RSA_meth_set_mod_exp(capi_rsa_method,
+                                     VR_RSA_meth_get_mod_exp(ossl_rsa_meth))
+            || !VR_RSA_meth_set_bn_mod_exp(capi_rsa_method,
+                                        VR_RSA_meth_get_bn_mod_exp(ossl_rsa_meth))
+            || !VR_RSA_meth_set_finish(capi_rsa_method, capi_rsa_free)
+            || !VR_RSA_meth_set_sign(capi_rsa_method, capi_rsa_sign)) {
             goto memerr;
         }
 
 # ifndef OPENSSL_NO_DSA
         /* Setup DSA Method */
         dsa_capi_idx = DSA_get_ex_new_index(0, NULL, NULL, NULL, 0);
-        ossl_dsa_meth = DSA_OpenSSL();
-        if (   !DSA_meth_set_sign(capi_dsa_method, capi_dsa_do_sign)
-            || !DSA_meth_set_verify(capi_dsa_method,
-                                    DSA_meth_get_verify(ossl_dsa_meth))
-            || !DSA_meth_set_finish(capi_dsa_method, capi_dsa_free)
-            || !DSA_meth_set_mod_exp(capi_dsa_method,
-                                     DSA_meth_get_mod_exp(ossl_dsa_meth))
-            || !DSA_meth_set_bn_mod_exp(capi_dsa_method,
-                                    DSA_meth_get_bn_mod_exp(ossl_dsa_meth))) {
+        ossl_dsa_meth = VR_DSA_OpenSSL();
+        if (   !VR_DSA_meth_set_sign(capi_dsa_method, capi_dsa_do_sign)
+            || !VR_DSA_meth_set_verify(capi_dsa_method,
+                                    VR_DSA_meth_get_verify(ossl_dsa_meth))
+            || !VR_DSA_meth_set_finish(capi_dsa_method, capi_dsa_free)
+            || !VR_DSA_meth_set_mod_exp(capi_dsa_method,
+                                     VR_DSA_meth_get_mod_exp(ossl_dsa_meth))
+            || !VR_DSA_meth_set_bn_mod_exp(capi_dsa_method,
+                                    VR_DSA_meth_get_bn_mod_exp(ossl_dsa_meth))) {
             goto memerr;
         }
 # endif
@@ -458,7 +458,7 @@ static int capi_init(ENGINE *e)
     if (ctx == NULL)
         goto memerr;
 
-    ENGINE_set_ex_data(e, capi_idx, ctx);
+    VR_ENGINE_set_ex_data(e, capi_idx, ctx);
 
 # ifdef OPENSSL_CAPIENG_DIALOG
     {
@@ -471,7 +471,7 @@ static int capi_init(ENGINE *e)
         if (kernel)
             ctx->getconswindow =
                 (GETCONSWIN) GetProcAddress(kernel, "GetConsoleWindow");
-        if (cryptui && !OPENSSL_isservice())
+        if (cryptui && !VR_OPENSSL_isservice())
             ctx->client_cert_select = cert_select_dialog;
     }
 # endif
@@ -494,10 +494,10 @@ static int capi_init(ENGINE *e)
 
 static int capi_destroy(ENGINE *e)
 {
-    RSA_meth_free(capi_rsa_method);
+    VR_RSA_meth_free(capi_rsa_method);
     capi_rsa_method = NULL;
 # ifndef OPENSSL_NO_DSA
-    DSA_meth_free(capi_dsa_method);
+    VR_DSA_meth_free(capi_dsa_method);
     capi_dsa_method = NULL;
 # endif
     ERR_unload_CAPI_strings();
@@ -507,9 +507,9 @@ static int capi_destroy(ENGINE *e)
 static int capi_finish(ENGINE *e)
 {
     CAPI_CTX *ctx;
-    ctx = ENGINE_get_ex_data(e, capi_idx);
+    ctx = VR_ENGINE_get_ex_data(e, capi_idx);
     capi_ctx_free(ctx);
-    ENGINE_set_ex_data(e, capi_idx, NULL);
+    VR_ENGINE_set_ex_data(e, capi_idx, NULL);
     return 1;
 }
 
@@ -529,38 +529,38 @@ struct CAPI_KEY_st {
 
 static int bind_capi(ENGINE *e)
 {
-    capi_rsa_method = RSA_meth_new("CryptoAPI RSA method", 0);
+    capi_rsa_method = VR_RSA_meth_new("CryptoAPI RSA method", 0);
     if (capi_rsa_method == NULL)
         return 0;
 # ifndef OPENSSL_NO_DSA
-    capi_dsa_method = DSA_meth_new("CryptoAPI DSA method", 0);
+    capi_dsa_method = VR_DSA_meth_new("CryptoAPI DSA method", 0);
     if (capi_dsa_method == NULL)
         goto memerr;
 # endif
-    if (!ENGINE_set_id(e, engine_capi_id)
-        || !ENGINE_set_name(e, engine_capi_name)
-        || !ENGINE_set_flags(e, ENGINE_FLAGS_NO_REGISTER_ALL)
-        || !ENGINE_set_init_function(e, capi_init)
-        || !ENGINE_set_finish_function(e, capi_finish)
-        || !ENGINE_set_destroy_function(e, capi_destroy)
-        || !ENGINE_set_RSA(e, capi_rsa_method)
+    if (!VR_ENGINE_set_id(e, engine_capi_id)
+        || !VR_ENGINE_set_name(e, engine_capi_name)
+        || !VR_ENGINE_set_flags(e, ENGINE_FLAGS_NO_REGISTER_ALL)
+        || !VR_ENGINE_set_init_function(e, capi_init)
+        || !VR_ENGINE_set_finish_function(e, capi_finish)
+        || !VR_ENGINE_set_destroy_function(e, capi_destroy)
+        || !VR_ENGINE_set_RSA(e, capi_rsa_method)
 # ifndef OPENSSL_NO_DSA
-        || !ENGINE_set_DSA(e, capi_dsa_method)
+        || !VR_ENGINE_set_DSA(e, capi_dsa_method)
 # endif
-        || !ENGINE_set_load_privkey_function(e, capi_load_privkey)
-        || !ENGINE_set_load_ssl_client_cert_function(e,
+        || !VR_ENGINE_set_load_privkey_function(e, capi_load_privkey)
+        || !VR_ENGINE_set_load_ssl_client_cert_function(e,
                                                      capi_load_ssl_client_cert)
-        || !ENGINE_set_cmd_defns(e, capi_cmd_defns)
-        || !ENGINE_set_ctrl_function(e, capi_ctrl))
+        || !VR_ENGINE_set_cmd_defns(e, capi_cmd_defns)
+        || !VR_ENGINE_set_ctrl_function(e, capi_ctrl))
         goto memerr;
     ERR_load_CAPI_strings();
 
     return 1;
  memerr:
-    RSA_meth_free(capi_rsa_method);
+    VR_RSA_meth_free(capi_rsa_method);
     capi_rsa_method = NULL;
 # ifndef OPENSSL_NO_DSA
-    DSA_meth_free(capi_dsa_method);
+    VR_DSA_meth_free(capi_dsa_method);
     capi_dsa_method = NULL;
 # endif
     return 0;
@@ -581,11 +581,11 @@ IMPLEMENT_DYNAMIC_BIND_FN(bind_helper)
 # else
 static ENGINE *engine_capi(void)
 {
-    ENGINE *ret = ENGINE_new();
+    ENGINE *ret = VR_ENGINE_new();
     if (ret == NULL)
         return NULL;
     if (!bind_capi(ret)) {
-        ENGINE_free(ret);
+        VR_ENGINE_free(ret);
         return NULL;
     }
     return ret;
@@ -597,9 +597,9 @@ void engine_load_capi_int(void)
     ENGINE *toadd = engine_capi();
     if (!toadd)
         return;
-    ENGINE_add(toadd);
-    ENGINE_free(toadd);
-    ERR_clear_error();
+    VR_ENGINE_add(toadd);
+    VR_ENGINE_free(toadd);
+    VR_ERR_clear_error();
 }
 # endif
 
@@ -618,7 +618,7 @@ static int lend_tobn(BIGNUM *bn, unsigned char *bin, int binlen)
         bin[binlen - i - 1] = c;
     }
 
-    if (!BN_bin2bn(bin, binlen, bn))
+    if (!VR_BN_bin2bn(bin, binlen, bn))
         return 0;
     return 1;
 }
@@ -663,41 +663,41 @@ static EVP_PKEY *capi_get_pkey(ENGINE *eng, CAPI_KEY *key)
         rp = (RSAPUBKEY *) (bh + 1);
         if (rp->magic != 0x31415352) {
             char magstr[10];
-            BIO_snprintf(magstr, 10, "%lx", rp->magic);
+            VR_BIO_snprintf(magstr, 10, "%lx", rp->magic);
             CAPIerr(CAPI_F_CAPI_GET_PKEY,
                     CAPI_R_INVALID_RSA_PUBLIC_KEY_BLOB_MAGIC_NUMBER);
-            ERR_add_error_data(2, "magic=0x", magstr);
+            VR_ERR_add_error_data(2, "magic=0x", magstr);
             goto err;
         }
         rsa_modulus = (unsigned char *)(rp + 1);
-        rkey = RSA_new_method(eng);
+        rkey = VR_RSA_new_method(eng);
         if (!rkey)
             goto memerr;
 
-        e = BN_new();
-        n = BN_new();
+        e = VR_BN_new();
+        n = VR_BN_new();
 
         if (e == NULL || n == NULL) {
-            BN_free(e);
-            BN_free(n);
+            VR_BN_free(e);
+            VR_BN_free(n);
             goto memerr;
         }
 
-        RSA_set0_key(rkey, n, e, NULL);
+        VR_RSA_set0_key(rkey, n, e, NULL);
 
-        if (!BN_set_word(e, rp->pubexp))
+        if (!VR_BN_set_word(e, rp->pubexp))
             goto memerr;
 
         rsa_modlen = rp->bitlen / 8;
         if (!lend_tobn(n, rsa_modulus, rsa_modlen))
             goto memerr;
 
-        RSA_set_ex_data(rkey, rsa_capi_idx, key);
+        VR_RSA_set_ex_data(rkey, rsa_capi_idx, key);
 
-        if ((ret = EVP_PKEY_new()) == NULL)
+        if ((ret = VR_EVP_PKEY_new()) == NULL)
             goto memerr;
 
-        EVP_PKEY_assign_RSA(ret, rkey);
+        VR_EVP_PKEY_assign_RSA(ret, rkey);
         rkey = NULL;
 
 # ifndef OPENSSL_NO_DSA
@@ -709,30 +709,30 @@ static EVP_PKEY *capi_get_pkey(ENGINE *eng, CAPI_KEY *key)
         dp = (DSSPUBKEY *) (bh + 1);
         if (dp->magic != 0x31535344) {
             char magstr[10];
-            BIO_snprintf(magstr, 10, "%lx", dp->magic);
+            VR_BIO_snprintf(magstr, 10, "%lx", dp->magic);
             CAPIerr(CAPI_F_CAPI_GET_PKEY,
                     CAPI_R_INVALID_DSA_PUBLIC_KEY_BLOB_MAGIC_NUMBER);
-            ERR_add_error_data(2, "magic=0x", magstr);
+            VR_ERR_add_error_data(2, "magic=0x", magstr);
             goto err;
         }
         dsa_plen = dp->bitlen / 8;
         btmp = (unsigned char *)(dp + 1);
-        dkey = DSA_new_method(eng);
+        dkey = VR_DSA_new_method(eng);
         if (!dkey)
             goto memerr;
-        p = BN_new();
-        q = BN_new();
-        g = BN_new();
-        pub_key = BN_new();
+        p = VR_BN_new();
+        q = VR_BN_new();
+        g = VR_BN_new();
+        pub_key = VR_BN_new();
         if (p == NULL || q == NULL || g == NULL || pub_key == NULL) {
-            BN_free(p);
-            BN_free(q);
-            BN_free(g);
-            BN_free(pub_key);
+            VR_BN_free(p);
+            VR_BN_free(q);
+            VR_BN_free(g);
+            VR_BN_free(pub_key);
             goto memerr;
         }
-        DSA_set0_pqg(dkey, p, q, g);
-        DSA_set0_key(dkey, pub_key, NULL);
+        VR_DSA_set0_pqg(dkey, p, q, g);
+        VR_DSA_set0_key(dkey, pub_key, NULL);
         if (!lend_tobn(p, btmp, dsa_plen))
             goto memerr;
         btmp += dsa_plen;
@@ -746,29 +746,29 @@ static EVP_PKEY *capi_get_pkey(ENGINE *eng, CAPI_KEY *key)
             goto memerr;
         btmp += dsa_plen;
 
-        DSA_set_ex_data(dkey, dsa_capi_idx, key);
+        VR_DSA_set_ex_data(dkey, dsa_capi_idx, key);
 
-        if ((ret = EVP_PKEY_new()) == NULL)
+        if ((ret = VR_EVP_PKEY_new()) == NULL)
             goto memerr;
 
-        EVP_PKEY_assign_DSA(ret, dkey);
+        VR_EVP_PKEY_assign_DSA(ret, dkey);
         dkey = NULL;
 # endif
     } else {
         char algstr[10];
-        BIO_snprintf(algstr, 10, "%ux", bh->aiKeyAlg);
+        VR_BIO_snprintf(algstr, 10, "%ux", bh->aiKeyAlg);
         CAPIerr(CAPI_F_CAPI_GET_PKEY,
                 CAPI_R_UNSUPPORTED_PUBLIC_KEY_ALGORITHM);
-        ERR_add_error_data(2, "aiKeyAlg=0x", algstr);
+        VR_ERR_add_error_data(2, "aiKeyAlg=0x", algstr);
         goto err;
     }
 
  err:
-    OPENSSL_free(pubkey);
+    OPENVR_SSL_free(pubkey);
     if (!ret) {
-        RSA_free(rkey);
+        VR_RSA_free(rkey);
 # ifndef OPENSSL_NO_DSA
-        DSA_free(dkey);
+        VR_DSA_free(dkey);
 # endif
     }
 
@@ -786,7 +786,7 @@ static EVP_PKEY *capi_load_privkey(ENGINE *eng, const char *key_id,
     CAPI_CTX *ctx;
     CAPI_KEY *key;
     EVP_PKEY *ret;
-    ctx = ENGINE_get_ex_data(eng, capi_idx);
+    ctx = VR_ENGINE_get_ex_data(eng, capi_idx);
 
     if (!ctx) {
         CAPIerr(CAPI_F_CAPI_LOAD_PRIVKEY, CAPI_R_CANT_FIND_CAPI_CONTEXT);
@@ -826,11 +826,11 @@ int capi_rsa_sign(int dtype, const unsigned char *m, unsigned int m_len,
     CAPI_KEY *capi_key;
     CAPI_CTX *ctx;
 
-    ctx = ENGINE_get_ex_data(RSA_get0_engine(rsa), capi_idx);
+    ctx = VR_ENGINE_get_ex_data(VR_RSA_get0_engine(rsa), capi_idx);
 
     CAPI_trace(ctx, "Called CAPI_rsa_sign()\n");
 
-    capi_key = RSA_get_ex_data(rsa, rsa_capi_idx);
+    capi_key = VR_RSA_get_ex_data(rsa, rsa_capi_idx);
     if (!capi_key) {
         CAPIerr(CAPI_F_CAPI_RSA_SIGN, CAPI_R_CANT_GET_KEY);
         return -1;
@@ -850,22 +850,22 @@ int capi_rsa_sign(int dtype, const unsigned char *m, unsigned int m_len,
         break;
 
     case NID_sha1:
-        alg = CALG_SHA1;
+        alg = CALG_VR_SHA1;
         break;
 
     case NID_md5:
-        alg = CALG_MD5;
+        alg = CALG_VR_MD5;
         break;
 
     case NID_md5_sha1:
-        alg = CALG_SSL3_SHAMD5;
+        alg = CALG_SSL3_SHAVR_MD5;
         break;
     default:
         {
             char algstr[10];
-            BIO_snprintf(algstr, 10, "%x", dtype);
+            VR_BIO_snprintf(algstr, 10, "%x", dtype);
             CAPIerr(CAPI_F_CAPI_RSA_SIGN, CAPI_R_UNSUPPORTED_ALGORITHM_NID);
-            ERR_add_error_data(2, "NID=0x", algstr);
+            VR_ERR_add_error_data(2, "NID=0x", algstr);
             return -1;
         }
     }
@@ -885,7 +885,7 @@ int capi_rsa_sign(int dtype, const unsigned char *m, unsigned int m_len,
     }
 
     /* Finally sign it */
-    slen = RSA_size(rsa);
+    slen = VR_RSA_size(rsa);
     if (!CryptSignHash(hash, capi_key->keyspec, NULL, 0, sigret, &slen)) {
         CAPIerr(CAPI_F_CAPI_RSA_SIGN, CAPI_R_ERROR_SIGNING_HASH);
         capi_addlasterror();
@@ -923,11 +923,11 @@ int capi_rsa_priv_dec(int flen, const unsigned char *from,
     if (flen <= 0)
         return flen;
 
-    ctx = ENGINE_get_ex_data(RSA_get0_engine(rsa), capi_idx);
+    ctx = VR_ENGINE_get_ex_data(VR_RSA_get0_engine(rsa), capi_idx);
 
     CAPI_trace(ctx, "Called capi_rsa_priv_dec()\n");
 
-    capi_key = RSA_get_ex_data(rsa, rsa_capi_idx);
+    capi_key = VR_RSA_get_ex_data(rsa, rsa_capi_idx);
     if (!capi_key) {
         CAPIerr(CAPI_F_CAPI_RSA_PRIV_DEC, CAPI_R_CANT_GET_KEY);
         return -1;
@@ -945,9 +945,9 @@ int capi_rsa_priv_dec(int flen, const unsigned char *from,
     default:
         {
             char errstr[10];
-            BIO_snprintf(errstr, 10, "%d", padding);
+            VR_BIO_snprintf(errstr, 10, "%d", padding);
             CAPIerr(CAPI_F_CAPI_RSA_PRIV_DEC, CAPI_R_UNSUPPORTED_PADDING);
-            ERR_add_error_data(2, "padding=", errstr);
+            VR_ERR_add_error_data(2, "padding=", errstr);
             return -1;
         }
     }
@@ -965,14 +965,14 @@ int capi_rsa_priv_dec(int flen, const unsigned char *from,
     if (!CryptDecrypt(capi_key->key, 0, TRUE, flags, tmpbuf, &dlen)) {
         CAPIerr(CAPI_F_CAPI_RSA_PRIV_DEC, CAPI_R_DECRYPT_ERROR);
         capi_addlasterror();
-        OPENSSL_cleanse(tmpbuf, dlen);
-        OPENSSL_free(tmpbuf);
+        VR_OPENSSL_cleanse(tmpbuf, dlen);
+        OPENVR_SSL_free(tmpbuf);
         return -1;
     } else {
         memcpy(to, tmpbuf, (flen = (int)dlen));
     }
-    OPENSSL_cleanse(tmpbuf, flen);
-    OPENSSL_free(tmpbuf);
+    VR_OPENSSL_cleanse(tmpbuf, flen);
+    OPENVR_SSL_free(tmpbuf);
 
     return flen;
 }
@@ -980,9 +980,9 @@ int capi_rsa_priv_dec(int flen, const unsigned char *from,
 static int capi_rsa_free(RSA *rsa)
 {
     CAPI_KEY *capi_key;
-    capi_key = RSA_get_ex_data(rsa, rsa_capi_idx);
+    capi_key = VR_RSA_get_ex_data(rsa, rsa_capi_idx);
     capi_free_key(capi_key);
-    RSA_set_ex_data(rsa, rsa_capi_idx, 0);
+    VR_RSA_set_ex_data(rsa, rsa_capi_idx, 0);
     return 1;
 }
 
@@ -999,11 +999,11 @@ static DSA_SIG *capi_dsa_do_sign(const unsigned char *digest, int dlen,
     CAPI_CTX *ctx;
     unsigned char csigbuf[40];
 
-    ctx = ENGINE_get_ex_data(DSA_get0_engine(dsa), capi_idx);
+    ctx = VR_ENGINE_get_ex_data(VR_DSA_get0_engine(dsa), capi_idx);
 
     CAPI_trace(ctx, "Called CAPI_dsa_do_sign()\n");
 
-    capi_key = DSA_get_ex_data(dsa, dsa_capi_idx);
+    capi_key = VR_DSA_get_ex_data(dsa, dsa_capi_idx);
 
     if (!capi_key) {
         CAPIerr(CAPI_F_CAPI_DSA_DO_SIGN, CAPI_R_CANT_GET_KEY);
@@ -1016,7 +1016,7 @@ static DSA_SIG *capi_dsa_do_sign(const unsigned char *digest, int dlen,
     }
 
     /* Create the hash object */
-    if (!CryptCreateHash(capi_key->hprov, CALG_SHA1, 0, 0, &hash)) {
+    if (!CryptCreateHash(capi_key->hprov, CALG_VR_SHA1, 0, 0, &hash)) {
         CAPIerr(CAPI_F_CAPI_DSA_DO_SIGN, CAPI_R_CANT_CREATE_HASH_OBJECT);
         capi_addlasterror();
         return NULL;
@@ -1036,23 +1036,23 @@ static DSA_SIG *capi_dsa_do_sign(const unsigned char *digest, int dlen,
         capi_addlasterror();
         goto err;
     } else {
-        BIGNUM *r = BN_new(), *s = BN_new();
+        BIGNUM *r = VR_BN_new(), *s = VR_BN_new();
 
         if (r == NULL || s == NULL
             || !lend_tobn(r, csigbuf, 20)
             || !lend_tobn(s, csigbuf + 20, 20)
-            || (ret = DSA_SIG_new()) == NULL) {
-            BN_free(r); /* BN_free checks for BIGNUM * being NULL */
-            BN_free(s);
+            || (ret = VR_DSA_SIG_new()) == NULL) {
+            VR_BN_free(r); /* VR_BN_free checks for BIGNUM * being NULL */
+            VR_BN_free(s);
             goto err;
         }
-        DSA_SIG_set0(ret, r, s);
+        VR_DSA_SIG_set0(ret, r, s);
     }
 
     /* Now cleanup */
 
  err:
-    OPENSSL_cleanse(csigbuf, 40);
+    VR_OPENSSL_cleanse(csigbuf, 40);
     CryptDestroyHash(hash);
     return ret;
 }
@@ -1060,9 +1060,9 @@ static DSA_SIG *capi_dsa_do_sign(const unsigned char *digest, int dlen,
 static int capi_dsa_free(DSA *dsa)
 {
     CAPI_KEY *capi_key;
-    capi_key = DSA_get_ex_data(dsa, dsa_capi_idx);
+    capi_key = VR_DSA_get_ex_data(dsa, dsa_capi_idx);
     capi_free_key(capi_key);
-    DSA_set_ex_data(dsa, dsa_capi_idx, 0);
+    VR_DSA_set_ex_data(dsa, dsa_capi_idx, 0);
     return 1;
 }
 # endif
@@ -1074,13 +1074,13 @@ static void capi_vtrace(CAPI_CTX *ctx, int level, char *format,
 
     if (!ctx || (ctx->debug_level < level) || (!ctx->debug_file))
         return;
-    out = BIO_new_file(ctx->debug_file, "a+");
+    out = VR_BIO_new_file(ctx->debug_file, "a+");
     if (out == NULL) {
         CAPIerr(CAPI_F_CAPI_VTRACE, CAPI_R_FILE_OPEN_ERROR);
         return;
     }
-    BIO_vprintf(out, format, argptr);
-    BIO_free(out);
+    VR_BIO_vprintf(out, format, argptr);
+    VR_BIO_free(out);
 }
 
 static void CAPI_trace(CAPI_CTX *ctx, char *format, ...)
@@ -1099,8 +1099,8 @@ static void capi_addlasterror(void)
 static void capi_adderror(DWORD err)
 {
     char errstr[10];
-    BIO_snprintf(errstr, 10, "%lX", err);
-    ERR_add_error_data(2, "Error code= 0x", errstr);
+    VR_BIO_snprintf(errstr, 10, "%lX", err);
+    VR_ERR_add_error_data(2, "Error code= 0x", errstr);
 }
 
 static char *wide_to_asc(LPCWSTR wstr)
@@ -1122,7 +1122,7 @@ static char *wide_to_asc(LPCWSTR wstr)
         return NULL;
     }
     if (!WideCharToMultiByte(CP_ACP, 0, wstr, len_0, str, sz, NULL, NULL)) {
-        OPENSSL_free(str);
+        OPENVR_SSL_free(str);
         CAPIerr(CAPI_F_WIDE_TO_ASC, CAPI_R_WIN32_ERROR);
         return NULL;
     }
@@ -1150,7 +1150,7 @@ static int capi_get_provname(CAPI_CTX *ctx, LPSTR *pname, DWORD *ptype,
     }
     if (!CryptEnumProviders(idx, NULL, 0, ptype, name, &len)) {
         err = GetLastError();
-        OPENSSL_free(name);
+        OPENVR_SSL_free(name);
         if (err == ERROR_NO_MORE_ITEMS)
             return 2;
         CAPIerr(CAPI_F_CAPI_GET_PROVNAME, CAPI_R_CRYPTENUMPROVIDERS_ERROR);
@@ -1159,7 +1159,7 @@ static int capi_get_provname(CAPI_CTX *ctx, LPSTR *pname, DWORD *ptype,
     }
     if (sizeof(TCHAR) != sizeof(char)) {
         *pname = wide_to_asc((WCHAR *)name);
-        OPENSSL_free(name);
+        OPENVR_SSL_free(name);
         if (*pname == NULL)
             return 0;
     } else {
@@ -1177,15 +1177,15 @@ static int capi_list_providers(CAPI_CTX *ctx, BIO *out)
     int ret;
     LPSTR provname = NULL;
     CAPI_trace(ctx, "capi_list_providers\n");
-    BIO_printf(out, "Available CSPs:\n");
+    VR_BIO_printf(out, "Available CSPs:\n");
     for (idx = 0;; idx++) {
         ret = capi_get_provname(ctx, &provname, &ptype, idx);
         if (ret == 2)
             break;
         if (ret == 0)
             break;
-        BIO_printf(out, "%lu. %s, type %lu\n", idx, provname, ptype);
-        OPENSSL_free(provname);
+        VR_BIO_printf(out, "%lu. %s, type %lu\n", idx, provname, ptype);
+        OPENVR_SSL_free(provname);
     }
     return 1;
 }
@@ -1259,14 +1259,14 @@ static int capi_list_containers(CAPI_CTX *ctx, BIO *out)
             CAPI_trace(ctx, "Enumerate bug: using workaround\n");
             goto done;
         }
-        BIO_printf(out, "%lu. %s\n", idx, cname);
+        VR_BIO_printf(out, "%lu. %s\n", idx, cname);
     }
  err:
 
     ret = 0;
 
  done:
-    OPENSSL_free(cname);
+    OPENVR_SSL_free(cname);
     CryptReleaseContext(hprov, 0);
 
     return ret;
@@ -1291,7 +1291,7 @@ static CRYPT_KEY_PROV_INFO *capi_get_prov_info(CAPI_CTX *ctx,
         CAPIerr(CAPI_F_CAPI_GET_PROV_INFO,
                 CAPI_R_ERROR_GETTING_KEY_PROVIDER_INFO);
         capi_addlasterror();
-        OPENSSL_free(pinfo);
+        OPENVR_SSL_free(pinfo);
         return NULL;
     }
     return pinfo;
@@ -1302,7 +1302,7 @@ static void capi_dump_prov_info(CAPI_CTX *ctx, BIO *out,
 {
     char *provname = NULL, *contname = NULL;
     if (!pinfo) {
-        BIO_printf(out, "  No Private Key\n");
+        VR_BIO_printf(out, "  No Private Key\n");
         return;
     }
     provname = wide_to_asc(pinfo->pwszProvName);
@@ -1310,14 +1310,14 @@ static void capi_dump_prov_info(CAPI_CTX *ctx, BIO *out,
     if (!provname || !contname)
         goto err;
 
-    BIO_printf(out, "  Private Key Info:\n");
-    BIO_printf(out, "    Provider Name:  %s, Provider Type %lu\n", provname,
+    VR_BIO_printf(out, "  Private Key Info:\n");
+    VR_BIO_printf(out, "    Provider Name:  %s, Provider Type %lu\n", provname,
                pinfo->dwProvType);
-    BIO_printf(out, "    Container Name: %s, Key Type %lu\n", contname,
+    VR_BIO_printf(out, "    Container Name: %s, Key Type %lu\n", contname,
                pinfo->dwKeySpec);
  err:
-    OPENSSL_free(provname);
-    OPENSSL_free(contname);
+    OPENVR_SSL_free(provname);
+    OPENVR_SSL_free(contname);
 }
 
 static char *capi_cert_get_fname(CAPI_CTX *ctx, PCCERT_CONTEXT cert)
@@ -1335,13 +1335,13 @@ static char *capi_cert_get_fname(CAPI_CTX *ctx, PCCERT_CONTEXT cert)
     if (CertGetCertificateContextProperty(cert, CERT_FRIENDLY_NAME_PROP_ID,
                                           wfname, &dlen)) {
         char *fname = wide_to_asc(wfname);
-        OPENSSL_free(wfname);
+        OPENVR_SSL_free(wfname);
         return fname;
     }
     CAPIerr(CAPI_F_CAPI_CERT_GET_FNAME, CAPI_R_ERROR_GETTING_FRIENDLY_NAME);
     capi_addlasterror();
 
-    OPENSSL_free(wfname);
+    OPENVR_SSL_free(wfname);
     return NULL;
 }
 
@@ -1354,37 +1354,37 @@ static void capi_dump_cert(CAPI_CTX *ctx, BIO *out, PCCERT_CONTEXT cert)
         char *fname;
         fname = capi_cert_get_fname(ctx, cert);
         if (fname) {
-            BIO_printf(out, "  Friendly Name \"%s\"\n", fname);
-            OPENSSL_free(fname);
+            VR_BIO_printf(out, "  Friendly Name \"%s\"\n", fname);
+            OPENVR_SSL_free(fname);
         } else {
-            BIO_printf(out, "  <No Friendly Name>\n");
+            VR_BIO_printf(out, "  <No Friendly Name>\n");
         }
     }
 
     p = cert->pbCertEncoded;
-    x = d2i_X509(NULL, &p, cert->cbCertEncoded);
+    x = VR_d2i_X509(NULL, &p, cert->cbCertEncoded);
     if (!x)
-        BIO_printf(out, "  <Can't parse certificate>\n");
+        VR_BIO_printf(out, "  <Can't parse certificate>\n");
     if (flags & CAPI_DMP_SUMMARY) {
-        BIO_printf(out, "  Subject: ");
-        X509_NAME_print_ex(out, X509_get_subject_name(x), 0, XN_FLAG_ONELINE);
-        BIO_printf(out, "\n  Issuer: ");
-        X509_NAME_print_ex(out, X509_get_issuer_name(x), 0, XN_FLAG_ONELINE);
-        BIO_printf(out, "\n");
+        VR_BIO_printf(out, "  Subject: ");
+        VR_X509_NAME_print_ex(out, VR_X509_get_subject_name(x), 0, XN_FLAG_ONELINE);
+        VR_BIO_printf(out, "\n  Issuer: ");
+        VR_X509_NAME_print_ex(out, VR_X509_get_issuer_name(x), 0, XN_FLAG_ONELINE);
+        VR_BIO_printf(out, "\n");
     }
     if (flags & CAPI_DMP_FULL)
-        X509_print_ex(out, x, XN_FLAG_ONELINE, 0);
+        VR_X509_print_ex(out, x, XN_FLAG_ONELINE, 0);
 
     if (flags & CAPI_DMP_PKEYINFO) {
         CRYPT_KEY_PROV_INFO *pinfo;
         pinfo = capi_get_prov_info(ctx, cert);
         capi_dump_prov_info(ctx, out, pinfo);
-        OPENSSL_free(pinfo);
+        OPENVR_SSL_free(pinfo);
     }
 
     if (flags & CAPI_DMP_PEM)
-        PEM_write_bio_X509(out, x);
-    X509_free(x);
+        VR_PEM_write_bio_X509(out, x);
+    VR_X509_free(x);
 }
 
 static HCERTSTORE capi_open_store(CAPI_CTX *ctx, char *storename)
@@ -1435,7 +1435,7 @@ int capi_list_certs(CAPI_CTX *ctx, BIO *out, char *id)
             cert = CertEnumCertificatesInStore(hstore, cert);
             if (!cert)
                 break;
-            BIO_printf(out, "Certificate %d\n", idx);
+            VR_BIO_printf(out, "Certificate %d\n", idx);
             capi_dump_cert(ctx, out, cert);
         }
     }
@@ -1465,7 +1465,7 @@ static PCCERT_CONTEXT capi_find_cert(CAPI_CTX *ctx, const char *id,
                     match = 0;
                 else
                     match = 1;
-                OPENSSL_free(fname);
+                OPENVR_SSL_free(fname);
                 if (match)
                     return cert;
             }
@@ -1500,8 +1500,8 @@ static CAPI_KEY *capi_get_key(CAPI_CTX *ctx, const WCHAR *contname,
 
         CAPI_trace(ctx, "capi_get_key, contname=%s, provname=%s, type=%d\n",
                    _contname, _provname, ptype);
-        OPENSSL_free(_provname);
-        OPENSSL_free(_contname);
+        OPENVR_SSL_free(_provname);
+        OPENVR_SSL_free(_contname);
     }
     if (ctx->store_flags & CERT_SYSTEM_STORE_LOCAL_MACHINE)
         dwFlags = CRYPT_MACHINE_KEYSET;
@@ -1522,7 +1522,7 @@ static CAPI_KEY *capi_get_key(CAPI_CTX *ctx, const WCHAR *contname,
     return key;
 
  err:
-    OPENSSL_free(key);
+    OPENVR_SSL_free(key);
     return NULL;
 }
 
@@ -1537,7 +1537,7 @@ static CAPI_KEY *capi_get_cert_key(CAPI_CTX *ctx, PCCERT_CONTEXT cert)
         key = capi_get_key(ctx, pinfo->pwszContainerName, pinfo->pwszProvName,
                            pinfo->dwProvType, pinfo->dwKeySpec);
 
-    OPENSSL_free(pinfo);
+    OPENVR_SSL_free(pinfo);
     return key;
 }
 
@@ -1591,7 +1591,7 @@ void capi_free_key(CAPI_KEY *key)
     CryptReleaseContext(key->hprov, 0);
     if (key->pcert)
         CertFreeCertificateContext(key->pcert);
-    OPENSSL_free(key);
+    OPENVR_SSL_free(key);
 }
 
 /* Initialize a CAPI_CTX structure */
@@ -1619,11 +1619,11 @@ static void capi_ctx_free(CAPI_CTX *ctx)
     CAPI_trace(ctx, "Calling capi_ctx_free with %lx\n", ctx);
     if (!ctx)
         return;
-    OPENSSL_free(ctx->cspname);
-    OPENSSL_free(ctx->debug_file);
-    OPENSSL_free(ctx->storename);
-    OPENSSL_free(ctx->ssl_client_store);
-    OPENSSL_free(ctx);
+    OPENVR_SSL_free(ctx->cspname);
+    OPENVR_SSL_free(ctx->debug_file);
+    OPENVR_SSL_free(ctx->storename);
+    OPENVR_SSL_free(ctx->ssl_client_store);
+    OPENVR_SSL_free(ctx);
 }
 
 static int capi_ctx_set_provname(CAPI_CTX *ctx, LPSTR pname, DWORD type,
@@ -1655,7 +1655,7 @@ static int capi_ctx_set_provname(CAPI_CTX *ctx, LPSTR pname, DWORD type,
         CAPIerr(CAPI_F_CAPI_CTX_SET_PROVNAME, ERR_R_MALLOC_FAILURE);
         return 0;
     }
-    OPENSSL_free(ctx->cspname);
+    OPENVR_SSL_free(ctx->cspname);
     ctx->cspname = tmpcspname;
     ctx->csptype = type;
     return 1;
@@ -1669,7 +1669,7 @@ static int capi_ctx_set_provname_idx(CAPI_CTX *ctx, int idx)
     if (capi_get_provname(ctx, &pname, &type, idx) != 1)
         return 0;
     res = capi_ctx_set_provname(ctx, pname, type, 0);
-    OPENSSL_free(pname);
+    OPENVR_SSL_free(pname);
     return res;
 }
 
@@ -1682,7 +1682,7 @@ static int cert_issuer_match(STACK_OF(X509_NAME) *ca_dn, X509 *x)
         return 1;
     for (i = 0; i < sk_X509_NAME_num(ca_dn); i++) {
         nm = sk_X509_NAME_value(ca_dn, i);
-        if (!X509_NAME_cmp(nm, X509_get_issuer_name(x)))
+        if (!VR_X509_NAME_cmp(nm, VR_X509_get_issuer_name(x)))
             return 1;
     }
     return 0;
@@ -1703,7 +1703,7 @@ static int capi_load_ssl_client_cert(ENGINE *e, SSL *ssl,
     PCCERT_CONTEXT cert = NULL, excert = NULL;
     CAPI_CTX *ctx;
     CAPI_KEY *key;
-    ctx = ENGINE_get_ex_data(e, capi_idx);
+    ctx = VR_ENGINE_get_ex_data(e, capi_idx);
 
     *pcert = NULL;
     *pkey = NULL;
@@ -1721,16 +1721,16 @@ static int capi_load_ssl_client_cert(ENGINE *e, SSL *ssl,
         if (!cert)
             break;
         p = cert->pbCertEncoded;
-        x = d2i_X509(NULL, &p, cert->cbCertEncoded);
+        x = VR_d2i_X509(NULL, &p, cert->cbCertEncoded);
         if (!x) {
             CAPI_trace(ctx, "Can't Parse Certificate %d\n", i);
             continue;
         }
         if (cert_issuer_match(ca_dn, x)
-            && X509_check_purpose(x, X509_PURPOSE_SSL_CLIENT, 0)) {
+            && VR_X509_check_purpose(x, X509_PURPOSE_SSL_CLIENT, 0)) {
             key = capi_get_cert_key(ctx, cert);
             if (!key) {
-                X509_free(x);
+                VR_X509_free(x);
                 continue;
             }
             /*
@@ -1739,14 +1739,14 @@ static int capi_load_ssl_client_cert(ENGINE *e, SSL *ssl,
              */
             excert = CertDuplicateCertificateContext(cert);
             key->pcert = excert;
-            X509_set_ex_data(x, cert_capi_idx, key);
+            VR_X509_set_ex_data(x, cert_capi_idx, key);
 
             if (!certs)
-                certs = sk_X509_new_null();
+                certs = sk_VR_X509_new_null();
 
-            sk_X509_push(certs, x);
+            sk_VR_X509_push(certs, x);
         } else {
-            X509_free(x);
+            VR_X509_free(x);
         }
     }
 
@@ -1769,22 +1769,22 @@ static int capi_load_ssl_client_cert(ENGINE *e, SSL *ssl,
         if (i == client_cert_idx)
             *pcert = x;
         else {
-            key = X509_get_ex_data(x, cert_capi_idx);
+            key = VR_X509_get_ex_data(x, cert_capi_idx);
             capi_free_key(key);
-            X509_free(x);
+            VR_X509_free(x);
         }
     }
 
-    sk_X509_free(certs);
+    sk_VR_X509_free(certs);
 
     if (!*pcert)
         return 0;
 
     /* Setup key for selected certificate */
 
-    key = X509_get_ex_data(*pcert, cert_capi_idx);
+    key = VR_X509_get_ex_data(*pcert, cert_capi_idx);
     *pkey = capi_get_pkey(e, key);
-    X509_set_ex_data(*pcert, cert_capi_idx, NULL);
+    VR_X509_set_ex_data(*pcert, cert_capi_idx, NULL);
 
     return 1;
 
@@ -1830,7 +1830,7 @@ static int cert_select_dialog(ENGINE *e, SSL *ssl, STACK_OF(X509) *certs)
     int i, idx = -1;
     if (sk_X509_num(certs) == 1)
         return 0;
-    ctx = ENGINE_get_ex_data(e, capi_idx);
+    ctx = VR_ENGINE_get_ex_data(e, capi_idx);
     /* Create an in memory store of certificates */
     dstore = CertOpenStore(CERT_STORE_PROV_MEMORY, 0, 0,
                            CERT_STORE_CREATE_NEW_FLAG, NULL);
@@ -1842,7 +1842,7 @@ static int cert_select_dialog(ENGINE *e, SSL *ssl, STACK_OF(X509) *certs)
     /* Add all certificates to store */
     for (i = 0; i < sk_X509_num(certs); i++) {
         x = sk_X509_value(certs, i);
-        key = X509_get_ex_data(x, cert_capi_idx);
+        key = VR_X509_get_ex_data(x, cert_capi_idx);
 
         if (!CertAddCertificateContextToStore(dstore, key->pcert,
                                               CERT_STORE_ADD_NEW, NULL)) {
@@ -1865,7 +1865,7 @@ static int cert_select_dialog(ENGINE *e, SSL *ssl, STACK_OF(X509) *certs)
     if (cert) {
         for (i = 0; i < sk_X509_num(certs); i++) {
             x = sk_X509_value(certs, i);
-            key = X509_get_ex_data(x, cert_capi_idx);
+            key = VR_X509_get_ex_data(x, cert_capi_idx);
             if (CertCompareCertificate
                 (X509_ASN_ENCODING | PKCS_7_ASN_ENCODING, cert->pCertInfo,
                  key->pcert->pCertInfo)) {

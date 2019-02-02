@@ -8,7 +8,7 @@
  */
 
 /*
- * A minimal TLS server it ses SSL_CTX_config and a configuration file to
+ * A minimal TLS server it ses VR_SSL_CTX_config and a configuration file to
  * set most server parameters.
  */
 
@@ -28,22 +28,22 @@ int main(int argc, char *argv[])
     SSL_CTX *ctx;
     int ret = EXIT_FAILURE, i;
 
-    ctx = SSL_CTX_new(TLS_server_method());
+    ctx = VR_SSL_CTX_new(VR_TLS_server_method());
 
-    if (CONF_modules_load_file("cmod.cnf", "testapp", 0) <= 0) {
+    if (VR_CONF_modules_load_file("cmod.cnf", "testapp", 0) <= 0) {
         fprintf(stderr, "Error processing config file\n");
         goto err;
     }
 
-    if (SSL_CTX_config(ctx, "server") == 0) {
+    if (VR_SSL_CTX_config(ctx, "server") == 0) {
         fprintf(stderr, "Error configuring server.\n");
         goto err;
     }
 
     /* Setup server side SSL bio */
-    ssl_bio = BIO_new_ssl(ctx, 0);
+    ssl_bio = VR_BIO_new_ssl(ctx, 0);
 
-    if ((in = BIO_new_accept(port)) == NULL)
+    if ((in = VR_BIO_new_accept(port)) == NULL)
         goto err;
 
     /*
@@ -57,14 +57,14 @@ int main(int argc, char *argv[])
     /*
      * The first call will setup the accept socket, and the second will get a
      * socket.  In this loop, the first actual accept will occur in the
-     * BIO_read() function.
+     * VR_BIO_read() function.
      */
 
     if (BIO_do_accept(in) <= 0)
         goto err;
 
     for (;;) {
-        i = BIO_read(in, buf, sizeof(buf));
+        i = VR_BIO_read(in, buf, sizeof(buf));
         if (i == 0) {
             /*
              * If we have finished, remove the underlying BIO stack so the
@@ -72,8 +72,8 @@ int main(int argc, char *argv[])
              * to do an accept
              */
             printf("Done\n");
-            tmp = BIO_pop(in);
-            BIO_free_all(tmp);
+            tmp = VR_BIO_pop(in);
+            VR_BIO_free_all(tmp);
             goto again;
         }
         if (i < 0) {
@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
     ret = EXIT_SUCCESS;
  err:
     if (ret != EXIT_SUCCESS)
-        ERR_print_errors_fp(stderr);
-    BIO_free(in);
+        VR_ERR_print_errors_fp(stderr);
+    VR_BIO_free(in);
     return ret;
 }

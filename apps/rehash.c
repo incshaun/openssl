@@ -145,7 +145,7 @@ static int add_entry(enum Type type, unsigned int hash, const char *filename,
 
     for (ep = bp->first_entry; ep; ep = ep->next) {
         if (digest && memcmp(digest, ep->digest, evpmdsize) == 0) {
-            BIO_printf(bio_err,
+            VR_BIO_printf(bio_err,
                        "%s: warning: skipping duplicate %s in %s\n",
                        opt_getprog(),
                        type == TYPE_CERT ? "certificate" : "CRL", filename);
@@ -160,7 +160,7 @@ static int add_entry(enum Type type, unsigned int hash, const char *filename,
     ep = found;
     if (ep == NULL) {
         if (bp->num_needed >= MAX_COLLISIONS) {
-            BIO_printf(bio_err,
+            VR_BIO_printf(bio_err,
                        "%s: error: hash table overflow for %s\n",
                        opt_getprog(), filename);
             return 1;
@@ -203,7 +203,7 @@ static int handle_symlink(const char *filename, const char *fullpath)
         if (!isxdigit(ch))
             return -1;
         hash <<= 4;
-        hash += OPENSSL_hexchar2int(ch);
+        hash += VR_OPENSSL_hexchar2int(ch);
     }
     if (filename[i++] != '.')
         return -1;
@@ -251,19 +251,19 @@ static int do_file(const char *filename, const char *fullpath, enum Hash h)
         goto end;
 
     /* Does it have X.509 data in it? */
-    if ((b = BIO_new_file(fullpath, "r")) == NULL) {
-        BIO_printf(bio_err, "%s: error: skipping %s, cannot open file\n",
+    if ((b = VR_BIO_new_file(fullpath, "r")) == NULL) {
+        VR_BIO_printf(bio_err, "%s: error: skipping %s, cannot open file\n",
                    opt_getprog(), filename);
         errs++;
         goto end;
     }
-    inf = PEM_X509_INFO_read_bio(b, NULL, NULL, NULL);
-    BIO_free(b);
+    inf = VR_PEM_X509_INFO_read_bio(b, NULL, NULL, NULL);
+    VR_BIO_free(b);
     if (inf == NULL)
         goto end;
 
     if (sk_X509_INFO_num(inf) != 1) {
-        BIO_printf(bio_err,
+        VR_BIO_printf(bio_err,
                    "%s: warning: skipping %s,"
                    "it does not contain exactly one certificate or CRL\n",
                    opt_getprog(), filename);
@@ -273,31 +273,31 @@ static int do_file(const char *filename, const char *fullpath, enum Hash h)
     x = sk_X509_INFO_value(inf, 0);
     if (x->x509 != NULL) {
         type = TYPE_CERT;
-        name = X509_get_subject_name(x->x509);
-        X509_digest(x->x509, evpmd, digest, NULL);
+        name = VR_X509_get_subject_name(x->x509);
+        VR_X509_digest(x->x509, evpmd, digest, NULL);
     } else if (x->crl != NULL) {
         type = TYPE_CRL;
-        name = X509_CRL_get_issuer(x->crl);
-        X509_CRL_digest(x->crl, evpmd, digest, NULL);
+        name = VR_X509_CRL_get_issuer(x->crl);
+        VR_X509_CRL_digest(x->crl, evpmd, digest, NULL);
     } else {
         ++errs;
         goto end;
     }
     if (name != NULL) {
         if ((h == HASH_NEW) || (h == HASH_BOTH))
-            errs += add_entry(type, X509_NAME_hash(name), filename, digest, 1, ~0);
+            errs += add_entry(type, VR_X509_NAME_hash(name), filename, digest, 1, ~0);
         if ((h == HASH_OLD) || (h == HASH_BOTH))
-            errs += add_entry(type, X509_NAME_hash_old(name), filename, digest, 1, ~0);
+            errs += add_entry(type, VR_X509_NAME_hash_old(name), filename, digest, 1, ~0);
     }
 
 end:
-    sk_X509_INFO_pop_free(inf, X509_INFO_free);
+    sk_VR_X509_INFO_pop_free(inf, VR_X509_INFO_free);
     return errs;
 }
 
 static void str_free(char *s)
 {
-    OPENSSL_free(s);
+    OPENVR_SSL_free(s);
 }
 
 static int ends_with_dirsep(const char *path)
@@ -332,7 +332,7 @@ static int do_dir(const char *dirname, enum Hash h)
     STACK_OF(OPENSSL_STRING) *files = NULL;
 
     if (app_access(dirname, W_OK) < 0) {
-        BIO_printf(bio_err, "Skipping %s, can't write\n", dirname);
+        VR_BIO_printf(bio_err, "Skipping %s, can't write\n", dirname);
         return 1;
     }
     buflen = strlen(dirname);
@@ -341,29 +341,29 @@ static int do_dir(const char *dirname, enum Hash h)
     buf = app_malloc(buflen, "filename buffer");
 
     if (verbose)
-        BIO_printf(bio_out, "Doing %s\n", dirname);
+        VR_BIO_printf(bio_out, "Doing %s\n", dirname);
 
-    if ((files = sk_OPENSSL_STRING_new_null()) == NULL) {
-        BIO_printf(bio_err, "Skipping %s, out of memory\n", dirname);
+    if ((files = sk_VR_OPENSSL_STRING_new_null()) == NULL) {
+        VR_BIO_printf(bio_err, "Skipping %s, out of memory\n", dirname);
         errs = 1;
         goto err;
     }
-    while ((filename = OPENSSL_DIR_read(&d, dirname)) != NULL) {
+    while ((filename = VR_OPENSSL_DIR_read(&d, dirname)) != NULL) {
         if ((copy = OPENSSL_strdup(filename)) == NULL
-                || sk_OPENSSL_STRING_push(files, copy) == 0) {
-            OPENSSL_free(copy);
-            BIO_puts(bio_err, "out of memory\n");
+                || sk_VR_OPENSSL_STRING_push(files, copy) == 0) {
+            OPENVR_SSL_free(copy);
+            VR_BIO_puts(bio_err, "out of memory\n");
             errs = 1;
             goto err;
         }
     }
-    OPENSSL_DIR_end(&d);
+    VR_OPENSSL_DIR_end(&d);
     sk_OPENSSL_STRING_sort(files);
 
     numfiles = sk_OPENSSL_STRING_num(files);
     for (n = 0; n < numfiles; ++n) {
         filename = sk_OPENSSL_STRING_value(files, n);
-        if (BIO_snprintf(buf, buflen, "%s%s%s",
+        if (VR_BIO_snprintf(buf, buflen, "%s%s%s",
                          dirname, pathsep, filename) >= buflen)
             continue;
         if (lstat(buf, &st) < 0)
@@ -386,30 +386,30 @@ static int do_dir(const char *dirname, enum Hash h)
                 nextep = ep->next;
                 if (ep->old_id < bp->num_needed) {
                     /* Link exists, and is used as-is */
-                    BIO_snprintf(buf, buflen, "%08x.%s%d", bp->hash,
+                    VR_BIO_snprintf(buf, buflen, "%08x.%s%d", bp->hash,
                                  suffixes[bp->type], ep->old_id);
                     if (verbose)
-                        BIO_printf(bio_out, "link %s -> %s\n",
+                        VR_BIO_printf(bio_out, "link %s -> %s\n",
                                    ep->filename, buf);
                 } else if (ep->need_symlink) {
                     /* New link needed (it may replace something) */
                     while (bit_isset(idmask, nextid))
                         nextid++;
 
-                    BIO_snprintf(buf, buflen, "%s%s%n%08x.%s%d",
+                    VR_BIO_snprintf(buf, buflen, "%s%s%n%08x.%s%d",
                                  dirname, pathsep, &n, bp->hash,
                                  suffixes[bp->type], nextid);
                     if (verbose)
-                        BIO_printf(bio_out, "link %s -> %s\n",
+                        VR_BIO_printf(bio_out, "link %s -> %s\n",
                                    ep->filename, &buf[n]);
                     if (unlink(buf) < 0 && errno != ENOENT) {
-                        BIO_printf(bio_err,
+                        VR_BIO_printf(bio_err,
                                    "%s: Can't unlink %s, %s\n",
                                    opt_getprog(), buf, strerror(errno));
                         errs++;
                     }
                     if (symlink(ep->filename, buf) < 0) {
-                        BIO_printf(bio_err,
+                        VR_BIO_printf(bio_err,
                                    "%s: Can't symlink %s, %s\n",
                                    opt_getprog(), ep->filename,
                                    strerror(errno));
@@ -418,30 +418,30 @@ static int do_dir(const char *dirname, enum Hash h)
                     bit_set(idmask, nextid);
                 } else if (remove_links) {
                     /* Link to be deleted */
-                    BIO_snprintf(buf, buflen, "%s%s%n%08x.%s%d",
+                    VR_BIO_snprintf(buf, buflen, "%s%s%n%08x.%s%d",
                                  dirname, pathsep, &n, bp->hash,
                                  suffixes[bp->type], ep->old_id);
                     if (verbose)
-                        BIO_printf(bio_out, "unlink %s\n",
+                        VR_BIO_printf(bio_out, "unlink %s\n",
                                    &buf[n]);
                     if (unlink(buf) < 0 && errno != ENOENT) {
-                        BIO_printf(bio_err,
+                        VR_BIO_printf(bio_err,
                                    "%s: Can't unlink %s, %s\n",
                                    opt_getprog(), buf, strerror(errno));
                         errs++;
                     }
                 }
-                OPENSSL_free(ep->filename);
-                OPENSSL_free(ep);
+                OPENVR_SSL_free(ep->filename);
+                OPENVR_SSL_free(ep);
             }
-            OPENSSL_free(bp);
+            OPENVR_SSL_free(bp);
         }
         hash_table[i] = NULL;
     }
 
  err:
-    sk_OPENSSL_STRING_pop_free(files, str_free);
-    OPENSSL_free(buf);
+    sk_VR_OPENSSL_STRING_pop_free(files, str_free);
+    OPENVR_SSL_free(buf);
     return errs;
 }
 
@@ -476,7 +476,7 @@ int rehash_main(int argc, char **argv)
         switch (o) {
         case OPT_EOF:
         case OPT_ERR:
-            BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
+            VR_BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
             opt_help(rehash_options);
@@ -498,20 +498,20 @@ int rehash_main(int argc, char **argv)
     argc = opt_num_rest();
     argv = opt_rest();
 
-    evpmd = EVP_sha1();
-    evpmdsize = EVP_MD_size(evpmd);
+    evpmd = VR_EVP_sha1();
+    evpmdsize = VR_EVP_MD_size(evpmd);
 
     if (*argv != NULL) {
         while (*argv != NULL)
             errs += do_dir(*argv++, h);
-    } else if ((env = getenv(X509_get_default_cert_dir_env())) != NULL) {
+    } else if ((env = getenv(VR_X509_get_default_cert_dir_env())) != NULL) {
         char lsc[2] = { LIST_SEPARATOR_CHAR, '\0' };
         m = OPENSSL_strdup(env);
         for (e = strtok(m, lsc); e != NULL; e = strtok(NULL, lsc))
             errs += do_dir(e, h);
-        OPENSSL_free(m);
+        OPENVR_SSL_free(m);
     } else {
-        errs += do_dir(X509_get_default_cert_dir(), h);
+        errs += do_dir(VR_X509_get_default_cert_dir(), h);
     }
 
  end:
@@ -525,7 +525,7 @@ const OPTIONS rehash_options[] = {
 
 int rehash_main(int argc, char **argv)
 {
-    BIO_printf(bio_err, "Not available; use c_rehash script\n");
+    VR_BIO_printf(bio_err, "Not available; use c_rehash script\n");
     return 1;
 }
 

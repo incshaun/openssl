@@ -45,7 +45,7 @@ static const unsigned char default_aiv[] = {
  *                     or if inlen > CRYPTO128_WRAP_MAX.
  *                     Output length if wrapping succeeded.
  */
-size_t CRYPTO_128_wrap(void *key, const unsigned char *iv,
+size_t VR_CRYPTO_128_wrap(void *key, const unsigned char *iv,
                        unsigned char *out,
                        const unsigned char *in, size_t inlen,
                        block128_f block)
@@ -147,7 +147,7 @@ static size_t crypto_128_unwrap_raw(void *key, unsigned char *iv,
  *                     or if IV doesn't match expected value.
  *                     Output length otherwise.
  */
-size_t CRYPTO_128_unwrap(void *key, const unsigned char *iv,
+size_t VR_CRYPTO_128_unwrap(void *key, const unsigned char *iv,
                          unsigned char *out, const unsigned char *in,
                          size_t inlen, block128_f block)
 {
@@ -160,8 +160,8 @@ size_t CRYPTO_128_unwrap(void *key, const unsigned char *iv,
 
     if (!iv)
         iv = default_iv;
-    if (CRYPTO_memcmp(got_iv, iv, 8)) {
-        OPENSSL_cleanse(out, ret);
+    if (VR_CRYPTO_memcmp(got_iv, iv, 8)) {
+        VR_OPENSSL_cleanse(out, ret);
         return 0;
     }
     return ret;
@@ -180,7 +180,7 @@ size_t CRYPTO_128_unwrap(void *key, const unsigned char *iv,
  *  @return            0 if inlen is out of range [1, CRYPTO128_WRAP_MAX].
  *                     Output length if wrapping succeeded.
  */
-size_t CRYPTO_128_wrap_pad(void *key, const unsigned char *icv,
+size_t VR_CRYPTO_128_wrap_pad(void *key, const unsigned char *icv,
                            unsigned char *out,
                            const unsigned char *in, size_t inlen,
                            block128_f block)
@@ -227,7 +227,7 @@ size_t CRYPTO_128_wrap_pad(void *key, const unsigned char *icv,
     } else {
         memmove(out, in, inlen);
         memset(out + inlen, 0, padding_len); /* Section 4.1 step 1 */
-        ret = CRYPTO_128_wrap(key, aiv, out, out, padded_len, block);
+        ret = VR_CRYPTO_128_wrap(key, aiv, out, out, padded_len, block);
     }
 
     return ret;
@@ -248,7 +248,7 @@ size_t CRYPTO_128_wrap_pad(void *key, const unsigned char *icv,
  *                     or if IV and message length indicator doesn't match.
  *                     Output length if unwrapping succeeded and IV matches.
  */
-size_t CRYPTO_128_unwrap_pad(void *key, const unsigned char *icv,
+size_t VR_CRYPTO_128_unwrap_pad(void *key, const unsigned char *icv,
                              unsigned char *out,
                              const unsigned char *in, size_t inlen,
                              block128_f block)
@@ -281,12 +281,12 @@ size_t CRYPTO_128_unwrap_pad(void *key, const unsigned char *icv,
         /* Remove AIV */
         memcpy(out, buff + 8, 8);
         padded_len = 8;
-        OPENSSL_cleanse(buff, inlen);
+        VR_OPENSSL_cleanse(buff, inlen);
     } else {
         padded_len = inlen - 8;
         ret = crypto_128_unwrap_raw(key, aiv, out, in, inlen, block);
         if (padded_len != ret) {
-            OPENSSL_cleanse(out, inlen);
+            VR_OPENSSL_cleanse(out, inlen);
             return 0;
         }
     }
@@ -296,9 +296,9 @@ size_t CRYPTO_128_unwrap_pad(void *key, const unsigned char *icv,
      * user-supplied value can be used (even if standard doesn't mention
      * this).
      */
-    if ((!icv && CRYPTO_memcmp(aiv, default_aiv, 4))
-        || (icv && CRYPTO_memcmp(aiv, icv, 4))) {
-        OPENSSL_cleanse(out, inlen);
+    if ((!icv && VR_CRYPTO_memcmp(aiv, default_aiv, 4))
+        || (icv && VR_CRYPTO_memcmp(aiv, icv, 4))) {
+        VR_OPENSSL_cleanse(out, inlen);
         return 0;
     }
 
@@ -312,7 +312,7 @@ size_t CRYPTO_128_unwrap_pad(void *key, const unsigned char *icv,
                 | ((unsigned int)aiv[6] <<  8)
                 |  (unsigned int)aiv[7];
     if (8 * (n - 1) >= ptext_len || ptext_len > 8 * n) {
-        OPENSSL_cleanse(out, inlen);
+        VR_OPENSSL_cleanse(out, inlen);
         return 0;
     }
 
@@ -321,8 +321,8 @@ size_t CRYPTO_128_unwrap_pad(void *key, const unsigned char *icv,
      * zero.
      */
     padding_len = padded_len - ptext_len;
-    if (CRYPTO_memcmp(out + ptext_len, zeros, padding_len) != 0) {
-        OPENSSL_cleanse(out, inlen);
+    if (VR_CRYPTO_memcmp(out + ptext_len, zeros, padding_len) != 0) {
+        VR_OPENSSL_cleanse(out, inlen);
         return 0;
     }
 

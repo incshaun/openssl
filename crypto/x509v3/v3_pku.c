@@ -37,16 +37,16 @@ static int i2r_PKEY_USAGE_PERIOD(X509V3_EXT_METHOD *method,
                                  PKEY_USAGE_PERIOD *usage, BIO *out,
                                  int indent)
 {
-    BIO_printf(out, "%*s", indent, "");
+    VR_BIO_printf(out, "%*s", indent, "");
     if (usage->notBefore) {
-        BIO_write(out, "Not Before: ", 12);
-        ASN1_GENERALIZEDTIME_print(out, usage->notBefore);
+        VR_BIO_write(out, "Not Before: ", 12);
+        VR_ASN1_GENERALIZEDTIME_print(out, usage->notBefore);
         if (usage->notAfter)
-            BIO_write(out, ", ", 2);
+            VR_BIO_write(out, ", ", 2);
     }
     if (usage->notAfter) {
-        BIO_write(out, "Not After: ", 11);
-        ASN1_GENERALIZEDTIME_print(out, usage->notAfter);
+        VR_BIO_write(out, "Not After: ", 11);
+        VR_ASN1_GENERALIZEDTIME_print(out, usage->notAfter);
     }
     return 1;
 }

@@ -39,7 +39,7 @@
 #  define INTEL_DEF_PROV L"Intel Hardware Cryptographic Service Provider"
 # endif
 
-size_t rand_pool_acquire_entropy(RAND_POOL *pool)
+size_t VR_rand_pool_acquire_entropy(RAND_POOL *pool)
 {
 # ifndef USE_BCRYPTGENRANDOM
     HCRYPTPROV hProvider;
@@ -62,22 +62,22 @@ size_t rand_pool_acquire_entropy(RAND_POOL *pool)
 # endif
 
 # ifdef USE_BCRYPTGENRANDOM
-    bytes_needed = rand_pool_bytes_needed(pool, 1 /*entropy_factor*/);
-    buffer = rand_pool_add_begin(pool, bytes_needed);
+    bytes_needed = VR_rand_pool_bytes_needed(pool, 1 /*entropy_factor*/);
+    buffer = VR_rand_pool_add_begin(pool, bytes_needed);
     if (buffer != NULL) {
         size_t bytes = 0;
         if (BCryptGenRandom(NULL, buffer, bytes_needed,
                             BCRYPT_USE_SYSTEM_PREFERRED_RNG) == STATUS_SUCCESS)
             bytes = bytes_needed;
 
-        rand_pool_add_end(pool, bytes, 8 * bytes);
-        entropy_available = rand_pool_entropy_available(pool);
+        VR_rand_pool_add_end(pool, bytes, 8 * bytes);
+        entropy_available = VR_rand_pool_entropy_available(pool);
     }
     if (entropy_available > 0)
         return entropy_available;
 # else
-    bytes_needed = rand_pool_bytes_needed(pool, 1 /*entropy_factor*/);
-    buffer = rand_pool_add_begin(pool, bytes_needed);
+    bytes_needed = VR_rand_pool_bytes_needed(pool, 1 /*entropy_factor*/);
+    buffer = VR_rand_pool_add_begin(pool, bytes_needed);
     if (buffer != NULL) {
         size_t bytes = 0;
         /* poll the CryptoAPI PRNG */
@@ -89,14 +89,14 @@ size_t rand_pool_acquire_entropy(RAND_POOL *pool)
             CryptReleaseContext(hProvider, 0);
         }
 
-        rand_pool_add_end(pool, bytes, 8 * bytes);
-        entropy_available = rand_pool_entropy_available(pool);
+        VR_rand_pool_add_end(pool, bytes, 8 * bytes);
+        entropy_available = VR_rand_pool_entropy_available(pool);
     }
     if (entropy_available > 0)
         return entropy_available;
 
-    bytes_needed = rand_pool_bytes_needed(pool, 1 /*entropy_factor*/);
-    buffer = rand_pool_add_begin(pool, bytes_needed);
+    bytes_needed = VR_rand_pool_bytes_needed(pool, 1 /*entropy_factor*/);
+    buffer = VR_rand_pool_add_begin(pool, bytes_needed);
     if (buffer != NULL) {
         size_t bytes = 0;
         /* poll the Pentium PRG with CryptoAPI */
@@ -108,18 +108,18 @@ size_t rand_pool_acquire_entropy(RAND_POOL *pool)
 
             CryptReleaseContext(hProvider, 0);
         }
-        rand_pool_add_end(pool, bytes, 8 * bytes);
-        entropy_available = rand_pool_entropy_available(pool);
+        VR_rand_pool_add_end(pool, bytes, 8 * bytes);
+        entropy_available = VR_rand_pool_entropy_available(pool);
     }
     if (entropy_available > 0)
         return entropy_available;
 # endif
 
-    return rand_pool_entropy_available(pool);
+    return VR_rand_pool_entropy_available(pool);
 }
 
 
-int rand_pool_add_nonce_data(RAND_POOL *pool)
+int VR_rand_pool_add_nonce_data(RAND_POOL *pool)
 {
     struct {
         DWORD pid;
@@ -136,10 +136,10 @@ int rand_pool_add_nonce_data(RAND_POOL *pool)
     data.tid = GetCurrentThreadId();
     GetSystemTimeAsFileTime(&data.time);
 
-    return rand_pool_add(pool, (unsigned char *)&data, sizeof(data), 0);
+    return VR_rand_pool_add(pool, (unsigned char *)&data, sizeof(data), 0);
 }
 
-int rand_pool_add_additional_data(RAND_POOL *pool)
+int VR_rand_pool_add_additional_data(RAND_POOL *pool)
 {
     struct {
         DWORD tid;
@@ -153,32 +153,32 @@ int rand_pool_add_additional_data(RAND_POOL *pool)
      */
     data.tid = GetCurrentThreadId();
     QueryPerformanceCounter(&data.time);
-    return rand_pool_add(pool, (unsigned char *)&data, sizeof(data), 0);
+    return VR_rand_pool_add(pool, (unsigned char *)&data, sizeof(data), 0);
 }
 
 # if !OPENSSL_API_1_1_0
 int RAND_event(UINT iMsg, WPARAM wParam, LPARAM lParam)
 {
-    RAND_poll();
-    return RAND_status();
+    VR_RAND_poll();
+    return VR_RAND_status();
 }
 
 void RAND_screen(void)
 {
-    RAND_poll();
+    VR_RAND_poll();
 }
 # endif
 
-int rand_pool_init(void)
+int VR_rand_pool_init(void)
 {
     return 1;
 }
 
-void rand_pool_cleanup(void)
+void VR_rand_pool_cleanup(void)
 {
 }
 
-void rand_pool_keep_random_devices_open(int keep)
+void VR_rand_pool_keep_random_devices_open(int keep)
 {
 }
 

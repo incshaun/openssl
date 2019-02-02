@@ -106,20 +106,20 @@ static void sc_montmul(curve448_scalar_t out, const curve448_scalar_t a,
     sc_subx(out, accum, sc_p, sc_p, hi_carry);
 }
 
-void curve448_scalar_mul(curve448_scalar_t out, const curve448_scalar_t a,
+void VR_curve448_scalar_mul(curve448_scalar_t out, const curve448_scalar_t a,
                          const curve448_scalar_t b)
 {
     sc_montmul(out, a, b);
     sc_montmul(out, out, sc_r2);
 }
 
-void curve448_scalar_sub(curve448_scalar_t out, const curve448_scalar_t a,
+void VR_curve448_scalar_sub(curve448_scalar_t out, const curve448_scalar_t a,
                          const curve448_scalar_t b)
 {
     sc_subx(out, a->limb, b, sc_p, 0);
 }
 
-void curve448_scalar_add(curve448_scalar_t out, const curve448_scalar_t a,
+void VR_curve448_scalar_add(curve448_scalar_t out, const curve448_scalar_t a,
                          const curve448_scalar_t b)
 {
     c448_dword_t chain = 0;
@@ -148,7 +148,7 @@ static ossl_inline void scalar_decode_short(curve448_scalar_t s,
     }
 }
 
-c448_error_t curve448_scalar_decode(
+c448_error_t VR_curve448_scalar_decode(
                                 curve448_scalar_t s,
                                 const unsigned char ser[C448_SCALAR_BYTES])
 {
@@ -160,17 +160,17 @@ c448_error_t curve448_scalar_decode(
         accum = (accum + s->limb[i] - sc_p->limb[i]) >> WBITS;
     /* Here accum == 0 or -1 */
 
-    curve448_scalar_mul(s, s, curve448_scalar_one); /* ham-handed reduce */
+    VR_curve448_scalar_mul(s, s, curve448_scalar_one); /* ham-handed reduce */
 
     return c448_succeed_if(~word_is_zero((uint32_t)accum));
 }
 
-void curve448_scalar_destroy(curve448_scalar_t scalar)
+void VR_curve448_scalar_destroy(curve448_scalar_t scalar)
 {
-    OPENSSL_cleanse(scalar, sizeof(curve448_scalar_t));
+    VR_OPENSSL_cleanse(scalar, sizeof(curve448_scalar_t));
 }
 
-void curve448_scalar_decode_long(curve448_scalar_t s,
+void VR_curve448_scalar_decode_long(curve448_scalar_t s,
                                  const unsigned char *ser, size_t ser_len)
 {
     size_t i;
@@ -190,24 +190,24 @@ void curve448_scalar_decode_long(curve448_scalar_t s,
     if (ser_len == sizeof(curve448_scalar_t)) {
         assert(i == 0);
         /* ham-handed reduce */
-        curve448_scalar_mul(s, t1, curve448_scalar_one);
-        curve448_scalar_destroy(t1);
+        VR_curve448_scalar_mul(s, t1, curve448_scalar_one);
+        VR_curve448_scalar_destroy(t1);
         return;
     }
 
     while (i) {
         i -= C448_SCALAR_BYTES;
         sc_montmul(t1, t1, sc_r2);
-        (void)curve448_scalar_decode(t2, ser + i);
-        curve448_scalar_add(t1, t1, t2);
+        (void)VR_curve448_scalar_decode(t2, ser + i);
+        VR_curve448_scalar_add(t1, t1, t2);
     }
 
     curve448_scalar_copy(s, t1);
-    curve448_scalar_destroy(t1);
-    curve448_scalar_destroy(t2);
+    VR_curve448_scalar_destroy(t1);
+    VR_curve448_scalar_destroy(t2);
 }
 
-void curve448_scalar_encode(unsigned char ser[C448_SCALAR_BYTES],
+void VR_curve448_scalar_encode(unsigned char ser[C448_SCALAR_BYTES],
                             const curve448_scalar_t s)
 {
     unsigned int i, j, k = 0;
@@ -218,7 +218,7 @@ void curve448_scalar_encode(unsigned char ser[C448_SCALAR_BYTES],
     }
 }
 
-void curve448_scalar_halve(curve448_scalar_t out, const curve448_scalar_t a)
+void VR_curve448_scalar_halve(curve448_scalar_t out, const curve448_scalar_t a)
 {
     c448_word_t mask = 0 - (a->limb[0] & 1);
     c448_dword_t chain = 0;

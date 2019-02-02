@@ -14,7 +14,7 @@
 # ifdef  __cplusplus
 extern "C"
 # endif
-int ERR_load_PKCS7_strings(void);
+int VR_ERR_load_PKCS7_strings(void);
 
 /*
  * PKCS7 function codes.

@@ -13,7 +13,7 @@
 # forms are granted according to the License.
 # ====================================================================
 #
-# whirlpool_block for x86_64.
+# VR_whirlpool_block for x86_64.
 #
 # 2500 cycles per 64-byte input block on AMD64, which is *identical*
 # to 32-bit MMX version executed on same CPU. So why did I bother?
@@ -56,7 +56,7 @@ sub LL(){ $code.=".byte	".join(',',@_).",".join(',',@_)."\n"; }
 
 @mm=("%r8","%r9","%r10","%r11","%r12","%r13","%r14","%r15");
 
-$func="whirlpool_block";
+$func="VR_whirlpool_block";
 $table=".Ltable";
 
 $code=<<___;

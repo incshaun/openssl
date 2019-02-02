@@ -85,7 +85,7 @@ $flavour = shift;
 if ($flavour =~ /32/) {
 	$SIZE_T=4;
 	$RZONE=	224;
-	$fname=	"bn_mul_mont_fpu64";
+	$fname=	"VR_bn_mul_mont_fpu64";
 
 	$STUX=	"stwux";	# store indexed and update
 	$PUSH=	"stw";
@@ -93,7 +93,7 @@ if ($flavour =~ /32/) {
 } elsif ($flavour =~ /64/) {
 	$SIZE_T=8;
 	$RZONE=	288;
-	$fname=	"bn_mul_mont_fpu64";
+	$fname=	"VR_bn_mul_mont_fpu64";
 
 	# same as above, but 64-bit mnemonics...
 	$STUX=	"stdux";	# store indexed and update

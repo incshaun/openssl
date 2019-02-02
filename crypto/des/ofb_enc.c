@@ -15,8 +15,8 @@
  * retrieved from the first byte and half the second.  The second 12 bits
  * will come from the 3rd and half the 4th byte.
  */
-void DES_ofb_encrypt(const unsigned char *in, unsigned char *out, int numbits,
-                     long length, DES_key_schedule *schedule,
+void VR_DES_ofb_encrypt(const unsigned char *in, unsigned char *out, int numbits,
+                     long length, VR_DES_key_schedule *schedule,
                      DES_cblock *ivec)
 {
     register DES_LONG d0, d1, vv0, vv1, v0, v1, n = (numbits + 7) / 8;
@@ -50,7 +50,7 @@ void DES_ofb_encrypt(const unsigned char *in, unsigned char *out, int numbits,
     while (l-- > 0) {
         ti[0] = v0;
         ti[1] = v1;
-        DES_encrypt1((DES_LONG *)ti, schedule, DES_ENCRYPT);
+        VR_DES_encrypt1((DES_LONG *)ti, schedule, DES_ENCRYPT);
         vv0 = ti[0];
         vv1 = ti[1];
         c2ln(in, d0, d1, n);

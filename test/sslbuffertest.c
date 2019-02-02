@@ -78,22 +78,22 @@ static int test_func(int test)
         for (ret = -1, i = 0, len = 0; len != sizeof(testdata) && i < 2;
              i++) {
             /* test == 0 mean to free/allocate = control */
-            if (test >= 1 && !TEST_true(SSL_free_buffers(clientssl)))
+            if (test >= 1 && !TEST_true(VR_SSL_free_buffers(clientssl)))
                 goto end;
-            if (test >= 2 && !TEST_true(SSL_alloc_buffers(clientssl)))
+            if (test >= 2 && !TEST_true(VR_SSL_alloc_buffers(clientssl)))
                 goto end;
             /* allocate a second time */
-            if (test >= 3 && !TEST_true(SSL_alloc_buffers(clientssl)))
+            if (test >= 3 && !TEST_true(VR_SSL_alloc_buffers(clientssl)))
                 goto end;
-            if (test >= 4 && !TEST_true(SSL_free_buffers(clientssl)))
+            if (test >= 4 && !TEST_true(VR_SSL_free_buffers(clientssl)))
                 goto end;
 
-            ret = SSL_write(clientssl, testdata + len,
+            ret = VR_SSL_write(clientssl, testdata + len,
                             sizeof(testdata) - len);
             if (ret > 0) {
                 len += ret;
             } else {
-                int ssl_error = SSL_get_error(clientssl, ret);
+                int ssl_error = VR_SSL_get_error(clientssl, ret);
 
                 if (ssl_error == SSL_ERROR_SYSCALL ||
                     ssl_error == SSL_ERROR_SSL) {
@@ -112,21 +112,21 @@ static int test_func(int test)
         for (ret = -1, i = 0, len = 0; len != sizeof(testdata) &&
                  i < MAX_ATTEMPTS; i++)
         {
-            if (test >= 5 && !TEST_true(SSL_free_buffers(serverssl)))
+            if (test >= 5 && !TEST_true(VR_SSL_free_buffers(serverssl)))
                 goto end;
             /* free a second time */
-            if (test >= 6 && !TEST_true(SSL_free_buffers(serverssl)))
+            if (test >= 6 && !TEST_true(VR_SSL_free_buffers(serverssl)))
                 goto end;
-            if (test >= 7 && !TEST_true(SSL_alloc_buffers(serverssl)))
+            if (test >= 7 && !TEST_true(VR_SSL_alloc_buffers(serverssl)))
                 goto end;
-            if (test >= 8 && !TEST_true(SSL_free_buffers(serverssl)))
+            if (test >= 8 && !TEST_true(VR_SSL_free_buffers(serverssl)))
                 goto end;
 
-            ret = SSL_read(serverssl, buf + len, sizeof(buf) - len);
+            ret = VR_SSL_read(serverssl, buf + len, sizeof(buf) - len);
             if (ret > 0) {
                 len += ret;
             } else {
-                int ssl_error = SSL_get_error(serverssl, ret);
+                int ssl_error = VR_SSL_get_error(serverssl, ret);
 
                 if (ssl_error == SSL_ERROR_SYSCALL ||
                     ssl_error == SSL_ERROR_SSL) {
@@ -142,18 +142,18 @@ static int test_func(int test)
     result = 1;
  end:
     if (!result)
-        ERR_print_errors_fp(stderr);
+        VR_ERR_print_errors_fp(stderr);
 
-    SSL_free(clientssl);
-    SSL_free(serverssl);
+    VR_SSL_free(clientssl);
+    VR_SSL_free(serverssl);
 
     return result;
 }
 
 int global_init(void)
 {
-    CRYPTO_set_mem_debug(1);
-    CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ON);
+    VR_CRYPTO_set_mem_debug(1);
+    VR_CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ON);
     return 1;
 }
 
@@ -165,7 +165,7 @@ int setup_tests(void)
             || !TEST_ptr(pkey = test_get_argument(1)))
         return 0;
 
-    if (!create_ssl_ctx_pair(TLS_server_method(), TLS_client_method(),
+    if (!create_ssl_ctx_pair(VR_TLS_server_method(), VR_TLS_client_method(),
                              TLS1_VERSION, 0,
                              &serverctx, &clientctx, cert, pkey)) {
         TEST_error("Failed to create SSL_CTX pair\n");
@@ -178,6 +178,6 @@ int setup_tests(void)
 
 void cleanup_tests(void)
 {
-    SSL_CTX_free(clientctx);
-    SSL_CTX_free(serverctx);
+    VR_SSL_CTX_free(clientctx);
+    VR_SSL_CTX_free(serverctx);
 }

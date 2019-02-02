@@ -165,11 +165,11 @@ static int test_cha_cha_internal(int n)
     memset(buf, 0, i);
     memcpy(buf + i, ref + i, sizeof(ref) - i);
 
-    ChaCha20_ctr32(buf, buf, i, key, ivp);
+    VR_ChaCha20_ctr32(buf, buf, i, key, ivp);
 
     /*
      * Idea behind checking for whole sizeof(ref) is that if
-     * ChaCha20_ctr32 oversteps i-th byte, then we'd know
+     * VR_ChaCha20_ctr32 oversteps i-th byte, then we'd know
      */
     for (j = 0; j < sizeof(ref); j++)
         if (!TEST_uchar_eq(buf[j], ref[j])) {
@@ -182,7 +182,7 @@ static int test_cha_cha_internal(int n)
 int setup_tests(void)
 {
 #ifdef CPUID_OBJ
-    OPENSSL_cpuid_setup();
+    VR_OPENSSL_cpuid_setup();
 #endif
 
     ADD_ALL_TESTS(test_cha_cha_internal, sizeof(ref));

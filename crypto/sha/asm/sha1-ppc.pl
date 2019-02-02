@@ -186,9 +186,9 @@ $code=<<___;
 .machine	"any"
 .text
 
-.globl	.sha1_block_data_order
+.globl	.VR_sha1_block_data_order
 .align	4
-.sha1_block_data_order:
+.VR_sha1_block_data_order:
 	$STU	$sp,-$FRAME($sp)
 	mflr	r0
 	$PUSH	r15,`$FRAME-$SIZE_T*17`($sp)
@@ -340,7 +340,7 @@ $code.=<<___;
 	blr
 	.long	0
 	.byte	0,12,0x14,0,0,0,0,0
-.size	.sha1_block_data_order,.-.sha1_block_data_order
+.size	.VR_sha1_block_data_order,.-.VR_sha1_block_data_order
 ___
 $code.=<<___;
 .asciz	"SHA1 block transform for PPC, CRYPTOGAMS by <appro\@fy.chalmers.se>"

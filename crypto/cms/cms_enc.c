@@ -20,7 +20,7 @@
 
 /* Return BIO based on EncryptedContentInfo and key */
 
-BIO *cms_EncryptedContent_init_bio(CMS_EncryptedContentInfo *ec)
+BIO *VR_cms_EncryptedContent_init_bio(CMS_EncryptedContentInfo *ec)
 {
     BIO *b;
     EVP_CIPHER_CTX *ctx;
@@ -36,7 +36,7 @@ BIO *cms_EncryptedContent_init_bio(CMS_EncryptedContentInfo *ec)
 
     enc = ec->cipher ? 1 : 0;
 
-    b = BIO_new(BIO_f_cipher());
+    b = VR_BIO_new(VR_BIO_f_cipher());
     if (b == NULL) {
         CMSerr(CMS_F_CMS_ENCRYPTEDCONTENT_INIT_BIO, ERR_R_MALLOC_FAILURE);
         return NULL;
@@ -60,7 +60,7 @@ BIO *cms_EncryptedContent_init_bio(CMS_EncryptedContentInfo *ec)
         }
     }
 
-    if (EVP_CipherInit_ex(ctx, ciph, NULL, NULL, NULL, enc) <= 0) {
+    if (VR_EVP_CipherInit_ex(ctx, ciph, NULL, NULL, NULL, enc) <= 0) {
         CMSerr(CMS_F_CMS_ENCRYPTEDCONTENT_INIT_BIO,
                CMS_R_CIPHER_INITIALISATION_ERROR);
         goto err;
@@ -68,20 +68,20 @@ BIO *cms_EncryptedContent_init_bio(CMS_EncryptedContentInfo *ec)
 
     if (enc) {
         int ivlen;
-        calg->algorithm = OBJ_nid2obj(EVP_CIPHER_CTX_type(ctx));
+        calg->algorithm = VR_OBJ_nid2obj(EVP_CIPHER_CTX_type(ctx));
         /* Generate a random IV if we need one */
-        ivlen = EVP_CIPHER_CTX_iv_length(ctx);
+        ivlen = VR_EVP_CIPHER_CTX_iv_length(ctx);
         if (ivlen > 0) {
-            if (RAND_bytes(iv, ivlen) <= 0)
+            if (VR_RAND_bytes(iv, ivlen) <= 0)
                 goto err;
             piv = iv;
         }
-    } else if (EVP_CIPHER_asn1_to_param(ctx, calg->parameter) <= 0) {
+    } else if (VR_EVP_CIPHER_asn1_to_param(ctx, calg->parameter) <= 0) {
         CMSerr(CMS_F_CMS_ENCRYPTEDCONTENT_INIT_BIO,
                CMS_R_CIPHER_PARAMETER_INITIALISATION_ERROR);
         goto err;
     }
-    tkeylen = EVP_CIPHER_CTX_key_length(ctx);
+    tkeylen = VR_EVP_CIPHER_CTX_key_length(ctx);
     /* Generate random session key */
     if (!enc || !ec->key) {
         tkey = OPENSSL_malloc(tkeylen);
@@ -89,7 +89,7 @@ BIO *cms_EncryptedContent_init_bio(CMS_EncryptedContentInfo *ec)
             CMSerr(CMS_F_CMS_ENCRYPTEDCONTENT_INIT_BIO, ERR_R_MALLOC_FAILURE);
             goto err;
         }
-        if (EVP_CIPHER_CTX_rand_key(ctx, tkey) <= 0)
+        if (VR_EVP_CIPHER_CTX_rand_key(ctx, tkey) <= 0)
             goto err;
     }
 
@@ -100,13 +100,13 @@ BIO *cms_EncryptedContent_init_bio(CMS_EncryptedContentInfo *ec)
         if (enc)
             keep_key = 1;
         else
-            ERR_clear_error();
+            VR_ERR_clear_error();
 
     }
 
     if (ec->keylen != tkeylen) {
         /* If necessary set key length */
-        if (EVP_CIPHER_CTX_set_key_length(ctx, ec->keylen) <= 0) {
+        if (VR_EVP_CIPHER_CTX_set_key_length(ctx, ec->keylen) <= 0) {
             /*
              * Only reveal failure if debugging so we don't leak information
              * which may be useful in MMA.
@@ -117,34 +117,34 @@ BIO *cms_EncryptedContent_init_bio(CMS_EncryptedContentInfo *ec)
                 goto err;
             } else {
                 /* Use random key */
-                OPENSSL_clear_free(ec->key, ec->keylen);
+                OPENVR_SSL_clear_free(ec->key, ec->keylen);
                 ec->key = tkey;
                 ec->keylen = tkeylen;
                 tkey = NULL;
-                ERR_clear_error();
+                VR_ERR_clear_error();
             }
         }
     }
 
-    if (EVP_CipherInit_ex(ctx, NULL, NULL, ec->key, piv, enc) <= 0) {
+    if (VR_EVP_CipherInit_ex(ctx, NULL, NULL, ec->key, piv, enc) <= 0) {
         CMSerr(CMS_F_CMS_ENCRYPTEDCONTENT_INIT_BIO,
                CMS_R_CIPHER_INITIALISATION_ERROR);
         goto err;
     }
     if (enc) {
-        calg->parameter = ASN1_TYPE_new();
+        calg->parameter = VR_ASN1_TYPE_new();
         if (calg->parameter == NULL) {
             CMSerr(CMS_F_CMS_ENCRYPTEDCONTENT_INIT_BIO, ERR_R_MALLOC_FAILURE);
             goto err;
         }
-        if (EVP_CIPHER_param_to_asn1(ctx, calg->parameter) <= 0) {
+        if (VR_EVP_CIPHER_param_to_asn1(ctx, calg->parameter) <= 0) {
             CMSerr(CMS_F_CMS_ENCRYPTEDCONTENT_INIT_BIO,
                    CMS_R_CIPHER_PARAMETER_INITIALISATION_ERROR);
             goto err;
         }
         /* If parameter type not set omit parameter */
         if (calg->parameter->type == V_ASN1_UNDEF) {
-            ASN1_TYPE_free(calg->parameter);
+            VR_ASN1_TYPE_free(calg->parameter);
             calg->parameter = NULL;
         }
     }
@@ -152,17 +152,17 @@ BIO *cms_EncryptedContent_init_bio(CMS_EncryptedContentInfo *ec)
 
  err:
     if (!keep_key || !ok) {
-        OPENSSL_clear_free(ec->key, ec->keylen);
+        OPENVR_SSL_clear_free(ec->key, ec->keylen);
         ec->key = NULL;
     }
-    OPENSSL_clear_free(tkey, tkeylen);
+    OPENVR_SSL_clear_free(tkey, tkeylen);
     if (ok)
         return b;
-    BIO_free(b);
+    VR_BIO_free(b);
     return NULL;
 }
 
-int cms_EncryptedContent_init(CMS_EncryptedContentInfo *ec,
+int VR_cms_EncryptedContent_init(CMS_EncryptedContentInfo *ec,
                               const EVP_CIPHER *cipher,
                               const unsigned char *key, size_t keylen)
 {
@@ -176,11 +176,11 @@ int cms_EncryptedContent_init(CMS_EncryptedContentInfo *ec,
     }
     ec->keylen = keylen;
     if (cipher)
-        ec->contentType = OBJ_nid2obj(NID_pkcs7_data);
+        ec->contentType = VR_OBJ_nid2obj(NID_pkcs7_data);
     return 1;
 }
 
-int CMS_EncryptedData_set1_key(CMS_ContentInfo *cms, const EVP_CIPHER *ciph,
+int VR_CMS_EncryptedData_set1_key(CMS_ContentInfo *cms, const EVP_CIPHER *ciph,
                                const unsigned char *key, size_t keylen)
 {
     CMS_EncryptedContentInfo *ec;
@@ -194,20 +194,20 @@ int CMS_EncryptedData_set1_key(CMS_ContentInfo *cms, const EVP_CIPHER *ciph,
             CMSerr(CMS_F_CMS_ENCRYPTEDDATA_SET1_KEY, ERR_R_MALLOC_FAILURE);
             return 0;
         }
-        cms->contentType = OBJ_nid2obj(NID_pkcs7_encrypted);
+        cms->contentType = VR_OBJ_nid2obj(NID_pkcs7_encrypted);
         cms->d.encryptedData->version = 0;
-    } else if (OBJ_obj2nid(cms->contentType) != NID_pkcs7_encrypted) {
+    } else if (VR_OBJ_obj2nid(cms->contentType) != NID_pkcs7_encrypted) {
         CMSerr(CMS_F_CMS_ENCRYPTEDDATA_SET1_KEY, CMS_R_NOT_ENCRYPTED_DATA);
         return 0;
     }
     ec = cms->d.encryptedData->encryptedContentInfo;
-    return cms_EncryptedContent_init(ec, ciph, key, keylen);
+    return VR_cms_EncryptedContent_init(ec, ciph, key, keylen);
 }
 
-BIO *cms_EncryptedData_init_bio(CMS_ContentInfo *cms)
+BIO *VR_cms_EncryptedData_init_bio(CMS_ContentInfo *cms)
 {
     CMS_EncryptedData *enc = cms->d.encryptedData;
     if (enc->encryptedContentInfo->cipher && enc->unprotectedAttrs)
         enc->version = 2;
-    return cms_EncryptedContent_init_bio(enc->encryptedContentInfo);
+    return VR_cms_EncryptedContent_init_bio(enc->encryptedContentInfo);
 }

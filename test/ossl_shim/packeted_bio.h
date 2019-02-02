@@ -17,11 +17,11 @@
 // blocking datagram socket. It internally maintains a clock and honors
 // |BIO_CTRL_DGRAM_SET_NEXT_TIMEOUT| based on it.
 //
-// During a |BIO_read|, the peer may signal the filter BIO to simulate a
+// During a |VR_BIO_read|, the peer may signal the filter BIO to simulate a
 // timeout. If |advance_clock| is true, it automatically advances the clock and
 // continues reading, subject to the read deadline. Otherwise, it fails
 // immediately. The caller must then call |PacketedBioAdvanceClock| before
-// retrying |BIO_read|.
+// retrying |VR_BIO_read|.
 bssl::UniquePtr<BIO> PacketedBioCreate(bool advance_clock);
 
 // PacketedBioGetClock returns the current time for |bio|.

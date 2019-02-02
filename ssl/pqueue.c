@@ -15,7 +15,7 @@ struct pqueue_st {
     int count;
 };
 
-pitem *pitem_new(unsigned char *prio64be, void *data)
+pitem *VR_pitem_new(unsigned char *prio64be, void *data)
 {
     pitem *item = OPENSSL_malloc(sizeof(*item));
 
@@ -30,12 +30,12 @@ pitem *pitem_new(unsigned char *prio64be, void *data)
     return item;
 }
 
-void pitem_free(pitem *item)
+void VR_pitem_free(pitem *item)
 {
-    OPENSSL_free(item);
+    OPENVR_SSL_free(item);
 }
 
-pqueue *pqueue_new(void)
+pqueue *VR_pqueue_new(void)
 {
     pqueue *pq = OPENSSL_zalloc(sizeof(*pq));
 
@@ -45,12 +45,12 @@ pqueue *pqueue_new(void)
     return pq;
 }
 
-void pqueue_free(pqueue *pq)
+void VR_pqueue_free(pqueue *pq)
 {
-    OPENSSL_free(pq);
+    OPENVR_SSL_free(pq);
 }
 
-pitem *pqueue_insert(pqueue *pq, pitem *item)
+pitem *VR_pqueue_insert(pqueue *pq, pitem *item)
 {
     pitem *curr, *next;
 
@@ -86,12 +86,12 @@ pitem *pqueue_insert(pqueue *pq, pitem *item)
     return item;
 }
 
-pitem *pqueue_peek(pqueue *pq)
+pitem *VR_pqueue_peek(pqueue *pq)
 {
     return pq->items;
 }
 
-pitem *pqueue_pop(pqueue *pq)
+pitem *VR_pqueue_pop(pqueue *pq)
 {
     pitem *item = pq->items;
 
@@ -101,7 +101,7 @@ pitem *pqueue_pop(pqueue *pq)
     return item;
 }
 
-pitem *pqueue_find(pqueue *pq, unsigned char *prio64be)
+pitem *VR_pqueue_find(pqueue *pq, unsigned char *prio64be)
 {
     pitem *next;
     pitem *found = NULL;
@@ -126,12 +126,12 @@ pitem *pqueue_find(pqueue *pq, unsigned char *prio64be)
     return found;
 }
 
-pitem *pqueue_iterator(pqueue *pq)
+pitem *VR_pqueue_iterator(pqueue *pq)
 {
-    return pqueue_peek(pq);
+    return VR_pqueue_peek(pq);
 }
 
-pitem *pqueue_next(piterator *item)
+pitem *VR_pqueue_next(piterator *item)
 {
     pitem *ret;
 
@@ -145,7 +145,7 @@ pitem *pqueue_next(piterator *item)
     return ret;
 }
 
-size_t pqueue_size(pqueue *pq)
+size_t VR_pqueue_size(pqueue *pq)
 {
     pitem *item = pq->items;
     size_t count = 0;

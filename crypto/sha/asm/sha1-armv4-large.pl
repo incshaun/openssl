@@ -195,11 +195,11 @@ $code=<<___;
 .code	32
 #endif
 
-.global	sha1_block_data_order
-.type	sha1_block_data_order,%function
+.global	VR_sha1_block_data_order
+.type	VR_sha1_block_data_order,%function
 
 .align	5
-sha1_block_data_order:
+VR_sha1_block_data_order:
 #if __ARM_MAX_ARCH__>=7
 .Lsha1_block:
 	adr	r3,.Lsha1_block
@@ -302,7 +302,7 @@ $code.=<<___;
 	moveq	pc,lr			@ be binary compatible with V4, yet
 	bx	lr			@ interoperable with Thumb ISA:-)
 #endif
-.size	sha1_block_data_order,.-sha1_block_data_order
+.size	VR_sha1_block_data_order,.-VR_sha1_block_data_order
 
 .align	5
 .LK_00_19:	.word	0x5a827999
@@ -528,9 +528,9 @@ $code.=<<___;
 .arch	armv7-a
 .fpu	neon
 
-.type	sha1_block_data_order_neon,%function
+.type	VR_sha1_block_data_order_neon,%function
 .align	4
-sha1_block_data_order_neon:
+VR_sha1_block_data_order_neon:
 .LNEON:
 	stmdb	sp!,{r4-r12,lr}
 	add	$len,$inp,$len,lsl#6	@ $len to point at the end of $inp
@@ -601,7 +601,7 @@ $code.=<<___;
 
 	@ vldmia	sp!,{d8-d15}
 	ldmia	sp!,{r4-r12,pc}
-.size	sha1_block_data_order_neon,.-sha1_block_data_order_neon
+.size	VR_sha1_block_data_order_neon,.-VR_sha1_block_data_order_neon
 #endif
 ___
 }}}
@@ -623,9 +623,9 @@ $code.=<<___;
 #  define INST(a,b,c,d)	.byte	a,b,c,d|0x10
 # endif
 
-.type	sha1_block_data_order_armv8,%function
+.type	VR_sha1_block_data_order_armv8,%function
 .align	5
-sha1_block_data_order_armv8:
+VR_sha1_block_data_order_armv8:
 .LARMv8:
 	vstmdb	sp!,{d8-d15}		@ ABI specification says so
 
@@ -691,7 +691,7 @@ $code.=<<___;
 
 	vldmia	sp!,{d8-d15}
 	ret					@ bx lr
-.size	sha1_block_data_order_armv8,.-sha1_block_data_order_armv8
+.size	VR_sha1_block_data_order_armv8,.-VR_sha1_block_data_order_armv8
 #endif
 ___
 }}}

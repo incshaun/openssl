@@ -57,10 +57,10 @@ $code=<<___;
 	.endif
 	.if	__TI_EABI__
 	.nocmp
-	.asg	AES_encrypt,_AES_encrypt
-	.asg	AES_decrypt,_AES_decrypt
-	.asg	AES_set_encrypt_key,_AES_set_encrypt_key
-	.asg	AES_set_decrypt_key,_AES_set_decrypt_key
+	.asg	VR_AES_encrypt,_VR_AES_encrypt
+	.asg	VR_AES_decrypt,_VR_AES_decrypt
+	.asg	VR_AES_set_encrypt_key,_VR_AES_set_encrypt_key
+	.asg	VR_AES_set_decrypt_key,_VR_AES_set_decrypt_key
 	.asg	AES_ctr32_encrypt,_AES_ctr32_encrypt
 	.endif
 
@@ -89,8 +89,8 @@ $code=<<___;
 	.eval	32-TBL3,TBL3
 	.endif
 
-	.global	_AES_encrypt
-_AES_encrypt:
+	.global	_VR_AES_encrypt
+_VR_AES_encrypt:
 	.asmfunc
 	MVK	1,B2
 __encrypt:
@@ -301,8 +301,8 @@ __encrypt:
 	.endif
 	.endasmfunc
 
-	.global	_AES_decrypt
-_AES_decrypt:
+	.global	_VR_AES_decrypt
+_VR_AES_decrypt:
 	.asmfunc
 	MVK	1,B2
 __decrypt:
@@ -517,7 +517,7 @@ ___
 my @K=(@K,@s);			# extended key
 my @Te4=map("B$_",(16..19));
 
-my @Kx9=@Te0;			# used in AES_set_decrypt_key
+my @Kx9=@Te0;			# used in VR_AES_set_decrypt_key
 my @KxB=@Te1;
 my @KxD=@Te2;
 my @KxE=@Te3;
@@ -525,8 +525,8 @@ my @KxE=@Te3;
 $code.=<<___;
 	.asg	OUT,BITS
 
-	.global	_AES_set_encrypt_key
-_AES_set_encrypt_key:
+	.global	_VR_AES_set_encrypt_key
+_VR_AES_set_encrypt_key:
 __set_encrypt_key:
 	.asmfunc
 	MV	INP,A0
@@ -840,8 +840,8 @@ done256?:
 	MVK	0,RET
 	.endasmfunc
 
-	.global	_AES_set_decrypt_key
-_AES_set_decrypt_key:
+	.global	_VR_AES_set_decrypt_key
+_VR_AES_set_decrypt_key:
 	.asmfunc
 	B	__set_encrypt_key		; guarantee local call
 	MV	KEY,B30				; B30 is not modified

@@ -87,7 +87,7 @@ int rsautl_main(int argc, char **argv)
         case OPT_EOF:
         case OPT_ERR:
  opthelp:
-            BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
+            VR_BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
             opt_help(rsautl_options);
@@ -167,12 +167,12 @@ int rsautl_main(int argc, char **argv)
         goto opthelp;
 
     if (need_priv && (key_type != KEY_PRIVKEY)) {
-        BIO_printf(bio_err, "A private key is needed for this operation\n");
+        VR_BIO_printf(bio_err, "A private key is needed for this operation\n");
         goto end;
     }
 
     if (!app_passwd(passinarg, NULL, &passin, NULL)) {
-        BIO_printf(bio_err, "Error getting password\n");
+        VR_BIO_printf(bio_err, "Error getting password\n");
         goto end;
     }
 
@@ -188,8 +188,8 @@ int rsautl_main(int argc, char **argv)
     case KEY_CERT:
         x = load_cert(keyfile, keyformat, "Certificate");
         if (x) {
-            pkey = X509_get_pubkey(x);
-            X509_free(x);
+            pkey = VR_X509_get_pubkey(x);
+            VR_X509_free(x);
         }
         break;
     }
@@ -197,12 +197,12 @@ int rsautl_main(int argc, char **argv)
     if (pkey == NULL)
         return 1;
 
-    rsa = EVP_PKEY_get1_RSA(pkey);
-    EVP_PKEY_free(pkey);
+    rsa = VR_EVP_PKEY_get1_RSA(pkey);
+    VR_EVP_PKEY_free(pkey);
 
     if (rsa == NULL) {
-        BIO_printf(bio_err, "Error getting RSA key\n");
-        ERR_print_errors(bio_err);
+        VR_BIO_printf(bio_err, "Error getting RSA key\n");
+        VR_ERR_print_errors(bio_err);
         goto end;
     }
 
@@ -213,15 +213,15 @@ int rsautl_main(int argc, char **argv)
     if (out == NULL)
         goto end;
 
-    keysize = RSA_size(rsa);
+    keysize = VR_RSA_size(rsa);
 
     rsa_in = app_malloc(keysize * 2, "hold rsa key");
     rsa_out = app_malloc(keysize, "output rsa key");
 
     /* Read the input data */
-    rsa_inlen = BIO_read(in, rsa_in, keysize * 2);
+    rsa_inlen = VR_BIO_read(in, rsa_in, keysize * 2);
     if (rsa_inlen < 0) {
-        BIO_printf(bio_err, "Error reading input Data\n");
+        VR_BIO_printf(bio_err, "Error reading input Data\n");
         goto end;
     }
     if (rev) {
@@ -236,47 +236,47 @@ int rsautl_main(int argc, char **argv)
     switch (rsa_mode) {
 
     case RSA_VERIFY:
-        rsa_outlen = RSA_public_decrypt(rsa_inlen, rsa_in, rsa_out, rsa, pad);
+        rsa_outlen = VR_RSA_public_decrypt(rsa_inlen, rsa_in, rsa_out, rsa, pad);
         break;
 
     case RSA_SIGN:
         rsa_outlen =
-            RSA_private_encrypt(rsa_inlen, rsa_in, rsa_out, rsa, pad);
+            VR_RSA_private_encrypt(rsa_inlen, rsa_in, rsa_out, rsa, pad);
         break;
 
     case RSA_ENCRYPT:
-        rsa_outlen = RSA_public_encrypt(rsa_inlen, rsa_in, rsa_out, rsa, pad);
+        rsa_outlen = VR_RSA_public_encrypt(rsa_inlen, rsa_in, rsa_out, rsa, pad);
         break;
 
     case RSA_DECRYPT:
         rsa_outlen =
-            RSA_private_decrypt(rsa_inlen, rsa_in, rsa_out, rsa, pad);
+            VR_RSA_private_decrypt(rsa_inlen, rsa_in, rsa_out, rsa, pad);
         break;
     }
 
     if (rsa_outlen < 0) {
-        BIO_printf(bio_err, "RSA operation error\n");
-        ERR_print_errors(bio_err);
+        VR_BIO_printf(bio_err, "RSA operation error\n");
+        VR_ERR_print_errors(bio_err);
         goto end;
     }
     ret = 0;
     if (asn1parse) {
-        if (!ASN1_parse_dump(out, rsa_out, rsa_outlen, 1, -1)) {
-            ERR_print_errors(bio_err);
+        if (!VR_ASN1_parse_dump(out, rsa_out, rsa_outlen, 1, -1)) {
+            VR_ERR_print_errors(bio_err);
         }
     } else if (hexdump) {
-        BIO_dump(out, (char *)rsa_out, rsa_outlen);
+        VR_BIO_dump(out, (char *)rsa_out, rsa_outlen);
     } else {
-        BIO_write(out, rsa_out, rsa_outlen);
+        VR_BIO_write(out, rsa_out, rsa_outlen);
     }
  end:
-    RSA_free(rsa);
+    VR_RSA_free(rsa);
     release_engine(e);
-    BIO_free(in);
-    BIO_free_all(out);
-    OPENSSL_free(rsa_in);
-    OPENSSL_free(rsa_out);
-    OPENSSL_free(passin);
+    VR_BIO_free(in);
+    VR_BIO_free_all(out);
+    OPENVR_SSL_free(rsa_in);
+    OPENVR_SSL_free(rsa_out);
+    OPENVR_SSL_free(passin);
     return ret;
 }
 #endif

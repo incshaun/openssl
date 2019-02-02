@@ -60,14 +60,14 @@ static int cast_test_vector(int z)
     CAST_KEY key;
     unsigned char out[80];
 
-    CAST_set_key(&key, k_len[z], k);
-    CAST_ecb_encrypt(in, out, &key, CAST_ENCRYPT);
+    VR_CAST_set_key(&key, k_len[z], k);
+    VR_CAST_ecb_encrypt(in, out, &key, CAST_ENCRYPT);
     if (!TEST_mem_eq(out, sizeof(c[z]), c[z], sizeof(c[z]))) {
         TEST_info("CAST_ENCRYPT iteration %d failed (len=%d)", z, k_len[z]);
         testresult = 0;
     }
 
-    CAST_ecb_encrypt(out, out, &key, CAST_DECRYPT);
+    VR_CAST_ecb_encrypt(out, out, &key, CAST_DECRYPT);
     if (!TEST_mem_eq(out, sizeof(in), in, sizeof(in))) {
         TEST_info("CAST_DECRYPT iteration %d failed (len=%d)", z, k_len[z]);
         testresult = 0;
@@ -86,12 +86,12 @@ static int cast_test_iterations(void)
     memcpy(out_b, in_b, sizeof(in_b));
 
     for (l = 0; l < 1000000L; l++) {
-        CAST_set_key(&key_b, 16, out_b);
-        CAST_ecb_encrypt(&(out_a[0]), &(out_a[0]), &key_b, CAST_ENCRYPT);
-        CAST_ecb_encrypt(&(out_a[8]), &(out_a[8]), &key_b, CAST_ENCRYPT);
-        CAST_set_key(&key, 16, out_a);
-        CAST_ecb_encrypt(&(out_b[0]), &(out_b[0]), &key, CAST_ENCRYPT);
-        CAST_ecb_encrypt(&(out_b[8]), &(out_b[8]), &key, CAST_ENCRYPT);
+        VR_CAST_set_key(&key_b, 16, out_b);
+        VR_CAST_ecb_encrypt(&(out_a[0]), &(out_a[0]), &key_b, CAST_ENCRYPT);
+        VR_CAST_ecb_encrypt(&(out_a[8]), &(out_a[8]), &key_b, CAST_ENCRYPT);
+        VR_CAST_set_key(&key, 16, out_a);
+        VR_CAST_ecb_encrypt(&(out_b[0]), &(out_b[0]), &key, CAST_ENCRYPT);
+        VR_CAST_ecb_encrypt(&(out_b[8]), &(out_b[8]), &key, CAST_ENCRYPT);
     }
 
     if (!TEST_mem_eq(out_a, sizeof(c_a), c_a, sizeof(c_a))

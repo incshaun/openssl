@@ -43,19 +43,19 @@ EXT_BITSTRING(NID_netscape_cert_type, ns_cert_type_table);
 const X509V3_EXT_METHOD v3_key_usage =
 EXT_BITSTRING(NID_key_usage, key_usage_type_table);
 
-STACK_OF(CONF_VALUE) *i2v_ASN1_BIT_STRING(X509V3_EXT_METHOD *method,
+STACK_OF(CONF_VALUE) *VR_i2v_ASN1_BIT_STRING(X509V3_EXT_METHOD *method,
                                           ASN1_BIT_STRING *bits,
                                           STACK_OF(CONF_VALUE) *ret)
 {
     BIT_STRING_BITNAME *bnam;
     for (bnam = method->usr_data; bnam->lname; bnam++) {
-        if (ASN1_BIT_STRING_get_bit(bits, bnam->bitnum))
-            X509V3_add_value(bnam->lname, NULL, &ret);
+        if (VR_ASN1_BIT_STRING_get_bit(bits, bnam->bitnum))
+            VR_X509V3_add_value(bnam->lname, NULL, &ret);
     }
     return ret;
 }
 
-ASN1_BIT_STRING *v2i_ASN1_BIT_STRING(X509V3_EXT_METHOD *method,
+ASN1_BIT_STRING *VR_v2i_ASN1_BIT_STRING(X509V3_EXT_METHOD *method,
                                      X509V3_CTX *ctx,
                                      STACK_OF(CONF_VALUE) *nval)
 {
@@ -63,7 +63,7 @@ ASN1_BIT_STRING *v2i_ASN1_BIT_STRING(X509V3_EXT_METHOD *method,
     ASN1_BIT_STRING *bs;
     int i;
     BIT_STRING_BITNAME *bnam;
-    if ((bs = ASN1_BIT_STRING_new()) == NULL) {
+    if ((bs = VR_ASN1_BIT_STRING_new()) == NULL) {
         X509V3err(X509V3_F_V2I_ASN1_BIT_STRING, ERR_R_MALLOC_FAILURE);
         return NULL;
     }
@@ -72,10 +72,10 @@ ASN1_BIT_STRING *v2i_ASN1_BIT_STRING(X509V3_EXT_METHOD *method,
         for (bnam = method->usr_data; bnam->lname; bnam++) {
             if (strcmp(bnam->sname, val->name) == 0
                 || strcmp(bnam->lname, val->name) == 0) {
-                if (!ASN1_BIT_STRING_set_bit(bs, bnam->bitnum, 1)) {
+                if (!VR_ASN1_BIT_STRING_set_bit(bs, bnam->bitnum, 1)) {
                     X509V3err(X509V3_F_V2I_ASN1_BIT_STRING,
                               ERR_R_MALLOC_FAILURE);
-                    ASN1_BIT_STRING_free(bs);
+                    VR_ASN1_BIT_STRING_free(bs);
                     return NULL;
                 }
                 break;
@@ -85,7 +85,7 @@ ASN1_BIT_STRING *v2i_ASN1_BIT_STRING(X509V3_EXT_METHOD *method,
             X509V3err(X509V3_F_V2I_ASN1_BIT_STRING,
                       X509V3_R_UNKNOWN_BIT_STRING_ARGUMENT);
             X509V3_conf_err(val);
-            ASN1_BIT_STRING_free(bs);
+            VR_ASN1_BIT_STRING_free(bs);
             return NULL;
         }
     }

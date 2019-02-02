@@ -16,7 +16,7 @@
 
 static DH *dh_param_init(const BIGNUM *p, int32_t nbits)
 {
-    DH *dh = DH_new();
+    DH *dh = VR_DH_new();
     if (dh == NULL)
         return NULL;
     dh->p = (BIGNUM *)p;
@@ -25,7 +25,7 @@ static DH *dh_param_init(const BIGNUM *p, int32_t nbits)
     return dh;
 }
 
-DH *DH_new_by_nid(int nid)
+DH *VR_DH_new_by_nid(int nid)
 {
     switch (nid) {
     case NID_ffdhe2048:
@@ -44,31 +44,31 @@ DH *DH_new_by_nid(int nid)
     }
 }
 
-int DH_get_nid(const DH *dh)
+int VR_DH_get_nid(const DH *dh)
 {
     int nid;
 
-    if (BN_get_word(dh->g) != 2)
+    if (VR_BN_get_word(dh->g) != 2)
         return NID_undef;
-    if (!BN_cmp(dh->p, &_bignum_ffdhe2048_p))
+    if (!VR_BN_cmp(dh->p, &_bignum_ffdhe2048_p))
         nid = NID_ffdhe2048;
-    else if (!BN_cmp(dh->p, &_bignum_ffdhe3072_p))
+    else if (!VR_BN_cmp(dh->p, &_bignum_ffdhe3072_p))
         nid = NID_ffdhe3072;
-    else if (!BN_cmp(dh->p, &_bignum_ffdhe4096_p))
+    else if (!VR_BN_cmp(dh->p, &_bignum_ffdhe4096_p))
         nid = NID_ffdhe4096;
-    else if (!BN_cmp(dh->p, &_bignum_ffdhe6144_p))
+    else if (!VR_BN_cmp(dh->p, &_bignum_ffdhe6144_p))
         nid = NID_ffdhe6144;
-    else if (!BN_cmp(dh->p, &_bignum_ffdhe8192_p))
+    else if (!VR_BN_cmp(dh->p, &_bignum_ffdhe8192_p))
         nid = NID_ffdhe8192;
     else
         return NID_undef;
     if (dh->q != NULL) {
-        BIGNUM *q = BN_dup(dh->p);
+        BIGNUM *q = VR_BN_dup(dh->p);
 
         /* Check q = p * 2 + 1 we already know q is odd, so just shift right */
-        if (q == NULL || !BN_rshift1(q, q) || !BN_cmp(dh->q, q))
+        if (q == NULL || !VR_BN_rshift1(q, q) || !VR_BN_cmp(dh->q, q))
             nid = NID_undef;
-        BN_free(q);
+        VR_BN_free(q);
     }
     return nid;
 }

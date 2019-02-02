@@ -25,19 +25,19 @@ static const ERR_STRING_DATA DSO_str_functs[] = {
     {ERR_PACK(ERR_LIB_DSO, DSO_F_DL_MERGER, 0), "dl_merger"},
     {ERR_PACK(ERR_LIB_DSO, DSO_F_DL_NAME_CONVERTER, 0), "dl_name_converter"},
     {ERR_PACK(ERR_LIB_DSO, DSO_F_DL_UNLOAD, 0), "dl_unload"},
-    {ERR_PACK(ERR_LIB_DSO, DSO_F_DSO_BIND_FUNC, 0), "DSO_bind_func"},
+    {ERR_PACK(ERR_LIB_DSO, DSO_F_DSO_BIND_FUNC, 0), "VR_DSO_bind_func"},
     {ERR_PACK(ERR_LIB_DSO, DSO_F_DSO_CONVERT_FILENAME, 0),
-     "DSO_convert_filename"},
-    {ERR_PACK(ERR_LIB_DSO, DSO_F_DSO_CTRL, 0), "DSO_ctrl"},
-    {ERR_PACK(ERR_LIB_DSO, DSO_F_DSO_FREE, 0), "DSO_free"},
-    {ERR_PACK(ERR_LIB_DSO, DSO_F_DSO_GET_FILENAME, 0), "DSO_get_filename"},
-    {ERR_PACK(ERR_LIB_DSO, DSO_F_DSO_GLOBAL_LOOKUP, 0), "DSO_global_lookup"},
-    {ERR_PACK(ERR_LIB_DSO, DSO_F_DSO_LOAD, 0), "DSO_load"},
-    {ERR_PACK(ERR_LIB_DSO, DSO_F_DSO_MERGE, 0), "DSO_merge"},
-    {ERR_PACK(ERR_LIB_DSO, DSO_F_DSO_NEW_METHOD, 0), "DSO_new_method"},
-    {ERR_PACK(ERR_LIB_DSO, DSO_F_DSO_PATHBYADDR, 0), "DSO_pathbyaddr"},
-    {ERR_PACK(ERR_LIB_DSO, DSO_F_DSO_SET_FILENAME, 0), "DSO_set_filename"},
-    {ERR_PACK(ERR_LIB_DSO, DSO_F_DSO_UP_REF, 0), "DSO_up_ref"},
+     "VR_DSO_convert_filename"},
+    {ERR_PACK(ERR_LIB_DSO, DSO_F_DSO_CTRL, 0), "VR_DSO_ctrl"},
+    {ERR_PACK(ERR_LIB_DSO, DSO_F_DSO_FREE, 0), "VR_DSO_free"},
+    {ERR_PACK(ERR_LIB_DSO, DSO_F_DSO_GET_FILENAME, 0), "VR_DSO_get_filename"},
+    {ERR_PACK(ERR_LIB_DSO, DSO_F_DSO_GLOBAL_LOOKUP, 0), "VR_DSO_global_lookup"},
+    {ERR_PACK(ERR_LIB_DSO, DSO_F_DSO_LOAD, 0), "VR_DSO_load"},
+    {ERR_PACK(ERR_LIB_DSO, DSO_F_DSO_MERGE, 0), "VR_DSO_merge"},
+    {ERR_PACK(ERR_LIB_DSO, DSO_F_DSO_NEW_METHOD, 0), "VR_DSO_new_method"},
+    {ERR_PACK(ERR_LIB_DSO, DSO_F_DSO_PATHBYADDR, 0), "VR_DSO_pathbyaddr"},
+    {ERR_PACK(ERR_LIB_DSO, DSO_F_DSO_SET_FILENAME, 0), "VR_DSO_set_filename"},
+    {ERR_PACK(ERR_LIB_DSO, DSO_F_DSO_UP_REF, 0), "VR_DSO_up_ref"},
     {ERR_PACK(ERR_LIB_DSO, DSO_F_VMS_BIND_SYM, 0), "vms_bind_sym"},
     {ERR_PACK(ERR_LIB_DSO, DSO_F_VMS_LOAD, 0), "vms_load"},
     {ERR_PACK(ERR_LIB_DSO, DSO_F_VMS_MERGER, 0), "vms_merger"},
@@ -88,12 +88,12 @@ static const ERR_STRING_DATA DSO_str_reasons[] = {
 
 #endif
 
-int ERR_load_DSO_strings(void)
+int VR_ERR_load_DSO_strings(void)
 {
 #ifndef OPENSSL_NO_ERR
-    if (ERR_func_error_string(DSO_str_functs[0].error) == NULL) {
-        ERR_load_strings_const(DSO_str_functs);
-        ERR_load_strings_const(DSO_str_reasons);
+    if (VR_ERR_func_error_string(DSO_str_functs[0].error) == NULL) {
+        VR_ERR_load_strings_const(DSO_str_functs);
+        VR_ERR_load_strings_const(DSO_str_reasons);
     }
 #endif
     return 1;

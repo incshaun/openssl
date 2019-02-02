@@ -17,17 +17,17 @@
 
 static int init(EVP_MD_CTX *ctx)
 {
-    return sm3_init(EVP_MD_CTX_md_data(ctx));
+    return VR_sm3_init(VR_EVP_MD_CTX_md_data(ctx));
 }
 
 static int update(EVP_MD_CTX *ctx, const void *data, size_t count)
 {
-    return sm3_update(EVP_MD_CTX_md_data(ctx), data, count);
+    return VR_sm3_update(VR_EVP_MD_CTX_md_data(ctx), data, count);
 }
 
 static int final(EVP_MD_CTX *ctx, unsigned char *md)
 {
-    return sm3_final(md, EVP_MD_CTX_md_data(ctx));
+    return VR_sm3_final(md, VR_EVP_MD_CTX_md_data(ctx));
 }
 
 static const EVP_MD sm3_md = {
@@ -44,7 +44,7 @@ static const EVP_MD sm3_md = {
     sizeof(EVP_MD *) + sizeof(SM3_CTX),
 };
 
-const EVP_MD *EVP_sm3(void)
+const EVP_MD *VR_EVP_sm3(void)
 {
     return &sm3_md;
 }

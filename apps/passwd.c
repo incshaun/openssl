@@ -54,7 +54,7 @@ typedef enum OPTION_choice {
     OPT_ERR = -1, OPT_EOF = 0, OPT_HELP,
     OPT_IN,
     OPT_NOVERIFY, OPT_QUIET, OPT_TABLE, OPT_REVERSE, OPT_APR1,
-    OPT_1, OPT_5, OPT_6, OPT_CRYPT, OPT_AIXMD5, OPT_SALT, OPT_STDIN,
+    OPT_1, OPT_5, OPT_6, OPT_CRYPT, OPT_AIXVR_MD5, OPT_SALT, OPT_STDIN,
     OPT_R_ENUM
 } OPTION_CHOICE;
 
@@ -68,11 +68,11 @@ const OPTIONS passwd_options[] = {
     {"reverse", OPT_REVERSE, '-', "Switch table columns"},
     {"salt", OPT_SALT, 's', "Use provided salt"},
     {"stdin", OPT_STDIN, '-', "Read passwords from stdin"},
-    {"6", OPT_6, '-', "SHA512-based password algorithm"},
-    {"5", OPT_5, '-', "SHA256-based password algorithm"},
-    {"apr1", OPT_APR1, '-', "MD5-based password algorithm, Apache variant"},
-    {"1", OPT_1, '-', "MD5-based password algorithm"},
-    {"aixmd5", OPT_AIXMD5, '-', "AIX MD5-based password algorithm"},
+    {"6", OPT_6, '-', "VR_SHA512-based password algorithm"},
+    {"5", OPT_5, '-', "VR_SHA256-based password algorithm"},
+    {"apr1", OPT_APR1, '-', "VR_MD5-based password algorithm, Apache variant"},
+    {"1", OPT_1, '-', "VR_MD5-based password algorithm"},
+    {"aixmd5", OPT_AIXVR_MD5, '-', "AIX VR_MD5-based password algorithm"},
 #ifndef OPENSSL_NO_DES
     {"crypt", OPT_CRYPT, '-', "Standard Unix password algorithm (default)"},
 #endif
@@ -103,7 +103,7 @@ int passwd_main(int argc, char **argv)
         case OPT_EOF:
         case OPT_ERR:
  opthelp:
-            BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
+            VR_BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
             opt_help(passwd_options);
@@ -149,7 +149,7 @@ int passwd_main(int argc, char **argv)
                 goto opthelp;
             mode = passwd_apr1;
             break;
-        case OPT_AIXMD5:
+        case OPT_AIXVR_MD5:
             if (mode != passwd_unset)
                 goto opthelp;
             mode = passwd_aixmd5;
@@ -198,7 +198,7 @@ int passwd_main(int argc, char **argv)
 #endif
 
     if (infile != NULL && in_stdin) {
-        BIO_printf(bio_err, "%s: Can't combine -in and -stdin\n", prog);
+        VR_BIO_printf(bio_err, "%s: Can't combine -in and -stdin\n", prog);
         goto end;
     }
 
@@ -237,7 +237,7 @@ int passwd_main(int argc, char **argv)
 
             passwds = passwds_static;
             if (in == NULL) {
-                if (EVP_read_pw_string
+                if (VR_EVP_read_pw_string
                     (passwd_malloc, passwd_malloc_size, "Password: ",
                      !(passed_salt || in_noverify)) != 0)
                     goto end;
@@ -245,7 +245,7 @@ int passwd_main(int argc, char **argv)
             passwds[0] = passwd_malloc;
         } else {
 #endif
-            BIO_printf(bio_err, "password required\n");
+            VR_BIO_printf(bio_err, "password required\n");
             goto end;
         }
     }
@@ -266,7 +266,7 @@ int passwd_main(int argc, char **argv)
 
         assert(passwd != NULL);
         do {
-            int r = BIO_gets(in, passwd, pw_maxlen + 1);
+            int r = VR_BIO_gets(in, passwd, pw_maxlen + 1);
             if (r > 0) {
                 char *c = (strchr(passwd, '\n'));
                 if (c != NULL) {
@@ -275,7 +275,7 @@ int passwd_main(int argc, char **argv)
                     /* ignore rest of line */
                     char trash[BUFSIZ];
                     do
-                        r = BIO_gets(in, trash, sizeof(trash));
+                        r = VR_BIO_gets(in, trash, sizeof(trash));
                     while ((r > 0) && (!strchr(trash, '\n')));
                 }
 
@@ -291,19 +291,19 @@ int passwd_main(int argc, char **argv)
 
  end:
 #if 0
-    ERR_print_errors(bio_err);
+    VR_ERR_print_errors(bio_err);
 #endif
-    OPENSSL_free(salt_malloc);
-    OPENSSL_free(passwd_malloc);
-    BIO_free(in);
+    OPENVR_SSL_free(salt_malloc);
+    OPENVR_SSL_free(passwd_malloc);
+    VR_BIO_free(in);
     return ret;
 }
 
 /*
- * MD5-based password algorithm (should probably be available as a library
+ * VR_MD5-based password algorithm (should probably be available as a library
  * function; then the static buffer would not be acceptable). For magic
- * string "1", this should be compatible to the MD5-based BSD password
- * algorithm. For 'magic' string "apr1", this is compatible to the MD5-based
+ * string "1", this should be compatible to the VR_MD5-based BSD password
+ * algorithm. For 'magic' string "apr1", this is compatible to the VR_MD5-based
  * Apache password algorithm. (Apparently, the Apache password algorithm is
  * identical except that the 'magic' string was changed -- the laziest
  * application of the NIH principle I've ever encountered.)
@@ -312,7 +312,7 @@ static char *md5crypt(const char *passwd, const char *magic, const char *salt)
 {
     /* "$apr1$..salt..$.......md5hash..........\0" */
     static char out_buf[6 + 9 + 24 + 2];
-    unsigned char buf[MD5_DIGEST_LENGTH];
+    unsigned char buf[VR_MD5_DIGEST_LENGTH];
     char ascii_magic[5];         /* "apr1" plus '\0' */
     char ascii_salt[9];          /* Max 8 chars plus '\0' */
     char *ascii_passwd = NULL;
@@ -326,14 +326,14 @@ static char *md5crypt(const char *passwd, const char *magic, const char *salt)
 
     out_buf[0] = 0;
     magic_len = strlen(magic);
-    OPENSSL_strlcpy(ascii_magic, magic, sizeof(ascii_magic));
+    VR_OPENSSL_strlcpy(ascii_magic, magic, sizeof(ascii_magic));
 #ifdef CHARSET_EBCDIC
     if ((magic[0] & 0x80) != 0)    /* High bit is 1 in EBCDIC alnums */
         ebcdic2ascii(ascii_magic, ascii_magic, magic_len);
 #endif
 
     /* The salt gets truncated to 8 chars */
-    OPENSSL_strlcpy(ascii_salt, salt, sizeof(ascii_salt));
+    VR_OPENSSL_strlcpy(ascii_salt, salt, sizeof(ascii_salt));
     salt_len = strlen(ascii_salt);
 #ifdef CHARSET_EBCDIC
     ebcdic2ascii(ascii_salt, ascii_salt, salt_len);
@@ -348,16 +348,16 @@ static char *md5crypt(const char *passwd, const char *magic, const char *salt)
 #endif
 
     if (magic_len > 0) {
-        OPENSSL_strlcat(out_buf, ascii_dollar, sizeof(out_buf));
+        VR_OPENSSL_strlcat(out_buf, ascii_dollar, sizeof(out_buf));
 
         if (magic_len > 4)    /* assert it's  "1" or "apr1" */
             goto err;
 
-        OPENSSL_strlcat(out_buf, ascii_magic, sizeof(out_buf));
-        OPENSSL_strlcat(out_buf, ascii_dollar, sizeof(out_buf));
+        VR_OPENSSL_strlcat(out_buf, ascii_magic, sizeof(out_buf));
+        VR_OPENSSL_strlcat(out_buf, ascii_dollar, sizeof(out_buf));
     }
 
-    OPENSSL_strlcat(out_buf, ascii_salt, sizeof(out_buf));
+    VR_OPENSSL_strlcat(out_buf, ascii_salt, sizeof(out_buf));
 
     if (strlen(out_buf) > 6 + 8) /* assert "$apr1$..salt.." */
         goto err;
@@ -369,70 +369,70 @@ static char *md5crypt(const char *passwd, const char *magic, const char *salt)
     if (salt_len > 8)
         goto err;
 
-    md = EVP_MD_CTX_new();
+    md = VR_EVP_MD_CTX_new();
     if (md == NULL
-        || !EVP_DigestInit_ex(md, EVP_md5(), NULL)
-        || !EVP_DigestUpdate(md, passwd, passwd_len))
+        || !VR_EVP_DigestInit_ex(md, VR_EVP_md5(), NULL)
+        || !VR_EVP_DigestUpdate(md, passwd, passwd_len))
         goto err;
 
     if (magic_len > 0)
-        if (!EVP_DigestUpdate(md, ascii_dollar, 1)
-            || !EVP_DigestUpdate(md, ascii_magic, magic_len)
-            || !EVP_DigestUpdate(md, ascii_dollar, 1))
+        if (!VR_EVP_DigestUpdate(md, ascii_dollar, 1)
+            || !VR_EVP_DigestUpdate(md, ascii_magic, magic_len)
+            || !VR_EVP_DigestUpdate(md, ascii_dollar, 1))
           goto err;
 
-    if (!EVP_DigestUpdate(md, ascii_salt, salt_len))
+    if (!VR_EVP_DigestUpdate(md, ascii_salt, salt_len))
         goto err;
 
-    md2 = EVP_MD_CTX_new();
+    md2 = VR_EVP_MD_CTX_new();
     if (md2 == NULL
-        || !EVP_DigestInit_ex(md2, EVP_md5(), NULL)
-        || !EVP_DigestUpdate(md2, passwd, passwd_len)
-        || !EVP_DigestUpdate(md2, ascii_salt, salt_len)
-        || !EVP_DigestUpdate(md2, passwd, passwd_len)
-        || !EVP_DigestFinal_ex(md2, buf, NULL))
+        || !VR_EVP_DigestInit_ex(md2, VR_EVP_md5(), NULL)
+        || !VR_EVP_DigestUpdate(md2, passwd, passwd_len)
+        || !VR_EVP_DigestUpdate(md2, ascii_salt, salt_len)
+        || !VR_EVP_DigestUpdate(md2, passwd, passwd_len)
+        || !VR_EVP_DigestFinal_ex(md2, buf, NULL))
         goto err;
 
     for (i = passwd_len; i > sizeof(buf); i -= sizeof(buf)) {
-        if (!EVP_DigestUpdate(md, buf, sizeof(buf)))
+        if (!VR_EVP_DigestUpdate(md, buf, sizeof(buf)))
             goto err;
     }
-    if (!EVP_DigestUpdate(md, buf, i))
+    if (!VR_EVP_DigestUpdate(md, buf, i))
         goto err;
 
     n = passwd_len;
     while (n) {
-        if (!EVP_DigestUpdate(md, (n & 1) ? "\0" : passwd, 1))
+        if (!VR_EVP_DigestUpdate(md, (n & 1) ? "\0" : passwd, 1))
             goto err;
         n >>= 1;
     }
-    if (!EVP_DigestFinal_ex(md, buf, NULL))
+    if (!VR_EVP_DigestFinal_ex(md, buf, NULL))
         return NULL;
 
     for (i = 0; i < 1000; i++) {
-        if (!EVP_DigestInit_ex(md2, EVP_md5(), NULL))
+        if (!VR_EVP_DigestInit_ex(md2, VR_EVP_md5(), NULL))
             goto err;
-        if (!EVP_DigestUpdate(md2,
+        if (!VR_EVP_DigestUpdate(md2,
                               (i & 1) ? (unsigned const char *)passwd : buf,
                               (i & 1) ? passwd_len : sizeof(buf)))
             goto err;
         if (i % 3) {
-            if (!EVP_DigestUpdate(md2, ascii_salt, salt_len))
+            if (!VR_EVP_DigestUpdate(md2, ascii_salt, salt_len))
                 goto err;
         }
         if (i % 7) {
-            if (!EVP_DigestUpdate(md2, passwd, passwd_len))
+            if (!VR_EVP_DigestUpdate(md2, passwd, passwd_len))
                 goto err;
         }
-        if (!EVP_DigestUpdate(md2,
+        if (!VR_EVP_DigestUpdate(md2,
                               (i & 1) ? buf : (unsigned const char *)passwd,
                               (i & 1) ? sizeof(buf) : passwd_len))
                 goto err;
-        if (!EVP_DigestFinal_ex(md2, buf, NULL))
+        if (!VR_EVP_DigestFinal_ex(md2, buf, NULL))
                 goto err;
     }
-    EVP_MD_CTX_free(md2);
-    EVP_MD_CTX_free(md);
+    VR_EVP_MD_CTX_free(md2);
+    VR_EVP_MD_CTX_free(md);
     md2 = NULL;
     md = NULL;
 
@@ -479,9 +479,9 @@ static char *md5crypt(const char *passwd, const char *magic, const char *salt)
     return out_buf;
 
  err:
-    OPENSSL_free(ascii_passwd);
-    EVP_MD_CTX_free(md2);
-    EVP_MD_CTX_free(md);
+    OPENVR_SSL_free(ascii_passwd);
+    VR_EVP_MD_CTX_free(md2);
+    VR_EVP_MD_CTX_free(md);
     return NULL;
 }
 
@@ -505,8 +505,8 @@ static char *shacrypt(const char *passwd, const char *magic, const char *salt)
 
     /* "$6$rounds=<N>$......salt......$...shahash(up to 86 chars)...\0" */
     static char out_buf[3 + 17 + 17 + 86 + 1];
-    unsigned char buf[SHA512_DIGEST_LENGTH];
-    unsigned char temp_buf[SHA512_DIGEST_LENGTH];
+    unsigned char buf[VR_SHA512_DIGEST_LENGTH];
+    unsigned char temp_buf[VR_SHA512_DIGEST_LENGTH];
     size_t buf_size = 0;
     char ascii_magic[2];
     char ascii_salt[17];          /* Max 16 chars plus '\0' */
@@ -530,11 +530,11 @@ static char *shacrypt(const char *passwd, const char *magic, const char *salt)
 
     switch (magic[0]) {
     case '5':
-        sha = EVP_sha256();
+        sha = VR_EVP_sha256();
         buf_size = 32;
         break;
     case '6':
-        sha = EVP_sha512();
+        sha = VR_EVP_sha512();
         buf_size = 64;
         break;
     default:
@@ -559,14 +559,14 @@ static char *shacrypt(const char *passwd, const char *magic, const char *salt)
         }
     }
 
-    OPENSSL_strlcpy(ascii_magic, magic, sizeof(ascii_magic));
+    VR_OPENSSL_strlcpy(ascii_magic, magic, sizeof(ascii_magic));
 #ifdef CHARSET_EBCDIC
     if ((magic[0] & 0x80) != 0)    /* High bit is 1 in EBCDIC alnums */
         ebcdic2ascii(ascii_magic, ascii_magic, magic_len);
 #endif
 
     /* The salt gets truncated to 16 chars */
-    OPENSSL_strlcpy(ascii_salt, salt, sizeof(ascii_salt));
+    VR_OPENSSL_strlcpy(ascii_salt, salt, sizeof(ascii_salt));
     salt_len = strlen(ascii_salt);
 #ifdef CHARSET_EBCDIC
     ebcdic2ascii(ascii_salt, ascii_salt, salt_len);
@@ -581,9 +581,9 @@ static char *shacrypt(const char *passwd, const char *magic, const char *salt)
 #endif
 
     out_buf[0] = 0;
-    OPENSSL_strlcat(out_buf, ascii_dollar, sizeof(out_buf));
-    OPENSSL_strlcat(out_buf, ascii_magic, sizeof(out_buf));
-    OPENSSL_strlcat(out_buf, ascii_dollar, sizeof(out_buf));
+    VR_OPENSSL_strlcat(out_buf, ascii_dollar, sizeof(out_buf));
+    VR_OPENSSL_strlcat(out_buf, ascii_magic, sizeof(out_buf));
+    VR_OPENSSL_strlcat(out_buf, ascii_dollar, sizeof(out_buf));
     if (rounds_custom) {
         char tmp_buf[80]; /* "rounds=999999999" */
         sprintf(tmp_buf, "rounds=%u", rounds);
@@ -592,58 +592,58 @@ static char *shacrypt(const char *passwd, const char *magic, const char *salt)
         if (tmp_buf[0] != 0x72)  /* ASCII 'r' */
             ebcdic2ascii(tmp_buf, tmp_buf, strlen(tmp_buf));
 #endif
-        OPENSSL_strlcat(out_buf, tmp_buf, sizeof(out_buf));
-        OPENSSL_strlcat(out_buf, ascii_dollar, sizeof(out_buf));
+        VR_OPENSSL_strlcat(out_buf, tmp_buf, sizeof(out_buf));
+        VR_OPENSSL_strlcat(out_buf, ascii_dollar, sizeof(out_buf));
     }
-    OPENSSL_strlcat(out_buf, ascii_salt, sizeof(out_buf));
+    VR_OPENSSL_strlcat(out_buf, ascii_salt, sizeof(out_buf));
 
     /* assert "$5$rounds=999999999$......salt......" */
     if (strlen(out_buf) > 3 + 17 * rounds_custom + salt_len )
         goto err;
 
-    md = EVP_MD_CTX_new();
+    md = VR_EVP_MD_CTX_new();
     if (md == NULL
-        || !EVP_DigestInit_ex(md, sha, NULL)
-        || !EVP_DigestUpdate(md, passwd, passwd_len)
-        || !EVP_DigestUpdate(md, ascii_salt, salt_len))
+        || !VR_EVP_DigestInit_ex(md, sha, NULL)
+        || !VR_EVP_DigestUpdate(md, passwd, passwd_len)
+        || !VR_EVP_DigestUpdate(md, ascii_salt, salt_len))
         goto err;
 
-    md2 = EVP_MD_CTX_new();
+    md2 = VR_EVP_MD_CTX_new();
     if (md2 == NULL
-        || !EVP_DigestInit_ex(md2, sha, NULL)
-        || !EVP_DigestUpdate(md2, passwd, passwd_len)
-        || !EVP_DigestUpdate(md2, ascii_salt, salt_len)
-        || !EVP_DigestUpdate(md2, passwd, passwd_len)
-        || !EVP_DigestFinal_ex(md2, buf, NULL))
+        || !VR_EVP_DigestInit_ex(md2, sha, NULL)
+        || !VR_EVP_DigestUpdate(md2, passwd, passwd_len)
+        || !VR_EVP_DigestUpdate(md2, ascii_salt, salt_len)
+        || !VR_EVP_DigestUpdate(md2, passwd, passwd_len)
+        || !VR_EVP_DigestFinal_ex(md2, buf, NULL))
         goto err;
 
     for (n = passwd_len; n > buf_size; n -= buf_size) {
-        if (!EVP_DigestUpdate(md, buf, buf_size))
+        if (!VR_EVP_DigestUpdate(md, buf, buf_size))
             goto err;
     }
-    if (!EVP_DigestUpdate(md, buf, n))
+    if (!VR_EVP_DigestUpdate(md, buf, n))
         goto err;
 
     n = passwd_len;
     while (n) {
-        if (!EVP_DigestUpdate(md,
+        if (!VR_EVP_DigestUpdate(md,
                               (n & 1) ? buf : (unsigned const char *)passwd,
                               (n & 1) ? buf_size : passwd_len))
             goto err;
         n >>= 1;
     }
-    if (!EVP_DigestFinal_ex(md, buf, NULL))
+    if (!VR_EVP_DigestFinal_ex(md, buf, NULL))
         return NULL;
 
     /* P sequence */
-    if (!EVP_DigestInit_ex(md2, sha, NULL))
+    if (!VR_EVP_DigestInit_ex(md2, sha, NULL))
         goto err;
 
     for (n = passwd_len; n > 0; n--)
-        if (!EVP_DigestUpdate(md2, passwd, passwd_len))
+        if (!VR_EVP_DigestUpdate(md2, passwd, passwd_len))
             goto err;
 
-    if (!EVP_DigestFinal_ex(md2, temp_buf, NULL))
+    if (!VR_EVP_DigestFinal_ex(md2, temp_buf, NULL))
         return NULL;
 
     if ((p_bytes = OPENSSL_zalloc(passwd_len)) == NULL)
@@ -653,14 +653,14 @@ static char *shacrypt(const char *passwd, const char *magic, const char *salt)
     memcpy(cp, temp_buf, n);
 
     /* S sequence */
-    if (!EVP_DigestInit_ex(md2, sha, NULL))
+    if (!VR_EVP_DigestInit_ex(md2, sha, NULL))
         goto err;
 
     for (n = 16 + buf[0]; n > 0; n--)
-        if (!EVP_DigestUpdate(md2, ascii_salt, salt_len))
+        if (!VR_EVP_DigestUpdate(md2, ascii_salt, salt_len))
             goto err;
 
-    if (!EVP_DigestFinal_ex(md2, temp_buf, NULL))
+    if (!VR_EVP_DigestFinal_ex(md2, temp_buf, NULL))
         return NULL;
 
     if ((s_bytes = OPENSSL_zalloc(salt_len)) == NULL)
@@ -670,33 +670,33 @@ static char *shacrypt(const char *passwd, const char *magic, const char *salt)
     memcpy(cp, temp_buf, n);
 
     for (n = 0; n < rounds; n++) {
-        if (!EVP_DigestInit_ex(md2, sha, NULL))
+        if (!VR_EVP_DigestInit_ex(md2, sha, NULL))
             goto err;
-        if (!EVP_DigestUpdate(md2,
+        if (!VR_EVP_DigestUpdate(md2,
                               (n & 1) ? (unsigned const char *)p_bytes : buf,
                               (n & 1) ? passwd_len : buf_size))
             goto err;
         if (n % 3) {
-            if (!EVP_DigestUpdate(md2, s_bytes, salt_len))
+            if (!VR_EVP_DigestUpdate(md2, s_bytes, salt_len))
                 goto err;
         }
         if (n % 7) {
-            if (!EVP_DigestUpdate(md2, p_bytes, passwd_len))
+            if (!VR_EVP_DigestUpdate(md2, p_bytes, passwd_len))
                 goto err;
         }
-        if (!EVP_DigestUpdate(md2,
+        if (!VR_EVP_DigestUpdate(md2,
                               (n & 1) ? buf : (unsigned const char *)p_bytes,
                               (n & 1) ? buf_size : passwd_len))
                 goto err;
-        if (!EVP_DigestFinal_ex(md2, buf, NULL))
+        if (!VR_EVP_DigestFinal_ex(md2, buf, NULL))
                 goto err;
     }
-    EVP_MD_CTX_free(md2);
-    EVP_MD_CTX_free(md);
+    VR_EVP_MD_CTX_free(md2);
+    VR_EVP_MD_CTX_free(md);
     md2 = NULL;
     md = NULL;
-    OPENSSL_free(p_bytes);
-    OPENSSL_free(s_bytes);
+    OPENVR_SSL_free(p_bytes);
+    OPENVR_SSL_free(s_bytes);
     p_bytes = NULL;
     s_bytes = NULL;
 
@@ -763,11 +763,11 @@ static char *shacrypt(const char *passwd, const char *magic, const char *salt)
     return out_buf;
 
  err:
-    EVP_MD_CTX_free(md2);
-    EVP_MD_CTX_free(md);
-    OPENSSL_free(p_bytes);
-    OPENSSL_free(s_bytes);
-    OPENSSL_free(ascii_passwd);
+    VR_EVP_MD_CTX_free(md2);
+    VR_EVP_MD_CTX_free(md);
+    OPENVR_SSL_free(p_bytes);
+    OPENVR_SSL_free(s_bytes);
+    OPENVR_SSL_free(ascii_passwd);
     return NULL;
 }
 
@@ -800,7 +800,7 @@ static int do_passwd(int passed_salt, char **salt_p, char **salt_malloc_p,
 
         if (*salt_malloc_p == NULL)
             *salt_p = *salt_malloc_p = app_malloc(saltlen + 1, "salt buffer");
-        if (RAND_bytes((unsigned char *)*salt_p, saltlen) <= 0)
+        if (VR_RAND_bytes((unsigned char *)*salt_p, saltlen) <= 0)
             goto end;
 
         for (i = 0; i < saltlen; i++)
@@ -820,7 +820,7 @@ static int do_passwd(int passed_salt, char **salt_p, char **salt_malloc_p,
             /*
              * XXX: really we should know how to print a size_t, not cast it
              */
-            BIO_printf(bio_err,
+            VR_BIO_printf(bio_err,
                        "Warning: truncating password to %u characters\n",
                        (unsigned)pw_maxlen);
         passwd[pw_maxlen] = 0;
@@ -830,7 +830,7 @@ static int do_passwd(int passed_salt, char **salt_p, char **salt_malloc_p,
     /* now compute password hash */
 #ifndef OPENSSL_NO_DES
     if (mode == passwd_crypt)
-        hash = DES_crypt(passwd, *salt_p);
+        hash = VR_DES_crypt(passwd, *salt_p);
 #endif
     if (mode == passwd_md5 || mode == passwd_apr1)
         hash = md5crypt(passwd, (mode == passwd_md5 ? "1" : "apr1"), *salt_p);
@@ -841,11 +841,11 @@ static int do_passwd(int passed_salt, char **salt_p, char **salt_malloc_p,
     assert(hash != NULL);
 
     if (table && !reverse)
-        BIO_printf(out, "%s\t%s\n", passwd, hash);
+        VR_BIO_printf(out, "%s\t%s\n", passwd, hash);
     else if (table && reverse)
-        BIO_printf(out, "%s\t%s\n", hash, passwd);
+        VR_BIO_printf(out, "%s\t%s\n", hash, passwd);
     else
-        BIO_printf(out, "%s\n", hash);
+        VR_BIO_printf(out, "%s\n", hash);
     return 1;
 
  end:

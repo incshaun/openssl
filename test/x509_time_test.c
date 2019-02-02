@@ -264,7 +264,7 @@ static int test_x509_cmp_time(int idx)
     t.length = strlen(x509_cmp_tests[idx].data);
     t.flags = 0;
 
-    result = X509_cmp_time(&t, &x509_cmp_tests[idx].cmp_time);
+    result = VR_X509_cmp_time(&t, &x509_cmp_tests[idx].cmp_time);
     if (!TEST_int_eq(result, x509_cmp_tests[idx].expected)) {
         TEST_info("test_x509_cmp_time(%d) failed: expected %d, got %d\n",
                 idx, x509_cmp_tests[idx].expected, result);
@@ -280,19 +280,19 @@ static int test_x509_cmp_time_current(void)
     ASN1_TIME *asn1_before = NULL, *asn1_after = NULL;
     int cmp_result, failed = 0;
 
-    asn1_before = ASN1_TIME_adj(NULL, now, -1, 0);
-    asn1_after = ASN1_TIME_adj(NULL, now, 1, 0);
+    asn1_before = VR_ASN1_TIME_adj(NULL, now, -1, 0);
+    asn1_after = VR_ASN1_TIME_adj(NULL, now, 1, 0);
 
-    cmp_result  = X509_cmp_time(asn1_before, NULL);
+    cmp_result  = VR_X509_cmp_time(asn1_before, NULL);
     if (!TEST_int_eq(cmp_result, -1))
         failed = 1;
 
-    cmp_result = X509_cmp_time(asn1_after, NULL);
+    cmp_result = VR_X509_cmp_time(asn1_after, NULL);
     if (!TEST_int_eq(cmp_result, 1))
         failed = 1;
 
-    ASN1_TIME_free(asn1_before);
-    ASN1_TIME_free(asn1_after);
+    VR_ASN1_TIME_free(asn1_before);
+    VR_ASN1_TIME_free(asn1_after);
 
     return failed == 0;
 }
@@ -304,14 +304,14 @@ static int test_x509_time(int idx)
 
     if (x509_format_tests[idx].set_string) {
         /* set-string mode */
-        t = ASN1_TIME_new();
+        t = VR_ASN1_TIME_new();
         if (t == NULL) {
             TEST_info("test_x509_time(%d) failed: internal error\n", idx);
             return 0;
         }
     }
 
-    result = ASN1_TIME_set_string_X509(t, x509_format_tests[idx].data);
+    result = VR_ASN1_TIME_set_string_X509(t, x509_format_tests[idx].data);
     /* time string parsing result is always checked against what's expected */
     if (!TEST_int_eq(result, x509_format_tests[idx].expected)) {
         TEST_info("test_x509_time(%d) failed: expected %d, got %d\n",
@@ -341,7 +341,7 @@ static int test_x509_time(int idx)
     rv = 1;
 out:
     if (t != NULL)
-        ASN1_TIME_free(t);
+        VR_ASN1_TIME_free(t);
     return rv;
 }
 
@@ -408,19 +408,19 @@ static int test_days(int n)
     struct tm t;
     int r;
 
-    BIO_snprintf(d, sizeof(d), "%04d%02d%02d050505Z",
+    VR_BIO_snprintf(d, sizeof(d), "%04d%02d%02d050505Z",
                  day_of_week_tests[n].y, day_of_week_tests[n].m,
                  day_of_week_tests[n].d);
 
-    if (!TEST_ptr(a = ASN1_TIME_new()))
+    if (!TEST_ptr(a = VR_ASN1_TIME_new()))
         return 0;
 
-    r = TEST_true(ASN1_TIME_set_string(a, d))
-        && TEST_true(ASN1_TIME_to_tm(a, &t))
+    r = TEST_true(VR_ASN1_TIME_set_string(a, d))
+        && TEST_true(VR_ASN1_TIME_to_tm(a, &t))
         && TEST_int_eq(t.tm_yday, day_of_week_tests[n].yd)
         && TEST_int_eq(t.tm_wday, day_of_week_tests[n].wd);
 
-    ASN1_TIME_free(a);
+    VR_ASN1_TIME_free(a);
     return r;
 }
 
@@ -461,10 +461,10 @@ static int test_x509_time_print(int idx)
     char *pp;
     const char *readable;
 
-    if (!TEST_ptr(m = BIO_new(BIO_s_mem())))
+    if (!TEST_ptr(m = VR_BIO_new(VR_BIO_s_mem())))
         goto err;
 
-    rv = ASN1_TIME_print(m, &x509_print_tests[idx].asn1);
+    rv = VR_ASN1_TIME_print(m, &x509_print_tests[idx].asn1);
     readable = x509_print_tests[idx].readable;
 
     if (rv == 0 && !TEST_str_eq(readable, "Bad time value")) {
@@ -478,7 +478,7 @@ static int test_x509_time_print(int idx)
 
     ret = 1;
  err:
-    BIO_free(m);
+    VR_BIO_free(m);
     return ret;
 }
 

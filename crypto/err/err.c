@@ -58,7 +58,7 @@ static ERR_STRING_DATA ERR_str_libraries[] = {
     {ERR_PACK(ERR_LIB_UI, 0, 0), "UI routines"},
     {ERR_PACK(ERR_LIB_FIPS, 0, 0), "FIPS routines"},
     {ERR_PACK(ERR_LIB_CMS, 0, 0), "CMS routines"},
-    {ERR_PACK(ERR_LIB_HMAC, 0, 0), "HMAC routines"},
+    {ERR_PACK(ERR_LIB_VR_HMAC, 0, 0), "VR_HMAC routines"},
     {ERR_PACK(ERR_LIB_CT, 0, 0), "CT routines"},
     {ERR_PACK(ERR_LIB_ASYNC, 0, 0), "ASYNC routines"},
     {ERR_PACK(ERR_LIB_KDF, 0, 0), "KDF routines"},
@@ -177,9 +177,9 @@ static ERR_STRING_DATA *int_err_get_item(const ERR_STRING_DATA *d)
 {
     ERR_STRING_DATA *p = NULL;
 
-    CRYPTO_THREAD_read_lock(err_string_lock);
+    VR_CRYPTO_THREAD_read_lock(err_string_lock);
     p = lh_ERR_STRING_DATA_retrieve(int_error_hash, d);
-    CRYPTO_THREAD_unlock(err_string_lock);
+    VR_CRYPTO_THREAD_unlock(err_string_lock);
 
     return p;
 }
@@ -193,7 +193,7 @@ static ERR_STRING_DATA SYS_str_reasons[NUM_SYS_STR_REASONS + 1];
 /*
  * SYS_str_reasons is filled with copies of strerror() results at
  * initialization. 'errno' values up to 127 should cover all usual errors,
- * others will be displayed numerically by ERR_error_string. It is crucial
+ * others will be displayed numerically by VR_ERR_error_string. It is crucial
  * that we have something for each reason code that occurs in
  * ERR_str_reasons, or bogus reason strings will be returned for SYSerr(),
  * which always gets an errno value and never one of those 'standard' reason
@@ -210,9 +210,9 @@ static void build_SYS_str_reasons(void)
     int i;
     int saveerrno = get_last_sys_error();
 
-    CRYPTO_THREAD_write_lock(err_string_lock);
+    VR_CRYPTO_THREAD_write_lock(err_string_lock);
     if (!init) {
-        CRYPTO_THREAD_unlock(err_string_lock);
+        VR_CRYPTO_THREAD_unlock(err_string_lock);
         return;
     }
 
@@ -221,7 +221,7 @@ static void build_SYS_str_reasons(void)
 
         str->error = ERR_PACK(ERR_LIB_SYS, 0, i);
         if (str->string == NULL) {
-            if (openssl_strerror_r(i, cur, sizeof(strerror_pool) - cnt)) {
+            if (VR_openssl_strerror_r(i, cur, sizeof(strerror_pool) - cnt)) {
                 size_t l = strlen(cur);
 
                 str->string = cur;
@@ -248,13 +248,13 @@ static void build_SYS_str_reasons(void)
 
     /*
      * Now we still have SYS_str_reasons[NUM_SYS_STR_REASONS] = {0, NULL}, as
-     * required by ERR_load_strings.
+     * required by VR_ERR_load_strings.
      */
 
     init = 0;
 
-    CRYPTO_THREAD_unlock(err_string_lock);
-    /* openssl_strerror_r could change errno, but we want to preserve it */
+    VR_CRYPTO_THREAD_unlock(err_string_lock);
+    /* VR_openssl_strerror_r could change errno, but we want to preserve it */
     set_sys_error(saveerrno);
     err_load_strings(SYS_str_reasons);
 }
@@ -263,7 +263,7 @@ static void build_SYS_str_reasons(void)
 #define err_clear_data(p, i) \
         do { \
             if ((p)->err_data_flags[i] & ERR_TXT_MALLOCED) {\
-                OPENSSL_free((p)->err_data[i]); \
+                OPENVR_SSL_free((p)->err_data[i]); \
                 (p)->err_data[i] = NULL; \
             } \
             (p)->err_data_flags[i] = 0; \
@@ -287,33 +287,33 @@ static void ERR_STATE_free(ERR_STATE *s)
     for (i = 0; i < ERR_NUM_ERRORS; i++) {
         err_clear_data(s, i);
     }
-    OPENSSL_free(s);
+    OPENVR_SSL_free(s);
 }
 
 DEFINE_RUN_ONCE_STATIC(do_err_strings_init)
 {
-    if (!OPENSSL_init_crypto(0, NULL))
+    if (!VR_OPENSSL_init_crypto(0, NULL))
         return 0;
-    err_string_lock = CRYPTO_THREAD_lock_new();
+    err_string_lock = VR_CRYPTO_THREAD_lock_new();
     if (err_string_lock == NULL)
         return 0;
-    int_error_hash = lh_ERR_STRING_DATA_new(err_string_data_hash,
+    int_error_hash = lh_VR_ERR_STRING_DATA_new(err_string_data_hash,
                                             err_string_data_cmp);
     if (int_error_hash == NULL) {
-        CRYPTO_THREAD_lock_free(err_string_lock);
+        VR_CRYPTO_THREAD_lock_free(err_string_lock);
         err_string_lock = NULL;
         return 0;
     }
     return 1;
 }
 
-void err_cleanup(void)
+void VR_err_cleanup(void)
 {
     if (set_err_thread_local != 0)
-        CRYPTO_THREAD_cleanup_local(&err_thread_local);
-    CRYPTO_THREAD_lock_free(err_string_lock);
+        VR_CRYPTO_THREAD_cleanup_local(&err_thread_local);
+    VR_CRYPTO_THREAD_lock_free(err_string_lock);
     err_string_lock = NULL;
-    lh_ERR_STRING_DATA_free(int_error_hash);
+    lh_VR_ERR_STRING_DATA_free(int_error_hash);
     int_error_hash = NULL;
 }
 
@@ -333,15 +333,15 @@ static void err_patch(int lib, ERR_STRING_DATA *str)
  */
 static int err_load_strings(const ERR_STRING_DATA *str)
 {
-    CRYPTO_THREAD_write_lock(err_string_lock);
+    VR_CRYPTO_THREAD_write_lock(err_string_lock);
     for (; str->error; str++)
         (void)lh_ERR_STRING_DATA_insert(int_error_hash,
                                        (ERR_STRING_DATA *)str);
-    CRYPTO_THREAD_unlock(err_string_lock);
+    VR_CRYPTO_THREAD_unlock(err_string_lock);
     return 1;
 }
 
-int ERR_load_ERR_strings(void)
+int VR_ERR_load_ERR_strings(void)
 {
 #ifndef OPENSSL_NO_ERR
     if (!RUN_ONCE(&err_string_init, do_err_strings_init))
@@ -356,9 +356,9 @@ int ERR_load_ERR_strings(void)
     return 1;
 }
 
-int ERR_load_strings(int lib, ERR_STRING_DATA *str)
+int VR_ERR_load_strings(int lib, ERR_STRING_DATA *str)
 {
-    if (ERR_load_ERR_strings() == 0)
+    if (VR_ERR_load_ERR_strings() == 0)
         return 0;
 
     err_patch(lib, str);
@@ -366,32 +366,32 @@ int ERR_load_strings(int lib, ERR_STRING_DATA *str)
     return 1;
 }
 
-int ERR_load_strings_const(const ERR_STRING_DATA *str)
+int VR_ERR_load_strings_const(const ERR_STRING_DATA *str)
 {
-    if (ERR_load_ERR_strings() == 0)
+    if (VR_ERR_load_ERR_strings() == 0)
         return 0;
     err_load_strings(str);
     return 1;
 }
 
-int ERR_unload_strings(int lib, ERR_STRING_DATA *str)
+int VR_ERR_unload_strings(int lib, ERR_STRING_DATA *str)
 {
     if (!RUN_ONCE(&err_string_init, do_err_strings_init))
         return 0;
 
-    CRYPTO_THREAD_write_lock(err_string_lock);
+    VR_CRYPTO_THREAD_write_lock(err_string_lock);
     /*
      * We don't need to ERR_PACK the lib, since that was done (to
      * the table) when it was loaded.
      */
     for (; str->error; str++)
         (void)lh_ERR_STRING_DATA_delete(int_error_hash, str);
-    CRYPTO_THREAD_unlock(err_string_lock);
+    VR_CRYPTO_THREAD_unlock(err_string_lock);
 
     return 1;
 }
 
-void err_free_strings_int(void)
+void VR_err_free_strings_int(void)
 {
     if (!RUN_ONCE(&err_string_init, do_err_strings_init))
         return;
@@ -399,7 +399,7 @@ void err_free_strings_int(void)
 
 /********************************************************/
 
-void ERR_put_error(int lib, int func, int reason, const char *file, int line)
+void VR_ERR_put_error(int lib, int func, int reason, const char *file, int line)
 {
     ERR_STATE *es;
 
@@ -422,7 +422,7 @@ void ERR_put_error(int lib, int func, int reason, const char *file, int line)
             file = &end[1];
     }
 #endif
-    es = ERR_get_state();
+    es = VR_ERR_get_state();
     if (es == NULL)
         return;
 
@@ -436,12 +436,12 @@ void ERR_put_error(int lib, int func, int reason, const char *file, int line)
     err_clear_data(es, es->top);
 }
 
-void ERR_clear_error(void)
+void VR_ERR_clear_error(void)
 {
     int i;
     ERR_STATE *es;
 
-    es = ERR_get_state();
+    es = VR_ERR_get_state();
     if (es == NULL)
         return;
 
@@ -451,49 +451,49 @@ void ERR_clear_error(void)
     es->top = es->bottom = 0;
 }
 
-unsigned long ERR_get_error(void)
+unsigned long VR_ERR_get_error(void)
 {
     return get_error_values(1, 0, NULL, NULL, NULL, NULL);
 }
 
-unsigned long ERR_get_error_line(const char **file, int *line)
+unsigned long VR_ERR_get_error_line(const char **file, int *line)
 {
     return get_error_values(1, 0, file, line, NULL, NULL);
 }
 
-unsigned long ERR_get_error_line_data(const char **file, int *line,
+unsigned long VR_ERR_get_error_line_data(const char **file, int *line,
                                       const char **data, int *flags)
 {
     return get_error_values(1, 0, file, line, data, flags);
 }
 
-unsigned long ERR_peek_error(void)
+unsigned long VR_ERR_peek_error(void)
 {
     return get_error_values(0, 0, NULL, NULL, NULL, NULL);
 }
 
-unsigned long ERR_peek_error_line(const char **file, int *line)
+unsigned long VR_ERR_peek_error_line(const char **file, int *line)
 {
     return get_error_values(0, 0, file, line, NULL, NULL);
 }
 
-unsigned long ERR_peek_error_line_data(const char **file, int *line,
+unsigned long VR_ERR_peek_error_line_data(const char **file, int *line,
                                        const char **data, int *flags)
 {
     return get_error_values(0, 0, file, line, data, flags);
 }
 
-unsigned long ERR_peek_last_error(void)
+unsigned long VR_ERR_peek_last_error(void)
 {
     return get_error_values(0, 1, NULL, NULL, NULL, NULL);
 }
 
-unsigned long ERR_peek_last_error_line(const char **file, int *line)
+unsigned long VR_ERR_peek_last_error_line(const char **file, int *line)
 {
     return get_error_values(0, 1, file, line, NULL, NULL);
 }
 
-unsigned long ERR_peek_last_error_line_data(const char **file, int *line,
+unsigned long VR_ERR_peek_last_error_line_data(const char **file, int *line,
                                             const char **data, int *flags)
 {
     return get_error_values(0, 1, file, line, data, flags);
@@ -507,7 +507,7 @@ static unsigned long get_error_values(int inc, int top, const char **file,
     ERR_STATE *es;
     unsigned long ret;
 
-    es = ERR_get_state();
+    es = VR_ERR_get_state();
     if (es == NULL)
         return 0;
 
@@ -565,7 +565,7 @@ static unsigned long get_error_values(int inc, int top, const char **file,
     return ret;
 }
 
-void ERR_error_string_n(unsigned long e, char *buf, size_t len)
+void VR_ERR_error_string_n(unsigned long e, char *buf, size_t len)
 {
     char lsbuf[64], fsbuf[64], rsbuf[64];
     const char *ls, *fs, *rs;
@@ -575,48 +575,48 @@ void ERR_error_string_n(unsigned long e, char *buf, size_t len)
         return;
 
     l = ERR_GET_LIB(e);
-    ls = ERR_lib_error_string(e);
+    ls = VR_ERR_lib_error_string(e);
     if (ls == NULL) {
-        BIO_snprintf(lsbuf, sizeof(lsbuf), "lib(%lu)", l);
+        VR_BIO_snprintf(lsbuf, sizeof(lsbuf), "lib(%lu)", l);
         ls = lsbuf;
     }
 
-    fs = ERR_func_error_string(e);
+    fs = VR_ERR_func_error_string(e);
     f = ERR_GET_FUNC(e);
     if (fs == NULL) {
-        BIO_snprintf(fsbuf, sizeof(fsbuf), "func(%lu)", f);
+        VR_BIO_snprintf(fsbuf, sizeof(fsbuf), "func(%lu)", f);
         fs = fsbuf;
     }
 
-    rs = ERR_reason_error_string(e);
+    rs = VR_ERR_reason_error_string(e);
     r = ERR_GET_REASON(e);
     if (rs == NULL) {
-        BIO_snprintf(rsbuf, sizeof(rsbuf), "reason(%lu)", r);
+        VR_BIO_snprintf(rsbuf, sizeof(rsbuf), "reason(%lu)", r);
         rs = rsbuf;
     }
 
-    BIO_snprintf(buf, len, "error:%08lX:%s:%s:%s", e, ls, fs, rs);
+    VR_BIO_snprintf(buf, len, "error:%08lX:%s:%s:%s", e, ls, fs, rs);
     if (strlen(buf) == len - 1) {
         /* Didn't fit; use a minimal format. */
-        BIO_snprintf(buf, len, "err:%lx:%lx:%lx:%lx", e, l, f, r);
+        VR_BIO_snprintf(buf, len, "err:%lx:%lx:%lx:%lx", e, l, f, r);
     }
 }
 
 /*
- * ERR_error_string_n should be used instead for ret != NULL as
- * ERR_error_string cannot know how large the buffer is
+ * VR_ERR_error_string_n should be used instead for ret != NULL as
+ * VR_ERR_error_string cannot know how large the buffer is
  */
-char *ERR_error_string(unsigned long e, char *ret)
+char *VR_ERR_error_string(unsigned long e, char *ret)
 {
     static char buf[256];
 
     if (ret == NULL)
         ret = buf;
-    ERR_error_string_n(e, ret, (int)sizeof(buf));
+    VR_ERR_error_string_n(e, ret, (int)sizeof(buf));
     return ret;
 }
 
-const char *ERR_lib_error_string(unsigned long e)
+const char *VR_ERR_lib_error_string(unsigned long e)
 {
     ERR_STRING_DATA d, *p;
     unsigned long l;
@@ -631,7 +631,7 @@ const char *ERR_lib_error_string(unsigned long e)
     return ((p == NULL) ? NULL : p->string);
 }
 
-const char *ERR_func_error_string(unsigned long e)
+const char *VR_ERR_func_error_string(unsigned long e)
 {
     ERR_STRING_DATA d, *p;
     unsigned long l, f;
@@ -647,7 +647,7 @@ const char *ERR_func_error_string(unsigned long e)
     return ((p == NULL) ? NULL : p->string);
 }
 
-const char *ERR_reason_error_string(unsigned long e)
+const char *VR_ERR_reason_error_string(unsigned long e)
 {
     ERR_STRING_DATA d, *p = NULL;
     unsigned long l, r;
@@ -667,24 +667,24 @@ const char *ERR_reason_error_string(unsigned long e)
     return ((p == NULL) ? NULL : p->string);
 }
 
-void err_delete_thread_state(void)
+void VR_err_delete_thread_state(void)
 {
-    ERR_STATE *state = CRYPTO_THREAD_get_local(&err_thread_local);
+    ERR_STATE *state = VR_CRYPTO_THREAD_get_local(&err_thread_local);
     if (state == NULL)
         return;
 
-    CRYPTO_THREAD_set_local(&err_thread_local, NULL);
+    VR_CRYPTO_THREAD_set_local(&err_thread_local, NULL);
     ERR_STATE_free(state);
 }
 
 #if !OPENSSL_API_1_1_0
-void ERR_remove_thread_state(void *dummy)
+void VR_ERR_remove_thread_state(void *dummy)
 {
 }
 #endif
 
 #if !OPENSSL_API_1_0_0
-void ERR_remove_state(unsigned long pid)
+void VR_ERR_remove_state(unsigned long pid)
 {
 }
 #endif
@@ -692,42 +692,42 @@ void ERR_remove_state(unsigned long pid)
 DEFINE_RUN_ONCE_STATIC(err_do_init)
 {
     set_err_thread_local = 1;
-    return CRYPTO_THREAD_init_local(&err_thread_local, NULL);
+    return VR_CRYPTO_THREAD_init_local(&err_thread_local, NULL);
 }
 
-ERR_STATE *ERR_get_state(void)
+ERR_STATE *VR_ERR_get_state(void)
 {
     ERR_STATE *state;
     int saveerrno = get_last_sys_error();
 
-    if (!OPENSSL_init_crypto(OPENSSL_INIT_BASE_ONLY, NULL))
+    if (!VR_OPENSSL_init_crypto(OPENSSL_INIT_BASE_ONLY, NULL))
         return NULL;
 
     if (!RUN_ONCE(&err_init, err_do_init))
         return NULL;
 
-    state = CRYPTO_THREAD_get_local(&err_thread_local);
+    state = VR_CRYPTO_THREAD_get_local(&err_thread_local);
     if (state == (ERR_STATE*)-1)
         return NULL;
 
     if (state == NULL) {
-        if (!CRYPTO_THREAD_set_local(&err_thread_local, (ERR_STATE*)-1))
+        if (!VR_CRYPTO_THREAD_set_local(&err_thread_local, (ERR_STATE*)-1))
             return NULL;
 
         if ((state = OPENSSL_zalloc(sizeof(*state))) == NULL) {
-            CRYPTO_THREAD_set_local(&err_thread_local, NULL);
+            VR_CRYPTO_THREAD_set_local(&err_thread_local, NULL);
             return NULL;
         }
 
-        if (!ossl_init_thread_start(OPENSSL_INIT_THREAD_ERR_STATE)
-                || !CRYPTO_THREAD_set_local(&err_thread_local, state)) {
+        if (!VR_ossl_init_thread_start(OPENSSL_INIT_THREAD_ERR_STATE)
+                || !VR_CRYPTO_THREAD_set_local(&err_thread_local, state)) {
             ERR_STATE_free(state);
-            CRYPTO_THREAD_set_local(&err_thread_local, NULL);
+            VR_CRYPTO_THREAD_set_local(&err_thread_local, NULL);
             return NULL;
         }
 
         /* Ignore failures from these */
-        OPENSSL_init_crypto(OPENSSL_INIT_LOAD_CRYPTO_STRINGS, NULL);
+        VR_OPENSSL_init_crypto(OPENSSL_INIT_LOAD_CRYPTO_STRINGS, NULL);
     }
 
     set_sys_error(saveerrno);
@@ -735,33 +735,33 @@ ERR_STATE *ERR_get_state(void)
 }
 
 /*
- * err_shelve_state returns the current thread local error state
- * and freezes the error module until err_unshelve_state is called.
+ * VR_err_shelve_state returns the current thread local error state
+ * and freezes the error module until VR_err_unshelve_state is called.
  */
-int err_shelve_state(void **state)
+int VR_err_shelve_state(void **state)
 {
     int saveerrno = get_last_sys_error();
 
     /*
-     * Note, at present our only caller is OPENSSL_init_crypto(), indirectly
+     * Note, at present our only caller is VR_OPENSSL_init_crypto(), indirectly
      * via ossl_init_load_crypto_nodelete(), by which point the requested
      * "base" initialization has already been performed, so the below call is a
-     * NOOP, that re-enters OPENSSL_init_crypto() only to quickly return.
+     * NOOP, that re-enters VR_OPENSSL_init_crypto() only to quickly return.
      *
      * If are no other valid callers of this function, the call below can be
-     * removed, avoiding the re-entry into OPENSSL_init_crypto().  If there are
-     * potential uses that are not from inside OPENSSL_init_crypto(), then this
+     * removed, avoiding the re-entry into VR_OPENSSL_init_crypto().  If there are
+     * potential uses that are not from inside VR_OPENSSL_init_crypto(), then this
      * call is needed, but some care is required to make sure that the re-entry
      * remains a NOOP.
      */
-    if (!OPENSSL_init_crypto(OPENSSL_INIT_BASE_ONLY, NULL))
+    if (!VR_OPENSSL_init_crypto(OPENSSL_INIT_BASE_ONLY, NULL))
         return 0;
 
     if (!RUN_ONCE(&err_init, err_do_init))
         return 0;
 
-    *state = CRYPTO_THREAD_get_local(&err_thread_local);
-    if (!CRYPTO_THREAD_set_local(&err_thread_local, (ERR_STATE*)-1))
+    *state = VR_CRYPTO_THREAD_get_local(&err_thread_local);
+    if (!VR_CRYPTO_THREAD_set_local(&err_thread_local, (ERR_STATE*)-1))
         return 0;
 
     set_sys_error(saveerrno);
@@ -769,25 +769,25 @@ int err_shelve_state(void **state)
 }
 
 /*
- * err_unshelve_state restores the error state that was returned
- * by err_shelve_state previously.
+ * VR_err_unshelve_state restores the error state that was returned
+ * by VR_err_shelve_state previously.
  */
-void err_unshelve_state(void* state)
+void VR_err_unshelve_state(void* state)
 {
     if (state != (void*)-1)
-        CRYPTO_THREAD_set_local(&err_thread_local, (ERR_STATE*)state);
+        VR_CRYPTO_THREAD_set_local(&err_thread_local, (ERR_STATE*)state);
 }
 
-int ERR_get_next_error_library(void)
+int VR_ERR_get_next_error_library(void)
 {
     int ret;
 
     if (!RUN_ONCE(&err_string_init, do_err_strings_init))
         return 0;
 
-    CRYPTO_THREAD_write_lock(err_string_lock);
+    VR_CRYPTO_THREAD_write_lock(err_string_lock);
     ret = int_err_library_number++;
-    CRYPTO_THREAD_unlock(err_string_lock);
+    VR_CRYPTO_THREAD_unlock(err_string_lock);
     return ret;
 }
 
@@ -796,7 +796,7 @@ static int err_set_error_data_int(char *data, int flags)
     ERR_STATE *es;
     int i;
 
-    es = ERR_get_state();
+    es = VR_ERR_get_state();
     if (es == NULL)
         return 0;
 
@@ -809,7 +809,7 @@ static int err_set_error_data_int(char *data, int flags)
     return 1;
 }
 
-void ERR_set_error_data(char *data, int flags)
+void VR_ERR_set_error_data(char *data, int flags)
 {
     /*
      * This function is void so we cannot propagate the error return. Since it
@@ -818,15 +818,15 @@ void ERR_set_error_data(char *data, int flags)
     err_set_error_data_int(data, flags);
 }
 
-void ERR_add_error_data(int num, ...)
+void VR_ERR_add_error_data(int num, ...)
 {
     va_list args;
     va_start(args, num);
-    ERR_add_error_vdata(num, args);
+    VR_ERR_add_error_vdata(num, args);
     va_end(args);
 }
 
-void ERR_add_error_vdata(int num, va_list args)
+void VR_ERR_add_error_vdata(int num, va_list args)
 {
     int i, n, s;
     char *str, *p, *a;
@@ -848,22 +848,22 @@ void ERR_add_error_vdata(int num, va_list args)
             s = n + 20;
             p = OPENSSL_realloc(str, s + 1);
             if (p == NULL) {
-                OPENSSL_free(str);
+                OPENVR_SSL_free(str);
                 return;
             }
             str = p;
         }
-        OPENSSL_strlcat(str, a, (size_t)s + 1);
+        VR_OPENSSL_strlcat(str, a, (size_t)s + 1);
     }
     if (!err_set_error_data_int(str, ERR_TXT_MALLOCED | ERR_TXT_STRING))
-        OPENSSL_free(str);
+        OPENVR_SSL_free(str);
 }
 
-int ERR_set_mark(void)
+int VR_ERR_set_mark(void)
 {
     ERR_STATE *es;
 
-    es = ERR_get_state();
+    es = VR_ERR_get_state();
     if (es == NULL)
         return 0;
 
@@ -873,11 +873,11 @@ int ERR_set_mark(void)
     return 1;
 }
 
-int ERR_pop_to_mark(void)
+int VR_ERR_pop_to_mark(void)
 {
     ERR_STATE *es;
 
-    es = ERR_get_state();
+    es = VR_ERR_get_state();
     if (es == NULL)
         return 0;
 
@@ -893,12 +893,12 @@ int ERR_pop_to_mark(void)
     return 1;
 }
 
-int ERR_clear_last_mark(void)
+int VR_ERR_clear_last_mark(void)
 {
     ERR_STATE *es;
     int top;
 
-    es = ERR_get_state();
+    es = VR_ERR_get_state();
     if (es == NULL)
         return 0;
 
@@ -933,12 +933,12 @@ int ERR_clear_last_mark(void)
 # define UINTPTR_T size_t
 #endif
 
-void err_clear_last_constant_time(int clear)
+void VR_err_clear_last_constant_time(int clear)
 {
     ERR_STATE *es;
     int top;
 
-    es = ERR_get_state();
+    es = VR_ERR_get_state();
     if (es == NULL)
         return;
 

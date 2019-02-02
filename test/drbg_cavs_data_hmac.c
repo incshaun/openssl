@@ -42,7 +42,7 @@ static const struct drbg_kat_no_reseed kat1_nor_t = {
     kat1_nor_addin0, kat1_nor_addin1, kat1_nor_retbytes
 };
 static const struct drbg_kat kat1_nor = {
-    NO_RESEED, USE_HMAC, NID_sha1, 16, 8, 0, 0, 80, &kat1_nor_t
+    NO_RESEED, USE_VR_HMAC, NID_sha1, 16, 8, 0, 0, 80, &kat1_nor_t
 };
 
 static const unsigned char kat1680_nor_entropyin[] = {
@@ -87,7 +87,7 @@ static const struct drbg_kat_no_reseed kat1680_nor_t = {
     kat1680_nor_addin0, kat1680_nor_addin1, kat1680_nor_retbytes
 };
 static const struct drbg_kat kat1680_nor = {
-    NO_RESEED, USE_HMAC, NID_sha512_256, 32, 16, 32, 32, 128, &kat1680_nor_t
+    NO_RESEED, USE_VR_HMAC, NID_sha512_256, 32, 16, 32, 32, 128, &kat1680_nor_t
 };
 
 /* -------------------------------------------------------------------------- */
@@ -125,7 +125,7 @@ static const struct drbg_kat_pr_true kat2_prt_t = {
     kat2_prt_addin1, kat2_prt_retbytes
 };
 static const struct drbg_kat kat2_prt = {
-    PR_TRUE, USE_HMAC, NID_sha1, 16, 8, 0, 0, 80, &kat2_prt_t
+    PR_TRUE, USE_VR_HMAC, NID_sha1, 16, 8, 0, 0, 80, &kat2_prt_t
 };
 
 static const unsigned char kat1680_prt_entropyin[] = {
@@ -181,7 +181,7 @@ static const struct drbg_kat_pr_true kat1680_prt_t = {
     kat1680_prt_addin1, kat1680_prt_retbytes
 };
 static const struct drbg_kat kat1680_prt = {
-    PR_TRUE, USE_HMAC, NID_sha512_256, 32, 16, 32, 32, 128, &kat1680_prt_t
+    PR_TRUE, USE_VR_HMAC, NID_sha512_256, 32, 16, 32, 32, 128, &kat1680_prt_t
 };
 
 /* -------------------------------------------------------------------------- */
@@ -216,7 +216,7 @@ static const struct drbg_kat_pr_false kat7_prf_t = {
     kat7_prf_addin0, kat7_prf_addin1, kat7_prf_retbytes
 };
 static const struct drbg_kat kat7_prf = {
-    PR_FALSE, USE_HMAC, NID_sha1, 16, 8, 0, 0, 80, &kat7_prf_t
+    PR_FALSE, USE_VR_HMAC, NID_sha1, 16, 8, 0, 0, 80, &kat7_prf_t
 };
 
 static const unsigned char kat1680_prf_entropyin[] = {
@@ -272,7 +272,7 @@ static const struct drbg_kat_pr_false kat1680_prf_t = {
     kat1680_prf_addin0, kat1680_prf_addin1, kat1680_prf_retbytes
 };
 static const struct drbg_kat kat1680_prf = {
-    PR_FALSE, USE_HMAC, NID_sha512_256, 32, 16, 32, 32, 128, &kat1680_prf_t
+    PR_FALSE, USE_VR_HMAC, NID_sha512_256, 32, 16, 32, 32, 128, &kat1680_prf_t
 };
 
 /* -------------------------------------------------------------------------- */

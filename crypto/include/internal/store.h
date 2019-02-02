@@ -7,4 +7,4 @@
  * https://www.openssl.org/source/license.html
  */
 
-void ossl_store_cleanup_int(void);
+void VR_ossl_store_cleanup_int(void);

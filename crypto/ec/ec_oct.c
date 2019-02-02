@@ -15,7 +15,7 @@
 
 #include "ec_lcl.h"
 
-int EC_POINT_set_compressed_coordinates(const EC_GROUP *group, EC_POINT *point,
+int VR_EC_POINT_set_compressed_coordinates(const EC_GROUP *group, EC_POINT *point,
                                         const BIGNUM *x, int y_bit, BN_CTX *ctx)
 {
     if (group->meth->point_set_compressed_coordinates == NULL
@@ -31,7 +31,7 @@ int EC_POINT_set_compressed_coordinates(const EC_GROUP *group, EC_POINT *point,
     }
     if (group->meth->flags & EC_FLAGS_DEFAULT_OCT) {
         if (group->meth->field_type == NID_X9_62_prime_field)
-            return ec_GFp_simple_set_compressed_coordinates(group, point, x,
+            return VR_ec_GFp_simple_set_compressed_coordinates(group, point, x,
                                                             y_bit, ctx);
         else
 #ifdef OPENSSL_NO_EC2M
@@ -41,7 +41,7 @@ int EC_POINT_set_compressed_coordinates(const EC_GROUP *group, EC_POINT *point,
             return 0;
         }
 #else
-            return ec_GF2m_simple_set_compressed_coordinates(group, point, x,
+            return VR_ec_GF2m_simple_set_compressed_coordinates(group, point, x,
                                                              y_bit, ctx);
 #endif
     }
@@ -50,24 +50,24 @@ int EC_POINT_set_compressed_coordinates(const EC_GROUP *group, EC_POINT *point,
 }
 
 #if !OPENSSL_API_3
-int EC_POINT_set_compressed_coordinates_GFp(const EC_GROUP *group,
+int VR_EC_POINT_set_compressed_coordinates_GFp(const EC_GROUP *group,
                                             EC_POINT *point, const BIGNUM *x,
                                             int y_bit, BN_CTX *ctx)
 {
-    return EC_POINT_set_compressed_coordinates(group, point, x, y_bit, ctx);
+    return VR_EC_POINT_set_compressed_coordinates(group, point, x, y_bit, ctx);
 }
 
 # ifndef OPENSSL_NO_EC2M
-int EC_POINT_set_compressed_coordinates_GF2m(const EC_GROUP *group,
+int VR_EC_POINT_set_compressed_coordinates_GF2m(const EC_GROUP *group,
                                              EC_POINT *point, const BIGNUM *x,
                                              int y_bit, BN_CTX *ctx)
 {
-    return EC_POINT_set_compressed_coordinates(group, point, x, y_bit, ctx);
+    return VR_EC_POINT_set_compressed_coordinates(group, point, x, y_bit, ctx);
 }
 # endif
 #endif
 
-size_t EC_POINT_point2oct(const EC_GROUP *group, const EC_POINT *point,
+size_t VR_EC_POINT_point2oct(const EC_GROUP *group, const EC_POINT *point,
                           point_conversion_form_t form, unsigned char *buf,
                           size_t len, BN_CTX *ctx)
 {
@@ -82,7 +82,7 @@ size_t EC_POINT_point2oct(const EC_GROUP *group, const EC_POINT *point,
     }
     if (group->meth->flags & EC_FLAGS_DEFAULT_OCT) {
         if (group->meth->field_type == NID_X9_62_prime_field)
-            return ec_GFp_simple_point2oct(group, point, form, buf, len, ctx);
+            return VR_ec_GFp_simple_point2oct(group, point, form, buf, len, ctx);
         else
 #ifdef OPENSSL_NO_EC2M
         {
@@ -90,7 +90,7 @@ size_t EC_POINT_point2oct(const EC_GROUP *group, const EC_POINT *point,
             return 0;
         }
 #else
-            return ec_GF2m_simple_point2oct(group, point,
+            return VR_ec_GF2m_simple_point2oct(group, point,
                                             form, buf, len, ctx);
 #endif
     }
@@ -98,7 +98,7 @@ size_t EC_POINT_point2oct(const EC_GROUP *group, const EC_POINT *point,
     return group->meth->point2oct(group, point, form, buf, len, ctx);
 }
 
-int EC_POINT_oct2point(const EC_GROUP *group, EC_POINT *point,
+int VR_EC_POINT_oct2point(const EC_GROUP *group, EC_POINT *point,
                        const unsigned char *buf, size_t len, BN_CTX *ctx)
 {
     if (group->meth->oct2point == 0
@@ -112,7 +112,7 @@ int EC_POINT_oct2point(const EC_GROUP *group, EC_POINT *point,
     }
     if (group->meth->flags & EC_FLAGS_DEFAULT_OCT) {
         if (group->meth->field_type == NID_X9_62_prime_field)
-            return ec_GFp_simple_oct2point(group, point, buf, len, ctx);
+            return VR_ec_GFp_simple_oct2point(group, point, buf, len, ctx);
         else
 #ifdef OPENSSL_NO_EC2M
         {
@@ -120,29 +120,29 @@ int EC_POINT_oct2point(const EC_GROUP *group, EC_POINT *point,
             return 0;
         }
 #else
-            return ec_GF2m_simple_oct2point(group, point, buf, len, ctx);
+            return VR_ec_GF2m_simple_oct2point(group, point, buf, len, ctx);
 #endif
     }
     return group->meth->oct2point(group, point, buf, len, ctx);
 }
 
-size_t EC_POINT_point2buf(const EC_GROUP *group, const EC_POINT *point,
+size_t VR_EC_POINT_point2buf(const EC_GROUP *group, const EC_POINT *point,
                           point_conversion_form_t form,
                           unsigned char **pbuf, BN_CTX *ctx)
 {
     size_t len;
     unsigned char *buf;
 
-    len = EC_POINT_point2oct(group, point, form, NULL, 0, NULL);
+    len = VR_EC_POINT_point2oct(group, point, form, NULL, 0, NULL);
     if (len == 0)
         return 0;
     if ((buf = OPENSSL_malloc(len)) == NULL) {
         ECerr(EC_F_EC_POINT_POINT2BUF, ERR_R_MALLOC_FAILURE);
         return 0;
     }
-    len = EC_POINT_point2oct(group, point, form, buf, len, ctx);
+    len = VR_EC_POINT_point2oct(group, point, form, buf, len, ctx);
     if (len == 0) {
-        OPENSSL_free(buf);
+        OPENVR_SSL_free(buf);
         return 0;
     }
     *pbuf = buf;

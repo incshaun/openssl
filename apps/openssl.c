@@ -81,7 +81,7 @@ static int apps_startup(void)
 #endif
 
     /* Set non-default library initialisation settings */
-    if (!OPENSSL_init_ssl(OPENSSL_INIT_ENGINE_ALL_BUILTIN
+    if (!VR_OPENSSL_init_ssl(OPENSSL_INIT_ENGINE_ALL_BUILTIN
                           | OPENSSL_INIT_LOAD_CONFIG, NULL))
         return 0;
 
@@ -105,7 +105,7 @@ static char *make_config_name(void)
     if ((t = getenv("OPENSSL_CONF")) != NULL)
         return OPENSSL_strdup(t);
 
-    t = X509_get_default_cert_area();
+    t = VR_X509_get_default_cert_area();
     len = strlen(t) + 1 + strlen(OPENSSL_CONF) + 1;
     p = app_malloc(len, "config filename buffer");
     strcpy(p, t);
@@ -148,18 +148,18 @@ int main(int argc, char *argv[])
 
     p = getenv("OPENSSL_DEBUG_MEMORY");
     if (p != NULL && strcmp(p, "on") == 0)
-        CRYPTO_set_mem_debug(1);
-    CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ON);
+        VR_CRYPTO_set_mem_debug(1);
+    VR_CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ON);
 
     if (getenv("OPENSSL_FIPS")) {
-        BIO_printf(bio_err, "FIPS mode not supported.\n");
+        VR_BIO_printf(bio_err, "FIPS mode not supported.\n");
         return 1;
     }
 
     if (!apps_startup()) {
-        BIO_printf(bio_err,
+        VR_BIO_printf(bio_err,
                    "FATAL: Startup failure (dev note: apps_startup() failed)\n");
-        ERR_print_errors(bio_err);
+        VR_ERR_print_errors(bio_err);
         ret = 1;
         goto end;
     }
@@ -236,7 +236,7 @@ int main(int argc, char *argv[])
         }
 
         if (!chopup_args(&arg, buf)) {
-            BIO_printf(bio_err, "Can't parse (no memory?)\n");
+            VR_BIO_printf(bio_err, "Can't parse (no memory?)\n");
             break;
         }
 
@@ -246,26 +246,26 @@ int main(int argc, char *argv[])
             goto end;
         }
         if (ret != 0)
-            BIO_printf(bio_err, "error in %s\n", arg.argv[0]);
+            VR_BIO_printf(bio_err, "error in %s\n", arg.argv[0]);
         (void)BIO_flush(bio_out);
         (void)BIO_flush(bio_err);
     }
     ret = 1;
  end:
-    OPENSSL_free(copied_argv);
-    OPENSSL_free(default_config_file);
-    lh_FUNCTION_free(prog);
-    OPENSSL_free(arg.argv);
+    OPENVR_SSL_free(copied_argv);
+    OPENVR_SSL_free(default_config_file);
+    lh_VR_FUNCTION_free(prog);
+    OPENVR_SSL_free(arg.argv);
     app_RAND_write();
 
-    BIO_free(bio_in);
-    BIO_free_all(bio_out);
+    VR_BIO_free(bio_in);
+    VR_BIO_free_all(bio_out);
     apps_shutdown();
 #ifndef OPENSSL_NO_CRYPTO_MDEBUG
     if (CRYPTO_mem_leaks(bio_err) <= 0)
         ret = 1;
 #endif
-    BIO_free(bio_err);
+    VR_BIO_free(bio_err);
     EXIT(ret);
 }
 
@@ -273,13 +273,13 @@ static void list_cipher_fn(const EVP_CIPHER *c,
                            const char *from, const char *to, void *arg)
 {
     if (c != NULL) {
-        BIO_printf(arg, "%s\n", EVP_CIPHER_name(c));
+        VR_BIO_printf(arg, "%s\n", EVP_CIPHER_name(c));
     } else {
         if (from == NULL)
             from = "<undefined>";
         if (to == NULL)
             to = "<undefined>";
-        BIO_printf(arg, "%s => %s\n", from, to);
+        VR_BIO_printf(arg, "%s => %s\n", from, to);
     }
 }
 
@@ -287,13 +287,13 @@ static void list_md_fn(const EVP_MD *m,
                        const char *from, const char *to, void *arg)
 {
     if (m != NULL) {
-        BIO_printf(arg, "%s\n", EVP_MD_name(m));
+        VR_BIO_printf(arg, "%s\n", EVP_MD_name(m));
     } else {
         if (from == NULL)
             from = "<undefined>";
         if (to == NULL)
             to = "<undefined>";
-        BIO_printf((BIO *)arg, "%s => %s\n", from, to);
+        VR_BIO_printf((BIO *)arg, "%s => %s\n", from, to);
     }
 }
 
@@ -301,13 +301,13 @@ static void list_mac_fn(const EVP_MAC *m,
                         const char *from, const char *to, void *arg)
 {
     if (m != NULL) {
-        BIO_printf(arg, "%s\n", EVP_MAC_name(m));
+        VR_BIO_printf(arg, "%s\n", EVP_MAC_name(m));
     } else {
         if (from == NULL)
             from = "<undefined>";
         if (to == NULL)
             to = "<undefined>";
-        BIO_printf(arg, "%s => %s\n", from, to);
+        VR_BIO_printf(arg, "%s => %s\n", from, to);
     }
 }
 
@@ -321,27 +321,27 @@ static void list_missing_help(void)
             /* If there is help, list what flags are not documented. */
             for ( ; o->name != NULL; o++) {
                 if (o->helpstr == NULL)
-                    BIO_printf(bio_out, "%s %s\n", fp->name, o->name);
+                    VR_BIO_printf(bio_out, "%s %s\n", fp->name, o->name);
             }
         } else if (fp->func != dgst_main) {
             /* If not aliased to the dgst command, */
-            BIO_printf(bio_out, "%s *\n", fp->name);
+            VR_BIO_printf(bio_out, "%s *\n", fp->name);
         }
     }
 }
 
 static void list_objects(void)
 {
-    int max_nid = OBJ_new_nid(0);
+    int max_nid = VR_OBJ_new_nid(0);
     int i;
     char *oid_buf = NULL;
     int oid_size = 0;
 
     /* Skip 0, since that's NID_undef */
     for (i = 1; i < max_nid; i++) {
-        const ASN1_OBJECT *obj = OBJ_nid2obj(i);
-        const char *sn = OBJ_nid2sn(i);
-        const char *ln = OBJ_nid2ln(i);
+        const ASN1_OBJECT *obj = VR_OBJ_nid2obj(i);
+        const char *sn = VR_OBJ_nid2sn(i);
+        const char *ln = VR_OBJ_nid2ln(i);
         int n = 0;
 
         /*
@@ -349,13 +349,13 @@ static void list_objects(void)
          * we ignore it.  The check for NID_undef below will detect the
          * error and simply skip to the next NID.
          */
-        ERR_clear_error();
+        VR_ERR_clear_error();
 
-        if (OBJ_obj2nid(obj) == NID_undef)
+        if (VR_OBJ_obj2nid(obj) == NID_undef)
             continue;
 
-        if ((n = OBJ_obj2txt(NULL, 0, obj, 1)) == 0) {
-            BIO_printf(bio_out, "# None-OID object: %s, %s\n", sn, ln);
+        if ((n = VR_OBJ_obj2txt(NULL, 0, obj, 1)) == 0) {
+            VR_BIO_printf(bio_out, "# None-OID object: %s, %s\n", sn, ln);
             continue;
         }
         if (n < 0)
@@ -364,20 +364,20 @@ static void list_objects(void)
         if (n > oid_size) {
             oid_buf = OPENSSL_realloc(oid_buf, n + 1);
             if (oid_buf == NULL) {
-                BIO_printf(bio_err, "ERROR: Memory allocation\n");
+                VR_BIO_printf(bio_err, "ERROR: Memory allocation\n");
                 break;           /* Error */
             }
             oid_size = n + 1;
         }
-        if (OBJ_obj2txt(oid_buf, oid_size, obj, 1) < 0)
+        if (VR_OBJ_obj2txt(oid_buf, oid_size, obj, 1) < 0)
             break;               /* Error */
         if (ln == NULL || strcmp(sn, ln) == 0)
-            BIO_printf(bio_out, "%s = %s\n", sn, oid_buf);
+            VR_BIO_printf(bio_out, "%s = %s\n", sn, oid_buf);
         else
-            BIO_printf(bio_out, "%s = %s, %s\n", sn, ln, oid_buf);
+            VR_BIO_printf(bio_out, "%s = %s, %s\n", sn, ln, oid_buf);
     }
 
-    OPENSSL_free(oid_buf);
+    OPENVR_SSL_free(oid_buf);
 }
 
 static void list_options_for_command(const char *command)
@@ -389,7 +389,7 @@ static void list_options_for_command(const char *command)
         if (strcmp(fp->name, command) == 0)
             break;
     if (fp->name == NULL) {
-        BIO_printf(bio_err, "Invalid command '%s'; type \"help\" for a list.\n",
+        VR_BIO_printf(bio_err, "Invalid command '%s'; type \"help\" for a list.\n",
                 command);
         return;
     }
@@ -402,7 +402,7 @@ static void list_options_for_command(const char *command)
                 || o->name == OPT_MORE_STR
                 || o->name[0] == '\0')
             continue;
-        BIO_printf(bio_out, "%s %c\n", o->name, o->valtype);
+        VR_BIO_printf(bio_out, "%s %c\n", o->name, o->valtype);
     }
 }
 
@@ -456,7 +456,7 @@ int list_main(int argc, char **argv)
         case OPT_EOF:  /* Never hit, but suppresses warning */
         case OPT_ERR:
 opthelp:
-            BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
+            VR_BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             return 1;
         case OPT_HELP:
             opt_help(list_options);
@@ -471,16 +471,16 @@ opthelp:
             list_type(FT_md, one);
             break;
         case OPT_DIGEST_ALGORITHMS:
-            EVP_MD_do_all_sorted(list_md_fn, bio_out);
+            VR_EVP_MD_do_all_sorted(list_md_fn, bio_out);
             break;
         case OPT_MAC_ALGORITHMS:
-            EVP_MAC_do_all_sorted(list_mac_fn, bio_out);
+            VR_EVP_MAC_do_all_sorted(list_mac_fn, bio_out);
             break;
         case OPT_CIPHER_COMMANDS:
             list_type(FT_cipher, one);
             break;
         case OPT_CIPHER_ALGORITHMS:
-            EVP_CIPHER_do_all_sorted(list_cipher_fn, bio_out);
+            VR_EVP_CIPHER_do_all_sorted(list_cipher_fn, bio_out);
             break;
         case OPT_PK_ALGORITHMS:
             list_pkey();
@@ -504,7 +504,7 @@ opthelp:
         done = 1;
     }
     if (opt_num_rest() != 0) {
-        BIO_printf(bio_err, "Extra arguments given.\n");
+        VR_BIO_printf(bio_err, "Extra arguments given.\n");
         goto opthelp;
     }
 
@@ -540,7 +540,7 @@ int help_main(int argc, char **argv)
         switch (o) {
         case OPT_hERR:
         case OPT_hEOF:
-            BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
+            VR_BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             return 1;
         case OPT_hHELP:
             opt_help(help_options);
@@ -557,37 +557,37 @@ int help_main(int argc, char **argv)
         return do_cmd(prog_init(), 2, new_argv);
     }
     if (opt_num_rest() != 0) {
-        BIO_printf(bio_err, "Usage: %s\n", prog);
+        VR_BIO_printf(bio_err, "Usage: %s\n", prog);
         return 1;
     }
 
     calculate_columns(&dc);
-    BIO_printf(bio_err, "Standard commands");
+    VR_BIO_printf(bio_err, "Standard commands");
     i = 0;
     tp = FT_none;
     for (fp = functions; fp->name != NULL; fp++) {
         nl = 0;
         if (i++ % dc.columns == 0) {
-            BIO_printf(bio_err, "\n");
+            VR_BIO_printf(bio_err, "\n");
             nl = 1;
         }
         if (fp->type != tp) {
             tp = fp->type;
             if (!nl)
-                BIO_printf(bio_err, "\n");
+                VR_BIO_printf(bio_err, "\n");
             if (tp == FT_md) {
                 i = 1;
-                BIO_printf(bio_err,
+                VR_BIO_printf(bio_err,
                            "\nMessage Digest commands (see the `dgst' command for more details)\n");
             } else if (tp == FT_cipher) {
                 i = 1;
-                BIO_printf(bio_err,
+                VR_BIO_printf(bio_err,
                            "\nCipher commands (see the `enc' command for more details)\n");
             }
         }
-        BIO_printf(bio_err, "%-*s", dc.width, fp->name);
+        VR_BIO_printf(bio_err, "%-*s", dc.width, fp->name);
     }
-    BIO_printf(bio_err, "\n\n");
+    VR_BIO_printf(bio_err, "\n\n");
     return 0;
 }
 
@@ -604,16 +604,16 @@ static void list_type(FUNC_TYPE ft, int one)
         if (fp->type != ft)
             continue;
         if (one) {
-            BIO_printf(bio_out, "%s\n", fp->name);
+            VR_BIO_printf(bio_out, "%s\n", fp->name);
         } else {
             if (i % dc.columns == 0 && i > 0)
-                BIO_printf(bio_out, "\n");
-            BIO_printf(bio_out, "%-*s", dc.width, fp->name);
+                VR_BIO_printf(bio_out, "\n");
+            VR_BIO_printf(bio_out, "%-*s", dc.width, fp->name);
             i++;
         }
     }
     if (!one)
-        BIO_printf(bio_out, "\n\n");
+        VR_BIO_printf(bio_out, "\n\n");
 }
 
 static int do_cmd(LHASH_OF(FUNCTION) *prog, int argc, char *argv[])
@@ -625,11 +625,11 @@ static int do_cmd(LHASH_OF(FUNCTION) *prog, int argc, char *argv[])
     f.name = argv[0];
     fp = lh_FUNCTION_retrieve(prog, &f);
     if (fp == NULL) {
-        if (EVP_get_digestbyname(argv[0])) {
+        if (VR_EVP_get_digestbyname(argv[0])) {
             f.type = FT_md;
             f.func = dgst_main;
             fp = &f;
-        } else if (EVP_get_cipherbyname(argv[0])) {
+        } else if (VR_EVP_get_cipherbyname(argv[0])) {
             f.type = FT_cipher;
             f.func = enc_main;
             fp = &f;
@@ -645,10 +645,10 @@ static int do_cmd(LHASH_OF(FUNCTION) *prog, int argc, char *argv[])
          */
         f.name = argv[0] + 3;
         if (lh_FUNCTION_retrieve(prog, &f) == NULL) {
-            BIO_printf(bio_out, "%s\n", argv[0]);
+            VR_BIO_printf(bio_out, "%s\n", argv[0]);
             return 0;
         }
-        BIO_printf(bio_out, "%s\n", argv[0] + 3);
+        VR_BIO_printf(bio_out, "%s\n", argv[0] + 3);
         return 1;
     }
     if (strcmp(argv[0], "quit") == 0 || strcmp(argv[0], "q") == 0 ||
@@ -656,7 +656,7 @@ static int do_cmd(LHASH_OF(FUNCTION) *prog, int argc, char *argv[])
         /* Special value to mean "exit the program. */
         return EXIT_THE_PROGRAM;
 
-    BIO_printf(bio_err, "Invalid command '%s'; type \"help\" for a list.\n",
+    VR_BIO_printf(bio_err, "Invalid command '%s'; type \"help\" for a list.\n",
                argv[0]);
     return 1;
 }
@@ -665,26 +665,26 @@ static void list_pkey(void)
 {
     int i;
 
-    for (i = 0; i < EVP_PKEY_asn1_get_count(); i++) {
+    for (i = 0; i < VR_EVP_PKEY_asn1_get_count(); i++) {
         const EVP_PKEY_ASN1_METHOD *ameth;
         int pkey_id, pkey_base_id, pkey_flags;
         const char *pinfo, *pem_str;
-        ameth = EVP_PKEY_asn1_get0(i);
-        EVP_PKEY_asn1_get0_info(&pkey_id, &pkey_base_id, &pkey_flags,
+        ameth = VR_EVP_PKEY_asn1_get0(i);
+        VR_EVP_PKEY_asn1_get0_info(&pkey_id, &pkey_base_id, &pkey_flags,
                                 &pinfo, &pem_str, ameth);
         if (pkey_flags & ASN1_PKEY_ALIAS) {
-            BIO_printf(bio_out, "Name: %s\n", OBJ_nid2ln(pkey_id));
-            BIO_printf(bio_out, "\tAlias for: %s\n",
-                       OBJ_nid2ln(pkey_base_id));
+            VR_BIO_printf(bio_out, "Name: %s\n", VR_OBJ_nid2ln(pkey_id));
+            VR_BIO_printf(bio_out, "\tAlias for: %s\n",
+                       VR_OBJ_nid2ln(pkey_base_id));
         } else {
-            BIO_printf(bio_out, "Name: %s\n", pinfo);
-            BIO_printf(bio_out, "\tType: %s Algorithm\n",
+            VR_BIO_printf(bio_out, "Name: %s\n", pinfo);
+            VR_BIO_printf(bio_out, "\tType: %s Algorithm\n",
                        pkey_flags & ASN1_PKEY_DYNAMIC ?
                        "External" : "Builtin");
-            BIO_printf(bio_out, "\tOID: %s\n", OBJ_nid2ln(pkey_id));
+            VR_BIO_printf(bio_out, "\tOID: %s\n", VR_OBJ_nid2ln(pkey_id));
             if (pem_str == NULL)
                 pem_str = "(none)";
-            BIO_printf(bio_out, "\tPEM string: %s\n", pem_str);
+            VR_BIO_printf(bio_out, "\tPEM string: %s\n", pem_str);
         }
 
     }
@@ -693,15 +693,15 @@ static void list_pkey(void)
 static void list_pkey_meth(void)
 {
     size_t i;
-    size_t meth_count = EVP_PKEY_meth_get_count();
+    size_t meth_count = VR_EVP_PKEY_meth_get_count();
 
     for (i = 0; i < meth_count; i++) {
-        const EVP_PKEY_METHOD *pmeth = EVP_PKEY_meth_get0(i);
+        const EVP_PKEY_METHOD *pmeth = VR_EVP_PKEY_meth_get0(i);
         int pkey_id, pkey_flags;
 
-        EVP_PKEY_meth_get0_info(&pkey_id, &pkey_flags, pmeth);
-        BIO_printf(bio_out, "%s\n", OBJ_nid2ln(pkey_id));
-        BIO_printf(bio_out, "\tType: %s Algorithm\n",
+        VR_EVP_PKEY_meth_get0_info(&pkey_id, &pkey_flags, pmeth);
+        VR_BIO_printf(bio_out, "%s\n", VR_OBJ_nid2ln(pkey_id));
+        VR_BIO_printf(bio_out, "\tType: %s Algorithm\n",
                    pkey_flags & ASN1_PKEY_DYNAMIC ?  "External" : "Builtin");
     }
 }
@@ -713,7 +713,7 @@ static int function_cmp(const FUNCTION * a, const FUNCTION * b)
 
 static unsigned long function_hash(const FUNCTION * a)
 {
-    return OPENSSL_LH_strhash(a->name);
+    return VR_OPENSSL_LH_strhash(a->name);
 }
 
 static int SortFnByName(const void *_f1, const void *_f2)
@@ -728,150 +728,150 @@ static int SortFnByName(const void *_f1, const void *_f2)
 
 static void list_disabled(void)
 {
-    BIO_puts(bio_out, "Disabled algorithms:\n");
+    VR_BIO_puts(bio_out, "Disabled algorithms:\n");
 #ifdef OPENSSL_NO_ARIA
-    BIO_puts(bio_out, "ARIA\n");
+    VR_BIO_puts(bio_out, "ARIA\n");
 #endif
 #ifdef OPENSSL_NO_BF
-    BIO_puts(bio_out, "BF\n");
+    VR_BIO_puts(bio_out, "BF\n");
 #endif
 #ifdef OPENSSL_NO_BLAKE2
-    BIO_puts(bio_out, "BLAKE2\n");
+    VR_BIO_puts(bio_out, "BLAKE2\n");
 #endif
 #ifdef OPENSSL_NO_CAMELLIA
-    BIO_puts(bio_out, "CAMELLIA\n");
+    VR_BIO_puts(bio_out, "CAMELLIA\n");
 #endif
 #ifdef OPENSSL_NO_CAST
-    BIO_puts(bio_out, "CAST\n");
+    VR_BIO_puts(bio_out, "CAST\n");
 #endif
 #ifdef OPENSSL_NO_CMAC
-    BIO_puts(bio_out, "CMAC\n");
+    VR_BIO_puts(bio_out, "CMAC\n");
 #endif
 #ifdef OPENSSL_NO_CMS
-    BIO_puts(bio_out, "CMS\n");
+    VR_BIO_puts(bio_out, "CMS\n");
 #endif
 #ifdef OPENSSL_NO_COMP
-    BIO_puts(bio_out, "COMP\n");
+    VR_BIO_puts(bio_out, "COMP\n");
 #endif
 #ifdef OPENSSL_NO_DES
-    BIO_puts(bio_out, "DES\n");
+    VR_BIO_puts(bio_out, "DES\n");
 #endif
 #ifdef OPENSSL_NO_DGRAM
-    BIO_puts(bio_out, "DGRAM\n");
+    VR_BIO_puts(bio_out, "DGRAM\n");
 #endif
 #ifdef OPENSSL_NO_DH
-    BIO_puts(bio_out, "DH\n");
+    VR_BIO_puts(bio_out, "DH\n");
 #endif
 #ifdef OPENSSL_NO_DSA
-    BIO_puts(bio_out, "DSA\n");
+    VR_BIO_puts(bio_out, "DSA\n");
 #endif
 #if defined(OPENSSL_NO_DTLS)
-    BIO_puts(bio_out, "DTLS\n");
+    VR_BIO_puts(bio_out, "DTLS\n");
 #endif
 #if defined(OPENSSL_NO_DTLS1)
-    BIO_puts(bio_out, "DTLS1\n");
+    VR_BIO_puts(bio_out, "DTLS1\n");
 #endif
 #if defined(OPENSSL_NO_DTLS1_2)
-    BIO_puts(bio_out, "DTLS1_2\n");
+    VR_BIO_puts(bio_out, "DTLS1_2\n");
 #endif
 #ifdef OPENSSL_NO_EC
-    BIO_puts(bio_out, "EC\n");
+    VR_BIO_puts(bio_out, "EC\n");
 #endif
 #ifdef OPENSSL_NO_EC2M
-    BIO_puts(bio_out, "EC2M\n");
+    VR_BIO_puts(bio_out, "EC2M\n");
 #endif
 #ifdef OPENSSL_NO_ENGINE
-    BIO_puts(bio_out, "ENGINE\n");
+    VR_BIO_puts(bio_out, "ENGINE\n");
 #endif
 #ifdef OPENSSL_NO_GOST
-    BIO_puts(bio_out, "GOST\n");
+    VR_BIO_puts(bio_out, "GOST\n");
 #endif
 #ifdef OPENSSL_NO_HEARTBEATS
-    BIO_puts(bio_out, "HEARTBEATS\n");
+    VR_BIO_puts(bio_out, "HEARTBEATS\n");
 #endif
 #ifdef OPENSSL_NO_IDEA
-    BIO_puts(bio_out, "IDEA\n");
+    VR_BIO_puts(bio_out, "IDEA\n");
 #endif
 #ifdef OPENSSL_NO_MD2
-    BIO_puts(bio_out, "MD2\n");
+    VR_BIO_puts(bio_out, "MD2\n");
 #endif
-#ifdef OPENSSL_NO_MD4
-    BIO_puts(bio_out, "MD4\n");
+#ifdef OPENSSL_NO_VR_MD4
+    VR_BIO_puts(bio_out, "VR_MD4\n");
 #endif
-#ifdef OPENSSL_NO_MD5
-    BIO_puts(bio_out, "MD5\n");
+#ifdef OPENSSL_NO_VR_MD5
+    VR_BIO_puts(bio_out, "VR_MD5\n");
 #endif
-#ifdef OPENSSL_NO_MDC2
-    BIO_puts(bio_out, "MDC2\n");
+#ifdef OPENSSL_NO_VR_MDC2
+    VR_BIO_puts(bio_out, "VR_MDC2\n");
 #endif
 #ifdef OPENSSL_NO_OCB
-    BIO_puts(bio_out, "OCB\n");
+    VR_BIO_puts(bio_out, "OCB\n");
 #endif
 #ifdef OPENSSL_NO_OCSP
-    BIO_puts(bio_out, "OCSP\n");
+    VR_BIO_puts(bio_out, "OCSP\n");
 #endif
 #ifdef OPENSSL_NO_PSK
-    BIO_puts(bio_out, "PSK\n");
+    VR_BIO_puts(bio_out, "PSK\n");
 #endif
 #ifdef OPENSSL_NO_RC2
-    BIO_puts(bio_out, "RC2\n");
+    VR_BIO_puts(bio_out, "RC2\n");
 #endif
-#ifdef OPENSSL_NO_RC4
-    BIO_puts(bio_out, "RC4\n");
+#ifdef OPENSSL_NO_VR_RC4
+    VR_BIO_puts(bio_out, "VR_RC4\n");
 #endif
 #ifdef OPENSSL_NO_RC5
-    BIO_puts(bio_out, "RC5\n");
+    VR_BIO_puts(bio_out, "RC5\n");
 #endif
 #ifdef OPENSSL_NO_RMD160
-    BIO_puts(bio_out, "RMD160\n");
+    VR_BIO_puts(bio_out, "RMD160\n");
 #endif
 #ifdef OPENSSL_NO_RSA
-    BIO_puts(bio_out, "RSA\n");
+    VR_BIO_puts(bio_out, "RSA\n");
 #endif
 #ifdef OPENSSL_NO_SCRYPT
-    BIO_puts(bio_out, "SCRYPT\n");
+    VR_BIO_puts(bio_out, "SCRYPT\n");
 #endif
 #ifdef OPENSSL_NO_SCTP
-    BIO_puts(bio_out, "SCTP\n");
+    VR_BIO_puts(bio_out, "SCTP\n");
 #endif
 #ifdef OPENSSL_NO_SEED
-    BIO_puts(bio_out, "SEED\n");
+    VR_BIO_puts(bio_out, "SEED\n");
 #endif
 #ifdef OPENSSL_NO_SM2
-    BIO_puts(bio_out, "SM2\n");
+    VR_BIO_puts(bio_out, "SM2\n");
 #endif
 #ifdef OPENSSL_NO_SM3
-    BIO_puts(bio_out, "SM3\n");
+    VR_BIO_puts(bio_out, "SM3\n");
 #endif
 #ifdef OPENSSL_NO_SM4
-    BIO_puts(bio_out, "SM4\n");
+    VR_BIO_puts(bio_out, "SM4\n");
 #endif
 #ifdef OPENSSL_NO_SOCK
-    BIO_puts(bio_out, "SOCK\n");
+    VR_BIO_puts(bio_out, "SOCK\n");
 #endif
 #ifdef OPENSSL_NO_SRP
-    BIO_puts(bio_out, "SRP\n");
+    VR_BIO_puts(bio_out, "SRP\n");
 #endif
 #ifdef OPENSSL_NO_SRTP
-    BIO_puts(bio_out, "SRTP\n");
+    VR_BIO_puts(bio_out, "SRTP\n");
 #endif
 #ifdef OPENSSL_NO_SSL3
-    BIO_puts(bio_out, "SSL3\n");
+    VR_BIO_puts(bio_out, "SSL3\n");
 #endif
 #ifdef OPENSSL_NO_TLS1
-    BIO_puts(bio_out, "TLS1\n");
+    VR_BIO_puts(bio_out, "TLS1\n");
 #endif
 #ifdef OPENSSL_NO_TLS1_1
-    BIO_puts(bio_out, "TLS1_1\n");
+    VR_BIO_puts(bio_out, "TLS1_1\n");
 #endif
 #ifdef OPENSSL_NO_TLS1_2
-    BIO_puts(bio_out, "TLS1_2\n");
+    VR_BIO_puts(bio_out, "TLS1_2\n");
 #endif
-#ifdef OPENSSL_NO_WHIRLPOOL
-    BIO_puts(bio_out, "WHIRLPOOL\n");
+#ifdef OPENSSL_NO_VR_WHIRLPOOL
+    VR_BIO_puts(bio_out, "VR_WHIRLPOOL\n");
 #endif
 #ifndef ZLIB
-    BIO_puts(bio_out, "ZLIB\n");
+    VR_BIO_puts(bio_out, "ZLIB\n");
 #endif
 }
 
@@ -892,7 +892,7 @@ static LHASH_OF(FUNCTION) *prog_init(void)
         ;
     qsort(functions, i, sizeof(*functions), SortFnByName);
 
-    if ((ret = lh_FUNCTION_new(function_hash, function_cmp)) == NULL)
+    if ((ret = lh_VR_FUNCTION_new(function_hash, function_cmp)) == NULL)
         return NULL;
 
     for (f = functions; f->name != NULL; f++)

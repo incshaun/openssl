@@ -20,7 +20,7 @@
      defined(__x86_64) || defined(__x86_64__) || \
      defined(_M_AMD64) || defined (_M_X64)) && defined(OPENSSL_CPUID_OBJ)
 
-size_t OPENSSL_ia32_rdrand_bytes(unsigned char *buf, size_t len);
+size_t VR_OPENSSL_ia32_rdrand_bytes(unsigned char *buf, size_t len);
 
 static int get_random_bytes(unsigned char *buf, int num)
 {
@@ -28,7 +28,7 @@ static int get_random_bytes(unsigned char *buf, int num)
         return 0;
     }
 
-    return (size_t)num == OPENSSL_ia32_rdrand_bytes(buf, (size_t)num);
+    return (size_t)num == VR_OPENSSL_ia32_rdrand_bytes(buf, (size_t)num);
 }
 
 static int random_status(void)
@@ -55,11 +55,11 @@ static const char *engine_e_rdrand_name = "Intel RDRAND engine";
 
 static int bind_helper(ENGINE *e)
 {
-    if (!ENGINE_set_id(e, engine_e_rdrand_id) ||
-        !ENGINE_set_name(e, engine_e_rdrand_name) ||
-        !ENGINE_set_flags(e, ENGINE_FLAGS_NO_REGISTER_ALL) ||
-        !ENGINE_set_init_function(e, rdrand_init) ||
-        !ENGINE_set_RAND(e, &rdrand_meth))
+    if (!VR_ENGINE_set_id(e, engine_e_rdrand_id) ||
+        !VR_ENGINE_set_name(e, engine_e_rdrand_name) ||
+        !VR_ENGINE_set_flags(e, ENGINE_FLAGS_NO_REGISTER_ALL) ||
+        !VR_ENGINE_set_init_function(e, rdrand_init) ||
+        !VR_ENGINE_set_RAND(e, &rdrand_meth))
         return 0;
 
     return 1;
@@ -67,17 +67,17 @@ static int bind_helper(ENGINE *e)
 
 static ENGINE *ENGINE_rdrand(void)
 {
-    ENGINE *ret = ENGINE_new();
+    ENGINE *ret = VR_ENGINE_new();
     if (ret == NULL)
         return NULL;
     if (!bind_helper(ret)) {
-        ENGINE_free(ret);
+        VR_ENGINE_free(ret);
         return NULL;
     }
     return ret;
 }
 
-void engine_load_rdrand_int(void)
+void VR_engine_load_rdrand_int(void)
 {
     extern unsigned int OPENSSL_ia32cap_P[];
 
@@ -85,13 +85,13 @@ void engine_load_rdrand_int(void)
         ENGINE *toadd = ENGINE_rdrand();
         if (!toadd)
             return;
-        ENGINE_add(toadd);
-        ENGINE_free(toadd);
-        ERR_clear_error();
+        VR_ENGINE_add(toadd);
+        VR_ENGINE_free(toadd);
+        VR_ERR_clear_error();
     }
 }
 #else
-void engine_load_rdrand_int(void)
+void VR_engine_load_rdrand_int(void)
 {
 }
 #endif

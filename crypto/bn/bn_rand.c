@@ -43,7 +43,7 @@ static int bnrand(BNRAND_FLAG flag, BIGNUM *rnd, int bits, int top, int bottom)
     }
 
     /* make a random number and set the top and bottom bits */
-    b = flag == NORMAL ? RAND_bytes(buf, bytes) : RAND_priv_bytes(buf, bytes);
+    b = flag == NORMAL ? VR_RAND_bytes(buf, bytes) : VR_RAND_priv_bytes(buf, bytes);
     if (b <= 0)
         goto err;
 
@@ -55,7 +55,7 @@ static int bnrand(BNRAND_FLAG flag, BIGNUM *rnd, int bits, int top, int bottom)
         unsigned char c;
 
         for (i = 0; i < bytes; i++) {
-            if (RAND_bytes(&c, 1) <= 0)
+            if (VR_RAND_bytes(&c, 1) <= 0)
                 goto err;
             if (c >= 128 && i > 0)
                 buf[i] = buf[i - 1];
@@ -81,11 +81,11 @@ static int bnrand(BNRAND_FLAG flag, BIGNUM *rnd, int bits, int top, int bottom)
     buf[0] &= ~mask;
     if (bottom)                 /* set bottom bit if requested */
         buf[bytes - 1] |= 1;
-    if (!BN_bin2bn(buf, bytes, rnd))
+    if (!VR_BN_bin2bn(buf, bytes, rnd))
         goto err;
     ret = 1;
  err:
-    OPENSSL_clear_free(buf, bytes);
+    OPENVR_SSL_clear_free(buf, bytes);
     bn_check_top(rnd);
     return ret;
 
@@ -94,17 +94,17 @@ toosmall:
     return 0;
 }
 
-int BN_rand(BIGNUM *rnd, int bits, int top, int bottom)
+int VR_BN_rand(BIGNUM *rnd, int bits, int top, int bottom)
 {
     return bnrand(NORMAL, rnd, bits, top, bottom);
 }
 
-int BN_bntest_rand(BIGNUM *rnd, int bits, int top, int bottom)
+int VR_BN_bntest_rand(BIGNUM *rnd, int bits, int top, int bottom)
 {
     return bnrand(TESTING, rnd, bits, top, bottom);
 }
 
-int BN_priv_rand(BIGNUM *rnd, int bits, int top, int bottom)
+int VR_BN_priv_rand(BIGNUM *rnd, int bits, int top, int bottom)
 {
     return bnrand(PRIVATE, rnd, bits, top, bottom);
 }
@@ -115,18 +115,18 @@ static int bnrand_range(BNRAND_FLAG flag, BIGNUM *r, const BIGNUM *range)
     int n;
     int count = 100;
 
-    if (range->neg || BN_is_zero(range)) {
+    if (range->neg || VR_BN_is_zero(range)) {
         BNerr(BN_F_BNRAND_RANGE, BN_R_INVALID_RANGE);
         return 0;
     }
 
-    n = BN_num_bits(range);     /* n > 0 */
+    n = VR_BN_num_bits(range);     /* n > 0 */
 
-    /* BN_is_bit_set(range, n - 1) always holds */
+    /* VR_BN_is_bit_set(range, n - 1) always holds */
 
     if (n == 1)
         BN_zero(r);
-    else if (!BN_is_bit_set(range, n - 2) && !BN_is_bit_set(range, n - 3)) {
+    else if (!VR_BN_is_bit_set(range, n - 2) && !VR_BN_is_bit_set(range, n - 3)) {
         /*
          * range = 100..._2, so 3*range (= 11..._2) is exactly one bit longer
          * than range
@@ -141,11 +141,11 @@ static int bnrand_range(BNRAND_FLAG flag, BIGNUM *r, const BIGNUM *range)
              * 3*range = 11..._2, each iteration succeeds with probability >=
              * .75.
              */
-            if (BN_cmp(r, range) >= 0) {
-                if (!BN_sub(r, r, range))
+            if (VR_BN_cmp(r, range) >= 0) {
+                if (!VR_BN_sub(r, r, range))
                     return 0;
-                if (BN_cmp(r, range) >= 0)
-                    if (!BN_sub(r, r, range))
+                if (VR_BN_cmp(r, range) >= 0)
+                    if (!VR_BN_sub(r, r, range))
                         return 0;
             }
 
@@ -155,7 +155,7 @@ static int bnrand_range(BNRAND_FLAG flag, BIGNUM *r, const BIGNUM *range)
             }
 
         }
-        while (BN_cmp(r, range) >= 0);
+        while (VR_BN_cmp(r, range) >= 0);
     } else {
         do {
             /* range = 11..._2  or  range = 101..._2 */
@@ -167,52 +167,52 @@ static int bnrand_range(BNRAND_FLAG flag, BIGNUM *r, const BIGNUM *range)
                 return 0;
             }
         }
-        while (BN_cmp(r, range) >= 0);
+        while (VR_BN_cmp(r, range) >= 0);
     }
 
     bn_check_top(r);
     return 1;
 }
 
-int BN_rand_range(BIGNUM *r, const BIGNUM *range)
+int VR_BN_rand_range(BIGNUM *r, const BIGNUM *range)
 {
     return bnrand_range(NORMAL, r, range);
 }
 
-int BN_priv_rand_range(BIGNUM *r, const BIGNUM *range)
+int VR_BN_priv_rand_range(BIGNUM *r, const BIGNUM *range)
 {
     return bnrand_range(PRIVATE, r, range);
 }
 
-int BN_pseudo_rand(BIGNUM *rnd, int bits, int top, int bottom)
+int VR_BN_pseudo_rand(BIGNUM *rnd, int bits, int top, int bottom)
 {
-    return BN_rand(rnd, bits, top, bottom);
+    return VR_BN_rand(rnd, bits, top, bottom);
 }
 
-int BN_pseudo_rand_range(BIGNUM *r, const BIGNUM *range)
+int VR_BN_pseudo_rand_range(BIGNUM *r, const BIGNUM *range)
 {
-    return BN_rand_range(r, range);
+    return VR_BN_rand_range(r, range);
 }
 
 /*
- * BN_generate_dsa_nonce generates a random number 0 <= out < range. Unlike
- * BN_rand_range, it also includes the contents of |priv| and |message| in
+ * VR_BN_generate_dsa_nonce generates a random number 0 <= out < range. Unlike
+ * VR_BN_rand_range, it also includes the contents of |priv| and |message| in
  * the generation so that an RNG failure isn't fatal as long as |priv|
  * remains secret. This is intended for use in DSA and ECDSA where an RNG
  * weakness leads directly to private key exposure unless this function is
  * used.
  */
-int BN_generate_dsa_nonce(BIGNUM *out, const BIGNUM *range,
+int VR_BN_generate_dsa_nonce(BIGNUM *out, const BIGNUM *range,
                           const BIGNUM *priv, const unsigned char *message,
                           size_t message_len, BN_CTX *ctx)
 {
-    SHA512_CTX sha;
+    VR_SHA512_CTX sha;
     /*
      * We use 512 bits of random data per iteration to ensure that we have at
      * least |range| bits of randomness.
      */
     unsigned char random_bytes[64];
-    unsigned char digest[SHA512_DIGEST_LENGTH];
+    unsigned char digest[VR_SHA512_DIGEST_LENGTH];
     unsigned done, todo;
     /* We generate |range|+8 bytes of random output. */
     const unsigned num_k_bytes = BN_num_bytes(range) + 8;
@@ -239,30 +239,30 @@ int BN_generate_dsa_nonce(BIGNUM *out, const BIGNUM *range,
     memset(private_bytes + todo, 0, sizeof(private_bytes) - todo);
 
     for (done = 0; done < num_k_bytes;) {
-        if (RAND_priv_bytes(random_bytes, sizeof(random_bytes)) != 1)
+        if (VR_RAND_priv_bytes(random_bytes, sizeof(random_bytes)) != 1)
             goto err;
-        SHA512_Init(&sha);
-        SHA512_Update(&sha, &done, sizeof(done));
-        SHA512_Update(&sha, private_bytes, sizeof(private_bytes));
-        SHA512_Update(&sha, message, message_len);
-        SHA512_Update(&sha, random_bytes, sizeof(random_bytes));
-        SHA512_Final(digest, &sha);
+        VR_SHA512_Init(&sha);
+        VR_SHA512_Update(&sha, &done, sizeof(done));
+        VR_SHA512_Update(&sha, private_bytes, sizeof(private_bytes));
+        VR_SHA512_Update(&sha, message, message_len);
+        VR_SHA512_Update(&sha, random_bytes, sizeof(random_bytes));
+        VR_SHA512_Final(digest, &sha);
 
         todo = num_k_bytes - done;
-        if (todo > SHA512_DIGEST_LENGTH)
-            todo = SHA512_DIGEST_LENGTH;
+        if (todo > VR_SHA512_DIGEST_LENGTH)
+            todo = VR_SHA512_DIGEST_LENGTH;
         memcpy(k_bytes + done, digest, todo);
         done += todo;
     }
 
-    if (!BN_bin2bn(k_bytes, num_k_bytes, out))
+    if (!VR_BN_bin2bn(k_bytes, num_k_bytes, out))
         goto err;
     if (BN_mod(out, out, range, ctx) != 1)
         goto err;
     ret = 1;
 
  err:
-    OPENSSL_free(k_bytes);
-    OPENSSL_cleanse(private_bytes, sizeof(private_bytes));
+    OPENVR_SSL_free(k_bytes);
+    VR_OPENSSL_cleanse(private_bytes, sizeof(private_bytes));
     return ret;
 }

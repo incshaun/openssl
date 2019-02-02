@@ -27,13 +27,13 @@ struct bio_method_st {
     long (*callback_ctrl) (BIO *, int, BIO_info_cb *);
 };
 
-void bio_free_ex_data(BIO *bio);
-void bio_cleanup(void);
+void VR_bio_free_ex_data(BIO *bio);
+void VR_bio_cleanup(void);
 
 
 /* Old style to new style BIO_METHOD conversion functions */
-int bwrite_conv(BIO *bio, const char *data, size_t datal, size_t *written);
-int bread_conv(BIO *bio, char *data, size_t datal, size_t *read);
+int VR_bwrite_conv(BIO *bio, const char *data, size_t datal, size_t *written);
+int VR_bread_conv(BIO *bio, char *data, size_t datal, size_t *read);
 
 # define BIO_CTRL_SET_KTLS_SEND                 72
 # define BIO_CTRL_SET_KTLS_SEND_CTRL_MSG        74
@@ -49,21 +49,21 @@ int bread_conv(BIO *bio, char *data, size_t datal, size_t *read);
 
 /* KTLS related controls and flags */
 # define BIO_set_ktls_flag(b) \
-    BIO_set_flags(b, BIO_FLAGS_KTLS)
+    VR_BIO_set_flags(b, BIO_FLAGS_KTLS)
 # define BIO_should_ktls_flag(b) \
-    BIO_test_flags(b, BIO_FLAGS_KTLS)
+    VR_BIO_test_flags(b, BIO_FLAGS_KTLS)
 # define BIO_set_ktls_ctrl_msg_flag(b) \
-    BIO_set_flags(b, BIO_FLAGS_KTLS_CTRL_MSG)
+    VR_BIO_set_flags(b, BIO_FLAGS_KTLS_CTRL_MSG)
 # define BIO_should_ktls_ctrl_msg_flag(b) \
-    BIO_test_flags(b, (BIO_FLAGS_KTLS_CTRL_MSG))
+    VR_BIO_test_flags(b, (BIO_FLAGS_KTLS_CTRL_MSG))
 # define BIO_clear_ktls_ctrl_msg_flag(b) \
-    BIO_clear_flags(b, (BIO_FLAGS_KTLS_CTRL_MSG))
+    VR_BIO_clear_flags(b, (BIO_FLAGS_KTLS_CTRL_MSG))
 
 #  define BIO_set_ktls(b, keyblob, is_tx)   \
-     BIO_ctrl(b, BIO_CTRL_SET_KTLS_SEND, is_tx, keyblob)
+     VR_BIO_ctrl(b, BIO_CTRL_SET_KTLS_SEND, is_tx, keyblob)
 #  define BIO_set_ktls_ctrl_msg(b, record_type)   \
-     BIO_ctrl(b, BIO_CTRL_SET_KTLS_SEND_CTRL_MSG, record_type, NULL)
+     VR_BIO_ctrl(b, BIO_CTRL_SET_KTLS_SEND_CTRL_MSG, record_type, NULL)
 #  define BIO_clear_ktls_ctrl_msg(b) \
-     BIO_ctrl(b, BIO_CTRL_CLEAR_KTLS_CTRL_MSG, 0, NULL)
+     VR_BIO_ctrl(b, BIO_CTRL_CLEAR_KTLS_CTRL_MSG, 0, NULL)
 
 #endif

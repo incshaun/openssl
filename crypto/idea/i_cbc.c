@@ -10,7 +10,7 @@
 #include <openssl/idea.h>
 #include "idea_lcl.h"
 
-void IDEA_cbc_encrypt(const unsigned char *in, unsigned char *out,
+void VR_IDEA_cbc_encrypt(const unsigned char *in, unsigned char *out,
                       long length, IDEA_KEY_SCHEDULE *ks, unsigned char *iv,
                       int encrypt)
 {
@@ -30,7 +30,7 @@ void IDEA_cbc_encrypt(const unsigned char *in, unsigned char *out,
             tin1 ^= tout1;
             tin[0] = tin0;
             tin[1] = tin1;
-            IDEA_encrypt(tin, ks);
+            VR_IDEA_encrypt(tin, ks);
             tout0 = tin[0];
             l2n(tout0, out);
             tout1 = tin[1];
@@ -42,7 +42,7 @@ void IDEA_cbc_encrypt(const unsigned char *in, unsigned char *out,
             tin1 ^= tout1;
             tin[0] = tin0;
             tin[1] = tin1;
-            IDEA_encrypt(tin, ks);
+            VR_IDEA_encrypt(tin, ks);
             tout0 = tin[0];
             l2n(tout0, out);
             tout1 = tin[1];
@@ -59,7 +59,7 @@ void IDEA_cbc_encrypt(const unsigned char *in, unsigned char *out,
             tin[0] = tin0;
             n2l(in, tin1);
             tin[1] = tin1;
-            IDEA_encrypt(tin, ks);
+            VR_IDEA_encrypt(tin, ks);
             tout0 = tin[0] ^ xor0;
             tout1 = tin[1] ^ xor1;
             l2n(tout0, out);
@@ -72,7 +72,7 @@ void IDEA_cbc_encrypt(const unsigned char *in, unsigned char *out,
             tin[0] = tin0;
             n2l(in, tin1);
             tin[1] = tin1;
-            IDEA_encrypt(tin, ks);
+            VR_IDEA_encrypt(tin, ks);
             tout0 = tin[0] ^ xor0;
             tout1 = tin[1] ^ xor1;
             l2nn(tout0, tout1, out, l + 8);
@@ -86,7 +86,7 @@ void IDEA_cbc_encrypt(const unsigned char *in, unsigned char *out,
     tin[0] = tin[1] = 0;
 }
 
-void IDEA_encrypt(unsigned long *d, IDEA_KEY_SCHEDULE *key)
+void VR_IDEA_encrypt(unsigned long *d, IDEA_KEY_SCHEDULE *key)
 {
     register IDEA_INT *p;
     register unsigned long x1, x2, x3, x4, t0, t1, ul;

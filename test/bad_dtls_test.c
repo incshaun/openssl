@@ -65,18 +65,18 @@ static int do_PRF(const void *seed1, int seed1_len,
                   const void *seed3, int seed3_len,
                   unsigned char *out, int olen)
 {
-    EVP_PKEY_CTX *pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_TLS1_PRF, NULL);
+    EVP_PKEY_CTX *pctx = VR_EVP_PKEY_CTX_new_id(EVP_PKEY_TLS1_PRF, NULL);
     size_t outlen = olen;
 
     /* No error handling. If it all screws up, the test will fail anyway */
-    EVP_PKEY_derive_init(pctx);
-    EVP_PKEY_CTX_set_tls1_prf_md(pctx, EVP_md5_sha1());
+    VR_EVP_PKEY_derive_init(pctx);
+    EVP_PKEY_CTX_set_tls1_prf_md(pctx, VR_EVP_md5_sha1());
     EVP_PKEY_CTX_set1_tls1_prf_secret(pctx, master_secret, sizeof(master_secret));
     EVP_PKEY_CTX_add1_tls1_prf_seed(pctx, seed1, seed1_len);
     EVP_PKEY_CTX_add1_tls1_prf_seed(pctx, seed2, seed2_len);
     EVP_PKEY_CTX_add1_tls1_prf_seed(pctx, seed3, seed3_len);
-    EVP_PKEY_derive(pctx, out, &outlen);
-    EVP_PKEY_CTX_free(pctx);
+    VR_EVP_PKEY_derive(pctx, out, &outlen);
+    VR_EVP_PKEY_CTX_free(pctx);
     return 1;
 }
 
@@ -108,7 +108,7 @@ static SSL_SESSION *client_session(void)
     memcpy(session_asn1 + SS_SESSID_OFS, session_id, sizeof(session_id));
     memcpy(session_asn1 + SS_SECRET_OFS, master_secret, sizeof(master_secret));
 
-    return d2i_SSL_SESSION(NULL, &p, sizeof(session_asn1));
+    return VR_d2i_SSL_SESSION(NULL, &p, sizeof(session_asn1));
 }
 
 /* Returns 1 for initial ClientHello, 2 for ClientHello with cookie */
@@ -180,7 +180,7 @@ static int validate_client_hello(BIO *wbio)
         return 0;
 
     /* Update handshake MAC for second ClientHello (with cookie) */
-    if (cookie_found && !EVP_DigestUpdate(handshake_md, data + MAC_OFFSET,
+    if (cookie_found && !VR_EVP_DigestUpdate(handshake_md, data + MAC_OFFSET,
                                           len - MAC_OFFSET))
         return 0;
 
@@ -212,7 +212,7 @@ static int send_hello_verify(BIO *rbio)
 
     memcpy(hello_verify + HV_COOKIE_OFS, cookie, sizeof(cookie));
 
-    BIO_write(rbio, hello_verify, sizeof(hello_verify));
+    VR_BIO_write(rbio, hello_verify, sizeof(hello_verify));
 
     return 1;
 }
@@ -257,28 +257,28 @@ static int send_server_hello(BIO *rbio)
     memcpy(server_hello + SH_RANDOM_OFS, server_random, sizeof(server_random));
     memcpy(server_hello + SH_SESSID_OFS, session_id, sizeof(session_id));
 
-    if (!EVP_DigestUpdate(handshake_md, server_hello + MAC_OFFSET,
+    if (!VR_EVP_DigestUpdate(handshake_md, server_hello + MAC_OFFSET,
                           sizeof(server_hello) - MAC_OFFSET))
         return 0;
 
-    BIO_write(rbio, server_hello, sizeof(server_hello));
-    BIO_write(rbio, change_cipher_spec, sizeof(change_cipher_spec));
+    VR_BIO_write(rbio, server_hello, sizeof(server_hello));
+    VR_BIO_write(rbio, change_cipher_spec, sizeof(change_cipher_spec));
 
     return 1;
 }
 
-/* Create header, HMAC, pad, encrypt and send a record */
+/* Create header, VR_HMAC, pad, encrypt and send a record */
 static int send_record(BIO *rbio, unsigned char type, uint64_t seqnr,
                        const void *msg, size_t len)
 {
     /* Note that the order of the record header fields on the wire,
-     * and in the HMAC, is different. So we just keep them in separate
+     * and in the VR_HMAC, is different. So we just keep them in separate
      * variables and handle them individually. */
     static unsigned char epoch[2] = { 0x00, 0x01 };
     static unsigned char seq[6] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
     static unsigned char ver[2] = { 0x01, 0x00 }; /* DTLS1_BAD_VER */
     unsigned char lenbytes[2];
-    HMAC_CTX *ctx;
+    VR_HMAC_CTX *ctx;
     EVP_CIPHER_CTX *enc_ctx;
     unsigned char iv[16];
     unsigned char pad;
@@ -299,19 +299,19 @@ static int send_record(BIO *rbio, unsigned char type, uint64_t seqnr,
     /* Copy record to encryption buffer */
     memcpy(enc, msg, len);
 
-    /* Append HMAC to data */
-    ctx = HMAC_CTX_new();
-    HMAC_Init_ex(ctx, mac_key, 20, EVP_sha1(), NULL);
-    HMAC_Update(ctx, epoch, 2);
-    HMAC_Update(ctx, seq, 6);
-    HMAC_Update(ctx, &type, 1);
-    HMAC_Update(ctx, ver, 2); /* Version */
+    /* Append VR_HMAC to data */
+    ctx = VR_HMAC_CTX_new();
+    VR_HMAC_Init_ex(ctx, mac_key, 20, VR_EVP_sha1(), NULL);
+    VR_HMAC_Update(ctx, epoch, 2);
+    VR_HMAC_Update(ctx, seq, 6);
+    VR_HMAC_Update(ctx, &type, 1);
+    VR_HMAC_Update(ctx, ver, 2); /* Version */
     lenbytes[0] = (unsigned char)(len >> 8);
     lenbytes[1] = (unsigned char)(len);
-    HMAC_Update(ctx, lenbytes, 2); /* Length */
-    HMAC_Update(ctx, enc, len); /* Finally the data itself */
-    HMAC_Final(ctx, enc + len, NULL);
-    HMAC_CTX_free(ctx);
+    VR_HMAC_Update(ctx, lenbytes, 2); /* Length */
+    VR_HMAC_Update(ctx, enc, len); /* Finally the data itself */
+    VR_HMAC_Final(ctx, enc + len, NULL);
+    VR_HMAC_CTX_free(ctx);
 
     /* Append padding bytes */
     len += SHA_DIGEST_LENGTH;
@@ -320,25 +320,25 @@ static int send_record(BIO *rbio, unsigned char type, uint64_t seqnr,
     } while (len % 16);
 
     /* Generate IV, and encrypt */
-    RAND_bytes(iv, sizeof(iv));
-    enc_ctx = EVP_CIPHER_CTX_new();
-    EVP_CipherInit_ex(enc_ctx, EVP_aes_128_cbc(), NULL, enc_key, iv, 1);
-    EVP_Cipher(enc_ctx, enc, enc, len);
-    EVP_CIPHER_CTX_free(enc_ctx);
+    VR_RAND_bytes(iv, sizeof(iv));
+    enc_ctx = VR_EVP_CIPHER_CTX_new();
+    VR_EVP_CipherInit_ex(enc_ctx, VR_EVP_aes_128_cbc(), NULL, enc_key, iv, 1);
+    VR_EVP_Cipher(enc_ctx, enc, enc, len);
+    VR_EVP_CIPHER_CTX_free(enc_ctx);
 
     /* Finally write header (from fragmented variables), IV and encrypted record */
-    BIO_write(rbio, &type, 1);
-    BIO_write(rbio, ver, 2);
-    BIO_write(rbio, epoch, 2);
-    BIO_write(rbio, seq, 6);
+    VR_BIO_write(rbio, &type, 1);
+    VR_BIO_write(rbio, ver, 2);
+    VR_BIO_write(rbio, epoch, 2);
+    VR_BIO_write(rbio, seq, 6);
     lenbytes[0] = (unsigned char)((len + sizeof(iv)) >> 8);
     lenbytes[1] = (unsigned char)(len + sizeof(iv));
-    BIO_write(rbio, lenbytes, 2);
+    VR_BIO_write(rbio, lenbytes, 2);
 
-    BIO_write(rbio, iv, sizeof(iv));
-    BIO_write(rbio, enc, len);
+    VR_BIO_write(rbio, iv, sizeof(iv));
+    VR_BIO_write(rbio, enc, len);
 
-    OPENSSL_free(enc);
+    OPENVR_SSL_free(enc);
     return 1;
 }
 
@@ -362,7 +362,7 @@ static int send_finished(SSL *s, BIO *rbio)
            key_block, sizeof(key_block));
 
     /* Generate Finished MAC */
-    if (!EVP_DigestFinal_ex(handshake_md, handshake_hash, NULL))
+    if (!VR_EVP_DigestFinal_ex(handshake_md, handshake_hash, NULL))
         return 0;
 
     do_PRF(TLS_MD_SERVER_FINISH_CONST, TLS_MD_SERVER_FINISH_CONST_SIZE,
@@ -453,10 +453,10 @@ static int test_bad_dtls(void)
     int ret;
     int i;
 
-    RAND_bytes(session_id, sizeof(session_id));
-    RAND_bytes(master_secret, sizeof(master_secret));
-    RAND_bytes(cookie, sizeof(cookie));
-    RAND_bytes(server_random + 4, sizeof(server_random) - 4);
+    VR_RAND_bytes(session_id, sizeof(session_id));
+    VR_RAND_bytes(master_secret, sizeof(master_secret));
+    VR_RAND_bytes(cookie, sizeof(cookie));
+    VR_RAND_bytes(server_random + 4, sizeof(server_random) - 4);
 
     now = time(NULL);
     memcpy(server_random, &now, sizeof(now));
@@ -465,35 +465,35 @@ static int test_bad_dtls(void)
     if (!TEST_ptr(sess))
         goto end;
 
-    handshake_md = EVP_MD_CTX_new();
+    handshake_md = VR_EVP_MD_CTX_new();
     if (!TEST_ptr(handshake_md)
-            || !TEST_true(EVP_DigestInit_ex(handshake_md, EVP_md5_sha1(),
+            || !TEST_true(VR_EVP_DigestInit_ex(handshake_md, VR_EVP_md5_sha1(),
                                             NULL)))
         goto end;
 
-    ctx = SSL_CTX_new(DTLS_client_method());
+    ctx = VR_SSL_CTX_new(VR_DTLS_client_method());
     if (!TEST_ptr(ctx)
             || !TEST_true(SSL_CTX_set_min_proto_version(ctx, DTLS1_BAD_VER))
             || !TEST_true(SSL_CTX_set_max_proto_version(ctx, DTLS1_BAD_VER))
-            || !TEST_true(SSL_CTX_set_cipher_list(ctx, "AES128-SHA")))
+            || !TEST_true(VR_SSL_CTX_set_cipher_list(ctx, "AES128-SHA")))
         goto end;
 
-    con = SSL_new(ctx);
+    con = VR_SSL_new(ctx);
     if (!TEST_ptr(con)
-            || !TEST_true(SSL_set_session(con, sess)))
+            || !TEST_true(VR_SSL_set_session(con, sess)))
         goto end;
-    SSL_SESSION_free(sess);
+    VR_SSL_SESSION_free(sess);
 
-    rbio = BIO_new(BIO_s_mem());
-    wbio = BIO_new(BIO_s_mem());
+    rbio = VR_BIO_new(VR_BIO_s_mem());
+    wbio = VR_BIO_new(VR_BIO_s_mem());
 
     if (!TEST_ptr(rbio)
             || !TEST_ptr(wbio))
         goto end;
 
-    SSL_set_bio(con, rbio, wbio);
+    VR_SSL_set_bio(con, rbio, wbio);
 
-    if (!TEST_true(BIO_up_ref(rbio))) {
+    if (!TEST_true(VR_BIO_up_ref(rbio))) {
         /*
          * We can't up-ref but we assigned ownership to con, so we shouldn't
          * free in the "end" block
@@ -502,35 +502,35 @@ static int test_bad_dtls(void)
         goto end;
     }
 
-    if (!TEST_true(BIO_up_ref(wbio))) {
+    if (!TEST_true(VR_BIO_up_ref(wbio))) {
         wbio = NULL;
         goto end;
     }
 
-    SSL_set_connect_state(con);
+    VR_SSL_set_connect_state(con);
 
     /* Send initial ClientHello */
-    ret = SSL_do_handshake(con);
+    ret = VR_SSL_do_handshake(con);
     if (!TEST_int_le(ret, 0)
-            || !TEST_int_eq(SSL_get_error(con, ret), SSL_ERROR_WANT_READ)
+            || !TEST_int_eq(VR_SSL_get_error(con, ret), SSL_ERROR_WANT_READ)
             || !TEST_int_eq(validate_client_hello(wbio), 1)
             || !TEST_true(send_hello_verify(rbio)))
         goto end;
 
-    ret = SSL_do_handshake(con);
+    ret = VR_SSL_do_handshake(con);
     if (!TEST_int_le(ret, 0)
-            || !TEST_int_eq(SSL_get_error(con, ret), SSL_ERROR_WANT_READ)
+            || !TEST_int_eq(VR_SSL_get_error(con, ret), SSL_ERROR_WANT_READ)
             || !TEST_int_eq(validate_client_hello(wbio), 2)
             || !TEST_true(send_server_hello(rbio)))
         goto end;
 
-    ret = SSL_do_handshake(con);
+    ret = VR_SSL_do_handshake(con);
     if (!TEST_int_le(ret, 0)
-            || !TEST_int_eq(SSL_get_error(con, ret), SSL_ERROR_WANT_READ)
+            || !TEST_int_eq(VR_SSL_get_error(con, ret), SSL_ERROR_WANT_READ)
             || !TEST_true(send_finished(con, rbio)))
         goto end;
 
-    ret = SSL_do_handshake(con);
+    ret = VR_SSL_do_handshake(con);
     if (!TEST_int_gt(ret, 0)
             || !TEST_true(validate_ccs(wbio)))
         goto end;
@@ -553,9 +553,9 @@ static int test_bad_dtls(void)
         if (tests[i].drop)
             continue;
 
-        ret = SSL_read(con, recv_buf, 2 * sizeof(uint64_t));
+        ret = VR_SSL_read(con, recv_buf, 2 * sizeof(uint64_t));
         if (!TEST_int_eq(ret, (int)sizeof(uint64_t))) {
-            TEST_error("SSL_read failed or wrong size on seq#0x%x%08x (%d)\n",
+            TEST_error("VR_SSL_read failed or wrong size on seq#0x%x%08x (%d)\n",
                        (unsigned int)(tests[i].seq >> 32), (unsigned int)tests[i].seq, i);
             goto end;
         }
@@ -570,11 +570,11 @@ static int test_bad_dtls(void)
     testresult = 1;
 
  end:
-    BIO_free(rbio);
-    BIO_free(wbio);
-    SSL_free(con);
-    SSL_CTX_free(ctx);
-    EVP_MD_CTX_free(handshake_md);
+    VR_BIO_free(rbio);
+    VR_BIO_free(wbio);
+    VR_SSL_free(con);
+    VR_SSL_CTX_free(ctx);
+    VR_EVP_MD_CTX_free(handshake_md);
 
     return testresult;
 }

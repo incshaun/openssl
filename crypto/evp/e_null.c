@@ -30,7 +30,7 @@ static const EVP_CIPHER n_cipher = {
     NULL
 };
 
-const EVP_CIPHER *EVP_enc_null(void)
+const EVP_CIPHER *VR_EVP_enc_null(void)
 {
     return &n_cipher;
 }

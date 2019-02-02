@@ -44,37 +44,37 @@ static int do_bio_cipher(const EVP_CIPHER* cipher, const unsigned char* key,
     int i, lref, len;
 
     /* Fill buffer with non-zero data so that over steps can be detected */
-    if (!TEST_int_gt(RAND_bytes(inp, DATA_SIZE), 0))
+    if (!TEST_int_gt(VR_RAND_bytes(inp, DATA_SIZE), 0))
         return 0;
 
     /* Encrypt tests */
 
     /* reference output for single-chunk operation */
-    b = BIO_new(BIO_f_cipher());
-    if (!TEST_true(BIO_set_cipher(b, cipher, key, iv, ENCRYPT)))
+    b = VR_BIO_new(VR_BIO_f_cipher());
+    if (!TEST_true(VR_BIO_set_cipher(b, cipher, key, iv, ENCRYPT)))
         return 0;
-    BIO_push(b, BIO_new_mem_buf(inp, DATA_SIZE));
-    lref = BIO_read(b, ref, sizeof(ref));
-    BIO_free_all(b);
+    VR_BIO_push(b, VR_BIO_new_mem_buf(inp, DATA_SIZE));
+    lref = VR_BIO_read(b, ref, sizeof(ref));
+    VR_BIO_free_all(b);
 
     /* perform split operations and compare to reference */
     for (i = 1; i < lref; i++) {
-        b = BIO_new(BIO_f_cipher());
-        if (!TEST_true(BIO_set_cipher(b, cipher, key, iv, ENCRYPT))) {
+        b = VR_BIO_new(VR_BIO_f_cipher());
+        if (!TEST_true(VR_BIO_set_cipher(b, cipher, key, iv, ENCRYPT))) {
             TEST_info("Split encrypt failed @ operation %d", i);
             return 0;
         }
-        BIO_push(b, BIO_new_mem_buf(inp, DATA_SIZE));
+        VR_BIO_push(b, VR_BIO_new_mem_buf(inp, DATA_SIZE));
         memset(out, 0, sizeof(out));
         out[i] = ~ref[i];
-        len = BIO_read(b, out, i);
+        len = VR_BIO_read(b, out, i);
         /* check for overstep */
         if (!TEST_uchar_eq(out[i], (unsigned char)~ref[i])) {
             TEST_info("Encrypt overstep check failed @ operation %d", i);
             return 0;
         }
-        len += BIO_read(b, out + len, sizeof(out) - len);
-        BIO_free_all(b);
+        len += VR_BIO_read(b, out + len, sizeof(out) - len);
+        VR_BIO_free_all(b);
 
         if (!TEST_mem_eq(out, len, ref, lref)) {
             TEST_info("Encrypt compare failed @ operation %d", i);
@@ -86,17 +86,17 @@ static int do_bio_cipher(const EVP_CIPHER* cipher, const unsigned char* key,
     for (i = 1; i < lref / 2; i++) {
         int delta;
 
-        b = BIO_new(BIO_f_cipher());
-        if (!TEST_true(BIO_set_cipher(b, cipher, key, iv, ENCRYPT))) {
+        b = VR_BIO_new(VR_BIO_f_cipher());
+        if (!TEST_true(VR_BIO_set_cipher(b, cipher, key, iv, ENCRYPT))) {
             TEST_info("Small chunk encrypt failed @ operation %d", i);
             return 0;
         }
-        BIO_push(b, BIO_new_mem_buf(inp, DATA_SIZE));
+        VR_BIO_push(b, VR_BIO_new_mem_buf(inp, DATA_SIZE));
         memset(out, 0, sizeof(out));
-        for (len = 0; (delta = BIO_read(b, out + len, i)); ) {
+        for (len = 0; (delta = VR_BIO_read(b, out + len, i)); ) {
             len += delta;
         }
-        BIO_free_all(b);
+        VR_BIO_free_all(b);
 
         if (!TEST_mem_eq(out, len, ref, lref)) {
             TEST_info("Small chunk encrypt compare failed @ operation %d", i);
@@ -107,37 +107,37 @@ static int do_bio_cipher(const EVP_CIPHER* cipher, const unsigned char* key,
     /* Decrypt tests */
 
     /* reference output for single-chunk operation */
-    b = BIO_new(BIO_f_cipher());
-    if (!TEST_true(BIO_set_cipher(b, cipher, key, iv, DECRYPT)))
+    b = VR_BIO_new(VR_BIO_f_cipher());
+    if (!TEST_true(VR_BIO_set_cipher(b, cipher, key, iv, DECRYPT)))
         return 0;
     /* Use original reference output as input */
-    BIO_push(b, BIO_new_mem_buf(ref, lref));
+    VR_BIO_push(b, VR_BIO_new_mem_buf(ref, lref));
     (void)BIO_flush(b);
     memset(out, 0, sizeof(out));
-    len = BIO_read(b, out, sizeof(out));
-    BIO_free_all(b);
+    len = VR_BIO_read(b, out, sizeof(out));
+    VR_BIO_free_all(b);
 
     if (!TEST_mem_eq(inp, DATA_SIZE, out, len))
         return 0;
 
     /* perform split operations and compare to reference */
     for (i = 1; i < lref; i++) {
-        b = BIO_new(BIO_f_cipher());
-        if (!TEST_true(BIO_set_cipher(b, cipher, key, iv, DECRYPT))) {
+        b = VR_BIO_new(VR_BIO_f_cipher());
+        if (!TEST_true(VR_BIO_set_cipher(b, cipher, key, iv, DECRYPT))) {
             TEST_info("Split decrypt failed @ operation %d", i);
             return 0;
         }
-        BIO_push(b, BIO_new_mem_buf(ref, lref));
+        VR_BIO_push(b, VR_BIO_new_mem_buf(ref, lref));
         memset(out, 0, sizeof(out));
         out[i] = ~ref[i];
-        len = BIO_read(b, out, i);
+        len = VR_BIO_read(b, out, i);
         /* check for overstep */
         if (!TEST_uchar_eq(out[i], (unsigned char)~ref[i])) {
             TEST_info("Decrypt overstep check failed @ operation %d", i);
             return 0;
         }
-        len += BIO_read(b, out + len, sizeof(out) - len);
-        BIO_free_all(b);
+        len += VR_BIO_read(b, out + len, sizeof(out) - len);
+        VR_BIO_free_all(b);
 
         if (!TEST_mem_eq(inp, DATA_SIZE, out, len)) {
             TEST_info("Decrypt compare failed @ operation %d", i);
@@ -149,17 +149,17 @@ static int do_bio_cipher(const EVP_CIPHER* cipher, const unsigned char* key,
     for (i = 1; i < lref / 2; i++) {
         int delta;
 
-        b = BIO_new(BIO_f_cipher());
-        if (!TEST_true(BIO_set_cipher(b, cipher, key, iv, DECRYPT))) {
+        b = VR_BIO_new(VR_BIO_f_cipher());
+        if (!TEST_true(VR_BIO_set_cipher(b, cipher, key, iv, DECRYPT))) {
             TEST_info("Small chunk decrypt failed @ operation %d", i);
             return 0;
         }
-        BIO_push(b, BIO_new_mem_buf(ref, lref));
+        VR_BIO_push(b, VR_BIO_new_mem_buf(ref, lref));
         memset(out, 0, sizeof(out));
-        for (len = 0; (delta = BIO_read(b, out + len, i)); ) {
+        for (len = 0; (delta = VR_BIO_read(b, out + len, i)); ) {
             len += delta;
         }
-        BIO_free_all(b);
+        VR_BIO_free_all(b);
 
         if (!TEST_mem_eq(inp, DATA_SIZE, out, len)) {
             TEST_info("Small chunk decrypt compare failed @ operation %d", i);
@@ -184,34 +184,34 @@ static int do_test_bio_cipher(const EVP_CIPHER* cipher, int idx)
 
 static int test_bio_enc_aes_128_cbc(int idx)
 {
-    return do_test_bio_cipher(EVP_aes_128_cbc(), idx);
+    return do_test_bio_cipher(VR_EVP_aes_128_cbc(), idx);
 }
 
 static int test_bio_enc_aes_128_ctr(int idx)
 {
-    return do_test_bio_cipher(EVP_aes_128_ctr(), idx);
+    return do_test_bio_cipher(VR_EVP_aes_128_ctr(), idx);
 }
 
 static int test_bio_enc_aes_256_cfb(int idx)
 {
-    return do_test_bio_cipher(EVP_aes_256_cfb(), idx);
+    return do_test_bio_cipher(VR_EVP_aes_256_cfb(), idx);
 }
 
 static int test_bio_enc_aes_256_ofb(int idx)
 {
-    return do_test_bio_cipher(EVP_aes_256_ofb(), idx);
+    return do_test_bio_cipher(VR_EVP_aes_256_ofb(), idx);
 }
 
 # ifndef OPENSSL_NO_CHACHA
 static int test_bio_enc_chacha20(int idx)
 {
-    return do_test_bio_cipher(EVP_chacha20(), idx);
+    return do_test_bio_cipher(VR_EVP_chacha20(), idx);
 }
 
 #  ifndef OPENSSL_NO_POLY1305
 static int test_bio_enc_chacha20_poly1305(int idx)
 {
-    return do_test_bio_cipher(EVP_chacha20_poly1305(), idx);
+    return do_test_bio_cipher(VR_EVP_chacha20_poly1305(), idx);
 }
 #  endif
 # endif

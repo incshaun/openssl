@@ -23,8 +23,8 @@ typedef struct async_fibre_st {
 
 
 # define async_fibre_swapcontext(o,n,r)         0
-# define async_fibre_makecontext(c)             0
-# define async_fibre_free(f)
+# define VR_async_fibre_makecontext(c)             0
+# define VR_async_fibre_free(f)
 # define async_fibre_init_dispatcher(f)
 
 #endif

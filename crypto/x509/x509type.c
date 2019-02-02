@@ -13,7 +13,7 @@
 #include <openssl/objects.h>
 #include <openssl/x509.h>
 
-int X509_certificate_type(const X509 *x, const EVP_PKEY *pkey)
+int VR_X509_certificate_type(const X509 *x, const EVP_PKEY *pkey)
 {
     const EVP_PKEY *pk;
     int ret = 0, i;
@@ -22,14 +22,14 @@ int X509_certificate_type(const X509 *x, const EVP_PKEY *pkey)
         return 0;
 
     if (pkey == NULL)
-        pk = X509_get0_pubkey(x);
+        pk = VR_X509_get0_pubkey(x);
     else
         pk = pkey;
 
     if (pk == NULL)
         return 0;
 
-    switch (EVP_PKEY_id(pk)) {
+    switch (VR_EVP_PKEY_id(pk)) {
     case EVP_PKEY_RSA:
         ret = EVP_PK_RSA | EVP_PKT_SIGN;
 /*              if (!sign only extension) */
@@ -60,8 +60,8 @@ int X509_certificate_type(const X509 *x, const EVP_PKEY *pkey)
         break;
     }
 
-    i = X509_get_signature_nid(x);
-    if (i && OBJ_find_sigid_algs(i, NULL, &i)) {
+    i = VR_X509_get_signature_nid(x);
+    if (i && VR_OBJ_find_sigid_algs(i, NULL, &i)) {
 
         switch (i) {
         case NID_rsaEncryption:

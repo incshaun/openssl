@@ -18,11 +18,11 @@
  * p is odd
  * 1 < g < p - 1
  */
-int DH_check_params_ex(const DH *dh)
+int VR_DH_check_params_ex(const DH *dh)
 {
     int errflags = 0;
 
-    (void)DH_check_params(dh, &errflags);
+    (void)VR_DH_check_params(dh, &errflags);
 
     if ((errflags & DH_CHECK_P_NOT_PRIME) != 0)
         DHerr(DH_F_DH_CHECK_PARAMS_EX, DH_R_CHECK_P_NOT_PRIME);
@@ -32,35 +32,35 @@ int DH_check_params_ex(const DH *dh)
     return errflags == 0;
 }
 
-int DH_check_params(const DH *dh, int *ret)
+int VR_DH_check_params(const DH *dh, int *ret)
 {
     int ok = 0;
     BIGNUM *tmp = NULL;
     BN_CTX *ctx = NULL;
 
     *ret = 0;
-    ctx = BN_CTX_new();
+    ctx = VR_BN_CTX_new();
     if (ctx == NULL)
         goto err;
-    BN_CTX_start(ctx);
-    tmp = BN_CTX_get(ctx);
+    VR_BN_CTX_start(ctx);
+    tmp = VR_BN_CTX_get(ctx);
     if (tmp == NULL)
         goto err;
 
-    if (!BN_is_odd(dh->p))
+    if (!VR_BN_is_odd(dh->p))
         *ret |= DH_CHECK_P_NOT_PRIME;
-    if (BN_is_negative(dh->g) || BN_is_zero(dh->g) || BN_is_one(dh->g))
+    if (VR_BN_is_negative(dh->g) || VR_BN_is_zero(dh->g) || VR_BN_is_one(dh->g))
         *ret |= DH_NOT_SUITABLE_GENERATOR;
-    if (BN_copy(tmp, dh->p) == NULL || !BN_sub_word(tmp, 1))
+    if (VR_BN_copy(tmp, dh->p) == NULL || !VR_BN_sub_word(tmp, 1))
         goto err;
-    if (BN_cmp(dh->g, tmp) >= 0)
+    if (VR_BN_cmp(dh->g, tmp) >= 0)
         *ret |= DH_NOT_SUITABLE_GENERATOR;
 
     ok = 1;
  err:
     if (ctx != NULL) {
-        BN_CTX_end(ctx);
-        BN_CTX_free(ctx);
+        VR_BN_CTX_end(ctx);
+        VR_BN_CTX_free(ctx);
     }
     return ok;
 }
@@ -74,11 +74,11 @@ int DH_check_params(const DH *dh, int *ret)
  * for 5, p mod 10 == 3 or 7
  * should hold.
  */
-int DH_check_ex(const DH *dh)
+int VR_DH_check_ex(const DH *dh)
 {
     int errflags = 0;
 
-    (void)DH_check(dh, &errflags);
+    (void)VR_DH_check(dh, &errflags);
 
     if ((errflags & DH_NOT_SUITABLE_GENERATOR) != 0)
         DHerr(DH_F_DH_CHECK_EX, DH_R_NOT_SUITABLE_GENERATOR);
@@ -98,7 +98,7 @@ int DH_check_ex(const DH *dh)
     return errflags == 0;
 }
 
-int DH_check(const DH *dh, int *ret)
+int VR_DH_check(const DH *dh, int *ret)
 {
     int ok = 0, r;
     BN_CTX *ctx = NULL;
@@ -106,48 +106,48 @@ int DH_check(const DH *dh, int *ret)
     BIGNUM *t1 = NULL, *t2 = NULL;
 
     *ret = 0;
-    ctx = BN_CTX_new();
+    ctx = VR_BN_CTX_new();
     if (ctx == NULL)
         goto err;
-    BN_CTX_start(ctx);
-    t1 = BN_CTX_get(ctx);
-    t2 = BN_CTX_get(ctx);
+    VR_BN_CTX_start(ctx);
+    t1 = VR_BN_CTX_get(ctx);
+    t2 = VR_BN_CTX_get(ctx);
     if (t2 == NULL)
         goto err;
 
     if (dh->q) {
-        if (BN_cmp(dh->g, BN_value_one()) <= 0)
+        if (VR_BN_cmp(dh->g, VR_BN_value_one()) <= 0)
             *ret |= DH_NOT_SUITABLE_GENERATOR;
-        else if (BN_cmp(dh->g, dh->p) >= 0)
+        else if (VR_BN_cmp(dh->g, dh->p) >= 0)
             *ret |= DH_NOT_SUITABLE_GENERATOR;
         else {
             /* Check g^q == 1 mod p */
-            if (!BN_mod_exp(t1, dh->g, dh->q, dh->p, ctx))
+            if (!VR_BN_mod_exp(t1, dh->g, dh->q, dh->p, ctx))
                 goto err;
-            if (!BN_is_one(t1))
+            if (!VR_BN_is_one(t1))
                 *ret |= DH_NOT_SUITABLE_GENERATOR;
         }
-        r = BN_is_prime_ex(dh->q, BN_prime_checks, ctx, NULL);
+        r = VR_BN_is_prime_ex(dh->q, BN_prime_checks, ctx, NULL);
         if (r < 0)
             goto err;
         if (!r)
             *ret |= DH_CHECK_Q_NOT_PRIME;
         /* Check p == 1 mod q  i.e. q divides p - 1 */
-        if (!BN_div(t1, t2, dh->p, dh->q, ctx))
+        if (!VR_BN_div(t1, t2, dh->p, dh->q, ctx))
             goto err;
-        if (!BN_is_one(t2))
+        if (!VR_BN_is_one(t2))
             *ret |= DH_CHECK_INVALID_Q_VALUE;
-        if (dh->j && BN_cmp(dh->j, t1))
+        if (dh->j && VR_BN_cmp(dh->j, t1))
             *ret |= DH_CHECK_INVALID_J_VALUE;
 
-    } else if (BN_is_word(dh->g, DH_GENERATOR_2)) {
-        l = BN_mod_word(dh->p, 24);
+    } else if (VR_BN_is_word(dh->g, DH_GENERATOR_2)) {
+        l = VR_BN_mod_word(dh->p, 24);
         if (l == (BN_ULONG)-1)
             goto err;
         if (l != 11)
             *ret |= DH_NOT_SUITABLE_GENERATOR;
-    } else if (BN_is_word(dh->g, DH_GENERATOR_5)) {
-        l = BN_mod_word(dh->p, 10);
+    } else if (VR_BN_is_word(dh->g, DH_GENERATOR_5)) {
+        l = VR_BN_mod_word(dh->p, 10);
         if (l == (BN_ULONG)-1)
             goto err;
         if ((l != 3) && (l != 7))
@@ -155,15 +155,15 @@ int DH_check(const DH *dh, int *ret)
     } else
         *ret |= DH_UNABLE_TO_CHECK_GENERATOR;
 
-    r = BN_is_prime_ex(dh->p, BN_prime_checks, ctx, NULL);
+    r = VR_BN_is_prime_ex(dh->p, BN_prime_checks, ctx, NULL);
     if (r < 0)
         goto err;
     if (!r)
         *ret |= DH_CHECK_P_NOT_PRIME;
     else if (!dh->q) {
-        if (!BN_rshift1(t1, dh->p))
+        if (!VR_BN_rshift1(t1, dh->p))
             goto err;
-        r = BN_is_prime_ex(t1, BN_prime_checks, ctx, NULL);
+        r = VR_BN_is_prime_ex(t1, BN_prime_checks, ctx, NULL);
         if (r < 0)
             goto err;
         if (!r)
@@ -172,17 +172,17 @@ int DH_check(const DH *dh, int *ret)
     ok = 1;
  err:
     if (ctx != NULL) {
-        BN_CTX_end(ctx);
-        BN_CTX_free(ctx);
+        VR_BN_CTX_end(ctx);
+        VR_BN_CTX_free(ctx);
     }
     return ok;
 }
 
-int DH_check_pub_key_ex(const DH *dh, const BIGNUM *pub_key)
+int VR_DH_check_pub_key_ex(const DH *dh, const BIGNUM *pub_key)
 {
     int errflags = 0;
 
-    (void)DH_check(dh, &errflags);
+    (void)VR_DH_check(dh, &errflags);
 
     if ((errflags & DH_CHECK_PUBKEY_TOO_SMALL) != 0)
         DHerr(DH_F_DH_CHECK_PUB_KEY_EX, DH_R_CHECK_PUBKEY_TOO_SMALL);
@@ -194,40 +194,40 @@ int DH_check_pub_key_ex(const DH *dh, const BIGNUM *pub_key)
     return errflags == 0;
 }
 
-int DH_check_pub_key(const DH *dh, const BIGNUM *pub_key, int *ret)
+int VR_DH_check_pub_key(const DH *dh, const BIGNUM *pub_key, int *ret)
 {
     int ok = 0;
     BIGNUM *tmp = NULL;
     BN_CTX *ctx = NULL;
 
     *ret = 0;
-    ctx = BN_CTX_new();
+    ctx = VR_BN_CTX_new();
     if (ctx == NULL)
         goto err;
-    BN_CTX_start(ctx);
-    tmp = BN_CTX_get(ctx);
-    if (tmp == NULL || !BN_set_word(tmp, 1))
+    VR_BN_CTX_start(ctx);
+    tmp = VR_BN_CTX_get(ctx);
+    if (tmp == NULL || !VR_BN_set_word(tmp, 1))
         goto err;
-    if (BN_cmp(pub_key, tmp) <= 0)
+    if (VR_BN_cmp(pub_key, tmp) <= 0)
         *ret |= DH_CHECK_PUBKEY_TOO_SMALL;
-    if (BN_copy(tmp, dh->p) == NULL || !BN_sub_word(tmp, 1))
+    if (VR_BN_copy(tmp, dh->p) == NULL || !VR_BN_sub_word(tmp, 1))
         goto err;
-    if (BN_cmp(pub_key, tmp) >= 0)
+    if (VR_BN_cmp(pub_key, tmp) >= 0)
         *ret |= DH_CHECK_PUBKEY_TOO_LARGE;
 
     if (dh->q != NULL) {
         /* Check pub_key^q == 1 mod p */
-        if (!BN_mod_exp(tmp, pub_key, dh->q, dh->p, ctx))
+        if (!VR_BN_mod_exp(tmp, pub_key, dh->q, dh->p, ctx))
             goto err;
-        if (!BN_is_one(tmp))
+        if (!VR_BN_is_one(tmp))
             *ret |= DH_CHECK_PUBKEY_INVALID;
     }
 
     ok = 1;
  err:
     if (ctx != NULL) {
-        BN_CTX_end(ctx);
-        BN_CTX_free(ctx);
+        VR_BN_CTX_end(ctx);
+        VR_BN_CTX_free(ctx);
     }
     return ok;
 }

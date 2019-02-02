@@ -15,17 +15,17 @@ print <<'___';
 
 .set	noat
 
-.globl	OPENSSL_cpuid_setup
-.ent	OPENSSL_cpuid_setup
-OPENSSL_cpuid_setup:
+.globl	VR_OPENSSL_cpuid_setup
+.ent	VR_OPENSSL_cpuid_setup
+VR_OPENSSL_cpuid_setup:
 	.frame	$30,0,$26
 	.prologue 0
 	ret	($26)
-.end	OPENSSL_cpuid_setup
+.end	VR_OPENSSL_cpuid_setup
 
-.globl	OPENSSL_wipe_cpu
-.ent	OPENSSL_wipe_cpu
-OPENSSL_wipe_cpu:
+.globl	VR_OPENSSL_wipe_cpu
+.ent	VR_OPENSSL_wipe_cpu
+VR_OPENSSL_wipe_cpu:
 	.frame	$30,0,$26
 	.prologue 0
 	clr	$1
@@ -74,11 +74,11 @@ OPENSSL_wipe_cpu:
 	fclr	$f30
 	mov	$sp,$0
 	ret	($26)
-.end	OPENSSL_wipe_cpu
+.end	VR_OPENSSL_wipe_cpu
 
-.globl	OPENSSL_atomic_add
-.ent	OPENSSL_atomic_add
-OPENSSL_atomic_add:
+.globl	VR_OPENSSL_atomic_add
+.ent	VR_OPENSSL_atomic_add
+VR_OPENSSL_atomic_add:
 	.frame	$30,0,$26
 	.prologue 0
 1:	ldl_l	$0,0($16)
@@ -87,20 +87,20 @@ OPENSSL_atomic_add:
 	beq	$1,1b
 	addl	$0,$17,$0
 	ret	($26)
-.end	OPENSSL_atomic_add
+.end	VR_OPENSSL_atomic_add
 
-.globl	OPENSSL_rdtsc
-.ent	OPENSSL_rdtsc
-OPENSSL_rdtsc:
+.globl	VR_OPENSSL_rdtsc
+.ent	VR_OPENSSL_rdtsc
+VR_OPENSSL_rdtsc:
 	.frame	$30,0,$26
 	.prologue 0
 	rpcc	$0
 	ret	($26)
-.end	OPENSSL_rdtsc
+.end	VR_OPENSSL_rdtsc
 
-.globl	OPENSSL_cleanse
-.ent	OPENSSL_cleanse
-OPENSSL_cleanse:
+.globl	VR_OPENSSL_cleanse
+.ent	VR_OPENSSL_cleanse
+VR_OPENSSL_cleanse:
 	.frame	$30,0,$26
 	.prologue 0
 	beq	$17,.Ldone
@@ -133,11 +133,11 @@ OPENSSL_cleanse:
 	bne	$at,.Laligned
 	bne	$17,.Little
 .Ldone: ret	($26)
-.end	OPENSSL_cleanse
+.end	VR_OPENSSL_cleanse
 
-.globl	CRYPTO_memcmp
-.ent	CRYPTO_memcmp
-CRYPTO_memcmp:
+.globl	VR_CRYPTO_memcmp
+.ent	VR_CRYPTO_memcmp
+VR_CRYPTO_memcmp:
 	.frame	$30,0,$26
 	.prologue 0
 	xor	$0,$0,$0
@@ -161,7 +161,7 @@ CRYPTO_memcmp:
 	srl	$0,63,$0
 .Lno_data:
 	ret	($26)
-.end	CRYPTO_memcmp
+.end	VR_CRYPTO_memcmp
 ___
 {
 my ($out,$cnt,$max)=("\$16","\$17","\$18");
@@ -170,9 +170,9 @@ my ($diff,$lastdiff)=("\$21","\$22");
 my ($v0,$ra,$sp,$zero)=("\$0","\$26","\$30","\$31");
 
 print <<___;
-.globl	OPENSSL_instrument_bus
-.ent	OPENSSL_instrument_bus
-OPENSSL_instrument_bus:
+.globl	VR_OPENSSL_instrument_bus
+.ent	VR_OPENSSL_instrument_bus
+VR_OPENSSL_instrument_bus:
 	.frame	$sp,0,$ra
 	.prologue 0
 	mov	$cnt,$v0
@@ -203,11 +203,11 @@ OPENSSL_instrument_bus:
 	bne	$cnt,.Loop
 
 	ret	($ra)
-.end	OPENSSL_instrument_bus
+.end	VR_OPENSSL_instrument_bus
 
-.globl	OPENSSL_instrument_bus2
-.ent	OPENSSL_instrument_bus2
-OPENSSL_instrument_bus2:
+.globl	VR_OPENSSL_instrument_bus2
+.ent	VR_OPENSSL_instrument_bus2
+VR_OPENSSL_instrument_bus2:
 	.frame	$sp,0,$ra
 	.prologue 0
 	mov	$cnt,$v0
@@ -250,7 +250,7 @@ OPENSSL_instrument_bus2:
 .Ldone2:
 	subl	$v0,$cnt,$v0
 	ret	($ra)
-.end	OPENSSL_instrument_bus2
+.end	VR_OPENSSL_instrument_bus2
 ___
 }
 

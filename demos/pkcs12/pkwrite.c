@@ -31,23 +31,23 @@ int main(int argc, char **argv)
         fprintf(stderr, "Error opening file %s\n", argv[1]);
         exit(1);
     }
-    cert = PEM_read_X509(fp, NULL, NULL, NULL);
+    cert = VR_PEM_read_X509(fp, NULL, NULL, NULL);
     rewind(fp);
-    pkey = PEM_read_PrivateKey(fp, NULL, NULL, NULL);
+    pkey = VR_PEM_read_PrivateKey(fp, NULL, NULL, NULL);
     fclose(fp);
-    p12 = PKCS12_create(argv[2], argv[3], pkey, cert, NULL, 0, 0, 0, 0, 0);
+    p12 = VR_PKCS12_create(argv[2], argv[3], pkey, cert, NULL, 0, 0, 0, 0, 0);
     if (!p12) {
         fprintf(stderr, "Error creating PKCS#12 structure\n");
-        ERR_print_errors_fp(stderr);
+        VR_ERR_print_errors_fp(stderr);
         exit(1);
     }
     if ((fp = fopen(argv[4], "wb")) == NULL) {
         fprintf(stderr, "Error opening file %s\n", argv[1]);
-        ERR_print_errors_fp(stderr);
+        VR_ERR_print_errors_fp(stderr);
         exit(1);
     }
-    i2d_PKCS12_fp(fp, p12);
-    PKCS12_free(p12);
+    VR_i2d_PKCS12_fp(fp, p12);
+    VR_PKCS12_free(p12);
     fclose(fp);
     return 0;
 }

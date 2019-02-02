@@ -138,7 +138,7 @@ void test_error(const char *file, int line, const char *desc, ...)
 void test_perror(const char *s)
 {
     /*
-     * Using openssl_strerror_r causes linking issues since it isn't
+     * Using VR_openssl_strerror_r causes linking issues since it isn't
      * exported from libcrypto.so
      */
     TEST_error("%s: %s", s, strerror(errno));
@@ -159,8 +159,8 @@ void test_note(const char *fmt, ...)
 
 void test_openssl_errors(void)
 {
-    ERR_print_errors_cb(openssl_error_cb, NULL);
-    ERR_clear_error();
+    VR_ERR_print_errors_cb(openssl_error_cb, NULL);
+    VR_ERR_clear_error();
 }
 
 /*
@@ -284,8 +284,8 @@ int test_strn_eq(const char *file, int line, const char *st1, const char *st2,
       return 1;
     if (s1 == NULL || s2 == NULL || strncmp(s1, s2, len) != 0) {
         test_fail_string_message(NULL, file, line, "string", st1, st2, "==",
-                                 s1, s1 == NULL ? 0 : OPENSSL_strnlen(s1, len),
-                                 s2, s2 == NULL ? 0 : OPENSSL_strnlen(s2, len));
+                                 s1, s1 == NULL ? 0 : VR_OPENSSL_strnlen(s1, len),
+                                 s2, s2 == NULL ? 0 : VR_OPENSSL_strnlen(s2, len));
         return 0;
     }
     return 1;
@@ -298,8 +298,8 @@ int test_strn_ne(const char *file, int line, const char *st1, const char *st2,
       return 1;
     if (s1 == NULL || strncmp(s1, s2, len) == 0) {
         test_fail_string_message(NULL, file, line, "string", st1, st2, "!=",
-                                 s1, s1 == NULL ? 0 : OPENSSL_strnlen(s1, len),
-                                 s2, s2 == NULL ? 0 : OPENSSL_strnlen(s2, len));
+                                 s1, s1 == NULL ? 0 : VR_OPENSSL_strnlen(s1, len),
+                                 s2, s2 == NULL ? 0 : VR_OPENSSL_strnlen(s2, len));
         return 0;
     }
     return 1;
@@ -338,7 +338,7 @@ int test_mem_ne(const char *file, int line, const char *st1, const char *st2,
                            const char *s1, const char *s2,              \
                            const BIGNUM *t1, const BIGNUM *t2)          \
     {                                                                   \
-        if (BN_cmp(t1, t2) op 0)                                        \
+        if (VR_BN_cmp(t1, t2) op 0)                                        \
             return 1;                                                   \
         test_fail_bignum_message(NULL, file, line, "BIGNUM", s1, s2,    \
                                  #op, t1, t2);                          \
@@ -354,16 +354,16 @@ int test_mem_ne(const char *file, int line, const char *st1, const char *st2,
         return 0;                                                       \
     }
 
-DEFINE_BN_COMPARISONS(eq, ==, BN_is_zero(a))
-DEFINE_BN_COMPARISONS(ne, !=, !BN_is_zero(a))
-DEFINE_BN_COMPARISONS(gt, >,  !BN_is_negative(a) && !BN_is_zero(a))
-DEFINE_BN_COMPARISONS(ge, >=, !BN_is_negative(a) || BN_is_zero(a))
-DEFINE_BN_COMPARISONS(lt, <,  BN_is_negative(a) && !BN_is_zero(a))
-DEFINE_BN_COMPARISONS(le, <=, BN_is_negative(a) || BN_is_zero(a))
+DEFINE_BN_COMPARISONS(eq, ==, VR_BN_is_zero(a))
+DEFINE_BN_COMPARISONS(ne, !=, !VR_BN_is_zero(a))
+DEFINE_BN_COMPARISONS(gt, >,  !VR_BN_is_negative(a) && !VR_BN_is_zero(a))
+DEFINE_BN_COMPARISONS(ge, >=, !VR_BN_is_negative(a) || VR_BN_is_zero(a))
+DEFINE_BN_COMPARISONS(lt, <,  VR_BN_is_negative(a) && !VR_BN_is_zero(a))
+DEFINE_BN_COMPARISONS(le, <=, VR_BN_is_negative(a) || VR_BN_is_zero(a))
 
 int test_BN_eq_one(const char *file, int line, const char *s, const BIGNUM *a)
 {
-    if (a != NULL && BN_is_one(a))
+    if (a != NULL && VR_BN_is_one(a))
         return 1;
     test_fail_bignum_mono_message(NULL, file, line, "BIGNUM", s, "1", "==", a);
     return 0;
@@ -371,7 +371,7 @@ int test_BN_eq_one(const char *file, int line, const char *s, const BIGNUM *a)
 
 int test_BN_odd(const char *file, int line, const char *s, const BIGNUM *a)
 {
-    if (a != NULL && BN_is_odd(a))
+    if (a != NULL && VR_BN_is_odd(a))
         return 1;
     test_fail_bignum_mono_message(NULL, file, line, "BIGNUM", "ODD(", ")", s, a);
     return 0;
@@ -379,7 +379,7 @@ int test_BN_odd(const char *file, int line, const char *s, const BIGNUM *a)
 
 int test_BN_even(const char *file, int line, const char *s, const BIGNUM *a)
 {
-    if (a != NULL && !BN_is_odd(a))
+    if (a != NULL && !VR_BN_is_odd(a))
         return 1;
     test_fail_bignum_mono_message(NULL, file, line, "BIGNUM", "EVEN(", ")", s,
                                   a);
@@ -391,12 +391,12 @@ int test_BN_eq_word(const char *file, int line, const char *bns, const char *ws,
 {
     BIGNUM *bw;
 
-    if (a != NULL && BN_is_word(a, w))
+    if (a != NULL && VR_BN_is_word(a, w))
         return 1;
-    bw = BN_new();
-    BN_set_word(bw, w);
+    bw = VR_BN_new();
+    VR_BN_set_word(bw, w);
     test_fail_bignum_message(NULL, file, line, "BIGNUM", bns, ws, "==", a, bw);
-    BN_free(bw);
+    VR_BN_free(bw);
     return 0;
 }
 
@@ -405,22 +405,22 @@ int test_BN_abs_eq_word(const char *file, int line, const char *bns,
 {
     BIGNUM *bw, *aa;
 
-    if (a != NULL && BN_abs_is_word(a, w))
+    if (a != NULL && VR_BN_abs_is_word(a, w))
         return 1;
-    bw = BN_new();
-    aa = BN_dup(a);
-    BN_set_negative(aa, 0);
-    BN_set_word(bw, w);
+    bw = VR_BN_new();
+    aa = VR_BN_dup(a);
+    VR_BN_set_negative(aa, 0);
+    VR_BN_set_word(bw, w);
     test_fail_bignum_message(NULL, file, line, "BIGNUM", bns, ws, "abs==",
                              aa, bw);
-    BN_free(bw);
-    BN_free(aa);
+    VR_BN_free(bw);
+    VR_BN_free(aa);
     return 0;
 }
 
 static const char *print_time(const ASN1_TIME *t)
 {
-    return t == NULL ? "<null>" : (const char *)ASN1_STRING_get0_data(t);
+    return t == NULL ? "<null>" : (const char *)VR_ASN1_STRING_get0_data(t);
 }
 
 #define DEFINE_TIME_T_COMPARISON(opname, op)                            \
@@ -428,16 +428,16 @@ static const char *print_time(const ASN1_TIME *t)
                                const char *s1, const char *s2,          \
                                const time_t t1, const time_t t2)        \
     {                                                                   \
-        ASN1_TIME *at1 = ASN1_TIME_set(NULL, t1);                       \
-        ASN1_TIME *at2 = ASN1_TIME_set(NULL, t2);                       \
+        ASN1_TIME *at1 = VR_ASN1_TIME_set(NULL, t1);                       \
+        ASN1_TIME *at2 = VR_ASN1_TIME_set(NULL, t2);                       \
         int r = at1 != NULL && at2 != NULL                              \
-                && ASN1_TIME_compare(at1, at2) op 0;                    \
+                && VR_ASN1_TIME_compare(at1, at2) op 0;                    \
         if (!r)                                                         \
             test_fail_message(NULL, file, line, "time_t", s1, s2, #op,  \
                               "[%s] compared to [%s]",                  \
                               print_time(at1), print_time(at2));        \
-        ASN1_STRING_free(at1);                                          \
-        ASN1_STRING_free(at2);                                          \
+        VR_ASN1_STRING_free(at1);                                          \
+        VR_ASN1_STRING_free(at2);                                          \
         return r;                                                       \
     }
 DEFINE_TIME_T_COMPARISON(eq, ==)

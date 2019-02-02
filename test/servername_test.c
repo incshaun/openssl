@@ -90,29 +90,29 @@ static int client_setup_sni_before_state(void)
     char *hostname = NULL;
     int ret = 0;
 
-    /* use TLS_method to blur 'side' */
-    ctx = SSL_CTX_new(TLS_method());
+    /* use VR_TLS_method to blur 'side' */
+    ctx = VR_SSL_CTX_new(VR_TLS_method());
     if (!TEST_ptr(ctx))
         goto end;
 
-    con = SSL_new(ctx);
+    con = VR_SSL_new(ctx);
     if (!TEST_ptr(con))
         goto end;
 
     /* set SNI before 'client side' is set */
     SSL_set_tlsext_host_name(con, host);
 
-    rbio = BIO_new(BIO_s_mem());
-    wbio = BIO_new(BIO_s_mem());
+    rbio = VR_BIO_new(VR_BIO_s_mem());
+    wbio = VR_BIO_new(VR_BIO_s_mem());
     if (!TEST_ptr(rbio)|| !TEST_ptr(wbio)) {
-        BIO_free(rbio);
-        BIO_free(wbio);
+        VR_BIO_free(rbio);
+        VR_BIO_free(wbio);
         goto end;
     }
 
-    SSL_set_bio(con, rbio, wbio);
+    VR_SSL_set_bio(con, rbio, wbio);
 
-    if (!TEST_int_le(SSL_connect(con), 0))
+    if (!TEST_int_le(VR_SSL_connect(con), 0))
         /* This shouldn't succeed because we don't have a server! */
         goto end;
     if (!TEST_true(get_sni_from_client_hello(wbio, &hostname)))
@@ -123,9 +123,9 @@ static int client_setup_sni_before_state(void)
         goto end;
     ret = 1;
 end:
-    OPENSSL_free(hostname);
-    SSL_free(con);
-    SSL_CTX_free(ctx);
+    OPENVR_SSL_free(hostname);
+    VR_SSL_free(con);
+    VR_SSL_CTX_free(ctx);
     return ret;
 }
 
@@ -138,30 +138,30 @@ static int client_setup_sni_after_state(void)
     char *hostname = NULL;
     int ret = 0;
 
-    /* use TLS_method to blur 'side' */
-    ctx = SSL_CTX_new(TLS_method());
+    /* use VR_TLS_method to blur 'side' */
+    ctx = VR_SSL_CTX_new(VR_TLS_method());
     if (!TEST_ptr(ctx))
         goto end;
 
-    con = SSL_new(ctx);
+    con = VR_SSL_new(ctx);
     if (!TEST_ptr(con))
         goto end;
 
-    rbio = BIO_new(BIO_s_mem());
-    wbio = BIO_new(BIO_s_mem());
+    rbio = VR_BIO_new(VR_BIO_s_mem());
+    wbio = VR_BIO_new(VR_BIO_s_mem());
     if (!TEST_ptr(rbio)|| !TEST_ptr(wbio)) {
-        BIO_free(rbio);
-        BIO_free(wbio);
+        VR_BIO_free(rbio);
+        VR_BIO_free(wbio);
         goto end;
     }
 
-    SSL_set_bio(con, rbio, wbio);
-    SSL_set_connect_state(con);
+    VR_SSL_set_bio(con, rbio, wbio);
+    VR_SSL_set_connect_state(con);
 
     /* set SNI after 'client side' is set */
     SSL_set_tlsext_host_name(con, host);
 
-    if (!TEST_int_le(SSL_connect(con), 0))
+    if (!TEST_int_le(VR_SSL_connect(con), 0))
         /* This shouldn't succeed because we don't have a server! */
         goto end;
     if (!TEST_true(get_sni_from_client_hello(wbio, &hostname)))
@@ -172,9 +172,9 @@ static int client_setup_sni_after_state(void)
         goto end;
     ret = 1;
 end:
-    OPENSSL_free(hostname);
-    SSL_free(con);
-    SSL_CTX_free(ctx);
+    OPENVR_SSL_free(hostname);
+    VR_SSL_free(con);
+    VR_SSL_CTX_free(ctx);
     return ret;
 }
 
@@ -184,8 +184,8 @@ static int server_setup_sni(void)
     SSL *clientssl = NULL, *serverssl = NULL;
     int testresult = 0;
 
-    if (!TEST_true(create_ssl_ctx_pair(TLS_server_method(),
-                                       TLS_client_method(),
+    if (!TEST_true(create_ssl_ctx_pair(VR_TLS_server_method(),
+                                       VR_TLS_client_method(),
                                        TLS1_VERSION, 0,
                                        &sctx, &cctx, cert, privkey))
             || !TEST_true(create_ssl_objects(sctx, cctx, &serverssl, &clientssl,
@@ -198,7 +198,7 @@ static int server_setup_sni(void)
     if (!TEST_true(create_ssl_connection(serverssl, clientssl, SSL_ERROR_NONE)))
         goto end;
 
-    if (!TEST_ptr_null(SSL_get_servername(serverssl,
+    if (!TEST_ptr_null(VR_SSL_get_servername(serverssl,
                                           TLSEXT_NAMETYPE_host_name))) {
         /* SNI should have been cleared during handshake */
         goto end;
@@ -206,10 +206,10 @@ static int server_setup_sni(void)
     
     testresult = 1;
 end:
-    SSL_free(serverssl);
-    SSL_free(clientssl);
-    SSL_CTX_free(sctx);
-    SSL_CTX_free(cctx);
+    VR_SSL_free(serverssl);
+    VR_SSL_free(clientssl);
+    VR_SSL_CTX_free(sctx);
+    VR_SSL_CTX_free(cctx);
 
     return testresult;
 }

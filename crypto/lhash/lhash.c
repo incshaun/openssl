@@ -44,7 +44,7 @@ static int expand(OPENSSL_LHASH *lh);
 static void contract(OPENSSL_LHASH *lh);
 static OPENSSL_LH_NODE **getrn(OPENSSL_LHASH *lh, const void *data, unsigned long *rhash);
 
-OPENSSL_LHASH *OPENSSL_LH_new(OPENSSL_LH_HASHFUNC h, OPENSSL_LH_COMPFUNC c)
+OPENSSL_LHASH *VR_OPENSSL_LH_new(OPENSSL_LH_HASHFUNC h, OPENSSL_LH_COMPFUNC c)
 {
     OPENSSL_LHASH *ret;
 
@@ -59,7 +59,7 @@ OPENSSL_LHASH *OPENSSL_LH_new(OPENSSL_LH_HASHFUNC h, OPENSSL_LH_COMPFUNC c)
     if ((ret->b = OPENSSL_zalloc(sizeof(*ret->b) * MIN_NODES)) == NULL)
         goto err;
     ret->comp = ((c == NULL) ? (OPENSSL_LH_COMPFUNC)strcmp : c);
-    ret->hash = ((h == NULL) ? (OPENSSL_LH_HASHFUNC)OPENSSL_LH_strhash : h);
+    ret->hash = ((h == NULL) ? (OPENSSL_LH_HASHFUNC)VR_OPENSSL_LH_strhash : h);
     ret->num_nodes = MIN_NODES / 2;
     ret->num_alloc_nodes = MIN_NODES;
     ret->pmax = MIN_NODES / 2;
@@ -68,12 +68,12 @@ OPENSSL_LHASH *OPENSSL_LH_new(OPENSSL_LH_HASHFUNC h, OPENSSL_LH_COMPFUNC c)
     return ret;
 
 err:
-    OPENSSL_free(ret->b);
-    OPENSSL_free(ret);
+    OPENVR_SSL_free(ret->b);
+    OPENVR_SSL_free(ret);
     return NULL;
 }
 
-void OPENSSL_LH_free(OPENSSL_LHASH *lh)
+void VR_OPENSSL_LH_free(OPENSSL_LHASH *lh)
 {
     unsigned int i;
     OPENSSL_LH_NODE *n, *nn;
@@ -85,15 +85,15 @@ void OPENSSL_LH_free(OPENSSL_LHASH *lh)
         n = lh->b[i];
         while (n != NULL) {
             nn = n->next;
-            OPENSSL_free(n);
+            OPENVR_SSL_free(n);
             n = nn;
         }
     }
-    OPENSSL_free(lh->b);
-    OPENSSL_free(lh);
+    OPENVR_SSL_free(lh->b);
+    OPENVR_SSL_free(lh);
 }
 
-void *OPENSSL_LH_insert(OPENSSL_LHASH *lh, void *data)
+void *VR_OPENSSL_LH_insert(OPENSSL_LHASH *lh, void *data)
 {
     unsigned long hash;
     OPENSSL_LH_NODE *nn, **rn;
@@ -125,7 +125,7 @@ void *OPENSSL_LH_insert(OPENSSL_LHASH *lh, void *data)
     return ret;
 }
 
-void *OPENSSL_LH_delete(OPENSSL_LHASH *lh, const void *data)
+void *VR_OPENSSL_LH_delete(OPENSSL_LHASH *lh, const void *data)
 {
     unsigned long hash;
     OPENSSL_LH_NODE *nn, **rn;
@@ -141,7 +141,7 @@ void *OPENSSL_LH_delete(OPENSSL_LHASH *lh, const void *data)
         nn = *rn;
         *rn = nn->next;
         ret = nn->data;
-        OPENSSL_free(nn);
+        OPENVR_SSL_free(nn);
         lh->num_delete++;
     }
 
@@ -153,7 +153,7 @@ void *OPENSSL_LH_delete(OPENSSL_LHASH *lh, const void *data)
     return ret;
 }
 
-void *OPENSSL_LH_retrieve(OPENSSL_LHASH *lh, const void *data)
+void *VR_OPENSSL_LH_retrieve(OPENSSL_LHASH *lh, const void *data)
 {
     unsigned long hash;
     OPENSSL_LH_NODE **rn;
@@ -201,12 +201,12 @@ static void doall_util_fn(OPENSSL_LHASH *lh, int use_arg,
     }
 }
 
-void OPENSSL_LH_doall(OPENSSL_LHASH *lh, OPENSSL_LH_DOALL_FUNC func)
+void VR_OPENSSL_LH_doall(OPENSSL_LHASH *lh, OPENSSL_LH_DOALL_FUNC func)
 {
     doall_util_fn(lh, 0, func, (OPENSSL_LH_DOALL_FUNCARG)0, NULL);
 }
 
-void OPENSSL_LH_doall_arg(OPENSSL_LHASH *lh, OPENSSL_LH_DOALL_FUNCARG func, void *arg)
+void VR_OPENSSL_LH_doall_arg(OPENSSL_LHASH *lh, OPENSSL_LH_DOALL_FUNCARG func, void *arg)
 {
     doall_util_fn(lh, 1, (OPENSSL_LH_DOALL_FUNC)0, func, arg);
 }
@@ -326,9 +326,9 @@ static OPENSSL_LH_NODE **getrn(OPENSSL_LHASH *lh,
 /*
  * The following hash seems to work very well on normal text strings no
  * collisions on /usr/dict/words and it distributes on %2^n quite well, not
- * as good as MD5, but still good.
+ * as good as VR_MD5, but still good.
  */
-unsigned long OPENSSL_LH_strhash(const char *c)
+unsigned long VR_OPENSSL_LH_strhash(const char *c)
 {
     unsigned long ret = 0;
     long n;
@@ -351,7 +351,7 @@ unsigned long OPENSSL_LH_strhash(const char *c)
     return (ret >> 16) ^ ret;
 }
 
-unsigned long openssl_lh_strcasehash(const char *c)
+unsigned long VR_openssl_lh_strcasehash(const char *c)
 {
     unsigned long ret = 0;
     long n;
@@ -362,7 +362,7 @@ unsigned long openssl_lh_strcasehash(const char *c)
         return ret;
 
     for (n = 0x100; *c != '\0'; n += 0x100) {
-        v = n | ossl_tolower(*c);
+        v = n | VR_ossl_tolower(*c);
         r = (int)((v >> 2) ^ v) & 0x0f;
         ret = (ret << r) | (ret >> (32 - r));
         ret &= 0xFFFFFFFFL;
@@ -372,22 +372,22 @@ unsigned long openssl_lh_strcasehash(const char *c)
     return (ret >> 16) ^ ret;
 }
 
-unsigned long OPENSSL_LH_num_items(const OPENSSL_LHASH *lh)
+unsigned long VR_OPENSSL_LH_num_items(const OPENSSL_LHASH *lh)
 {
     return lh ? lh->num_items : 0;
 }
 
-unsigned long OPENSSL_LH_get_down_load(const OPENSSL_LHASH *lh)
+unsigned long VR_OPENSSL_LH_get_down_load(const OPENSSL_LHASH *lh)
 {
     return lh->down_load;
 }
 
-void OPENSSL_LH_set_down_load(OPENSSL_LHASH *lh, unsigned long down_load)
+void VR_OPENSSL_LH_set_down_load(OPENSSL_LHASH *lh, unsigned long down_load)
 {
     lh->down_load = down_load;
 }
 
-int OPENSSL_LH_error(OPENSSL_LHASH *lh)
+int VR_OPENSSL_LH_error(OPENSSL_LHASH *lh)
 {
     return lh->error;
 }

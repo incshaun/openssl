@@ -63,7 +63,7 @@ int gendsa_main(int argc, char **argv)
         case OPT_EOF:
         case OPT_ERR:
  opthelp:
-            BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
+            VR_BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
             ret = 0;
@@ -97,7 +97,7 @@ int gendsa_main(int argc, char **argv)
     dsaparams = *argv;
 
     if (!app_passwd(NULL, passoutarg, NULL, &passout)) {
-        BIO_printf(bio_err, "Error getting password\n");
+        VR_BIO_printf(bio_err, "Error getting password\n");
         goto end;
     }
 
@@ -105,42 +105,42 @@ int gendsa_main(int argc, char **argv)
     if (in == NULL)
         goto end2;
 
-    if ((dsa = PEM_read_bio_DSAparams(in, NULL, NULL, NULL)) == NULL) {
-        BIO_printf(bio_err, "unable to load DSA parameter file\n");
+    if ((dsa = VR_PEM_read_bio_DSAparams(in, NULL, NULL, NULL)) == NULL) {
+        VR_BIO_printf(bio_err, "unable to load DSA parameter file\n");
         goto end;
     }
-    BIO_free(in);
+    VR_BIO_free(in);
     in = NULL;
 
     out = bio_open_owner(outfile, FORMAT_PEM, private);
     if (out == NULL)
         goto end2;
 
-    DSA_get0_pqg(dsa, &p, NULL, NULL);
+    VR_DSA_get0_pqg(dsa, &p, NULL, NULL);
 
-    if (BN_num_bits(p) > OPENSSL_DSA_MAX_MODULUS_BITS)
-        BIO_printf(bio_err,
+    if (VR_BN_num_bits(p) > OPENSSL_DSA_MAX_MODULUS_BITS)
+        VR_BIO_printf(bio_err,
                    "Warning: It is not recommended to use more than %d bit for DSA keys.\n"
                    "         Your key size is %d! Larger key size may behave not as expected.\n",
-                   OPENSSL_DSA_MAX_MODULUS_BITS, BN_num_bits(p));
+                   OPENSSL_DSA_MAX_MODULUS_BITS, VR_BN_num_bits(p));
 
-    BIO_printf(bio_err, "Generating DSA key, %d bits\n", BN_num_bits(p));
-    if (!DSA_generate_key(dsa))
+    VR_BIO_printf(bio_err, "Generating DSA key, %d bits\n", VR_BN_num_bits(p));
+    if (!VR_DSA_generate_key(dsa))
         goto end;
 
     assert(private);
-    if (!PEM_write_bio_DSAPrivateKey(out, dsa, enc, NULL, 0, NULL, passout))
+    if (!VR_PEM_write_bio_DSAPrivateKey(out, dsa, enc, NULL, 0, NULL, passout))
         goto end;
     ret = 0;
  end:
     if (ret != 0)
-        ERR_print_errors(bio_err);
+        VR_ERR_print_errors(bio_err);
  end2:
-    BIO_free(in);
-    BIO_free_all(out);
-    DSA_free(dsa);
+    VR_BIO_free(in);
+    VR_BIO_free_all(out);
+    VR_DSA_free(dsa);
     release_engine(e);
-    OPENSSL_free(passout);
+    OPENVR_SSL_free(passout);
     return ret;
 }
 #endif

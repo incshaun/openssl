@@ -76,9 +76,9 @@ extern unsigned int OPENSSL_armcap_P;
 # define ARMV7_NEON      (1<<0)
 # define ARMV7_TICK      (1<<1)
 # define ARMV8_AES       (1<<2)
-# define ARMV8_SHA1      (1<<3)
-# define ARMV8_SHA256    (1<<4)
+# define ARMV8_VR_SHA1      (1<<3)
+# define ARMV8_VR_SHA256    (1<<4)
 # define ARMV8_PMULL     (1<<5)
-# define ARMV8_SHA512    (1<<6)
+# define ARMV8_VR_SHA512    (1<<6)
 
 #endif

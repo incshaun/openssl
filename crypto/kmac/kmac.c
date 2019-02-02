@@ -116,10 +116,10 @@ static int kmac_ctrl_str(EVP_MAC_IMPL *kctx, const char *type,
 static void kmac_free(EVP_MAC_IMPL *kctx)
 {
     if (kctx != NULL) {
-        EVP_MD_CTX_free(kctx->ctx);
-        OPENSSL_cleanse(kctx->key, kctx->key_len);
-        OPENSSL_cleanse(kctx->custom, kctx->custom_len);
-        OPENSSL_free(kctx);
+        VR_EVP_MD_CTX_free(kctx->ctx);
+        VR_OPENSSL_cleanse(kctx->key, kctx->key_len);
+        VR_OPENSSL_cleanse(kctx->custom, kctx->custom_len);
+        OPENVR_SSL_free(kctx);
     }
 }
 
@@ -128,7 +128,7 @@ static EVP_MAC_IMPL *kmac_new(const EVP_MD *md)
     EVP_MAC_IMPL *kctx = NULL;
 
     if ((kctx = OPENSSL_zalloc(sizeof(*kctx))) == NULL
-            || (kctx->ctx = EVP_MD_CTX_new()) == NULL) {
+            || (kctx->ctx = VR_EVP_MD_CTX_new()) == NULL) {
         kmac_free(kctx);
         return NULL;
     }
@@ -139,12 +139,12 @@ static EVP_MAC_IMPL *kmac_new(const EVP_MD *md)
 
 static EVP_MAC_IMPL *kmac128_new(void)
 {
-    return kmac_new(evp_keccak_kmac128());
+    return kmac_new(VR_evp_keccak_kmac128());
 }
 
 static EVP_MAC_IMPL *kmac256_new(void)
 {
-    return kmac_new(evp_keccak_kmac256());
+    return kmac_new(VR_evp_keccak_kmac256());
 }
 
 static int kmac_copy(EVP_MAC_IMPL *gdst, EVP_MAC_IMPL *gsrc)
@@ -157,7 +157,7 @@ static int kmac_copy(EVP_MAC_IMPL *gdst, EVP_MAC_IMPL *gsrc)
     memcpy(gdst->key, gsrc->key, gsrc->key_len);
     memcpy(gdst->custom, gsrc->custom, gdst->custom_len);
 
-    return EVP_MD_CTX_copy(gdst->ctx, gsrc->ctx);
+    return VR_EVP_MD_CTX_copy(gdst->ctx, gsrc->ctx);
 }
 
 /*
@@ -176,10 +176,10 @@ static int kmac_init(EVP_MAC_IMPL *kctx)
         EVPerr(EVP_F_KMAC_INIT, EVP_R_NO_KEY_SET);
         return 0;
     }
-    if (!EVP_DigestInit_ex(kctx->ctx, kctx->md, NULL))
+    if (!VR_EVP_DigestInit_ex(kctx->ctx, kctx->md, NULL))
         return 0;
 
-    block_len = EVP_MD_block_size(kctx->md);
+    block_len = VR_EVP_MD_block_size(kctx->md);
 
     /* Set default custom string if it is not already set */
     if (kctx->custom_len == 0)
@@ -187,8 +187,8 @@ static int kmac_init(EVP_MAC_IMPL *kctx)
 
     return bytepad(out, &out_len, kmac_string, sizeof(kmac_string),
                    kctx->custom, kctx->custom_len, block_len)
-           && EVP_DigestUpdate(ctx, out, out_len)
-           && EVP_DigestUpdate(ctx, kctx->key, kctx->key_len);
+           && VR_EVP_DigestUpdate(ctx, out, out_len)
+           && VR_EVP_DigestUpdate(ctx, kctx->key, kctx->key_len);
 }
 
 static size_t kmac_size(EVP_MAC_IMPL *kctx)
@@ -199,7 +199,7 @@ static size_t kmac_size(EVP_MAC_IMPL *kctx)
 static int kmac_update(EVP_MAC_IMPL *kctx, const unsigned char *data,
                        size_t datalen)
 {
-    return EVP_DigestUpdate(kctx->ctx, data, datalen);
+    return VR_EVP_DigestUpdate(kctx->ctx, data, datalen);
 }
 
 static int kmac_final(EVP_MAC_IMPL *kctx, unsigned char *out)
@@ -212,8 +212,8 @@ static int kmac_final(EVP_MAC_IMPL *kctx, unsigned char *out)
     lbits = (kctx->xof_mode ? 0 : (kctx->out_len * 8));
 
     return right_encode(encoded_outlen, &len, lbits)
-           && EVP_DigestUpdate(ctx, encoded_outlen, len)
-           && EVP_DigestFinalXOF(ctx, out, kctx->out_len);
+           && VR_EVP_DigestUpdate(ctx, encoded_outlen, len)
+           && VR_EVP_DigestFinalXOF(ctx, out, kctx->out_len);
 }
 
 /*
@@ -249,7 +249,7 @@ static int kmac_ctrl(EVP_MAC_IMPL *kctx, int cmd, va_list args)
             return 0;
         }
         return kmac_bytepad_encode_key(kctx->key, &kctx->key_len, p, len,
-                                       EVP_MD_block_size(kctx->md));
+                                       VR_EVP_MD_block_size(kctx->md));
 
     case EVP_MAC_CTRL_SET_CUSTOM:
         p = va_arg(args, const unsigned char *);
@@ -293,16 +293,16 @@ static int kmac_ctrl_str(EVP_MAC_IMPL *kctx, const char *type,
     if (strcmp(type, "xof") == 0)
         return kmac_ctrl_int(kctx, EVP_MAC_CTRL_SET_XOF, atoi(value));
     if (strcmp(type, "key") == 0)
-        return EVP_str2ctrl(kmac_ctrl_str_cb, kctx, EVP_MAC_CTRL_SET_KEY,
+        return VR_EVP_str2ctrl(kmac_ctrl_str_cb, kctx, EVP_MAC_CTRL_SET_KEY,
                             value);
     if (strcmp(type, "hexkey") == 0)
-        return EVP_hex2ctrl(kmac_ctrl_str_cb, kctx, EVP_MAC_CTRL_SET_KEY,
+        return VR_EVP_hex2ctrl(kmac_ctrl_str_cb, kctx, EVP_MAC_CTRL_SET_KEY,
                             value);
     if (strcmp(type, "custom") == 0)
-        return EVP_str2ctrl(kmac_ctrl_str_cb, kctx, EVP_MAC_CTRL_SET_CUSTOM,
+        return VR_EVP_str2ctrl(kmac_ctrl_str_cb, kctx, EVP_MAC_CTRL_SET_CUSTOM,
                             value);
     if (strcmp(type, "hexcustom") == 0)
-        return EVP_hex2ctrl(kmac_ctrl_str_cb, kctx, EVP_MAC_CTRL_SET_CUSTOM,
+        return VR_EVP_hex2ctrl(kmac_ctrl_str_cb, kctx, EVP_MAC_CTRL_SET_CUSTOM,
                             value);
     return -2;
 }

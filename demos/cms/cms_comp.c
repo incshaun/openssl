@@ -29,23 +29,23 @@ int main(int argc, char **argv)
 
     /* Open content being compressed */
 
-    in = BIO_new_file("comp.txt", "r");
+    in = VR_BIO_new_file("comp.txt", "r");
 
     if (!in)
         goto err;
 
     /* compress content */
-    cms = CMS_compress(in, NID_zlib_compression, flags);
+    cms = VR_CMS_compress(in, NID_zlib_compression, flags);
 
     if (!cms)
         goto err;
 
-    out = BIO_new_file("smcomp.txt", "w");
+    out = VR_BIO_new_file("smcomp.txt", "w");
     if (!out)
         goto err;
 
     /* Write out S/MIME message */
-    if (!SMIME_write_CMS(out, cms, in, flags))
+    if (!VR_SMIME_write_CMS(out, cms, in, flags))
         goto err;
 
     ret = 0;
@@ -54,11 +54,11 @@ int main(int argc, char **argv)
 
     if (ret) {
         fprintf(stderr, "Error Compressing Data\n");
-        ERR_print_errors_fp(stderr);
+        VR_ERR_print_errors_fp(stderr);
     }
 
-    CMS_ContentInfo_free(cms);
-    BIO_free(in);
-    BIO_free(out);
+    VR_CMS_ContentInfo_free(cms);
+    VR_BIO_free(in);
+    VR_BIO_free(out);
     return ret;
 }

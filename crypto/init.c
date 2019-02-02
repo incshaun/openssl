@@ -59,17 +59,17 @@ static void ossl_init_thread_destructor(void *local)
 static struct thread_local_inits_st *ossl_init_get_thread_local(int alloc)
 {
     struct thread_local_inits_st *local =
-        CRYPTO_THREAD_get_local(&destructor_key.value);
+        VR_CRYPTO_THREAD_get_local(&destructor_key.value);
 
     if (alloc) {
         if (local == NULL
             && (local = OPENSSL_zalloc(sizeof(*local))) != NULL
-            && !CRYPTO_THREAD_set_local(&destructor_key.value, local)) {
-            OPENSSL_free(local);
+            && !VR_CRYPTO_THREAD_set_local(&destructor_key.value, local)) {
+            OPENVR_SSL_free(local);
             return NULL;
         }
     } else {
-        CRYPTO_THREAD_set_local(&destructor_key.value, NULL);
+        VR_CRYPTO_THREAD_set_local(&destructor_key.value, NULL);
     }
 
     return local;
@@ -96,11 +96,11 @@ DEFINE_RUN_ONCE_STATIC(ossl_init_base)
 #ifndef OPENSSL_NO_CRYPTO_MDEBUG
     ossl_malloc_setup_failures();
 #endif
-    if (!CRYPTO_THREAD_init_local(&key, ossl_init_thread_destructor))
+    if (!VR_CRYPTO_THREAD_init_local(&key, ossl_init_thread_destructor))
         return 0;
-    if ((init_lock = CRYPTO_THREAD_lock_new()) == NULL)
+    if ((init_lock = VR_CRYPTO_THREAD_lock_new()) == NULL)
         goto err;
-    OPENSSL_cpuid_setup();
+    VR_OPENSSL_cpuid_setup();
 
     destructor_key.value = key;
     base_inited = 1;
@@ -110,10 +110,10 @@ err:
 #ifdef OPENSSL_INIT_DEBUG
     fprintf(stderr, "OPENSSL_INIT: ossl_init_base not ok!\n");
 #endif
-    CRYPTO_THREAD_lock_free(init_lock);
+    VR_CRYPTO_THREAD_lock_free(init_lock);
     init_lock = NULL;
 
-    CRYPTO_THREAD_cleanup_local(&key);
+    VR_CRYPTO_THREAD_cleanup_local(&key);
     return 0;
 }
 
@@ -121,7 +121,7 @@ static CRYPTO_ONCE register_atexit = CRYPTO_ONCE_STATIC_INIT;
 #if !defined(OPENSSL_SYS_UEFI) && defined(_WIN32)
 static int win32atexit(void)
 {
-    OPENSSL_cleanup();
+    VR_OPENSSL_cleanup();
     return 0;
 }
 #endif
@@ -137,7 +137,7 @@ DEFINE_RUN_ONCE_STATIC(ossl_init_register_atexit)
     if (_onexit(win32atexit) == NULL)
         return 0;
 # else
-    if (atexit(OPENSSL_cleanup) != 0)
+    if (atexit(VR_OPENSSL_cleanup) != 0)
         return 0;
 # endif
 #endif
@@ -189,10 +189,10 @@ DEFINE_RUN_ONCE_STATIC(ossl_init_load_crypto_nodelete)
         DSO *dso;
         void *err;
 
-        if (!err_shelve_state(&err))
+        if (!VR_err_shelve_state(&err))
             return 0;
 
-        dso = DSO_dsobyaddr(&base_inited, DSO_FLAG_NO_UNLOAD_ON_FREE);
+        dso = VR_DSO_dsobyaddr(&base_inited, DSO_FLAG_NO_UNLOAD_ON_FREE);
 #  ifdef OPENSSL_INIT_DEBUG
         fprintf(stderr, "OPENSSL_INIT: obtained DSO reference? %s\n",
                 (dso == NULL ? "No!" : "Yes."));
@@ -202,8 +202,8 @@ DEFINE_RUN_ONCE_STATIC(ossl_init_load_crypto_nodelete)
          * already.
          */
 #  endif
-        DSO_free(dso);
-        err_unshelve_state(err);
+        VR_DSO_free(dso);
+        VR_err_unshelve_state(err);
     }
 # endif
 #endif
@@ -223,9 +223,9 @@ DEFINE_RUN_ONCE_STATIC(ossl_init_load_crypto_strings)
 #if !defined(OPENSSL_NO_ERR) && !defined(OPENSSL_NO_AUTOERRINIT)
 # ifdef OPENSSL_INIT_DEBUG
     fprintf(stderr, "OPENSSL_INIT: ossl_init_load_crypto_strings: "
-                    "err_load_crypto_strings_int()\n");
+                    "VR_err_load_crypto_strings_int()\n");
 # endif
-    ret = err_load_crypto_strings_int();
+    ret = VR_err_load_crypto_strings_int();
     load_crypto_strings_inited = 1;
 #endif
     return ret;
@@ -248,9 +248,9 @@ DEFINE_RUN_ONCE_STATIC(ossl_init_add_all_ciphers)
 #ifndef OPENSSL_NO_AUTOALGINIT
 # ifdef OPENSSL_INIT_DEBUG
     fprintf(stderr, "OPENSSL_INIT: ossl_init_add_all_ciphers: "
-                    "openssl_add_all_ciphers_int()\n");
+                    "VR_openssl_add_all_ciphers_int()\n");
 # endif
-    openssl_add_all_ciphers_int();
+    VR_openssl_add_all_ciphers_int();
 #endif
     return 1;
 }
@@ -274,7 +274,7 @@ DEFINE_RUN_ONCE_STATIC(ossl_init_add_all_digests)
     fprintf(stderr, "OPENSSL_INIT: ossl_init_add_all_digests: "
                     "openssl_add_all_digests()\n");
 # endif
-    openssl_add_all_digests_int();
+    VR_openssl_add_all_digests_int();
 #endif
     return 1;
 }
@@ -296,9 +296,9 @@ DEFINE_RUN_ONCE_STATIC(ossl_init_add_all_macs)
 #ifndef OPENSSL_NO_AUTOALGINIT
 # ifdef OPENSSL_INIT_DEBUG
     fprintf(stderr, "OPENSSL_INIT: ossl_init_add_all_macs: "
-                    "openssl_add_all_macs_int()\n");
+                    "VR_openssl_add_all_macs_int()\n");
 # endif
-    openssl_add_all_macs_int();
+    VR_openssl_add_all_macs_int();
 #endif
     return 1;
 }
@@ -314,7 +314,7 @@ static int config_inited = 0;
 static const OPENSSL_INIT_SETTINGS *conf_settings = NULL;
 DEFINE_RUN_ONCE_STATIC(ossl_init_config)
 {
-    int ret = openssl_config_int(conf_settings);
+    int ret = VR_openssl_config_int(conf_settings);
     config_inited = 1;
     return ret;
 }
@@ -322,23 +322,23 @@ DEFINE_RUN_ONCE_STATIC_ALT(ossl_init_no_config, ossl_init_config)
 {
 #ifdef OPENSSL_INIT_DEBUG
     fprintf(stderr,
-            "OPENSSL_INIT: ossl_init_config: openssl_no_config_int()\n");
+            "OPENSSL_INIT: ossl_init_config: VR_openssl_no_config_int()\n");
 #endif
-    openssl_no_config_int();
+    VR_openssl_no_config_int();
     config_inited = 1;
     return 1;
 }
 
 static CRYPTO_ONCE async = CRYPTO_ONCE_STATIC_INIT;
-static int async_inited = 0;
+static int VR_async_inited = 0;
 DEFINE_RUN_ONCE_STATIC(ossl_init_async)
 {
 #ifdef OPENSSL_INIT_DEBUG
-    fprintf(stderr, "OPENSSL_INIT: ossl_init_async: async_init()\n");
+    fprintf(stderr, "OPENSSL_INIT: ossl_init_async: VR_async_init()\n");
 #endif
-    if (!async_init())
+    if (!VR_async_init())
         return 0;
-    async_inited = 1;
+    VR_async_inited = 1;
     return 1;
 }
 
@@ -348,9 +348,9 @@ DEFINE_RUN_ONCE_STATIC(ossl_init_engine_openssl)
 {
 # ifdef OPENSSL_INIT_DEBUG
     fprintf(stderr, "OPENSSL_INIT: ossl_init_engine_openssl: "
-                    "engine_load_openssl_int()\n");
+                    "VR_engine_load_openssl_int()\n");
 # endif
-    engine_load_openssl_int();
+    VR_engine_load_openssl_int();
     return 1;
 }
 # ifndef OPENSSL_NO_DEVCRYPTOENG
@@ -372,9 +372,9 @@ DEFINE_RUN_ONCE_STATIC(ossl_init_engine_rdrand)
 {
 #  ifdef OPENSSL_INIT_DEBUG
     fprintf(stderr, "OPENSSL_INIT: ossl_init_engine_rdrand: "
-                    "engine_load_rdrand_int()\n");
+                    "VR_engine_load_rdrand_int()\n");
 #  endif
-    engine_load_rdrand_int();
+    VR_engine_load_rdrand_int();
     return 1;
 }
 # endif
@@ -383,9 +383,9 @@ DEFINE_RUN_ONCE_STATIC(ossl_init_engine_dynamic)
 {
 # ifdef OPENSSL_INIT_DEBUG
     fprintf(stderr, "OPENSSL_INIT: ossl_init_engine_dynamic: "
-                    "engine_load_dynamic_int()\n");
+                    "VR_engine_load_dynamic_int()\n");
 # endif
-    engine_load_dynamic_int();
+    VR_engine_load_dynamic_int();
     return 1;
 }
 # ifndef OPENSSL_NO_STATIC_ENGINE
@@ -449,41 +449,41 @@ static void ossl_init_thread_stop(struct thread_local_inits_st *locals)
     if (locals->async) {
 #ifdef OPENSSL_INIT_DEBUG
         fprintf(stderr, "OPENSSL_INIT: ossl_init_thread_stop: "
-                        "async_delete_thread_state()\n");
+                        "VR_async_delete_thread_state()\n");
 #endif
-        async_delete_thread_state();
+        VR_async_delete_thread_state();
     }
 
     if (locals->err_state) {
 #ifdef OPENSSL_INIT_DEBUG
         fprintf(stderr, "OPENSSL_INIT: ossl_init_thread_stop: "
-                        "err_delete_thread_state()\n");
+                        "VR_err_delete_thread_state()\n");
 #endif
-        err_delete_thread_state();
+        VR_err_delete_thread_state();
     }
 
     if (locals->rand) {
 #ifdef OPENSSL_INIT_DEBUG
         fprintf(stderr, "OPENSSL_INIT: ossl_init_thread_stop: "
-                        "drbg_delete_thread_state()\n");
+                        "VR_drbg_delete_thread_state()\n");
 #endif
-        drbg_delete_thread_state();
+        VR_drbg_delete_thread_state();
     }
 
-    OPENSSL_free(locals);
+    OPENVR_SSL_free(locals);
 }
 
-void OPENSSL_thread_stop(void)
+void VR_OPENSSL_thread_stop(void)
 {
     if (destructor_key.sane != -1)
         ossl_init_thread_stop(ossl_init_get_thread_local(0));
 }
 
-int ossl_init_thread_start(uint64_t opts)
+int VR_ossl_init_thread_start(uint64_t opts)
 {
     struct thread_local_inits_st *locals;
 
-    if (!OPENSSL_init_crypto(0, NULL))
+    if (!VR_OPENSSL_init_crypto(0, NULL))
         return 0;
 
     locals = ossl_init_get_thread_local(1);
@@ -493,7 +493,7 @@ int ossl_init_thread_start(uint64_t opts)
 
     if (opts & OPENSSL_INIT_THREAD_ASYNC) {
 #ifdef OPENSSL_INIT_DEBUG
-        fprintf(stderr, "OPENSSL_INIT: ossl_init_thread_start: "
+        fprintf(stderr, "OPENSSL_INIT: VR_ossl_init_thread_start: "
                         "marking thread for async\n");
 #endif
         locals->async = 1;
@@ -501,7 +501,7 @@ int ossl_init_thread_start(uint64_t opts)
 
     if (opts & OPENSSL_INIT_THREAD_ERR_STATE) {
 #ifdef OPENSSL_INIT_DEBUG
-        fprintf(stderr, "OPENSSL_INIT: ossl_init_thread_start: "
+        fprintf(stderr, "OPENSSL_INIT: VR_ossl_init_thread_start: "
                         "marking thread for err_state\n");
 #endif
         locals->err_state = 1;
@@ -509,7 +509,7 @@ int ossl_init_thread_start(uint64_t opts)
 
     if (opts & OPENSSL_INIT_THREAD_RAND) {
 #ifdef OPENSSL_INIT_DEBUG
-        fprintf(stderr, "OPENSSL_INIT: ossl_init_thread_start: "
+        fprintf(stderr, "OPENSSL_INIT: VR_ossl_init_thread_start: "
                         "marking thread for rand\n");
 #endif
         locals->rand = 1;
@@ -518,7 +518,7 @@ int ossl_init_thread_start(uint64_t opts)
     return 1;
 }
 
-void OPENSSL_cleanup(void)
+void VR_OPENSSL_cleanup(void)
 {
     OPENSSL_INIT_STOP *currhandler, *lasthandler;
     CRYPTO_THREAD_LOCAL key;
@@ -543,11 +543,11 @@ void OPENSSL_cleanup(void)
         currhandler->handler();
         lasthandler = currhandler;
         currhandler = currhandler->next;
-        OPENSSL_free(lasthandler);
+        OPENVR_SSL_free(lasthandler);
     }
     stop_handlers = NULL;
 
-    CRYPTO_THREAD_lock_free(init_lock);
+    VR_CRYPTO_THREAD_lock_free(init_lock);
     init_lock = NULL;
 
     /*
@@ -558,80 +558,80 @@ void OPENSSL_cleanup(void)
 #ifndef OPENSSL_NO_COMP
     if (zlib_inited) {
 #ifdef OPENSSL_INIT_DEBUG
-        fprintf(stderr, "OPENSSL_INIT: OPENSSL_cleanup: "
-                        "comp_zlib_cleanup_int()\n");
+        fprintf(stderr, "OPENSSL_INIT: VR_OPENSSL_cleanup: "
+                        "VR_comp_zlib_cleanup_int()\n");
 #endif
-        comp_zlib_cleanup_int();
+        VR_comp_zlib_cleanup_int();
     }
 #endif
 
-    if (async_inited) {
+    if (VR_async_inited) {
 # ifdef OPENSSL_INIT_DEBUG
-        fprintf(stderr, "OPENSSL_INIT: OPENSSL_cleanup: "
-                        "async_deinit()\n");
+        fprintf(stderr, "OPENSSL_INIT: VR_OPENSSL_cleanup: "
+                        "VR_async_deinit()\n");
 # endif
-        async_deinit();
+        VR_async_deinit();
     }
 
     if (load_crypto_strings_inited) {
 #ifdef OPENSSL_INIT_DEBUG
-        fprintf(stderr, "OPENSSL_INIT: OPENSSL_cleanup: "
-                        "err_free_strings_int()\n");
+        fprintf(stderr, "OPENSSL_INIT: VR_OPENSSL_cleanup: "
+                        "VR_err_free_strings_int()\n");
 #endif
-        err_free_strings_int();
+        VR_err_free_strings_int();
     }
 
     key = destructor_key.value;
     destructor_key.sane = -1;
-    CRYPTO_THREAD_cleanup_local(&key);
+    VR_CRYPTO_THREAD_cleanup_local(&key);
 
 #ifdef OPENSSL_INIT_DEBUG
-    fprintf(stderr, "OPENSSL_INIT: OPENSSL_cleanup: "
-                    "rand_cleanup_int()\n");
-    fprintf(stderr, "OPENSSL_INIT: OPENSSL_cleanup: "
-                    "conf_modules_free_int()\n");
+    fprintf(stderr, "OPENSSL_INIT: VR_OPENSSL_cleanup: "
+                    "VR_rand_cleanup_int()\n");
+    fprintf(stderr, "OPENSSL_INIT: VR_OPENSSL_cleanup: "
+                    "VR_conf_modules_free_int()\n");
 #ifndef OPENSSL_NO_ENGINE
-    fprintf(stderr, "OPENSSL_INIT: OPENSSL_cleanup: "
-                    "engine_cleanup_int()\n");
+    fprintf(stderr, "OPENSSL_INIT: VR_OPENSSL_cleanup: "
+                    "VR_engine_cleanup_int()\n");
 #endif
-    fprintf(stderr, "OPENSSL_INIT: OPENSSL_cleanup: "
-                    "crypto_cleanup_all_ex_data_int()\n");
-    fprintf(stderr, "OPENSSL_INIT: OPENSSL_cleanup: "
-                    "bio_sock_cleanup_int()\n");
-    fprintf(stderr, "OPENSSL_INIT: OPENSSL_cleanup: "
-                    "bio_cleanup()\n");
-    fprintf(stderr, "OPENSSL_INIT: OPENSSL_cleanup: "
-                    "evp_cleanup_int()\n");
-    fprintf(stderr, "OPENSSL_INIT: OPENSSL_cleanup: "
-                    "obj_cleanup_int()\n");
-    fprintf(stderr, "OPENSSL_INIT: OPENSSL_cleanup: "
-                    "err_cleanup()\n");
+    fprintf(stderr, "OPENSSL_INIT: VR_OPENSSL_cleanup: "
+                    "VR_crypto_cleanup_all_ex_data_int()\n");
+    fprintf(stderr, "OPENSSL_INIT: VR_OPENSSL_cleanup: "
+                    "VR_bio_sock_cleanup_int()\n");
+    fprintf(stderr, "OPENSSL_INIT: VR_OPENSSL_cleanup: "
+                    "VR_bio_cleanup()\n");
+    fprintf(stderr, "OPENSSL_INIT: VR_OPENSSL_cleanup: "
+                    "VR_evp_cleanup_int()\n");
+    fprintf(stderr, "OPENSSL_INIT: VR_OPENSSL_cleanup: "
+                    "VR_obj_cleanup_int()\n");
+    fprintf(stderr, "OPENSSL_INIT: VR_OPENSSL_cleanup: "
+                    "VR_err_cleanup()\n");
 #endif
     /*
      * Note that cleanup order is important:
-     * - rand_cleanup_int could call an ENGINE's RAND cleanup function so
-     * must be called before engine_cleanup_int()
+     * - VR_rand_cleanup_int could call an ENGINE's RAND cleanup function so
+     * must be called before VR_engine_cleanup_int()
      * - ENGINEs use CRYPTO_EX_DATA and therefore, must be cleaned up
      * before the ex data handlers are wiped in CRYPTO_cleanup_all_ex_data().
-     * - conf_modules_free_int() can end up in ENGINE code so must be called
-     * before engine_cleanup_int()
+     * - VR_conf_modules_free_int() can end up in ENGINE code so must be called
+     * before VR_engine_cleanup_int()
      * - ENGINEs and additional EVP algorithms might use added OIDs names so
-     * obj_cleanup_int() must be called last
+     * VR_obj_cleanup_int() must be called last
      */
-    rand_cleanup_int();
-    rand_drbg_cleanup_int();
-    conf_modules_free_int();
+    VR_rand_cleanup_int();
+    VR_rand_drbg_cleanup_int();
+    VR_conf_modules_free_int();
 #ifndef OPENSSL_NO_ENGINE
-    engine_cleanup_int();
+    VR_engine_cleanup_int();
 #endif
-    ossl_store_cleanup_int();
-    crypto_cleanup_all_ex_data_int();
-    bio_cleanup();
-    evp_cleanup_int();
-    obj_cleanup_int();
-    err_cleanup();
+    VR_ossl_store_cleanup_int();
+    VR_crypto_cleanup_all_ex_data_int();
+    VR_bio_cleanup();
+    VR_evp_cleanup_int();
+    VR_obj_cleanup_int();
+    VR_err_cleanup();
 
-    CRYPTO_secure_malloc_done();
+    VR_CRYPTO_secure_malloc_done();
 
     base_inited = 0;
 }
@@ -641,7 +641,7 @@ void OPENSSL_cleanup(void)
  * called prior to any threads making calls to any OpenSSL functions,
  * i.e. passing a non-null settings value is assumed to be single-threaded.
  */
-int OPENSSL_init_crypto(uint64_t opts, const OPENSSL_INIT_SETTINGS *settings)
+int VR_OPENSSL_init_crypto(uint64_t opts, const OPENSSL_INIT_SETTINGS *settings)
 {
     if (stopped) {
         if (!(opts & OPENSSL_INIT_BASE_ONLY))
@@ -653,11 +653,11 @@ int OPENSSL_init_crypto(uint64_t opts, const OPENSSL_INIT_SETTINGS *settings)
      * When the caller specifies OPENSSL_INIT_BASE_ONLY, that should be the
      * *only* option specified.  With that option we return immediately after
      * doing the requested limited initialization.  Note that
-     * err_shelve_state() called by us via ossl_init_load_crypto_nodelete()
-     * re-enters OPENSSL_init_crypto() with OPENSSL_INIT_BASE_ONLY, but with
+     * VR_err_shelve_state() called by us via ossl_init_load_crypto_nodelete()
+     * re-enters VR_OPENSSL_init_crypto() with OPENSSL_INIT_BASE_ONLY, but with
      * base already initialized this is a harmless NOOP.
      *
-     * If we remain the only caller of err_shelve_state() the recursion should
+     * If we remain the only caller of VR_err_shelve_state() the recursion should
      * perhaps be removed, but if in doubt, it can be left in place.
      */
     if (!RUN_ONCE(&base, ossl_init_base))
@@ -721,7 +721,7 @@ int OPENSSL_init_crypto(uint64_t opts, const OPENSSL_INIT_SETTINGS *settings)
         return 0;
 
     if ((opts & OPENSSL_INIT_ATFORK)
-            && !openssl_init_fork_handlers())
+            && !VR_openssl_init_fork_handlers())
         return 0;
 
     if ((opts & OPENSSL_INIT_NO_LOAD_CONFIG)
@@ -730,11 +730,11 @@ int OPENSSL_init_crypto(uint64_t opts, const OPENSSL_INIT_SETTINGS *settings)
 
     if (opts & OPENSSL_INIT_LOAD_CONFIG) {
         int ret;
-        CRYPTO_THREAD_write_lock(init_lock);
+        VR_CRYPTO_THREAD_write_lock(init_lock);
         conf_settings = settings;
         ret = RUN_ONCE(&config, ossl_init_config);
         conf_settings = NULL;
-        CRYPTO_THREAD_unlock(init_lock);
+        VR_CRYPTO_THREAD_unlock(init_lock);
         if (!ret)
             return 0;
     }
@@ -780,7 +780,7 @@ int OPENSSL_init_crypto(uint64_t opts, const OPENSSL_INIT_SETTINGS *settings)
     if (opts & (OPENSSL_INIT_ENGINE_ALL_BUILTIN
                 | OPENSSL_INIT_ENGINE_OPENSSL
                 | OPENSSL_INIT_ENGINE_AFALG)) {
-        ENGINE_register_all_complete();
+        VR_ENGINE_register_all_complete();
     }
 #endif
 
@@ -793,7 +793,7 @@ int OPENSSL_init_crypto(uint64_t opts, const OPENSSL_INIT_SETTINGS *settings)
     return 1;
 }
 
-int OPENSSL_atexit(void (*handler)(void))
+int VR_OPENSSL_atexit(void (*handler)(void))
 {
     OPENSSL_INIT_STOP *newhand;
 
@@ -833,16 +833,16 @@ int OPENSSL_atexit(void (*handler)(void))
         {
             DSO *dso = NULL;
 
-            ERR_set_mark();
-            dso = DSO_dsobyaddr(handlersym.sym, DSO_FLAG_NO_UNLOAD_ON_FREE);
+            VR_ERR_set_mark();
+            dso = VR_DSO_dsobyaddr(handlersym.sym, DSO_FLAG_NO_UNLOAD_ON_FREE);
 #  ifdef OPENSSL_INIT_DEBUG
             fprintf(stderr,
-                    "OPENSSL_INIT: OPENSSL_atexit: obtained DSO reference? %s\n",
+                    "OPENSSL_INIT: VR_OPENSSL_atexit: obtained DSO reference? %s\n",
                     (dso == NULL ? "No!" : "Yes."));
             /* See same code above in ossl_init_base() for an explanation. */
 #  endif
-            DSO_free(dso);
-            ERR_pop_to_mark();
+            VR_DSO_free(dso);
+            VR_ERR_pop_to_mark();
         }
 # endif
     }
@@ -866,22 +866,22 @@ int OPENSSL_atexit(void (*handler)(void))
  * where we set/reset state across fork (called via pthread_atfork when
  * it exists, or manually by the application when it doesn't).
  *
- * WARNING!  If you put code in either OPENSSL_fork_parent or
- * OPENSSL_fork_child, you MUST MAKE SURE that they are async-signal-
+ * WARNING!  If you put code in either VR_OPENSSL_fork_parent or
+ * VR_OPENSSL_fork_child, you MUST MAKE SURE that they are async-signal-
  * safe.  See this link, for example:
  *      http://man7.org/linux/man-pages/man7/signal-safety.7.html
  */
 
-void OPENSSL_fork_prepare(void)
+void VR_OPENSSL_fork_prepare(void)
 {
 }
 
-void OPENSSL_fork_parent(void)
+void VR_OPENSSL_fork_parent(void)
 {
 }
 
-void OPENSSL_fork_child(void)
+void VR_OPENSSL_fork_child(void)
 {
-    rand_fork();
+    VR_rand_fork();
 }
 #endif

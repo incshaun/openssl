@@ -15,7 +15,7 @@
  * nothing.
  */
 
-void OPENSSL_init(void)
+void VR_OPENSSL_init(void)
 {
     return;
 }

@@ -44,9 +44,9 @@ void engine_load_padlock_int(void)
     ENGINE *toadd = ENGINE_padlock();
     if (!toadd)
         return;
-    ENGINE_add(toadd);
-    ENGINE_free(toadd);
-    ERR_clear_error();
+    VR_ENGINE_add(toadd);
+    VR_ENGINE_free(toadd);
+    VR_ERR_clear_error();
 #   endif
 }
 
@@ -88,17 +88,17 @@ static int padlock_bind_helper(ENGINE *e)
     padlock_use_rng = 0;
 
     /* Generate a nice engine name with available features */
-    BIO_snprintf(padlock_name, sizeof(padlock_name),
+    VR_BIO_snprintf(padlock_name, sizeof(padlock_name),
                  "VIA PadLock (%s, %s)",
                  padlock_use_rng ? "RNG" : "no-RNG",
                  padlock_use_ace ? "ACE" : "no-ACE");
 
     /* Register everything or return with an error */
-    if (!ENGINE_set_id(e, padlock_id) ||
-        !ENGINE_set_name(e, padlock_name) ||
-        !ENGINE_set_init_function(e, padlock_init) ||
-        (padlock_use_ace && !ENGINE_set_ciphers(e, padlock_ciphers)) ||
-        (padlock_use_rng && !ENGINE_set_RAND(e, &padlock_rand))) {
+    if (!VR_ENGINE_set_id(e, padlock_id) ||
+        !VR_ENGINE_set_name(e, padlock_name) ||
+        !VR_ENGINE_set_init_function(e, padlock_init) ||
+        (padlock_use_ace && !VR_ENGINE_set_ciphers(e, padlock_ciphers)) ||
+        (padlock_use_rng && !VR_ENGINE_set_RAND(e, &padlock_rand))) {
         return 0;
     }
 
@@ -110,14 +110,14 @@ static int padlock_bind_helper(ENGINE *e)
 /* Constructor */
 static ENGINE *ENGINE_padlock(void)
 {
-    ENGINE *eng = ENGINE_new();
+    ENGINE *eng = VR_ENGINE_new();
 
     if (eng == NULL) {
         return NULL;
     }
 
     if (!padlock_bind_helper(eng)) {
-        ENGINE_free(eng);
+        VR_ENGINE_free(eng);
         return NULL;
     }
 
@@ -279,7 +279,7 @@ static int padlock_aes_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
 #   define NEAREST_ALIGNED(ptr) ( (unsigned char *)(ptr) +         \
         ( (0x10 - ((size_t)(ptr) & 0x0F)) & 0x0F )      )
 #   define ALIGNED_CIPHER_DATA(ctx) ((struct padlock_cipher_data *)\
-        NEAREST_ALIGNED(EVP_CIPHER_CTX_get_cipher_data(ctx)))
+        NEAREST_ALIGNED(VR_EVP_CIPHER_CTX_get_cipher_data(ctx)))
 
 static int
 padlock_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out_arg,
@@ -296,9 +296,9 @@ padlock_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out_arg,
     struct padlock_cipher_data *cdata = ALIGNED_CIPHER_DATA(ctx);
     int ret;
 
-    memcpy(cdata->iv, EVP_CIPHER_CTX_iv(ctx), AES_BLOCK_SIZE);
+    memcpy(cdata->iv, VR_EVP_CIPHER_CTX_iv(ctx), AES_BLOCK_SIZE);
     if ((ret = padlock_cbc_encrypt(out_arg, in_arg, cdata, nbytes)))
-        memcpy(EVP_CIPHER_CTX_iv_noconst(ctx), cdata->iv, AES_BLOCK_SIZE);
+        memcpy(VR_EVP_CIPHER_CTX_iv_noconst(ctx), cdata->iv, AES_BLOCK_SIZE);
     return ret;
 }
 
@@ -309,13 +309,13 @@ padlock_cfb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out_arg,
     struct padlock_cipher_data *cdata = ALIGNED_CIPHER_DATA(ctx);
     size_t chunk;
 
-    if ((chunk = EVP_CIPHER_CTX_num(ctx))) {   /* borrow chunk variable */
-        unsigned char *ivp = EVP_CIPHER_CTX_iv_noconst(ctx);
+    if ((chunk = VR_EVP_CIPHER_CTX_num(ctx))) {   /* borrow chunk variable */
+        unsigned char *ivp = VR_EVP_CIPHER_CTX_iv_noconst(ctx);
 
         if (chunk >= AES_BLOCK_SIZE)
             return 0;           /* bogus value */
 
-        if (EVP_CIPHER_CTX_encrypting(ctx))
+        if (VR_EVP_CIPHER_CTX_encrypting(ctx))
             while (chunk < AES_BLOCK_SIZE && nbytes != 0) {
                 ivp[chunk] = *(out_arg++) = *(in_arg++) ^ ivp[chunk];
                 chunk++, nbytes--;
@@ -326,13 +326,13 @@ padlock_cfb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out_arg,
                 ivp[chunk++] = c, nbytes--;
             }
 
-        EVP_CIPHER_CTX_set_num(ctx, chunk % AES_BLOCK_SIZE);
+        VR_EVP_CIPHER_CTX_set_num(ctx, chunk % AES_BLOCK_SIZE);
     }
 
     if (nbytes == 0)
         return 1;
 
-    memcpy(cdata->iv, EVP_CIPHER_CTX_iv(ctx), AES_BLOCK_SIZE);
+    memcpy(cdata->iv, VR_EVP_CIPHER_CTX_iv(ctx), AES_BLOCK_SIZE);
 
     if ((chunk = nbytes & ~(AES_BLOCK_SIZE - 1))) {
         if (!padlock_cfb_encrypt(out_arg, in_arg, cdata, chunk))
@@ -345,7 +345,7 @@ padlock_cfb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out_arg,
 
         out_arg += chunk;
         in_arg += chunk;
-        EVP_CIPHER_CTX_set_num(ctx, nbytes);
+        VR_EVP_CIPHER_CTX_set_num(ctx, nbytes);
         if (cdata->cword.b.encdec) {
             cdata->cword.b.encdec = 0;
             padlock_reload_key();
@@ -368,7 +368,7 @@ padlock_cfb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out_arg,
         }
     }
 
-    memcpy(EVP_CIPHER_CTX_iv_noconst(ctx), cdata->iv, AES_BLOCK_SIZE);
+    memcpy(VR_EVP_CIPHER_CTX_iv_noconst(ctx), cdata->iv, AES_BLOCK_SIZE);
 
     return 1;
 }
@@ -383,8 +383,8 @@ padlock_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out_arg,
     /*
      * ctx->num is maintained in byte-oriented modes, such as CFB and OFB...
      */
-    if ((chunk = EVP_CIPHER_CTX_num(ctx))) {   /* borrow chunk variable */
-        unsigned char *ivp = EVP_CIPHER_CTX_iv_noconst(ctx);
+    if ((chunk = VR_EVP_CIPHER_CTX_num(ctx))) {   /* borrow chunk variable */
+        unsigned char *ivp = VR_EVP_CIPHER_CTX_iv_noconst(ctx);
 
         if (chunk >= AES_BLOCK_SIZE)
             return 0;           /* bogus value */
@@ -394,13 +394,13 @@ padlock_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out_arg,
             chunk++, nbytes--;
         }
 
-        EVP_CIPHER_CTX_set_num(ctx, chunk % AES_BLOCK_SIZE);
+        VR_EVP_CIPHER_CTX_set_num(ctx, chunk % AES_BLOCK_SIZE);
     }
 
     if (nbytes == 0)
         return 1;
 
-    memcpy(cdata->iv, EVP_CIPHER_CTX_iv(ctx), AES_BLOCK_SIZE);
+    memcpy(cdata->iv, VR_EVP_CIPHER_CTX_iv(ctx), AES_BLOCK_SIZE);
 
     if ((chunk = nbytes & ~(AES_BLOCK_SIZE - 1))) {
         if (!padlock_ofb_encrypt(out_arg, in_arg, cdata, chunk))
@@ -413,7 +413,7 @@ padlock_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out_arg,
 
         out_arg += chunk;
         in_arg += chunk;
-        EVP_CIPHER_CTX_set_num(ctx, nbytes);
+        VR_EVP_CIPHER_CTX_set_num(ctx, nbytes);
         padlock_reload_key();   /* empirically found */
         padlock_aes_block(ivp, ivp, cdata);
         padlock_reload_key();   /* empirically found */
@@ -423,7 +423,7 @@ padlock_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out_arg,
         }
     }
 
-    memcpy(EVP_CIPHER_CTX_iv_noconst(ctx), cdata->iv, AES_BLOCK_SIZE);
+    memcpy(VR_EVP_CIPHER_CTX_iv_noconst(ctx), cdata->iv, AES_BLOCK_SIZE);
 
     return 1;
 }
@@ -442,22 +442,22 @@ padlock_ctr_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out_arg,
                    const unsigned char *in_arg, size_t nbytes)
 {
     struct padlock_cipher_data *cdata = ALIGNED_CIPHER_DATA(ctx);
-    unsigned int num = EVP_CIPHER_CTX_num(ctx);
+    unsigned int num = VR_EVP_CIPHER_CTX_num(ctx);
 
-    CRYPTO_ctr128_encrypt_ctr32(in_arg, out_arg, nbytes,
-                                cdata, EVP_CIPHER_CTX_iv_noconst(ctx),
-                                EVP_CIPHER_CTX_buf_noconst(ctx), &num,
+    VR_CRYPTO_ctr128_encrypt_ctr32(in_arg, out_arg, nbytes,
+                                cdata, VR_EVP_CIPHER_CTX_iv_noconst(ctx),
+                                VR_EVP_CIPHER_CTX_buf_noconst(ctx), &num,
                                 (ctr128_f) padlock_ctr32_encrypt_glue);
 
-    EVP_CIPHER_CTX_set_num(ctx, (size_t)num);
+    VR_EVP_CIPHER_CTX_set_num(ctx, (size_t)num);
     return 1;
 }
 
-#   define EVP_CIPHER_block_size_ECB       AES_BLOCK_SIZE
-#   define EVP_CIPHER_block_size_CBC       AES_BLOCK_SIZE
-#   define EVP_CIPHER_block_size_OFB       1
-#   define EVP_CIPHER_block_size_CFB       1
-#   define EVP_CIPHER_block_size_CTR       1
+#   define VR_EVP_CIPHER_block_size_ECB       AES_BLOCK_SIZE
+#   define VR_EVP_CIPHER_block_size_CBC       AES_BLOCK_SIZE
+#   define VR_EVP_CIPHER_block_size_OFB       1
+#   define VR_EVP_CIPHER_block_size_CFB       1
+#   define VR_EVP_CIPHER_block_size_CTR       1
 
 /*
  * Declaring so many ciphers by hand would be a pain. Instead introduce a bit
@@ -469,24 +469,24 @@ static const EVP_CIPHER *padlock_aes_##ksize##_##lmode(void) \
 {                                                                       \
     if (_hidden_aes_##ksize##_##lmode == NULL                           \
         && ((_hidden_aes_##ksize##_##lmode =                            \
-             EVP_CIPHER_meth_new(NID_aes_##ksize##_##lmode,             \
-                                 EVP_CIPHER_block_size_##umode,         \
+             VR_EVP_CIPHER_meth_new(NID_aes_##ksize##_##lmode,             \
+                                 VR_EVP_CIPHER_block_size_##umode,         \
                                  AES_KEY_SIZE_##ksize)) == NULL         \
-            || !EVP_CIPHER_meth_set_iv_length(_hidden_aes_##ksize##_##lmode, \
+            || !VR_EVP_CIPHER_meth_set_iv_length(_hidden_aes_##ksize##_##lmode, \
                                               AES_BLOCK_SIZE)           \
-            || !EVP_CIPHER_meth_set_flags(_hidden_aes_##ksize##_##lmode, \
+            || !VR_EVP_CIPHER_meth_set_flags(_hidden_aes_##ksize##_##lmode, \
                                           0 | EVP_CIPH_##umode##_MODE)  \
-            || !EVP_CIPHER_meth_set_init(_hidden_aes_##ksize##_##lmode, \
+            || !VR_EVP_CIPHER_meth_set_init(_hidden_aes_##ksize##_##lmode, \
                                          padlock_aes_init_key)          \
-            || !EVP_CIPHER_meth_set_do_cipher(_hidden_aes_##ksize##_##lmode, \
+            || !VR_EVP_CIPHER_meth_set_do_cipher(_hidden_aes_##ksize##_##lmode, \
                                               padlock_##lmode##_cipher) \
-            || !EVP_CIPHER_meth_set_impl_ctx_size(_hidden_aes_##ksize##_##lmode, \
+            || !VR_EVP_CIPHER_meth_set_impl_ctx_size(_hidden_aes_##ksize##_##lmode, \
                                                   sizeof(struct padlock_cipher_data) + 16) \
-            || !EVP_CIPHER_meth_set_set_asn1_params(_hidden_aes_##ksize##_##lmode, \
-                                                    EVP_CIPHER_set_asn1_iv) \
-            || !EVP_CIPHER_meth_set_get_asn1_params(_hidden_aes_##ksize##_##lmode, \
-                                                    EVP_CIPHER_get_asn1_iv))) { \
-        EVP_CIPHER_meth_free(_hidden_aes_##ksize##_##lmode);            \
+            || !VR_EVP_CIPHER_meth_set_set_asn1_params(_hidden_aes_##ksize##_##lmode, \
+                                                    VR_EVP_CIPHER_set_asn1_iv) \
+            || !VR_EVP_CIPHER_meth_set_get_asn1_params(_hidden_aes_##ksize##_##lmode, \
+                                                    VR_EVP_CIPHER_get_asn1_iv))) { \
+        VR_EVP_CIPHER_meth_free(_hidden_aes_##ksize##_##lmode);            \
         _hidden_aes_##ksize##_##lmode = NULL;                           \
     }                                                                   \
     return _hidden_aes_##ksize##_##lmode;                               \
@@ -585,7 +585,7 @@ padlock_aes_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
                      const unsigned char *iv, int enc)
 {
     struct padlock_cipher_data *cdata;
-    int key_len = EVP_CIPHER_CTX_key_length(ctx) * 8;
+    int key_len = VR_EVP_CIPHER_CTX_key_length(ctx) * 8;
     unsigned long mode = EVP_CIPHER_CTX_mode(ctx);
 
     if (key == NULL)
@@ -598,7 +598,7 @@ padlock_aes_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
     if (mode == EVP_CIPH_OFB_MODE || mode == EVP_CIPH_CTR_MODE)
         cdata->cword.b.encdec = 0;
     else
-        cdata->cword.b.encdec = (EVP_CIPHER_CTX_encrypting(ctx) == 0);
+        cdata->cword.b.encdec = (VR_EVP_CIPHER_CTX_encrypting(ctx) == 0);
     cdata->cword.b.rounds = 10 + (key_len - 128) / 32;
     cdata->cword.b.ksize = (key_len - 128) / 64;
 
@@ -623,9 +623,9 @@ padlock_aes_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
          */
         if ((mode == EVP_CIPH_ECB_MODE || mode == EVP_CIPH_CBC_MODE)
             && !enc)
-            AES_set_decrypt_key(key, key_len, &cdata->ks);
+            VR_AES_set_decrypt_key(key, key_len, &cdata->ks);
         else
-            AES_set_encrypt_key(key, key_len, &cdata->ks);
+            VR_AES_set_encrypt_key(key, key_len, &cdata->ks);
 #   ifndef AES_ASM
         /*
          * OpenSSL C functions use byte-swapped extended key.
@@ -693,7 +693,7 @@ static int padlock_rand_bytes(unsigned char *output, int count)
         *output++ = (unsigned char)buf;
         count--;
     }
-    OPENSSL_cleanse(&buf, sizeof(buf));
+    VR_OPENSSL_cleanse(&buf, sizeof(buf));
 
     return 1;
 }

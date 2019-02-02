@@ -55,12 +55,12 @@ static const ERR_STRING_DATA KDF_str_reasons[] = {
 
 #endif
 
-int ERR_load_KDF_strings(void)
+int VR_ERR_load_KDF_strings(void)
 {
 #ifndef OPENSSL_NO_ERR
-    if (ERR_func_error_string(KDF_str_functs[0].error) == NULL) {
-        ERR_load_strings_const(KDF_str_functs);
-        ERR_load_strings_const(KDF_str_reasons);
+    if (VR_ERR_func_error_string(KDF_str_functs[0].error) == NULL) {
+        VR_ERR_load_strings_const(KDF_str_functs);
+        VR_ERR_load_strings_const(KDF_str_reasons);
     }
 #endif
     return 1;

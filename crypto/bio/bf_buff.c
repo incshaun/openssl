@@ -26,10 +26,10 @@ static const BIO_METHOD methods_buffer = {
     BIO_TYPE_BUFFER,
     "buffer",
     /* TODO: Convert to new style write function */
-    bwrite_conv,
+    VR_bwrite_conv,
     buffer_write,
     /* TODO: Convert to new style read function */
-    bread_conv,
+    VR_bread_conv,
     buffer_read,
     buffer_puts,
     buffer_gets,
@@ -39,7 +39,7 @@ static const BIO_METHOD methods_buffer = {
     buffer_callback_ctrl,
 };
 
-const BIO_METHOD *BIO_f_buffer(void)
+const BIO_METHOD *VR_BIO_f_buffer(void)
 {
     return &methods_buffer;
 }
@@ -53,14 +53,14 @@ static int buffer_new(BIO *bi)
     ctx->ibuf_size = DEFAULT_BUFFER_SIZE;
     ctx->ibuf = OPENSSL_malloc(DEFAULT_BUFFER_SIZE);
     if (ctx->ibuf == NULL) {
-        OPENSSL_free(ctx);
+        OPENVR_SSL_free(ctx);
         return 0;
     }
     ctx->obuf_size = DEFAULT_BUFFER_SIZE;
     ctx->obuf = OPENSSL_malloc(DEFAULT_BUFFER_SIZE);
     if (ctx->obuf == NULL) {
-        OPENSSL_free(ctx->ibuf);
-        OPENSSL_free(ctx);
+        OPENVR_SSL_free(ctx->ibuf);
+        OPENVR_SSL_free(ctx);
         return 0;
     }
 
@@ -77,9 +77,9 @@ static int buffer_free(BIO *a)
     if (a == NULL)
         return 0;
     b = (BIO_F_BUFFER_CTX *)a->ptr;
-    OPENSSL_free(b->ibuf);
-    OPENSSL_free(b->obuf);
-    OPENSSL_free(a->ptr);
+    OPENVR_SSL_free(b->ibuf);
+    OPENVR_SSL_free(b->obuf);
+    OPENVR_SSL_free(a->ptr);
     a->ptr = NULL;
     a->init = 0;
     a->flags = 0;
@@ -124,9 +124,9 @@ static int buffer_read(BIO *b, char *out, int outl)
      */
     if (outl > ctx->ibuf_size) {
         for (;;) {
-            i = BIO_read(b->next_bio, out, outl);
+            i = VR_BIO_read(b->next_bio, out, outl);
             if (i <= 0) {
-                BIO_copy_next_retry(b);
+                VR_BIO_copy_next_retry(b);
                 if (i < 0)
                     return ((num > 0) ? num : i);
                 if (i == 0)
@@ -142,9 +142,9 @@ static int buffer_read(BIO *b, char *out, int outl)
     /* else */
 
     /* we are going to be doing some buffering */
-    i = BIO_read(b->next_bio, ctx->ibuf, ctx->ibuf_size);
+    i = VR_BIO_read(b->next_bio, ctx->ibuf, ctx->ibuf_size);
     if (i <= 0) {
-        BIO_copy_next_retry(b);
+        VR_BIO_copy_next_retry(b);
         if (i < 0)
             return ((num > 0) ? num : i);
         if (i == 0)
@@ -189,10 +189,10 @@ static int buffer_write(BIO *b, const char *in, int inl)
         }
         /* we now have a full buffer needing flushing */
         for (;;) {
-            i = BIO_write(b->next_bio, &(ctx->obuf[ctx->obuf_off]),
+            i = VR_BIO_write(b->next_bio, &(ctx->obuf[ctx->obuf_off]),
                           ctx->obuf_len);
             if (i <= 0) {
-                BIO_copy_next_retry(b);
+                VR_BIO_copy_next_retry(b);
 
                 if (i < 0)
                     return ((num > 0) ? num : i);
@@ -213,9 +213,9 @@ static int buffer_write(BIO *b, const char *in, int inl)
 
     /* we now have inl bytes to write */
     while (inl >= ctx->obuf_size) {
-        i = BIO_write(b->next_bio, in, inl);
+        i = VR_BIO_write(b->next_bio, in, inl);
         if (i <= 0) {
-            BIO_copy_next_retry(b);
+            VR_BIO_copy_next_retry(b);
             if (i < 0)
                 return ((num > 0) ? num : i);
             if (i == 0)
@@ -253,12 +253,12 @@ static long buffer_ctrl(BIO *b, int cmd, long num, void *ptr)
         ctx->obuf_len = 0;
         if (b->next_bio == NULL)
             return 0;
-        ret = BIO_ctrl(b->next_bio, cmd, num, ptr);
+        ret = VR_BIO_ctrl(b->next_bio, cmd, num, ptr);
         break;
     case BIO_CTRL_EOF:
         if (ctx->ibuf_len > 0)
             return 0;
-        ret = BIO_ctrl(b->next_bio, cmd, num, ptr);
+        ret = VR_BIO_ctrl(b->next_bio, cmd, num, ptr);
         break;
     case BIO_CTRL_INFO:
         ret = (long)ctx->obuf_len;
@@ -276,7 +276,7 @@ static long buffer_ctrl(BIO *b, int cmd, long num, void *ptr)
         if (ret == 0) {
             if (b->next_bio == NULL)
                 return 0;
-            ret = BIO_ctrl(b->next_bio, cmd, num, ptr);
+            ret = VR_BIO_ctrl(b->next_bio, cmd, num, ptr);
         }
         break;
     case BIO_CTRL_PENDING:
@@ -284,7 +284,7 @@ static long buffer_ctrl(BIO *b, int cmd, long num, void *ptr)
         if (ret == 0) {
             if (b->next_bio == NULL)
                 return 0;
-            ret = BIO_ctrl(b->next_bio, cmd, num, ptr);
+            ret = VR_BIO_ctrl(b->next_bio, cmd, num, ptr);
         }
         break;
     case BIO_C_SET_BUFF_READ_DATA:
@@ -292,7 +292,7 @@ static long buffer_ctrl(BIO *b, int cmd, long num, void *ptr)
             p1 = OPENSSL_malloc((int)num);
             if (p1 == NULL)
                 goto malloc_error;
-            OPENSSL_free(ctx->ibuf);
+            OPENVR_SSL_free(ctx->ibuf);
             ctx->ibuf = p1;
         }
         ctx->ibuf_off = 0;
@@ -326,19 +326,19 @@ static long buffer_ctrl(BIO *b, int cmd, long num, void *ptr)
             p2 = OPENSSL_malloc((int)num);
             if (p2 == NULL) {
                 if (p1 != ctx->ibuf)
-                    OPENSSL_free(p1);
+                    OPENVR_SSL_free(p1);
                 goto malloc_error;
             }
         }
         if (ctx->ibuf != p1) {
-            OPENSSL_free(ctx->ibuf);
+            OPENVR_SSL_free(ctx->ibuf);
             ctx->ibuf = p1;
             ctx->ibuf_off = 0;
             ctx->ibuf_len = 0;
             ctx->ibuf_size = ibs;
         }
         if (ctx->obuf != p2) {
-            OPENSSL_free(ctx->obuf);
+            OPENVR_SSL_free(ctx->obuf);
             ctx->obuf = p2;
             ctx->obuf_off = 0;
             ctx->obuf_len = 0;
@@ -349,24 +349,24 @@ static long buffer_ctrl(BIO *b, int cmd, long num, void *ptr)
         if (b->next_bio == NULL)
             return 0;
         BIO_clear_retry_flags(b);
-        ret = BIO_ctrl(b->next_bio, cmd, num, ptr);
-        BIO_copy_next_retry(b);
+        ret = VR_BIO_ctrl(b->next_bio, cmd, num, ptr);
+        VR_BIO_copy_next_retry(b);
         break;
 
     case BIO_CTRL_FLUSH:
         if (b->next_bio == NULL)
             return 0;
         if (ctx->obuf_len <= 0) {
-            ret = BIO_ctrl(b->next_bio, cmd, num, ptr);
+            ret = VR_BIO_ctrl(b->next_bio, cmd, num, ptr);
             break;
         }
 
         for (;;) {
             BIO_clear_retry_flags(b);
             if (ctx->obuf_len > 0) {
-                r = BIO_write(b->next_bio,
+                r = VR_BIO_write(b->next_bio,
                               &(ctx->obuf[ctx->obuf_off]), ctx->obuf_len);
-                BIO_copy_next_retry(b);
+                VR_BIO_copy_next_retry(b);
                 if (r <= 0)
                     return (long)r;
                 ctx->obuf_off += r;
@@ -377,7 +377,7 @@ static long buffer_ctrl(BIO *b, int cmd, long num, void *ptr)
                 break;
             }
         }
-        ret = BIO_ctrl(b->next_bio, cmd, num, ptr);
+        ret = VR_BIO_ctrl(b->next_bio, cmd, num, ptr);
         break;
     case BIO_CTRL_DUP:
         dbio = (BIO *)ptr;
@@ -399,7 +399,7 @@ static long buffer_ctrl(BIO *b, int cmd, long num, void *ptr)
     default:
         if (b->next_bio == NULL)
             return 0;
-        ret = BIO_ctrl(b->next_bio, cmd, num, ptr);
+        ret = VR_BIO_ctrl(b->next_bio, cmd, num, ptr);
         break;
     }
     return ret;
@@ -416,7 +416,7 @@ static long buffer_callback_ctrl(BIO *b, int cmd, BIO_info_cb *fp)
         return 0;
     switch (cmd) {
     default:
-        ret = BIO_callback_ctrl(b->next_bio, cmd, fp);
+        ret = VR_BIO_callback_ctrl(b->next_bio, cmd, fp);
         break;
     }
     return ret;
@@ -454,9 +454,9 @@ static int buffer_gets(BIO *b, char *buf, int size)
             }
         } else {                /* read another chunk */
 
-            i = BIO_read(b->next_bio, ctx->ibuf, ctx->ibuf_size);
+            i = VR_BIO_read(b->next_bio, ctx->ibuf, ctx->ibuf_size);
             if (i <= 0) {
-                BIO_copy_next_retry(b);
+                VR_BIO_copy_next_retry(b);
                 *buf = '\0';
                 if (i < 0)
                     return ((num > 0) ? num : i);

@@ -17,7 +17,7 @@
 #undef BUFSIZE
 #define BUFSIZE 512
 
-TXT_DB *TXT_DB_read(BIO *in, int num)
+TXT_DB *VR_TXT_DB_read(BIO *in, int num)
 {
     TXT_DB *ret = NULL;
     int esc = 0;
@@ -29,9 +29,9 @@ TXT_DB *TXT_DB_read(BIO *in, int num)
     OPENSSL_STRING *pp;
     BUF_MEM *buf = NULL;
 
-    if ((buf = BUF_MEM_new()) == NULL)
+    if ((buf = VR_BUF_MEM_new()) == NULL)
         goto err;
-    if (!BUF_MEM_grow(buf, size))
+    if (!VR_BUF_MEM_grow(buf, size))
         goto err;
 
     if ((ret = OPENSSL_malloc(sizeof(*ret))) == NULL)
@@ -39,7 +39,7 @@ TXT_DB *TXT_DB_read(BIO *in, int num)
     ret->num_fields = num;
     ret->index = NULL;
     ret->qual = NULL;
-    if ((ret->data = sk_OPENSSL_PSTRING_new_null()) == NULL)
+    if ((ret->data = sk_VR_OPENSSL_PSTRING_new_null()) == NULL)
         goto err;
     if ((ret->index = OPENSSL_malloc(sizeof(*ret->index) * num)) == NULL)
         goto err;
@@ -56,11 +56,11 @@ TXT_DB *TXT_DB_read(BIO *in, int num)
     for (;;) {
         if (offset != 0) {
             size += BUFSIZE;
-            if (!BUF_MEM_grow_clean(buf, size))
+            if (!VR_BUF_MEM_grow_clean(buf, size))
                 goto err;
         }
         buf->data[offset] = '\0';
-        BIO_gets(in, &(buf->data[offset]), size - offset);
+        VR_BIO_gets(in, &(buf->data[offset]), size - offset);
         ln++;
         if (buf->data[offset] == '\0')
             break;
@@ -104,30 +104,30 @@ TXT_DB *TXT_DB_read(BIO *in, int num)
         }
         *(p++) = '\0';
         if ((n != num) || (*f != '\0')) {
-            OPENSSL_free(pp);
+            OPENVR_SSL_free(pp);
             ret->error = DB_ERROR_WRONG_NUM_FIELDS;
             goto err;
         }
         pp[n] = p;
-        if (!sk_OPENSSL_PSTRING_push(ret->data, pp)) {
-            OPENSSL_free(pp);
+        if (!sk_VR_OPENSSL_PSTRING_push(ret->data, pp)) {
+            OPENVR_SSL_free(pp);
             goto err;
         }
     }
-    BUF_MEM_free(buf);
+    VR_BUF_MEM_free(buf);
     return ret;
  err:
-    BUF_MEM_free(buf);
+    VR_BUF_MEM_free(buf);
     if (ret != NULL) {
-        sk_OPENSSL_PSTRING_free(ret->data);
-        OPENSSL_free(ret->index);
-        OPENSSL_free(ret->qual);
-        OPENSSL_free(ret);
+        sk_VR_OPENSSL_PSTRING_free(ret->data);
+        OPENVR_SSL_free(ret->index);
+        OPENVR_SSL_free(ret->qual);
+        OPENVR_SSL_free(ret);
     }
     return NULL;
 }
 
-OPENSSL_STRING *TXT_DB_get_by_index(TXT_DB *db, int idx,
+OPENSSL_STRING *VR_TXT_DB_get_by_index(TXT_DB *db, int idx,
                                     OPENSSL_STRING *value)
 {
     OPENSSL_STRING *ret;
@@ -147,7 +147,7 @@ OPENSSL_STRING *TXT_DB_get_by_index(TXT_DB *db, int idx,
     return ret;
 }
 
-int TXT_DB_create_index(TXT_DB *db, int field, int (*qual) (OPENSSL_STRING *),
+int VR_TXT_DB_create_index(TXT_DB *db, int field, int (*qual) (OPENSSL_STRING *),
                         OPENSSL_LH_HASHFUNC hash, OPENSSL_LH_COMPFUNC cmp)
 {
     LHASH_OF(OPENSSL_STRING) *idx;
@@ -159,7 +159,7 @@ int TXT_DB_create_index(TXT_DB *db, int field, int (*qual) (OPENSSL_STRING *),
         return 0;
     }
     /* FIXME: we lose type checking at this point */
-    if ((idx = (LHASH_OF(OPENSSL_STRING) *)OPENSSL_LH_new(hash, cmp)) == NULL) {
+    if ((idx = (LHASH_OF(OPENSSL_STRING) *)VR_OPENSSL_LH_new(hash, cmp)) == NULL) {
         db->error = DB_ERROR_MALLOC;
         return 0;
     }
@@ -170,31 +170,31 @@ int TXT_DB_create_index(TXT_DB *db, int field, int (*qual) (OPENSSL_STRING *),
             continue;
         if ((k = lh_OPENSSL_STRING_insert(idx, r)) != NULL) {
             db->error = DB_ERROR_INDEX_CLASH;
-            db->arg1 = sk_OPENSSL_PSTRING_find(db->data, k);
+            db->arg1 = sk_VR_OPENSSL_PSTRING_find(db->data, k);
             db->arg2 = i;
-            lh_OPENSSL_STRING_free(idx);
+            lh_VR_OPENSSL_STRING_free(idx);
             return 0;
         }
         if (lh_OPENSSL_STRING_retrieve(idx, r) == NULL) {
             db->error = DB_ERROR_MALLOC;
-            lh_OPENSSL_STRING_free(idx);
+            lh_VR_OPENSSL_STRING_free(idx);
             return 0;
         }
     }
-    lh_OPENSSL_STRING_free(db->index[field]);
+    lh_VR_OPENSSL_STRING_free(db->index[field]);
     db->index[field] = idx;
     db->qual[field] = qual;
     return 1;
 }
 
-long TXT_DB_write(BIO *out, TXT_DB *db)
+long VR_TXT_DB_write(BIO *out, TXT_DB *db)
 {
     long i, j, n, nn, l, tot = 0;
     char *p, **pp, *f;
     BUF_MEM *buf = NULL;
     long ret = -1;
 
-    if ((buf = BUF_MEM_new()) == NULL)
+    if ((buf = VR_BUF_MEM_new()) == NULL)
         goto err;
     n = sk_OPENSSL_PSTRING_num(db->data);
     nn = db->num_fields;
@@ -206,7 +206,7 @@ long TXT_DB_write(BIO *out, TXT_DB *db)
             if (pp[j] != NULL)
                 l += strlen(pp[j]);
         }
-        if (!BUF_MEM_grow_clean(buf, (int)(l * 2 + nn)))
+        if (!VR_BUF_MEM_grow_clean(buf, (int)(l * 2 + nn)))
             goto err;
 
         p = buf->data;
@@ -224,17 +224,17 @@ long TXT_DB_write(BIO *out, TXT_DB *db)
         }
         p[-1] = '\n';
         j = p - buf->data;
-        if (BIO_write(out, buf->data, (int)j) != j)
+        if (VR_BIO_write(out, buf->data, (int)j) != j)
             goto err;
         tot += j;
     }
     ret = tot;
  err:
-    BUF_MEM_free(buf);
+    VR_BUF_MEM_free(buf);
     return ret;
 }
 
-int TXT_DB_insert(TXT_DB *db, OPENSSL_STRING *row)
+int VR_TXT_DB_insert(TXT_DB *db, OPENSSL_STRING *row)
 {
     int i;
     OPENSSL_STRING *r;
@@ -262,7 +262,7 @@ int TXT_DB_insert(TXT_DB *db, OPENSSL_STRING *row)
                 goto err1;
         }
     }
-    if (!sk_OPENSSL_PSTRING_push(db->data, row))
+    if (!sk_VR_OPENSSL_PSTRING_push(db->data, row))
         goto err1;
     return 1;
 
@@ -279,7 +279,7 @@ int TXT_DB_insert(TXT_DB *db, OPENSSL_STRING *row)
     return 0;
 }
 
-void TXT_DB_free(TXT_DB *db)
+void VR_TXT_DB_free(TXT_DB *db)
 {
     int i, n;
     char **p, *max;
@@ -288,10 +288,10 @@ void TXT_DB_free(TXT_DB *db)
         return;
     if (db->index != NULL) {
         for (i = db->num_fields - 1; i >= 0; i--)
-            lh_OPENSSL_STRING_free(db->index[i]);
-        OPENSSL_free(db->index);
+            lh_VR_OPENSSL_STRING_free(db->index[i]);
+        OPENVR_SSL_free(db->index);
     }
-    OPENSSL_free(db->qual);
+    OPENVR_SSL_free(db->qual);
     if (db->data != NULL) {
         for (i = sk_OPENSSL_PSTRING_num(db->data) - 1; i >= 0; i--) {
             /*
@@ -302,16 +302,16 @@ void TXT_DB_free(TXT_DB *db)
             max = p[db->num_fields]; /* last address */
             if (max == NULL) {  /* new row */
                 for (n = 0; n < db->num_fields; n++)
-                    OPENSSL_free(p[n]);
+                    OPENVR_SSL_free(p[n]);
             } else {
                 for (n = 0; n < db->num_fields; n++) {
                     if (((p[n] < (char *)p) || (p[n] > max)))
-                        OPENSSL_free(p[n]);
+                        OPENVR_SSL_free(p[n]);
                 }
             }
-            OPENSSL_free(sk_OPENSSL_PSTRING_value(db->data, i));
+            OPENVR_SSL_free(sk_OPENSSL_PSTRING_value(db->data, i));
         }
-        sk_OPENSSL_PSTRING_free(db->data);
+        sk_VR_OPENSSL_PSTRING_free(db->data);
     }
-    OPENSSL_free(db);
+    OPENVR_SSL_free(db);
 }

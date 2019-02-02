@@ -39,7 +39,7 @@
 # include <fcntl.h>
 #endif
 
-#define CLEAR(p, s) OPENSSL_cleanse(p, s)
+#define CLEAR(p, s) VR_OPENSSL_cleanse(p, s)
 #ifndef PAGE_SIZE
 # define PAGE_SIZE    4096
 #endif
@@ -65,19 +65,19 @@ static size_t sh_actual_size(char *ptr);
 static int sh_allocated(const char *ptr);
 #endif
 
-int CRYPTO_secure_malloc_init(size_t size, int minsize)
+int VR_CRYPTO_secure_malloc_init(size_t size, int minsize)
 {
 #ifdef OPENSSL_SECURE_MEMORY
     int ret = 0;
 
     if (!secure_mem_initialized) {
-        sec_malloc_lock = CRYPTO_THREAD_lock_new();
+        sec_malloc_lock = VR_CRYPTO_THREAD_lock_new();
         if (sec_malloc_lock == NULL)
             return 0;
         if ((ret = sh_init(size, minsize)) != 0) {
             secure_mem_initialized = 1;
         } else {
-            CRYPTO_THREAD_lock_free(sec_malloc_lock);
+            VR_CRYPTO_THREAD_lock_free(sec_malloc_lock);
             sec_malloc_lock = NULL;
         }
     }
@@ -88,13 +88,13 @@ int CRYPTO_secure_malloc_init(size_t size, int minsize)
 #endif /* OPENSSL_SECURE_MEMORY */
 }
 
-int CRYPTO_secure_malloc_done(void)
+int VR_CRYPTO_secure_malloc_done(void)
 {
 #ifdef OPENSSL_SECURE_MEMORY
     if (secure_mem_used == 0) {
         sh_done();
         secure_mem_initialized = 0;
-        CRYPTO_THREAD_lock_free(sec_malloc_lock);
+        VR_CRYPTO_THREAD_lock_free(sec_malloc_lock);
         sec_malloc_lock = NULL;
         return 1;
     }
@@ -102,7 +102,7 @@ int CRYPTO_secure_malloc_done(void)
     return 0;
 }
 
-int CRYPTO_secure_malloc_initialized(void)
+int VR_CRYPTO_secure_malloc_initialized(void)
 {
 #ifdef OPENSSL_SECURE_MEMORY
     return secure_mem_initialized;
@@ -111,59 +111,59 @@ int CRYPTO_secure_malloc_initialized(void)
 #endif /* OPENSSL_SECURE_MEMORY */
 }
 
-void *CRYPTO_secure_malloc(size_t num, const char *file, int line)
+void *VR_CRYPTO_secure_malloc(size_t num, const char *file, int line)
 {
 #ifdef OPENSSL_SECURE_MEMORY
     void *ret;
     size_t actual_size;
 
     if (!secure_mem_initialized) {
-        return CRYPTO_malloc(num, file, line);
+        return VR_CRYPTO_malloc(num, file, line);
     }
-    CRYPTO_THREAD_write_lock(sec_malloc_lock);
+    VR_CRYPTO_THREAD_write_lock(sec_malloc_lock);
     ret = sh_malloc(num);
     actual_size = ret ? sh_actual_size(ret) : 0;
     secure_mem_used += actual_size;
-    CRYPTO_THREAD_unlock(sec_malloc_lock);
+    VR_CRYPTO_THREAD_unlock(sec_malloc_lock);
     return ret;
 #else
-    return CRYPTO_malloc(num, file, line);
+    return VR_CRYPTO_malloc(num, file, line);
 #endif /* OPENSSL_SECURE_MEMORY */
 }
 
-void *CRYPTO_secure_zalloc(size_t num, const char *file, int line)
+void *VR_CRYPTO_secure_zalloc(size_t num, const char *file, int line)
 {
 #ifdef OPENSSL_SECURE_MEMORY
     if (secure_mem_initialized)
-        /* CRYPTO_secure_malloc() zeroes allocations when it is implemented */
-        return CRYPTO_secure_malloc(num, file, line);
+        /* VR_CRYPTO_secure_malloc() zeroes allocations when it is implemented */
+        return VR_CRYPTO_secure_malloc(num, file, line);
 #endif
-    return CRYPTO_zalloc(num, file, line);
+    return VR_CRYPTO_zalloc(num, file, line);
 }
 
-void CRYPTO_secure_free(void *ptr, const char *file, int line)
+void VR_CRYPTO_secure_free(void *ptr, const char *file, int line)
 {
 #ifdef OPENSSL_SECURE_MEMORY
     size_t actual_size;
 
     if (ptr == NULL)
         return;
-    if (!CRYPTO_secure_allocated(ptr)) {
-        CRYPTO_free(ptr, file, line);
+    if (!VR_CRYPTO_secure_allocated(ptr)) {
+        VR_CRYPTO_free(ptr, file, line);
         return;
     }
-    CRYPTO_THREAD_write_lock(sec_malloc_lock);
+    VR_CRYPTO_THREAD_write_lock(sec_malloc_lock);
     actual_size = sh_actual_size(ptr);
     CLEAR(ptr, actual_size);
     secure_mem_used -= actual_size;
     sh_free(ptr);
-    CRYPTO_THREAD_unlock(sec_malloc_lock);
+    VR_CRYPTO_THREAD_unlock(sec_malloc_lock);
 #else
-    CRYPTO_free(ptr, file, line);
+    VR_CRYPTO_free(ptr, file, line);
 #endif /* OPENSSL_SECURE_MEMORY */
 }
 
-void CRYPTO_secure_clear_free(void *ptr, size_t num,
+void VR_CRYPTO_secure_clear_free(void *ptr, size_t num,
                               const char *file, int line)
 {
 #ifdef OPENSSL_SECURE_MEMORY
@@ -171,42 +171,42 @@ void CRYPTO_secure_clear_free(void *ptr, size_t num,
 
     if (ptr == NULL)
         return;
-    if (!CRYPTO_secure_allocated(ptr)) {
-        OPENSSL_cleanse(ptr, num);
-        CRYPTO_free(ptr, file, line);
+    if (!VR_CRYPTO_secure_allocated(ptr)) {
+        VR_OPENSSL_cleanse(ptr, num);
+        VR_CRYPTO_free(ptr, file, line);
         return;
     }
-    CRYPTO_THREAD_write_lock(sec_malloc_lock);
+    VR_CRYPTO_THREAD_write_lock(sec_malloc_lock);
     actual_size = sh_actual_size(ptr);
     CLEAR(ptr, actual_size);
     secure_mem_used -= actual_size;
     sh_free(ptr);
-    CRYPTO_THREAD_unlock(sec_malloc_lock);
+    VR_CRYPTO_THREAD_unlock(sec_malloc_lock);
 #else
     if (ptr == NULL)
         return;
-    OPENSSL_cleanse(ptr, num);
-    CRYPTO_free(ptr, file, line);
+    VR_OPENSSL_cleanse(ptr, num);
+    VR_CRYPTO_free(ptr, file, line);
 #endif /* OPENSSL_SECURE_MEMORY */
 }
 
-int CRYPTO_secure_allocated(const void *ptr)
+int VR_CRYPTO_secure_allocated(const void *ptr)
 {
 #ifdef OPENSSL_SECURE_MEMORY
     int ret;
 
     if (!secure_mem_initialized)
         return 0;
-    CRYPTO_THREAD_write_lock(sec_malloc_lock);
+    VR_CRYPTO_THREAD_write_lock(sec_malloc_lock);
     ret = sh_allocated(ptr);
-    CRYPTO_THREAD_unlock(sec_malloc_lock);
+    VR_CRYPTO_THREAD_unlock(sec_malloc_lock);
     return ret;
 #else
     return 0;
 #endif /* OPENSSL_SECURE_MEMORY */
 }
 
-size_t CRYPTO_secure_used(void)
+size_t VR_CRYPTO_secure_used(void)
 {
 #ifdef OPENSSL_SECURE_MEMORY
     return secure_mem_used;
@@ -215,14 +215,14 @@ size_t CRYPTO_secure_used(void)
 #endif /* OPENSSL_SECURE_MEMORY */
 }
 
-size_t CRYPTO_secure_actual_size(void *ptr)
+size_t VR_CRYPTO_secure_actual_size(void *ptr)
 {
 #ifdef OPENSSL_SECURE_MEMORY
     size_t actual_size;
 
-    CRYPTO_THREAD_write_lock(sec_malloc_lock);
+    VR_CRYPTO_THREAD_write_lock(sec_malloc_lock);
     actual_size = sh_actual_size(ptr);
-    CRYPTO_THREAD_unlock(sec_malloc_lock);
+    VR_CRYPTO_THREAD_unlock(sec_malloc_lock);
     return actual_size;
 #else
     return 0;
@@ -499,9 +499,9 @@ static int sh_init(size_t size, int minsize)
 
 static void sh_done(void)
 {
-    OPENSSL_free(sh.freelist);
-    OPENSSL_free(sh.bittable);
-    OPENSSL_free(sh.bitmalloc);
+    OPENVR_SSL_free(sh.freelist);
+    OPENVR_SSL_free(sh.bittable);
+    OPENVR_SSL_free(sh.bitmalloc);
     if (sh.map_result != NULL && sh.map_size)
         munmap(sh.map_result, sh.map_size);
     memset(&sh, 0, sizeof(sh));

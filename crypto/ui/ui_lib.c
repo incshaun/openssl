@@ -15,12 +15,12 @@
 #include <openssl/err.h>
 #include "ui_locl.h"
 
-UI *UI_new(void)
+UI *VR_UI_new(void)
 {
-    return UI_new_method(NULL);
+    return VR_UI_new_method(NULL);
 }
 
-UI *UI_new_method(const UI_METHOD *method)
+UI *VR_UI_new_method(const UI_METHOD *method)
 {
     UI *ret = OPENSSL_zalloc(sizeof(*ret));
 
@@ -29,21 +29,21 @@ UI *UI_new_method(const UI_METHOD *method)
         return NULL;
     }
 
-    ret->lock = CRYPTO_THREAD_lock_new();
+    ret->lock = VR_CRYPTO_THREAD_lock_new();
     if (ret->lock == NULL) {
         UIerr(UI_F_UI_NEW_METHOD, ERR_R_MALLOC_FAILURE);
-        OPENSSL_free(ret);
+        OPENVR_SSL_free(ret);
         return NULL;
     }
 
     if (method == NULL)
-        method = UI_get_default_method();
+        method = VR_UI_get_default_method();
     if (method == NULL)
-        method = UI_null();
+        method = VR_UI_null();
     ret->meth = method;
 
-    if (!CRYPTO_new_ex_data(CRYPTO_EX_INDEX_UI, ret, &ret->ex_data)) {
-        OPENSSL_free(ret);
+    if (!VR_CRYPTO_new_ex_data(CRYPTO_EX_INDEX_UI, ret, &ret->ex_data)) {
+        OPENVR_SSL_free(ret);
         return NULL;
     }
     return ret;
@@ -52,12 +52,12 @@ UI *UI_new_method(const UI_METHOD *method)
 static void free_string(UI_STRING *uis)
 {
     if (uis->flags & OUT_STRING_FREEABLE) {
-        OPENSSL_free((char *)uis->out_string);
+        OPENVR_SSL_free((char *)uis->out_string);
         switch (uis->type) {
         case UIT_BOOLEAN:
-            OPENSSL_free((char *)uis->_.boolean_data.action_desc);
-            OPENSSL_free((char *)uis->_.boolean_data.ok_chars);
-            OPENSSL_free((char *)uis->_.boolean_data.cancel_chars);
+            OPENVR_SSL_free((char *)uis->_.boolean_data.action_desc);
+            OPENVR_SSL_free((char *)uis->_.boolean_data.ok_chars);
+            OPENVR_SSL_free((char *)uis->_.boolean_data.cancel_chars);
             break;
         case UIT_NONE:
         case UIT_PROMPT:
@@ -67,26 +67,26 @@ static void free_string(UI_STRING *uis)
             break;
         }
     }
-    OPENSSL_free(uis);
+    OPENVR_SSL_free(uis);
 }
 
-void UI_free(UI *ui)
+void VR_UI_free(UI *ui)
 {
     if (ui == NULL)
         return;
     if ((ui->flags & UI_FLAG_DUPL_DATA) != 0) {
         ui->meth->ui_destroy_data(ui, ui->user_data);
     }
-    sk_UI_STRING_pop_free(ui->strings, free_string);
-    CRYPTO_free_ex_data(CRYPTO_EX_INDEX_UI, ui, &ui->ex_data);
-    CRYPTO_THREAD_lock_free(ui->lock);
-    OPENSSL_free(ui);
+    sk_VR_UI_STRING_pop_free(ui->strings, free_string);
+    VR_CRYPTO_free_ex_data(CRYPTO_EX_INDEX_UI, ui, &ui->ex_data);
+    VR_CRYPTO_THREAD_lock_free(ui->lock);
+    OPENVR_SSL_free(ui);
 }
 
 static int allocate_string_stack(UI *ui)
 {
     if (ui->strings == NULL) {
-        ui->strings = sk_UI_STRING_new_null();
+        ui->strings = sk_VR_UI_STRING_new_null();
         if (ui->strings == NULL) {
             return -1;
         }
@@ -131,7 +131,7 @@ static int general_allocate_string(UI *ui, const char *prompt,
             s->_.string_data.result_minsize = minsize;
             s->_.string_data.result_maxsize = maxsize;
             s->_.string_data.test_buf = test_buf;
-            ret = sk_UI_STRING_push(ui->strings, s);
+            ret = sk_VR_UI_STRING_push(ui->strings, s);
             /* sk_push() returns 0 on error.  Let's adapt that */
             if (ret <= 0) {
                 ret--;
@@ -176,7 +176,7 @@ static int general_allocate_boolean(UI *ui,
                 s->_.boolean_data.action_desc = action_desc;
                 s->_.boolean_data.ok_chars = ok_chars;
                 s->_.boolean_data.cancel_chars = cancel_chars;
-                ret = sk_UI_STRING_push(ui->strings, s);
+                ret = sk_VR_UI_STRING_push(ui->strings, s);
                 /*
                  * sk_push() returns 0 on error. Let's adapt that
                  */
@@ -195,7 +195,7 @@ static int general_allocate_boolean(UI *ui,
  * Returns the index to the place in the stack or -1 for error.  Uses a
  * direct reference to the prompt.
  */
-int UI_add_input_string(UI *ui, const char *prompt, int flags,
+int VR_UI_add_input_string(UI *ui, const char *prompt, int flags,
                         char *result_buf, int minsize, int maxsize)
 {
     return general_allocate_string(ui, prompt, 0,
@@ -203,8 +203,8 @@ int UI_add_input_string(UI *ui, const char *prompt, int flags,
                                    maxsize, NULL);
 }
 
-/* Same as UI_add_input_string(), excepts it takes a copy of the prompt */
-int UI_dup_input_string(UI *ui, const char *prompt, int flags,
+/* Same as VR_UI_add_input_string(), excepts it takes a copy of the prompt */
+int VR_UI_dup_input_string(UI *ui, const char *prompt, int flags,
                         char *result_buf, int minsize, int maxsize)
 {
     char *prompt_copy = NULL;
@@ -222,7 +222,7 @@ int UI_dup_input_string(UI *ui, const char *prompt, int flags,
                                    maxsize, NULL);
 }
 
-int UI_add_verify_string(UI *ui, const char *prompt, int flags,
+int VR_UI_add_verify_string(UI *ui, const char *prompt, int flags,
                          char *result_buf, int minsize, int maxsize,
                          const char *test_buf)
 {
@@ -231,7 +231,7 @@ int UI_add_verify_string(UI *ui, const char *prompt, int flags,
                                    maxsize, test_buf);
 }
 
-int UI_dup_verify_string(UI *ui, const char *prompt, int flags,
+int VR_UI_dup_verify_string(UI *ui, const char *prompt, int flags,
                          char *result_buf, int minsize, int maxsize,
                          const char *test_buf)
 {
@@ -250,7 +250,7 @@ int UI_dup_verify_string(UI *ui, const char *prompt, int flags,
                                    maxsize, test_buf);
 }
 
-int UI_add_input_boolean(UI *ui, const char *prompt, const char *action_desc,
+int VR_UI_add_input_boolean(UI *ui, const char *prompt, const char *action_desc,
                          const char *ok_chars, const char *cancel_chars,
                          int flags, char *result_buf)
 {
@@ -259,7 +259,7 @@ int UI_add_input_boolean(UI *ui, const char *prompt, const char *action_desc,
                                     flags, result_buf);
 }
 
-int UI_dup_input_boolean(UI *ui, const char *prompt, const char *action_desc,
+int VR_UI_dup_input_boolean(UI *ui, const char *prompt, const char *action_desc,
                          const char *ok_chars, const char *cancel_chars,
                          int flags, char *result_buf)
 {
@@ -304,20 +304,20 @@ int UI_dup_input_boolean(UI *ui, const char *prompt, const char *action_desc,
                                     ok_chars_copy, cancel_chars_copy, 1,
                                     UIT_BOOLEAN, flags, result_buf);
  err:
-    OPENSSL_free(prompt_copy);
-    OPENSSL_free(action_desc_copy);
-    OPENSSL_free(ok_chars_copy);
-    OPENSSL_free(cancel_chars_copy);
+    OPENVR_SSL_free(prompt_copy);
+    OPENVR_SSL_free(action_desc_copy);
+    OPENVR_SSL_free(ok_chars_copy);
+    OPENVR_SSL_free(cancel_chars_copy);
     return -1;
 }
 
-int UI_add_info_string(UI *ui, const char *text)
+int VR_UI_add_info_string(UI *ui, const char *text)
 {
     return general_allocate_string(ui, text, 0, UIT_INFO, 0, NULL, 0, 0,
                                    NULL);
 }
 
-int UI_dup_info_string(UI *ui, const char *text)
+int VR_UI_dup_info_string(UI *ui, const char *text)
 {
     char *text_copy = NULL;
 
@@ -333,13 +333,13 @@ int UI_dup_info_string(UI *ui, const char *text)
                                    0, 0, NULL);
 }
 
-int UI_add_error_string(UI *ui, const char *text)
+int VR_UI_add_error_string(UI *ui, const char *text)
 {
     return general_allocate_string(ui, text, 0, UIT_ERROR, 0, NULL, 0, 0,
                                    NULL);
 }
 
-int UI_dup_error_string(UI *ui, const char *text)
+int VR_UI_dup_error_string(UI *ui, const char *text)
 {
     char *text_copy = NULL;
 
@@ -354,7 +354,7 @@ int UI_dup_error_string(UI *ui, const char *text)
                                    0, 0, NULL);
 }
 
-char *UI_construct_prompt(UI *ui, const char *object_desc,
+char *VR_UI_construct_prompt(UI *ui, const char *object_desc,
                           const char *object_name)
 {
     char *prompt = NULL;
@@ -378,18 +378,18 @@ char *UI_construct_prompt(UI *ui, const char *object_desc,
             UIerr(UI_F_UI_CONSTRUCT_PROMPT, ERR_R_MALLOC_FAILURE);
             return NULL;
         }
-        OPENSSL_strlcpy(prompt, prompt1, len + 1);
-        OPENSSL_strlcat(prompt, object_desc, len + 1);
+        VR_OPENSSL_strlcpy(prompt, prompt1, len + 1);
+        VR_OPENSSL_strlcat(prompt, object_desc, len + 1);
         if (object_name != NULL) {
-            OPENSSL_strlcat(prompt, prompt2, len + 1);
-            OPENSSL_strlcat(prompt, object_name, len + 1);
+            VR_OPENSSL_strlcat(prompt, prompt2, len + 1);
+            VR_OPENSSL_strlcat(prompt, object_name, len + 1);
         }
-        OPENSSL_strlcat(prompt, prompt3, len + 1);
+        VR_OPENSSL_strlcat(prompt, prompt3, len + 1);
     }
     return prompt;
 }
 
-void *UI_add_user_data(UI *ui, void *user_data)
+void *VR_UI_add_user_data(UI *ui, void *user_data)
 {
     void *old_data = ui->user_data;
 
@@ -402,7 +402,7 @@ void *UI_add_user_data(UI *ui, void *user_data)
     return old_data;
 }
 
-int UI_dup_user_data(UI *ui, void *user_data)
+int VR_UI_dup_user_data(UI *ui, void *user_data)
 {
     void *duplicate = NULL;
 
@@ -418,18 +418,18 @@ int UI_dup_user_data(UI *ui, void *user_data)
         return -1;
     }
 
-    (void)UI_add_user_data(ui, duplicate);
+    (void)VR_UI_add_user_data(ui, duplicate);
     ui->flags |= UI_FLAG_DUPL_DATA;
 
     return 0;
 }
 
-void *UI_get0_user_data(UI *ui)
+void *VR_UI_get0_user_data(UI *ui)
 {
     return ui->user_data;
 }
 
-const char *UI_get0_result(UI *ui, int i)
+const char *VR_UI_get0_result(UI *ui, int i)
 {
     if (i < 0) {
         UIerr(UI_F_UI_GET0_RESULT, UI_R_INDEX_TOO_SMALL);
@@ -439,10 +439,10 @@ const char *UI_get0_result(UI *ui, int i)
         UIerr(UI_F_UI_GET0_RESULT, UI_R_INDEX_TOO_LARGE);
         return NULL;
     }
-    return UI_get0_result_string(sk_UI_STRING_value(ui->strings, i));
+    return VR_UI_get0_result_string(sk_UI_STRING_value(ui->strings, i));
 }
 
-int UI_get_result_length(UI *ui, int i)
+int VR_UI_get_result_length(UI *ui, int i)
 {
     if (i < 0) {
         UIerr(UI_F_UI_GET_RESULT_LENGTH, UI_R_INDEX_TOO_SMALL);
@@ -452,7 +452,7 @@ int UI_get_result_length(UI *ui, int i)
         UIerr(UI_F_UI_GET_RESULT_LENGTH, UI_R_INDEX_TOO_LARGE);
         return -1;
     }
-    return UI_get_result_string_length(sk_UI_STRING_value(ui->strings, i));
+    return VR_UI_get_result_string_length(sk_UI_STRING_value(ui->strings, i));
 }
 
 static int print_error(const char *str, size_t len, UI *ui)
@@ -469,7 +469,7 @@ static int print_error(const char *str, size_t len, UI *ui)
     return 0;
 }
 
-int UI_process(UI *ui)
+int VR_UI_process(UI *ui)
 {
     int i, ok = 0;
     const char *state = "processing";
@@ -482,7 +482,7 @@ int UI_process(UI *ui)
     }
 
     if (ui->flags & UI_FLAG_PRINT_ERRORS)
-        ERR_print_errors_cb((int (*)(const char *, size_t, void *))
+        VR_ERR_print_errors_cb((int (*)(const char *, size_t, void *))
                             print_error, (void *)ui);
 
     for (i = 0; i < sk_UI_STRING_num(ui->strings); i++) {
@@ -541,12 +541,12 @@ int UI_process(UI *ui)
 
     if (ok == -1) {
         UIerr(UI_F_UI_PROCESS, UI_R_PROCESSING_ERROR);
-        ERR_add_error_data(2, "while ", state);
+        VR_ERR_add_error_data(2, "while ", state);
     }
     return ok;
 }
 
-int UI_ctrl(UI *ui, int cmd, long i, void *p, void (*f) (void))
+int VR_UI_ctrl(UI *ui, int cmd, long i, void *p, void (*f) (void))
 {
     if (ui == NULL) {
         UIerr(UI_F_UI_CTRL, ERR_R_PASSED_NULL_PARAMETER);
@@ -571,38 +571,38 @@ int UI_ctrl(UI *ui, int cmd, long i, void *p, void (*f) (void))
     return -1;
 }
 
-int UI_set_ex_data(UI *r, int idx, void *arg)
+int VR_UI_set_ex_data(UI *r, int idx, void *arg)
 {
-    return CRYPTO_set_ex_data(&r->ex_data, idx, arg);
+    return VR_CRYPTO_set_ex_data(&r->ex_data, idx, arg);
 }
 
-void *UI_get_ex_data(UI *r, int idx)
+void *VR_UI_get_ex_data(UI *r, int idx)
 {
-    return CRYPTO_get_ex_data(&r->ex_data, idx);
+    return VR_CRYPTO_get_ex_data(&r->ex_data, idx);
 }
 
-const UI_METHOD *UI_get_method(UI *ui)
+const UI_METHOD *VR_UI_get_method(UI *ui)
 {
     return ui->meth;
 }
 
-const UI_METHOD *UI_set_method(UI *ui, const UI_METHOD *meth)
+const UI_METHOD *VR_UI_set_method(UI *ui, const UI_METHOD *meth)
 {
     ui->meth = meth;
     return ui->meth;
 }
 
-UI_METHOD *UI_create_method(const char *name)
+UI_METHOD *VR_UI_create_method(const char *name)
 {
     UI_METHOD *ui_method = NULL;
 
     if ((ui_method = OPENSSL_zalloc(sizeof(*ui_method))) == NULL
         || (ui_method->name = OPENSSL_strdup(name)) == NULL
-        || !CRYPTO_new_ex_data(CRYPTO_EX_INDEX_UI_METHOD, ui_method,
+        || !VR_CRYPTO_new_ex_data(CRYPTO_EX_INDEX_UI_METHOD, ui_method,
                                &ui_method->ex_data)) {
         if (ui_method)
-            OPENSSL_free(ui_method->name);
-        OPENSSL_free(ui_method);
+            OPENVR_SSL_free(ui_method->name);
+        OPENVR_SSL_free(ui_method);
         UIerr(UI_F_UI_CREATE_METHOD, ERR_R_MALLOC_FAILURE);
         return NULL;
     }
@@ -611,21 +611,21 @@ UI_METHOD *UI_create_method(const char *name)
 
 /*
  * BIG FSCKING WARNING!!!! If you use this on a statically allocated method
- * (that is, it hasn't been allocated using UI_create_method(), you deserve
+ * (that is, it hasn't been allocated using VR_UI_create_method(), you deserve
  * anything Murphy can throw at you and more! You have been warned.
  */
-void UI_destroy_method(UI_METHOD *ui_method)
+void VR_UI_destroy_method(UI_METHOD *ui_method)
 {
     if (ui_method == NULL)
         return;
-    CRYPTO_free_ex_data(CRYPTO_EX_INDEX_UI_METHOD, ui_method,
+    VR_CRYPTO_free_ex_data(CRYPTO_EX_INDEX_UI_METHOD, ui_method,
                         &ui_method->ex_data);
-    OPENSSL_free(ui_method->name);
+    OPENVR_SSL_free(ui_method->name);
     ui_method->name = NULL;
-    OPENSSL_free(ui_method);
+    OPENVR_SSL_free(ui_method);
 }
 
-int UI_method_set_opener(UI_METHOD *method, int (*opener) (UI *ui))
+int VR_UI_method_set_opener(UI_METHOD *method, int (*opener) (UI *ui))
 {
     if (method != NULL) {
         method->ui_open_session = opener;
@@ -634,7 +634,7 @@ int UI_method_set_opener(UI_METHOD *method, int (*opener) (UI *ui))
     return -1;
 }
 
-int UI_method_set_writer(UI_METHOD *method,
+int VR_UI_method_set_writer(UI_METHOD *method,
                          int (*writer) (UI *ui, UI_STRING *uis))
 {
     if (method != NULL) {
@@ -644,7 +644,7 @@ int UI_method_set_writer(UI_METHOD *method,
     return -1;
 }
 
-int UI_method_set_flusher(UI_METHOD *method, int (*flusher) (UI *ui))
+int VR_UI_method_set_flusher(UI_METHOD *method, int (*flusher) (UI *ui))
 {
     if (method != NULL) {
         method->ui_flush = flusher;
@@ -653,7 +653,7 @@ int UI_method_set_flusher(UI_METHOD *method, int (*flusher) (UI *ui))
     return -1;
 }
 
-int UI_method_set_reader(UI_METHOD *method,
+int VR_UI_method_set_reader(UI_METHOD *method,
                          int (*reader) (UI *ui, UI_STRING *uis))
 {
     if (method != NULL) {
@@ -663,7 +663,7 @@ int UI_method_set_reader(UI_METHOD *method,
     return -1;
 }
 
-int UI_method_set_closer(UI_METHOD *method, int (*closer) (UI *ui))
+int VR_UI_method_set_closer(UI_METHOD *method, int (*closer) (UI *ui))
 {
     if (method != NULL) {
         method->ui_close_session = closer;
@@ -672,7 +672,7 @@ int UI_method_set_closer(UI_METHOD *method, int (*closer) (UI *ui))
     return -1;
 }
 
-int UI_method_set_data_duplicator(UI_METHOD *method,
+int VR_UI_method_set_data_duplicator(UI_METHOD *method,
                                   void *(*duplicator) (UI *ui, void *ui_data),
                                   void (*destructor)(UI *ui, void *ui_data))
 {
@@ -684,7 +684,7 @@ int UI_method_set_data_duplicator(UI_METHOD *method,
     return -1;
 }
 
-int UI_method_set_prompt_constructor(UI_METHOD *method,
+int VR_UI_method_set_prompt_constructor(UI_METHOD *method,
                                      char *(*prompt_constructor) (UI *ui,
                                                                   const char
                                                                   *object_desc,
@@ -698,47 +698,47 @@ int UI_method_set_prompt_constructor(UI_METHOD *method,
     return -1;
 }
 
-int UI_method_set_ex_data(UI_METHOD *method, int idx, void *data)
+int VR_UI_method_set_ex_data(UI_METHOD *method, int idx, void *data)
 {
-    return CRYPTO_set_ex_data(&method->ex_data, idx, data);
+    return VR_CRYPTO_set_ex_data(&method->ex_data, idx, data);
 }
 
-int (*UI_method_get_opener(const UI_METHOD *method)) (UI *)
+int (*VR_UI_method_get_opener(const UI_METHOD *method)) (UI *)
 {
     if (method != NULL)
         return method->ui_open_session;
     return NULL;
 }
 
-int (*UI_method_get_writer(const UI_METHOD *method)) (UI *, UI_STRING *)
+int (*VR_UI_method_get_writer(const UI_METHOD *method)) (UI *, UI_STRING *)
 {
     if (method != NULL)
         return method->ui_write_string;
     return NULL;
 }
 
-int (*UI_method_get_flusher(const UI_METHOD *method)) (UI *)
+int (*VR_UI_method_get_flusher(const UI_METHOD *method)) (UI *)
 {
     if (method != NULL)
         return method->ui_flush;
     return NULL;
 }
 
-int (*UI_method_get_reader(const UI_METHOD *method)) (UI *, UI_STRING *)
+int (*VR_UI_method_get_reader(const UI_METHOD *method)) (UI *, UI_STRING *)
 {
     if (method != NULL)
         return method->ui_read_string;
     return NULL;
 }
 
-int (*UI_method_get_closer(const UI_METHOD *method)) (UI *)
+int (*VR_UI_method_get_closer(const UI_METHOD *method)) (UI *)
 {
     if (method != NULL)
         return method->ui_close_session;
     return NULL;
 }
 
-char *(*UI_method_get_prompt_constructor(const UI_METHOD *method))
+char *(*VR_UI_method_get_prompt_constructor(const UI_METHOD *method))
     (UI *, const char *, const char *)
 {
     if (method != NULL)
@@ -746,41 +746,41 @@ char *(*UI_method_get_prompt_constructor(const UI_METHOD *method))
     return NULL;
 }
 
-void *(*UI_method_get_data_duplicator(const UI_METHOD *method)) (UI *, void *)
+void *(*VR_UI_method_get_data_duplicator(const UI_METHOD *method)) (UI *, void *)
 {
     if (method != NULL)
         return method->ui_duplicate_data;
     return NULL;
 }
 
-void (*UI_method_get_data_destructor(const UI_METHOD *method)) (UI *, void *)
+void (*VR_UI_method_get_data_destructor(const UI_METHOD *method)) (UI *, void *)
 {
     if (method != NULL)
         return method->ui_destroy_data;
     return NULL;
 }
 
-const void *UI_method_get_ex_data(const UI_METHOD *method, int idx)
+const void *VR_UI_method_get_ex_data(const UI_METHOD *method, int idx)
 {
-    return CRYPTO_get_ex_data(&method->ex_data, idx);
+    return VR_CRYPTO_get_ex_data(&method->ex_data, idx);
 }
 
-enum UI_string_types UI_get_string_type(UI_STRING *uis)
+enum UI_string_types VR_UI_get_string_type(UI_STRING *uis)
 {
     return uis->type;
 }
 
-int UI_get_input_flags(UI_STRING *uis)
+int VR_UI_get_input_flags(UI_STRING *uis)
 {
     return uis->input_flags;
 }
 
-const char *UI_get0_output_string(UI_STRING *uis)
+const char *VR_UI_get0_output_string(UI_STRING *uis)
 {
     return uis->out_string;
 }
 
-const char *UI_get0_action_string(UI_STRING *uis)
+const char *VR_UI_get0_action_string(UI_STRING *uis)
 {
     switch (uis->type) {
     case UIT_BOOLEAN:
@@ -795,7 +795,7 @@ const char *UI_get0_action_string(UI_STRING *uis)
     return NULL;
 }
 
-const char *UI_get0_result_string(UI_STRING *uis)
+const char *VR_UI_get0_result_string(UI_STRING *uis)
 {
     switch (uis->type) {
     case UIT_PROMPT:
@@ -810,7 +810,7 @@ const char *UI_get0_result_string(UI_STRING *uis)
     return NULL;
 }
 
-int UI_get_result_string_length(UI_STRING *uis)
+int VR_UI_get_result_string_length(UI_STRING *uis)
 {
     switch (uis->type) {
     case UIT_PROMPT:
@@ -825,7 +825,7 @@ int UI_get_result_string_length(UI_STRING *uis)
     return -1;
 }
 
-const char *UI_get0_test_string(UI_STRING *uis)
+const char *VR_UI_get0_test_string(UI_STRING *uis)
 {
     switch (uis->type) {
     case UIT_VERIFY:
@@ -840,7 +840,7 @@ const char *UI_get0_test_string(UI_STRING *uis)
     return NULL;
 }
 
-int UI_get_result_minsize(UI_STRING *uis)
+int VR_UI_get_result_minsize(UI_STRING *uis)
 {
     switch (uis->type) {
     case UIT_PROMPT:
@@ -855,7 +855,7 @@ int UI_get_result_minsize(UI_STRING *uis)
     return -1;
 }
 
-int UI_get_result_maxsize(UI_STRING *uis)
+int VR_UI_get_result_maxsize(UI_STRING *uis)
 {
     switch (uis->type) {
     case UIT_PROMPT:
@@ -870,7 +870,7 @@ int UI_get_result_maxsize(UI_STRING *uis)
     return -1;
 }
 
-int UI_set_result(UI *ui, UI_STRING *uis, const char *result)
+int VR_UI_set_result(UI *ui, UI_STRING *uis, const char *result)
 {
 #if 0
     /*
@@ -879,10 +879,10 @@ int UI_set_result(UI *ui, UI_STRING *uis, const char *result)
      */
     UIerr(UI_F_UI_SET_RESULT, ERR_R_DISABLED);
 #endif
-    return UI_set_result_ex(ui, uis, result, strlen(result));
+    return VR_UI_set_result_ex(ui, uis, result, strlen(result));
 }
 
-int UI_set_result_ex(UI *ui, UI_STRING *uis, const char *result, int len)
+int VR_UI_set_result_ex(UI *ui, UI_STRING *uis, const char *result, int len)
 {
     ui->flags &= ~UI_FLAG_REDOABLE;
 
@@ -893,22 +893,22 @@ int UI_set_result_ex(UI *ui, UI_STRING *uis, const char *result, int len)
             char number1[DECIMAL_SIZE(uis->_.string_data.result_minsize) + 1];
             char number2[DECIMAL_SIZE(uis->_.string_data.result_maxsize) + 1];
 
-            BIO_snprintf(number1, sizeof(number1), "%d",
+            VR_BIO_snprintf(number1, sizeof(number1), "%d",
                          uis->_.string_data.result_minsize);
-            BIO_snprintf(number2, sizeof(number2), "%d",
+            VR_BIO_snprintf(number2, sizeof(number2), "%d",
                          uis->_.string_data.result_maxsize);
 
             if (len < uis->_.string_data.result_minsize) {
                 ui->flags |= UI_FLAG_REDOABLE;
                 UIerr(UI_F_UI_SET_RESULT_EX, UI_R_RESULT_TOO_SMALL);
-                ERR_add_error_data(5, "You must type in ",
+                VR_ERR_add_error_data(5, "You must type in ",
                                    number1, " to ", number2, " characters");
                 return -1;
             }
             if (len > uis->_.string_data.result_maxsize) {
                 ui->flags |= UI_FLAG_REDOABLE;
                 UIerr(UI_F_UI_SET_RESULT_EX, UI_R_RESULT_TOO_LARGE);
-                ERR_add_error_data(5, "You must type in ",
+                VR_ERR_add_error_data(5, "You must type in ",
                                    number1, " to ", number2, " characters");
                 return -1;
             }

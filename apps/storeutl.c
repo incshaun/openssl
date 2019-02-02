@@ -14,7 +14,7 @@
 #include <openssl/err.h>
 #include <openssl/pem.h>
 #include <openssl/store.h>
-#include <openssl/x509v3.h>      /* s2i_ASN1_INTEGER */
+#include <openssl/x509v3.h>      /* VR_s2i_ASN1_INTEGER */
 
 static int process(const char *uri, const UI_METHOD *uimeth, PW_CB_DATA *uidata,
                    int expected, int criterion, OSSL_STORE_SEARCH *search,
@@ -77,7 +77,7 @@ int storeutl_main(int argc, char *argv[])
         case OPT_EOF:
         case OPT_ERR:
  opthelp:
-            BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
+            VR_BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
             opt_help(storeutl_options);
@@ -102,7 +102,7 @@ int storeutl_main(int argc, char *argv[])
         case OPT_SEARCHFOR_KEYS:
         case OPT_SEARCHFOR_CRLS:
             if (expected != 0) {
-                BIO_printf(bio_err, "%s: only one search type can be given.\n",
+                VR_BIO_printf(bio_err, "%s: only one search type can be given.\n",
                            prog);
                 goto end;
             }
@@ -132,18 +132,18 @@ int storeutl_main(int argc, char *argv[])
             break;
         case OPT_CRITERION_SUBJECT:
             if (criterion != 0) {
-                BIO_printf(bio_err, "%s: criterion already given.\n",
+                VR_BIO_printf(bio_err, "%s: criterion already given.\n",
                            prog);
                 goto end;
             }
             criterion = OSSL_STORE_SEARCH_BY_NAME;
             if (subject != NULL) {
-                BIO_printf(bio_err, "%s: subject already given.\n",
+                VR_BIO_printf(bio_err, "%s: subject already given.\n",
                            prog);
                 goto end;
             }
             if ((subject = parse_name(opt_arg(), MBSTRING_UTF8, 1)) == NULL) {
-                BIO_printf(bio_err, "%s: can't parse subject argument.\n",
+                VR_BIO_printf(bio_err, "%s: can't parse subject argument.\n",
                            prog);
                 goto end;
             }
@@ -152,18 +152,18 @@ int storeutl_main(int argc, char *argv[])
             if (criterion != 0
                 || (criterion == OSSL_STORE_SEARCH_BY_ISSUER_SERIAL
                     && issuer != NULL)) {
-                BIO_printf(bio_err, "%s: criterion already given.\n",
+                VR_BIO_printf(bio_err, "%s: criterion already given.\n",
                            prog);
                 goto end;
             }
             criterion = OSSL_STORE_SEARCH_BY_ISSUER_SERIAL;
             if (issuer != NULL) {
-                BIO_printf(bio_err, "%s: issuer already given.\n",
+                VR_BIO_printf(bio_err, "%s: issuer already given.\n",
                            prog);
                 goto end;
             }
             if ((issuer = parse_name(opt_arg(), MBSTRING_UTF8, 1)) == NULL) {
-                BIO_printf(bio_err, "%s: can't parse issuer argument.\n",
+                VR_BIO_printf(bio_err, "%s: can't parse issuer argument.\n",
                            prog);
                 goto end;
             }
@@ -172,18 +172,18 @@ int storeutl_main(int argc, char *argv[])
             if (criterion != 0
                 || (criterion == OSSL_STORE_SEARCH_BY_ISSUER_SERIAL
                     && serial != NULL)) {
-                BIO_printf(bio_err, "%s: criterion already given.\n",
+                VR_BIO_printf(bio_err, "%s: criterion already given.\n",
                            prog);
                 goto end;
             }
             criterion = OSSL_STORE_SEARCH_BY_ISSUER_SERIAL;
             if (serial != NULL) {
-                BIO_printf(bio_err, "%s: serial number already given.\n",
+                VR_BIO_printf(bio_err, "%s: serial number already given.\n",
                            prog);
                 goto end;
             }
-            if ((serial = s2i_ASN1_INTEGER(NULL, opt_arg())) == NULL) {
-                BIO_printf(bio_err, "%s: can't parse serial number argument.\n",
+            if ((serial = VR_s2i_ASN1_INTEGER(NULL, opt_arg())) == NULL) {
+                VR_BIO_printf(bio_err, "%s: can't parse serial number argument.\n",
                            prog);
                 goto end;
             }
@@ -192,22 +192,22 @@ int storeutl_main(int argc, char *argv[])
             if (criterion != 0
                 || (criterion == OSSL_STORE_SEARCH_BY_KEY_FINGERPRINT
                     && fingerprint != NULL)) {
-                BIO_printf(bio_err, "%s: criterion already given.\n",
+                VR_BIO_printf(bio_err, "%s: criterion already given.\n",
                            prog);
                 goto end;
             }
             criterion = OSSL_STORE_SEARCH_BY_KEY_FINGERPRINT;
             if (fingerprint != NULL) {
-                BIO_printf(bio_err, "%s: fingerprint already given.\n",
+                VR_BIO_printf(bio_err, "%s: fingerprint already given.\n",
                            prog);
                 goto end;
             }
             {
                 long tmplen = 0;
 
-                if ((fingerprint = OPENSSL_hexstr2buf(opt_arg(), &tmplen))
+                if ((fingerprint = VR_OPENSSL_hexstr2buf(opt_arg(), &tmplen))
                     == NULL) {
-                    BIO_printf(bio_err,
+                    VR_BIO_printf(bio_err,
                                "%s: can't parse fingerprint argument.\n",
                                prog);
                     goto end;
@@ -217,18 +217,18 @@ int storeutl_main(int argc, char *argv[])
             break;
         case OPT_CRITERION_ALIAS:
             if (criterion != 0) {
-                BIO_printf(bio_err, "%s: criterion already given.\n",
+                VR_BIO_printf(bio_err, "%s: criterion already given.\n",
                            prog);
                 goto end;
             }
             criterion = OSSL_STORE_SEARCH_BY_ALIAS;
             if (alias != NULL) {
-                BIO_printf(bio_err, "%s: alias already given.\n",
+                VR_BIO_printf(bio_err, "%s: alias already given.\n",
                            prog);
                 goto end;
             }
             if ((alias = OPENSSL_strdup(opt_arg())) == NULL) {
-                BIO_printf(bio_err, "%s: can't parse alias argument.\n",
+                VR_BIO_printf(bio_err, "%s: can't parse alias argument.\n",
                            prog);
                 goto end;
             }
@@ -245,47 +245,47 @@ int storeutl_main(int argc, char *argv[])
     argv = opt_rest();
 
     if (argc == 0) {
-        BIO_printf(bio_err, "%s: No URI given, nothing to do...\n", prog);
+        VR_BIO_printf(bio_err, "%s: No URI given, nothing to do...\n", prog);
         goto opthelp;
     }
     if (argc > 1) {
-        BIO_printf(bio_err, "%s: Unknown extra parameters after URI\n", prog);
+        VR_BIO_printf(bio_err, "%s: Unknown extra parameters after URI\n", prog);
         goto opthelp;
     }
 
     if (criterion != 0) {
         switch (criterion) {
         case OSSL_STORE_SEARCH_BY_NAME:
-            if ((search = OSSL_STORE_SEARCH_by_name(subject)) == NULL) {
-                ERR_print_errors(bio_err);
+            if ((search = VR_OSSL_STORE_SEARCH_by_name(subject)) == NULL) {
+                VR_ERR_print_errors(bio_err);
                 goto end;
             }
             break;
         case OSSL_STORE_SEARCH_BY_ISSUER_SERIAL:
             if (issuer == NULL || serial == NULL) {
-                BIO_printf(bio_err,
+                VR_BIO_printf(bio_err,
                            "%s: both -issuer and -serial must be given.\n",
                            prog);
                 goto end;
             }
-            if ((search = OSSL_STORE_SEARCH_by_issuer_serial(issuer, serial))
+            if ((search = VR_OSSL_STORE_SEARCH_by_issuer_serial(issuer, serial))
                 == NULL) {
-                ERR_print_errors(bio_err);
+                VR_ERR_print_errors(bio_err);
                 goto end;
             }
             break;
         case OSSL_STORE_SEARCH_BY_KEY_FINGERPRINT:
-            if ((search = OSSL_STORE_SEARCH_by_key_fingerprint(digest,
+            if ((search = VR_OSSL_STORE_SEARCH_by_key_fingerprint(digest,
                                                                fingerprint,
                                                                fingerprintlen))
                 == NULL) {
-                ERR_print_errors(bio_err);
+                VR_ERR_print_errors(bio_err);
                 goto end;
             }
             break;
         case OSSL_STORE_SEARCH_BY_ALIAS:
-            if ((search = OSSL_STORE_SEARCH_by_alias(alias)) == NULL) {
-                ERR_print_errors(bio_err);
+            if ((search = VR_OSSL_STORE_SEARCH_by_alias(alias)) == NULL) {
+                VR_ERR_print_errors(bio_err);
                 goto end;
             }
             break;
@@ -293,7 +293,7 @@ int storeutl_main(int argc, char *argv[])
     }
 
     if (!app_passwd(passinarg, NULL, &passin, NULL)) {
-        BIO_printf(bio_err, "Error getting passwords\n");
+        VR_BIO_printf(bio_err, "Error getting passwords\n");
         goto end;
     }
     pw_cb_data.password = passin;
@@ -308,14 +308,14 @@ int storeutl_main(int argc, char *argv[])
                   text, noout, recursive, 0, out, prog);
 
  end:
-    OPENSSL_free(fingerprint);
-    OPENSSL_free(alias);
-    ASN1_INTEGER_free(serial);
-    X509_NAME_free(subject);
-    X509_NAME_free(issuer);
-    OSSL_STORE_SEARCH_free(search);
-    BIO_free_all(out);
-    OPENSSL_free(passin);
+    OPENVR_SSL_free(fingerprint);
+    OPENVR_SSL_free(alias);
+    VR_ASN1_INTEGER_free(serial);
+    VR_X509_NAME_free(subject);
+    VR_X509_NAME_free(issuer);
+    VR_OSSL_STORE_SEARCH_free(search);
+    VR_BIO_free_all(out);
+    OPENVR_SSL_free(passin);
     release_engine(e);
     return ret;
 }
@@ -327,7 +327,7 @@ static int indent_printf(int indent, BIO *bio, const char *format, ...)
 
     va_start(args, format);
 
-    ret = BIO_printf(bio, "%*s", indent, "") + BIO_vprintf(bio, format, args);
+    ret = VR_BIO_printf(bio, "%*s", indent, "") + VR_BIO_vprintf(bio, format, args);
 
     va_end(args);
     return ret;
@@ -341,30 +341,30 @@ static int process(const char *uri, const UI_METHOD *uimeth, PW_CB_DATA *uidata,
     OSSL_STORE_CTX *store_ctx = NULL;
     int ret = 1, items = 0;
 
-    if ((store_ctx = OSSL_STORE_open(uri, uimeth, uidata, NULL, NULL))
+    if ((store_ctx = VR_OSSL_STORE_open(uri, uimeth, uidata, NULL, NULL))
         == NULL) {
-        BIO_printf(bio_err, "Couldn't open file or uri %s\n", uri);
-        ERR_print_errors(bio_err);
+        VR_BIO_printf(bio_err, "Couldn't open file or uri %s\n", uri);
+        VR_ERR_print_errors(bio_err);
         return ret;
     }
 
     if (expected != 0) {
-        if (!OSSL_STORE_expect(store_ctx, expected)) {
-            ERR_print_errors(bio_err);
+        if (!VR_OSSL_STORE_expect(store_ctx, expected)) {
+            VR_ERR_print_errors(bio_err);
             goto end2;
         }
     }
 
     if (criterion != 0) {
-        if (!OSSL_STORE_supports_search(store_ctx, criterion)) {
-            BIO_printf(bio_err,
+        if (!VR_OSSL_STORE_supports_search(store_ctx, criterion)) {
+            VR_BIO_printf(bio_err,
                        "%s: the store scheme doesn't support the given search criteria.\n",
                        prog);
             goto end2;
         }
 
-        if (!OSSL_STORE_find(store_ctx, search)) {
-            ERR_print_errors(bio_err);
+        if (!VR_OSSL_STORE_find(store_ctx, search)) {
+            VR_ERR_print_errors(bio_err);
             goto end2;
         }
     }
@@ -373,36 +373,36 @@ static int process(const char *uri, const UI_METHOD *uimeth, PW_CB_DATA *uidata,
     ret = 0;
 
     for (;;) {
-        OSSL_STORE_INFO *info = OSSL_STORE_load(store_ctx);
-        int type = info == NULL ? 0 : OSSL_STORE_INFO_get_type(info);
+        OSSL_STORE_INFO *info = VR_OSSL_STORE_load(store_ctx);
+        int type = info == NULL ? 0 : VR_OSSL_STORE_INFO_get_type(info);
         const char *infostr =
-            info == NULL ? NULL : OSSL_STORE_INFO_type_string(type);
+            info == NULL ? NULL : VR_OSSL_STORE_INFO_type_string(type);
 
         if (info == NULL) {
-            if (OSSL_STORE_eof(store_ctx))
+            if (VR_OSSL_STORE_eof(store_ctx))
                 break;
 
-            if (OSSL_STORE_error(store_ctx)) {
+            if (VR_OSSL_STORE_error(store_ctx)) {
                 if (recursive)
-                    ERR_clear_error();
+                    VR_ERR_clear_error();
                 else
-                    ERR_print_errors(bio_err);
+                    VR_ERR_print_errors(bio_err);
                 ret++;
                 continue;
             }
 
-            BIO_printf(bio_err,
-                       "ERROR: OSSL_STORE_load() returned NULL without "
+            VR_BIO_printf(bio_err,
+                       "ERROR: VR_OSSL_STORE_load() returned NULL without "
                        "eof or error indications\n");
-            BIO_printf(bio_err, "       This is an error in the loader\n");
-            ERR_print_errors(bio_err);
+            VR_BIO_printf(bio_err, "       This is an error in the loader\n");
+            VR_ERR_print_errors(bio_err);
             ret++;
             break;
         }
 
         if (type == OSSL_STORE_INFO_NAME) {
-            const char *name = OSSL_STORE_INFO_get0_NAME(info);
-            const char *desc = OSSL_STORE_INFO_get0_NAME_description(info);
+            const char *name = VR_OSSL_STORE_INFO_get0_NAME(info);
+            const char *desc = VR_OSSL_STORE_INFO_get0_NAME_description(info);
             indent_printf(indent, bio_out, "%d: %s: %s\n", items, infostr,
                           name);
             if (desc != NULL)
@@ -412,14 +412,14 @@ static int process(const char *uri, const UI_METHOD *uimeth, PW_CB_DATA *uidata,
         }
 
         /*
-         * Unfortunately, PEM_X509_INFO_write_bio() is sorely lacking in
+         * Unfortunately, VR_PEM_X509_INFO_write_bio() is sorely lacking in
          * functionality, so we must figure out how exactly to write things
          * ourselves...
          */
         switch (type) {
         case OSSL_STORE_INFO_NAME:
             if (recursive) {
-                const char *suburi = OSSL_STORE_INFO_get0_NAME(info);
+                const char *suburi = VR_OSSL_STORE_INFO_get0_NAME(info);
                 ret += process(suburi, uimeth, uidata,
                                expected, criterion, search,
                                text, noout, recursive, indent + 2, out, prog);
@@ -427,45 +427,45 @@ static int process(const char *uri, const UI_METHOD *uimeth, PW_CB_DATA *uidata,
             break;
         case OSSL_STORE_INFO_PARAMS:
             if (text)
-                EVP_PKEY_print_params(out, OSSL_STORE_INFO_get0_PARAMS(info),
+                VR_EVP_PKEY_print_params(out, VR_OSSL_STORE_INFO_get0_PARAMS(info),
                                       0, NULL);
             if (!noout)
-                PEM_write_bio_Parameters(out,
-                                         OSSL_STORE_INFO_get0_PARAMS(info));
+                VR_PEM_write_bio_Parameters(out,
+                                         VR_OSSL_STORE_INFO_get0_PARAMS(info));
             break;
         case OSSL_STORE_INFO_PKEY:
             if (text)
-                EVP_PKEY_print_private(out, OSSL_STORE_INFO_get0_PKEY(info),
+                VR_EVP_PKEY_print_private(out, VR_OSSL_STORE_INFO_get0_PKEY(info),
                                        0, NULL);
             if (!noout)
-                PEM_write_bio_PrivateKey(out, OSSL_STORE_INFO_get0_PKEY(info),
+                VR_PEM_write_bio_PrivateKey(out, VR_OSSL_STORE_INFO_get0_PKEY(info),
                                          NULL, NULL, 0, NULL, NULL);
             break;
         case OSSL_STORE_INFO_CERT:
             if (text)
-                X509_print(out, OSSL_STORE_INFO_get0_CERT(info));
+                VR_X509_print(out, VR_OSSL_STORE_INFO_get0_CERT(info));
             if (!noout)
-                PEM_write_bio_X509(out, OSSL_STORE_INFO_get0_CERT(info));
+                VR_PEM_write_bio_X509(out, VR_OSSL_STORE_INFO_get0_CERT(info));
             break;
         case OSSL_STORE_INFO_CRL:
             if (text)
-                X509_CRL_print(out, OSSL_STORE_INFO_get0_CRL(info));
+                VR_X509_CRL_print(out, VR_OSSL_STORE_INFO_get0_CRL(info));
             if (!noout)
-                PEM_write_bio_X509_CRL(out, OSSL_STORE_INFO_get0_CRL(info));
+                VR_PEM_write_bio_X509_CRL(out, VR_OSSL_STORE_INFO_get0_CRL(info));
             break;
         default:
-            BIO_printf(bio_err, "!!! Unknown code\n");
+            VR_BIO_printf(bio_err, "!!! Unknown code\n");
             ret++;
             break;
         }
         items++;
-        OSSL_STORE_INFO_free(info);
+        VR_OSSL_STORE_INFO_free(info);
     }
     indent_printf(indent, out, "Total found: %d\n", items);
 
  end2:
-    if (!OSSL_STORE_close(store_ctx)) {
-        ERR_print_errors(bio_err);
+    if (!VR_OSSL_STORE_close(store_ctx)) {
+        VR_ERR_print_errors(bio_err);
         ret++;
     }
 

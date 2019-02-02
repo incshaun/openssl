@@ -21,8 +21,8 @@
  * Until Aug 1 2003 this function did not correctly implement CFB-r, so it
  * will not be compatible with any encryption prior to that date. Ben.
  */
-void DES_cfb_encrypt(const unsigned char *in, unsigned char *out, int numbits,
-                     long length, DES_key_schedule *schedule,
+void VR_DES_cfb_encrypt(const unsigned char *in, unsigned char *out, int numbits,
+                     long length, VR_DES_key_schedule *schedule,
                      DES_cblock *ivec, int enc)
 {
     register DES_LONG d0, d1, v0, v1;
@@ -53,7 +53,7 @@ void DES_cfb_encrypt(const unsigned char *in, unsigned char *out, int numbits,
             l -= n;
             ti[0] = v0;
             ti[1] = v1;
-            DES_encrypt1((DES_LONG *)ti, schedule, DES_ENCRYPT);
+            VR_DES_encrypt1((DES_LONG *)ti, schedule, DES_ENCRYPT);
             c2ln(in, d0, d1, n);
             in += n;
             d0 ^= ti[0];
@@ -100,7 +100,7 @@ void DES_cfb_encrypt(const unsigned char *in, unsigned char *out, int numbits,
             l -= n;
             ti[0] = v0;
             ti[1] = v1;
-            DES_encrypt1((DES_LONG *)ti, schedule, DES_ENCRYPT);
+            VR_DES_encrypt1((DES_LONG *)ti, schedule, DES_ENCRYPT);
             c2ln(in, d0, d1, n);
             in += n;
             /*

@@ -60,8 +60,8 @@ static STACK_OF(CONF_VALUE) *i2v_EXTENDED_KEY_USAGE(const X509V3_EXT_METHOD
     char obj_tmp[80];
     for (i = 0; i < sk_ASN1_OBJECT_num(eku); i++) {
         obj = sk_ASN1_OBJECT_value(eku, i);
-        i2t_ASN1_OBJECT(obj_tmp, 80, obj);
-        X509V3_add_value(NULL, obj_tmp, &ext_list);
+        VR_i2t_ASN1_OBJECT(obj_tmp, 80, obj);
+        VR_X509V3_add_value(NULL, obj_tmp, &ext_list);
     }
     return ext_list;
 }
@@ -77,10 +77,10 @@ static void *v2i_EXTENDED_KEY_USAGE(const X509V3_EXT_METHOD *method,
     const int num = sk_CONF_VALUE_num(nval);
     int i;
 
-    extku = sk_ASN1_OBJECT_new_reserve(NULL, num);
+    extku = sk_VR_ASN1_OBJECT_new_reserve(NULL, num);
     if (extku == NULL) {
         X509V3err(X509V3_F_V2I_EXTENDED_KEY_USAGE, ERR_R_MALLOC_FAILURE);
-        sk_ASN1_OBJECT_free(extku);
+        sk_VR_ASN1_OBJECT_free(extku);
         return NULL;
     }
 
@@ -90,14 +90,14 @@ static void *v2i_EXTENDED_KEY_USAGE(const X509V3_EXT_METHOD *method,
             extval = val->value;
         else
             extval = val->name;
-        if ((objtmp = OBJ_txt2obj(extval, 0)) == NULL) {
-            sk_ASN1_OBJECT_pop_free(extku, ASN1_OBJECT_free);
+        if ((objtmp = VR_OBJ_txt2obj(extval, 0)) == NULL) {
+            sk_VR_ASN1_OBJECT_pop_free(extku, VR_ASN1_OBJECT_free);
             X509V3err(X509V3_F_V2I_EXTENDED_KEY_USAGE,
                       X509V3_R_INVALID_OBJECT_IDENTIFIER);
             X509V3_conf_err(val);
             return NULL;
         }
-        sk_ASN1_OBJECT_push(extku, objtmp);  /* no failure as it was reserved */
+        sk_VR_ASN1_OBJECT_push(extku, objtmp);  /* no failure as it was reserved */
     }
     return extku;
 }

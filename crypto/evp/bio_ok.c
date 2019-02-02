@@ -10,21 +10,21 @@
 /*-
         From: Arne Ansper
 
-        Why BIO_f_reliable?
+        Why VR_BIO_f_reliable?
 
         I wrote function which took BIO* as argument, read data from it
         and processed it. Then I wanted to store the input file in
-        encrypted form. OK I pushed BIO_f_cipher to the BIO stack
+        encrypted form. OK I pushed VR_BIO_f_cipher to the BIO stack
         and everything was OK. BUT if user types wrong password
-        BIO_f_cipher outputs only garbage and my function crashes. Yes
-        I can and I should fix my function, but BIO_f_cipher is
+        VR_BIO_f_cipher outputs only garbage and my function crashes. Yes
+        I can and I should fix my function, but VR_BIO_f_cipher is
         easy way to add encryption support to many existing applications
         and it's hard to debug and fix them all.
 
         So I wanted another BIO which would catch the incorrect passwords and
-        file damages which cause garbage on BIO_f_cipher's output.
+        file damages which cause garbage on VR_BIO_f_cipher's output.
 
-        The easy way is to push the BIO_f_md and save the checksum at
+        The easy way is to push the VR_BIO_f_md and save the checksum at
         the end of the file. However there are several problems with this
         approach:
 
@@ -33,21 +33,21 @@
         must read to the end of the file and verify the checksum before
         letting the application to read the data.
 
-        BIO_f_reliable tries to solve both problems, so that you can
+        VR_BIO_f_reliable tries to solve both problems, so that you can
         read and write arbitrary long streams using only fixed amount
         of memory.
 
-        BIO_f_reliable splits data stream into blocks. Each block is prefixed
+        VR_BIO_f_reliable splits data stream into blocks. Each block is prefixed
         with it's length and suffixed with it's digest. So you need only
         several Kbytes of memory to buffer single block before verifying
         it's digest.
 
-        BIO_f_reliable goes further and adds several important capabilities:
+        VR_BIO_f_reliable goes further and adds several important capabilities:
 
         1) the digest of the block is computed over the whole stream
         -- so nobody can rearrange the blocks or remove or replace them.
 
-        2) to detect invalid passwords right at the start BIO_f_reliable
+        2) to detect invalid passwords right at the start VR_BIO_f_reliable
         adds special prefix to the stream. In order to avoid known plain-text
         attacks this prefix is generated as follows:
 
@@ -60,7 +60,7 @@
         reader can now read the seed from stream, hash the same string
         and then compare the digest output.
 
-        Bad things: BIO_f_reliable knows what's going on in EVP_Digest. I
+        Bad things: VR_BIO_f_reliable knows what's going on in VR_EVP_Digest. I
         initially wrote and tested this code on x86 machine and wrote the
         digests out in machine-dependent order :( There are people using
         this code and I cannot change this easily without making existing
@@ -111,10 +111,10 @@ static const BIO_METHOD methods_ok = {
     BIO_TYPE_CIPHER,
     "reliable",
     /* TODO: Convert to new style write function */
-    bwrite_conv,
+    VR_bwrite_conv,
     ok_write,
     /* TODO: Convert to new style read function */
-    bread_conv,
+    VR_bread_conv,
     ok_read,
     NULL,                       /* ok_puts, */
     NULL,                       /* ok_gets, */
@@ -124,7 +124,7 @@ static const BIO_METHOD methods_ok = {
     ok_callback_ctrl,
 };
 
-const BIO_METHOD *BIO_f_reliable(void)
+const BIO_METHOD *VR_BIO_f_reliable(void)
 {
     return &methods_ok;
 }
@@ -140,13 +140,13 @@ static int ok_new(BIO *bi)
 
     ctx->cont = 1;
     ctx->sigio = 1;
-    ctx->md = EVP_MD_CTX_new();
+    ctx->md = VR_EVP_MD_CTX_new();
     if (ctx->md == NULL) {
-        OPENSSL_free(ctx);
+        OPENVR_SSL_free(ctx);
         return 0;
     }
-    BIO_set_init(bi, 0);
-    BIO_set_data(bi, ctx);
+    VR_BIO_set_init(bi, 0);
+    VR_BIO_set_data(bi, ctx);
 
     return 1;
 }
@@ -158,12 +158,12 @@ static int ok_free(BIO *a)
     if (a == NULL)
         return 0;
 
-    ctx = BIO_get_data(a);
+    ctx = VR_BIO_get_data(a);
 
-    EVP_MD_CTX_free(ctx->md);
-    OPENSSL_clear_free(ctx, sizeof(BIO_OK_CTX));
-    BIO_set_data(a, NULL);
-    BIO_set_init(a, 0);
+    VR_EVP_MD_CTX_free(ctx->md);
+    OPENVR_SSL_clear_free(ctx, sizeof(BIO_OK_CTX));
+    VR_BIO_set_data(a, NULL);
+    VR_BIO_set_init(a, 0);
 
     return 1;
 }
@@ -177,10 +177,10 @@ static int ok_read(BIO *b, char *out, int outl)
     if (out == NULL)
         return 0;
 
-    ctx = BIO_get_data(b);
-    next = BIO_next(b);
+    ctx = VR_BIO_get_data(b);
+    next = VR_BIO_next(b);
 
-    if ((ctx == NULL) || (next == NULL) || (BIO_get_init(b) == 0))
+    if ((ctx == NULL) || (next == NULL) || (VR_BIO_get_init(b) == 0))
         return 0;
 
     while (outl > 0) {
@@ -220,7 +220,7 @@ static int ok_read(BIO *b, char *out, int outl)
 
         /* no clean bytes in buffer -- fill it */
         n = IOBS - ctx->buf_len;
-        i = BIO_read(next, &(ctx->buf[ctx->buf_len]), n);
+        i = VR_BIO_read(next, &(ctx->buf[ctx->buf_len]), n);
 
         if (i <= 0)
             break;              /* nothing new */
@@ -250,7 +250,7 @@ static int ok_read(BIO *b, char *out, int outl)
     }
 
     BIO_clear_retry_flags(b);
-    BIO_copy_next_retry(b);
+    VR_BIO_copy_next_retry(b);
     return ret;
 }
 
@@ -263,11 +263,11 @@ static int ok_write(BIO *b, const char *in, int inl)
     if (inl <= 0)
         return inl;
 
-    ctx = BIO_get_data(b);
-    next = BIO_next(b);
+    ctx = VR_BIO_get_data(b);
+    next = VR_BIO_next(b);
     ret = inl;
 
-    if ((ctx == NULL) || (next == NULL) || (BIO_get_init(b) == 0))
+    if ((ctx == NULL) || (next == NULL) || (VR_BIO_get_init(b) == 0))
         return 0;
 
     if (ctx->sigio && !sig_out(b))
@@ -277,9 +277,9 @@ static int ok_write(BIO *b, const char *in, int inl)
         BIO_clear_retry_flags(b);
         n = ctx->buf_len - ctx->buf_off;
         while (ctx->blockout && n > 0) {
-            i = BIO_write(next, &(ctx->buf[ctx->buf_off]), n);
+            i = VR_BIO_write(next, &(ctx->buf[ctx->buf_off]), n);
             if (i <= 0) {
-                BIO_copy_next_retry(b);
+                VR_BIO_copy_next_retry(b);
                 if (!BIO_should_retry(b))
                     ctx->cont = 0;
                 return i;
@@ -315,7 +315,7 @@ static int ok_write(BIO *b, const char *in, int inl)
     } while (inl > 0);
 
     BIO_clear_retry_flags(b);
-    BIO_copy_next_retry(b);
+    VR_BIO_copy_next_retry(b);
     return ret;
 }
 
@@ -328,8 +328,8 @@ static long ok_ctrl(BIO *b, int cmd, long num, void *ptr)
     int i;
     BIO *next;
 
-    ctx = BIO_get_data(b);
-    next = BIO_next(b);
+    ctx = VR_BIO_get_data(b);
+    next = VR_BIO_next(b);
 
     switch (cmd) {
     case BIO_CTRL_RESET:
@@ -341,19 +341,19 @@ static long ok_ctrl(BIO *b, int cmd, long num, void *ptr)
         ctx->finished = 0;
         ctx->blockout = 0;
         ctx->sigio = 1;
-        ret = BIO_ctrl(next, cmd, num, ptr);
+        ret = VR_BIO_ctrl(next, cmd, num, ptr);
         break;
     case BIO_CTRL_EOF:         /* More to read */
         if (ctx->cont <= 0)
             ret = 1;
         else
-            ret = BIO_ctrl(next, cmd, num, ptr);
+            ret = VR_BIO_ctrl(next, cmd, num, ptr);
         break;
     case BIO_CTRL_PENDING:     /* More to read in buffer */
     case BIO_CTRL_WPENDING:    /* More to read in buffer */
         ret = ctx->blockout ? ctx->buf_len - ctx->buf_off : 0;
         if (ret <= 0)
-            ret = BIO_ctrl(next, cmd, num, ptr);
+            ret = VR_BIO_ctrl(next, cmd, num, ptr);
         break;
     case BIO_CTRL_FLUSH:
         /* do a final write */
@@ -374,31 +374,31 @@ static long ok_ctrl(BIO *b, int cmd, long num, void *ptr)
         ctx->cont = (int)ret;
 
         /* Finally flush the underlying BIO */
-        ret = BIO_ctrl(next, cmd, num, ptr);
+        ret = VR_BIO_ctrl(next, cmd, num, ptr);
         break;
     case BIO_C_DO_STATE_MACHINE:
         BIO_clear_retry_flags(b);
-        ret = BIO_ctrl(next, cmd, num, ptr);
-        BIO_copy_next_retry(b);
+        ret = VR_BIO_ctrl(next, cmd, num, ptr);
+        VR_BIO_copy_next_retry(b);
         break;
     case BIO_CTRL_INFO:
         ret = (long)ctx->cont;
         break;
     case BIO_C_SET_MD:
         md = ptr;
-        if (!EVP_DigestInit_ex(ctx->md, md, NULL))
+        if (!VR_EVP_DigestInit_ex(ctx->md, md, NULL))
             return 0;
-        BIO_set_init(b, 1);
+        VR_BIO_set_init(b, 1);
         break;
     case BIO_C_GET_MD:
-        if (BIO_get_init(b)) {
+        if (VR_BIO_get_init(b)) {
             ppmd = ptr;
-            *ppmd = EVP_MD_CTX_md(ctx->md);
+            *ppmd = VR_EVP_MD_CTX_md(ctx->md);
         } else
             ret = 0;
         break;
     default:
-        ret = BIO_ctrl(next, cmd, num, ptr);
+        ret = VR_BIO_ctrl(next, cmd, num, ptr);
         break;
     }
     return ret;
@@ -409,14 +409,14 @@ static long ok_callback_ctrl(BIO *b, int cmd, BIO_info_cb *fp)
     long ret = 1;
     BIO *next;
 
-    next = BIO_next(b);
+    next = VR_BIO_next(b);
 
     if (next == NULL)
         return 0;
 
     switch (cmd) {
     default:
-        ret = BIO_callback_ctrl(next, cmd, fp);
+        ret = VR_BIO_callback_ctrl(next, cmd, fp);
         break;
     }
 
@@ -451,30 +451,30 @@ static int sig_out(BIO *b)
     int md_size;
     void *md_data;
 
-    ctx = BIO_get_data(b);
+    ctx = VR_BIO_get_data(b);
     md = ctx->md;
-    digest = EVP_MD_CTX_md(md);
-    md_size = EVP_MD_size(digest);
-    md_data = EVP_MD_CTX_md_data(md);
+    digest = VR_EVP_MD_CTX_md(md);
+    md_size = VR_EVP_MD_size(digest);
+    md_data = VR_EVP_MD_CTX_md_data(md);
 
     if (ctx->buf_len + 2 * md_size > OK_BLOCK_SIZE)
         return 1;
 
-    if (!EVP_DigestInit_ex(md, digest, NULL))
+    if (!VR_EVP_DigestInit_ex(md, digest, NULL))
         goto berr;
     /*
      * FIXME: there's absolutely no guarantee this makes any sense at all,
      * particularly now EVP_MD_CTX has been restructured.
      */
-    if (RAND_bytes(md_data, md_size) <= 0)
+    if (VR_RAND_bytes(md_data, md_size) <= 0)
         goto berr;
     memcpy(&(ctx->buf[ctx->buf_len]), md_data, md_size);
     longswap(&(ctx->buf[ctx->buf_len]), md_size);
     ctx->buf_len += md_size;
 
-    if (!EVP_DigestUpdate(md, WELLKNOWN, strlen(WELLKNOWN)))
+    if (!VR_EVP_DigestUpdate(md, WELLKNOWN, strlen(WELLKNOWN)))
         goto berr;
-    if (!EVP_DigestFinal_ex(md, &(ctx->buf[ctx->buf_len]), NULL))
+    if (!VR_EVP_DigestFinal_ex(md, &(ctx->buf[ctx->buf_len]), NULL))
         goto berr;
     ctx->buf_len += md_size;
     ctx->blockout = 1;
@@ -495,24 +495,24 @@ static int sig_in(BIO *b)
     int md_size;
     void *md_data;
 
-    ctx = BIO_get_data(b);
+    ctx = VR_BIO_get_data(b);
     md = ctx->md;
-    digest = EVP_MD_CTX_md(md);
-    md_size = EVP_MD_size(digest);
-    md_data = EVP_MD_CTX_md_data(md);
+    digest = VR_EVP_MD_CTX_md(md);
+    md_size = VR_EVP_MD_size(digest);
+    md_data = VR_EVP_MD_CTX_md_data(md);
 
     if ((int)(ctx->buf_len - ctx->buf_off) < 2 * md_size)
         return 1;
 
-    if (!EVP_DigestInit_ex(md, digest, NULL))
+    if (!VR_EVP_DigestInit_ex(md, digest, NULL))
         goto berr;
     memcpy(md_data, &(ctx->buf[ctx->buf_off]), md_size);
     longswap(md_data, md_size);
     ctx->buf_off += md_size;
 
-    if (!EVP_DigestUpdate(md, WELLKNOWN, strlen(WELLKNOWN)))
+    if (!VR_EVP_DigestUpdate(md, WELLKNOWN, strlen(WELLKNOWN)))
         goto berr;
-    if (!EVP_DigestFinal_ex(md, tmp, NULL))
+    if (!VR_EVP_DigestFinal_ex(md, tmp, NULL))
         goto berr;
     ret = memcmp(&(ctx->buf[ctx->buf_off]), tmp, md_size) == 0;
     ctx->buf_off += md_size;
@@ -541,20 +541,20 @@ static int block_out(BIO *b)
     const EVP_MD *digest;
     int md_size;
 
-    ctx = BIO_get_data(b);
+    ctx = VR_BIO_get_data(b);
     md = ctx->md;
-    digest = EVP_MD_CTX_md(md);
-    md_size = EVP_MD_size(digest);
+    digest = VR_EVP_MD_CTX_md(md);
+    md_size = VR_EVP_MD_size(digest);
 
     tl = ctx->buf_len - OK_BLOCK_BLOCK;
     ctx->buf[0] = (unsigned char)(tl >> 24);
     ctx->buf[1] = (unsigned char)(tl >> 16);
     ctx->buf[2] = (unsigned char)(tl >> 8);
     ctx->buf[3] = (unsigned char)(tl);
-    if (!EVP_DigestUpdate(md,
+    if (!VR_EVP_DigestUpdate(md,
                           (unsigned char *)&(ctx->buf[OK_BLOCK_BLOCK]), tl))
         goto berr;
-    if (!EVP_DigestFinal_ex(md, &(ctx->buf[ctx->buf_len]), NULL))
+    if (!VR_EVP_DigestFinal_ex(md, &(ctx->buf[ctx->buf_len]), NULL))
         goto berr;
     ctx->buf_len += md_size;
     ctx->blockout = 1;
@@ -572,9 +572,9 @@ static int block_in(BIO *b)
     unsigned char tmp[EVP_MAX_MD_SIZE];
     int md_size;
 
-    ctx = BIO_get_data(b);
+    ctx = VR_BIO_get_data(b);
     md = ctx->md;
-    md_size = EVP_MD_size(EVP_MD_CTX_md(md));
+    md_size = VR_EVP_MD_size(VR_EVP_MD_CTX_md(md));
 
     assert(sizeof(tl) >= OK_BLOCK_BLOCK); /* always true */
     tl = ctx->buf[0];
@@ -588,10 +588,10 @@ static int block_in(BIO *b)
     if (ctx->buf_len < tl + OK_BLOCK_BLOCK + md_size)
         return 1;
 
-    if (!EVP_DigestUpdate(md,
+    if (!VR_EVP_DigestUpdate(md,
                           (unsigned char *)&(ctx->buf[OK_BLOCK_BLOCK]), tl))
         goto berr;
-    if (!EVP_DigestFinal_ex(md, tmp, NULL))
+    if (!VR_EVP_DigestFinal_ex(md, tmp, NULL))
         goto berr;
     if (memcmp(&(ctx->buf[tl + OK_BLOCK_BLOCK]), tmp, md_size) == 0) {
         /* there might be parts from next block lurking around ! */

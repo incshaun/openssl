@@ -16,8 +16,8 @@
 typedef struct bio_accept_st {
     int state;
     int accept_family;
-    int bind_mode;     /* Socket mode for BIO_listen */
-    int accepted_mode; /* Socket mode for BIO_accept (set on accepted sock) */
+    int bind_mode;     /* Socket mode for VR_BIO_listen */
+    int accepted_mode; /* Socket mode for VR_BIO_accept (set on accepted sock) */
     char *param_addr;
     char *param_serv;
 
@@ -55,10 +55,10 @@ static const BIO_METHOD methods_acceptp = {
     BIO_TYPE_ACCEPT,
     "socket accept",
     /* TODO: Convert to new style write function */
-    bwrite_conv,
+    VR_bwrite_conv,
     acpt_write,
     /* TODO: Convert to new style read function */
-    bread_conv,
+    VR_bread_conv,
     acpt_read,
     acpt_puts,
     NULL,                       /* connect_gets,         */
@@ -68,7 +68,7 @@ static const BIO_METHOD methods_acceptp = {
     NULL,                       /* connect_callback_ctrl */
 };
 
-const BIO_METHOD *BIO_s_accept(void)
+const BIO_METHOD *VR_BIO_s_accept(void)
 {
     return &methods_acceptp;
 }
@@ -105,15 +105,15 @@ static void BIO_ACCEPT_free(BIO_ACCEPT *a)
 {
     if (a == NULL)
         return;
-    OPENSSL_free(a->param_addr);
-    OPENSSL_free(a->param_serv);
-    BIO_ADDRINFO_free(a->addr_first);
-    OPENSSL_free(a->cache_accepting_name);
-    OPENSSL_free(a->cache_accepting_serv);
-    OPENSSL_free(a->cache_peer_name);
-    OPENSSL_free(a->cache_peer_serv);
-    BIO_free(a->bio_chain);
-    OPENSSL_free(a);
+    OPENVR_SSL_free(a->param_addr);
+    OPENVR_SSL_free(a->param_serv);
+    VR_BIO_ADDRINFO_free(a->addr_first);
+    OPENVR_SSL_free(a->cache_accepting_name);
+    OPENVR_SSL_free(a->cache_accepting_serv);
+    OPENVR_SSL_free(a->cache_peer_name);
+    OPENVR_SSL_free(a->cache_peer_serv);
+    VR_BIO_free(a->bio_chain);
+    OPENVR_SSL_free(a);
 }
 
 static void acpt_close_socket(BIO *bio)
@@ -157,7 +157,7 @@ static int acpt_state(BIO *b, BIO_ACCEPT *c)
         case ACPT_S_BEFORE:
             if (c->param_addr == NULL && c->param_serv == NULL) {
                 BIOerr(BIO_F_ACPT_STATE, BIO_R_NO_ACCEPT_ADDR_OR_SERVICE_SPECIFIED);
-                ERR_add_error_data(4,
+                VR_ERR_add_error_data(4,
                                    "hostname=", c->param_addr,
                                    " service=", c->param_serv);
                 goto exit_loop;
@@ -167,13 +167,13 @@ static int acpt_state(BIO *b, BIO_ACCEPT *c)
              * are now obsolete and need to be cleaned out.
              * QUESTION: should this be done in acpt_close_socket() instead?
              */
-            OPENSSL_free(c->cache_accepting_name);
+            OPENVR_SSL_free(c->cache_accepting_name);
             c->cache_accepting_name = NULL;
-            OPENSSL_free(c->cache_accepting_serv);
+            OPENVR_SSL_free(c->cache_accepting_serv);
             c->cache_accepting_serv = NULL;
-            OPENSSL_free(c->cache_peer_name);
+            OPENVR_SSL_free(c->cache_peer_name);
             c->cache_peer_name = NULL;
-            OPENSSL_free(c->cache_peer_serv);
+            OPENVR_SSL_free(c->cache_peer_serv);
             c->cache_peer_serv = NULL;
 
             c->state = ACPT_S_GET_ADDR;
@@ -206,7 +206,7 @@ static int acpt_state(BIO *b, BIO_ACCEPT *c)
                     BIOerr(BIO_F_ACPT_STATE, BIO_R_UNSUPPORTED_IP_FAMILY);
                     goto exit_loop;
                 }
-                if (BIO_lookup(c->param_addr, c->param_serv, BIO_LOOKUP_SERVER,
+                if (VR_BIO_lookup(c->param_addr, c->param_serv, BIO_LOOKUP_SERVER,
                                family, SOCK_STREAM, &c->addr_first) == 0)
                     goto exit_loop;
             }
@@ -222,12 +222,12 @@ static int acpt_state(BIO *b, BIO_ACCEPT *c)
             break;
 
         case ACPT_S_CREATE_SOCKET:
-            ret = BIO_socket(BIO_ADDRINFO_family(c->addr_iter),
-                             BIO_ADDRINFO_socktype(c->addr_iter),
-                             BIO_ADDRINFO_protocol(c->addr_iter), 0);
+            ret = VR_BIO_socket(VR_BIO_ADDRINFO_family(c->addr_iter),
+                             VR_BIO_ADDRINFO_socktype(c->addr_iter),
+                             VR_BIO_ADDRINFO_protocol(c->addr_iter), 0);
             if (ret == (int)INVALID_SOCKET) {
                 SYSerr(SYS_F_SOCKET, get_last_socket_error());
-                ERR_add_error_data(4,
+                VR_ERR_add_error_data(4,
                                    "hostname=", c->param_addr,
                                    " service=", c->param_serv);
                 BIOerr(BIO_F_ACPT_STATE, BIO_R_UNABLE_TO_CREATE_SOCKET);
@@ -240,29 +240,29 @@ static int acpt_state(BIO *b, BIO_ACCEPT *c)
 
         case ACPT_S_LISTEN:
             {
-                if (!BIO_listen(c->accept_sock,
-                                BIO_ADDRINFO_address(c->addr_iter),
+                if (!VR_BIO_listen(c->accept_sock,
+                                VR_BIO_ADDRINFO_address(c->addr_iter),
                                 c->bind_mode)) {
-                    BIO_closesocket(c->accept_sock);
+                    VR_BIO_closesocket(c->accept_sock);
                     goto exit_loop;
                 }
             }
 
             {
-                union BIO_sock_info_u info;
+                union VR_BIO_sock_info_u info;
 
                 info.addr = &c->cache_accepting_addr;
-                if (!BIO_sock_info(c->accept_sock, BIO_SOCK_INFO_ADDRESS,
+                if (!VR_BIO_sock_info(c->accept_sock, BIO_SOCK_INFO_ADDRESS,
                                    &info)) {
-                    BIO_closesocket(c->accept_sock);
+                    VR_BIO_closesocket(c->accept_sock);
                     goto exit_loop;
                 }
             }
 
             c->cache_accepting_name =
-                BIO_ADDR_hostname_string(&c->cache_accepting_addr, 1);
+                VR_BIO_ADDR_hostname_string(&c->cache_accepting_addr, 1);
             c->cache_accepting_serv =
-                BIO_ADDR_service_string(&c->cache_accepting_addr, 1);
+                VR_BIO_ADDR_service_string(&c->cache_accepting_addr, 1);
             c->state = ACPT_S_ACCEPT;
             s = -1;
             ret = 1;
@@ -276,19 +276,19 @@ static int acpt_state(BIO *b, BIO_ACCEPT *c)
             BIO_clear_retry_flags(b);
             b->retry_reason = 0;
 
-            OPENSSL_free(c->cache_peer_name);
+            OPENVR_SSL_free(c->cache_peer_name);
             c->cache_peer_name = NULL;
-            OPENSSL_free(c->cache_peer_serv);
+            OPENVR_SSL_free(c->cache_peer_serv);
             c->cache_peer_serv = NULL;
 
-            s = BIO_accept_ex(c->accept_sock, &c->cache_peer_addr,
+            s = VR_BIO_accept_ex(c->accept_sock, &c->cache_peer_addr,
                               c->accepted_mode);
 
             /* If the returned socket is invalid, this might still be
              * retryable
              */
             if (s < 0) {
-                if (BIO_sock_should_retry(s)) {
+                if (VR_BIO_sock_should_retry(s)) {
                     BIO_set_retry_special(b);
                     b->retry_reason = BIO_RR_ACCEPT;
                     goto end;
@@ -301,31 +301,31 @@ static int acpt_state(BIO *b, BIO_ACCEPT *c)
                 goto exit_loop;
             }
 
-            bio = BIO_new_socket(s, BIO_CLOSE);
+            bio = VR_BIO_new_socket(s, BIO_CLOSE);
             if (bio == NULL)
                 goto exit_loop;
 
-            BIO_set_callback(bio, BIO_get_callback(b));
-            BIO_set_callback_arg(bio, BIO_get_callback_arg(b));
+            VR_BIO_set_callback(bio, VR_BIO_get_callback(b));
+            VR_BIO_set_callback_arg(bio, VR_BIO_get_callback_arg(b));
 
             /*
              * If the accept BIO has an bio_chain, we dup it and put the new
              * socket at the end.
              */
             if (c->bio_chain != NULL) {
-                if ((dbio = BIO_dup_chain(c->bio_chain)) == NULL)
+                if ((dbio = VR_BIO_dup_chain(c->bio_chain)) == NULL)
                     goto exit_loop;
-                if (!BIO_push(dbio, bio))
+                if (!VR_BIO_push(dbio, bio))
                     goto exit_loop;
                 bio = dbio;
             }
-            if (BIO_push(b, bio) == NULL)
+            if (VR_BIO_push(b, bio) == NULL)
                 goto exit_loop;
 
             c->cache_peer_name =
-                BIO_ADDR_hostname_string(&c->cache_peer_addr, 1);
+                VR_BIO_ADDR_hostname_string(&c->cache_peer_addr, 1);
             c->cache_peer_serv =
-                BIO_ADDR_service_string(&c->cache_peer_addr, 1);
+                VR_BIO_ADDR_service_string(&c->cache_peer_addr, 1);
             c->state = ACPT_S_OK;
             bio = NULL;
             ret = 1;
@@ -347,9 +347,9 @@ static int acpt_state(BIO *b, BIO_ACCEPT *c)
 
   exit_loop:
     if (bio != NULL)
-        BIO_free(bio);
+        VR_BIO_free(bio);
     else if (s >= 0)
-        BIO_closesocket(s);
+        VR_BIO_closesocket(s);
   end:
     return ret;
 }
@@ -368,8 +368,8 @@ static int acpt_read(BIO *b, char *out, int outl)
             return ret;
     }
 
-    ret = BIO_read(b->next_bio, out, outl);
-    BIO_copy_next_retry(b);
+    ret = VR_BIO_read(b->next_bio, out, outl);
+    VR_BIO_copy_next_retry(b);
     return ret;
 }
 
@@ -387,8 +387,8 @@ static int acpt_write(BIO *b, const char *in, int inl)
             return ret;
     }
 
-    ret = BIO_write(b->next_bio, in, inl);
-    BIO_copy_next_retry(b);
+    ret = VR_BIO_write(b->next_bio, in, inl);
+    VR_BIO_copy_next_retry(b);
     return ret;
 }
 
@@ -406,7 +406,7 @@ static long acpt_ctrl(BIO *b, int cmd, long num, void *ptr)
         ret = 0;
         data->state = ACPT_S_BEFORE;
         acpt_close_socket(b);
-        BIO_ADDRINFO_free(data->addr_first);
+        VR_BIO_ADDRINFO_free(data->addr_first);
         data->addr_first = NULL;
         b->flags = 0;
         break;
@@ -422,23 +422,23 @@ static long acpt_ctrl(BIO *b, int cmd, long num, void *ptr)
                  * string might contain a host:service spec, so we must
                  * parse it, which might or might not affect the service
                  */
-                OPENSSL_free(data->param_addr);
+                OPENVR_SSL_free(data->param_addr);
                 data->param_addr = NULL;
-                ret = BIO_parse_hostserv(ptr,
+                ret = VR_BIO_parse_hostserv(ptr,
                                          &data->param_addr,
                                          &data->param_serv,
                                          BIO_PARSE_PRIO_SERV);
                 if (hold_serv != data->param_serv)
-                    OPENSSL_free(hold_serv);
+                    OPENVR_SSL_free(hold_serv);
                 b->init = 1;
             } else if (num == 1) {
-                OPENSSL_free(data->param_serv);
+                OPENVR_SSL_free(data->param_serv);
                 data->param_serv = BUF_strdup(ptr);
                 b->init = 1;
             } else if (num == 2) {
                 data->bind_mode |= BIO_SOCK_NONBLOCK;
             } else if (num == 3) {
-                BIO_free(data->bio_chain);
+                VR_BIO_free(data->bio_chain);
                 data->bio_chain = (BIO *)ptr;
             } else if (num == 4) {
                 data->accept_family = *(int *)ptr;
@@ -486,7 +486,7 @@ static long acpt_ctrl(BIO *b, int cmd, long num, void *ptr)
                 pp = (char **)ptr;
                 *pp = data->cache_peer_serv;
             } else if (num == 4) {
-                switch (BIO_ADDRINFO_family(data->addr_iter)) {
+                switch (VR_BIO_ADDRINFO_family(data->addr_iter)) {
 #ifdef AF_INET6
                 case AF_INET6:
                     ret = BIO_FAMILY_IPV6;
@@ -544,16 +544,16 @@ static int acpt_puts(BIO *bp, const char *str)
     return ret;
 }
 
-BIO *BIO_new_accept(const char *str)
+BIO *VR_BIO_new_accept(const char *str)
 {
     BIO *ret;
 
-    ret = BIO_new(BIO_s_accept());
+    ret = VR_BIO_new(VR_BIO_s_accept());
     if (ret == NULL)
         return NULL;
     if (BIO_set_accept_name(ret, str))
         return ret;
-    BIO_free(ret);
+    VR_BIO_free(ret);
     return NULL;
 }
 

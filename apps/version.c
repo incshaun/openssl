@@ -18,7 +18,7 @@
 #ifndef OPENSSL_NO_MD2
 # include <openssl/md2.h>
 #endif
-#ifndef OPENSSL_NO_RC4
+#ifndef OPENSSL_NO_VR_RC4
 # include <openssl/rc4.h>
 #endif
 #ifndef OPENSSL_NO_DES
@@ -74,7 +74,7 @@ int version_main(int argc, char **argv)
         case OPT_EOF:
         case OPT_ERR:
 opthelp:
-            BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
+            VR_BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
             opt_help(version_options);
@@ -111,50 +111,50 @@ opthelp:
         }
     }
     if (opt_num_rest() != 0) {
-        BIO_printf(bio_err, "Extra parameters given.\n");
+        VR_BIO_printf(bio_err, "Extra parameters given.\n");
         goto opthelp;
     }
     if (!dirty)
         version = 1;
 
     if (version) {
-        if (strcmp(OpenSSL_version(OPENSSL_FULL_VERSION_STRING),
+        if (strcmp(VR_OpenSSL_version(OPENSSL_FULL_VERSION_STRING),
                    OPENSSL_FULL_VERSION_STR) == 0)
-            printf("%s\n", OpenSSL_version(OPENSSL_VERSION));
+            printf("%s\n", VR_OpenSSL_version(OPENSSL_VERSION));
         else
             printf("%s (Library: %s)\n",
-                   OPENSSL_VERSION_TEXT, OpenSSL_version(OPENSSL_VERSION));
+                   OPENSSL_VERSION_TEXT, VR_OpenSSL_version(OPENSSL_VERSION));
     }
     if (date)
-        printf("%s\n", OpenSSL_version(OPENSSL_BUILT_ON));
+        printf("%s\n", VR_OpenSSL_version(OPENSSL_BUILT_ON));
     if (platform)
-        printf("%s\n", OpenSSL_version(OPENSSL_PLATFORM));
+        printf("%s\n", VR_OpenSSL_version(OPENSSL_PLATFORM));
     if (options) {
         printf("options:  ");
-        printf("%s ", BN_options());
+        printf("%s ", VR_BN_options());
 #ifndef OPENSSL_NO_MD2
         printf("%s ", MD2_options());
 #endif
-#ifndef OPENSSL_NO_RC4
-        printf("%s ", RC4_options());
+#ifndef OPENSSL_NO_VR_RC4
+        printf("%s ", VR_RC4_options());
 #endif
 #ifndef OPENSSL_NO_DES
-        printf("%s ", DES_options());
+        printf("%s ", VR_DES_options());
 #endif
 #ifndef OPENSSL_NO_IDEA
-        printf("%s ", IDEA_options());
+        printf("%s ", VR_IDEA_options());
 #endif
 #ifndef OPENSSL_NO_BF
-        printf("%s ", BF_options());
+        printf("%s ", VR_BF_options());
 #endif
         printf("\n");
     }
     if (cflags)
-        printf("%s\n", OpenSSL_version(OPENSSL_CFLAGS));
+        printf("%s\n", VR_OpenSSL_version(OPENSSL_CFLAGS));
     if (dir)
-        printf("%s\n", OpenSSL_version(OPENSSL_DIR));
+        printf("%s\n", VR_OpenSSL_version(OPENSSL_DIR));
     if (engdir)
-        printf("%s\n", OpenSSL_version(OPENSSL_ENGINES_DIR));
+        printf("%s\n", VR_OpenSSL_version(OPENSSL_ENGINES_DIR));
     if (seed) {
         printf("Seeding source:");
 #ifdef OPENSSL_RAND_SEED_RTDSC

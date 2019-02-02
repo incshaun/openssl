@@ -236,9 +236,9 @@ static int cmd_ECDHParameters(SSL_CONF_CTX *cctx, const char *value)
         strcmp(value, "auto") == 0)
         return 1;
 
-    nid = EC_curve_nist2nid(value);
+    nid = VR_EC_curve_nist2nid(value);
     if (nid == NID_undef)
-        nid = OBJ_sn2nid(value);
+        nid = VR_OBJ_sn2nid(value);
     if (nid == 0)
         return 0;
 
@@ -255,9 +255,9 @@ static int cmd_CipherString(SSL_CONF_CTX *cctx, const char *value)
     int rv = 1;
 
     if (cctx->ctx)
-        rv = SSL_CTX_set_cipher_list(cctx->ctx, value);
+        rv = VR_SSL_CTX_set_cipher_list(cctx->ctx, value);
     if (cctx->ssl)
-        rv = SSL_set_cipher_list(cctx->ssl, value);
+        rv = VR_SSL_set_cipher_list(cctx->ssl, value);
     return rv > 0;
 }
 
@@ -266,9 +266,9 @@ static int cmd_Ciphersuites(SSL_CONF_CTX *cctx, const char *value)
     int rv = 1;
 
     if (cctx->ctx)
-        rv = SSL_CTX_set_ciphersuites(cctx->ctx, value);
+        rv = VR_SSL_CTX_set_ciphersuites(cctx->ctx, value);
     if (cctx->ssl)
-        rv = SSL_set_ciphersuites(cctx->ssl, value);
+        rv = VR_SSL_set_ciphersuites(cctx->ssl, value);
     return rv > 0;
 }
 
@@ -287,7 +287,7 @@ static int cmd_Protocol(SSL_CONF_CTX *cctx, const char *value)
     };
     cctx->tbl = ssl_protocol_list;
     cctx->ntbl = OSSL_NELEM(ssl_protocol_list);
-    return CONF_parse_list(value, ',', 1, ssl_set_option_list, cctx);
+    return VR_CONF_parse_list(value, ',', 1, ssl_set_option_list, cctx);
 }
 
 /*
@@ -333,7 +333,7 @@ static int min_max_proto(SSL_CONF_CTX *cctx, const char *value, int *bound)
         return 0;
     if ((new_version = protocol_from_string(value)) < 0)
         return 0;
-    return ssl_set_version_bound(method_version, new_version, bound);
+    return VR_ssl_set_version_bound(method_version, new_version, bound);
 }
 
 /*
@@ -386,7 +386,7 @@ static int cmd_Options(SSL_CONF_CTX *cctx, const char *value)
         return -3;
     cctx->tbl = ssl_option_list;
     cctx->ntbl = OSSL_NELEM(ssl_option_list);
-    return CONF_parse_list(value, ',', 1, ssl_set_option_list, cctx);
+    return VR_CONF_parse_list(value, ',', 1, ssl_set_option_list, cctx);
 }
 
 static int cmd_VerifyMode(SSL_CONF_CTX *cctx, const char *value)
@@ -407,7 +407,7 @@ static int cmd_VerifyMode(SSL_CONF_CTX *cctx, const char *value)
         return -3;
     cctx->tbl = ssl_vfy_list;
     cctx->ntbl = OSSL_NELEM(ssl_vfy_list);
-    return CONF_parse_list(value, ',', 1, ssl_set_option_list, cctx);
+    return VR_CONF_parse_list(value, ',', 1, ssl_set_option_list, cctx);
 }
 
 static int cmd_Certificate(SSL_CONF_CTX *cctx, const char *value)
@@ -415,16 +415,16 @@ static int cmd_Certificate(SSL_CONF_CTX *cctx, const char *value)
     int rv = 1;
     CERT *c = NULL;
     if (cctx->ctx) {
-        rv = SSL_CTX_use_certificate_chain_file(cctx->ctx, value);
+        rv = VR_SSL_CTX_use_certificate_chain_file(cctx->ctx, value);
         c = cctx->ctx->cert;
     }
     if (cctx->ssl) {
-        rv = SSL_use_certificate_chain_file(cctx->ssl, value);
+        rv = VR_SSL_use_certificate_chain_file(cctx->ssl, value);
         c = cctx->ssl->cert;
     }
     if (rv > 0 && c && cctx->flags & SSL_CONF_FLAG_REQUIRE_PRIVATE) {
         char **pfilename = &cctx->cert_filename[c->key - c->pkeys];
-        OPENSSL_free(*pfilename);
+        OPENVR_SSL_free(*pfilename);
         *pfilename = OPENSSL_strdup(value);
         if (!*pfilename)
             rv = 0;
@@ -439,9 +439,9 @@ static int cmd_PrivateKey(SSL_CONF_CTX *cctx, const char *value)
     if (!(cctx->flags & SSL_CONF_FLAG_CERTIFICATE))
         return -2;
     if (cctx->ctx)
-        rv = SSL_CTX_use_PrivateKey_file(cctx->ctx, value, SSL_FILETYPE_PEM);
+        rv = VR_SSL_CTX_use_PrivateKey_file(cctx->ctx, value, SSL_FILETYPE_PEM);
     if (cctx->ssl)
-        rv = SSL_use_PrivateKey_file(cctx->ssl, value, SSL_FILETYPE_PEM);
+        rv = VR_SSL_use_PrivateKey_file(cctx->ssl, value, SSL_FILETYPE_PEM);
     return rv > 0;
 }
 
@@ -449,7 +449,7 @@ static int cmd_ServerInfoFile(SSL_CONF_CTX *cctx, const char *value)
 {
     int rv = 1;
     if (cctx->ctx)
-        rv = SSL_CTX_use_serverinfo_file(cctx->ctx, value);
+        rv = VR_SSL_CTX_use_serverinfo_file(cctx->ctx, value);
     return rv > 0;
 }
 
@@ -466,11 +466,11 @@ static int do_store(SSL_CONF_CTX *cctx,
         return 1;
     st = verify_store ? &cert->verify_store : &cert->chain_store;
     if (*st == NULL) {
-        *st = X509_STORE_new();
+        *st = VR_X509_STORE_new();
         if (*st == NULL)
             return 0;
     }
-    return X509_STORE_load_locations(*st, CAfile, CApath) > 0;
+    return VR_X509_STORE_load_locations(*st, CAfile, CApath) > 0;
 }
 
 static int cmd_ChainCAPath(SSL_CONF_CTX *cctx, const char *value)
@@ -496,10 +496,10 @@ static int cmd_VerifyCAFile(SSL_CONF_CTX *cctx, const char *value)
 static int cmd_RequestCAFile(SSL_CONF_CTX *cctx, const char *value)
 {
     if (cctx->canames == NULL)
-        cctx->canames = sk_X509_NAME_new_null();
+        cctx->canames = sk_VR_X509_NAME_new_null();
     if (cctx->canames == NULL)
         return 0;
-    return SSL_add_file_cert_subjects_to_stack(cctx->canames, value);
+    return VR_SSL_add_file_cert_subjects_to_stack(cctx->canames, value);
 }
 
 static int cmd_ClientCAFile(SSL_CONF_CTX *cctx, const char *value)
@@ -510,10 +510,10 @@ static int cmd_ClientCAFile(SSL_CONF_CTX *cctx, const char *value)
 static int cmd_RequestCAPath(SSL_CONF_CTX *cctx, const char *value)
 {
     if (cctx->canames == NULL)
-        cctx->canames = sk_X509_NAME_new_null();
+        cctx->canames = sk_VR_X509_NAME_new_null();
     if (cctx->canames == NULL)
         return 0;
-    return SSL_add_dir_cert_subjects_to_stack(cctx->canames, value);
+    return VR_SSL_add_dir_cert_subjects_to_stack(cctx->canames, value);
 }
 
 static int cmd_ClientCAPath(SSL_CONF_CTX *cctx, const char *value)
@@ -528,12 +528,12 @@ static int cmd_DHParameters(SSL_CONF_CTX *cctx, const char *value)
     DH *dh = NULL;
     BIO *in = NULL;
     if (cctx->ctx || cctx->ssl) {
-        in = BIO_new(BIO_s_file());
+        in = VR_BIO_new(VR_BIO_s_file());
         if (in == NULL)
             goto end;
-        if (BIO_read_filename(in, value) <= 0)
+        if (VR_BIO_read_filename(in, value) <= 0)
             goto end;
-        dh = PEM_read_bio_DHparams(in, NULL, NULL, NULL);
+        dh = VR_PEM_read_bio_DHparams(in, NULL, NULL, NULL);
         if (dh == NULL)
             goto end;
     } else
@@ -543,8 +543,8 @@ static int cmd_DHParameters(SSL_CONF_CTX *cctx, const char *value)
     if (cctx->ssl)
         rv = SSL_set_tmp_dh(cctx->ssl, dh);
  end:
-    DH_free(dh);
-    BIO_free(in);
+    VR_DH_free(dh);
+    VR_BIO_free(in);
     return rv > 0;
 }
 #endif
@@ -560,9 +560,9 @@ static int cmd_RecordPadding(SSL_CONF_CTX *cctx, const char *value)
      */
     if (block_size >= 0) {
         if (cctx->ctx)
-            rv = SSL_CTX_set_block_padding(cctx->ctx, block_size);
+            rv = VR_SSL_CTX_set_block_padding(cctx->ctx, block_size);
         if (cctx->ssl)
-            rv = SSL_set_block_padding(cctx->ssl, block_size);
+            rv = VR_SSL_set_block_padding(cctx->ssl, block_size);
     }
     return rv;
 }
@@ -575,9 +575,9 @@ static int cmd_NumTickets(SSL_CONF_CTX *cctx, const char *value)
 
     if (num_tickets >= 0) {
         if (cctx->ctx)
-            rv = SSL_CTX_set_num_tickets(cctx->ctx, num_tickets);
+            rv = VR_SSL_CTX_set_num_tickets(cctx->ctx, num_tickets);
         if (cctx->ssl)
-            rv = SSL_set_num_tickets(cctx->ssl, num_tickets);
+            rv = VR_SSL_set_num_tickets(cctx->ssl, num_tickets);
     }
     return rv;
 }
@@ -785,7 +785,7 @@ static int ctrl_switch_option(SSL_CONF_CTX *cctx, const ssl_conf_cmd_tbl * cmd)
     return 1;
 }
 
-int SSL_CONF_cmd(SSL_CONF_CTX *cctx, const char *cmd, const char *value)
+int VR_SSL_CONF_cmd(SSL_CONF_CTX *cctx, const char *cmd, const char *value)
 {
     const ssl_conf_cmd_tbl *runcmd;
     if (cmd == NULL) {
@@ -812,20 +812,20 @@ int SSL_CONF_cmd(SSL_CONF_CTX *cctx, const char *cmd, const char *value)
             return -2;
         if (cctx->flags & SSL_CONF_FLAG_SHOW_ERRORS) {
             SSLerr(SSL_F_SSL_CONF_CMD, SSL_R_BAD_VALUE);
-            ERR_add_error_data(4, "cmd=", cmd, ", value=", value);
+            VR_ERR_add_error_data(4, "cmd=", cmd, ", value=", value);
         }
         return 0;
     }
 
     if (cctx->flags & SSL_CONF_FLAG_SHOW_ERRORS) {
         SSLerr(SSL_F_SSL_CONF_CMD, SSL_R_UNKNOWN_CMD_NAME);
-        ERR_add_error_data(2, "cmd=", cmd);
+        VR_ERR_add_error_data(2, "cmd=", cmd);
     }
 
     return -2;
 }
 
-int SSL_CONF_cmd_argv(SSL_CONF_CTX *cctx, int *pargc, char ***pargv)
+int VR_SSL_CONF_cmd_argv(SSL_CONF_CTX *cctx, int *pargc, char ***pargv)
 {
     int rv;
     const char *arg = NULL, *argn;
@@ -841,7 +841,7 @@ int SSL_CONF_cmd_argv(SSL_CONF_CTX *cctx, int *pargc, char ***pargv)
         argn = NULL;
     cctx->flags &= ~SSL_CONF_FLAG_FILE;
     cctx->flags |= SSL_CONF_FLAG_CMDLINE;
-    rv = SSL_CONF_cmd(cctx, arg, argn);
+    rv = VR_SSL_CONF_cmd(cctx, arg, argn);
     if (rv > 0) {
         /* Success: update pargc, pargv */
         (*pargv) += rv;
@@ -858,7 +858,7 @@ int SSL_CONF_cmd_argv(SSL_CONF_CTX *cctx, int *pargc, char ***pargv)
     return rv;
 }
 
-int SSL_CONF_cmd_value_type(SSL_CONF_CTX *cctx, const char *cmd)
+int VR_SSL_CONF_cmd_value_type(SSL_CONF_CTX *cctx, const char *cmd)
 {
     if (ssl_conf_cmd_skip_prefix(cctx, &cmd)) {
         const ssl_conf_cmd_tbl *runcmd;
@@ -869,14 +869,14 @@ int SSL_CONF_cmd_value_type(SSL_CONF_CTX *cctx, const char *cmd)
     return SSL_CONF_TYPE_UNKNOWN;
 }
 
-SSL_CONF_CTX *SSL_CONF_CTX_new(void)
+SSL_CONF_CTX *VR_SSL_CONF_CTX_new(void)
 {
     SSL_CONF_CTX *ret = OPENSSL_zalloc(sizeof(*ret));
 
     return ret;
 }
 
-int SSL_CONF_CTX_finish(SSL_CONF_CTX *cctx)
+int VR_SSL_CONF_CTX_finish(SSL_CONF_CTX *cctx)
 {
     /* See if any certificates are missing private keys */
     size_t i;
@@ -899,41 +899,41 @@ int SSL_CONF_CTX_finish(SSL_CONF_CTX *cctx)
     }
     if (cctx->canames) {
         if (cctx->ssl)
-            SSL_set0_CA_list(cctx->ssl, cctx->canames);
+            VR_SSL_set0_CA_list(cctx->ssl, cctx->canames);
         else if (cctx->ctx)
-            SSL_CTX_set0_CA_list(cctx->ctx, cctx->canames);
+            VR_SSL_CTX_set0_CA_list(cctx->ctx, cctx->canames);
         else
-            sk_X509_NAME_pop_free(cctx->canames, X509_NAME_free);
+            sk_VR_X509_NAME_pop_free(cctx->canames, VR_X509_NAME_free);
         cctx->canames = NULL;
     }
     return 1;
 }
 
-void SSL_CONF_CTX_free(SSL_CONF_CTX *cctx)
+void VR_SSL_CONF_CTX_free(SSL_CONF_CTX *cctx)
 {
     if (cctx) {
         size_t i;
         for (i = 0; i < SSL_PKEY_NUM; i++)
-            OPENSSL_free(cctx->cert_filename[i]);
-        OPENSSL_free(cctx->prefix);
-        sk_X509_NAME_pop_free(cctx->canames, X509_NAME_free);
-        OPENSSL_free(cctx);
+            OPENVR_SSL_free(cctx->cert_filename[i]);
+        OPENVR_SSL_free(cctx->prefix);
+        sk_VR_X509_NAME_pop_free(cctx->canames, VR_X509_NAME_free);
+        OPENVR_SSL_free(cctx);
     }
 }
 
-unsigned int SSL_CONF_CTX_set_flags(SSL_CONF_CTX *cctx, unsigned int flags)
+unsigned int VR_SSL_CONF_CTX_set_flags(SSL_CONF_CTX *cctx, unsigned int flags)
 {
     cctx->flags |= flags;
     return cctx->flags;
 }
 
-unsigned int SSL_CONF_CTX_clear_flags(SSL_CONF_CTX *cctx, unsigned int flags)
+unsigned int VR_SSL_CONF_CTX_clear_flags(SSL_CONF_CTX *cctx, unsigned int flags)
 {
     cctx->flags &= ~flags;
     return cctx->flags;
 }
 
-int SSL_CONF_CTX_set1_prefix(SSL_CONF_CTX *cctx, const char *pre)
+int VR_SSL_CONF_CTX_set1_prefix(SSL_CONF_CTX *cctx, const char *pre)
 {
     char *tmp = NULL;
     if (pre) {
@@ -941,7 +941,7 @@ int SSL_CONF_CTX_set1_prefix(SSL_CONF_CTX *cctx, const char *pre)
         if (tmp == NULL)
             return 0;
     }
-    OPENSSL_free(cctx->prefix);
+    OPENVR_SSL_free(cctx->prefix);
     cctx->prefix = tmp;
     if (tmp)
         cctx->prefixlen = strlen(tmp);
@@ -950,7 +950,7 @@ int SSL_CONF_CTX_set1_prefix(SSL_CONF_CTX *cctx, const char *pre)
     return 1;
 }
 
-void SSL_CONF_CTX_set_ssl(SSL_CONF_CTX *cctx, SSL *ssl)
+void VR_SSL_CONF_CTX_set_ssl(SSL_CONF_CTX *cctx, SSL *ssl)
 {
     cctx->ssl = ssl;
     cctx->ctx = NULL;
@@ -969,7 +969,7 @@ void SSL_CONF_CTX_set_ssl(SSL_CONF_CTX *cctx, SSL *ssl)
     }
 }
 
-void SSL_CONF_CTX_set_ssl_ctx(SSL_CONF_CTX *cctx, SSL_CTX *ctx)
+void VR_SSL_CONF_CTX_set_ssl_ctx(SSL_CONF_CTX *cctx, SSL_CTX *ctx)
 {
     cctx->ctx = ctx;
     cctx->ssl = NULL;

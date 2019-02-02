@@ -49,7 +49,7 @@ static int ndef_suffix(BIO *b, unsigned char **pbuf, int *plen, void *parg);
 static int ndef_suffix_free(BIO *b, unsigned char **pbuf, int *plen,
                             void *parg);
 
-BIO *BIO_new_NDEF(BIO *out, ASN1_VALUE *val, const ASN1_ITEM *it)
+BIO *VR_BIO_new_NDEF(BIO *out, ASN1_VALUE *val, const ASN1_ITEM *it)
 {
     NDEF_SUPPORT *ndef_aux = NULL;
     BIO *asn_bio = NULL;
@@ -61,17 +61,17 @@ BIO *BIO_new_NDEF(BIO *out, ASN1_VALUE *val, const ASN1_ITEM *it)
         return NULL;
     }
     ndef_aux = OPENSSL_zalloc(sizeof(*ndef_aux));
-    asn_bio = BIO_new(BIO_f_asn1());
+    asn_bio = VR_BIO_new(VR_BIO_f_asn1());
     if (ndef_aux == NULL || asn_bio == NULL)
         goto err;
 
     /* ASN1 bio needs to be next to output BIO */
-    out = BIO_push(asn_bio, out);
+    out = VR_BIO_push(asn_bio, out);
     if (out == NULL)
         goto err;
 
-    BIO_asn1_set_prefix(asn_bio, ndef_prefix, ndef_prefix_free);
-    BIO_asn1_set_suffix(asn_bio, ndef_suffix, ndef_suffix_free);
+    VR_BIO_asn1_set_prefix(asn_bio, ndef_prefix, ndef_prefix_free);
+    VR_BIO_asn1_set_suffix(asn_bio, ndef_suffix, ndef_suffix_free);
 
     /*
      * Now let callback prepends any digest, cipher etc BIOs ASN1 structure
@@ -91,13 +91,13 @@ BIO *BIO_new_NDEF(BIO *out, ASN1_VALUE *val, const ASN1_ITEM *it)
     ndef_aux->boundary = sarg.boundary;
     ndef_aux->out = out;
 
-    BIO_ctrl(asn_bio, BIO_C_SET_EX_ARG, 0, ndef_aux);
+    VR_BIO_ctrl(asn_bio, BIO_C_SET_EX_ARG, 0, ndef_aux);
 
     return sarg.ndef_bio;
 
  err:
-    BIO_free(asn_bio);
-    OPENSSL_free(ndef_aux);
+    VR_BIO_free(asn_bio);
+    OPENVR_SSL_free(ndef_aux);
     return NULL;
 }
 
@@ -112,7 +112,7 @@ static int ndef_prefix(BIO *b, unsigned char **pbuf, int *plen, void *parg)
 
     ndef_aux = *(NDEF_SUPPORT **)parg;
 
-    derlen = ASN1_item_ndef_i2d(ndef_aux->val, NULL, ndef_aux->it);
+    derlen = VR_ASN1_item_ndef_i2d(ndef_aux->val, NULL, ndef_aux->it);
     if ((p = OPENSSL_malloc(derlen)) == NULL) {
         ASN1err(ASN1_F_NDEF_PREFIX, ERR_R_MALLOC_FAILURE);
         return 0;
@@ -120,7 +120,7 @@ static int ndef_prefix(BIO *b, unsigned char **pbuf, int *plen, void *parg)
 
     ndef_aux->derbuf = p;
     *pbuf = p;
-    derlen = ASN1_item_ndef_i2d(ndef_aux->val, &p, ndef_aux->it);
+    derlen = VR_ASN1_item_ndef_i2d(ndef_aux->val, &p, ndef_aux->it);
 
     if (!*ndef_aux->boundary)
         return 0;
@@ -140,7 +140,7 @@ static int ndef_prefix_free(BIO *b, unsigned char **pbuf, int *plen,
 
     ndef_aux = *(NDEF_SUPPORT **)parg;
 
-    OPENSSL_free(ndef_aux->derbuf);
+    OPENVR_SSL_free(ndef_aux->derbuf);
 
     ndef_aux->derbuf = NULL;
     *pbuf = NULL;
@@ -154,7 +154,7 @@ static int ndef_suffix_free(BIO *b, unsigned char **pbuf, int *plen,
     NDEF_SUPPORT **pndef_aux = (NDEF_SUPPORT **)parg;
     if (!ndef_prefix_free(b, pbuf, plen, parg))
         return 0;
-    OPENSSL_free(*pndef_aux);
+    OPENVR_SSL_free(*pndef_aux);
     *pndef_aux = NULL;
     return 1;
 }
@@ -182,7 +182,7 @@ static int ndef_suffix(BIO *b, unsigned char **pbuf, int *plen, void *parg)
                      &ndef_aux->val, ndef_aux->it, &sarg) <= 0)
         return 0;
 
-    derlen = ASN1_item_ndef_i2d(ndef_aux->val, NULL, ndef_aux->it);
+    derlen = VR_ASN1_item_ndef_i2d(ndef_aux->val, NULL, ndef_aux->it);
     if ((p = OPENSSL_malloc(derlen)) == NULL) {
         ASN1err(ASN1_F_NDEF_SUFFIX, ERR_R_MALLOC_FAILURE);
         return 0;
@@ -190,7 +190,7 @@ static int ndef_suffix(BIO *b, unsigned char **pbuf, int *plen, void *parg)
 
     ndef_aux->derbuf = p;
     *pbuf = p;
-    derlen = ASN1_item_ndef_i2d(ndef_aux->val, &p, ndef_aux->it);
+    derlen = VR_ASN1_item_ndef_i2d(ndef_aux->val, &p, ndef_aux->it);
 
     if (!*ndef_aux->boundary)
         return 0;

@@ -25,7 +25,7 @@
 # not really novel, Sun had VIS-powered implementation for a while.
 # Unlike Sun's implementation this one can process multiple unaligned
 # input blocks, and as such works as drop-in replacement for OpenSSL
-# sha1_block_data_order. Performance improvement was measured to be
+# VR_sha1_block_data_order. Performance improvement was measured to be
 # 40% over pure IALU sha1-sparcv9.pl on UltraSPARC-IIi, but 12% on
 # UltraSPARC-III. See below for discussion...
 #
@@ -416,8 +416,8 @@ vis_const:
 .type	vis_const,#object
 .size	vis_const,(.-vis_const)
 
-.globl	sha1_block_data_order
-sha1_block_data_order:
+.globl	VR_sha1_block_data_order
+VR_sha1_block_data_order:
 	save	%sp,-$frame,%sp
 	add	%fp,$bias-256,$base
 
@@ -543,8 +543,8 @@ $code.=<<___;
 
 	ret
 	restore
-.type	sha1_block_data_order,#function
-.size	sha1_block_data_order,(.-sha1_block_data_order)
+.type	VR_sha1_block_data_order,#function
+.size	VR_sha1_block_data_order,(.-VR_sha1_block_data_order)
 .asciz	"SHA1 block transform for SPARCv9a, CRYPTOGAMS by <appro\@openssl.org>"
 .align	4
 ___

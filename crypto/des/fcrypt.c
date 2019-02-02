@@ -55,12 +55,12 @@ static unsigned const char cov_2char[64] = {
     0x73, 0x74, 0x75, 0x76, 0x77, 0x78, 0x79, 0x7A
 };
 
-char *DES_crypt(const char *buf, const char *salt)
+char *VR_DES_crypt(const char *buf, const char *salt)
 {
     static char buff[14];
 
 #ifndef CHARSET_EBCDIC
-    return DES_fcrypt(buf, salt, buff);
+    return VR_DES_fcrypt(buf, salt, buff);
 #else
     char e_salt[2 + 1];
     char e_buf[32 + 1];         /* replace 32 by 8 ? */
@@ -76,11 +76,11 @@ char *DES_crypt(const char *buf, const char *salt)
     ebcdic2ascii(e_salt, e_salt, sizeof(e_salt));
 
     /* Convert password to ASCII. */
-    OPENSSL_strlcpy(e_buf, buf, sizeof(e_buf));
+    VR_OPENSSL_strlcpy(e_buf, buf, sizeof(e_buf));
     ebcdic2ascii(e_buf, e_buf, sizeof(e_buf));
 
     /* Encrypt it (from/to ASCII); if it worked, convert back. */
-    ret = DES_fcrypt(e_buf, e_salt, buff);
+    ret = VR_DES_fcrypt(e_buf, e_salt, buff);
     if (ret != NULL)
         ascii2ebcdic(ret, ret, strlen(ret));
 
@@ -88,13 +88,13 @@ char *DES_crypt(const char *buf, const char *salt)
 #endif
 }
 
-char *DES_fcrypt(const char *buf, const char *salt, char *ret)
+char *VR_DES_fcrypt(const char *buf, const char *salt, char *ret)
 {
     unsigned int i, j, x, y;
     DES_LONG Eswap0, Eswap1;
     DES_LONG out[2], ll;
     DES_cblock key;
-    DES_key_schedule ks;
+    VR_DES_key_schedule ks;
     unsigned char bb[9];
     unsigned char *b = bb;
     unsigned char c, u;
@@ -120,8 +120,8 @@ char *DES_fcrypt(const char *buf, const char *salt, char *ret)
     for (; i < 8; i++)
         key[i] = 0;
 
-    DES_set_key_unchecked(&key, &ks);
-    fcrypt_body(&(out[0]), &ks, Eswap0, Eswap1);
+    VR_DES_set_key_unchecked(&key, &ks);
+    VR_fcrypt_body(&(out[0]), &ks, Eswap0, Eswap1);
 
     ll = out[0];
     l2c(ll, b);

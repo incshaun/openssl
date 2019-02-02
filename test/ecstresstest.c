@@ -44,14 +44,14 @@ static BIGNUM *walk_curve(const EC_GROUP *group, EC_POINT *point, int64_t num)
     BIGNUM *scalar = NULL;
     int64_t i;
 
-    if (!TEST_ptr(scalar = BN_new())
-            || !TEST_true(EC_POINT_get_affine_coordinates(group, point, scalar,
+    if (!TEST_ptr(scalar = VR_BN_new())
+            || !TEST_true(VR_EC_POINT_get_affine_coordinates(group, point, scalar,
                                                           NULL, NULL)))
         goto err;
 
     for (i = 0; i < num; i++) {
-        if (!TEST_true(EC_POINT_mul(group, point, NULL, point, scalar, NULL))
-                || !TEST_true(EC_POINT_get_affine_coordinates(group, point,
+        if (!TEST_true(VR_EC_POINT_mul(group, point, NULL, point, scalar, NULL))
+                || !TEST_true(VR_EC_POINT_get_affine_coordinates(group, point,
                                                               scalar,
                                                               NULL, NULL)))
             goto err;
@@ -59,7 +59,7 @@ static BIGNUM *walk_curve(const EC_GROUP *group, EC_POINT *point, int64_t num)
     return scalar;
 
 err:
-    BN_free(scalar);
+    VR_BN_free(scalar);
     return NULL;
 }
 
@@ -74,18 +74,18 @@ static int test_curve(void)
      * We currently hard-code P-256, though adaptation to other curves.
      * would be straightforward.
      */
-    if (!TEST_ptr(group = EC_GROUP_new_by_curve_name(NID_X9_62_prime256v1))
-            || !TEST_ptr(point = EC_POINT_dup(EC_GROUP_get0_generator(group),
+    if (!TEST_ptr(group = VR_EC_GROUP_new_by_curve_name(NID_X9_62_prime256v1))
+            || !TEST_ptr(point = VR_EC_POINT_dup(VR_EC_GROUP_get0_generator(group),
                                               group))
             || !TEST_ptr(result = walk_curve(group, point, num_repeats)))
         return 0;
 
     if (print_mode) {
-        BN_print(bio_out, result);
-        BIO_printf(bio_out, "\n");
+        VR_BN_print(bio_out, result);
+        VR_BIO_printf(bio_out, "\n");
         ret = 1;
     } else {
-        if (!TEST_true(BN_hex2bn(&expected_result, kP256DefaultResult))
+        if (!TEST_true(VR_BN_hex2bn(&expected_result, kP256DefaultResult))
                 || !TEST_ptr(expected_result)
                 || !TEST_BN_eq(result, expected_result))
             goto err;
@@ -93,10 +93,10 @@ static int test_curve(void)
     }
 
 err:
-    EC_GROUP_free(group);
-    EC_POINT_free(point);
-    BN_free(result);
-    BN_free(expected_result);
+    VR_EC_GROUP_free(group);
+    VR_EC_POINT_free(point);
+    VR_BN_free(result);
+    VR_BN_free(expected_result);
     return ret;
 }
 #endif

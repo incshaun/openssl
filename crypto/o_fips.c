@@ -9,13 +9,13 @@
 
 #include "internal/cryptlib.h"
 
-int FIPS_mode(void)
+int VR_FIPS_mode(void)
 {
     /* This version of the library does not support FIPS mode. */
     return 0;
 }
 
-int FIPS_mode_set(int r)
+int VR_FIPS_mode_set(int r)
 {
     if (r == 0)
         return 1;

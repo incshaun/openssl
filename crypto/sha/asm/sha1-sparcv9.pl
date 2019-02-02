@@ -202,8 +202,8 @@ SPARC_PIC_THUNK(%g1)
 #endif
 
 .align	32
-.globl	sha1_block_data_order
-sha1_block_data_order:
+.globl	VR_sha1_block_data_order
+VR_sha1_block_data_order:
 	SPARC_LOAD_ADDRESS_LEAF(OPENSSL_sparcv9cap_P,%g1,%g5)
 	ld	[%g1+4],%g1		! OPENSSL_sparcv9cap_P[1]
 
@@ -367,8 +367,8 @@ $code.=<<___;
 
 	ret
 	restore
-.type	sha1_block_data_order,#function
-.size	sha1_block_data_order,(.-sha1_block_data_order)
+.type	VR_sha1_block_data_order,#function
+.size	VR_sha1_block_data_order,(.-VR_sha1_block_data_order)
 .asciz	"SHA1 block transform for SPARCv9, CRYPTOGAMS by <appro\@openssl.org>"
 .align	4
 ___

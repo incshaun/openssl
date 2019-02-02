@@ -22,14 +22,14 @@ static int ext_cmp(const X509V3_EXT_METHOD *const *a,
                    const X509V3_EXT_METHOD *const *b);
 static void ext_list_free(X509V3_EXT_METHOD *ext);
 
-int X509V3_EXT_add(X509V3_EXT_METHOD *ext)
+int VR_X509V3_EXT_add(X509V3_EXT_METHOD *ext)
 {
     if (ext_list == NULL
-        && (ext_list = sk_X509V3_EXT_METHOD_new(ext_cmp)) == NULL) {
+        && (ext_list = sk_VR_X509V3_EXT_METHOD_new(ext_cmp)) == NULL) {
         X509V3err(X509V3_F_X509V3_EXT_ADD, ERR_R_MALLOC_FAILURE);
         return 0;
     }
-    if (!sk_X509V3_EXT_METHOD_push(ext_list, ext)) {
+    if (!sk_VR_X509V3_EXT_METHOD_push(ext_list, ext)) {
         X509V3err(X509V3_F_X509V3_EXT_ADD, ERR_R_MALLOC_FAILURE);
         return 0;
     }
@@ -49,7 +49,7 @@ IMPLEMENT_OBJ_BSEARCH_CMP_FN(const X509V3_EXT_METHOD *,
 
 #include "standard_exts.h"
 
-const X509V3_EXT_METHOD *X509V3_EXT_get_nid(int nid)
+const X509V3_EXT_METHOD *VR_X509V3_EXT_get_nid(int nid)
 {
     X509V3_EXT_METHOD tmp;
     const X509V3_EXT_METHOD *t = &tmp, *const *ret;
@@ -58,37 +58,37 @@ const X509V3_EXT_METHOD *X509V3_EXT_get_nid(int nid)
     if (nid < 0)
         return NULL;
     tmp.ext_nid = nid;
-    ret = OBJ_bsearch_ext(&t, standard_exts, STANDARD_EXTENSION_COUNT);
+    ret = VR_OBJ_bsearch_ext(&t, standard_exts, STANDARD_EXTENSION_COUNT);
     if (ret)
         return *ret;
     if (!ext_list)
         return NULL;
-    idx = sk_X509V3_EXT_METHOD_find(ext_list, &tmp);
+    idx = sk_VR_X509V3_EXT_METHOD_find(ext_list, &tmp);
     return sk_X509V3_EXT_METHOD_value(ext_list, idx);
 }
 
-const X509V3_EXT_METHOD *X509V3_EXT_get(X509_EXTENSION *ext)
+const X509V3_EXT_METHOD *VR_X509V3_EXT_get(X509_EXTENSION *ext)
 {
     int nid;
-    if ((nid = OBJ_obj2nid(X509_EXTENSION_get_object(ext))) == NID_undef)
+    if ((nid = VR_OBJ_obj2nid(VR_X509_EXTENSION_get_object(ext))) == NID_undef)
         return NULL;
-    return X509V3_EXT_get_nid(nid);
+    return VR_X509V3_EXT_get_nid(nid);
 }
 
-int X509V3_EXT_add_list(X509V3_EXT_METHOD *extlist)
+int VR_X509V3_EXT_add_list(X509V3_EXT_METHOD *extlist)
 {
     for (; extlist->ext_nid != -1; extlist++)
-        if (!X509V3_EXT_add(extlist))
+        if (!VR_X509V3_EXT_add(extlist))
             return 0;
     return 1;
 }
 
-int X509V3_EXT_add_alias(int nid_to, int nid_from)
+int VR_X509V3_EXT_add_alias(int nid_to, int nid_from)
 {
     const X509V3_EXT_METHOD *ext;
     X509V3_EXT_METHOD *tmpext;
 
-    if ((ext = X509V3_EXT_get_nid(nid_from)) == NULL) {
+    if ((ext = VR_X509V3_EXT_get_nid(nid_from)) == NULL) {
         X509V3err(X509V3_F_X509V3_EXT_ADD_ALIAS, X509V3_R_EXTENSION_NOT_FOUND);
         return 0;
     }
@@ -99,19 +99,19 @@ int X509V3_EXT_add_alias(int nid_to, int nid_from)
     *tmpext = *ext;
     tmpext->ext_nid = nid_to;
     tmpext->ext_flags |= X509V3_EXT_DYNAMIC;
-    return X509V3_EXT_add(tmpext);
+    return VR_X509V3_EXT_add(tmpext);
 }
 
-void X509V3_EXT_cleanup(void)
+void VR_X509V3_EXT_cleanup(void)
 {
-    sk_X509V3_EXT_METHOD_pop_free(ext_list, ext_list_free);
+    sk_VR_X509V3_EXT_METHOD_pop_free(ext_list, ext_list_free);
     ext_list = NULL;
 }
 
 static void ext_list_free(X509V3_EXT_METHOD *ext)
 {
     if (ext->ext_flags & X509V3_EXT_DYNAMIC)
-        OPENSSL_free(ext);
+        OPENVR_SSL_free(ext);
 }
 
 /*
@@ -119,27 +119,27 @@ static void ext_list_free(X509V3_EXT_METHOD *ext)
  * they are now kept in ext_dat.h.
  */
 
-int X509V3_add_standard_extensions(void)
+int VR_X509V3_add_standard_extensions(void)
 {
     return 1;
 }
 
 /* Return an extension internal structure */
 
-void *X509V3_EXT_d2i(X509_EXTENSION *ext)
+void *VR_X509V3_EXT_d2i(X509_EXTENSION *ext)
 {
     const X509V3_EXT_METHOD *method;
     const unsigned char *p;
     ASN1_STRING *extvalue;
     int extlen;
 
-    if ((method = X509V3_EXT_get(ext)) == NULL)
+    if ((method = VR_X509V3_EXT_get(ext)) == NULL)
         return NULL;
-    extvalue = X509_EXTENSION_get_data(ext);
-    p = ASN1_STRING_get0_data(extvalue);
-    extlen = ASN1_STRING_length(extvalue);
+    extvalue = VR_X509_EXTENSION_get_data(ext);
+    p = VR_ASN1_STRING_get0_data(extvalue);
+    extlen = VR_ASN1_STRING_length(extvalue);
     if (method->it)
-        return ASN1_item_d2i(NULL, &p, extlen, ASN1_ITEM_ptr(method->it));
+        return VR_ASN1_item_d2i(NULL, &p, extlen, ASN1_ITEM_ptr(method->it));
     return method->d2i(NULL, &p, extlen);
 }
 
@@ -159,7 +159,7 @@ void *X509V3_EXT_d2i(X509_EXTENSION *ext)
  * -2 extension occurs more than once.
  */
 
-void *X509V3_get_d2i(const STACK_OF(X509_EXTENSION) *x, int nid, int *crit,
+void *VR_X509V3_get_d2i(const STACK_OF(X509_EXTENSION) *x, int nid, int *crit,
                      int *idx)
 {
     int lastpos, i;
@@ -180,7 +180,7 @@ void *X509V3_get_d2i(const STACK_OF(X509_EXTENSION) *x, int nid, int *crit,
         lastpos = 0;
     for (i = lastpos; i < sk_X509_EXTENSION_num(x); i++) {
         ex = sk_X509_EXTENSION_value(x, i);
-        if (OBJ_obj2nid(X509_EXTENSION_get_object(ex)) == nid) {
+        if (VR_OBJ_obj2nid(VR_X509_EXTENSION_get_object(ex)) == nid) {
             if (idx) {
                 *idx = i;
                 found_ex = ex;
@@ -197,8 +197,8 @@ void *X509V3_get_d2i(const STACK_OF(X509_EXTENSION) *x, int nid, int *crit,
     if (found_ex) {
         /* Found it */
         if (crit)
-            *crit = X509_EXTENSION_get_critical(found_ex);
-        return X509V3_EXT_d2i(found_ex);
+            *crit = VR_X509_EXTENSION_get_critical(found_ex);
+        return VR_X509V3_EXT_d2i(found_ex);
     }
 
     /* Extension not found */
@@ -215,7 +215,7 @@ void *X509V3_get_d2i(const STACK_OF(X509_EXTENSION) *x, int nid, int *crit,
  * 'value' arguments (if relevant) are the extensions internal structure.
  */
 
-int X509V3_add1_i2d(STACK_OF(X509_EXTENSION) **x, int nid, void *value,
+int VR_X509V3_add1_i2d(STACK_OF(X509_EXTENSION) **x, int nid, void *value,
                     int crit, unsigned long flags)
 {
     int errcode, extidx = -1;
@@ -228,7 +228,7 @@ int X509V3_add1_i2d(STACK_OF(X509_EXTENSION) **x, int nid, void *value,
      * extension.
      */
     if (ext_op != X509V3_ADD_APPEND)
-        extidx = X509v3_get_ext_by_NID(*x, nid, -1);
+        extidx = VR_X509v3_get_ext_by_NID(*x, nid, -1);
 
     /* See if extension exists */
     if (extidx >= 0) {
@@ -262,7 +262,7 @@ int X509V3_add1_i2d(STACK_OF(X509_EXTENSION) **x, int nid, void *value,
      * some flags for alternative encoding schemes...
      */
 
-    ext = X509V3_EXT_i2d(nid, crit, value);
+    ext = VR_X509V3_EXT_i2d(nid, crit, value);
 
     if (!ext) {
         X509V3err(X509V3_F_X509V3_ADD1_I2D,
@@ -273,17 +273,17 @@ int X509V3_add1_i2d(STACK_OF(X509_EXTENSION) **x, int nid, void *value,
     /* If extension exists replace it.. */
     if (extidx >= 0) {
         extmp = sk_X509_EXTENSION_value(*x, extidx);
-        X509_EXTENSION_free(extmp);
-        if (!sk_X509_EXTENSION_set(*x, extidx, ext))
+        VR_X509_EXTENSION_free(extmp);
+        if (!sk_VR_X509_EXTENSION_set(*x, extidx, ext))
             return -1;
         return 1;
     }
 
     ret = *x;
     if (*x == NULL
-        && (ret = sk_X509_EXTENSION_new_null()) == NULL)
+        && (ret = sk_VR_X509_EXTENSION_new_null()) == NULL)
         goto m_fail;
-    if (!sk_X509_EXTENSION_push(ret, ext))
+    if (!sk_VR_X509_EXTENSION_push(ret, ext))
         goto m_fail;
 
     *x = ret;
@@ -292,8 +292,8 @@ int X509V3_add1_i2d(STACK_OF(X509_EXTENSION) **x, int nid, void *value,
  m_fail:
     /* X509V3err(X509V3_F_X509V3_ADD1_I2D, ERR_R_MALLOC_FAILURE); */
     if (ret != *x)
-        sk_X509_EXTENSION_free(ret);
-    X509_EXTENSION_free(ext);
+        sk_VR_X509_EXTENSION_free(ret);
+    VR_X509_EXTENSION_free(ext);
     return -1;
 
  err:

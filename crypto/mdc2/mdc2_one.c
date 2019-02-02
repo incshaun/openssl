@@ -11,17 +11,17 @@
 #include "internal/cryptlib.h"
 #include <openssl/mdc2.h>
 
-unsigned char *MDC2(const unsigned char *d, size_t n, unsigned char *md)
+unsigned char *VR_MDC2(const unsigned char *d, size_t n, unsigned char *md)
 {
-    MDC2_CTX c;
-    static unsigned char m[MDC2_DIGEST_LENGTH];
+    VR_MDC2_CTX c;
+    static unsigned char m[VR_MDC2_DIGEST_LENGTH];
 
     if (md == NULL)
         md = m;
-    if (!MDC2_Init(&c))
+    if (!VR_MDC2_Init(&c))
         return NULL;
-    MDC2_Update(&c, d, n);
-    MDC2_Final(md, &c);
-    OPENSSL_cleanse(&c, sizeof(c)); /* security consideration */
+    VR_MDC2_Update(&c, d, n);
+    VR_MDC2_Final(md, &c);
+    VR_OPENSSL_cleanse(&c, sizeof(c)); /* security consideration */
     return md;
 }

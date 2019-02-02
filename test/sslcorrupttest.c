@@ -16,19 +16,19 @@ static int docorrupt = 0;
 static void copy_flags(BIO *bio)
 {
     int flags;
-    BIO *next = BIO_next(bio);
+    BIO *next = VR_BIO_next(bio);
 
-    flags = BIO_test_flags(next, BIO_FLAGS_SHOULD_RETRY | BIO_FLAGS_RWS);
-    BIO_clear_flags(bio, BIO_FLAGS_SHOULD_RETRY | BIO_FLAGS_RWS);
-    BIO_set_flags(bio, flags);
+    flags = VR_BIO_test_flags(next, BIO_FLAGS_SHOULD_RETRY | BIO_FLAGS_RWS);
+    VR_BIO_clear_flags(bio, BIO_FLAGS_SHOULD_RETRY | BIO_FLAGS_RWS);
+    VR_BIO_set_flags(bio, flags);
 }
 
 static int tls_corrupt_read(BIO *bio, char *out, int outl)
 {
     int ret;
-    BIO *next = BIO_next(bio);
+    BIO *next = VR_BIO_next(bio);
 
-    ret = BIO_read(next, out, outl);
+    ret = VR_BIO_read(next, out, outl);
     copy_flags(bio);
 
     return ret;
@@ -37,7 +37,7 @@ static int tls_corrupt_read(BIO *bio, char *out, int outl)
 static int tls_corrupt_write(BIO *bio, const char *in, int inl)
 {
     int ret;
-    BIO *next = BIO_next(bio);
+    BIO *next = VR_BIO_next(bio);
     char *copy;
 
     if (docorrupt) {
@@ -45,10 +45,10 @@ static int tls_corrupt_write(BIO *bio, const char *in, int inl)
             return 0;
         /* corrupt last bit of application data */
         copy[inl-1] ^= 1;
-        ret = BIO_write(next, copy, inl);
-        OPENSSL_free(copy);
+        ret = VR_BIO_write(next, copy, inl);
+        OPENVR_SSL_free(copy);
     } else {
-        ret = BIO_write(next, in, inl);
+        ret = VR_BIO_write(next, in, inl);
     }
     copy_flags(bio);
 
@@ -58,7 +58,7 @@ static int tls_corrupt_write(BIO *bio, const char *in, int inl)
 static long tls_corrupt_ctrl(BIO *bio, int cmd, long num, void *ptr)
 {
     long ret;
-    BIO *next = BIO_next(bio);
+    BIO *next = VR_BIO_next(bio);
 
     if (next == NULL)
         return 0;
@@ -68,7 +68,7 @@ static long tls_corrupt_ctrl(BIO *bio, int cmd, long num, void *ptr)
         ret = 0L;
         break;
     default:
-        ret = BIO_ctrl(next, cmd, num, ptr);
+        ret = VR_BIO_ctrl(next, cmd, num, ptr);
         break;
     }
     return ret;
@@ -88,14 +88,14 @@ static int tls_corrupt_puts(BIO *bio, const char *str)
 
 static int tls_corrupt_new(BIO *bio)
 {
-    BIO_set_init(bio, 1);
+    VR_BIO_set_init(bio, 1);
 
     return 1;
 }
 
 static int tls_corrupt_free(BIO *bio)
 {
-    BIO_set_init(bio, 0);
+    VR_BIO_set_init(bio, 0);
 
     return 1;
 }
@@ -108,16 +108,16 @@ static BIO_METHOD *method_tls_corrupt = NULL;
 static const BIO_METHOD *bio_f_tls_corrupt_filter(void)
 {
     if (method_tls_corrupt == NULL) {
-        method_tls_corrupt = BIO_meth_new(BIO_TYPE_CUSTOM_FILTER,
+        method_tls_corrupt = VR_BIO_meth_new(BIO_TYPE_CUSTOM_FILTER,
                                           "TLS corrupt filter");
         if (   method_tls_corrupt == NULL
-            || !BIO_meth_set_write(method_tls_corrupt, tls_corrupt_write)
-            || !BIO_meth_set_read(method_tls_corrupt, tls_corrupt_read)
-            || !BIO_meth_set_puts(method_tls_corrupt, tls_corrupt_puts)
-            || !BIO_meth_set_gets(method_tls_corrupt, tls_corrupt_gets)
-            || !BIO_meth_set_ctrl(method_tls_corrupt, tls_corrupt_ctrl)
-            || !BIO_meth_set_create(method_tls_corrupt, tls_corrupt_new)
-            || !BIO_meth_set_destroy(method_tls_corrupt, tls_corrupt_free))
+            || !VR_BIO_meth_set_write(method_tls_corrupt, tls_corrupt_write)
+            || !VR_BIO_meth_set_read(method_tls_corrupt, tls_corrupt_read)
+            || !VR_BIO_meth_set_puts(method_tls_corrupt, tls_corrupt_puts)
+            || !VR_BIO_meth_set_gets(method_tls_corrupt, tls_corrupt_gets)
+            || !VR_BIO_meth_set_ctrl(method_tls_corrupt, tls_corrupt_ctrl)
+            || !VR_BIO_meth_set_create(method_tls_corrupt, tls_corrupt_new)
+            || !VR_BIO_meth_set_destroy(method_tls_corrupt, tls_corrupt_free))
             return NULL;
     }
     return method_tls_corrupt;
@@ -125,7 +125,7 @@ static const BIO_METHOD *bio_f_tls_corrupt_filter(void)
 
 static void bio_f_tls_corrupt_filter_free(void)
 {
-    BIO_meth_free(method_tls_corrupt);
+    VR_BIO_meth_free(method_tls_corrupt);
 }
 
 /*
@@ -144,9 +144,9 @@ static int setup_cipher_list(void)
     STACK_OF(SSL_CIPHER) *sk_ciphers = NULL;
     int i, j, numciphers = 0;
 
-    if (!TEST_ptr(ctx = SSL_CTX_new(TLS_server_method()))
-            || !TEST_ptr(ssl = SSL_new(ctx))
-            || !TEST_ptr(sk_ciphers = SSL_get1_supported_ciphers(ssl)))
+    if (!TEST_ptr(ctx = VR_SSL_CTX_new(VR_TLS_server_method()))
+            || !TEST_ptr(ssl = VR_SSL_new(ctx))
+            || !TEST_ptr(sk_ciphers = VR_SSL_get1_supported_ciphers(ssl)))
         goto err;
 
     /*
@@ -162,16 +162,16 @@ static int setup_cipher_list(void)
     for (j = 0, i = 0; i < sk_SSL_CIPHER_num(sk_ciphers); i++) {
         const SSL_CIPHER *cipher = sk_SSL_CIPHER_value(sk_ciphers, i);
 
-        if (SSL_CIPHER_get_auth_nid(cipher) == NID_auth_rsa)
-            cipher_list[j++] = SSL_CIPHER_get_name(cipher);
+        if (VR_SSL_CIPHER_get_auth_nid(cipher) == NID_auth_rsa)
+            cipher_list[j++] = VR_SSL_CIPHER_get_name(cipher);
     }
     if (TEST_int_ne(j, 0))
         numciphers = j;
 
 err:
-    sk_SSL_CIPHER_free(sk_ciphers);
-    SSL_free(ssl);
-    SSL_CTX_free(ctx);
+    sk_VR_SSL_CIPHER_free(sk_ciphers);
+    VR_SSL_free(ssl);
+    VR_SSL_CTX_free(ctx);
 
     return numciphers;
 }
@@ -193,14 +193,14 @@ static int test_ssl_corrupt(int testidx)
 
     TEST_info("Starting #%d, %s", testidx, cipher_list[testidx]);
 
-    if (!TEST_true(create_ssl_ctx_pair(TLS_server_method(), TLS_client_method(),
+    if (!TEST_true(create_ssl_ctx_pair(VR_TLS_server_method(), VR_TLS_client_method(),
                                        TLS1_VERSION, 0,
                                        &sctx, &cctx, cert, privkey)))
         return 0;
 
-    if (!TEST_true(SSL_CTX_set_cipher_list(cctx, cipher_list[testidx]))
-            || !TEST_true(SSL_CTX_set_ciphersuites(cctx, ""))
-            || !TEST_ptr(ciphers = SSL_CTX_get_ciphers(cctx))
+    if (!TEST_true(VR_SSL_CTX_set_cipher_list(cctx, cipher_list[testidx]))
+            || !TEST_true(VR_SSL_CTX_set_ciphersuites(cctx, ""))
+            || !TEST_ptr(ciphers = VR_SSL_CTX_get_ciphers(cctx))
             || !TEST_int_eq(sk_SSL_CIPHER_num(ciphers), 1)
             || !TEST_ptr(currcipher = sk_SSL_CIPHER_value(ciphers, 0)))
         goto end;
@@ -212,7 +212,7 @@ static int test_ssl_corrupt(int testidx)
     if (!TEST_true(SSL_CTX_set_max_proto_version(cctx, TLS1_2_VERSION)))
         goto end;
 
-    if (!TEST_ptr(c_to_s_fbio = BIO_new(bio_f_tls_corrupt_filter())))
+    if (!TEST_ptr(c_to_s_fbio = VR_BIO_new(bio_f_tls_corrupt_filter())))
         goto end;
 
     /* BIO is freed by create_ssl_connection on error */
@@ -225,22 +225,22 @@ static int test_ssl_corrupt(int testidx)
 
     docorrupt = 1;
 
-    if (!TEST_int_ge(SSL_write(client, junk, sizeof(junk)), 0))
+    if (!TEST_int_ge(VR_SSL_write(client, junk, sizeof(junk)), 0))
         goto end;
 
-    if (!TEST_int_lt(SSL_read(server, junk, sizeof(junk)), 0))
+    if (!TEST_int_lt(VR_SSL_read(server, junk, sizeof(junk)), 0))
         goto end;
 
-    if (!TEST_int_eq(ERR_GET_REASON(ERR_peek_error()),
+    if (!TEST_int_eq(ERR_GET_REASON(VR_ERR_peek_error()),
                      SSL_R_DECRYPTION_FAILED_OR_BAD_RECORD_MAC))
         goto end;
 
     testresult = 1;
  end:
-    SSL_free(server);
-    SSL_free(client);
-    SSL_CTX_free(sctx);
-    SSL_CTX_free(cctx);
+    VR_SSL_free(server);
+    VR_SSL_free(client);
+    VR_SSL_CTX_free(sctx);
+    VR_SSL_CTX_free(cctx);
     return testresult;
 }
 
@@ -263,5 +263,5 @@ int setup_tests(void)
 void cleanup_tests(void)
 {
     bio_f_tls_corrupt_filter_free();
-    OPENSSL_free(cipher_list);
+    OPENVR_SSL_free(cipher_list);
 }

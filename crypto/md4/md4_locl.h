@@ -12,16 +12,16 @@
 #include <openssl/opensslconf.h>
 #include <openssl/md4.h>
 
-void md4_block_data_order(MD4_CTX *c, const void *p, size_t num);
+void VR_md4_block_data_order(VR_MD4_CTX *c, const void *p, size_t num);
 
 #define DATA_ORDER_IS_LITTLE_ENDIAN
 
-#define HASH_LONG               MD4_LONG
-#define HASH_CTX                MD4_CTX
-#define HASH_CBLOCK             MD4_CBLOCK
-#define HASH_UPDATE             MD4_Update
-#define HASH_TRANSFORM          MD4_Transform
-#define HASH_FINAL              MD4_Final
+#define HASH_LONG               VR_MD4_LONG
+#define HASH_CTX                VR_MD4_CTX
+#define HASH_CBLOCK             VR_MD4_CBLOCK
+#define HASH_UPDATE             VR_MD4_Update
+#define HASH_TRANSFORM          VR_MD4_Transform
+#define HASH_FINAL              VR_MD4_Final
 #define HASH_MAKE_STRING(c,s)   do {    \
         unsigned long ll;               \
         ll=(c)->A; (void)HOST_l2c(ll,(s));      \
@@ -29,7 +29,7 @@ void md4_block_data_order(MD4_CTX *c, const void *p, size_t num);
         ll=(c)->C; (void)HOST_l2c(ll,(s));      \
         ll=(c)->D; (void)HOST_l2c(ll,(s));      \
         } while (0)
-#define HASH_BLOCK_DATA_ORDER   md4_block_data_order
+#define HASH_BLOCK_DATA_ORDER   VR_md4_block_data_order
 
 #include "internal/md32_common.h"
 

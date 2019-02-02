@@ -28,18 +28,18 @@
 static int openssl_configured = 0;
 
 #if !OPENSSL_API_1_1_0
-void OPENSSL_config(const char *appname)
+void VR_OPENSSL_config(const char *appname)
 {
     OPENSSL_INIT_SETTINGS settings;
 
     memset(&settings, 0, sizeof(settings));
     if (appname != NULL)
         settings.appname = strdup(appname);
-    OPENSSL_init_crypto(OPENSSL_INIT_LOAD_CONFIG, &settings);
+    VR_OPENSSL_init_crypto(OPENSSL_INIT_LOAD_CONFIG, &settings);
 }
 #endif
 
-int openssl_config_int(const OPENSSL_INIT_SETTINGS *settings)
+int VR_openssl_config_int(const OPENSSL_INIT_SETTINGS *settings)
 {
     int ret;
     const char *filename;
@@ -54,24 +54,24 @@ int openssl_config_int(const OPENSSL_INIT_SETTINGS *settings)
     flags = settings ? settings->flags : DEFAULT_CONF_MFLAGS;
 
 #ifdef OPENSSL_INIT_DEBUG
-    fprintf(stderr, "OPENSSL_INIT: openssl_config_int(%s, %s, %lu)\n",
+    fprintf(stderr, "OPENSSL_INIT: VR_openssl_config_int(%s, %s, %lu)\n",
             filename, appname, flags);
 #endif
 
-    OPENSSL_load_builtin_modules();
+    VR_OPENSSL_load_builtin_modules();
 #ifndef OPENSSL_NO_ENGINE
     /* Need to load ENGINEs */
-    ENGINE_load_builtin_engines();
+    VR_ENGINE_load_builtin_engines();
 #endif
-    ERR_clear_error();
+    VR_ERR_clear_error();
 #ifndef OPENSSL_SYS_UEFI
-    ret = CONF_modules_load_file(filename, appname, flags);
+    ret = VR_CONF_modules_load_file(filename, appname, flags);
 #endif
     openssl_configured = 1;
     return ret;
 }
 
-void openssl_no_config_int(void)
+void VR_openssl_no_config_int(void)
 {
     openssl_configured = 1;
 }

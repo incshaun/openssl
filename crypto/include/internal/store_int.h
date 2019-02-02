@@ -19,8 +19,8 @@
  * instead of OSSLSTORE_open() and OSSLSTORE_close().  Everything is done
  * as usual with OSSLSTORE_load() and OSSLSTORE_eof().
  */
-OSSL_STORE_CTX *ossl_store_attach_pem_bio(BIO *bp, const UI_METHOD *ui_method,
+OSSL_STORE_CTX *VR_ossl_store_attach_pem_bio(BIO *bp, const UI_METHOD *ui_method,
                                           void *ui_data);
-int ossl_store_detach_pem_bio(OSSL_STORE_CTX *ctx);
+int VR_ossl_store_detach_pem_bio(OSSL_STORE_CTX *ctx);
 
 #endif

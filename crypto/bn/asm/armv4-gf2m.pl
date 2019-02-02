@@ -16,7 +16,7 @@
 #
 # May 2011
 #
-# The module implements bn_GF2m_mul_2x2 polynomial multiplication
+# The module implements VR_bn_GF2m_mul_2x2 polynomial multiplication
 # used in bn_gf2m.c. It's kind of low-hanging mechanical port from
 # C for the time being... Except that it has two code paths: pure
 # integer code suitable for any ARMv4 and later CPU and NEON code
@@ -30,7 +30,7 @@
 #
 # April 2014
 #
-# Double bn_GF2m_mul_2x2 performance by using algorithm from paper
+# Double VR_bn_GF2m_mul_2x2 performance by using algorithm from paper
 # referred below, which improves ECDH and ECDSA verify benchmarks
 # by 18-40%.
 #
@@ -164,15 +164,15 @@ mul_1x1_ialu:
 .size	mul_1x1_ialu,.-mul_1x1_ialu
 ___
 ################
-# void	bn_GF2m_mul_2x2(BN_ULONG *r,
+# void	VR_bn_GF2m_mul_2x2(BN_ULONG *r,
 #	BN_ULONG a1,BN_ULONG a0,
 #	BN_ULONG b1,BN_ULONG b0);	# r[3..0]=a1a0·b1b0
 {
 $code.=<<___;
-.global	bn_GF2m_mul_2x2
-.type	bn_GF2m_mul_2x2,%function
+.global	VR_bn_GF2m_mul_2x2
+.type	VR_bn_GF2m_mul_2x2,%function
 .align	5
-bn_GF2m_mul_2x2:
+VR_bn_GF2m_mul_2x2:
 #if __ARM_MAX_ARCH__>=7
 	stmdb	sp!,{r10,lr}
 	ldr	r12,.LOPENSSL_armcap
@@ -306,7 +306,7 @@ $code.=<<___;
 ___
 }
 $code.=<<___;
-.size	bn_GF2m_mul_2x2,.-bn_GF2m_mul_2x2
+.size	VR_bn_GF2m_mul_2x2,.-VR_bn_GF2m_mul_2x2
 #if __ARM_MAX_ARCH__>=7
 .align	5
 .LOPENSSL_armcap:

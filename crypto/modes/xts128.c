@@ -11,7 +11,7 @@
 #include "modes_lcl.h"
 #include <string.h>
 
-int CRYPTO_xts128_encrypt(const XTS128_CONTEXT *ctx,
+int VR_CRYPTO_xts128_encrypt(const XTS128_CONTEXT *ctx,
                           const unsigned char iv[16],
                           const unsigned char *inp, unsigned char *out,
                           size_t len, int enc)

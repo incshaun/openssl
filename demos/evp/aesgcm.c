@@ -54,29 +54,29 @@ void aes_gcm_encrypt(void)
     unsigned char outbuf[1024];
     printf("AES GCM Encrypt:\n");
     printf("Plaintext:\n");
-    BIO_dump_fp(stdout, gcm_pt, sizeof(gcm_pt));
-    ctx = EVP_CIPHER_CTX_new();
+    VR_BIO_dump_fp(stdout, gcm_pt, sizeof(gcm_pt));
+    ctx = VR_EVP_CIPHER_CTX_new();
     /* Set cipher type and mode */
-    EVP_EncryptInit_ex(ctx, EVP_aes_256_gcm(), NULL, NULL, NULL);
+    VR_EVP_EncryptInit_ex(ctx, VR_EVP_aes_256_gcm(), NULL, NULL, NULL);
     /* Set IV length if default 96 bits is not appropriate */
-    EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_SET_IVLEN, sizeof(gcm_iv), NULL);
+    VR_EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_SET_IVLEN, sizeof(gcm_iv), NULL);
     /* Initialise key and IV */
-    EVP_EncryptInit_ex(ctx, NULL, NULL, gcm_key, gcm_iv);
+    VR_EVP_EncryptInit_ex(ctx, NULL, NULL, gcm_key, gcm_iv);
     /* Zero or more calls to specify any AAD */
-    EVP_EncryptUpdate(ctx, NULL, &outlen, gcm_aad, sizeof(gcm_aad));
+    VR_EVP_EncryptUpdate(ctx, NULL, &outlen, gcm_aad, sizeof(gcm_aad));
     /* Encrypt plaintext */
-    EVP_EncryptUpdate(ctx, outbuf, &outlen, gcm_pt, sizeof(gcm_pt));
+    VR_EVP_EncryptUpdate(ctx, outbuf, &outlen, gcm_pt, sizeof(gcm_pt));
     /* Output encrypted block */
     printf("Ciphertext:\n");
-    BIO_dump_fp(stdout, outbuf, outlen);
+    VR_BIO_dump_fp(stdout, outbuf, outlen);
     /* Finalise: note get no output for GCM */
-    EVP_EncryptFinal_ex(ctx, outbuf, &outlen);
+    VR_EVP_EncryptFinal_ex(ctx, outbuf, &outlen);
     /* Get tag */
-    EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_GET_TAG, 16, outbuf);
+    VR_EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_GET_TAG, 16, outbuf);
     /* Output tag */
     printf("Tag:\n");
-    BIO_dump_fp(stdout, outbuf, 16);
-    EVP_CIPHER_CTX_free(ctx);
+    VR_BIO_dump_fp(stdout, outbuf, 16);
+    VR_EVP_CIPHER_CTX_free(ctx);
 }
 
 void aes_gcm_decrypt(void)
@@ -86,32 +86,32 @@ void aes_gcm_decrypt(void)
     unsigned char outbuf[1024];
     printf("AES GCM Derypt:\n");
     printf("Ciphertext:\n");
-    BIO_dump_fp(stdout, gcm_ct, sizeof(gcm_ct));
-    ctx = EVP_CIPHER_CTX_new();
+    VR_BIO_dump_fp(stdout, gcm_ct, sizeof(gcm_ct));
+    ctx = VR_EVP_CIPHER_CTX_new();
     /* Select cipher */
-    EVP_DecryptInit_ex(ctx, EVP_aes_256_gcm(), NULL, NULL, NULL);
+    VR_EVP_DecryptInit_ex(ctx, VR_EVP_aes_256_gcm(), NULL, NULL, NULL);
     /* Set IV length, omit for 96 bits */
-    EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_SET_IVLEN, sizeof(gcm_iv), NULL);
+    VR_EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_SET_IVLEN, sizeof(gcm_iv), NULL);
     /* Specify key and IV */
-    EVP_DecryptInit_ex(ctx, NULL, NULL, gcm_key, gcm_iv);
+    VR_EVP_DecryptInit_ex(ctx, NULL, NULL, gcm_key, gcm_iv);
     /* Zero or more calls to specify any AAD */
-    EVP_DecryptUpdate(ctx, NULL, &outlen, gcm_aad, sizeof(gcm_aad));
+    VR_EVP_DecryptUpdate(ctx, NULL, &outlen, gcm_aad, sizeof(gcm_aad));
     /* Decrypt plaintext */
-    EVP_DecryptUpdate(ctx, outbuf, &outlen, gcm_ct, sizeof(gcm_ct));
+    VR_EVP_DecryptUpdate(ctx, outbuf, &outlen, gcm_ct, sizeof(gcm_ct));
     /* Output decrypted block */
     printf("Plaintext:\n");
-    BIO_dump_fp(stdout, outbuf, outlen);
+    VR_BIO_dump_fp(stdout, outbuf, outlen);
     /* Set expected tag value. */
-    EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_SET_TAG, sizeof(gcm_tag),
+    VR_EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_SET_TAG, sizeof(gcm_tag),
                         (void *)gcm_tag);
     /* Finalise: note get no output for GCM */
-    rv = EVP_DecryptFinal_ex(ctx, outbuf, &outlen);
+    rv = VR_EVP_DecryptFinal_ex(ctx, outbuf, &outlen);
     /*
      * Print out return value. If this is not successful authentication
      * failed and plaintext is not trustworthy.
      */
     printf("Tag Verify %s\n", rv > 0 ? "Successful!" : "Failed!");
-    EVP_CIPHER_CTX_free(ctx);
+    VR_EVP_CIPHER_CTX_free(ctx);
 }
 
 int main(int argc, char **argv)

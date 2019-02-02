@@ -95,22 +95,22 @@ static uint64_t get_timer_bits(void);
 
 #if defined(OPENSSL_SYS_VXWORKS)
 /* empty implementation */
-int rand_pool_init(void)
+int VR_rand_pool_init(void)
 {
     return 1;
 }
 
-void rand_pool_cleanup(void)
+void VR_rand_pool_cleanup(void)
 {
 }
 
-void rand_pool_keep_random_devices_open(int keep)
+void VR_rand_pool_keep_random_devices_open(int keep)
 {
 }
 
-size_t rand_pool_acquire_entropy(RAND_POOL *pool)
+size_t VR_rand_pool_acquire_entropy(RAND_POOL *pool)
 {
-    return rand_pool_entropy_available(pool);
+    return VR_rand_pool_entropy_available(pool);
 }
 #endif
 
@@ -145,7 +145,7 @@ size_t rand_pool_acquire_entropy(RAND_POOL *pool)
  *
  * As a precaution, we assume only 2 bits of entropy per byte.
  */
-size_t rand_pool_acquire_entropy(RAND_POOL *pool)
+size_t VR_rand_pool_acquire_entropy(RAND_POOL *pool)
 {
     short int code;
     int i, k;
@@ -160,7 +160,7 @@ size_t rand_pool_acquire_entropy(RAND_POOL *pool)
     extern void s$sleep2(long long *_duration, short int *_code);
 #  endif
 
-    bytes_needed = rand_pool_bytes_needed(pool, 4 /*entropy_factor*/);
+    bytes_needed = VR_rand_pool_bytes_needed(pool, 4 /*entropy_factor*/);
 
     for (i = 0; i < bytes_needed; i++) {
         /*
@@ -183,16 +183,16 @@ size_t rand_pool_acquire_entropy(RAND_POOL *pool)
         /* Get wall clock time, take 8 bits. */
         clock_gettime(CLOCK_REALTIME, &ts);
         v = (unsigned char)(ts.tv_nsec & 0xFF);
-        rand_pool_add(pool, arg, &v, sizeof(v) , 2);
+        VR_rand_pool_add(pool, arg, &v, sizeof(v) , 2);
     }
-    return rand_pool_entropy_available(pool);
+    return VR_rand_pool_entropy_available(pool);
 }
 
-void rand_pool_cleanup(void)
+void VR_rand_pool_cleanup(void)
 {
 }
 
-void rand_pool_keep_random_devices_open(int keep)
+void VR_rand_pool_keep_random_devices_open(int keep)
 {
 }
 
@@ -316,9 +316,9 @@ static ssize_t syscall_random(void *buf, size_t buflen)
      * We could cache the result of the lookup, but we normally don't
      * call this function often.
      */
-    ERR_set_mark();
-    p_getentropy.p = DSO_global_lookup("getentropy");
-    ERR_pop_to_mark();
+    VR_ERR_set_mark();
+    p_getentropy.p = VR_DSO_global_lookup("getentropy");
+    VR_ERR_pop_to_mark();
     if (p_getentropy.p != NULL)
         return p_getentropy.f(buf, buflen) == 0 ? (ssize_t)buflen : -1;
 #  endif
@@ -407,7 +407,7 @@ static void close_random_device(size_t n)
     rd->fd = -1;
 }
 
-int rand_pool_init(void)
+int VR_rand_pool_init(void)
 {
     size_t i;
 
@@ -417,7 +417,7 @@ int rand_pool_init(void)
     return 1;
 }
 
-void rand_pool_cleanup(void)
+void VR_rand_pool_cleanup(void)
 {
     size_t i;
 
@@ -425,26 +425,26 @@ void rand_pool_cleanup(void)
         close_random_device(i);
 }
 
-void rand_pool_keep_random_devices_open(int keep)
+void VR_rand_pool_keep_random_devices_open(int keep)
 {
     if (!keep)
-        rand_pool_cleanup();
+        VR_rand_pool_cleanup();
 
     keep_random_devices_open = keep;
 }
 
 #  else     /* !defined(OPENSSL_RAND_SEED_DEVRANDOM) */
 
-int rand_pool_init(void)
+int VR_rand_pool_init(void)
 {
     return 1;
 }
 
-void rand_pool_cleanup(void)
+void VR_rand_pool_cleanup(void)
 {
 }
 
-void rand_pool_keep_random_devices_open(int keep)
+void VR_rand_pool_keep_random_devices_open(int keep)
 {
 }
 
@@ -467,10 +467,10 @@ void rand_pool_keep_random_devices_open(int keep)
  * of input from the different entropy sources (trust, quality,
  * possibility of blocking).
  */
-size_t rand_pool_acquire_entropy(RAND_POOL *pool)
+size_t VR_rand_pool_acquire_entropy(RAND_POOL *pool)
 {
 #  if defined(OPENSSL_RAND_SEED_NONE)
-    return rand_pool_entropy_available(pool);
+    return VR_rand_pool_entropy_available(pool);
 #  else
     size_t bytes_needed;
     size_t entropy_available = 0;
@@ -482,12 +482,12 @@ size_t rand_pool_acquire_entropy(RAND_POOL *pool)
         /* Maximum allowed number of consecutive unsuccessful attempts */
         int attempts = 3;
 
-        bytes_needed = rand_pool_bytes_needed(pool, 1 /*entropy_factor*/);
+        bytes_needed = VR_rand_pool_bytes_needed(pool, 1 /*entropy_factor*/);
         while (bytes_needed != 0 && attempts-- > 0) {
-            buffer = rand_pool_add_begin(pool, bytes_needed);
+            buffer = VR_rand_pool_add_begin(pool, bytes_needed);
             bytes = syscall_random(buffer, bytes_needed);
             if (bytes > 0) {
-                rand_pool_add_end(pool, bytes, 8 * bytes);
+                VR_rand_pool_add_end(pool, bytes, 8 * bytes);
                 bytes_needed -= bytes;
                 attempts = 3; /* reset counter after successful attempt */
             } else if (bytes < 0 && errno != EINTR) {
@@ -495,7 +495,7 @@ size_t rand_pool_acquire_entropy(RAND_POOL *pool)
             }
         }
     }
-    entropy_available = rand_pool_entropy_available(pool);
+    entropy_available = VR_rand_pool_entropy_available(pool);
     if (entropy_available > 0)
         return entropy_available;
 #   endif
@@ -507,7 +507,7 @@ size_t rand_pool_acquire_entropy(RAND_POOL *pool)
 #   endif
 
 #   if defined(OPENSSL_RAND_SEED_DEVRANDOM)
-    bytes_needed = rand_pool_bytes_needed(pool, 1 /*entropy_factor*/);
+    bytes_needed = VR_rand_pool_bytes_needed(pool, 1 /*entropy_factor*/);
     {
         size_t i;
 
@@ -521,11 +521,11 @@ size_t rand_pool_acquire_entropy(RAND_POOL *pool)
                 continue;
 
             while (bytes_needed != 0 && attempts-- > 0) {
-                buffer = rand_pool_add_begin(pool, bytes_needed);
+                buffer = VR_rand_pool_add_begin(pool, bytes_needed);
                 bytes = read(fd, buffer, bytes_needed);
 
                 if (bytes > 0) {
-                    rand_pool_add_end(pool, bytes, 8 * bytes);
+                    VR_rand_pool_add_end(pool, bytes, 8 * bytes);
                     bytes_needed -= bytes;
                     attempts = 3; /* reset counter after successful attempt */
                 } else if (bytes < 0 && errno != EINTR) {
@@ -535,9 +535,9 @@ size_t rand_pool_acquire_entropy(RAND_POOL *pool)
             if (bytes < 0 || !keep_random_devices_open)
                 close_random_device(i);
 
-            bytes_needed = rand_pool_bytes_needed(pool, 1 /*entropy_factor*/);
+            bytes_needed = VR_rand_pool_bytes_needed(pool, 1 /*entropy_factor*/);
         }
-        entropy_available = rand_pool_entropy_available(pool);
+        entropy_available = VR_rand_pool_entropy_available(pool);
         if (entropy_available > 0)
             return entropy_available;
     }
@@ -556,13 +556,13 @@ size_t rand_pool_acquire_entropy(RAND_POOL *pool)
 #   endif
 
 #   if defined(OPENSSL_RAND_SEED_EGD)
-    bytes_needed = rand_pool_bytes_needed(pool, 1 /*entropy_factor*/);
+    bytes_needed = VR_rand_pool_bytes_needed(pool, 1 /*entropy_factor*/);
     if (bytes_needed > 0) {
         static const char *paths[] = { DEVRANDOM_EGD, NULL };
         int i;
 
         for (i = 0; paths[i] != NULL; i++) {
-            buffer = rand_pool_add_begin(pool, bytes_needed);
+            buffer = VR_rand_pool_add_begin(pool, bytes_needed);
             if (buffer != NULL) {
                 size_t bytes = 0;
                 int num = RAND_query_egd_bytes(paths[i],
@@ -570,8 +570,8 @@ size_t rand_pool_acquire_entropy(RAND_POOL *pool)
                 if (num == (int)bytes_needed)
                     bytes = bytes_needed;
 
-                rand_pool_add_end(pool, bytes, 8 * bytes);
-                entropy_available = rand_pool_entropy_available(pool);
+                VR_rand_pool_add_end(pool, bytes, 8 * bytes);
+                entropy_available = VR_rand_pool_entropy_available(pool);
             }
             if (entropy_available > 0)
                 return entropy_available;
@@ -579,14 +579,14 @@ size_t rand_pool_acquire_entropy(RAND_POOL *pool)
     }
 #   endif
 
-    return rand_pool_entropy_available(pool);
+    return VR_rand_pool_entropy_available(pool);
 #  endif
 }
 # endif
 #endif
 
 #if defined(OPENSSL_SYS_UNIX) || defined(__DJGPP__)
-int rand_pool_add_nonce_data(RAND_POOL *pool)
+int VR_rand_pool_add_nonce_data(RAND_POOL *pool)
 {
     struct {
         pid_t pid;
@@ -600,13 +600,13 @@ int rand_pool_add_nonce_data(RAND_POOL *pool)
      * different process instances.
      */
     data.pid = getpid();
-    data.tid = CRYPTO_THREAD_get_current_id();
+    data.tid = VR_CRYPTO_THREAD_get_current_id();
     data.time = get_time_stamp();
 
-    return rand_pool_add(pool, (unsigned char *)&data, sizeof(data), 0);
+    return VR_rand_pool_add(pool, (unsigned char *)&data, sizeof(data), 0);
 }
 
-int rand_pool_add_additional_data(RAND_POOL *pool)
+int VR_rand_pool_add_additional_data(RAND_POOL *pool)
 {
     struct {
         CRYPTO_THREAD_ID tid;
@@ -618,10 +618,10 @@ int rand_pool_add_additional_data(RAND_POOL *pool)
      * The thread id adds a little randomness if the drbg is accessed
      * concurrently (which is the case for the <master> drbg).
      */
-    data.tid = CRYPTO_THREAD_get_current_id();
+    data.tid = VR_CRYPTO_THREAD_get_current_id();
     data.time = get_timer_bits();
 
-    return rand_pool_add(pool, (unsigned char *)&data, sizeof(data), 0);
+    return VR_rand_pool_add(pool, (unsigned char *)&data, sizeof(data), 0);
 }
 
 
@@ -663,7 +663,7 @@ static uint64_t get_time_stamp(void)
  */
 static uint64_t get_timer_bits(void)
 {
-    uint64_t res = OPENSSL_rdtsc();
+    uint64_t res = VR_OPENSSL_rdtsc();
 
     if (res != 0)
         return res;

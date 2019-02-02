@@ -11,18 +11,18 @@
 #include "rc4_locl.h"
 
 /*-
- * RC4 as implemented from a posting from
+ * VR_RC4 as implemented from a posting from
  * Newsgroups: sci.crypt
- * Subject: RC4 Algorithm revealed.
+ * Subject: VR_RC4 Algorithm revealed.
  * Message-ID: <sternCvKL4B.Hyy@netcom.com>
  * Date: Wed, 14 Sep 1994 06:35:31 GMT
  */
 
-void RC4(RC4_KEY *key, size_t len, const unsigned char *indata,
+void VR_RC4(VR_RC4_KEY *key, size_t len, const unsigned char *indata,
          unsigned char *outdata)
 {
-    register RC4_INT *d;
-    register RC4_INT x, y, tx, ty;
+    register VR_RC4_INT *d;
+    register VR_RC4_INT x, y, tx, ty;
     size_t i;
 
     x = key->x;

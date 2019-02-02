@@ -1518,9 +1518,9 @@ static int test_poly1305(int idx)
     if (!TEST_size_t_eq(expectedlen, sizeof(out)))
         return 0;
 
-    Poly1305_Init(&poly1305, key);
-    Poly1305_Update(&poly1305, in, inlen);
-    Poly1305_Final(&poly1305, out);
+    VR_Poly1305_Init(&poly1305, key);
+    VR_Poly1305_Update(&poly1305, in, inlen);
+    VR_Poly1305_Final(&poly1305, out);
 
     if (!TEST_mem_eq(out, expectedlen, expected, expectedlen)) {
         TEST_info("Poly1305 test #%d failed.", idx);
@@ -1528,10 +1528,10 @@ static int test_poly1305(int idx)
     }
 
     if (inlen > 16) {
-        Poly1305_Init(&poly1305, key);
-        Poly1305_Update(&poly1305, in, 1);
-        Poly1305_Update(&poly1305, in+1, inlen-1);
-        Poly1305_Final(&poly1305, out);
+        VR_Poly1305_Init(&poly1305, key);
+        VR_Poly1305_Update(&poly1305, in, 1);
+        VR_Poly1305_Update(&poly1305, in+1, inlen-1);
+        VR_Poly1305_Final(&poly1305, out);
 
         if (!TEST_mem_eq(out, expectedlen, expected, expectedlen)) {
             TEST_info("Poly1305 test #%d/1+(N-1) failed.", idx);
@@ -1542,10 +1542,10 @@ static int test_poly1305(int idx)
     if (inlen > 32) {
         size_t half = inlen / 2;
 
-        Poly1305_Init(&poly1305, key);
-        Poly1305_Update(&poly1305, in, half);
-        Poly1305_Update(&poly1305, in+half, inlen-half);
-        Poly1305_Final(&poly1305, out);
+        VR_Poly1305_Init(&poly1305, key);
+        VR_Poly1305_Update(&poly1305, in, half);
+        VR_Poly1305_Update(&poly1305, in+half, inlen-half);
+        VR_Poly1305_Final(&poly1305, out);
 
         if (!TEST_mem_eq(out, expectedlen, expected, expectedlen)) {
             TEST_info("Poly1305 test #%d/2 failed.", idx);
@@ -1553,10 +1553,10 @@ static int test_poly1305(int idx)
         }
 
         for (half = 16; half < inlen; half += 16) {
-            Poly1305_Init(&poly1305, key);
-            Poly1305_Update(&poly1305, in, half);
-            Poly1305_Update(&poly1305, in+half, inlen-half);
-            Poly1305_Final(&poly1305, out);
+            VR_Poly1305_Init(&poly1305, key);
+            VR_Poly1305_Update(&poly1305, in, half);
+            VR_Poly1305_Update(&poly1305, in+half, inlen-half);
+            VR_Poly1305_Final(&poly1305, out);
 
             if (!TEST_mem_eq(out, expectedlen, expected, expectedlen)) {
                 TEST_info("Poly1305 test #%d/%zu+%zu failed.",

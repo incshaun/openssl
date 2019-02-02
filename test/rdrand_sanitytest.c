@@ -17,10 +17,10 @@
      defined(__x86_64) || defined(__x86_64__) || \
      defined(_M_AMD64) || defined (_M_X64)) && defined(OPENSSL_CPUID_OBJ)
 
-size_t OPENSSL_ia32_rdrand_bytes(unsigned char *buf, size_t len);
-size_t OPENSSL_ia32_rdseed_bytes(unsigned char *buf, size_t len);
+size_t VR_OPENSSL_ia32_rdrand_bytes(unsigned char *buf, size_t len);
+size_t VR_OPENSSL_ia32_rdseed_bytes(unsigned char *buf, size_t len);
 
-void OPENSSL_cpuid_setup(void);
+void VR_OPENSSL_cpuid_setup(void);
 
 extern unsigned int OPENSSL_ia32cap_P[4];
 
@@ -83,7 +83,7 @@ end:
 
 static int sanity_check_rdrand_bytes(void)
 {
-    return sanity_check_bytes(OPENSSL_ia32_rdrand_bytes, 1000, 0, 10, 10);
+    return sanity_check_bytes(VR_OPENSSL_ia32_rdrand_bytes, 1000, 0, 10, 10);
 }
 
 static int sanity_check_rdseed_bytes(void)
@@ -94,12 +94,12 @@ static int sanity_check_rdseed_bytes(void)
      * increased by the fact that we need either 4 or 8 samples depending on
      * the platform.
      */
-    return sanity_check_bytes(OPENSSL_ia32_rdseed_bytes, 1000, 1, 10000, 10);
+    return sanity_check_bytes(VR_OPENSSL_ia32_rdseed_bytes, 1000, 1, 10000, 10);
 }
 
 int setup_tests(void)
 {
-    OPENSSL_cpuid_setup();
+    VR_OPENSSL_cpuid_setup();
 
     int have_rdseed = (OPENSSL_ia32cap_P[2] & (1 << 18)) != 0;
     int have_rdrand = (OPENSSL_ia32cap_P[1] & (1 << (62 - 32))) != 0;

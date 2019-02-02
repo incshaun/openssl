@@ -84,7 +84,7 @@ int ciphers_main(int argc, char **argv)
     SSL_CTX *ctx = NULL;
     SSL *ssl = NULL;
     STACK_OF(SSL_CIPHER) *sk = NULL;
-    const SSL_METHOD *meth = TLS_server_method();
+    const SSL_METHOD *meth = VR_TLS_server_method();
     int ret = 1, i, verbose = 0, Verbose = 0, use_supported = 0;
     int stdname = 0;
 #ifndef OPENSSL_NO_PSK
@@ -105,7 +105,7 @@ int ciphers_main(int argc, char **argv)
         case OPT_EOF:
         case OPT_ERR:
  opthelp:
-            BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
+            VR_BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
             opt_help(ciphers_options);
@@ -170,12 +170,12 @@ int ciphers_main(int argc, char **argv)
         goto opthelp;
 
     if (convert != NULL) {
-        BIO_printf(bio_out, "OpenSSL cipher name: %s\n",
-                   OPENSSL_cipher_name(convert));
+        VR_BIO_printf(bio_out, "OpenSSL cipher name: %s\n",
+                   VR_OPENSSL_cipher_name(convert));
         goto end;
     }
 
-    ctx = SSL_CTX_new(meth);
+    ctx = VR_SSL_CTX_new(meth);
     if (ctx == NULL)
         goto err;
     if (SSL_CTX_set_min_proto_version(ctx, min_version) == 0)
@@ -185,44 +185,44 @@ int ciphers_main(int argc, char **argv)
 
 #ifndef OPENSSL_NO_PSK
     if (psk)
-        SSL_CTX_set_psk_client_callback(ctx, dummy_psk);
+        VR_SSL_CTX_set_psk_client_callback(ctx, dummy_psk);
 #endif
 #ifndef OPENSSL_NO_SRP
     if (srp)
-        SSL_CTX_set_srp_client_pwd_callback(ctx, dummy_srp);
+        VR_SSL_CTX_set_srp_client_pwd_callback(ctx, dummy_srp);
 #endif
 
-    if (ciphersuites != NULL && !SSL_CTX_set_ciphersuites(ctx, ciphersuites)) {
-        BIO_printf(bio_err, "Error setting TLSv1.3 ciphersuites\n");
+    if (ciphersuites != NULL && !VR_SSL_CTX_set_ciphersuites(ctx, ciphersuites)) {
+        VR_BIO_printf(bio_err, "Error setting TLSv1.3 ciphersuites\n");
         goto err;
     }
 
     if (ciphers != NULL) {
-        if (!SSL_CTX_set_cipher_list(ctx, ciphers)) {
-            BIO_printf(bio_err, "Error in cipher list\n");
+        if (!VR_SSL_CTX_set_cipher_list(ctx, ciphers)) {
+            VR_BIO_printf(bio_err, "Error in cipher list\n");
             goto err;
         }
     }
-    ssl = SSL_new(ctx);
+    ssl = VR_SSL_new(ctx);
     if (ssl == NULL)
         goto err;
 
     if (use_supported)
-        sk = SSL_get1_supported_ciphers(ssl);
+        sk = VR_SSL_get1_supported_ciphers(ssl);
     else
-        sk = SSL_get_ciphers(ssl);
+        sk = VR_SSL_get_ciphers(ssl);
 
     if (!verbose) {
         for (i = 0; i < sk_SSL_CIPHER_num(sk); i++) {
             const SSL_CIPHER *c = sk_SSL_CIPHER_value(sk, i);
-            p = SSL_CIPHER_get_name(c);
+            p = VR_SSL_CIPHER_get_name(c);
             if (p == NULL)
                 break;
             if (i != 0)
-                BIO_printf(bio_out, ":");
-            BIO_printf(bio_out, "%s", p);
+                VR_BIO_printf(bio_out, ":");
+            VR_BIO_printf(bio_out, "%s", p);
         }
-        BIO_printf(bio_out, "\n");
+        VR_BIO_printf(bio_out, "\n");
     } else {
 
         for (i = 0; i < sk_SSL_CIPHER_num(sk); i++) {
@@ -231,36 +231,36 @@ int ciphers_main(int argc, char **argv)
             c = sk_SSL_CIPHER_value(sk, i);
 
             if (Verbose) {
-                unsigned long id = SSL_CIPHER_get_id(c);
+                unsigned long id = VR_SSL_CIPHER_get_id(c);
                 int id0 = (int)(id >> 24);
                 int id1 = (int)((id >> 16) & 0xffL);
                 int id2 = (int)((id >> 8) & 0xffL);
                 int id3 = (int)(id & 0xffL);
 
                 if ((id & 0xff000000L) == 0x03000000L)
-                    BIO_printf(bio_out, "          0x%02X,0x%02X - ", id2, id3); /* SSL3
+                    VR_BIO_printf(bio_out, "          0x%02X,0x%02X - ", id2, id3); /* SSL3
                                                                                   * cipher */
                 else
-                    BIO_printf(bio_out, "0x%02X,0x%02X,0x%02X,0x%02X - ", id0, id1, id2, id3); /* whatever */
+                    VR_BIO_printf(bio_out, "0x%02X,0x%02X,0x%02X,0x%02X - ", id0, id1, id2, id3); /* whatever */
             }
             if (stdname) {
-                const char *nm = SSL_CIPHER_standard_name(c);
+                const char *nm = VR_SSL_CIPHER_standard_name(c);
                 if (nm == NULL)
                     nm = "UNKNOWN";
-                BIO_printf(bio_out, "%s - ", nm);
+                VR_BIO_printf(bio_out, "%s - ", nm);
             }
-            BIO_puts(bio_out, SSL_CIPHER_description(c, buf, sizeof(buf)));
+            VR_BIO_puts(bio_out, VR_SSL_CIPHER_description(c, buf, sizeof(buf)));
         }
     }
 
     ret = 0;
     goto end;
  err:
-    ERR_print_errors(bio_err);
+    VR_ERR_print_errors(bio_err);
  end:
     if (use_supported)
-        sk_SSL_CIPHER_free(sk);
-    SSL_CTX_free(ctx);
-    SSL_free(ssl);
+        sk_VR_SSL_CIPHER_free(sk);
+    VR_SSL_CTX_free(ctx);
+    VR_SSL_free(ssl);
     return ret;
 }

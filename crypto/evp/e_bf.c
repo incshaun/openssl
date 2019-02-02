@@ -26,12 +26,12 @@ typedef struct {
 
 IMPLEMENT_BLOCK_CIPHER(bf, ks, BF, EVP_BF_KEY, NID_bf, 8, 16, 8, 64,
                        EVP_CIPH_VARIABLE_LENGTH, bf_init_key, NULL,
-                       EVP_CIPHER_set_asn1_iv, EVP_CIPHER_get_asn1_iv, NULL)
+                       VR_EVP_CIPHER_set_asn1_iv, VR_EVP_CIPHER_get_asn1_iv, NULL)
 
 static int bf_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
                        const unsigned char *iv, int enc)
 {
-    BF_set_key(&data(ctx)->ks, EVP_CIPHER_CTX_key_length(ctx), key);
+    VR_BF_set_key(&data(ctx)->ks, VR_EVP_CIPHER_CTX_key_length(ctx), key);
     return 1;
 }
 

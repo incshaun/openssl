@@ -17,8 +17,8 @@
  */
 #define LP_DIR_CTX OPENSSL_DIR_CTX
 #define LP_dir_context_st OPENSSL_dir_context_st
-#define LP_find_file OPENSSL_DIR_read
-#define LP_find_file_end OPENSSL_DIR_end
+#define LP_find_file VR_OPENSSL_DIR_read
+#define LP_find_file_end VR_OPENSSL_DIR_end
 
 #include "internal/o_dir.h"
 

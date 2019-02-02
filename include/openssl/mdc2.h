@@ -7,32 +7,32 @@
  * https://www.openssl.org/source/license.html
  */
 
-#ifndef HEADER_MDC2_H
-# define HEADER_MDC2_H
+#ifndef HEADER_VR_MDC2_H
+# define HEADER_VR_MDC2_H
 
 # include <openssl/opensslconf.h>
 
-#ifndef OPENSSL_NO_MDC2
+#ifndef OPENSSL_NO_VR_MDC2
 # include <stdlib.h>
 # include <openssl/des.h>
 # ifdef  __cplusplus
 extern "C" {
 # endif
 
-# define MDC2_BLOCK              8
-# define MDC2_DIGEST_LENGTH      16
+# define VR_MDC2_BLOCK              8
+# define VR_MDC2_DIGEST_LENGTH      16
 
 typedef struct mdc2_ctx_st {
     unsigned int num;
-    unsigned char data[MDC2_BLOCK];
+    unsigned char data[VR_MDC2_BLOCK];
     DES_cblock h, hh;
     int pad_type;               /* either 1 or 2, default 1 */
-} MDC2_CTX;
+} VR_MDC2_CTX;
 
-int MDC2_Init(MDC2_CTX *c);
-int MDC2_Update(MDC2_CTX *c, const unsigned char *data, size_t len);
-int MDC2_Final(unsigned char *md, MDC2_CTX *c);
-unsigned char *MDC2(const unsigned char *d, size_t n, unsigned char *md);
+int VR_MDC2_Init(VR_MDC2_CTX *c);
+int VR_MDC2_Update(VR_MDC2_CTX *c, const unsigned char *data, size_t len);
+int VR_MDC2_Final(unsigned char *md, VR_MDC2_CTX *c);
+unsigned char *VR_MDC2(const unsigned char *d, size_t n, unsigned char *md);
 
 # ifdef  __cplusplus
 }

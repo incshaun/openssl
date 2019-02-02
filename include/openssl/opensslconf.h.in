@@ -181,7 +181,7 @@ extern "C" {
 {- $config{b32}  ? "#  define" : "#  undef" -} THIRTY_TWO_BIT
 # endif
 
-# define RC4_INT {- $config{rc4_int} -}
+# define VR_RC4_INT {- $config{rc4_int} -}
 
 # ifdef  __cplusplus
 }

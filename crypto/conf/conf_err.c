@@ -14,10 +14,10 @@
 #ifndef OPENSSL_NO_ERR
 
 static const ERR_STRING_DATA CONF_str_functs[] = {
-    {ERR_PACK(ERR_LIB_CONF, CONF_F_CONF_DUMP_FP, 0), "CONF_dump_fp"},
-    {ERR_PACK(ERR_LIB_CONF, CONF_F_CONF_LOAD, 0), "CONF_load"},
-    {ERR_PACK(ERR_LIB_CONF, CONF_F_CONF_LOAD_FP, 0), "CONF_load_fp"},
-    {ERR_PACK(ERR_LIB_CONF, CONF_F_CONF_PARSE_LIST, 0), "CONF_parse_list"},
+    {ERR_PACK(ERR_LIB_CONF, CONF_F_CONF_DUMP_FP, 0), "VR_CONF_dump_fp"},
+    {ERR_PACK(ERR_LIB_CONF, CONF_F_CONF_LOAD, 0), "VR_CONF_load"},
+    {ERR_PACK(ERR_LIB_CONF, CONF_F_CONF_LOAD_FP, 0), "VR_CONF_load_fp"},
+    {ERR_PACK(ERR_LIB_CONF, CONF_F_CONF_PARSE_LIST, 0), "VR_CONF_parse_list"},
     {ERR_PACK(ERR_LIB_CONF, CONF_F_DEF_LOAD, 0), "def_load"},
     {ERR_PACK(ERR_LIB_CONF, CONF_F_DEF_LOAD_BIO, 0), "def_load_bio"},
     {ERR_PACK(ERR_LIB_CONF, CONF_F_GET_NEXT_FILE, 0), "get_next_file"},
@@ -25,16 +25,16 @@ static const ERR_STRING_DATA CONF_str_functs[] = {
     {ERR_PACK(ERR_LIB_CONF, CONF_F_MODULE_INIT, 0), "module_init"},
     {ERR_PACK(ERR_LIB_CONF, CONF_F_MODULE_LOAD_DSO, 0), "module_load_dso"},
     {ERR_PACK(ERR_LIB_CONF, CONF_F_MODULE_RUN, 0), "module_run"},
-    {ERR_PACK(ERR_LIB_CONF, CONF_F_NCONF_DUMP_BIO, 0), "NCONF_dump_bio"},
-    {ERR_PACK(ERR_LIB_CONF, CONF_F_NCONF_DUMP_FP, 0), "NCONF_dump_fp"},
+    {ERR_PACK(ERR_LIB_CONF, CONF_F_NCONF_DUMP_BIO, 0), "VR_NCONF_dump_bio"},
+    {ERR_PACK(ERR_LIB_CONF, CONF_F_NCONF_DUMP_FP, 0), "VR_NCONF_dump_fp"},
     {ERR_PACK(ERR_LIB_CONF, CONF_F_NCONF_GET_NUMBER_E, 0),
-     "NCONF_get_number_e"},
-    {ERR_PACK(ERR_LIB_CONF, CONF_F_NCONF_GET_SECTION, 0), "NCONF_get_section"},
-    {ERR_PACK(ERR_LIB_CONF, CONF_F_NCONF_GET_STRING, 0), "NCONF_get_string"},
-    {ERR_PACK(ERR_LIB_CONF, CONF_F_NCONF_LOAD, 0), "NCONF_load"},
-    {ERR_PACK(ERR_LIB_CONF, CONF_F_NCONF_LOAD_BIO, 0), "NCONF_load_bio"},
-    {ERR_PACK(ERR_LIB_CONF, CONF_F_NCONF_LOAD_FP, 0), "NCONF_load_fp"},
-    {ERR_PACK(ERR_LIB_CONF, CONF_F_NCONF_NEW, 0), "NCONF_new"},
+     "VR_NCONF_get_number_e"},
+    {ERR_PACK(ERR_LIB_CONF, CONF_F_NCONF_GET_SECTION, 0), "VR_NCONF_get_section"},
+    {ERR_PACK(ERR_LIB_CONF, CONF_F_NCONF_GET_STRING, 0), "VR_NCONF_get_string"},
+    {ERR_PACK(ERR_LIB_CONF, CONF_F_NCONF_LOAD, 0), "VR_NCONF_load"},
+    {ERR_PACK(ERR_LIB_CONF, CONF_F_NCONF_LOAD_BIO, 0), "VR_NCONF_load_bio"},
+    {ERR_PACK(ERR_LIB_CONF, CONF_F_NCONF_LOAD_FP, 0), "VR_NCONF_load_fp"},
+    {ERR_PACK(ERR_LIB_CONF, CONF_F_NCONF_NEW, 0), "VR_NCONF_new"},
     {ERR_PACK(ERR_LIB_CONF, CONF_F_PROCESS_INCLUDE, 0), "process_include"},
     {ERR_PACK(ERR_LIB_CONF, CONF_F_SSL_MODULE_INIT, 0), "ssl_module_init"},
     {ERR_PACK(ERR_LIB_CONF, CONF_F_STR_COPY, 0), "str_copy"},
@@ -83,12 +83,12 @@ static const ERR_STRING_DATA CONF_str_reasons[] = {
 
 #endif
 
-int ERR_load_CONF_strings(void)
+int VR_ERR_load_CONF_strings(void)
 {
 #ifndef OPENSSL_NO_ERR
-    if (ERR_func_error_string(CONF_str_functs[0].error) == NULL) {
-        ERR_load_strings_const(CONF_str_functs);
-        ERR_load_strings_const(CONF_str_reasons);
+    if (VR_ERR_func_error_string(CONF_str_functs[0].error) == NULL) {
+        VR_ERR_load_strings_const(CONF_str_functs);
+        VR_ERR_load_strings_const(CONF_str_reasons);
     }
 #endif
     return 1;

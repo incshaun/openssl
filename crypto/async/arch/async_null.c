@@ -11,12 +11,12 @@
 #include "../async_locl.h"
 
 #ifdef ASYNC_NULL
-int ASYNC_is_capable(void)
+int VR_ASYNC_is_capable(void)
 {
     return 0;
 }
 
-void async_local_cleanup(void)
+void VR_async_local_cleanup(void)
 {
 }
 #endif

@@ -17,7 +17,7 @@
 #ifndef OPENSSL_NO_EC2M
 
 /*
- * Maximum number of iterations before BN_GF2m_mod_solve_quad_arr should
+ * Maximum number of iterations before VR_BN_GF2m_mod_solve_quad_arr should
  * fail.
  */
 # define MAX_ITERATIONS 50
@@ -228,7 +228,7 @@ static void bn_GF2m_mul_1x1(BN_ULONG *r1, BN_ULONG *r0, const BN_ULONG a,
  * result is a polynomial r with degree < 4 * BN_BITS2 - 1 The caller MUST
  * ensure that the variables have the right amount of space allocated.
  */
-static void bn_GF2m_mul_2x2(BN_ULONG *r, const BN_ULONG a1, const BN_ULONG a0,
+static void VR_bn_GF2m_mul_2x2(BN_ULONG *r, const BN_ULONG a1, const BN_ULONG a0,
                             const BN_ULONG b1, const BN_ULONG b0)
 {
     BN_ULONG m1, m0;
@@ -241,7 +241,7 @@ static void bn_GF2m_mul_2x2(BN_ULONG *r, const BN_ULONG a1, const BN_ULONG a0,
     r[1] = r[3] ^ r[2] ^ r[0] ^ m1 ^ m0; /* l1 ^= l0 ^ h0 ^ m0; */
 }
 # else
-void bn_GF2m_mul_2x2(BN_ULONG *r, BN_ULONG a1, BN_ULONG a0, BN_ULONG b1,
+void VR_bn_GF2m_mul_2x2(BN_ULONG *r, BN_ULONG a1, BN_ULONG a0, BN_ULONG b1,
                      BN_ULONG b0);
 # endif
 
@@ -249,7 +249,7 @@ void bn_GF2m_mul_2x2(BN_ULONG *r, BN_ULONG a1, BN_ULONG a0, BN_ULONG b1,
  * Add polynomials a and b and store result in r; r could be a or b, a and b
  * could be equal; r is the bitwise XOR of a and b.
  */
-int BN_GF2m_add(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
+int VR_BN_GF2m_add(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
 {
     int i;
     const BIGNUM *at, *bt;
@@ -265,7 +265,7 @@ int BN_GF2m_add(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
         bt = b;
     }
 
-    if (bn_wexpand(r, at->top) == NULL)
+    if (VR_bn_wexpand(r, at->top) == NULL)
         return 0;
 
     for (i = 0; i < bt->top; i++) {
@@ -276,7 +276,7 @@ int BN_GF2m_add(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
     }
 
     r->top = at->top;
-    bn_correct_top(r);
+    VR_bn_correct_top(r);
 
     return 1;
 }
@@ -289,7 +289,7 @@ int BN_GF2m_add(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
  */
 
 /* Performs modular reduction of a and store result in r.  r could be a. */
-int BN_GF2m_mod_arr(BIGNUM *r, const BIGNUM *a, const int p[])
+int VR_BN_GF2m_mod_arr(BIGNUM *r, const BIGNUM *a, const int p[])
 {
     int j, k;
     int n, dN, d0, d1;
@@ -308,7 +308,7 @@ int BN_GF2m_mod_arr(BIGNUM *r, const BIGNUM *a, const int p[])
      * contents of a into r so we can do reduction in r.
      */
     if (a != r) {
-        if (!bn_wexpand(r, a->top))
+        if (!VR_bn_wexpand(r, a->top))
             return 0;
         for (j = 0; j < a->top; j++) {
             r->d[j] = a->d[j];
@@ -377,28 +377,28 @@ int BN_GF2m_mod_arr(BIGNUM *r, const BIGNUM *a, const int p[])
 
     }
 
-    bn_correct_top(r);
+    VR_bn_correct_top(r);
     return 1;
 }
 
 /*
  * Performs modular reduction of a by p and store result in r.  r could be a.
- * This function calls down to the BN_GF2m_mod_arr implementation; this wrapper
+ * This function calls down to the VR_BN_GF2m_mod_arr implementation; this wrapper
  * function is only provided for convenience; for best performance, use the
- * BN_GF2m_mod_arr function.
+ * VR_BN_GF2m_mod_arr function.
  */
-int BN_GF2m_mod(BIGNUM *r, const BIGNUM *a, const BIGNUM *p)
+int VR_BN_GF2m_mod(BIGNUM *r, const BIGNUM *a, const BIGNUM *p)
 {
     int ret = 0;
     int arr[6];
     bn_check_top(a);
     bn_check_top(p);
-    ret = BN_GF2m_poly2arr(p, arr, OSSL_NELEM(arr));
+    ret = VR_BN_GF2m_poly2arr(p, arr, OSSL_NELEM(arr));
     if (!ret || ret > (int)OSSL_NELEM(arr)) {
         BNerr(BN_F_BN_GF2M_MOD, BN_R_INVALID_LENGTH);
         return 0;
     }
-    ret = BN_GF2m_mod_arr(r, a, arr);
+    ret = VR_BN_GF2m_mod_arr(r, a, arr);
     bn_check_top(r);
     return ret;
 }
@@ -407,7 +407,7 @@ int BN_GF2m_mod(BIGNUM *r, const BIGNUM *a, const BIGNUM *p)
  * Compute the product of two polynomials a and b, reduce modulo p, and store
  * the result in r.  r could be a or b; a could be b.
  */
-int BN_GF2m_mod_mul_arr(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+int VR_BN_GF2m_mod_mul_arr(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
                         const int p[], BN_CTX *ctx)
 {
     int zlen, i, j, k, ret = 0;
@@ -418,15 +418,15 @@ int BN_GF2m_mod_mul_arr(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
     bn_check_top(b);
 
     if (a == b) {
-        return BN_GF2m_mod_sqr_arr(r, a, p, ctx);
+        return VR_BN_GF2m_mod_sqr_arr(r, a, p, ctx);
     }
 
-    BN_CTX_start(ctx);
-    if ((s = BN_CTX_get(ctx)) == NULL)
+    VR_BN_CTX_start(ctx);
+    if ((s = VR_BN_CTX_get(ctx)) == NULL)
         goto err;
 
     zlen = a->top + b->top + 4;
-    if (!bn_wexpand(s, zlen))
+    if (!VR_bn_wexpand(s, zlen))
         goto err;
     s->top = zlen;
 
@@ -439,64 +439,64 @@ int BN_GF2m_mod_mul_arr(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
         for (i = 0; i < a->top; i += 2) {
             x0 = a->d[i];
             x1 = ((i + 1) == a->top) ? 0 : a->d[i + 1];
-            bn_GF2m_mul_2x2(zz, x1, x0, y1, y0);
+            VR_bn_GF2m_mul_2x2(zz, x1, x0, y1, y0);
             for (k = 0; k < 4; k++)
                 s->d[i + j + k] ^= zz[k];
         }
     }
 
-    bn_correct_top(s);
-    if (BN_GF2m_mod_arr(r, s, p))
+    VR_bn_correct_top(s);
+    if (VR_BN_GF2m_mod_arr(r, s, p))
         ret = 1;
     bn_check_top(r);
 
  err:
-    BN_CTX_end(ctx);
+    VR_BN_CTX_end(ctx);
     return ret;
 }
 
 /*
  * Compute the product of two polynomials a and b, reduce modulo p, and store
  * the result in r.  r could be a or b; a could equal b. This function calls
- * down to the BN_GF2m_mod_mul_arr implementation; this wrapper function is
+ * down to the VR_BN_GF2m_mod_mul_arr implementation; this wrapper function is
  * only provided for convenience; for best performance, use the
- * BN_GF2m_mod_mul_arr function.
+ * VR_BN_GF2m_mod_mul_arr function.
  */
-int BN_GF2m_mod_mul(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+int VR_BN_GF2m_mod_mul(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
                     const BIGNUM *p, BN_CTX *ctx)
 {
     int ret = 0;
-    const int max = BN_num_bits(p) + 1;
+    const int max = VR_BN_num_bits(p) + 1;
     int *arr = NULL;
     bn_check_top(a);
     bn_check_top(b);
     bn_check_top(p);
     if ((arr = OPENSSL_malloc(sizeof(*arr) * max)) == NULL)
         goto err;
-    ret = BN_GF2m_poly2arr(p, arr, max);
+    ret = VR_BN_GF2m_poly2arr(p, arr, max);
     if (!ret || ret > max) {
         BNerr(BN_F_BN_GF2M_MOD_MUL, BN_R_INVALID_LENGTH);
         goto err;
     }
-    ret = BN_GF2m_mod_mul_arr(r, a, b, arr, ctx);
+    ret = VR_BN_GF2m_mod_mul_arr(r, a, b, arr, ctx);
     bn_check_top(r);
  err:
-    OPENSSL_free(arr);
+    OPENVR_SSL_free(arr);
     return ret;
 }
 
 /* Square a, reduce the result mod p, and store it in a.  r could be a. */
-int BN_GF2m_mod_sqr_arr(BIGNUM *r, const BIGNUM *a, const int p[],
+int VR_BN_GF2m_mod_sqr_arr(BIGNUM *r, const BIGNUM *a, const int p[],
                         BN_CTX *ctx)
 {
     int i, ret = 0;
     BIGNUM *s;
 
     bn_check_top(a);
-    BN_CTX_start(ctx);
-    if ((s = BN_CTX_get(ctx)) == NULL)
+    VR_BN_CTX_start(ctx);
+    if ((s = VR_BN_CTX_get(ctx)) == NULL)
         goto err;
-    if (!bn_wexpand(s, 2 * a->top))
+    if (!VR_bn_wexpand(s, 2 * a->top))
         goto err;
 
     for (i = a->top - 1; i >= 0; i--) {
@@ -505,41 +505,41 @@ int BN_GF2m_mod_sqr_arr(BIGNUM *r, const BIGNUM *a, const int p[],
     }
 
     s->top = 2 * a->top;
-    bn_correct_top(s);
-    if (!BN_GF2m_mod_arr(r, s, p))
+    VR_bn_correct_top(s);
+    if (!VR_BN_GF2m_mod_arr(r, s, p))
         goto err;
     bn_check_top(r);
     ret = 1;
  err:
-    BN_CTX_end(ctx);
+    VR_BN_CTX_end(ctx);
     return ret;
 }
 
 /*
  * Square a, reduce the result mod p, and store it in a.  r could be a. This
- * function calls down to the BN_GF2m_mod_sqr_arr implementation; this
+ * function calls down to the VR_BN_GF2m_mod_sqr_arr implementation; this
  * wrapper function is only provided for convenience; for best performance,
- * use the BN_GF2m_mod_sqr_arr function.
+ * use the VR_BN_GF2m_mod_sqr_arr function.
  */
-int BN_GF2m_mod_sqr(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
+int VR_BN_GF2m_mod_sqr(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
 {
     int ret = 0;
-    const int max = BN_num_bits(p) + 1;
+    const int max = VR_BN_num_bits(p) + 1;
     int *arr = NULL;
 
     bn_check_top(a);
     bn_check_top(p);
     if ((arr = OPENSSL_malloc(sizeof(*arr) * max)) == NULL)
         goto err;
-    ret = BN_GF2m_poly2arr(p, arr, max);
+    ret = VR_BN_GF2m_poly2arr(p, arr, max);
     if (!ret || ret > max) {
         BNerr(BN_F_BN_GF2M_MOD_SQR, BN_R_INVALID_LENGTH);
         goto err;
     }
-    ret = BN_GF2m_mod_sqr_arr(r, a, arr, ctx);
+    ret = VR_BN_GF2m_mod_sqr_arr(r, a, arr, ctx);
     bn_check_top(r);
  err:
-    OPENSSL_free(arr);
+    OPENVR_SSL_free(arr);
     return ret;
 }
 
@@ -549,7 +549,7 @@ int BN_GF2m_mod_sqr(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
  * Hernandez, J.L., and Menezes, A.  "Software Implementation of Elliptic
  * Curve Cryptography Over Binary Fields".
  */
-static int BN_GF2m_mod_inv_vartime(BIGNUM *r, const BIGNUM *a,
+static int VR_BN_GF2m_mod_inv_vartime(BIGNUM *r, const BIGNUM *a,
                                    const BIGNUM *p, BN_CTX *ctx)
 {
     BIGNUM *b, *c = NULL, *u = NULL, *v = NULL, *tmp;
@@ -558,44 +558,44 @@ static int BN_GF2m_mod_inv_vartime(BIGNUM *r, const BIGNUM *a,
     bn_check_top(a);
     bn_check_top(p);
 
-    BN_CTX_start(ctx);
+    VR_BN_CTX_start(ctx);
 
-    b = BN_CTX_get(ctx);
-    c = BN_CTX_get(ctx);
-    u = BN_CTX_get(ctx);
-    v = BN_CTX_get(ctx);
+    b = VR_BN_CTX_get(ctx);
+    c = VR_BN_CTX_get(ctx);
+    u = VR_BN_CTX_get(ctx);
+    v = VR_BN_CTX_get(ctx);
     if (v == NULL)
         goto err;
 
-    if (!BN_GF2m_mod(u, a, p))
+    if (!VR_BN_GF2m_mod(u, a, p))
         goto err;
-    if (BN_is_zero(u))
+    if (VR_BN_is_zero(u))
         goto err;
 
-    if (!BN_copy(v, p))
+    if (!VR_BN_copy(v, p))
         goto err;
 # if 0
     if (!BN_one(b))
         goto err;
 
     while (1) {
-        while (!BN_is_odd(u)) {
-            if (BN_is_zero(u))
+        while (!VR_BN_is_odd(u)) {
+            if (VR_BN_is_zero(u))
                 goto err;
-            if (!BN_rshift1(u, u))
+            if (!VR_BN_rshift1(u, u))
                 goto err;
-            if (BN_is_odd(b)) {
-                if (!BN_GF2m_add(b, b, p))
+            if (VR_BN_is_odd(b)) {
+                if (!VR_BN_GF2m_add(b, b, p))
                     goto err;
             }
-            if (!BN_rshift1(b, b))
+            if (!VR_BN_rshift1(b, b))
                 goto err;
         }
 
-        if (BN_abs_is_word(u, 1))
+        if (VR_BN_abs_is_word(u, 1))
             break;
 
-        if (BN_num_bits(u) < BN_num_bits(v)) {
+        if (VR_BN_num_bits(u) < VR_BN_num_bits(v)) {
             tmp = u;
             u = v;
             v = tmp;
@@ -604,33 +604,33 @@ static int BN_GF2m_mod_inv_vartime(BIGNUM *r, const BIGNUM *a,
             c = tmp;
         }
 
-        if (!BN_GF2m_add(u, u, v))
+        if (!VR_BN_GF2m_add(u, u, v))
             goto err;
-        if (!BN_GF2m_add(b, b, c))
+        if (!VR_BN_GF2m_add(b, b, c))
             goto err;
     }
 # else
     {
         int i;
-        int ubits = BN_num_bits(u);
-        int vbits = BN_num_bits(v); /* v is copy of p */
+        int ubits = VR_BN_num_bits(u);
+        int vbits = VR_BN_num_bits(v); /* v is copy of p */
         int top = p->top;
         BN_ULONG *udp, *bdp, *vdp, *cdp;
 
-        if (!bn_wexpand(u, top))
+        if (!VR_bn_wexpand(u, top))
             goto err;
         udp = u->d;
         for (i = u->top; i < top; i++)
             udp[i] = 0;
         u->top = top;
-        if (!bn_wexpand(b, top))
+        if (!VR_bn_wexpand(b, top))
           goto err;
         bdp = b->d;
         bdp[0] = 1;
         for (i = 1; i < top; i++)
             bdp[i] = 0;
         b->top = top;
-        if (!bn_wexpand(c, top))
+        if (!VR_bn_wexpand(c, top))
           goto err;
         cdp = c->d;
         for (i = 0; i < top; i++)
@@ -693,93 +693,93 @@ static int BN_GF2m_mod_inv_vartime(BIGNUM *r, const BIGNUM *a,
 
                 while ((ul = udp[utop]) == 0 && utop)
                     utop--;
-                ubits = utop * BN_BITS2 + BN_num_bits_word(ul);
+                ubits = utop * BN_BITS2 + VR_BN_num_bits_word(ul);
             }
         }
-        bn_correct_top(b);
+        VR_bn_correct_top(b);
     }
 # endif
 
-    if (!BN_copy(r, b))
+    if (!VR_BN_copy(r, b))
         goto err;
     bn_check_top(r);
     ret = 1;
 
  err:
-# ifdef BN_DEBUG                /* BN_CTX_end would complain about the
+# ifdef BN_DEBUG                /* VR_BN_CTX_end would complain about the
                                  * expanded form */
-    bn_correct_top(c);
-    bn_correct_top(u);
-    bn_correct_top(v);
+    VR_bn_correct_top(c);
+    VR_bn_correct_top(u);
+    VR_bn_correct_top(v);
 # endif
-    BN_CTX_end(ctx);
+    VR_BN_CTX_end(ctx);
     return ret;
 }
 
 /*-
- * Wrapper for BN_GF2m_mod_inv_vartime that blinds the input before calling.
+ * Wrapper for VR_BN_GF2m_mod_inv_vartime that blinds the input before calling.
  * This is not constant time.
  * But it does eliminate first order deduction on the input.
  */
-int BN_GF2m_mod_inv(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
+int VR_BN_GF2m_mod_inv(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
 {
     BIGNUM *b = NULL;
     int ret = 0;
 
-    BN_CTX_start(ctx);
-    if ((b = BN_CTX_get(ctx)) == NULL)
+    VR_BN_CTX_start(ctx);
+    if ((b = VR_BN_CTX_get(ctx)) == NULL)
         goto err;
 
     /* generate blinding value */
     do {
-        if (!BN_priv_rand(b, BN_num_bits(p) - 1,
+        if (!VR_BN_priv_rand(b, VR_BN_num_bits(p) - 1,
                           BN_RAND_TOP_ANY, BN_RAND_BOTTOM_ANY))
             goto err;
-    } while (BN_is_zero(b));
+    } while (VR_BN_is_zero(b));
 
     /* r := a * b */
-    if (!BN_GF2m_mod_mul(r, a, b, p, ctx))
+    if (!VR_BN_GF2m_mod_mul(r, a, b, p, ctx))
         goto err;
 
     /* r := 1/(a * b) */
-    if (!BN_GF2m_mod_inv_vartime(r, r, p, ctx))
+    if (!VR_BN_GF2m_mod_inv_vartime(r, r, p, ctx))
         goto err;
 
     /* r := b/(a * b) = 1/a */
-    if (!BN_GF2m_mod_mul(r, r, b, p, ctx))
+    if (!VR_BN_GF2m_mod_mul(r, r, b, p, ctx))
         goto err;
 
     ret = 1;
 
  err:
-    BN_CTX_end(ctx);
+    VR_BN_CTX_end(ctx);
     return ret;
 }
 
 /*
  * Invert xx, reduce modulo p, and store the result in r. r could be xx.
- * This function calls down to the BN_GF2m_mod_inv implementation; this
+ * This function calls down to the VR_BN_GF2m_mod_inv implementation; this
  * wrapper function is only provided for convenience; for best performance,
- * use the BN_GF2m_mod_inv function.
+ * use the VR_BN_GF2m_mod_inv function.
  */
-int BN_GF2m_mod_inv_arr(BIGNUM *r, const BIGNUM *xx, const int p[],
+int VR_BN_GF2m_mod_inv_arr(BIGNUM *r, const BIGNUM *xx, const int p[],
                         BN_CTX *ctx)
 {
     BIGNUM *field;
     int ret = 0;
 
     bn_check_top(xx);
-    BN_CTX_start(ctx);
-    if ((field = BN_CTX_get(ctx)) == NULL)
+    VR_BN_CTX_start(ctx);
+    if ((field = VR_BN_CTX_get(ctx)) == NULL)
         goto err;
-    if (!BN_GF2m_arr2poly(p, field))
+    if (!VR_BN_GF2m_arr2poly(p, field))
         goto err;
 
-    ret = BN_GF2m_mod_inv(r, xx, field, ctx);
+    ret = VR_BN_GF2m_mod_inv(r, xx, field, ctx);
     bn_check_top(r);
 
  err:
-    BN_CTX_end(ctx);
+    VR_BN_CTX_end(ctx);
     return ret;
 }
 
@@ -787,7 +787,7 @@ int BN_GF2m_mod_inv_arr(BIGNUM *r, const BIGNUM *xx, const int p[],
  * Divide y by x, reduce modulo p, and store the result in r. r could be x
  * or y, x could equal y.
  */
-int BN_GF2m_mod_div(BIGNUM *r, const BIGNUM *y, const BIGNUM *x,
+int VR_BN_GF2m_mod_div(BIGNUM *r, const BIGNUM *y, const BIGNUM *x,
                     const BIGNUM *p, BN_CTX *ctx)
 {
     BIGNUM *xinv = NULL;
@@ -797,30 +797,30 @@ int BN_GF2m_mod_div(BIGNUM *r, const BIGNUM *y, const BIGNUM *x,
     bn_check_top(x);
     bn_check_top(p);
 
-    BN_CTX_start(ctx);
-    xinv = BN_CTX_get(ctx);
+    VR_BN_CTX_start(ctx);
+    xinv = VR_BN_CTX_get(ctx);
     if (xinv == NULL)
         goto err;
 
-    if (!BN_GF2m_mod_inv(xinv, x, p, ctx))
+    if (!VR_BN_GF2m_mod_inv(xinv, x, p, ctx))
         goto err;
-    if (!BN_GF2m_mod_mul(r, y, xinv, p, ctx))
+    if (!VR_BN_GF2m_mod_mul(r, y, xinv, p, ctx))
         goto err;
     bn_check_top(r);
     ret = 1;
 
  err:
-    BN_CTX_end(ctx);
+    VR_BN_CTX_end(ctx);
     return ret;
 }
 
 /*
  * Divide yy by xx, reduce modulo p, and store the result in r. r could be xx
  * * or yy, xx could equal yy. This function calls down to the
- * BN_GF2m_mod_div implementation; this wrapper function is only provided for
- * convenience; for best performance, use the BN_GF2m_mod_div function.
+ * VR_BN_GF2m_mod_div implementation; this wrapper function is only provided for
+ * convenience; for best performance, use the VR_BN_GF2m_mod_div function.
  */
-int BN_GF2m_mod_div_arr(BIGNUM *r, const BIGNUM *yy, const BIGNUM *xx,
+int VR_BN_GF2m_mod_div_arr(BIGNUM *r, const BIGNUM *yy, const BIGNUM *xx,
                         const int p[], BN_CTX *ctx)
 {
     BIGNUM *field;
@@ -829,17 +829,17 @@ int BN_GF2m_mod_div_arr(BIGNUM *r, const BIGNUM *yy, const BIGNUM *xx,
     bn_check_top(yy);
     bn_check_top(xx);
 
-    BN_CTX_start(ctx);
-    if ((field = BN_CTX_get(ctx)) == NULL)
+    VR_BN_CTX_start(ctx);
+    if ((field = VR_BN_CTX_get(ctx)) == NULL)
         goto err;
-    if (!BN_GF2m_arr2poly(p, field))
+    if (!VR_BN_GF2m_arr2poly(p, field))
         goto err;
 
-    ret = BN_GF2m_mod_div(r, yy, xx, field, ctx);
+    ret = VR_BN_GF2m_mod_div(r, yy, xx, field, ctx);
     bn_check_top(r);
 
  err:
-    BN_CTX_end(ctx);
+    VR_BN_CTX_end(ctx);
     return ret;
 }
 
@@ -848,7 +848,7 @@ int BN_GF2m_mod_div_arr(BIGNUM *r, const BIGNUM *yy, const BIGNUM *xx,
  * could be a. Uses simple square-and-multiply algorithm A.5.1 from IEEE
  * P1363.
  */
-int BN_GF2m_mod_exp_arr(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+int VR_BN_GF2m_mod_exp_arr(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
                         const int p[], BN_CTX *ctx)
 {
     int ret = 0, i, n;
@@ -857,63 +857,63 @@ int BN_GF2m_mod_exp_arr(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
     bn_check_top(a);
     bn_check_top(b);
 
-    if (BN_is_zero(b))
+    if (VR_BN_is_zero(b))
         return BN_one(r);
 
-    if (BN_abs_is_word(b, 1))
-        return (BN_copy(r, a) != NULL);
+    if (VR_BN_abs_is_word(b, 1))
+        return (VR_BN_copy(r, a) != NULL);
 
-    BN_CTX_start(ctx);
-    if ((u = BN_CTX_get(ctx)) == NULL)
+    VR_BN_CTX_start(ctx);
+    if ((u = VR_BN_CTX_get(ctx)) == NULL)
         goto err;
 
-    if (!BN_GF2m_mod_arr(u, a, p))
+    if (!VR_BN_GF2m_mod_arr(u, a, p))
         goto err;
 
-    n = BN_num_bits(b) - 1;
+    n = VR_BN_num_bits(b) - 1;
     for (i = n - 1; i >= 0; i--) {
-        if (!BN_GF2m_mod_sqr_arr(u, u, p, ctx))
+        if (!VR_BN_GF2m_mod_sqr_arr(u, u, p, ctx))
             goto err;
-        if (BN_is_bit_set(b, i)) {
-            if (!BN_GF2m_mod_mul_arr(u, u, a, p, ctx))
+        if (VR_BN_is_bit_set(b, i)) {
+            if (!VR_BN_GF2m_mod_mul_arr(u, u, a, p, ctx))
                 goto err;
         }
     }
-    if (!BN_copy(r, u))
+    if (!VR_BN_copy(r, u))
         goto err;
     bn_check_top(r);
     ret = 1;
  err:
-    BN_CTX_end(ctx);
+    VR_BN_CTX_end(ctx);
     return ret;
 }
 
 /*
  * Compute the bth power of a, reduce modulo p, and store the result in r.  r
- * could be a. This function calls down to the BN_GF2m_mod_exp_arr
+ * could be a. This function calls down to the VR_BN_GF2m_mod_exp_arr
  * implementation; this wrapper function is only provided for convenience;
- * for best performance, use the BN_GF2m_mod_exp_arr function.
+ * for best performance, use the VR_BN_GF2m_mod_exp_arr function.
  */
-int BN_GF2m_mod_exp(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+int VR_BN_GF2m_mod_exp(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
                     const BIGNUM *p, BN_CTX *ctx)
 {
     int ret = 0;
-    const int max = BN_num_bits(p) + 1;
+    const int max = VR_BN_num_bits(p) + 1;
     int *arr = NULL;
     bn_check_top(a);
     bn_check_top(b);
     bn_check_top(p);
     if ((arr = OPENSSL_malloc(sizeof(*arr) * max)) == NULL)
         goto err;
-    ret = BN_GF2m_poly2arr(p, arr, max);
+    ret = VR_BN_GF2m_poly2arr(p, arr, max);
     if (!ret || ret > max) {
         BNerr(BN_F_BN_GF2M_MOD_EXP, BN_R_INVALID_LENGTH);
         goto err;
     }
-    ret = BN_GF2m_mod_exp_arr(r, a, b, arr, ctx);
+    ret = VR_BN_GF2m_mod_exp_arr(r, a, b, arr, ctx);
     bn_check_top(r);
  err:
-    OPENSSL_free(arr);
+    OPENVR_SSL_free(arr);
     return ret;
 }
 
@@ -921,7 +921,7 @@ int BN_GF2m_mod_exp(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
  * Compute the square root of a, reduce modulo p, and store the result in r.
  * r could be a. Uses exponentiation as in algorithm A.4.1 from IEEE P1363.
  */
-int BN_GF2m_mod_sqrt_arr(BIGNUM *r, const BIGNUM *a, const int p[],
+int VR_BN_GF2m_mod_sqrt_arr(BIGNUM *r, const BIGNUM *a, const int p[],
                          BN_CTX *ctx)
 {
     int ret = 0;
@@ -935,44 +935,44 @@ int BN_GF2m_mod_sqrt_arr(BIGNUM *r, const BIGNUM *a, const int p[],
         return 1;
     }
 
-    BN_CTX_start(ctx);
-    if ((u = BN_CTX_get(ctx)) == NULL)
+    VR_BN_CTX_start(ctx);
+    if ((u = VR_BN_CTX_get(ctx)) == NULL)
         goto err;
 
-    if (!BN_set_bit(u, p[0] - 1))
+    if (!VR_BN_set_bit(u, p[0] - 1))
         goto err;
-    ret = BN_GF2m_mod_exp_arr(r, a, u, p, ctx);
+    ret = VR_BN_GF2m_mod_exp_arr(r, a, u, p, ctx);
     bn_check_top(r);
 
  err:
-    BN_CTX_end(ctx);
+    VR_BN_CTX_end(ctx);
     return ret;
 }
 
 /*
  * Compute the square root of a, reduce modulo p, and store the result in r.
- * r could be a. This function calls down to the BN_GF2m_mod_sqrt_arr
+ * r could be a. This function calls down to the VR_BN_GF2m_mod_sqrt_arr
  * implementation; this wrapper function is only provided for convenience;
- * for best performance, use the BN_GF2m_mod_sqrt_arr function.
+ * for best performance, use the VR_BN_GF2m_mod_sqrt_arr function.
  */
-int BN_GF2m_mod_sqrt(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
+int VR_BN_GF2m_mod_sqrt(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
 {
     int ret = 0;
-    const int max = BN_num_bits(p) + 1;
+    const int max = VR_BN_num_bits(p) + 1;
     int *arr = NULL;
     bn_check_top(a);
     bn_check_top(p);
     if ((arr = OPENSSL_malloc(sizeof(*arr) * max)) == NULL)
         goto err;
-    ret = BN_GF2m_poly2arr(p, arr, max);
+    ret = VR_BN_GF2m_poly2arr(p, arr, max);
     if (!ret || ret > max) {
         BNerr(BN_F_BN_GF2M_MOD_SQRT, BN_R_INVALID_LENGTH);
         goto err;
     }
-    ret = BN_GF2m_mod_sqrt_arr(r, a, arr, ctx);
+    ret = VR_BN_GF2m_mod_sqrt_arr(r, a, arr, ctx);
     bn_check_top(r);
  err:
-    OPENSSL_free(arr);
+    OPENVR_SSL_free(arr);
     return ret;
 }
 
@@ -980,7 +980,7 @@ int BN_GF2m_mod_sqrt(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
  * Find r such that r^2 + r = a mod p.  r could be a. If no r exists returns
  * 0. Uses algorithms A.4.7 and A.4.6 from IEEE P1363.
  */
-int BN_GF2m_mod_solve_quad_arr(BIGNUM *r, const BIGNUM *a_, const int p[],
+int VR_BN_GF2m_mod_solve_quad_arr(BIGNUM *r, const BIGNUM *a_, const int p[],
                                BN_CTX *ctx)
 {
     int ret = 0, count = 0, j;
@@ -994,17 +994,17 @@ int BN_GF2m_mod_solve_quad_arr(BIGNUM *r, const BIGNUM *a_, const int p[],
         return 1;
     }
 
-    BN_CTX_start(ctx);
-    a = BN_CTX_get(ctx);
-    z = BN_CTX_get(ctx);
-    w = BN_CTX_get(ctx);
+    VR_BN_CTX_start(ctx);
+    a = VR_BN_CTX_get(ctx);
+    z = VR_BN_CTX_get(ctx);
+    w = VR_BN_CTX_get(ctx);
     if (w == NULL)
         goto err;
 
-    if (!BN_GF2m_mod_arr(a, a_, p))
+    if (!VR_BN_GF2m_mod_arr(a, a_, p))
         goto err;
 
-    if (BN_is_zero(a)) {
+    if (VR_BN_is_zero(a)) {
         BN_zero(r);
         ret = 1;
         goto err;
@@ -1012,97 +1012,97 @@ int BN_GF2m_mod_solve_quad_arr(BIGNUM *r, const BIGNUM *a_, const int p[],
 
     if (p[0] & 0x1) {           /* m is odd */
         /* compute half-trace of a */
-        if (!BN_copy(z, a))
+        if (!VR_BN_copy(z, a))
             goto err;
         for (j = 1; j <= (p[0] - 1) / 2; j++) {
-            if (!BN_GF2m_mod_sqr_arr(z, z, p, ctx))
+            if (!VR_BN_GF2m_mod_sqr_arr(z, z, p, ctx))
                 goto err;
-            if (!BN_GF2m_mod_sqr_arr(z, z, p, ctx))
+            if (!VR_BN_GF2m_mod_sqr_arr(z, z, p, ctx))
                 goto err;
-            if (!BN_GF2m_add(z, z, a))
+            if (!VR_BN_GF2m_add(z, z, a))
                 goto err;
         }
 
     } else {                    /* m is even */
 
-        rho = BN_CTX_get(ctx);
-        w2 = BN_CTX_get(ctx);
-        tmp = BN_CTX_get(ctx);
+        rho = VR_BN_CTX_get(ctx);
+        w2 = VR_BN_CTX_get(ctx);
+        tmp = VR_BN_CTX_get(ctx);
         if (tmp == NULL)
             goto err;
         do {
-            if (!BN_priv_rand(rho, p[0], BN_RAND_TOP_ONE, BN_RAND_BOTTOM_ANY))
+            if (!VR_BN_priv_rand(rho, p[0], BN_RAND_TOP_ONE, BN_RAND_BOTTOM_ANY))
                 goto err;
-            if (!BN_GF2m_mod_arr(rho, rho, p))
+            if (!VR_BN_GF2m_mod_arr(rho, rho, p))
                 goto err;
             BN_zero(z);
-            if (!BN_copy(w, rho))
+            if (!VR_BN_copy(w, rho))
                 goto err;
             for (j = 1; j <= p[0] - 1; j++) {
-                if (!BN_GF2m_mod_sqr_arr(z, z, p, ctx))
+                if (!VR_BN_GF2m_mod_sqr_arr(z, z, p, ctx))
                     goto err;
-                if (!BN_GF2m_mod_sqr_arr(w2, w, p, ctx))
+                if (!VR_BN_GF2m_mod_sqr_arr(w2, w, p, ctx))
                     goto err;
-                if (!BN_GF2m_mod_mul_arr(tmp, w2, a, p, ctx))
+                if (!VR_BN_GF2m_mod_mul_arr(tmp, w2, a, p, ctx))
                     goto err;
-                if (!BN_GF2m_add(z, z, tmp))
+                if (!VR_BN_GF2m_add(z, z, tmp))
                     goto err;
-                if (!BN_GF2m_add(w, w2, rho))
+                if (!VR_BN_GF2m_add(w, w2, rho))
                     goto err;
             }
             count++;
-        } while (BN_is_zero(w) && (count < MAX_ITERATIONS));
-        if (BN_is_zero(w)) {
+        } while (VR_BN_is_zero(w) && (count < MAX_ITERATIONS));
+        if (VR_BN_is_zero(w)) {
             BNerr(BN_F_BN_GF2M_MOD_SOLVE_QUAD_ARR, BN_R_TOO_MANY_ITERATIONS);
             goto err;
         }
     }
 
-    if (!BN_GF2m_mod_sqr_arr(w, z, p, ctx))
+    if (!VR_BN_GF2m_mod_sqr_arr(w, z, p, ctx))
         goto err;
-    if (!BN_GF2m_add(w, z, w))
+    if (!VR_BN_GF2m_add(w, z, w))
         goto err;
     if (BN_GF2m_cmp(w, a)) {
         BNerr(BN_F_BN_GF2M_MOD_SOLVE_QUAD_ARR, BN_R_NO_SOLUTION);
         goto err;
     }
 
-    if (!BN_copy(r, z))
+    if (!VR_BN_copy(r, z))
         goto err;
     bn_check_top(r);
 
     ret = 1;
 
  err:
-    BN_CTX_end(ctx);
+    VR_BN_CTX_end(ctx);
     return ret;
 }
 
 /*
  * Find r such that r^2 + r = a mod p.  r could be a. If no r exists returns
- * 0. This function calls down to the BN_GF2m_mod_solve_quad_arr
+ * 0. This function calls down to the VR_BN_GF2m_mod_solve_quad_arr
  * implementation; this wrapper function is only provided for convenience;
- * for best performance, use the BN_GF2m_mod_solve_quad_arr function.
+ * for best performance, use the VR_BN_GF2m_mod_solve_quad_arr function.
  */
-int BN_GF2m_mod_solve_quad(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
+int VR_BN_GF2m_mod_solve_quad(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
                            BN_CTX *ctx)
 {
     int ret = 0;
-    const int max = BN_num_bits(p) + 1;
+    const int max = VR_BN_num_bits(p) + 1;
     int *arr = NULL;
     bn_check_top(a);
     bn_check_top(p);
     if ((arr = OPENSSL_malloc(sizeof(*arr) * max)) == NULL)
         goto err;
-    ret = BN_GF2m_poly2arr(p, arr, max);
+    ret = VR_BN_GF2m_poly2arr(p, arr, max);
     if (!ret || ret > max) {
         BNerr(BN_F_BN_GF2M_MOD_SOLVE_QUAD, BN_R_INVALID_LENGTH);
         goto err;
     }
-    ret = BN_GF2m_mod_solve_quad_arr(r, a, arr, ctx);
+    ret = VR_BN_GF2m_mod_solve_quad_arr(r, a, arr, ctx);
     bn_check_top(r);
  err:
-    OPENSSL_free(arr);
+    OPENVR_SSL_free(arr);
     return ret;
 }
 
@@ -1113,12 +1113,12 @@ int BN_GF2m_mod_solve_quad(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
  * will be filled.  Return value is total number of array elements that would
  * be filled if array was large enough.
  */
-int BN_GF2m_poly2arr(const BIGNUM *a, int p[], int max)
+int VR_BN_GF2m_poly2arr(const BIGNUM *a, int p[], int max)
 {
     int i, j, k = 0;
     BN_ULONG mask;
 
-    if (BN_is_zero(a))
+    if (VR_BN_is_zero(a))
         return 0;
 
     for (i = a->top - 1; i >= 0; i--) {
@@ -1148,14 +1148,14 @@ int BN_GF2m_poly2arr(const BIGNUM *a, int p[], int max)
  * Convert the coefficient array representation of a polynomial to a
  * bit-string.  The array must be terminated by -1.
  */
-int BN_GF2m_arr2poly(const int p[], BIGNUM *a)
+int VR_BN_GF2m_arr2poly(const int p[], BIGNUM *a)
 {
     int i;
 
     bn_check_top(a);
     BN_zero(a);
     for (i = 0; p[i] != -1; i++) {
-        if (BN_set_bit(a, p[i]) == 0)
+        if (VR_BN_set_bit(a, p[i]) == 0)
             return 0;
     }
     bn_check_top(a);

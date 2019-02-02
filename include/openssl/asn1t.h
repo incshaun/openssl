@@ -808,23 +808,23 @@ typedef struct ASN1_STREAM_ARG_st {
                 IMPLEMENT_ASN1_ALLOC_FUNCTIONS_fname(stname, stname, stname)
 
 # define IMPLEMENT_ASN1_ALLOC_FUNCTIONS_pfname(pre, stname, itname, fname) \
-        pre stname *fname##_new(void) \
+        pre stname *VR_##fname##_new(void) \
         { \
-                return (stname *)ASN1_item_new(ASN1_ITEM_rptr(itname)); \
+                return (stname *)VR_ASN1_item_new(ASN1_ITEM_rptr(itname)); \
         } \
-        pre void fname##_free(stname *a) \
+        pre void VR_##fname##_free(stname *a) \
         { \
-                ASN1_item_free((ASN1_VALUE *)a, ASN1_ITEM_rptr(itname)); \
+                VR_ASN1_item_free((ASN1_VALUE *)a, ASN1_ITEM_rptr(itname)); \
         }
 
 # define IMPLEMENT_ASN1_ALLOC_FUNCTIONS_fname(stname, itname, fname) \
-        stname *fname##_new(void) \
+        stname *VR_##fname##_new(void) \
         { \
-                return (stname *)ASN1_item_new(ASN1_ITEM_rptr(itname)); \
+                return (stname *)VR_ASN1_item_new(ASN1_ITEM_rptr(itname)); \
         } \
-        void fname##_free(stname *a) \
+        void VR_##fname##_free(stname *a) \
         { \
-                ASN1_item_free((ASN1_VALUE *)a, ASN1_ITEM_rptr(itname)); \
+                VR_ASN1_item_free((ASN1_VALUE *)a, ASN1_ITEM_rptr(itname)); \
         }
 
 # define IMPLEMENT_ASN1_FUNCTIONS_fname(stname, itname, fname) \
@@ -832,31 +832,31 @@ typedef struct ASN1_STREAM_ARG_st {
         IMPLEMENT_ASN1_ALLOC_FUNCTIONS_fname(stname, itname, fname)
 
 # define IMPLEMENT_ASN1_ENCODE_FUNCTIONS_fname(stname, itname, fname) \
-        stname *d2i_##fname(stname **a, const unsigned char **in, long len) \
+        stname *VR_##d2i_##fname(stname **a, const unsigned char **in, long len) \
         { \
-                return (stname *)ASN1_item_d2i((ASN1_VALUE **)a, in, len, ASN1_ITEM_rptr(itname));\
+                return (stname *)VR_ASN1_item_d2i((ASN1_VALUE **)a, in, len, ASN1_ITEM_rptr(itname));\
         } \
-        int i2d_##fname(stname *a, unsigned char **out) \
+        int VR_##i2d_##fname(stname *a, unsigned char **out) \
         { \
-                return ASN1_item_i2d((ASN1_VALUE *)a, out, ASN1_ITEM_rptr(itname));\
+                return VR_ASN1_item_i2d((ASN1_VALUE *)a, out, ASN1_ITEM_rptr(itname));\
         }
 
 # define IMPLEMENT_ASN1_NDEF_FUNCTION(stname) \
-        int i2d_##stname##_NDEF(stname *a, unsigned char **out) \
+        int VR_##i2d_##stname##_NDEF(stname *a, unsigned char **out) \
         { \
-                return ASN1_item_ndef_i2d((ASN1_VALUE *)a, out, ASN1_ITEM_rptr(stname));\
+                return VR_ASN1_item_ndef_i2d((ASN1_VALUE *)a, out, ASN1_ITEM_rptr(stname));\
         }
 
 # define IMPLEMENT_STATIC_ASN1_ENCODE_FUNCTIONS(stname) \
-        static stname *d2i_##stname(stname **a, \
+        static stname *VR_d2i_##stname(stname **a, \
                                    const unsigned char **in, long len) \
         { \
-                return (stname *)ASN1_item_d2i((ASN1_VALUE **)a, in, len, \
+                return (stname *)VR_ASN1_item_d2i((ASN1_VALUE **)a, in, len, \
                                                ASN1_ITEM_rptr(stname)); \
         } \
-        static int i2d_##stname(stname *a, unsigned char **out) \
+        static int VR_i2d_##stname(stname *a, unsigned char **out) \
         { \
-                return ASN1_item_i2d((ASN1_VALUE *)a, out, \
+                return VR_ASN1_item_i2d((ASN1_VALUE *)a, out, \
                                      ASN1_ITEM_rptr(stname)); \
         }
 
@@ -865,29 +865,29 @@ typedef struct ASN1_STREAM_ARG_st {
  * constification is done.
  */
 # define IMPLEMENT_ASN1_ENCODE_FUNCTIONS_const_fname(stname, itname, fname) \
-        stname *d2i_##fname(stname **a, const unsigned char **in, long len) \
+        stname *VR_##d2i_##fname(stname **a, const unsigned char **in, long len) \
         { \
-                return (stname *)ASN1_item_d2i((ASN1_VALUE **)a, in, len, ASN1_ITEM_rptr(itname));\
+                return (stname *)VR_ASN1_item_d2i((ASN1_VALUE **)a, in, len, ASN1_ITEM_rptr(itname));\
         } \
-        int i2d_##fname(const stname *a, unsigned char **out) \
+        int VR_##i2d_##fname(const stname *a, unsigned char **out) \
         { \
-                return ASN1_item_i2d((ASN1_VALUE *)a, out, ASN1_ITEM_rptr(itname));\
+                return VR_ASN1_item_i2d((ASN1_VALUE *)a, out, ASN1_ITEM_rptr(itname));\
         }
 
 # define IMPLEMENT_ASN1_DUP_FUNCTION(stname) \
-        stname * stname##_dup(stname *x) \
+        stname * VR_##stname##_dup(stname *x) \
         { \
-        return ASN1_item_dup(ASN1_ITEM_rptr(stname), x); \
+        return VR_ASN1_item_dup(ASN1_ITEM_rptr(stname), x); \
         }
 
 # define IMPLEMENT_ASN1_PRINT_FUNCTION(stname) \
         IMPLEMENT_ASN1_PRINT_FUNCTION_fname(stname, stname, stname)
 
 # define IMPLEMENT_ASN1_PRINT_FUNCTION_fname(stname, itname, fname) \
-        int fname##_print_ctx(BIO *out, stname *x, int indent, \
+        int VR_##fname##_print_ctx(BIO *out, stname *x, int indent, \
                                                 const ASN1_PCTX *pctx) \
         { \
-                return ASN1_item_print(out, (ASN1_VALUE *)x, indent, \
+                return VR_ASN1_item_print(out, (ASN1_VALUE *)x, indent, \
                         ASN1_ITEM_rptr(itname), pctx); \
         }
 
@@ -929,14 +929,14 @@ DEFINE_STACK_OF(ASN1_VALUE)
 
 /* Functions used internally by the ASN1 code */
 
-int ASN1_item_ex_new(ASN1_VALUE **pval, const ASN1_ITEM *it);
-void ASN1_item_ex_free(ASN1_VALUE **pval, const ASN1_ITEM *it);
+int VR_ASN1_item_ex_new(ASN1_VALUE **pval, const ASN1_ITEM *it);
+void VR_ASN1_item_ex_free(ASN1_VALUE **pval, const ASN1_ITEM *it);
 
-int ASN1_item_ex_d2i(ASN1_VALUE **pval, const unsigned char **in, long len,
+int VR_ASN1_item_ex_d2i(ASN1_VALUE **pval, const unsigned char **in, long len,
                      const ASN1_ITEM *it, int tag, int aclass, char opt,
                      ASN1_TLC *ctx);
 
-int ASN1_item_ex_i2d(ASN1_VALUE **pval, unsigned char **out,
+int VR_ASN1_item_ex_i2d(ASN1_VALUE **pval, unsigned char **out,
                      const ASN1_ITEM *it, int tag, int aclass);
 
 #ifdef  __cplusplus

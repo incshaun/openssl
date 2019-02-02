@@ -33,7 +33,7 @@
 # - some instruction reordering and interleaving;
 # - this module doesn't implement key setup subroutine, instead it
 #   relies on conversion of "conventional" key schedule as returned
-#   by AES_set_encrypt_key (see discussion below);
+#   by VR_AES_set_encrypt_key (see discussion below);
 # - first and last round keys are treated differently, which allowed
 #   to skip one shiftrows(), reduce bit-sliced key schedule and
 #   speed-up conversion by 22%;
@@ -810,8 +810,8 @@ ___
 $code.=<<___;
 .text
 
-.extern	asm_AES_encrypt
-.extern	asm_AES_decrypt
+.extern	VR_asm_AES_encrypt
+.extern	VR_asm_AES_decrypt
 
 .type	_bsaes_encrypt8,\@abi-omnipotent
 .align	64
@@ -1327,7 +1327,7 @@ $code.=<<___;
 	lea	($inp), $arg1
 	lea	($out), $arg2
 	lea	($key), $arg3
-	call	asm_AES_encrypt
+	call	VR_asm_AES_encrypt
 	lea	16($inp), $inp
 	lea	16($out), $out
 	dec	$len
@@ -1547,7 +1547,7 @@ $code.=<<___;
 	lea	($inp), $arg1
 	lea	($out), $arg2
 	lea	($key), $arg3
-	call	asm_AES_decrypt
+	call	VR_asm_AES_decrypt
 	lea	16($inp), $inp
 	lea	16($out), $out
 	dec	$len
@@ -1602,11 +1602,11 @@ $code.=<<___;
 ___
 }
 $code.=<<___;
-.extern	asm_AES_cbc_encrypt
-.globl	bsaes_cbc_encrypt
-.type	bsaes_cbc_encrypt,\@abi-omnipotent
+.extern	VR_asm_AES_cbc_encrypt
+.globl	VR_bsaes_cbc_encrypt
+.type	VR_bsaes_cbc_encrypt,\@abi-omnipotent
 .align	16
-bsaes_cbc_encrypt:
+VR_bsaes_cbc_encrypt:
 .cfi_startproc
 ___
 $code.=<<___ if ($win64);
@@ -1614,9 +1614,9 @@ $code.=<<___ if ($win64);
 ___
 $code.=<<___;
 	cmp	\$0,$arg6
-	jne	asm_AES_cbc_encrypt
+	jne	VR_asm_AES_cbc_encrypt
 	cmp	\$128,$arg3
-	jb	asm_AES_cbc_encrypt
+	jb	VR_asm_AES_cbc_encrypt
 
 	mov	%rsp, %rax
 .Lcbc_dec_prologue:
@@ -1855,7 +1855,7 @@ $code.=<<___;
 	lea	($inp), $arg1
 	lea	0x20(%rbp), $arg2	# buffer output
 	lea	($key), $arg3
-	call	asm_AES_decrypt		# doesn't touch %xmm
+	call	VR_asm_AES_decrypt		# doesn't touch %xmm
 	pxor	0x20(%rbp), @XMM[15]	# ^= IV
 	movdqu	@XMM[15], ($out)	# write output
 	movdqa	@XMM[0], @XMM[15]	# IV
@@ -1906,12 +1906,12 @@ $code.=<<___;
 .Lcbc_dec_epilogue:
 	ret
 .cfi_endproc
-.size	bsaes_cbc_encrypt,.-bsaes_cbc_encrypt
+.size	VR_bsaes_cbc_encrypt,.-VR_bsaes_cbc_encrypt
 
-.globl	bsaes_ctr32_encrypt_blocks
-.type	bsaes_ctr32_encrypt_blocks,\@abi-omnipotent
+.globl	VR_bsaes_ctr32_encrypt_blocks
+.type	VR_bsaes_ctr32_encrypt_blocks,\@abi-omnipotent
 .align	16
-bsaes_ctr32_encrypt_blocks:
+VR_bsaes_ctr32_encrypt_blocks:
 .cfi_startproc
 	mov	%rsp, %rax
 .Lctr_enc_prologue:
@@ -2097,7 +2097,7 @@ $code.=<<___;
 	lea	0x20(%rbp), $arg1
 	lea	0x30(%rbp), $arg2
 	lea	($key), $arg3
-	call	asm_AES_encrypt
+	call	VR_asm_AES_encrypt
 	movdqu	($inp), @XMM[1]
 	lea	16($inp), $inp
 	mov	0x2c(%rbp), %eax	# load 32-bit counter
@@ -2156,7 +2156,7 @@ $code.=<<___;
 .Lctr_enc_epilogue:
 	ret
 .cfi_endproc
-.size	bsaes_ctr32_encrypt_blocks,.-bsaes_ctr32_encrypt_blocks
+.size	VR_bsaes_ctr32_encrypt_blocks,.-VR_bsaes_ctr32_encrypt_blocks
 ___
 ######################################################################
 # void bsaes_xts_[en|de]crypt(const char *inp,char *out,size_t len,
@@ -2167,10 +2167,10 @@ my ($twmask,$twres,$twtmp)=@XMM[13..15];
 $arg6=~s/d$//;
 
 $code.=<<___;
-.globl	bsaes_xts_encrypt
-.type	bsaes_xts_encrypt,\@abi-omnipotent
+.globl	VR_bsaes_xts_encrypt
+.type	VR_bsaes_xts_encrypt,\@abi-omnipotent
 .align	16
-bsaes_xts_encrypt:
+VR_bsaes_xts_encrypt:
 .cfi_startproc
 	mov	%rsp, %rax
 .Lxts_enc_prologue:
@@ -2216,7 +2216,7 @@ $code.=<<___;
 	lea	($arg6), $arg1
 	lea	0x20(%rbp), $arg2
 	lea	($arg5), $arg3
-	call	asm_AES_encrypt		# generate initial tweak
+	call	VR_asm_AES_encrypt		# generate initial tweak
 
 	mov	240($key), %eax		# rounds
 	mov	$len, %rbx		# backup $len
@@ -2482,7 +2482,7 @@ $code.=<<___;
 	lea	0x20(%rbp), $arg1
 	lea	0x20(%rbp), $arg2
 	lea	($key), $arg3
-	call	asm_AES_encrypt		# doesn't touch %xmm
+	call	VR_asm_AES_encrypt		# doesn't touch %xmm
 	pxor	0x20(%rbp), @XMM[0]	# ^= tweak[]
 	#pxor	@XMM[8], @XMM[0]
 	#lea	0x80(%rsp), %rax	# pass key schedule
@@ -2515,7 +2515,7 @@ $code.=<<___;
 	lea	0x20(%rbp), $arg2
 	movdqa	@XMM[0], 0x20(%rbp)
 	lea	($key), $arg3
-	call	asm_AES_encrypt		# doesn't touch %xmm
+	call	VR_asm_AES_encrypt		# doesn't touch %xmm
 	pxor	0x20(%rbp), @XMM[7]
 	movdqu	@XMM[7], -16($out)
 
@@ -2564,12 +2564,12 @@ $code.=<<___;
 .Lxts_enc_epilogue:
 	ret
 .cfi_endproc
-.size	bsaes_xts_encrypt,.-bsaes_xts_encrypt
+.size	VR_bsaes_xts_encrypt,.-VR_bsaes_xts_encrypt
 
-.globl	bsaes_xts_decrypt
-.type	bsaes_xts_decrypt,\@abi-omnipotent
+.globl	VR_bsaes_xts_decrypt
+.type	VR_bsaes_xts_decrypt,\@abi-omnipotent
 .align	16
-bsaes_xts_decrypt:
+VR_bsaes_xts_decrypt:
 .cfi_startproc
 	mov	%rsp, %rax
 .Lxts_dec_prologue:
@@ -2614,7 +2614,7 @@ $code.=<<___;
 	lea	($arg6), $arg1
 	lea	0x20(%rbp), $arg2
 	lea	($arg5), $arg3
-	call	asm_AES_encrypt		# generate initial tweak
+	call	VR_asm_AES_encrypt		# generate initial tweak
 
 	mov	240($key), %eax		# rounds
 	mov	$len, %rbx		# backup $len
@@ -2887,7 +2887,7 @@ $code.=<<___;
 	lea	0x20(%rbp), $arg1
 	lea	0x20(%rbp), $arg2
 	lea	($key), $arg3
-	call	asm_AES_decrypt		# doesn't touch %xmm
+	call	VR_asm_AES_decrypt		# doesn't touch %xmm
 	pxor	0x20(%rbp), @XMM[0]	# ^= tweak[]
 	#pxor	@XMM[8], @XMM[0]
 	#lea	0x80(%rsp), %rax	# pass key schedule
@@ -2918,7 +2918,7 @@ $code.=<<___;
 	lea	0x20(%rbp), $arg2
 	movdqa	@XMM[0], 0x20(%rbp)
 	lea	($key), $arg3
-	call	asm_AES_decrypt		# doesn't touch %xmm
+	call	VR_asm_AES_decrypt		# doesn't touch %xmm
 	pxor	0x20(%rbp), @XMM[7]
 	mov	$out, %rdx
 	movdqu	@XMM[7], ($out)
@@ -2939,7 +2939,7 @@ $code.=<<___;
 	lea	0x20(%rbp), $arg2
 	movdqa	@XMM[0], 0x20(%rbp)
 	lea	($key), $arg3
-	call	asm_AES_decrypt		# doesn't touch %xmm
+	call	VR_asm_AES_decrypt		# doesn't touch %xmm
 	pxor	0x20(%rbp), @XMM[6]
 	movdqu	@XMM[6], ($out)
 
@@ -2988,7 +2988,7 @@ $code.=<<___;
 .Lxts_dec_epilogue:
 	ret
 .cfi_endproc
-.size	bsaes_xts_decrypt,.-bsaes_xts_decrypt
+.size	VR_bsaes_xts_decrypt,.-VR_bsaes_xts_decrypt
 ___
 }
 $code.=<<___;

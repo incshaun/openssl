@@ -16,7 +16,7 @@
  * used is contained in *num;
  */
 
-void BF_cfb64_encrypt(const unsigned char *in, unsigned char *out,
+void VR_BF_cfb64_encrypt(const unsigned char *in, unsigned char *out,
                       long length, const BF_KEY *schedule,
                       unsigned char *ivec, int *num, int encrypt)
 {
@@ -34,7 +34,7 @@ void BF_cfb64_encrypt(const unsigned char *in, unsigned char *out,
                 ti[0] = v0;
                 n2l(iv, v1);
                 ti[1] = v1;
-                BF_encrypt((BF_LONG *)ti, schedule);
+                VR_BF_encrypt((BF_LONG *)ti, schedule);
                 iv = (unsigned char *)ivec;
                 t = ti[0];
                 l2n(t, iv);
@@ -54,7 +54,7 @@ void BF_cfb64_encrypt(const unsigned char *in, unsigned char *out,
                 ti[0] = v0;
                 n2l(iv, v1);
                 ti[1] = v1;
-                BF_encrypt((BF_LONG *)ti, schedule);
+                VR_BF_encrypt((BF_LONG *)ti, schedule);
                 iv = (unsigned char *)ivec;
                 t = ti[0];
                 l2n(t, iv);

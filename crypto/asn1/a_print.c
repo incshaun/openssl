@@ -12,7 +12,7 @@
 #include "internal/cryptlib.h"
 #include <openssl/asn1.h>
 
-int ASN1_PRINTABLE_type(const unsigned char *s, int len)
+int VR_ASN1_PRINTABLE_type(const unsigned char *s, int len)
 {
     int c;
     int ia5 = 0;
@@ -37,7 +37,7 @@ int ASN1_PRINTABLE_type(const unsigned char *s, int len)
     return V_ASN1_PRINTABLESTRING;
 }
 
-int ASN1_UNIVERSALSTRING_to_string(ASN1_UNIVERSALSTRING *s)
+int VR_ASN1_UNIVERSALSTRING_to_string(ASN1_UNIVERSALSTRING *s)
 {
     int i;
     unsigned char *p;
@@ -61,11 +61,11 @@ int ASN1_UNIVERSALSTRING_to_string(ASN1_UNIVERSALSTRING *s)
     }
     *(p) = '\0';
     s->length /= 4;
-    s->type = ASN1_PRINTABLE_type(s->data, s->length);
+    s->type = VR_ASN1_PRINTABLE_type(s->data, s->length);
     return 1;
 }
 
-int ASN1_STRING_print(BIO *bp, const ASN1_STRING *v)
+int VR_ASN1_STRING_print(BIO *bp, const ASN1_STRING *v)
 {
     int i, n;
     char buf[80];
@@ -83,13 +83,13 @@ int ASN1_STRING_print(BIO *bp, const ASN1_STRING *v)
             buf[n] = p[i];
         n++;
         if (n >= 80) {
-            if (BIO_write(bp, buf, n) <= 0)
+            if (VR_BIO_write(bp, buf, n) <= 0)
                 return 0;
             n = 0;
         }
     }
     if (n > 0)
-        if (BIO_write(bp, buf, n) <= 0)
+        if (VR_BIO_write(bp, buf, n) <= 0)
             return 0;
     return 1;
 }

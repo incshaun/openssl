@@ -248,10 +248,10 @@ my @x=map("\"$_\"",@x);
 ########################################################################
 # Generic code path that handles all lengths on pre-SSSE3 processors.
 $code.=<<___;
-.globl	ChaCha20_ctr32
-.type	ChaCha20_ctr32,\@function,5
+.globl	VR_ChaCha20_ctr32
+.type	VR_ChaCha20_ctr32,\@function,5
 .align	64
-ChaCha20_ctr32:
+VR_ChaCha20_ctr32:
 .cfi_startproc
 	cmp	\$0,$len
 	je	.Lno_data
@@ -439,7 +439,7 @@ $code.=<<___;
 .Lno_data:
 	ret
 .cfi_endproc
-.size	ChaCha20_ctr32,.-ChaCha20_ctr32
+.size	VR_ChaCha20_ctr32,.-VR_ChaCha20_ctr32
 ___
 
 ########################################################################
@@ -3885,9 +3885,9 @@ simd_handler:
 
 .section	.pdata
 .align	4
-	.rva	.LSEH_begin_ChaCha20_ctr32
-	.rva	.LSEH_end_ChaCha20_ctr32
-	.rva	.LSEH_info_ChaCha20_ctr32
+	.rva	.LSEH_begin_VR_ChaCha20_ctr32
+	.rva	.LSEH_end_VR_ChaCha20_ctr32
+	.rva	.LSEH_info_VR_ChaCha20_ctr32
 
 	.rva	.LSEH_begin_ChaCha20_ssse3
 	.rva	.LSEH_end_ChaCha20_ssse3
@@ -3931,7 +3931,7 @@ ___
 $code.=<<___;
 .section	.xdata
 .align	8
-.LSEH_info_ChaCha20_ctr32:
+.LSEH_info_VR_ChaCha20_ctr32:
 	.byte	9,0,0,0
 	.rva	se_handler
 

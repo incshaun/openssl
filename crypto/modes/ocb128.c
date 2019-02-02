@@ -127,7 +127,7 @@ static OCB_BLOCK *ocb_lookup_l(OCB128_CONTEXT *ctx, size_t idx)
 /*
  * Create a new OCB128_CONTEXT
  */
-OCB128_CONTEXT *CRYPTO_ocb128_new(void *keyenc, void *keydec,
+OCB128_CONTEXT *VR_CRYPTO_ocb128_new(void *keyenc, void *keydec,
                                   block128_f encrypt, block128_f decrypt,
                                   ocb128_f stream)
 {
@@ -135,11 +135,11 @@ OCB128_CONTEXT *CRYPTO_ocb128_new(void *keyenc, void *keydec,
     int ret;
 
     if ((octx = OPENSSL_malloc(sizeof(*octx))) != NULL) {
-        ret = CRYPTO_ocb128_init(octx, keyenc, keydec, encrypt, decrypt,
+        ret = VR_CRYPTO_ocb128_init(octx, keyenc, keydec, encrypt, decrypt,
                                  stream);
         if (ret)
             return octx;
-        OPENSSL_free(octx);
+        OPENVR_SSL_free(octx);
     }
 
     return NULL;
@@ -148,7 +148,7 @@ OCB128_CONTEXT *CRYPTO_ocb128_new(void *keyenc, void *keydec,
 /*
  * Initialise an existing OCB128_CONTEXT
  */
-int CRYPTO_ocb128_init(OCB128_CONTEXT *ctx, void *keyenc, void *keydec,
+int VR_CRYPTO_ocb128_init(OCB128_CONTEXT *ctx, void *keyenc, void *keydec,
                        block128_f encrypt, block128_f decrypt,
                        ocb128_f stream)
 {
@@ -193,7 +193,7 @@ int CRYPTO_ocb128_init(OCB128_CONTEXT *ctx, void *keyenc, void *keydec,
 /*
  * Copy an OCB128_CONTEXT object
  */
-int CRYPTO_ocb128_copy_ctx(OCB128_CONTEXT *dest, OCB128_CONTEXT *src,
+int VR_CRYPTO_ocb128_copy_ctx(OCB128_CONTEXT *dest, OCB128_CONTEXT *src,
                            void *keyenc, void *keydec)
 {
     memcpy(dest, src, sizeof(OCB128_CONTEXT));
@@ -214,7 +214,7 @@ int CRYPTO_ocb128_copy_ctx(OCB128_CONTEXT *dest, OCB128_CONTEXT *src,
 /*
  * Set the IV to be used for this operation. Must be 1 - 15 bytes.
  */
-int CRYPTO_ocb128_setiv(OCB128_CONTEXT *ctx, const unsigned char *iv,
+int VR_CRYPTO_ocb128_setiv(OCB128_CONTEXT *ctx, const unsigned char *iv,
                         size_t len, size_t taglen)
 {
     unsigned char ktop[16], tmp[16], mask;
@@ -265,7 +265,7 @@ int CRYPTO_ocb128_setiv(OCB128_CONTEXT *ctx, const unsigned char *iv,
  * Provide any AAD. This can be called multiple times. Only the final time can
  * have a partial block
  */
-int CRYPTO_ocb128_aad(OCB128_CONTEXT *ctx, const unsigned char *aad,
+int VR_CRYPTO_ocb128_aad(OCB128_CONTEXT *ctx, const unsigned char *aad,
                       size_t len)
 {
     u64 i, all_num_blocks;
@@ -326,7 +326,7 @@ int CRYPTO_ocb128_aad(OCB128_CONTEXT *ctx, const unsigned char *aad,
  * Provide any data to be encrypted. This can be called multiple times. Only
  * the final time can have a partial block
  */
-int CRYPTO_ocb128_encrypt(OCB128_CONTEXT *ctx,
+int VR_CRYPTO_ocb128_encrypt(OCB128_CONTEXT *ctx,
                           const unsigned char *in, unsigned char *out,
                           size_t len)
 {
@@ -418,7 +418,7 @@ int CRYPTO_ocb128_encrypt(OCB128_CONTEXT *ctx,
  * Provide any data to be decrypted. This can be called multiple times. Only
  * the final time can have a partial block
  */
-int CRYPTO_ocb128_decrypt(OCB128_CONTEXT *ctx,
+int VR_CRYPTO_ocb128_decrypt(OCB128_CONTEXT *ctx,
                           const unsigned char *in, unsigned char *out,
                           size_t len)
 {
@@ -527,14 +527,14 @@ static int ocb_finish(OCB128_CONTEXT *ctx, unsigned char *tag, size_t len,
         memcpy(tag, &tmp, len);
         return 1;
     } else {
-        return CRYPTO_memcmp(&tmp, tag, len);
+        return VR_CRYPTO_memcmp(&tmp, tag, len);
     }
 }
 
 /*
  * Calculate the tag and verify it against the supplied tag
  */
-int CRYPTO_ocb128_finish(OCB128_CONTEXT *ctx, const unsigned char *tag,
+int VR_CRYPTO_ocb128_finish(OCB128_CONTEXT *ctx, const unsigned char *tag,
                          size_t len)
 {
     return ocb_finish(ctx, (unsigned char*)tag, len, 0);
@@ -543,7 +543,7 @@ int CRYPTO_ocb128_finish(OCB128_CONTEXT *ctx, const unsigned char *tag,
 /*
  * Retrieve the calculated tag
  */
-int CRYPTO_ocb128_tag(OCB128_CONTEXT *ctx, unsigned char *tag, size_t len)
+int VR_CRYPTO_ocb128_tag(OCB128_CONTEXT *ctx, unsigned char *tag, size_t len)
 {
     return ocb_finish(ctx, tag, len, 1);
 }
@@ -551,11 +551,11 @@ int CRYPTO_ocb128_tag(OCB128_CONTEXT *ctx, unsigned char *tag, size_t len)
 /*
  * Release all resources
  */
-void CRYPTO_ocb128_cleanup(OCB128_CONTEXT *ctx)
+void VR_CRYPTO_ocb128_cleanup(OCB128_CONTEXT *ctx)
 {
     if (ctx) {
-        OPENSSL_clear_free(ctx->l, ctx->max_l_index * 16);
-        OPENSSL_cleanse(ctx, sizeof(*ctx));
+        OPENVR_SSL_clear_free(ctx->l, ctx->max_l_index * 16);
+        VR_OPENSSL_cleanse(ctx, sizeof(*ctx));
     }
 }
 

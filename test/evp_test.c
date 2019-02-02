@@ -110,8 +110,8 @@ struct evp_test_buffer_st {
 static void evp_test_buffer_free(EVP_TEST_BUFFER *db)
 {
     if (db != NULL) {
-        OPENSSL_free(db->buf);
-        OPENSSL_free(db);
+        OPENVR_SSL_free(db->buf);
+        OPENVR_SSL_free(db);
     }
 }
 
@@ -131,9 +131,9 @@ static int evp_test_buffer_append(const char *value,
     db->count = 1;
     db->count_set = 0;
 
-    if (*sk == NULL && !TEST_ptr(*sk = sk_EVP_TEST_BUFFER_new_null()))
+    if (*sk == NULL && !TEST_ptr(*sk = sk_VR_EVP_TEST_BUFFER_new_null()))
         goto err;
-    if (!sk_EVP_TEST_BUFFER_push(*sk, db))
+    if (!sk_VR_EVP_TEST_BUFFER_push(*sk, db))
         goto err;
 
     return 1;
@@ -167,7 +167,7 @@ static int evp_test_buffer_ncopy(const char *value,
     for (i = 0, p = tbuf; i < ncopy; i++, p += db->buflen)
         memcpy(p, db->buf, db->buflen);
 
-    OPENSSL_free(db->buf);
+    OPENVR_SSL_free(db->buf);
     db->buf = tbuf;
     db->buflen = tbuflen;
     return 1;
@@ -258,7 +258,7 @@ static unsigned char* unescape(const char *input, size_t input_len,
     return ret;
 
  err:
-    OPENSSL_free(ret);
+    OPENVR_SSL_free(ret);
     return NULL;
 }
 
@@ -281,7 +281,7 @@ static int parse_bin(const char *value, unsigned char **buf, size_t *buflen)
     if (*value == '\0') {
         /*
          * Don't return NULL for zero length buffer. This is needed for
-         * some tests with empty keys: HMAC_Init_ex() expects a non-NULL key
+         * some tests with empty keys: VR_HMAC_Init_ex() expects a non-NULL key
          * buffer even if the key length is 0, in order to detect key reset.
          */
         *buf = OPENSSL_malloc(1);
@@ -304,7 +304,7 @@ static int parse_bin(const char *value, unsigned char **buf, size_t *buflen)
     }
 
     /* Otherwise assume as hex literal and convert it to binary buffer */
-    if (!TEST_ptr(*buf = OPENSSL_hexstr2buf(value, &len))) {
+    if (!TEST_ptr(*buf = VR_OPENSSL_hexstr2buf(value, &len))) {
         TEST_info("Can't convert %s", value);
         TEST_openssl_errors();
         return -1;
@@ -334,9 +334,9 @@ static int digest_test_init(EVP_TEST *t, const char *alg)
     DIGEST_DATA *mdat;
     const EVP_MD *digest;
 
-    if ((digest = EVP_get_digestbyname(alg)) == NULL) {
+    if ((digest = VR_EVP_get_digestbyname(alg)) == NULL) {
         /* If alg has an OID assume disabled algorithm */
-        if (OBJ_sn2nid(alg) != NID_undef || OBJ_ln2nid(alg) != NID_undef) {
+        if (VR_OBJ_sn2nid(alg) != NID_undef || VR_OBJ_ln2nid(alg) != NID_undef) {
             t->skip = 1;
             return 1;
         }
@@ -353,8 +353,8 @@ static void digest_test_cleanup(EVP_TEST *t)
 {
     DIGEST_DATA *mdat = t->data;
 
-    sk_EVP_TEST_BUFFER_pop_free(mdat->input, evp_test_buffer_free);
-    OPENSSL_free(mdat->output);
+    sk_VR_EVP_TEST_BUFFER_pop_free(mdat->input, evp_test_buffer_free);
+    OPENVR_SSL_free(mdat->output);
 }
 
 static int digest_test_parse(EVP_TEST *t,
@@ -375,7 +375,7 @@ static int digest_test_parse(EVP_TEST *t,
 
 static int digest_update_fn(void *ctx, const unsigned char *buf, size_t buflen)
 {
-    return EVP_DigestUpdate(ctx, buf, buflen);
+    return VR_EVP_DigestUpdate(ctx, buf, buflen);
 }
 
 static int digest_test_run(EVP_TEST *t)
@@ -386,7 +386,7 @@ static int digest_test_run(EVP_TEST *t)
     unsigned int got_len;
 
     t->err = "TEST_FAILURE";
-    if (!TEST_ptr(mctx = EVP_MD_CTX_new()))
+    if (!TEST_ptr(mctx = VR_EVP_MD_CTX_new()))
         goto err;
 
     got = OPENSSL_malloc(expected->output_len > EVP_MAX_MD_SIZE ?
@@ -394,7 +394,7 @@ static int digest_test_run(EVP_TEST *t)
     if (!TEST_ptr(got))
         goto err;
 
-    if (!EVP_DigestInit_ex(mctx, expected->digest, NULL)) {
+    if (!VR_EVP_DigestInit_ex(mctx, expected->digest, NULL)) {
         t->err = "DIGESTINIT_ERROR";
         goto err;
     }
@@ -403,14 +403,14 @@ static int digest_test_run(EVP_TEST *t)
         goto err;
     }
 
-    if (EVP_MD_flags(expected->digest) & EVP_MD_FLAG_XOF) {
+    if (VR_EVP_MD_flags(expected->digest) & EVP_MD_FLAG_XOF) {
         got_len = expected->output_len;
-        if (!EVP_DigestFinalXOF(mctx, got, got_len)) {
+        if (!VR_EVP_DigestFinalXOF(mctx, got, got_len)) {
             t->err = "DIGESTFINALXOF_ERROR";
             goto err;
         }
     } else {
-        if (!EVP_DigestFinal(mctx, got, &got_len)) {
+        if (!VR_EVP_DigestFinal(mctx, got, &got_len)) {
             t->err = "DIGESTFINAL_ERROR";
             goto err;
         }
@@ -427,8 +427,8 @@ static int digest_test_run(EVP_TEST *t)
     t->err = NULL;
 
  err:
-    OPENSSL_free(got);
-    EVP_MD_CTX_free(mctx);
+    OPENVR_SSL_free(got);
+    VR_EVP_MD_CTX_free(mctx);
     return 1;
 }
 
@@ -471,9 +471,9 @@ static int cipher_test_init(EVP_TEST *t, const char *alg)
     CIPHER_DATA *cdat;
     int m;
 
-    if ((cipher = EVP_get_cipherbyname(alg)) == NULL) {
+    if ((cipher = VR_EVP_get_cipherbyname(alg)) == NULL) {
         /* If alg has an OID assume disabled algorithm */
-        if (OBJ_sn2nid(alg) != NID_undef || OBJ_ln2nid(alg) != NID_undef) {
+        if (VR_OBJ_sn2nid(alg) != NID_undef || VR_OBJ_ln2nid(alg) != NID_undef) {
             t->skip = 1;
             return 1;
         }
@@ -488,7 +488,7 @@ static int cipher_test_init(EVP_TEST *t, const char *alg)
             || m == EVP_CIPH_SIV_MODE
             || m == EVP_CIPH_CCM_MODE)
         cdat->aead = m;
-    else if (EVP_CIPHER_flags(cipher) & EVP_CIPH_FLAG_AEAD_CIPHER)
+    else if (VR_EVP_CIPHER_flags(cipher) & EVP_CIPH_FLAG_AEAD_CIPHER)
         cdat->aead = -1;
     else
         cdat->aead = 0;
@@ -502,13 +502,13 @@ static void cipher_test_cleanup(EVP_TEST *t)
     int i;
     CIPHER_DATA *cdat = t->data;
 
-    OPENSSL_free(cdat->key);
-    OPENSSL_free(cdat->iv);
-    OPENSSL_free(cdat->ciphertext);
-    OPENSSL_free(cdat->plaintext);
+    OPENVR_SSL_free(cdat->key);
+    OPENVR_SSL_free(cdat->iv);
+    OPENVR_SSL_free(cdat->ciphertext);
+    OPENVR_SSL_free(cdat->plaintext);
     for (i = 0; i < AAD_NUM; i++)
-        OPENSSL_free(cdat->aad[i]);
-    OPENSSL_free(cdat->tag);
+        OPENVR_SSL_free(cdat->aad[i]);
+    OPENVR_SSL_free(cdat->tag);
 }
 
 static int cipher_test_parse(EVP_TEST *t, const char *keyword,
@@ -559,9 +559,9 @@ static int cipher_test_enc(EVP_TEST *t, int enc,
     EVP_CIPHER_CTX *ctx = NULL;
 
     t->err = "TEST_FAILURE";
-    if (!TEST_ptr(ctx = EVP_CIPHER_CTX_new()))
+    if (!TEST_ptr(ctx = VR_EVP_CIPHER_CTX_new()))
         goto err;
-    EVP_CIPHER_CTX_set_flags(ctx, EVP_CIPHER_CTX_FLAG_WRAP_ALLOW);
+    VR_EVP_CIPHER_CTX_set_flags(ctx, EVP_CIPHER_CTX_FLAG_WRAP_ALLOW);
     if (enc) {
         in = expected->plaintext;
         in_len = expected->plaintext_len;
@@ -598,18 +598,18 @@ static int cipher_test_enc(EVP_TEST *t, int enc,
         in = memcpy(tmp + out_misalign + in_len + 2 * EVP_MAX_BLOCK_LENGTH +
                     inp_misalign, in, in_len);
     }
-    if (!EVP_CipherInit_ex(ctx, expected->cipher, NULL, NULL, NULL, enc)) {
+    if (!VR_EVP_CipherInit_ex(ctx, expected->cipher, NULL, NULL, NULL, enc)) {
         t->err = "CIPHERINIT_ERROR";
         goto err;
     }
     if (expected->iv) {
         if (expected->aead) {
-            if (!EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_SET_IVLEN,
+            if (!VR_EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_SET_IVLEN,
                                      expected->iv_len, 0)) {
                 t->err = "INVALID_IV_LENGTH";
                 goto err;
             }
-        } else if (expected->iv_len != (size_t)EVP_CIPHER_CTX_iv_length(ctx)) {
+        } else if (expected->iv_len != (size_t)VR_EVP_CIPHER_CTX_iv_length(ctx)) {
             t->err = "INVALID_IV_LENGTH";
             goto err;
         }
@@ -628,23 +628,23 @@ static int cipher_test_enc(EVP_TEST *t, int enc,
             tag = expected->tag;
         }
         if (tag || expected->aead != EVP_CIPH_GCM_MODE) {
-            if (!EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_SET_TAG,
+            if (!VR_EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_SET_TAG,
                                      expected->tag_len, tag))
                 goto err;
         }
     }
 
-    if (!EVP_CIPHER_CTX_set_key_length(ctx, expected->key_len)) {
+    if (!VR_EVP_CIPHER_CTX_set_key_length(ctx, expected->key_len)) {
         t->err = "INVALID_KEY_LENGTH";
         goto err;
     }
-    if (!EVP_CipherInit_ex(ctx, NULL, NULL, expected->key, expected->iv, -1)) {
+    if (!VR_EVP_CipherInit_ex(ctx, NULL, NULL, expected->key, expected->iv, -1)) {
         t->err = "KEY_SET_ERROR";
         goto err;
     }
 
     if (!enc && expected->aead == EVP_CIPH_OCB_MODE) {
-        if (!EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_SET_TAG,
+        if (!VR_EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_SET_TAG,
                                  expected->tag_len, expected->tag)) {
             t->err = "TAG_SET_ERROR";
             goto err;
@@ -652,7 +652,7 @@ static int cipher_test_enc(EVP_TEST *t, int enc,
     }
 
     if (expected->aead == EVP_CIPH_CCM_MODE) {
-        if (!EVP_CipherUpdate(ctx, NULL, &tmplen, NULL, out_len)) {
+        if (!VR_EVP_CipherUpdate(ctx, NULL, &tmplen, NULL, out_len)) {
             t->err = "CCM_PLAINTEXT_LENGTH_SET_ERROR";
             goto err;
         }
@@ -661,7 +661,7 @@ static int cipher_test_enc(EVP_TEST *t, int enc,
         t->err = "AAD_SET_ERROR";
         if (!frag) {
             for (i = 0; expected->aad[i] != NULL; i++) {
-                if (!EVP_CipherUpdate(ctx, NULL, &chunklen, expected->aad[i],
+                if (!VR_EVP_CipherUpdate(ctx, NULL, &chunklen, expected->aad[i],
                                       expected->aad_len[i]))
                     goto err;
             }
@@ -671,42 +671,42 @@ static int cipher_test_enc(EVP_TEST *t, int enc,
              */
             for (i = 0; expected->aad[i] != NULL; i++) {
                 if (expected->aad_len[i] > 0) {
-                    if (!EVP_CipherUpdate(ctx, NULL, &chunklen, expected->aad[i], 1))
+                    if (!VR_EVP_CipherUpdate(ctx, NULL, &chunklen, expected->aad[i], 1))
                         goto err;
                     donelen++;
                 }
                 if (expected->aad_len[i] > 2) {
-                    if (!EVP_CipherUpdate(ctx, NULL, &chunklen,
+                    if (!VR_EVP_CipherUpdate(ctx, NULL, &chunklen,
                                           expected->aad[i] + donelen,
                                           expected->aad_len[i] - 2))
                         goto err;
                     donelen += expected->aad_len[i] - 2;
                 }
                 if (expected->aad_len[i] > 1
-                    && !EVP_CipherUpdate(ctx, NULL, &chunklen,
+                    && !VR_EVP_CipherUpdate(ctx, NULL, &chunklen,
                                          expected->aad[i] + donelen, 1))
                     goto err;
             }
         }
     }
-    EVP_CIPHER_CTX_set_padding(ctx, 0);
+    VR_EVP_CIPHER_CTX_set_padding(ctx, 0);
     t->err = "CIPHERUPDATE_ERROR";
     tmplen = 0;
     if (!frag) {
         /* We supply the data all in one go */
-        if (!EVP_CipherUpdate(ctx, tmp + out_misalign, &tmplen, in, in_len))
+        if (!VR_EVP_CipherUpdate(ctx, tmp + out_misalign, &tmplen, in, in_len))
             goto err;
     } else {
         /* Supply the data in chunks less than the block size where possible */
         if (in_len > 0) {
-            if (!EVP_CipherUpdate(ctx, tmp + out_misalign, &chunklen, in, 1))
+            if (!VR_EVP_CipherUpdate(ctx, tmp + out_misalign, &chunklen, in, 1))
                 goto err;
             tmplen += chunklen;
             in++;
             in_len--;
         }
         if (in_len > 1) {
-            if (!EVP_CipherUpdate(ctx, tmp + out_misalign + tmplen, &chunklen,
+            if (!VR_EVP_CipherUpdate(ctx, tmp + out_misalign + tmplen, &chunklen,
                                   in, in_len - 1))
                 goto err;
             tmplen += chunklen;
@@ -714,13 +714,13 @@ static int cipher_test_enc(EVP_TEST *t, int enc,
             in_len = 1;
         }
         if (in_len > 0 ) {
-            if (!EVP_CipherUpdate(ctx, tmp + out_misalign + tmplen, &chunklen,
+            if (!VR_EVP_CipherUpdate(ctx, tmp + out_misalign + tmplen, &chunklen,
                                   in, 1))
                 goto err;
             tmplen += chunklen;
         }
     }
-    if (!EVP_CipherFinal_ex(ctx, tmp + out_misalign + tmplen, &tmpflen)) {
+    if (!VR_EVP_CipherFinal_ex(ctx, tmp + out_misalign + tmplen, &tmpflen)) {
         t->err = "CIPHERFINAL_ERROR";
         goto err;
     }
@@ -734,7 +734,7 @@ static int cipher_test_enc(EVP_TEST *t, int enc,
             t->err = "TAG_LENGTH_INTERNAL_ERROR";
             goto err;
         }
-        if (!EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_GET_TAG,
+        if (!VR_EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_GET_TAG,
                                  expected->tag_len, rtag)) {
             t->err = "TAG_RETRIEVE_ERROR";
             goto err;
@@ -747,8 +747,8 @@ static int cipher_test_enc(EVP_TEST *t, int enc,
     t->err = NULL;
     ok = 1;
  err:
-    OPENSSL_free(tmp);
-    EVP_CIPHER_CTX_free(ctx);
+    OPENVR_SSL_free(tmp);
+    VR_EVP_CIPHER_CTX_free(ctx);
     return ok;
 }
 
@@ -762,7 +762,7 @@ static int cipher_test_run(EVP_TEST *t)
         t->err = "NO_KEY";
         return 0;
     }
-    if (!cdat->iv && EVP_CIPHER_iv_length(cdat->cipher)) {
+    if (!cdat->iv && VR_EVP_CIPHER_iv_length(cdat->cipher)) {
         /* IV is optional and usually omitted in wrap mode */
         if (EVP_CIPHER_mode(cdat->cipher) != EVP_CIPH_WRAP_MODE) {
             t->err = "NO_IV";
@@ -779,12 +779,12 @@ static int cipher_test_run(EVP_TEST *t)
         for (inp_misalign = (size_t)-1; inp_misalign != 2; inp_misalign++) {
             if (inp_misalign == (size_t)-1) {
                 /* kludge: inp_misalign == -1 means "exercise in-place" */
-                BIO_snprintf(aux_err, sizeof(aux_err),
+                VR_BIO_snprintf(aux_err, sizeof(aux_err),
                              "%s in-place, %sfragmented",
                              out_misalign ? "misaligned" : "aligned",
                              frag ? "" : "not ");
             } else {
-                BIO_snprintf(aux_err, sizeof(aux_err),
+                VR_BIO_snprintf(aux_err, sizeof(aux_err),
                              "%s output and %s input, %sfragmented",
                              out_misalign ? "misaligned" : "aligned",
                              inp_misalign ? "misaligned" : "aligned",
@@ -874,7 +874,7 @@ static int mac_test_init(EVP_TEST *t, const char *alg)
     int type = NID_undef;
     MAC_DATA *mdat;
 
-    if ((mac = EVP_get_macbyname(alg)) == NULL) {
+    if ((mac = VR_EVP_get_macbyname(alg)) == NULL) {
         /*
          * Since we didn't find an EVP_MAC, we check for known EVP_PKEY methods
          * For debugging purposes, we allow 'NNNN by EVP_PKEY' to force running
@@ -887,8 +887,8 @@ static int mac_test_init(EVP_TEST *t, const char *alg)
             && strcmp(alg + sz - (sizeof(epilogue) - 1), epilogue) == 0)
             sz -= sizeof(epilogue) - 1;
 
-        if (strncmp(alg, "HMAC", sz) == 0) {
-            type = EVP_PKEY_HMAC;
+        if (strncmp(alg, "VR_HMAC", sz) == 0) {
+            type = EVP_PKEY_VR_HMAC;
         } else if (strncmp(alg, "CMAC", sz) == 0) {
 #ifndef OPENSSL_NO_CMAC
             type = EVP_PKEY_CMAC;
@@ -915,7 +915,7 @@ static int mac_test_init(EVP_TEST *t, const char *alg)
              * Not a known EVP_PKEY method either.  If it's a known OID, then
              * assume it's been disabled.
              */
-            if (OBJ_sn2nid(alg) != NID_undef || OBJ_ln2nid(alg) != NID_undef) {
+            if (VR_OBJ_sn2nid(alg) != NID_undef || VR_OBJ_ln2nid(alg) != NID_undef) {
                 t->skip = 1;
                 return 1;
             }
@@ -927,28 +927,28 @@ static int mac_test_init(EVP_TEST *t, const char *alg)
     mdat = OPENSSL_zalloc(sizeof(*mdat));
     mdat->type = type;
     mdat->mac = mac;
-    mdat->controls = sk_OPENSSL_STRING_new_null();
+    mdat->controls = sk_VR_OPENSSL_STRING_new_null();
     t->data = mdat;
     return 1;
 }
 
-/* Because OPENSSL_free is a macro, it can't be passed as a function pointer */
+/* Because OPENVR_SSL_free is a macro, it can't be passed as a function pointer */
 static void openssl_free(char *m)
 {
-    OPENSSL_free(m);
+    OPENVR_SSL_free(m);
 }
 
 static void mac_test_cleanup(EVP_TEST *t)
 {
     MAC_DATA *mdat = t->data;
 
-    sk_OPENSSL_STRING_pop_free(mdat->controls, openssl_free);
-    OPENSSL_free(mdat->alg);
-    OPENSSL_free(mdat->key);
-    OPENSSL_free(mdat->iv);
-    OPENSSL_free(mdat->custom);
-    OPENSSL_free(mdat->input);
-    OPENSSL_free(mdat->output);
+    sk_VR_OPENSSL_STRING_pop_free(mdat->controls, openssl_free);
+    OPENVR_SSL_free(mdat->alg);
+    OPENVR_SSL_free(mdat->key);
+    OPENVR_SSL_free(mdat->iv);
+    OPENVR_SSL_free(mdat->custom);
+    OPENVR_SSL_free(mdat->input);
+    OPENVR_SSL_free(mdat->output);
 }
 
 static int mac_test_parse(EVP_TEST *t,
@@ -973,7 +973,7 @@ static int mac_test_parse(EVP_TEST *t,
     if (strcmp(keyword, "Output") == 0)
         return parse_bin(value, &mdata->output, &mdata->output_len);
     if (strcmp(keyword, "Ctrl") == 0)
-        return sk_OPENSSL_STRING_push(mdata->controls,
+        return sk_VR_OPENSSL_STRING_push(mdata->controls,
                                       OPENSSL_strdup(value)) != 0;
     return 0;
 }
@@ -989,14 +989,14 @@ static int mac_test_ctrl_pkey(EVP_TEST *t, EVP_PKEY_CTX *pctx,
     p = strchr(tmpval, ':');
     if (p != NULL)
         *p++ = '\0';
-    rv = EVP_PKEY_CTX_ctrl_str(pctx, tmpval, p);
+    rv = VR_EVP_PKEY_CTX_ctrl_str(pctx, tmpval, p);
     if (rv == -2)
         t->err = "PKEY_CTRL_INVALID";
     else if (rv <= 0)
         t->err = "PKEY_CTRL_ERROR";
     else
         rv = 1;
-    OPENSSL_free(tmpval);
+    OPENVR_SSL_free(tmpval);
     return rv > 0;
 }
 
@@ -1012,10 +1012,10 @@ static int mac_test_run_pkey(EVP_TEST *t)
     int i;
 
     if (expected->alg == NULL)
-        TEST_info("Trying the EVP_PKEY %s test", OBJ_nid2sn(expected->type));
+        TEST_info("Trying the EVP_PKEY %s test", VR_OBJ_nid2sn(expected->type));
     else
         TEST_info("Trying the EVP_PKEY %s test with %s",
-                  OBJ_nid2sn(expected->type), expected->alg);
+                  VR_OBJ_nid2sn(expected->type), expected->alg);
 
 #ifdef OPENSSL_NO_DES
     if (expected->alg != NULL && strstr(expected->alg, "DES") != NULL) {
@@ -1026,27 +1026,27 @@ static int mac_test_run_pkey(EVP_TEST *t)
 #endif
 
     if (expected->type == EVP_PKEY_CMAC)
-        key = EVP_PKEY_new_CMAC_key(NULL, expected->key, expected->key_len,
-                                    EVP_get_cipherbyname(expected->alg));
+        key = VR_EVP_PKEY_new_CMAC_key(NULL, expected->key, expected->key_len,
+                                    VR_EVP_get_cipherbyname(expected->alg));
     else
-        key = EVP_PKEY_new_raw_private_key(expected->type, NULL, expected->key,
+        key = VR_EVP_PKEY_new_raw_private_key(expected->type, NULL, expected->key,
                                            expected->key_len);
     if (key == NULL) {
         t->err = "MAC_KEY_CREATE_ERROR";
         goto err;
     }
 
-    if (expected->type == EVP_PKEY_HMAC) {
-        if (!TEST_ptr(md = EVP_get_digestbyname(expected->alg))) {
+    if (expected->type == EVP_PKEY_VR_HMAC) {
+        if (!TEST_ptr(md = VR_EVP_get_digestbyname(expected->alg))) {
             t->err = "MAC_ALGORITHM_SET_ERROR";
             goto err;
         }
     }
-    if (!TEST_ptr(mctx = EVP_MD_CTX_new())) {
+    if (!TEST_ptr(mctx = VR_EVP_MD_CTX_new())) {
         t->err = "INTERNAL_ERROR";
         goto err;
     }
-    if (!EVP_DigestSignInit(mctx, &pctx, md, NULL, key)) {
+    if (!VR_EVP_DigestSignInit(mctx, &pctx, md, NULL, key)) {
         t->err = "DIGESTSIGNINIT_ERROR";
         goto err;
     }
@@ -1057,11 +1057,11 @@ static int mac_test_run_pkey(EVP_TEST *t)
             t->err = "EVPPKEYCTXCTRL_ERROR";
             goto err;
         }
-    if (!EVP_DigestSignUpdate(mctx, expected->input, expected->input_len)) {
+    if (!VR_EVP_DigestSignUpdate(mctx, expected->input, expected->input_len)) {
         t->err = "DIGESTSIGNUPDATE_ERROR";
         goto err;
     }
-    if (!EVP_DigestSignFinal(mctx, NULL, &got_len)) {
+    if (!VR_EVP_DigestSignFinal(mctx, NULL, &got_len)) {
         t->err = "DIGESTSIGNFINAL_LENGTH_ERROR";
         goto err;
     }
@@ -1069,7 +1069,7 @@ static int mac_test_run_pkey(EVP_TEST *t)
         t->err = "TEST_FAILURE";
         goto err;
     }
-    if (!EVP_DigestSignFinal(mctx, got, &got_len)
+    if (!VR_EVP_DigestSignFinal(mctx, got, &got_len)
             || !memory_err_compare(t, "TEST_MAC_ERR",
                                    expected->output, expected->output_len,
                                    got, got_len)) {
@@ -1078,10 +1078,10 @@ static int mac_test_run_pkey(EVP_TEST *t)
     }
     t->err = NULL;
  err:
-    EVP_MD_CTX_free(mctx);
-    OPENSSL_free(got);
-    EVP_PKEY_CTX_free(genctx);
-    EVP_PKEY_free(key);
+    VR_EVP_MD_CTX_free(mctx);
+    OPENVR_SSL_free(got);
+    VR_EVP_PKEY_CTX_free(genctx);
+    VR_EVP_PKEY_free(key);
     return 1;
 }
 
@@ -1109,23 +1109,23 @@ static int mac_test_run_mac(EVP_TEST *t)
     }
 #endif
 
-    if ((ctx = EVP_MAC_CTX_new(expected->mac)) == NULL) {
+    if ((ctx = VR_EVP_MAC_CTX_new(expected->mac)) == NULL) {
         t->err = "MAC_CREATE_ERROR";
         goto err;
     }
 
     if (expected->alg != NULL
         && ((algo_ctrl = EVP_MAC_CTRL_SET_CIPHER,
-             algo = EVP_get_cipherbyname(expected->alg)) == NULL
+             algo = VR_EVP_get_cipherbyname(expected->alg)) == NULL
             && (algo_ctrl = EVP_MAC_CTRL_SET_MD,
-                algo = EVP_get_digestbyname(expected->alg)) == NULL)) {
+                algo = VR_EVP_get_digestbyname(expected->alg)) == NULL)) {
         t->err = "MAC_BAD_ALGORITHM";
         goto err;
     }
 
 
     if (algo_ctrl != 0) {
-        rv = EVP_MAC_ctrl(ctx, algo_ctrl, algo);
+        rv = VR_EVP_MAC_ctrl(ctx, algo_ctrl, algo);
         if (rv == -2) {
             t->err = "MAC_CTRL_INVALID";
             goto err;
@@ -1135,7 +1135,7 @@ static int mac_test_run_mac(EVP_TEST *t)
         }
     }
 
-    rv = EVP_MAC_ctrl(ctx, EVP_MAC_CTRL_SET_KEY,
+    rv = VR_EVP_MAC_ctrl(ctx, EVP_MAC_CTRL_SET_KEY,
                       expected->key, expected->key_len);
     if (rv == -2) {
         t->err = "MAC_CTRL_INVALID";
@@ -1145,7 +1145,7 @@ static int mac_test_run_mac(EVP_TEST *t)
         goto err;
     }
     if (expected->custom != NULL) {
-        rv = EVP_MAC_ctrl(ctx, EVP_MAC_CTRL_SET_CUSTOM,
+        rv = VR_EVP_MAC_ctrl(ctx, EVP_MAC_CTRL_SET_CUSTOM,
                           expected->custom, expected->custom_len);
         if (rv == -2) {
             t->err = "MAC_CTRL_INVALID";
@@ -1157,7 +1157,7 @@ static int mac_test_run_mac(EVP_TEST *t)
     }
 
     if (expected->iv != NULL) {
-        rv = EVP_MAC_ctrl(ctx, EVP_MAC_CTRL_SET_IV,
+        rv = VR_EVP_MAC_ctrl(ctx, EVP_MAC_CTRL_SET_IV,
                           expected->iv, expected->iv_len);
         if (rv == -2) {
             t->err = "MAC_CTRL_INVALID";
@@ -1168,7 +1168,7 @@ static int mac_test_run_mac(EVP_TEST *t)
         }
     }
 
-    if (!EVP_MAC_init(ctx)) {
+    if (!VR_EVP_MAC_init(ctx)) {
         t->err = "MAC_INIT_ERROR";
         goto err;
     }
@@ -1183,8 +1183,8 @@ static int mac_test_run_mac(EVP_TEST *t)
         p = strchr(tmpval, ':');
         if (p != NULL)
             *p++ = '\0';
-        rv = EVP_MAC_ctrl_str(ctx, tmpval, p);
-        OPENSSL_free(tmpval);
+        rv = VR_EVP_MAC_ctrl_str(ctx, tmpval, p);
+        OPENVR_SSL_free(tmpval);
         if (rv == -2) {
             t->err = "MAC_CTRL_INVALID";
             goto err;
@@ -1193,11 +1193,11 @@ static int mac_test_run_mac(EVP_TEST *t)
             goto err;
         }
     }
-    if (!EVP_MAC_update(ctx, expected->input, expected->input_len)) {
+    if (!VR_EVP_MAC_update(ctx, expected->input, expected->input_len)) {
         t->err = "MAC_UPDATE_ERROR";
         goto err;
     }
-    if (!EVP_MAC_final(ctx, NULL, &got_len)) {
+    if (!VR_EVP_MAC_final(ctx, NULL, &got_len)) {
         t->err = "MAC_FINAL_LENGTH_ERROR";
         goto err;
     }
@@ -1205,7 +1205,7 @@ static int mac_test_run_mac(EVP_TEST *t)
         t->err = "TEST_FAILURE";
         goto err;
     }
-    if (!EVP_MAC_final(ctx, got, &got_len)
+    if (!VR_EVP_MAC_final(ctx, got, &got_len)
         || !memory_err_compare(t, "TEST_MAC_ERR",
                                expected->output, expected->output_len,
                                got, got_len)) {
@@ -1214,8 +1214,8 @@ static int mac_test_run_mac(EVP_TEST *t)
     }
     t->err = NULL;
  err:
-    EVP_MAC_CTX_free(ctx);
-    OPENSSL_free(got);
+    VR_EVP_MAC_CTX_free(ctx);
+    OPENVR_SSL_free(got);
     return 1;
 }
 
@@ -1283,13 +1283,13 @@ static int pkey_test_init(EVP_TEST *t, const char *name,
     }
 
     if (!TEST_ptr(kdata = OPENSSL_zalloc(sizeof(*kdata)))) {
-        EVP_PKEY_free(pkey);
+        VR_EVP_PKEY_free(pkey);
         return 0;
     }
     kdata->keyop = keyop;
-    if (!TEST_ptr(kdata->ctx = EVP_PKEY_CTX_new(pkey, NULL))) {
-        EVP_PKEY_free(pkey);
-        OPENSSL_free(kdata);
+    if (!TEST_ptr(kdata->ctx = VR_EVP_PKEY_CTX_new(pkey, NULL))) {
+        VR_EVP_PKEY_free(pkey);
+        OPENVR_SSL_free(kdata);
         return 0;
     }
     if (keyopinit(kdata->ctx) <= 0)
@@ -1302,9 +1302,9 @@ static void pkey_test_cleanup(EVP_TEST *t)
 {
     PKEY_DATA *kdata = t->data;
 
-    OPENSSL_free(kdata->input);
-    OPENSSL_free(kdata->output);
-    EVP_PKEY_CTX_free(kdata->ctx);
+    OPENVR_SSL_free(kdata->input);
+    OPENVR_SSL_free(kdata->output);
+    VR_EVP_PKEY_CTX_free(kdata->ctx);
 }
 
 static int pkey_test_ctrl(EVP_TEST *t, EVP_PKEY_CTX *pctx,
@@ -1318,16 +1318,16 @@ static int pkey_test_ctrl(EVP_TEST *t, EVP_PKEY_CTX *pctx,
     p = strchr(tmpval, ':');
     if (p != NULL)
         *p++ = '\0';
-    rv = EVP_PKEY_CTX_ctrl_str(pctx, tmpval, p);
+    rv = VR_EVP_PKEY_CTX_ctrl_str(pctx, tmpval, p);
     if (rv == -2) {
         t->err = "PKEY_CTRL_INVALID";
         rv = 1;
     } else if (p != NULL && rv <= 0) {
         /* If p has an OID and lookup fails assume disabled algorithm */
-        int nid = OBJ_sn2nid(p);
+        int nid = VR_OBJ_sn2nid(p);
 
         if (nid == NID_undef)
-             nid = OBJ_ln2nid(p);
+             nid = VR_OBJ_ln2nid(p);
         if (nid != NID_undef
                 && EVP_get_digestbynid(nid) == NULL
                 && EVP_get_cipherbynid(nid) == NULL) {
@@ -1338,7 +1338,7 @@ static int pkey_test_ctrl(EVP_TEST *t, EVP_PKEY_CTX *pctx,
             rv = 1;
         }
     }
-    OPENSSL_free(tmpval);
+    OPENVR_SSL_free(tmpval);
     return rv > 0;
 }
 
@@ -1379,13 +1379,13 @@ static int pkey_test_run(EVP_TEST *t)
 
     t->err = NULL;
  err:
-    OPENSSL_free(got);
+    OPENVR_SSL_free(got);
     return 1;
 }
 
 static int sign_test_init(EVP_TEST *t, const char *name)
 {
-    return pkey_test_init(t, name, 0, EVP_PKEY_sign_init, EVP_PKEY_sign);
+    return pkey_test_init(t, name, 0, VR_EVP_PKEY_sign_init, VR_EVP_PKEY_sign);
 }
 
 static const EVP_TEST_METHOD psign_test_method = {
@@ -1398,8 +1398,8 @@ static const EVP_TEST_METHOD psign_test_method = {
 
 static int verify_recover_test_init(EVP_TEST *t, const char *name)
 {
-    return pkey_test_init(t, name, 1, EVP_PKEY_verify_recover_init,
-                          EVP_PKEY_verify_recover);
+    return pkey_test_init(t, name, 1, VR_EVP_PKEY_verify_recover_init,
+                          VR_EVP_PKEY_verify_recover);
 }
 
 static const EVP_TEST_METHOD pverify_recover_test_method = {
@@ -1412,8 +1412,8 @@ static const EVP_TEST_METHOD pverify_recover_test_method = {
 
 static int decrypt_test_init(EVP_TEST *t, const char *name)
 {
-    return pkey_test_init(t, name, 0, EVP_PKEY_decrypt_init,
-                          EVP_PKEY_decrypt);
+    return pkey_test_init(t, name, 0, VR_EVP_PKEY_decrypt_init,
+                          VR_EVP_PKEY_decrypt);
 }
 
 static const EVP_TEST_METHOD pdecrypt_test_method = {
@@ -1426,14 +1426,14 @@ static const EVP_TEST_METHOD pdecrypt_test_method = {
 
 static int verify_test_init(EVP_TEST *t, const char *name)
 {
-    return pkey_test_init(t, name, 1, EVP_PKEY_verify_init, 0);
+    return pkey_test_init(t, name, 1, VR_EVP_PKEY_verify_init, 0);
 }
 
 static int verify_test_run(EVP_TEST *t)
 {
     PKEY_DATA *kdata = t->data;
 
-    if (EVP_PKEY_verify(kdata->ctx, kdata->output, kdata->output_len,
+    if (VR_EVP_PKEY_verify(kdata->ctx, kdata->output, kdata->output_len,
                         kdata->input, kdata->input_len) <= 0)
         t->err = "VERIFY_ERROR";
     return 1;
@@ -1450,7 +1450,7 @@ static const EVP_TEST_METHOD pverify_test_method = {
 
 static int pderive_test_init(EVP_TEST *t, const char *name)
 {
-    return pkey_test_init(t, name, 0, EVP_PKEY_derive_init, 0);
+    return pkey_test_init(t, name, 0, VR_EVP_PKEY_derive_init, 0);
 }
 
 static int pderive_test_parse(EVP_TEST *t,
@@ -1462,7 +1462,7 @@ static int pderive_test_parse(EVP_TEST *t,
         EVP_PKEY *peer;
         if (find_key(&peer, value, public_keys) == 0)
             return 0;
-        if (EVP_PKEY_derive_set_peer(kdata->ctx, peer) <= 0)
+        if (VR_EVP_PKEY_derive_set_peer(kdata->ctx, peer) <= 0)
             return 0;
         return 1;
     }
@@ -1479,7 +1479,7 @@ static int pderive_test_run(EVP_TEST *t)
     unsigned char *got = NULL;
     size_t got_len;
 
-    if (EVP_PKEY_derive(expected->ctx, NULL, &got_len) <= 0) {
+    if (VR_EVP_PKEY_derive(expected->ctx, NULL, &got_len) <= 0) {
         t->err = "DERIVE_ERROR";
         goto err;
     }
@@ -1487,7 +1487,7 @@ static int pderive_test_run(EVP_TEST *t)
         t->err = "DERIVE_ERROR";
         goto err;
     }
-    if (EVP_PKEY_derive(expected->ctx, got, &got_len) <= 0) {
+    if (VR_EVP_PKEY_derive(expected->ctx, got, &got_len) <= 0) {
         t->err = "DERIVE_ERROR";
         goto err;
     }
@@ -1498,7 +1498,7 @@ static int pderive_test_run(EVP_TEST *t)
 
     t->err = NULL;
  err:
-    OPENSSL_free(got);
+    OPENVR_SSL_free(got);
     return 1;
 }
 
@@ -1595,7 +1595,7 @@ static int pbkdf2_test_parse(EVP_TEST *t,
         return 1;
     }
     if (strcmp(keyword, "MD") == 0) {
-        pdata->md = EVP_get_digestbyname(value);
+        pdata->md = VR_EVP_get_digestbyname(value);
         if (pdata->md == NULL)
             return -1;
         return 1;
@@ -1646,9 +1646,9 @@ static void pbe_test_cleanup(EVP_TEST *t)
 {
     PBE_DATA *pdat = t->data;
 
-    OPENSSL_free(pdat->pass);
-    OPENSSL_free(pdat->salt);
-    OPENSSL_free(pdat->key);
+    OPENVR_SSL_free(pdat->pass);
+    OPENVR_SSL_free(pdat->salt);
+    OPENVR_SSL_free(pdat->key);
 }
 
 static int pbe_test_parse(EVP_TEST *t,
@@ -1683,7 +1683,7 @@ static int pbe_test_run(EVP_TEST *t)
         goto err;
     }
     if (expected->pbe_type == PBE_TYPE_PBKDF2) {
-        if (PKCS5_PBKDF2_HMAC((char *)expected->pass, expected->pass_len,
+        if (VR_PKCS5_PBKDF2_HMAC((char *)expected->pass, expected->pass_len,
                               expected->salt, expected->salt_len,
                               expected->iter, expected->md,
                               expected->key_len, key) == 0) {
@@ -1692,7 +1692,7 @@ static int pbe_test_run(EVP_TEST *t)
         }
 #ifndef OPENSSL_NO_SCRYPT
     } else if (expected->pbe_type == PBE_TYPE_SCRYPT) {
-        if (EVP_PBE_scrypt((const char *)expected->pass, expected->pass_len,
+        if (VR_EVP_PBE_scrypt((const char *)expected->pass, expected->pass_len,
                            expected->salt, expected->salt_len, expected->N,
                            expected->r, expected->p, expected->maxmem,
                            key, expected->key_len) == 0) {
@@ -1701,7 +1701,7 @@ static int pbe_test_run(EVP_TEST *t)
         }
 #endif
     } else if (expected->pbe_type == PBE_TYPE_PKCS12) {
-        if (PKCS12_key_gen_uni(expected->pass, expected->pass_len,
+        if (VR_PKCS12_key_gen_uni(expected->pass, expected->pass_len,
                                expected->salt, expected->salt_len,
                                expected->id, expected->iter, expected->key_len,
                                key, expected->md) == 0) {
@@ -1715,7 +1715,7 @@ static int pbe_test_run(EVP_TEST *t)
 
     t->err = NULL;
 err:
-    OPENSSL_free(key);
+    OPENVR_SSL_free(key);
     return 1;
 }
 
@@ -1771,7 +1771,7 @@ static int encode_test_init(EVP_TEST *t, const char *encoding)
     t->data = edata;
     return 1;
 err:
-    OPENSSL_free(edata);
+    OPENVR_SSL_free(edata);
     return 0;
 }
 
@@ -1779,8 +1779,8 @@ static void encode_test_cleanup(EVP_TEST *t)
 {
     ENCODE_DATA *edata = t->data;
 
-    OPENSSL_free(edata->input);
-    OPENSSL_free(edata->output);
+    OPENVR_SSL_free(edata->input);
+    OPENVR_SSL_free(edata->output);
     memset(edata, 0, sizeof(*edata));
 }
 
@@ -1803,26 +1803,26 @@ static int encode_test_run(EVP_TEST *t)
     int output_len, chunk_len;
     EVP_ENCODE_CTX *decode_ctx = NULL, *encode_ctx = NULL;
 
-    if (!TEST_ptr(decode_ctx = EVP_ENCODE_CTX_new())) {
+    if (!TEST_ptr(decode_ctx = VR_EVP_ENCODE_CTX_new())) {
         t->err = "INTERNAL_ERROR";
         goto err;
     }
 
     if (expected->encoding == BASE64_CANONICAL_ENCODING) {
 
-        if (!TEST_ptr(encode_ctx = EVP_ENCODE_CTX_new())
+        if (!TEST_ptr(encode_ctx = VR_EVP_ENCODE_CTX_new())
                 || !TEST_ptr(encode_out =
                         OPENSSL_malloc(EVP_ENCODE_LENGTH(expected->input_len))))
             goto err;
 
-        EVP_EncodeInit(encode_ctx);
-        if (!TEST_true(EVP_EncodeUpdate(encode_ctx, encode_out, &chunk_len,
+        VR_EVP_EncodeInit(encode_ctx);
+        if (!TEST_true(VR_EVP_EncodeUpdate(encode_ctx, encode_out, &chunk_len,
                                         expected->input, expected->input_len)))
             goto err;
 
         output_len = chunk_len;
 
-        EVP_EncodeFinal(encode_ctx, encode_out + chunk_len, &chunk_len);
+        VR_EVP_EncodeFinal(encode_ctx, encode_out + chunk_len, &chunk_len);
         output_len += chunk_len;
 
         if (!memory_err_compare(t, "BAD_ENCODING",
@@ -1835,15 +1835,15 @@ static int encode_test_run(EVP_TEST *t)
                 OPENSSL_malloc(EVP_DECODE_LENGTH(expected->output_len))))
         goto err;
 
-    EVP_DecodeInit(decode_ctx);
-    if (EVP_DecodeUpdate(decode_ctx, decode_out, &chunk_len, expected->output,
+    VR_EVP_DecodeInit(decode_ctx);
+    if (VR_EVP_DecodeUpdate(decode_ctx, decode_out, &chunk_len, expected->output,
                          expected->output_len) < 0) {
         t->err = "DECODE_ERROR";
         goto err;
     }
     output_len = chunk_len;
 
-    if (EVP_DecodeFinal(decode_ctx, decode_out + chunk_len, &chunk_len) != 1) {
+    if (VR_EVP_DecodeFinal(decode_ctx, decode_out + chunk_len, &chunk_len) != 1) {
         t->err = "DECODE_ERROR";
         goto err;
     }
@@ -1859,10 +1859,10 @@ static int encode_test_run(EVP_TEST *t)
 
     t->err = NULL;
  err:
-    OPENSSL_free(encode_out);
-    OPENSSL_free(decode_out);
-    EVP_ENCODE_CTX_free(decode_ctx);
-    EVP_ENCODE_CTX_free(encode_ctx);
+    OPENVR_SSL_free(encode_out);
+    OPENVR_SSL_free(decode_out);
+    VR_EVP_ENCODE_CTX_free(decode_ctx);
+    VR_EVP_ENCODE_CTX_free(encode_ctx);
     return 1;
 }
 
@@ -1893,7 +1893,7 @@ typedef struct kdf_data_st {
 static int kdf_test_init(EVP_TEST *t, const char *name)
 {
     KDF_DATA *kdata;
-    int kdf_nid = OBJ_sn2nid(name);
+    int kdf_nid = VR_OBJ_sn2nid(name);
 
 #ifdef OPENSSL_NO_SCRYPT
     if (strcmp(name, "scrypt") == 0) {
@@ -1903,18 +1903,18 @@ static int kdf_test_init(EVP_TEST *t, const char *name)
 #endif
 
     if (kdf_nid == NID_undef)
-        kdf_nid = OBJ_ln2nid(name);
+        kdf_nid = VR_OBJ_ln2nid(name);
 
     if (!TEST_ptr(kdata = OPENSSL_zalloc(sizeof(*kdata))))
         return 0;
-    kdata->ctx = EVP_PKEY_CTX_new_id(kdf_nid, NULL);
+    kdata->ctx = VR_EVP_PKEY_CTX_new_id(kdf_nid, NULL);
     if (kdata->ctx == NULL) {
-        OPENSSL_free(kdata);
+        OPENVR_SSL_free(kdata);
         return 0;
     }
-    if (EVP_PKEY_derive_init(kdata->ctx) <= 0) {
-        EVP_PKEY_CTX_free(kdata->ctx);
-        OPENSSL_free(kdata);
+    if (VR_EVP_PKEY_derive_init(kdata->ctx) <= 0) {
+        VR_EVP_PKEY_CTX_free(kdata->ctx);
+        OPENVR_SSL_free(kdata);
         return 0;
     }
     t->data = kdata;
@@ -1924,8 +1924,8 @@ static int kdf_test_init(EVP_TEST *t, const char *name)
 static void kdf_test_cleanup(EVP_TEST *t)
 {
     KDF_DATA *kdata = t->data;
-    OPENSSL_free(kdata->output);
-    EVP_PKEY_CTX_free(kdata->ctx);
+    OPENVR_SSL_free(kdata->output);
+    VR_EVP_PKEY_CTX_free(kdata->ctx);
 }
 
 static int kdf_test_parse(EVP_TEST *t,
@@ -1950,7 +1950,7 @@ static int kdf_test_run(EVP_TEST *t)
         t->err = "INTERNAL_ERROR";
         goto err;
     }
-    if (EVP_PKEY_derive(expected->ctx, got, &got_len) <= 0) {
+    if (VR_EVP_PKEY_derive(expected->ctx, got, &got_len) <= 0) {
         t->err = "KDF_DERIVE_ERROR";
         goto err;
     }
@@ -1962,7 +1962,7 @@ static int kdf_test_run(EVP_TEST *t)
     t->err = NULL;
 
  err:
-    OPENSSL_free(got);
+    OPENVR_SSL_free(got);
     return 1;
 }
 
@@ -2026,13 +2026,13 @@ static int keypair_test_init(EVP_TEST *t, const char *pair)
     t->err = NULL;
 
 end:
-    OPENSSL_free(priv);
+    OPENVR_SSL_free(priv);
     return rv;
 }
 
 static void keypair_test_cleanup(EVP_TEST *t)
 {
-    OPENSSL_free(t->data);
+    OPENVR_SSL_free(t->data);
     t->data = NULL;
 }
 
@@ -2060,7 +2060,7 @@ static int keypair_test_run(EVP_TEST *t)
         goto end;
     }
 
-    if ((rv = EVP_PKEY_cmp(pair->privk, pair->pubk)) != 1 ) {
+    if ((rv = VR_EVP_PKEY_cmp(pair->privk, pair->pubk)) != 1 ) {
         if ( 0 == rv ) {
             t->err = "KEYPAIR_MISMATCH";
         } else if ( -1 == rv ) {
@@ -2104,21 +2104,21 @@ static int keygen_test_init(EVP_TEST *t, const char *alg)
 {
     KEYGEN_TEST_DATA *data;
     EVP_PKEY_CTX *genctx;
-    int nid = OBJ_sn2nid(alg);
+    int nid = VR_OBJ_sn2nid(alg);
 
     if (nid == NID_undef) {
-        nid = OBJ_ln2nid(alg);
+        nid = VR_OBJ_ln2nid(alg);
         if (nid == NID_undef)
             return 0;
     }
 
-    if (!TEST_ptr(genctx = EVP_PKEY_CTX_new_id(nid, NULL))) {
+    if (!TEST_ptr(genctx = VR_EVP_PKEY_CTX_new_id(nid, NULL))) {
         /* assume algorithm disabled */
         t->skip = 1;
         return 1;
     }
 
-    if (EVP_PKEY_keygen_init(genctx) <= 0) {
+    if (VR_EVP_PKEY_keygen_init(genctx) <= 0) {
         t->err = "KEYGEN_INIT_ERROR";
         goto err;
     }
@@ -2132,7 +2132,7 @@ static int keygen_test_init(EVP_TEST *t, const char *alg)
     return 1;
 
 err:
-    EVP_PKEY_CTX_free(genctx);
+    VR_EVP_PKEY_CTX_free(genctx);
     return 0;
 }
 
@@ -2140,9 +2140,9 @@ static void keygen_test_cleanup(EVP_TEST *t)
 {
     KEYGEN_TEST_DATA *keygen = t->data;
 
-    EVP_PKEY_CTX_free(keygen->genctx);
-    OPENSSL_free(keygen->keyname);
-    OPENSSL_free(t->data);
+    VR_EVP_PKEY_CTX_free(keygen->genctx);
+    OPENVR_SSL_free(keygen->keyname);
+    OPENVR_SSL_free(t->data);
     t->data = NULL;
 }
 
@@ -2164,7 +2164,7 @@ static int keygen_test_run(EVP_TEST *t)
     EVP_PKEY *pkey = NULL;
 
     t->err = NULL;
-    if (EVP_PKEY_keygen(keygen->genctx, &pkey) <= 0) {
+    if (VR_EVP_PKEY_keygen(keygen->genctx, &pkey) <= 0) {
         t->err = "KEYGEN_GENERATE_ERROR";
         goto err;
     }
@@ -2185,13 +2185,13 @@ static int keygen_test_run(EVP_TEST *t)
         key->next = private_keys;
         private_keys = key;
     } else {
-        EVP_PKEY_free(pkey);
+        VR_EVP_PKEY_free(pkey);
     }
 
     return 1;
 
 err:
-    EVP_PKEY_free(pkey);
+    VR_EVP_PKEY_free(pkey);
     return 0;
 }
 
@@ -2227,9 +2227,9 @@ static int digestsigver_test_init(EVP_TEST *t, const char *alg, int is_verify,
     DIGESTSIGN_DATA *mdat;
 
     if (strcmp(alg, "NULL") != 0) {
-        if ((md = EVP_get_digestbyname(alg)) == NULL) {
+        if ((md = VR_EVP_get_digestbyname(alg)) == NULL) {
             /* If alg has an OID assume disabled algorithm */
-            if (OBJ_sn2nid(alg) != NID_undef || OBJ_ln2nid(alg) != NID_undef) {
+            if (VR_OBJ_sn2nid(alg) != NID_undef || VR_OBJ_ln2nid(alg) != NID_undef) {
                 t->skip = 1;
                 return 1;
             }
@@ -2239,8 +2239,8 @@ static int digestsigver_test_init(EVP_TEST *t, const char *alg, int is_verify,
     if (!TEST_ptr(mdat = OPENSSL_zalloc(sizeof(*mdat))))
         return 0;
     mdat->md = md;
-    if (!TEST_ptr(mdat->ctx = EVP_MD_CTX_new())) {
-        OPENSSL_free(mdat);
+    if (!TEST_ptr(mdat->ctx = VR_EVP_MD_CTX_new())) {
+        OPENVR_SSL_free(mdat);
         return 0;
     }
     mdat->is_verify = is_verify;
@@ -2258,11 +2258,11 @@ static void digestsigver_test_cleanup(EVP_TEST *t)
 {
     DIGESTSIGN_DATA *mdata = t->data;
 
-    EVP_MD_CTX_free(mdata->ctx);
-    sk_EVP_TEST_BUFFER_pop_free(mdata->input, evp_test_buffer_free);
-    OPENSSL_free(mdata->osin);
-    OPENSSL_free(mdata->output);
-    OPENSSL_free(mdata);
+    VR_EVP_MD_CTX_free(mdata->ctx);
+    sk_VR_EVP_TEST_BUFFER_pop_free(mdata->input, evp_test_buffer_free);
+    OPENVR_SSL_free(mdata->osin);
+    OPENVR_SSL_free(mdata->output);
+    OPENVR_SSL_free(mdata);
     t->data = NULL;
 }
 
@@ -2284,12 +2284,12 @@ static int digestsigver_test_parse(EVP_TEST *t,
             return 1;
         }
         if (mdata->is_verify) {
-            if (!EVP_DigestVerifyInit(mdata->ctx, &mdata->pctx, mdata->md,
+            if (!VR_EVP_DigestVerifyInit(mdata->ctx, &mdata->pctx, mdata->md,
                                       NULL, pkey))
                 t->err = "DIGESTVERIFYINIT_ERROR";
             return 1;
         }
-        if (!EVP_DigestSignInit(mdata->ctx, &mdata->pctx, mdata->md, NULL,
+        if (!VR_EVP_DigestSignInit(mdata->ctx, &mdata->pctx, mdata->md, NULL,
                                 pkey))
             t->err = "DIGESTSIGNINIT_ERROR";
         return 1;
@@ -2320,7 +2320,7 @@ static int digestsigver_test_parse(EVP_TEST *t,
 static int digestsign_update_fn(void *ctx, const unsigned char *buf,
                                 size_t buflen)
 {
-    return EVP_DigestSignUpdate(ctx, buf, buflen);
+    return VR_EVP_DigestSignUpdate(ctx, buf, buflen);
 }
 
 static int digestsign_test_run(EVP_TEST *t)
@@ -2335,7 +2335,7 @@ static int digestsign_test_run(EVP_TEST *t)
         goto err;
     }
 
-    if (!EVP_DigestSignFinal(expected->ctx, NULL, &got_len)) {
+    if (!VR_EVP_DigestSignFinal(expected->ctx, NULL, &got_len)) {
         t->err = "DIGESTSIGNFINAL_LENGTH_ERROR";
         goto err;
     }
@@ -2343,7 +2343,7 @@ static int digestsign_test_run(EVP_TEST *t)
         t->err = "MALLOC_FAILURE";
         goto err;
     }
-    if (!EVP_DigestSignFinal(expected->ctx, got, &got_len)) {
+    if (!VR_EVP_DigestSignFinal(expected->ctx, got, &got_len)) {
         t->err = "DIGESTSIGNFINAL_ERROR";
         goto err;
     }
@@ -2354,7 +2354,7 @@ static int digestsign_test_run(EVP_TEST *t)
 
     t->err = NULL;
  err:
-    OPENSSL_free(got);
+    OPENVR_SSL_free(got);
     return 1;
 }
 
@@ -2374,7 +2374,7 @@ static int digestverify_test_init(EVP_TEST *t, const char *alg)
 static int digestverify_update_fn(void *ctx, const unsigned char *buf,
                                   size_t buflen)
 {
-    return EVP_DigestVerifyUpdate(ctx, buf, buflen);
+    return VR_EVP_DigestVerifyUpdate(ctx, buf, buflen);
 }
 
 static int digestverify_test_run(EVP_TEST *t)
@@ -2386,7 +2386,7 @@ static int digestverify_test_run(EVP_TEST *t)
         return 1;
     }
 
-    if (EVP_DigestVerifyFinal(mdata->ctx, mdata->output,
+    if (VR_EVP_DigestVerifyFinal(mdata->ctx, mdata->output,
                               mdata->output_len) <= 0)
         t->err = "VERIFY_ERROR";
     return 1;
@@ -2411,7 +2411,7 @@ static int oneshot_digestsign_test_run(EVP_TEST *t)
     unsigned char *got = NULL;
     size_t got_len;
 
-    if (!EVP_DigestSign(expected->ctx, NULL, &got_len,
+    if (!VR_EVP_DigestSign(expected->ctx, NULL, &got_len,
                         expected->osin, expected->osin_len)) {
         t->err = "DIGESTSIGN_LENGTH_ERROR";
         goto err;
@@ -2420,7 +2420,7 @@ static int oneshot_digestsign_test_run(EVP_TEST *t)
         t->err = "MALLOC_FAILURE";
         goto err;
     }
-    if (!EVP_DigestSign(expected->ctx, got, &got_len,
+    if (!VR_EVP_DigestSign(expected->ctx, got, &got_len,
                         expected->osin, expected->osin_len)) {
         t->err = "DIGESTSIGN_ERROR";
         goto err;
@@ -2432,7 +2432,7 @@ static int oneshot_digestsign_test_run(EVP_TEST *t)
 
     t->err = NULL;
  err:
-    OPENSSL_free(got);
+    OPENVR_SSL_free(got);
     return 1;
 }
 
@@ -2453,7 +2453,7 @@ static int oneshot_digestverify_test_run(EVP_TEST *t)
 {
     DIGESTSIGN_DATA *mdata = t->data;
 
-    if (EVP_DigestVerify(mdata->ctx, mdata->output, mdata->output_len,
+    if (VR_EVP_DigestVerify(mdata->ctx, mdata->output, mdata->output_len,
                          mdata->osin, mdata->osin_len) <= 0)
         t->err = "VERIFY_ERROR";
     return 1;
@@ -2507,18 +2507,18 @@ static const EVP_TEST_METHOD *find_test(const char *name)
 static void clear_test(EVP_TEST *t)
 {
     test_clearstanza(&t->s);
-    ERR_clear_error();
+    VR_ERR_clear_error();
     if (t->data != NULL) {
         if (t->meth != NULL)
             t->meth->cleanup(t);
-        OPENSSL_free(t->data);
+        OPENVR_SSL_free(t->data);
         t->data = NULL;
     }
-    OPENSSL_free(t->expected_err);
+    OPENVR_SSL_free(t->expected_err);
     t->expected_err = NULL;
-    OPENSSL_free(t->func);
+    OPENVR_SSL_free(t->func);
     t->func = NULL;
-    OPENSSL_free(t->reason);
+    OPENVR_SSL_free(t->reason);
     t->reason = NULL;
 
     /* Text literal. */
@@ -2569,15 +2569,15 @@ static int check_test_error(EVP_TEST *t)
         return 0;
     }
 
-    err = ERR_peek_error();
+    err = VR_ERR_peek_error();
     if (err == 0) {
         TEST_info("%s:%d: Expected error \"%s:%s\" not set",
                   t->s.test_file, t->s.start, t->func, t->reason);
         return 0;
     }
 
-    func = ERR_func_error_string(err);
-    reason = ERR_reason_error_string(err);
+    func = VR_ERR_func_error_string(err);
+    reason = VR_ERR_reason_error_string(err);
     if (func == NULL && reason == NULL) {
         TEST_info("%s:%d: Expected error \"%s:%s\", no strings available."
                   " Assuming ok.",
@@ -2638,9 +2638,9 @@ static void free_key_list(KEY_LIST *lst)
     while (lst != NULL) {
         KEY_LIST *next = lst->next;
 
-        EVP_PKEY_free(lst->key);
-        OPENSSL_free(lst->name);
-        OPENSSL_free(lst);
+        VR_EVP_PKEY_free(lst->key);
+        OPENVR_SSL_free(lst->name);
+        OPENVR_SSL_free(lst);
         lst = next;
     }
 }
@@ -2650,11 +2650,11 @@ static void free_key_list(KEY_LIST *lst)
  */
 static int key_unsupported(void)
 {
-    long err = ERR_peek_error();
+    long err = VR_ERR_peek_error();
 
     if (ERR_GET_LIB(err) == ERR_LIB_EVP
             && ERR_GET_REASON(err) == EVP_R_UNSUPPORTED_ALGORITHM) {
-        ERR_clear_error();
+        VR_ERR_clear_error();
         return 1;
     }
 #ifndef OPENSSL_NO_EC
@@ -2665,7 +2665,7 @@ static int key_unsupported(void)
      */
     if (ERR_GET_LIB(err) == ERR_LIB_EC
         && ERR_GET_REASON(err) == EC_R_UNKNOWN_GROUP) {
-        ERR_clear_error();
+        VR_ERR_clear_error();
         return 1;
     }
 #endif /* OPENSSL_NO_EC */
@@ -2707,18 +2707,18 @@ top:
     klist = NULL;
     pkey = NULL;
     if (strcmp(pp->key, "PrivateKey") == 0) {
-        pkey = PEM_read_bio_PrivateKey(t->s.key, NULL, 0, NULL);
+        pkey = VR_PEM_read_bio_PrivateKey(t->s.key, NULL, 0, NULL);
         if (pkey == NULL && !key_unsupported()) {
-            EVP_PKEY_free(pkey);
+            VR_EVP_PKEY_free(pkey);
             TEST_info("Can't read private key %s", pp->value);
             TEST_openssl_errors();
             return 0;
         }
         klist = &private_keys;
     } else if (strcmp(pp->key, "PublicKey") == 0) {
-        pkey = PEM_read_bio_PUBKEY(t->s.key, NULL, 0, NULL);
+        pkey = VR_PEM_read_bio_PUBKEY(t->s.key, NULL, 0, NULL);
         if (pkey == NULL && !key_unsupported()) {
-            EVP_PKEY_free(pkey);
+            VR_EVP_PKEY_free(pkey);
             TEST_info("Can't read public key %s", pp->value);
             TEST_openssl_errors();
             return 0;
@@ -2748,7 +2748,7 @@ top:
             return 0;
         }
 
-        nid = OBJ_txt2nid(strnid);
+        nid = VR_OBJ_txt2nid(strnid);
         if (nid == NID_undef) {
             TEST_info("Uncrecognised algorithm NID");
             return 0;
@@ -2758,16 +2758,16 @@ top:
             return 0;
         }
         if (klist == &private_keys)
-            pkey = EVP_PKEY_new_raw_private_key(nid, NULL, keybin, keylen);
+            pkey = VR_EVP_PKEY_new_raw_private_key(nid, NULL, keybin, keylen);
         else
-            pkey = EVP_PKEY_new_raw_public_key(nid, NULL, keybin, keylen);
+            pkey = VR_EVP_PKEY_new_raw_public_key(nid, NULL, keybin, keylen);
         if (pkey == NULL && !key_unsupported()) {
             TEST_info("Can't read %s data", pp->key);
-            OPENSSL_free(keybin);
+            OPENVR_SSL_free(keybin);
             TEST_openssl_errors();
             return 0;
         }
-        OPENSSL_free(keybin);
+        OPENVR_SSL_free(keybin);
     }
 
     /* If we have a key add to list */
@@ -2783,10 +2783,10 @@ top:
         /* Hack to detect SM2 keys */
         if(pkey != NULL && strstr(key->name, "SM2") != NULL) {
 #ifdef OPENSSL_NO_SM2
-            EVP_PKEY_free(pkey);
+            VR_EVP_PKEY_free(pkey);
             pkey = NULL;
 #else
-            EVP_PKEY_set_alias_type(pkey, EVP_PKEY_SM2);
+            VR_EVP_PKEY_set_alias_type(pkey, EVP_PKEY_SM2);
 #endif
         }
 
@@ -2859,7 +2859,7 @@ static int run_file_tests(int i)
     if (!TEST_ptr(t = OPENSSL_zalloc(sizeof(*t))))
         return 0;
     if (!test_start_file(&t->s, testfile)) {
-        OPENSSL_free(t);
+        OPENVR_SSL_free(t);
         return 0;
     }
 
@@ -2877,9 +2877,9 @@ static int run_file_tests(int i)
 
     free_key_list(public_keys);
     free_key_list(private_keys);
-    BIO_free(t->s.key);
+    VR_BIO_free(t->s.key);
     c = t->s.errors;
-    OPENSSL_free(t);
+    OPENVR_SSL_free(t);
     return c == 0;
 }
 

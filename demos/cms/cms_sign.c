@@ -31,34 +31,34 @@ int main(int argc, char **argv)
     ERR_load_crypto_strings();
 
     /* Read in signer certificate and private key */
-    tbio = BIO_new_file("signer.pem", "r");
+    tbio = VR_BIO_new_file("signer.pem", "r");
 
     if (!tbio)
         goto err;
 
-    scert = PEM_read_bio_X509(tbio, NULL, 0, NULL);
+    scert = VR_PEM_read_bio_X509(tbio, NULL, 0, NULL);
 
     BIO_reset(tbio);
 
-    skey = PEM_read_bio_PrivateKey(tbio, NULL, 0, NULL);
+    skey = VR_PEM_read_bio_PrivateKey(tbio, NULL, 0, NULL);
 
     if (!scert || !skey)
         goto err;
 
     /* Open content being signed */
 
-    in = BIO_new_file("sign.txt", "r");
+    in = VR_BIO_new_file("sign.txt", "r");
 
     if (!in)
         goto err;
 
     /* Sign content */
-    cms = CMS_sign(scert, skey, NULL, in, flags);
+    cms = VR_CMS_sign(scert, skey, NULL, in, flags);
 
     if (!cms)
         goto err;
 
-    out = BIO_new_file("smout.txt", "w");
+    out = VR_BIO_new_file("smout.txt", "w");
     if (!out)
         goto err;
 
@@ -66,7 +66,7 @@ int main(int argc, char **argv)
         BIO_reset(in);
 
     /* Write out S/MIME message */
-    if (!SMIME_write_CMS(out, cms, in, flags))
+    if (!VR_SMIME_write_CMS(out, cms, in, flags))
         goto err;
 
     ret = 0;
@@ -75,14 +75,14 @@ int main(int argc, char **argv)
 
     if (ret) {
         fprintf(stderr, "Error Signing Data\n");
-        ERR_print_errors_fp(stderr);
+        VR_ERR_print_errors_fp(stderr);
     }
 
-    CMS_ContentInfo_free(cms);
-    X509_free(scert);
-    EVP_PKEY_free(skey);
-    BIO_free(in);
-    BIO_free(out);
-    BIO_free(tbio);
+    VR_CMS_ContentInfo_free(cms);
+    VR_X509_free(scert);
+    VR_EVP_PKEY_free(skey);
+    VR_BIO_free(in);
+    VR_BIO_free(out);
+    VR_BIO_free(tbio);
     return ret;
 }

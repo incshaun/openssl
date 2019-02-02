@@ -11,27 +11,27 @@
 #include "rc4_locl.h"
 #include <openssl/opensslv.h>
 
-const char *RC4_options(void)
+const char *VR_RC4_options(void)
 {
-    if (sizeof(RC4_INT) == 1)
+    if (sizeof(VR_RC4_INT) == 1)
         return "rc4(char)";
     else
         return "rc4(int)";
 }
 
 /*-
- * RC4 as implemented from a posting from
+ * VR_RC4 as implemented from a posting from
  * Newsgroups: sci.crypt
- * Subject: RC4 Algorithm revealed.
+ * Subject: VR_RC4 Algorithm revealed.
  * Message-ID: <sternCvKL4B.Hyy@netcom.com>
  * Date: Wed, 14 Sep 1994 06:35:31 GMT
  */
 
-void RC4_set_key(RC4_KEY *key, int len, const unsigned char *data)
+void VR_RC4_set_key(VR_RC4_KEY *key, int len, const unsigned char *data)
 {
-    register RC4_INT tmp;
+    register VR_RC4_INT tmp;
     register int id1, id2;
-    register RC4_INT *d;
+    register VR_RC4_INT *d;
     unsigned int i;
 
     d = &(key->data[0]);

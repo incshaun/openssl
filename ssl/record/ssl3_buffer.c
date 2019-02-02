@@ -10,7 +10,7 @@
 #include "../ssl_locl.h"
 #include "record_locl.h"
 
-void SSL3_BUFFER_set_data(SSL3_BUFFER *b, const unsigned char *d, size_t n)
+void VR_SSL3_BUFFER_set_data(SSL3_BUFFER *b, const unsigned char *d, size_t n)
 {
     if (d != NULL)
         memcpy(b->buf, d, n);
@@ -22,19 +22,19 @@ void SSL3_BUFFER_set_data(SSL3_BUFFER *b, const unsigned char *d, size_t n)
  * Clear the contents of an SSL3_BUFFER but retain any memory allocated. Also
  * retains the default_len setting
  */
-void SSL3_BUFFER_clear(SSL3_BUFFER *b)
+void VR_SSL3_BUFFER_clear(SSL3_BUFFER *b)
 {
     b->offset = 0;
     b->left = 0;
 }
 
-void SSL3_BUFFER_release(SSL3_BUFFER *b)
+void VR_SSL3_BUFFER_release(SSL3_BUFFER *b)
 {
-    OPENSSL_free(b->buf);
+    OPENVR_SSL_free(b->buf);
     b->buf = NULL;
 }
 
-int ssl3_setup_read_buffer(SSL *s)
+int VR_ssl3_setup_read_buffer(SSL *s)
 {
     unsigned char *p;
     size_t len, align = 0, headerlen;
@@ -55,7 +55,7 @@ int ssl3_setup_read_buffer(SSL *s)
         len = SSL3_RT_MAX_PLAIN_LENGTH
             + SSL3_RT_MAX_ENCRYPTED_OVERHEAD + headerlen + align;
 #ifndef OPENSSL_NO_COMP
-        if (ssl_allow_compression(s))
+        if (VR_ssl_allow_compression(s))
             len += SSL3_RT_MAX_COMPRESSED_OVERHEAD;
 #endif
         if (b->default_len > len)
@@ -78,7 +78,7 @@ int ssl3_setup_read_buffer(SSL *s)
     return 1;
 }
 
-int ssl3_setup_write_buffer(SSL *s, size_t numwpipes, size_t len)
+int VR_ssl3_setup_write_buffer(SSL *s, size_t numwpipes, size_t len)
 {
     unsigned char *p;
     size_t align = 0, headerlen;
@@ -97,10 +97,10 @@ int ssl3_setup_write_buffer(SSL *s, size_t numwpipes, size_t len)
         align = (-SSL3_RT_HEADER_LENGTH) & (SSL3_ALIGN_PAYLOAD - 1);
 #endif
 
-        len = ssl_get_max_send_fragment(s)
+        len = VR_ssl_get_max_send_fragment(s)
             + SSL3_RT_SEND_MAX_ENCRYPTED_OVERHEAD + headerlen + align;
 #ifndef OPENSSL_NO_COMP
-        if (ssl_allow_compression(s))
+        if (VR_ssl_allow_compression(s))
             len += SSL3_RT_MAX_COMPRESSED_OVERHEAD;
 #endif
         if (!(s->options & SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS))
@@ -112,7 +112,7 @@ int ssl3_setup_write_buffer(SSL *s, size_t numwpipes, size_t len)
         SSL3_BUFFER *thiswb = &wb[currpipe];
 
         if (thiswb->len != len) {
-            OPENSSL_free(thiswb->buf);
+            OPENVR_SSL_free(thiswb->buf);
             thiswb->buf = NULL;         /* force reallocation */
         }
 
@@ -142,20 +142,20 @@ int ssl3_setup_write_buffer(SSL *s, size_t numwpipes, size_t len)
     return 1;
 }
 
-int ssl3_setup_buffers(SSL *s)
+int VR_ssl3_setup_buffers(SSL *s)
 {
-    if (!ssl3_setup_read_buffer(s)) {
+    if (!VR_ssl3_setup_read_buffer(s)) {
         /* SSLfatal() already called */
         return 0;
     }
-    if (!ssl3_setup_write_buffer(s, 1, 0)) {
+    if (!VR_ssl3_setup_write_buffer(s, 1, 0)) {
         /* SSLfatal() already called */
         return 0;
     }
     return 1;
 }
 
-int ssl3_release_write_buffer(SSL *s)
+int VR_ssl3_release_write_buffer(SSL *s)
 {
     SSL3_BUFFER *wb;
     size_t pipes;
@@ -165,7 +165,7 @@ int ssl3_release_write_buffer(SSL *s)
         wb = &RECORD_LAYER_get_wbuf(&s->rlayer)[pipes - 1];
 
         if (s->wbio == NULL || !BIO_get_ktls_send(s->wbio))
-            OPENSSL_free(wb->buf);
+            OPENVR_SSL_free(wb->buf);
         wb->buf = NULL;
         pipes--;
     }
@@ -173,12 +173,12 @@ int ssl3_release_write_buffer(SSL *s)
     return 1;
 }
 
-int ssl3_release_read_buffer(SSL *s)
+int VR_ssl3_release_read_buffer(SSL *s)
 {
     SSL3_BUFFER *b;
 
     b = RECORD_LAYER_get_rbuf(&s->rlayer);
-    OPENSSL_free(b->buf);
+    OPENVR_SSL_free(b->buf);
     b->buf = NULL;
     return 1;
 }

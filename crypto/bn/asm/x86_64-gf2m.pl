@@ -16,7 +16,7 @@
 #
 # May 2011
 #
-# The module implements bn_GF2m_mul_2x2 polynomial multiplication used
+# The module implements VR_bn_GF2m_mul_2x2 polynomial multiplication used
 # in bn_gf2m.c. It's kind of low-hanging mechanical port from C for
 # the time being... Except that it has two code paths: code suitable
 # for any x86_64 CPU and PCLMULQDQ one suitable for Westmere and
@@ -24,7 +24,7 @@
 # Vanilla code path is at most 20% faster than compiler-generated code
 # [not very impressive], while PCLMULQDQ - whole 85%-160% better on
 # 163- and 571-bit ECDH benchmarks on Intel CPUs. Keep in mind that
-# these coefficients are not ones for bn_GF2m_mul_2x2 itself, as not
+# these coefficients are not ones for VR_bn_GF2m_mul_2x2 itself, as not
 # all CPU time is burnt in it...
 
 $flavour = shift;
@@ -174,10 +174,10 @@ ___
 
 $code.=<<___;
 .extern	OPENSSL_ia32cap_P
-.globl	bn_GF2m_mul_2x2
-.type	bn_GF2m_mul_2x2,\@abi-omnipotent
+.globl	VR_bn_GF2m_mul_2x2
+.type	VR_bn_GF2m_mul_2x2,\@abi-omnipotent
 .align	16
-bn_GF2m_mul_2x2:
+VR_bn_GF2m_mul_2x2:
 .cfi_startproc
 	mov	%rsp,%rax
 	mov	OPENSSL_ia32cap_P(%rip),%r10
@@ -302,7 +302,7 @@ $code.=<<___;
 	ret
 .Lend_mul_2x2:
 .cfi_endproc
-.size	bn_GF2m_mul_2x2,.-bn_GF2m_mul_2x2
+.size	VR_bn_GF2m_mul_2x2,.-VR_bn_GF2m_mul_2x2
 .asciz	"GF(2^m) Multiplication for x86_64, CRYPTOGAMS by <appro\@openssl.org>"
 .align	16
 ___

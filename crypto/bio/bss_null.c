@@ -21,10 +21,10 @@ static const BIO_METHOD null_method = {
     BIO_TYPE_NULL,
     "NULL",
     /* TODO: Convert to new style write function */
-    bwrite_conv,
+    VR_bwrite_conv,
     null_write,
     /* TODO: Convert to new style read function */
-    bread_conv,
+    VR_bread_conv,
     null_read,
     null_puts,
     null_gets,
@@ -34,7 +34,7 @@ static const BIO_METHOD null_method = {
     NULL,                     /* null_callback_ctrl */
 };
 
-const BIO_METHOD *BIO_s_null(void)
+const BIO_METHOD *VR_BIO_s_null(void)
 {
     return &null_method;
 }

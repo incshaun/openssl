@@ -72,7 +72,7 @@ int verify_main(int argc, char **argv)
     int vpmtouched = 0, crl_download = 0, show_chain = 0, i = 0, ret = 1;
     OPTION_CHOICE o;
 
-    if ((vpm = X509_VERIFY_PARAM_new()) == NULL)
+    if ((vpm = VR_X509_VERIFY_PARAM_new()) == NULL)
         goto end;
 
     prog = opt_init(argc, argv, verify_options);
@@ -80,25 +80,25 @@ int verify_main(int argc, char **argv)
         switch (o) {
         case OPT_EOF:
         case OPT_ERR:
-            BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
+            VR_BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
             opt_help(verify_options);
-            BIO_printf(bio_err, "Recognized usages:\n");
-            for (i = 0; i < X509_PURPOSE_get_count(); i++) {
+            VR_BIO_printf(bio_err, "Recognized usages:\n");
+            for (i = 0; i < VR_X509_PURPOSE_get_count(); i++) {
                 X509_PURPOSE *ptmp;
-                ptmp = X509_PURPOSE_get0(i);
-                BIO_printf(bio_err, "\t%-10s\t%s\n",
-                        X509_PURPOSE_get0_sname(ptmp),
-                        X509_PURPOSE_get0_name(ptmp));
+                ptmp = VR_X509_PURPOSE_get0(i);
+                VR_BIO_printf(bio_err, "\t%-10s\t%s\n",
+                        VR_X509_PURPOSE_get0_sname(ptmp),
+                        VR_X509_PURPOSE_get0_name(ptmp));
             }
 
-            BIO_printf(bio_err, "Recognized verify names:\n");
-            for (i = 0; i < X509_VERIFY_PARAM_get_count(); i++) {
+            VR_BIO_printf(bio_err, "Recognized verify names:\n");
+            for (i = 0; i < VR_X509_VERIFY_PARAM_get_count(); i++) {
                 const X509_VERIFY_PARAM *vptmp;
-                vptmp = X509_VERIFY_PARAM_get0(i);
-                BIO_printf(bio_err, "\t%-10s\n",
-                        X509_VERIFY_PARAM_get0_name(vptmp));
+                vptmp = VR_X509_VERIFY_PARAM_get0(i);
+                VR_BIO_printf(bio_err, "\t%-10s\n",
+                        VR_X509_VERIFY_PARAM_get0_name(vptmp));
             }
             ret = 0;
             goto end;
@@ -163,7 +163,7 @@ int verify_main(int argc, char **argv)
     argc = opt_num_rest();
     argv = opt_rest();
     if (trusted != NULL && (CAfile || CApath)) {
-        BIO_printf(bio_err,
+        VR_BIO_printf(bio_err,
                    "%s: Cannot use -trusted with -CAfile or -CApath\n",
                    prog);
         goto end;
@@ -171,12 +171,12 @@ int verify_main(int argc, char **argv)
 
     if ((store = setup_verify(CAfile, CApath, noCAfile, noCApath)) == NULL)
         goto end;
-    X509_STORE_set_verify_cb(store, cb);
+    VR_X509_STORE_set_verify_cb(store, cb);
 
     if (vpmtouched)
-        X509_STORE_set1_param(store, vpm);
+        VR_X509_STORE_set1_param(store, vpm);
 
-    ERR_clear_error();
+    VR_ERR_clear_error();
 
     if (crl_download)
         store_setup_crl_download(store);
@@ -193,11 +193,11 @@ int verify_main(int argc, char **argv)
     }
 
  end:
-    X509_VERIFY_PARAM_free(vpm);
-    X509_STORE_free(store);
-    sk_X509_pop_free(untrusted, X509_free);
-    sk_X509_pop_free(trusted, X509_free);
-    sk_X509_CRL_pop_free(crls, X509_CRL_free);
+    VR_X509_VERIFY_PARAM_free(vpm);
+    VR_X509_STORE_free(store);
+    sk_VR_X509_pop_free(untrusted, VR_X509_free);
+    sk_VR_X509_pop_free(trusted, VR_X509_free);
+    sk_VR_X509_CRL_pop_free(crls, VR_X509_CRL_free);
     release_engine(e);
     return (ret < 0 ? 2 : ret);
 }
@@ -216,81 +216,81 @@ static int check(X509_STORE *ctx, const char *file,
     if (x == NULL)
         goto end;
 
-    csc = X509_STORE_CTX_new();
+    csc = VR_X509_STORE_CTX_new();
     if (csc == NULL) {
         printf("error %s: X.509 store context allocation failed\n",
                (file == NULL) ? "stdin" : file);
         goto end;
     }
 
-    X509_STORE_set_flags(ctx, vflags);
-    if (!X509_STORE_CTX_init(csc, ctx, x, uchain)) {
-        X509_STORE_CTX_free(csc);
+    VR_X509_STORE_set_flags(ctx, vflags);
+    if (!VR_X509_STORE_CTX_init(csc, ctx, x, uchain)) {
+        VR_X509_STORE_CTX_free(csc);
         printf("error %s: X.509 store context initialization failed\n",
                (file == NULL) ? "stdin" : file);
         goto end;
     }
     if (tchain != NULL)
-        X509_STORE_CTX_set0_trusted_stack(csc, tchain);
+        VR_X509_STORE_CTX_set0_trusted_stack(csc, tchain);
     if (crls != NULL)
-        X509_STORE_CTX_set0_crls(csc, crls);
-    i = X509_verify_cert(csc);
-    if (i > 0 && X509_STORE_CTX_get_error(csc) == X509_V_OK) {
+        VR_X509_STORE_CTX_set0_crls(csc, crls);
+    i = VR_X509_verify_cert(csc);
+    if (i > 0 && VR_X509_STORE_CTX_get_error(csc) == X509_V_OK) {
         printf("%s: OK\n", (file == NULL) ? "stdin" : file);
         ret = 1;
         if (show_chain) {
             int j;
 
-            chain = X509_STORE_CTX_get1_chain(csc);
-            num_untrusted = X509_STORE_CTX_get_num_untrusted(csc);
+            chain = VR_X509_STORE_CTX_get1_chain(csc);
+            num_untrusted = VR_X509_STORE_CTX_get_num_untrusted(csc);
             printf("Chain:\n");
             for (j = 0; j < sk_X509_num(chain); j++) {
                 X509 *cert = sk_X509_value(chain, j);
                 printf("depth=%d: ", j);
-                X509_NAME_print_ex_fp(stdout,
-                                      X509_get_subject_name(cert),
+                VR_X509_NAME_print_ex_fp(stdout,
+                                      VR_X509_get_subject_name(cert),
                                       0, get_nameopt());
                 if (j < num_untrusted)
                     printf(" (untrusted)");
                 printf("\n");
             }
-            sk_X509_pop_free(chain, X509_free);
+            sk_VR_X509_pop_free(chain, VR_X509_free);
         }
     } else {
         printf("error %s: verification failed\n", (file == NULL) ? "stdin" : file);
     }
-    X509_STORE_CTX_free(csc);
+    VR_X509_STORE_CTX_free(csc);
 
  end:
     if (i <= 0)
-        ERR_print_errors(bio_err);
-    X509_free(x);
+        VR_ERR_print_errors(bio_err);
+    VR_X509_free(x);
 
     return ret;
 }
 
 static int cb(int ok, X509_STORE_CTX *ctx)
 {
-    int cert_error = X509_STORE_CTX_get_error(ctx);
-    X509 *current_cert = X509_STORE_CTX_get_current_cert(ctx);
+    int cert_error = VR_X509_STORE_CTX_get_error(ctx);
+    X509 *current_cert = VR_X509_STORE_CTX_get_current_cert(ctx);
 
     if (!ok) {
         if (current_cert != NULL) {
-            X509_NAME_print_ex(bio_err,
-                            X509_get_subject_name(current_cert),
+            VR_X509_NAME_print_ex(bio_err,
+                            VR_X509_get_subject_name(current_cert),
                             0, get_nameopt());
-            BIO_printf(bio_err, "\n");
+            VR_BIO_printf(bio_err, "\n");
         }
-        BIO_printf(bio_err, "%serror %d at %d depth lookup: %s\n",
-               X509_STORE_CTX_get0_parent_ctx(ctx) ? "[CRL path] " : "",
+        VR_BIO_printf(bio_err, "%serror %d at %d depth lookup: %s\n",
+               VR_X509_STORE_CTX_get0_parent_ctx(ctx) ? "[CRL path] " : "",
                cert_error,
-               X509_STORE_CTX_get_error_depth(ctx),
-               X509_verify_cert_error_string(cert_error));
+               VR_X509_STORE_CTX_get_error_depth(ctx),
+               VR_X509_verify_cert_error_string(cert_error));
 
         /*
          * Pretend that some errors are ok, so they don't stop further
          * processing of the certificate chain.  Setting ok = 1 does this.
-         * After X509_verify_cert() is done, we verify that there were
+         * After VR_X509_verify_cert() is done, we verify that there were
          * no actual errors, even if the returned value was positive.
          */
         switch (cert_error) {
@@ -317,6 +317,6 @@ static int cb(int ok, X509_STORE_CTX *ctx)
     if (cert_error == X509_V_OK && ok == 2)
         policies_print(ctx);
     if (!v_verbose)
-        ERR_clear_error();
+        VR_ERR_clear_error();
     return ok;
 }

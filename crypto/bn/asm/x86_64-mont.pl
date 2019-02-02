@@ -80,7 +80,7 @@ if (!$addx && `$ENV{CC} -v 2>&1` =~ /((?:^clang|LLVM) version|.*based on LLVM) (
 	$addx = ($ver>=3.03);
 }
 
-# int bn_mul_mont(
+# int VR_bn_mul_mont(
 $rp="%rdi";	# BN_ULONG *rp,
 $ap="%rsi";	# const BN_ULONG *ap,
 $bp="%rdx";	# const BN_ULONG *bp,
@@ -100,10 +100,10 @@ $code=<<___;
 
 .extern	OPENSSL_ia32cap_P
 
-.globl	bn_mul_mont
-.type	bn_mul_mont,\@function,6
+.globl	VR_bn_mul_mont
+.type	VR_bn_mul_mont,\@function,6
 .align	16
-bn_mul_mont:
+VR_bn_mul_mont:
 .cfi_startproc
 	mov	${num}d,${num}d
 	mov	%rsp,%rax
@@ -359,7 +359,7 @@ $code.=<<___;
 .Lmul_epilogue:
 	ret
 .cfi_endproc
-.size	bn_mul_mont,.-bn_mul_mont
+.size	VR_bn_mul_mont,.-VR_bn_mul_mont
 ___
 {{{
 my @A=("%r10","%r11");
@@ -831,10 +831,10 @@ my @A1=("%r12","%r13");
 my ($a0,$a1,$ai)=("%r14","%r15","%rbx");
 
 $code.=<<___	if ($addx);
-.extern	bn_sqrx8x_internal		# see x86_64-mont5 module
+.extern	VR_bn_sqrx8x_internal		# see x86_64-mont5 module
 ___
 $code.=<<___;
-.extern	bn_sqr8x_internal		# see x86_64-mont5 module
+.extern	VR_bn_sqr8x_internal		# see x86_64-mont5 module
 
 .type	bn_sqr8x_mont,\@function,6
 .align	32
@@ -924,7 +924,7 @@ $code.=<<___ if ($addx);
 	cmp	\$0x80100,%eax
 	jne	.Lsqr8x_nox
 
-	call	bn_sqrx8x_internal	# see x86_64-mont5 module
+	call	VR_bn_sqrx8x_internal	# see x86_64-mont5 module
 					# %rax	top-most carry
 					# %rbp	nptr
 					# %rcx	-8*num
@@ -940,7 +940,7 @@ $code.=<<___ if ($addx);
 .Lsqr8x_nox:
 ___
 $code.=<<___;
-	call	bn_sqr8x_internal	# see x86_64-mont5 module
+	call	VR_bn_sqr8x_internal	# see x86_64-mont5 module
 					# %rax	top-most carry
 					# %rbp	nptr
 					# %r8	-8*num
@@ -1545,9 +1545,9 @@ sqr_handler:
 
 .section	.pdata
 .align	4
-	.rva	.LSEH_begin_bn_mul_mont
-	.rva	.LSEH_end_bn_mul_mont
-	.rva	.LSEH_info_bn_mul_mont
+	.rva	.LSEH_begin_VR_bn_mul_mont
+	.rva	.LSEH_end_VR_bn_mul_mont
+	.rva	.LSEH_info_VR_bn_mul_mont
 
 	.rva	.LSEH_begin_bn_mul4x_mont
 	.rva	.LSEH_end_bn_mul4x_mont
@@ -1565,7 +1565,7 @@ ___
 $code.=<<___;
 .section	.xdata
 .align	8
-.LSEH_info_bn_mul_mont:
+.LSEH_info_VR_bn_mul_mont:
 	.byte	9,0,0,0
 	.rva	mul_handler
 	.rva	.Lmul_body,.Lmul_epilogue	# HandlerData[]

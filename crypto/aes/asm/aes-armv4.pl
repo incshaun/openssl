@@ -191,14 +191,14 @@ AES_Te:
 .word	0x1B000000, 0x36000000, 0, 0, 0, 0, 0, 0
 .size	AES_Te,.-AES_Te
 
-@ void AES_encrypt(const unsigned char *in, unsigned char *out,
+@ void VR_AES_encrypt(const unsigned char *in, unsigned char *out,
 @ 		 const AES_KEY *key) {
-.global AES_encrypt
-.type   AES_encrypt,%function
+.global VR_AES_encrypt
+.type   VR_AES_encrypt,%function
 .align	5
-AES_encrypt:
+VR_AES_encrypt:
 #ifndef	__thumb2__
-	sub	r3,pc,#8		@ AES_encrypt
+	sub	r3,pc,#8		@ VR_AES_encrypt
 #else
 	adr	r3,.
 #endif
@@ -206,7 +206,7 @@ AES_encrypt:
 #if defined(__thumb2__) || defined(__APPLE__)
 	adr	$tbl,AES_Te
 #else
-	sub	$tbl,r3,#AES_encrypt-AES_Te	@ Te
+	sub	$tbl,r3,#VR_AES_encrypt-AES_Te	@ Te
 #endif
 	mov	$rounds,r0		@ inp
 	mov	$key,r2
@@ -251,7 +251,7 @@ AES_encrypt:
 	rev	$s3,$s3
 #endif
 #endif
-	bl	_armv4_AES_encrypt
+	bl	_armv4_VR_AES_encrypt
 
 	ldr	$rounds,[sp],#4		@ pop out
 #if __ARM_ARCH__>=7
@@ -303,11 +303,11 @@ AES_encrypt:
 	moveq	pc,lr			@ be binary compatible with V4, yet
 	bx	lr			@ interoperable with Thumb ISA:-)
 #endif
-.size	AES_encrypt,.-AES_encrypt
+.size	VR_AES_encrypt,.-VR_AES_encrypt
 
-.type   _armv4_AES_encrypt,%function
+.type   _armv4_VR_AES_encrypt,%function
 .align	2
-_armv4_AES_encrypt:
+_armv4_VR_AES_encrypt:
 	str	lr,[sp,#-4]!		@ push lr
 	ldmia	$key!,{$t1-$i1}
 	eor	$s0,$s0,$t1
@@ -440,15 +440,15 @@ _armv4_AES_encrypt:
 
 	sub	$tbl,$tbl,#2
 	ldr	pc,[sp],#4		@ pop and return
-.size	_armv4_AES_encrypt,.-_armv4_AES_encrypt
+.size	_armv4_VR_AES_encrypt,.-_armv4_VR_AES_encrypt
 
-.global AES_set_encrypt_key
-.type   AES_set_encrypt_key,%function
+.global VR_AES_set_encrypt_key
+.type   VR_AES_set_encrypt_key,%function
 .align	5
-AES_set_encrypt_key:
-_armv4_AES_set_encrypt_key:
+VR_AES_set_encrypt_key:
+_armv4_VR_AES_set_encrypt_key:
 #ifndef	__thumb2__
-	sub	r3,pc,#8		@ AES_set_encrypt_key
+	sub	r3,pc,#8		@ VR_AES_set_encrypt_key
 #else
 	adr	r3,.
 #endif
@@ -484,7 +484,7 @@ _armv4_AES_set_encrypt_key:
 #if defined(__thumb2__) || defined(__APPLE__)
 	adr	$tbl,AES_Te+1024				@ Te4
 #else
-	sub	$tbl,r3,#_armv4_AES_set_encrypt_key-AES_Te-1024	@ Te4
+	sub	$tbl,r3,#_armv4_VR_AES_set_encrypt_key-AES_Te-1024	@ Te4
 #endif
 
 #if __ARM_ARCH__<7
@@ -746,22 +746,22 @@ _armv4_AES_set_encrypt_key:
 	moveq	pc,lr			@ be binary compatible with V4, yet
 	bx	lr			@ interoperable with Thumb ISA:-)
 #endif
-.size	AES_set_encrypt_key,.-AES_set_encrypt_key
+.size	VR_AES_set_encrypt_key,.-VR_AES_set_encrypt_key
 
-.global AES_set_decrypt_key
-.type   AES_set_decrypt_key,%function
+.global VR_AES_set_decrypt_key
+.type   VR_AES_set_decrypt_key,%function
 .align	5
-AES_set_decrypt_key:
+VR_AES_set_decrypt_key:
 	str	lr,[sp,#-4]!            @ push lr
-	bl	_armv4_AES_set_encrypt_key
+	bl	_armv4_VR_AES_set_encrypt_key
 	teq	r0,#0
 	ldr	lr,[sp],#4              @ pop lr
 	bne	.Labrt
 
-	mov	r0,r2			@ AES_set_encrypt_key preserves r2,
+	mov	r0,r2			@ VR_AES_set_encrypt_key preserves r2,
 	mov	r1,r2			@ which is AES_KEY *key
 	b	_armv4_AES_set_enc2dec_key
-.size	AES_set_decrypt_key,.-AES_set_decrypt_key
+.size	VR_AES_set_decrypt_key,.-VR_AES_set_decrypt_key
 
 @ void AES_set_enc2dec_key(const AES_KEY *inp,AES_KEY *out)
 .global	AES_set_enc2dec_key
@@ -967,14 +967,14 @@ AES_Td:
 .byte	0xe1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0c, 0x7d
 .size	AES_Td,.-AES_Td
 
-@ void AES_decrypt(const unsigned char *in, unsigned char *out,
+@ void VR_AES_decrypt(const unsigned char *in, unsigned char *out,
 @ 		 const AES_KEY *key) {
-.global AES_decrypt
-.type   AES_decrypt,%function
+.global VR_AES_decrypt
+.type   VR_AES_decrypt,%function
 .align	5
-AES_decrypt:
+VR_AES_decrypt:
 #ifndef	__thumb2__
-	sub	r3,pc,#8		@ AES_decrypt
+	sub	r3,pc,#8		@ VR_AES_decrypt
 #else
 	adr	r3,.
 #endif
@@ -982,7 +982,7 @@ AES_decrypt:
 #if defined(__thumb2__) || defined(__APPLE__)
 	adr	$tbl,AES_Td
 #else
-	sub	$tbl,r3,#AES_decrypt-AES_Td	@ Td
+	sub	$tbl,r3,#VR_AES_decrypt-AES_Td	@ Td
 #endif
 	mov	$rounds,r0		@ inp
 	mov	$key,r2
@@ -1027,7 +1027,7 @@ AES_decrypt:
 	rev	$s3,$s3
 #endif
 #endif
-	bl	_armv4_AES_decrypt
+	bl	_armv4_VR_AES_decrypt
 
 	ldr	$rounds,[sp],#4		@ pop out
 #if __ARM_ARCH__>=7
@@ -1079,11 +1079,11 @@ AES_decrypt:
 	moveq	pc,lr			@ be binary compatible with V4, yet
 	bx	lr			@ interoperable with Thumb ISA:-)
 #endif
-.size	AES_decrypt,.-AES_decrypt
+.size	VR_AES_decrypt,.-VR_AES_decrypt
 
-.type   _armv4_AES_decrypt,%function
+.type   _armv4_VR_AES_decrypt,%function
 .align	2
-_armv4_AES_decrypt:
+_armv4_VR_AES_decrypt:
 	str	lr,[sp,#-4]!		@ push lr
 	ldmia	$key!,{$t1-$i1}
 	eor	$s0,$s0,$t1
@@ -1225,7 +1225,7 @@ _armv4_AES_decrypt:
 
 	sub	$tbl,$tbl,#1024
 	ldr	pc,[sp],#4		@ pop and return
-.size	_armv4_AES_decrypt,.-_armv4_AES_decrypt
+.size	_armv4_VR_AES_decrypt,.-_armv4_VR_AES_decrypt
 .asciz	"AES for ARMv4, CRYPTOGAMS by <appro\@openssl.org>"
 .align	2
 ___

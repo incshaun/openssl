@@ -16,7 +16,7 @@
 
 #define M_check_autoarg(ctx, arg, arglen, err) \
     if (ctx->pmeth->flags & EVP_PKEY_FLAG_AUTOARGLEN) {           \
-        size_t pksize = (size_t)EVP_PKEY_size(ctx->pkey);         \
+        size_t pksize = (size_t)VR_EVP_PKEY_size(ctx->pkey);         \
                                                                   \
         if (pksize == 0) {                                        \
             EVPerr(err, EVP_R_INVALID_KEY); /*ckerr_ignore*/      \
@@ -32,7 +32,7 @@
         }                                                         \
     }
 
-int EVP_PKEY_sign_init(EVP_PKEY_CTX *ctx)
+int VR_EVP_PKEY_sign_init(EVP_PKEY_CTX *ctx)
 {
     int ret;
     if (!ctx || !ctx->pmeth || !ctx->pmeth->sign) {
@@ -49,7 +49,7 @@ int EVP_PKEY_sign_init(EVP_PKEY_CTX *ctx)
     return ret;
 }
 
-int EVP_PKEY_sign(EVP_PKEY_CTX *ctx,
+int VR_EVP_PKEY_sign(EVP_PKEY_CTX *ctx,
                   unsigned char *sig, size_t *siglen,
                   const unsigned char *tbs, size_t tbslen)
 {
@@ -66,7 +66,7 @@ int EVP_PKEY_sign(EVP_PKEY_CTX *ctx,
         return ctx->pmeth->sign(ctx, sig, siglen, tbs, tbslen);
 }
 
-int EVP_PKEY_verify_init(EVP_PKEY_CTX *ctx)
+int VR_EVP_PKEY_verify_init(EVP_PKEY_CTX *ctx)
 {
     int ret;
     if (!ctx || !ctx->pmeth || !ctx->pmeth->verify) {
@@ -83,7 +83,7 @@ int EVP_PKEY_verify_init(EVP_PKEY_CTX *ctx)
     return ret;
 }
 
-int EVP_PKEY_verify(EVP_PKEY_CTX *ctx,
+int VR_EVP_PKEY_verify(EVP_PKEY_CTX *ctx,
                     const unsigned char *sig, size_t siglen,
                     const unsigned char *tbs, size_t tbslen)
 {
@@ -99,7 +99,7 @@ int EVP_PKEY_verify(EVP_PKEY_CTX *ctx,
     return ctx->pmeth->verify(ctx, sig, siglen, tbs, tbslen);
 }
 
-int EVP_PKEY_verify_recover_init(EVP_PKEY_CTX *ctx)
+int VR_EVP_PKEY_verify_recover_init(EVP_PKEY_CTX *ctx)
 {
     int ret;
     if (!ctx || !ctx->pmeth || !ctx->pmeth->verify_recover) {
@@ -116,7 +116,7 @@ int EVP_PKEY_verify_recover_init(EVP_PKEY_CTX *ctx)
     return ret;
 }
 
-int EVP_PKEY_verify_recover(EVP_PKEY_CTX *ctx,
+int VR_EVP_PKEY_verify_recover(EVP_PKEY_CTX *ctx,
                             unsigned char *rout, size_t *routlen,
                             const unsigned char *sig, size_t siglen)
 {
@@ -133,7 +133,7 @@ int EVP_PKEY_verify_recover(EVP_PKEY_CTX *ctx,
         return ctx->pmeth->verify_recover(ctx, rout, routlen, sig, siglen);
 }
 
-int EVP_PKEY_encrypt_init(EVP_PKEY_CTX *ctx)
+int VR_EVP_PKEY_encrypt_init(EVP_PKEY_CTX *ctx)
 {
     int ret;
     if (!ctx || !ctx->pmeth || !ctx->pmeth->encrypt) {
@@ -150,7 +150,7 @@ int EVP_PKEY_encrypt_init(EVP_PKEY_CTX *ctx)
     return ret;
 }
 
-int EVP_PKEY_encrypt(EVP_PKEY_CTX *ctx,
+int VR_EVP_PKEY_encrypt(EVP_PKEY_CTX *ctx,
                      unsigned char *out, size_t *outlen,
                      const unsigned char *in, size_t inlen)
 {
@@ -167,7 +167,7 @@ int EVP_PKEY_encrypt(EVP_PKEY_CTX *ctx,
         return ctx->pmeth->encrypt(ctx, out, outlen, in, inlen);
 }
 
-int EVP_PKEY_decrypt_init(EVP_PKEY_CTX *ctx)
+int VR_EVP_PKEY_decrypt_init(EVP_PKEY_CTX *ctx)
 {
     int ret;
     if (!ctx || !ctx->pmeth || !ctx->pmeth->decrypt) {
@@ -184,7 +184,7 @@ int EVP_PKEY_decrypt_init(EVP_PKEY_CTX *ctx)
     return ret;
 }
 
-int EVP_PKEY_decrypt(EVP_PKEY_CTX *ctx,
+int VR_EVP_PKEY_decrypt(EVP_PKEY_CTX *ctx,
                      unsigned char *out, size_t *outlen,
                      const unsigned char *in, size_t inlen)
 {
@@ -201,7 +201,7 @@ int EVP_PKEY_decrypt(EVP_PKEY_CTX *ctx,
         return ctx->pmeth->decrypt(ctx, out, outlen, in, inlen);
 }
 
-int EVP_PKEY_derive_init(EVP_PKEY_CTX *ctx)
+int VR_EVP_PKEY_derive_init(EVP_PKEY_CTX *ctx)
 {
     int ret;
     if (!ctx || !ctx->pmeth || !ctx->pmeth->derive) {
@@ -218,7 +218,7 @@ int EVP_PKEY_derive_init(EVP_PKEY_CTX *ctx)
     return ret;
 }
 
-int EVP_PKEY_derive_set_peer(EVP_PKEY_CTX *ctx, EVP_PKEY *peer)
+int VR_EVP_PKEY_derive_set_peer(EVP_PKEY_CTX *ctx, EVP_PKEY *peer)
 {
     int ret;
     if (!ctx || !ctx->pmeth
@@ -256,18 +256,18 @@ int EVP_PKEY_derive_set_peer(EVP_PKEY_CTX *ctx, EVP_PKEY *peer)
 
     /*
      * For clarity.  The error is if parameters in peer are
-     * present (!missing) but don't match.  EVP_PKEY_cmp_parameters may return
+     * present (!missing) but don't match.  VR_EVP_PKEY_cmp_parameters may return
      * 1 (match), 0 (don't match) and -2 (comparison is not defined).  -1
      * (different key types) is impossible here because it is checked earlier.
      * -2 is OK for us here, as well as 1, so we can check for 0 only.
      */
-    if (!EVP_PKEY_missing_parameters(peer) &&
-        !EVP_PKEY_cmp_parameters(ctx->pkey, peer)) {
+    if (!VR_EVP_PKEY_missing_parameters(peer) &&
+        !VR_EVP_PKEY_cmp_parameters(ctx->pkey, peer)) {
         EVPerr(EVP_F_EVP_PKEY_DERIVE_SET_PEER, EVP_R_DIFFERENT_PARAMETERS);
         return -1;
     }
 
-    EVP_PKEY_free(ctx->peerkey);
+    VR_EVP_PKEY_free(ctx->peerkey);
     ctx->peerkey = peer;
 
     ret = ctx->pmeth->ctrl(ctx, EVP_PKEY_CTRL_PEER_KEY, 1, peer);
@@ -277,11 +277,11 @@ int EVP_PKEY_derive_set_peer(EVP_PKEY_CTX *ctx, EVP_PKEY *peer)
         return ret;
     }
 
-    EVP_PKEY_up_ref(peer);
+    VR_EVP_PKEY_up_ref(peer);
     return 1;
 }
 
-int EVP_PKEY_derive(EVP_PKEY_CTX *ctx, unsigned char *key, size_t *pkeylen)
+int VR_EVP_PKEY_derive(EVP_PKEY_CTX *ctx, unsigned char *key, size_t *pkeylen)
 {
     if (!ctx || !ctx->pmeth || !ctx->pmeth->derive) {
         EVPerr(EVP_F_EVP_PKEY_DERIVE,

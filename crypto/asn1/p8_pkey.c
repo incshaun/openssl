@@ -21,7 +21,7 @@ static int pkey_cb(int operation, ASN1_VALUE **pval, const ASN1_ITEM *it,
     if (operation == ASN1_OP_FREE_PRE) {
         PKCS8_PRIV_KEY_INFO *key = (PKCS8_PRIV_KEY_INFO *)*pval;
         if (key->pkey)
-            OPENSSL_cleanse(key->pkey->data, key->pkey->length);
+            VR_OPENSSL_cleanse(key->pkey->data, key->pkey->length);
     }
     return 1;
 }
@@ -35,30 +35,30 @@ ASN1_SEQUENCE_cb(PKCS8_PRIV_KEY_INFO, pkey_cb) = {
 
 IMPLEMENT_ASN1_FUNCTIONS(PKCS8_PRIV_KEY_INFO)
 
-int PKCS8_pkey_set0(PKCS8_PRIV_KEY_INFO *priv, ASN1_OBJECT *aobj,
+int VR_PKCS8_pkey_set0(PKCS8_PRIV_KEY_INFO *priv, ASN1_OBJECT *aobj,
                     int version,
                     int ptype, void *pval, unsigned char *penc, int penclen)
 {
     if (version >= 0) {
-        if (!ASN1_INTEGER_set(priv->version, version))
+        if (!VR_ASN1_INTEGER_set(priv->version, version))
             return 0;
     }
-    if (!X509_ALGOR_set0(priv->pkeyalg, aobj, ptype, pval))
+    if (!VR_X509_ALGOR_set0(priv->pkeyalg, aobj, ptype, pval))
         return 0;
     if (penc)
-        ASN1_STRING_set0(priv->pkey, penc, penclen);
+        VR_ASN1_STRING_set0(priv->pkey, penc, penclen);
     return 1;
 }
 
-int PKCS8_pkey_get0(const ASN1_OBJECT **ppkalg,
+int VR_PKCS8_pkey_get0(const ASN1_OBJECT **ppkalg,
                     const unsigned char **pk, int *ppklen,
                     const X509_ALGOR **pa, const PKCS8_PRIV_KEY_INFO *p8)
 {
     if (ppkalg)
         *ppkalg = p8->pkeyalg->algorithm;
     if (pk) {
-        *pk = ASN1_STRING_get0_data(p8->pkey);
-        *ppklen = ASN1_STRING_length(p8->pkey);
+        *pk = VR_ASN1_STRING_get0_data(p8->pkey);
+        *ppklen = VR_ASN1_STRING_length(p8->pkey);
     }
     if (pa)
         *pa = p8->pkeyalg;
@@ -66,15 +66,15 @@ int PKCS8_pkey_get0(const ASN1_OBJECT **ppkalg,
 }
 
 const STACK_OF(X509_ATTRIBUTE) *
-PKCS8_pkey_get0_attrs(const PKCS8_PRIV_KEY_INFO *p8)
+VR_PKCS8_pkey_get0_attrs(const PKCS8_PRIV_KEY_INFO *p8)
 {
     return p8->attributes;
 }
 
-int PKCS8_pkey_add1_attr_by_NID(PKCS8_PRIV_KEY_INFO *p8, int nid, int type,
+int VR_PKCS8_pkey_add1_attr_by_NID(PKCS8_PRIV_KEY_INFO *p8, int nid, int type,
                                 const unsigned char *bytes, int len)
 {
-    if (X509at_add1_attr_by_NID(&p8->attributes, nid, type, bytes, len) != NULL)
+    if (VR_X509at_add1_attr_by_NID(&p8->attributes, nid, type, bytes, len) != NULL)
         return 1;
     return 0;
 }

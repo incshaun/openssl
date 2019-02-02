@@ -107,8 +107,8 @@ static const struct cipher_data_st {
     { NID_aes_128_cbc, 16, 128 / 8, 16, EVP_CIPH_CBC_MODE, CRYPTO_AES_CBC },
     { NID_aes_192_cbc, 16, 192 / 8, 16, EVP_CIPH_CBC_MODE, CRYPTO_AES_CBC },
     { NID_aes_256_cbc, 16, 256 / 8, 16, EVP_CIPH_CBC_MODE, CRYPTO_AES_CBC },
-#ifndef OPENSSL_NO_RC4
-    { NID_rc4, 1, 16, 0, EVP_CIPH_STREAM_CIPHER, CRYPTO_ARC4 },
+#ifndef OPENSSL_NO_VR_RC4
+    { NID_rc4, 1, 16, 0, EVP_CIPH_STREAM_CIPHER, CRYPTO_AVR_RC4 },
 #endif
 #if !defined(CHECK_BSD_STYLE_MACROS) || defined(CRYPTO_AES_CTR)
     { NID_aes_128_ctr, 16, 128 / 8, 16, EVP_CIPH_CTR_MODE, CRYPTO_AES_CTR },
@@ -179,9 +179,9 @@ static int cipher_init(EVP_CIPHER_CTX *ctx, const unsigned char *key,
                        const unsigned char *iv, int enc)
 {
     struct cipher_ctx *cipher_ctx =
-        (struct cipher_ctx *)EVP_CIPHER_CTX_get_cipher_data(ctx);
+        (struct cipher_ctx *)VR_EVP_CIPHER_CTX_get_cipher_data(ctx);
     const struct cipher_data_st *cipher_d =
-        get_cipher_data(EVP_CIPHER_CTX_nid(ctx));
+        get_cipher_data(VR_EVP_CIPHER_CTX_nid(ctx));
 
     memset(&cipher_ctx->sess, 0, sizeof(cipher_ctx->sess));
     cipher_ctx->sess.cipher = cipher_d->devcryptoid;
@@ -202,9 +202,9 @@ static int cipher_do_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                             const unsigned char *in, size_t inl)
 {
     struct cipher_ctx *cipher_ctx =
-        (struct cipher_ctx *)EVP_CIPHER_CTX_get_cipher_data(ctx);
+        (struct cipher_ctx *)VR_EVP_CIPHER_CTX_get_cipher_data(ctx);
     struct crypt_op cryp;
-    unsigned char *iv = EVP_CIPHER_CTX_iv_noconst(ctx);
+    unsigned char *iv = VR_EVP_CIPHER_CTX_iv_noconst(ctx);
 #if !defined(COP_FLAG_WRITE_IV)
     unsigned char saved_iv[EVP_MAX_IV_LENGTH];
     const unsigned char *ivptr;
@@ -221,12 +221,12 @@ static int cipher_do_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
 #if !defined(COP_FLAG_WRITE_IV)
     cryp.flags = 0;
 
-    ivlen = EVP_CIPHER_CTX_iv_length(ctx);
+    ivlen = VR_EVP_CIPHER_CTX_iv_length(ctx);
     if (ivlen > 0)
         switch (cipher_ctx->mode) {
         case EVP_CIPH_CBC_MODE:
             assert(inl >= ivlen);
-            if (!EVP_CIPHER_CTX_encrypting(ctx)) {
+            if (!VR_EVP_CIPHER_CTX_encrypting(ctx)) {
                 ivptr = in + inl - ivlen;
                 memcpy(saved_iv, ivptr, ivlen);
             }
@@ -252,7 +252,7 @@ static int cipher_do_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
         switch (cipher_ctx->mode) {
         case EVP_CIPH_CBC_MODE:
             assert(inl >= ivlen);
-            if (EVP_CIPHER_CTX_encrypting(ctx))
+            if (VR_EVP_CIPHER_CTX_encrypting(ctx))
                 ivptr = out + inl - ivlen;
             else
                 ivptr = saved_iv;
@@ -283,7 +283,7 @@ static int ctr_do_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                          const unsigned char *in, size_t inl)
 {
     struct cipher_ctx *cipher_ctx =
-        (struct cipher_ctx *)EVP_CIPHER_CTX_get_cipher_data(ctx);
+        (struct cipher_ctx *)VR_EVP_CIPHER_CTX_get_cipher_data(ctx);
     size_t nblocks, len;
 
     /* initial partial block */
@@ -327,9 +327,9 @@ static int cipher_ctrl(EVP_CIPHER_CTX *ctx, int type, int p1, void* p2)
 
     if (type == EVP_CTRL_COPY) {
         /* when copying the context, a new session needs to be initialized */
-        cipher_ctx = (struct cipher_ctx *)EVP_CIPHER_CTX_get_cipher_data(ctx);
+        cipher_ctx = (struct cipher_ctx *)VR_EVP_CIPHER_CTX_get_cipher_data(ctx);
         return (cipher_ctx == NULL)
-            || cipher_init(to_ctx, cipher_ctx->sess.key, EVP_CIPHER_CTX_iv(ctx),
+            || cipher_init(to_ctx, cipher_ctx->sess.key, VR_EVP_CIPHER_CTX_iv(ctx),
                            (cipher_ctx->op == COP_ENCRYPT));
     }
 
@@ -339,7 +339,7 @@ static int cipher_ctrl(EVP_CIPHER_CTX *ctx, int type, int p1, void* p2)
 static int cipher_cleanup(EVP_CIPHER_CTX *ctx)
 {
     struct cipher_ctx *cipher_ctx =
-        (struct cipher_ctx *)EVP_CIPHER_CTX_get_cipher_data(ctx);
+        (struct cipher_ctx *)VR_EVP_CIPHER_CTX_get_cipher_data(ctx);
 
     if (ioctl(cfd, CIOCFSESSION, &cipher_ctx->sess.ses) < 0) {
         SYSerr(SYS_F_IOCTL, errno);
@@ -405,28 +405,28 @@ static void prepare_cipher_methods(void)
         cipher_mode = cipher_data[i].flags & EVP_CIPH_MODE;
 
         if ((known_cipher_methods[i] =
-                 EVP_CIPHER_meth_new(cipher_data[i].nid,
+                 VR_EVP_CIPHER_meth_new(cipher_data[i].nid,
                                      cipher_mode == EVP_CIPH_CTR_MODE ? 1 :
                                                     cipher_data[i].blocksize,
                                      cipher_data[i].keylen)) == NULL
-            || !EVP_CIPHER_meth_set_iv_length(known_cipher_methods[i],
+            || !VR_EVP_CIPHER_meth_set_iv_length(known_cipher_methods[i],
                                               cipher_data[i].ivlen)
-            || !EVP_CIPHER_meth_set_flags(known_cipher_methods[i],
+            || !VR_EVP_CIPHER_meth_set_flags(known_cipher_methods[i],
                                           cipher_data[i].flags
                                           | EVP_CIPH_CUSTOM_COPY
                                           | EVP_CIPH_FLAG_DEFAULT_ASN1)
-            || !EVP_CIPHER_meth_set_init(known_cipher_methods[i], cipher_init)
-            || !EVP_CIPHER_meth_set_do_cipher(known_cipher_methods[i],
+            || !VR_EVP_CIPHER_meth_set_init(known_cipher_methods[i], cipher_init)
+            || !VR_EVP_CIPHER_meth_set_do_cipher(known_cipher_methods[i],
                                      cipher_mode == EVP_CIPH_CTR_MODE ?
                                               ctr_do_cipher :
                                               cipher_do_cipher)
-            || !EVP_CIPHER_meth_set_ctrl(known_cipher_methods[i], cipher_ctrl)
-            || !EVP_CIPHER_meth_set_cleanup(known_cipher_methods[i],
+            || !VR_EVP_CIPHER_meth_set_ctrl(known_cipher_methods[i], cipher_ctrl)
+            || !VR_EVP_CIPHER_meth_set_cleanup(known_cipher_methods[i],
                                             cipher_cleanup)
-            || !EVP_CIPHER_meth_set_impl_ctx_size(known_cipher_methods[i],
+            || !VR_EVP_CIPHER_meth_set_impl_ctx_size(known_cipher_methods[i],
                                                   sizeof(struct cipher_ctx))) {
             cipher_driver_info[i].status = DEVCRYPTO_STATUS_FAILURE;
-            EVP_CIPHER_meth_free(known_cipher_methods[i]);
+            VR_EVP_CIPHER_meth_free(known_cipher_methods[i]);
             known_cipher_methods[i] = NULL;
         } else {
             cipher_driver_info[i].status = DEVCRYPTO_STATUS_USABLE;
@@ -461,8 +461,8 @@ static void rebuild_known_cipher_nids(ENGINE *e)
         if (devcrypto_test_cipher(i))
             known_cipher_nids[known_cipher_nids_amount++] = cipher_data[i].nid;
     }
-    ENGINE_unregister_ciphers(e);
-    ENGINE_register_ciphers(e);
+    VR_ENGINE_unregister_ciphers(e);
+    VR_ENGINE_register_ciphers(e);
 }
 
 static const EVP_CIPHER *get_cipher_method(int nid)
@@ -484,7 +484,7 @@ static void destroy_cipher_method(int nid)
 {
     size_t i = get_cipher_data_index(nid);
 
-    EVP_CIPHER_meth_free(known_cipher_methods[i]);
+    VR_EVP_CIPHER_meth_free(known_cipher_methods[i]);
     known_cipher_methods[i] = NULL;
 }
 
@@ -494,7 +494,7 @@ static void destroy_all_cipher_methods(void)
 
     for (i = 0; i < OSSL_NELEM(cipher_data); i++) {
         destroy_cipher_method(cipher_data[i].nid);
-        OPENSSL_free(cipher_driver_info[i].driver_name);
+        OPENVR_SSL_free(cipher_driver_info[i].driver_name);
         cipher_driver_info[i].driver_name = NULL;
     }
 }
@@ -529,14 +529,14 @@ static int cryptodev_select_cipher_cb(const char *str, int len, void *usr)
         return 1;
     if (usr == NULL || (name = OPENSSL_strndup(str, len)) == NULL)
         return 0;
-    EVP = EVP_get_cipherbyname(name);
+    EVP = VR_EVP_get_cipherbyname(name);
     if (EVP == NULL)
         fprintf(stderr, "devcrypto: unknown cipher %s\n", name);
-    else if ((i = find_cipher_data_index(EVP_CIPHER_nid(EVP))) != (size_t)-1)
+    else if ((i = find_cipher_data_index(VR_EVP_CIPHER_nid(EVP))) != (size_t)-1)
         cipher_list[i] = 1;
     else
         fprintf(stderr, "devcrypto: cipher %s not available\n", name);
-    OPENSSL_free(name);
+    OPENVR_SSL_free(name);
     return 1;
 }
 
@@ -551,7 +551,7 @@ static void dump_cipher_info(void)
     fprintf(stderr, "CIOCGSESSINFO (session info call) unavailable\n");
 #endif
     for (i = 0; i < OSSL_NELEM(cipher_data); i++) {
-        name = OBJ_nid2sn(cipher_data[i].nid);
+        name = VR_OBJ_nid2sn(cipher_data[i].nid);
         fprintf (stderr, "Cipher %s, NID=%d, /dev/crypto info: id=%d, ",
                  name ? name : "unknown", cipher_data[i].nid,
                  cipher_data[i].devcryptoid);
@@ -605,13 +605,13 @@ static const struct digest_data_st {
     int digestlen;
     int devcryptoid;
 } digest_data[] = {
-#ifndef OPENSSL_NO_MD5
-    { NID_md5, 16, CRYPTO_MD5 },
+#ifndef OPENSSL_NO_VR_MD5
+    { NID_md5, 16, CRYPTO_VR_MD5 },
 #endif
-    { NID_sha1, 20, CRYPTO_SHA1 },
+    { NID_sha1, 20, CRYPTO_VR_SHA1 },
 #ifndef OPENSSL_NO_RMD160
-# if !defined(CHECK_BSD_STYLE_MACROS) || defined(CRYPTO_RIPEMD160)
-    { NID_ripemd160, 20, CRYPTO_RIPEMD160 },
+# if !defined(CHECK_BSD_STYLE_MACROS) || defined(CRYPTO_VR_RIPEMD160)
+    { NID_ripemd160, 20, CRYPTO_VR_RIPEMD160 },
 # endif
 #endif
 #if !defined(CHECK_BSD_STYLE_MACROS) || defined(CRYPTO_SHA2_224)
@@ -667,7 +667,7 @@ static const struct digest_data_st *get_digest_data(int nid)
 static int digest_init(EVP_MD_CTX *ctx)
 {
     struct digest_ctx *digest_ctx =
-        (struct digest_ctx *)EVP_MD_CTX_md_data(ctx);
+        (struct digest_ctx *)VR_EVP_MD_CTX_md_data(ctx);
     const struct digest_data_st *digest_d =
         get_digest_data(EVP_MD_CTX_type(ctx));
 
@@ -701,7 +701,7 @@ static int digest_op(struct digest_ctx *ctx, const void *src, size_t srclen,
 static int digest_update(EVP_MD_CTX *ctx, const void *data, size_t count)
 {
     struct digest_ctx *digest_ctx =
-        (struct digest_ctx *)EVP_MD_CTX_md_data(ctx);
+        (struct digest_ctx *)VR_EVP_MD_CTX_md_data(ctx);
 
     if (count == 0)
         return 1;
@@ -709,7 +709,7 @@ static int digest_update(EVP_MD_CTX *ctx, const void *data, size_t count)
     if (digest_ctx == NULL)
         return 0;
 
-    if (EVP_MD_CTX_test_flags(ctx, EVP_MD_CTX_FLAG_ONESHOT)) {
+    if (VR_EVP_MD_CTX_test_flags(ctx, EVP_MD_CTX_FLAG_ONESHOT)) {
         if (digest_op(digest_ctx, data, count, digest_ctx->digest_res, 0) >= 0)
             return 1;
     } else if (digest_op(digest_ctx, data, count, NULL, COP_FLAG_UPDATE) >= 0) {
@@ -723,12 +723,12 @@ static int digest_update(EVP_MD_CTX *ctx, const void *data, size_t count)
 static int digest_final(EVP_MD_CTX *ctx, unsigned char *md)
 {
     struct digest_ctx *digest_ctx =
-        (struct digest_ctx *)EVP_MD_CTX_md_data(ctx);
+        (struct digest_ctx *)VR_EVP_MD_CTX_md_data(ctx);
 
     if (md == NULL || digest_ctx == NULL)
         return 0;
 
-    if (EVP_MD_CTX_test_flags(ctx, EVP_MD_CTX_FLAG_ONESHOT)) {
+    if (VR_EVP_MD_CTX_test_flags(ctx, EVP_MD_CTX_FLAG_ONESHOT)) {
         memcpy(md, digest_ctx->digest_res, EVP_MD_CTX_size(ctx));
     } else if (digest_op(digest_ctx, NULL, 0, md, COP_FLAG_FINAL) < 0) {
         SYSerr(SYS_F_IOCTL, errno);
@@ -741,9 +741,9 @@ static int digest_final(EVP_MD_CTX *ctx, unsigned char *md)
 static int digest_copy(EVP_MD_CTX *to, const EVP_MD_CTX *from)
 {
     struct digest_ctx *digest_from =
-        (struct digest_ctx *)EVP_MD_CTX_md_data(from);
+        (struct digest_ctx *)VR_EVP_MD_CTX_md_data(from);
     struct digest_ctx *digest_to =
-        (struct digest_ctx *)EVP_MD_CTX_md_data(to);
+        (struct digest_ctx *)VR_EVP_MD_CTX_md_data(to);
     struct cphash_op cphash;
 
     if (digest_from == NULL || digest_from->init_called != 1)
@@ -766,7 +766,7 @@ static int digest_copy(EVP_MD_CTX *to, const EVP_MD_CTX *from)
 static int digest_cleanup(EVP_MD_CTX *ctx)
 {
     struct digest_ctx *digest_ctx =
-        (struct digest_ctx *)EVP_MD_CTX_md_data(ctx);
+        (struct digest_ctx *)VR_EVP_MD_CTX_md_data(ctx);
 
     if (digest_ctx == NULL)
         return 1;
@@ -809,8 +809,8 @@ static void rebuild_known_digest_nids(ENGINE *e)
         if (devcrypto_test_digest(i))
             known_digest_nids[known_digest_nids_amount++] = digest_data[i].nid;
     }
-    ENGINE_unregister_digests(e);
-    ENGINE_register_digests(e);
+    VR_ENGINE_unregister_digests(e);
+    VR_ENGINE_register_digests(e);
 }
 
 static void prepare_digest_methods(void)
@@ -870,19 +870,19 @@ static void prepare_digest_methods(void)
             digest_driver_info[i].status = DEVCRYPTO_STATUS_NO_CIOCCPHASH;
             goto finish;
         }
-        if ((known_digest_methods[i] = EVP_MD_meth_new(digest_data[i].nid,
+        if ((known_digest_methods[i] = VR_EVP_MD_meth_new(digest_data[i].nid,
                                                        NID_undef)) == NULL
-            || !EVP_MD_meth_set_result_size(known_digest_methods[i],
+            || !VR_EVP_MD_meth_set_result_size(known_digest_methods[i],
                                             digest_data[i].digestlen)
-            || !EVP_MD_meth_set_init(known_digest_methods[i], digest_init)
-            || !EVP_MD_meth_set_update(known_digest_methods[i], digest_update)
-            || !EVP_MD_meth_set_final(known_digest_methods[i], digest_final)
-            || !EVP_MD_meth_set_copy(known_digest_methods[i], digest_copy)
-            || !EVP_MD_meth_set_cleanup(known_digest_methods[i], digest_cleanup)
-            || !EVP_MD_meth_set_app_datasize(known_digest_methods[i],
+            || !VR_EVP_MD_meth_set_init(known_digest_methods[i], digest_init)
+            || !VR_EVP_MD_meth_set_update(known_digest_methods[i], digest_update)
+            || !VR_EVP_MD_meth_set_final(known_digest_methods[i], digest_final)
+            || !VR_EVP_MD_meth_set_copy(known_digest_methods[i], digest_copy)
+            || !VR_EVP_MD_meth_set_cleanup(known_digest_methods[i], digest_cleanup)
+            || !VR_EVP_MD_meth_set_app_datasize(known_digest_methods[i],
                                              sizeof(struct digest_ctx))) {
             digest_driver_info[i].status = DEVCRYPTO_STATUS_FAILURE;
-            EVP_MD_meth_free(known_digest_methods[i]);
+            VR_EVP_MD_meth_free(known_digest_methods[i]);
             known_digest_methods[i] = NULL;
             goto finish;
         }
@@ -915,7 +915,7 @@ static void destroy_digest_method(int nid)
 {
     size_t i = get_digest_data_index(nid);
 
-    EVP_MD_meth_free(known_digest_methods[i]);
+    VR_EVP_MD_meth_free(known_digest_methods[i]);
     known_digest_methods[i] = NULL;
 }
 
@@ -925,7 +925,7 @@ static void destroy_all_digest_methods(void)
 
     for (i = 0; i < OSSL_NELEM(digest_data); i++) {
         destroy_digest_method(digest_data[i].nid);
-        OPENSSL_free(digest_driver_info[i].driver_name);
+        OPENVR_SSL_free(digest_driver_info[i].driver_name);
         digest_driver_info[i].driver_name = NULL;
     }
 }
@@ -960,14 +960,14 @@ static int cryptodev_select_digest_cb(const char *str, int len, void *usr)
         return 1;
     if (usr == NULL || (name = OPENSSL_strndup(str, len)) == NULL)
         return 0;
-    EVP = EVP_get_digestbyname(name);
+    EVP = VR_EVP_get_digestbyname(name);
     if (EVP == NULL)
         fprintf(stderr, "devcrypto: unknown digest %s\n", name);
-    else if ((i = find_digest_data_index(EVP_MD_type(EVP))) != (size_t)-1)
+    else if ((i = find_digest_data_index(VR_EVP_MD_type(EVP))) != (size_t)-1)
         digest_list[i] = 1;
     else
         fprintf(stderr, "devcrypto: digest %s not available\n", name);
-    OPENSSL_free(name);
+    OPENVR_SSL_free(name);
     return 1;
 }
 
@@ -983,7 +983,7 @@ static void dump_digest_info(void)
 #endif
 
     for (i = 0; i < OSSL_NELEM(digest_data); i++) {
-        name = OBJ_nid2sn(digest_data[i].nid);
+        name = VR_OBJ_nid2sn(digest_data[i].nid);
         fprintf (stderr, "Digest %s, NID=%d, /dev/crypto info: id=%d, driver=%s",
                  name ? name : "unknown", digest_data[i].nid,
                  digest_data[i].devcryptoid,
@@ -1088,12 +1088,12 @@ static int devcrypto_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f) (void))
             memset(selected_ciphers, 0, sizeof(selected_ciphers));
         } else {
             new_list=OPENSSL_zalloc(sizeof(selected_ciphers));
-            if (!CONF_parse_list(p, ',', 1, cryptodev_select_cipher_cb, new_list)) {
-                OPENSSL_free(new_list);
+            if (!VR_CONF_parse_list(p, ',', 1, cryptodev_select_cipher_cb, new_list)) {
+                OPENVR_SSL_free(new_list);
                 return 0;
             }
             memcpy(selected_ciphers, new_list, sizeof(selected_ciphers));
-            OPENSSL_free(new_list);
+            OPENVR_SSL_free(new_list);
         }
         rebuild_known_cipher_nids(e);
         return 1;
@@ -1108,12 +1108,12 @@ static int devcrypto_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f) (void))
             memset(selected_digests, 0, sizeof(selected_digests));
         } else {
             new_list=OPENSSL_zalloc(sizeof(selected_digests));
-            if (!CONF_parse_list(p, ',', 1, cryptodev_select_digest_cb, new_list)) {
-                OPENSSL_free(new_list);
+            if (!VR_CONF_parse_list(p, ',', 1, cryptodev_select_digest_cb, new_list)) {
+                OPENVR_SSL_free(new_list);
                 return 0;
             }
             memcpy(selected_digests, new_list, sizeof(selected_digests));
-            OPENSSL_free(new_list);
+            OPENVR_SSL_free(new_list);
         }
         rebuild_known_digest_nids(e);
         return 1;
@@ -1165,9 +1165,9 @@ void engine_load_devcrypto_int()
         return;
     }
 
-    if ((e = ENGINE_new()) == NULL
-        || !ENGINE_set_destroy_function(e, devcrypto_unload)) {
-        ENGINE_free(e);
+    if ((e = VR_ENGINE_new()) == NULL
+        || !VR_ENGINE_set_destroy_function(e, devcrypto_unload)) {
+        VR_ENGINE_free(e);
         /*
          * We know that devcrypto_unload() won't be called when one of the
          * above two calls have failed, so we close cfd explicitly here to
@@ -1182,10 +1182,10 @@ void engine_load_devcrypto_int()
     prepare_digest_methods();
 #endif
 
-    if (!ENGINE_set_id(e, "devcrypto")
-        || !ENGINE_set_name(e, "/dev/crypto engine")
-        || !ENGINE_set_cmd_defns(e, devcrypto_cmds)
-        || !ENGINE_set_ctrl_function(e, devcrypto_ctrl)
+    if (!VR_ENGINE_set_id(e, "devcrypto")
+        || !VR_ENGINE_set_name(e, "/dev/crypto engine")
+        || !VR_ENGINE_set_cmd_defns(e, devcrypto_cmds)
+        || !VR_ENGINE_set_ctrl_function(e, devcrypto_ctrl)
 
 /*
  * Asymmetric ciphers aren't well supported with /dev/crypto.  Among the BSD
@@ -1209,28 +1209,28 @@ void engine_load_devcrypto_int()
  */
 #if 0
 # ifndef OPENSSL_NO_RSA
-        || !ENGINE_set_RSA(e, devcrypto_rsa)
+        || !VR_ENGINE_set_RSA(e, devcrypto_rsa)
 # endif
 # ifndef OPENSSL_NO_DSA
-        || !ENGINE_set_DSA(e, devcrypto_dsa)
+        || !VR_ENGINE_set_DSA(e, devcrypto_dsa)
 # endif
 # ifndef OPENSSL_NO_DH
-        || !ENGINE_set_DH(e, devcrypto_dh)
+        || !VR_ENGINE_set_DH(e, devcrypto_dh)
 # endif
 # ifndef OPENSSL_NO_EC
-        || !ENGINE_set_EC(e, devcrypto_ec)
+        || !VR_ENGINE_set_EC(e, devcrypto_ec)
 # endif
 #endif
-        || !ENGINE_set_ciphers(e, devcrypto_ciphers)
+        || !VR_ENGINE_set_ciphers(e, devcrypto_ciphers)
 #ifdef IMPLEMENT_DIGEST
-        || !ENGINE_set_digests(e, devcrypto_digests)
+        || !VR_ENGINE_set_digests(e, devcrypto_digests)
 #endif
         ) {
-        ENGINE_free(e);
+        VR_ENGINE_free(e);
         return;
     }
 
-    ENGINE_add(e);
-    ENGINE_free(e);          /* Loose our local reference */
-    ERR_clear_error();
+    VR_ENGINE_add(e);
+    VR_ENGINE_free(e);          /* Loose our local reference */
+    VR_ERR_clear_error();
 }

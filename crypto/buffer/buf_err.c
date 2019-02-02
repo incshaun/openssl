@@ -14,9 +14,9 @@
 #ifndef OPENSSL_NO_ERR
 
 static const ERR_STRING_DATA BUF_str_functs[] = {
-    {ERR_PACK(ERR_LIB_BUF, BUF_F_BUF_MEM_GROW, 0), "BUF_MEM_grow"},
-    {ERR_PACK(ERR_LIB_BUF, BUF_F_BUF_MEM_GROW_CLEAN, 0), "BUF_MEM_grow_clean"},
-    {ERR_PACK(ERR_LIB_BUF, BUF_F_BUF_MEM_NEW, 0), "BUF_MEM_new"},
+    {ERR_PACK(ERR_LIB_BUF, BUF_F_BUF_MEM_GROW, 0), "VR_BUF_MEM_grow"},
+    {ERR_PACK(ERR_LIB_BUF, BUF_F_BUF_MEM_GROW_CLEAN, 0), "VR_BUF_MEM_grow_clean"},
+    {ERR_PACK(ERR_LIB_BUF, BUF_F_BUF_MEM_NEW, 0), "VR_BUF_MEM_new"},
     {0, NULL}
 };
 
@@ -26,12 +26,12 @@ static const ERR_STRING_DATA BUF_str_reasons[] = {
 
 #endif
 
-int ERR_load_BUF_strings(void)
+int VR_ERR_load_BUF_strings(void)
 {
 #ifndef OPENSSL_NO_ERR
-    if (ERR_func_error_string(BUF_str_functs[0].error) == NULL) {
-        ERR_load_strings_const(BUF_str_functs);
-        ERR_load_strings_const(BUF_str_reasons);
+    if (VR_ERR_func_error_string(BUF_str_functs[0].error) == NULL) {
+        VR_ERR_load_strings_const(BUF_str_functs);
+        VR_ERR_load_strings_const(BUF_str_reasons);
     }
 #endif
     return 1;

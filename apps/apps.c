@@ -123,14 +123,14 @@ int ctx_set_verify_locations(SSL_CTX *ctx, const char *CAfile,
                              const char *CApath, int noCAfile, int noCApath)
 {
     if (CAfile == NULL && CApath == NULL) {
-        if (!noCAfile && SSL_CTX_set_default_verify_file(ctx) <= 0)
+        if (!noCAfile && VR_SSL_CTX_set_default_verify_file(ctx) <= 0)
             return 0;
-        if (!noCApath && SSL_CTX_set_default_verify_dir(ctx) <= 0)
+        if (!noCApath && VR_SSL_CTX_set_default_verify_dir(ctx) <= 0)
             return 0;
 
         return 1;
     }
-    return SSL_CTX_load_verify_locations(ctx, CAfile, CApath);
+    return VR_SSL_CTX_load_verify_locations(ctx, CAfile, CApath);
 }
 
 #ifndef OPENSSL_NO_CT
@@ -138,9 +138,9 @@ int ctx_set_verify_locations(SSL_CTX *ctx, const char *CAfile,
 int ctx_set_ctlog_list_file(SSL_CTX *ctx, const char *path)
 {
     if (path == NULL)
-        return SSL_CTX_set_default_ctlog_list_file(ctx);
+        return VR_SSL_CTX_set_default_ctlog_list_file(ctx);
 
-    return SSL_CTX_set_ctlog_list_file(ctx, path);
+    return VR_SSL_CTX_set_ctlog_list_file(ctx, path);
 }
 
 #endif
@@ -165,17 +165,17 @@ unsigned long get_nameopt(void)
 
 int dump_cert_text(BIO *out, X509 *x)
 {
-    print_name(out, "subject=", X509_get_subject_name(x), get_nameopt());
-    BIO_puts(out, "\n");
-    print_name(out, "issuer=", X509_get_issuer_name(x), get_nameopt());
-    BIO_puts(out, "\n");
+    print_name(out, "subject=", VR_X509_get_subject_name(x), get_nameopt());
+    VR_BIO_puts(out, "\n");
+    print_name(out, "issuer=", VR_X509_get_issuer_name(x), get_nameopt());
+    VR_BIO_puts(out, "\n");
 
     return 0;
 }
 
 static int ui_open(UI *ui)
 {
-    int (*opener)(UI *ui) = UI_method_get_opener(ui_fallback_method);
+    int (*opener)(UI *ui) = VR_UI_method_get_opener(ui_fallback_method);
 
     if (opener)
         return opener(ui);
@@ -186,16 +186,16 @@ static int ui_read(UI *ui, UI_STRING *uis)
 {
     int (*reader)(UI *ui, UI_STRING *uis) = NULL;
 
-    if (UI_get_input_flags(uis) & UI_INPUT_FLAG_DEFAULT_PWD
-        && UI_get0_user_data(ui)) {
-        switch (UI_get_string_type(uis)) {
+    if (VR_UI_get_input_flags(uis) & UI_INPUT_FLAG_DEFAULT_PWD
+        && VR_UI_get0_user_data(ui)) {
+        switch (VR_UI_get_string_type(uis)) {
         case UIT_PROMPT:
         case UIT_VERIFY:
             {
                 const char *password =
-                    ((PW_CB_DATA *)UI_get0_user_data(ui))->password;
+                    ((PW_CB_DATA *)VR_UI_get0_user_data(ui))->password;
                 if (password && password[0] != '\0') {
-                    UI_set_result(ui, uis, password);
+                    VR_UI_set_result(ui, uis, password);
                     return 1;
                 }
             }
@@ -208,7 +208,7 @@ static int ui_read(UI *ui, UI_STRING *uis)
         }
     }
 
-    reader = UI_method_get_reader(ui_fallback_method);
+    reader = VR_UI_method_get_reader(ui_fallback_method);
     if (reader)
         return reader(ui, uis);
     return 1;
@@ -218,14 +218,14 @@ static int ui_write(UI *ui, UI_STRING *uis)
 {
     int (*writer)(UI *ui, UI_STRING *uis) = NULL;
 
-    if (UI_get_input_flags(uis) & UI_INPUT_FLAG_DEFAULT_PWD
-        && UI_get0_user_data(ui)) {
-        switch (UI_get_string_type(uis)) {
+    if (VR_UI_get_input_flags(uis) & UI_INPUT_FLAG_DEFAULT_PWD
+        && VR_UI_get0_user_data(ui)) {
+        switch (VR_UI_get_string_type(uis)) {
         case UIT_PROMPT:
         case UIT_VERIFY:
             {
                 const char *password =
-                    ((PW_CB_DATA *)UI_get0_user_data(ui))->password;
+                    ((PW_CB_DATA *)VR_UI_get0_user_data(ui))->password;
                 if (password && password[0] != '\0')
                     return 1;
             }
@@ -238,7 +238,7 @@ static int ui_write(UI *ui, UI_STRING *uis)
         }
     }
 
-    writer = UI_method_get_writer(ui_fallback_method);
+    writer = VR_UI_method_get_writer(ui_fallback_method);
     if (writer)
         return writer(ui, uis);
     return 1;
@@ -246,7 +246,7 @@ static int ui_write(UI *ui, UI_STRING *uis)
 
 static int ui_close(UI *ui)
 {
-    int (*closer)(UI *ui) = UI_method_get_closer(ui_fallback_method);
+    int (*closer)(UI *ui) = VR_UI_method_get_closer(ui_fallback_method);
 
     if (closer)
         return closer(ui);
@@ -255,22 +255,22 @@ static int ui_close(UI *ui)
 
 int setup_ui_method(void)
 {
-    ui_fallback_method = UI_null();
+    ui_fallback_method = VR_UI_null();
 #ifndef OPENSSL_NO_UI_CONSOLE
-    ui_fallback_method = UI_OpenSSL();
+    ui_fallback_method = VR_UI_OpenSSL();
 #endif
-    ui_method = UI_create_method("OpenSSL application user interface");
-    UI_method_set_opener(ui_method, ui_open);
-    UI_method_set_reader(ui_method, ui_read);
-    UI_method_set_writer(ui_method, ui_write);
-    UI_method_set_closer(ui_method, ui_close);
+    ui_method = VR_UI_create_method("OpenSSL application user interface");
+    VR_UI_method_set_opener(ui_method, ui_open);
+    VR_UI_method_set_reader(ui_method, ui_read);
+    VR_UI_method_set_writer(ui_method, ui_write);
+    VR_UI_method_set_closer(ui_method, ui_close);
     return 0;
 }
 
 void destroy_ui_method(void)
 {
     if (ui_method) {
-        UI_destroy_method(ui_method);
+        VR_UI_destroy_method(ui_method);
         ui_method = NULL;
     }
 }
@@ -290,54 +290,54 @@ int password_callback(char *buf, int bufsiz, int verify, PW_CB_DATA *cb_data)
     const char *prompt_info = NULL;
     char *prompt;
 
-    if ((ui = UI_new_method(ui_method)) == NULL)
+    if ((ui = VR_UI_new_method(ui_method)) == NULL)
         return 0;
 
     if (cb_data != NULL && cb_data->prompt_info != NULL)
         prompt_info = cb_data->prompt_info;
-    prompt = UI_construct_prompt(ui, "pass phrase", prompt_info);
+    prompt = VR_UI_construct_prompt(ui, "pass phrase", prompt_info);
     if (prompt == NULL) {
-        BIO_printf(bio_err, "Out of memory\n");
-        UI_free(ui);
+        VR_BIO_printf(bio_err, "Out of memory\n");
+        VR_UI_free(ui);
         return 0;
     }
 
     ui_flags |= UI_INPUT_FLAG_DEFAULT_PWD;
-    UI_ctrl(ui, UI_CTRL_PRINT_ERRORS, 1, 0, 0);
+    VR_UI_ctrl(ui, UI_CTRL_PRINT_ERRORS, 1, 0, 0);
 
     /* We know that there is no previous user data to return to us */
-    (void)UI_add_user_data(ui, cb_data);
+    (void)VR_UI_add_user_data(ui, cb_data);
 
-    ok = UI_add_input_string(ui, prompt, ui_flags, buf,
+    ok = VR_UI_add_input_string(ui, prompt, ui_flags, buf,
                              PW_MIN_LENGTH, bufsiz - 1);
 
     if (ok >= 0 && verify) {
         buff = app_malloc(bufsiz, "password buffer");
-        ok = UI_add_verify_string(ui, prompt, ui_flags, buff,
+        ok = VR_UI_add_verify_string(ui, prompt, ui_flags, buff,
                                   PW_MIN_LENGTH, bufsiz - 1, buf);
     }
     if (ok >= 0)
         do {
-            ok = UI_process(ui);
-        } while (ok < 0 && UI_ctrl(ui, UI_CTRL_IS_REDOABLE, 0, 0, 0));
+            ok = VR_UI_process(ui);
+        } while (ok < 0 && VR_UI_ctrl(ui, UI_CTRL_IS_REDOABLE, 0, 0, 0));
 
-    OPENSSL_clear_free(buff, (unsigned int)bufsiz);
+    OPENVR_SSL_clear_free(buff, (unsigned int)bufsiz);
 
     if (ok >= 0)
         res = strlen(buf);
     if (ok == -1) {
-        BIO_printf(bio_err, "User interface error\n");
-        ERR_print_errors(bio_err);
-        OPENSSL_cleanse(buf, (unsigned int)bufsiz);
+        VR_BIO_printf(bio_err, "User interface error\n");
+        VR_ERR_print_errors(bio_err);
+        VR_OPENSSL_cleanse(buf, (unsigned int)bufsiz);
         res = 0;
     }
     if (ok == -2) {
-        BIO_printf(bio_err, "aborted!\n");
-        OPENSSL_cleanse(buf, (unsigned int)bufsiz);
+        VR_BIO_printf(bio_err, "aborted!\n");
+        VR_OPENSSL_cleanse(buf, (unsigned int)bufsiz);
         res = 0;
     }
-    UI_free(ui);
-    OPENSSL_free(prompt);
+    VR_UI_free(ui);
+    OPENVR_SSL_free(prompt);
     return res;
 }
 
@@ -380,22 +380,22 @@ static char *app_get_pass(const char *arg, int keepbio)
     if (strncmp(arg, "env:", 4) == 0) {
         tmp = getenv(arg + 4);
         if (tmp == NULL) {
-            BIO_printf(bio_err, "No environment variable %s\n", arg + 4);
+            VR_BIO_printf(bio_err, "No environment variable %s\n", arg + 4);
             return NULL;
         }
         return OPENSSL_strdup(tmp);
     }
     if (!keepbio || pwdbio == NULL) {
         if (strncmp(arg, "file:", 5) == 0) {
-            pwdbio = BIO_new_file(arg + 5, "r");
+            pwdbio = VR_BIO_new_file(arg + 5, "r");
             if (pwdbio == NULL) {
-                BIO_printf(bio_err, "Can't open file %s\n", arg + 5);
+                VR_BIO_printf(bio_err, "Can't open file %s\n", arg + 5);
                 return NULL;
             }
 #if !defined(_WIN32)
             /*
              * Under _WIN32, which covers even Win64 and CE, file
-             * descriptors referenced by BIO_s_fd are not inherited
+             * descriptors referenced by VR_BIO_s_fd are not inherited
              * by child process and therefore below is not an option.
              * It could have been an option if bss_fd.c was operating
              * on real Windows descriptors, such as those obtained
@@ -405,35 +405,35 @@ static char *app_get_pass(const char *arg, int keepbio)
             BIO *btmp;
             i = atoi(arg + 3);
             if (i >= 0)
-                pwdbio = BIO_new_fd(i, BIO_NOCLOSE);
+                pwdbio = VR_BIO_new_fd(i, BIO_NOCLOSE);
             if ((i < 0) || !pwdbio) {
-                BIO_printf(bio_err, "Can't access file descriptor %s\n", arg + 3);
+                VR_BIO_printf(bio_err, "Can't access file descriptor %s\n", arg + 3);
                 return NULL;
             }
             /*
-             * Can't do BIO_gets on an fd BIO so add a buffering BIO
+             * Can't do VR_BIO_gets on an fd BIO so add a buffering BIO
              */
-            btmp = BIO_new(BIO_f_buffer());
-            pwdbio = BIO_push(btmp, pwdbio);
+            btmp = VR_BIO_new(VR_BIO_f_buffer());
+            pwdbio = VR_BIO_push(btmp, pwdbio);
 #endif
         } else if (strcmp(arg, "stdin") == 0) {
             pwdbio = dup_bio_in(FORMAT_TEXT);
             if (!pwdbio) {
-                BIO_printf(bio_err, "Can't open BIO for stdin\n");
+                VR_BIO_printf(bio_err, "Can't open BIO for stdin\n");
                 return NULL;
             }
         } else {
-            BIO_printf(bio_err, "Invalid password argument \"%s\"\n", arg);
+            VR_BIO_printf(bio_err, "Invalid password argument \"%s\"\n", arg);
             return NULL;
         }
     }
-    i = BIO_gets(pwdbio, tpass, APP_PASS_LEN);
+    i = VR_BIO_gets(pwdbio, tpass, APP_PASS_LEN);
     if (keepbio != 1) {
-        BIO_free_all(pwdbio);
+        VR_BIO_free_all(pwdbio);
         pwdbio = NULL;
     }
     if (i <= 0) {
-        BIO_printf(bio_err, "Error reading password from BIO\n");
+        VR_BIO_printf(bio_err, "Error reading password from BIO\n");
         return NULL;
     }
     tmp = strchr(tpass, '\n');
@@ -448,23 +448,23 @@ CONF *app_load_config_bio(BIO *in, const char *filename)
     CONF *conf;
     int i;
 
-    conf = NCONF_new(NULL);
-    i = NCONF_load_bio(conf, in, &errorline);
+    conf = VR_NCONF_new(NULL);
+    i = VR_NCONF_load_bio(conf, in, &errorline);
     if (i > 0)
         return conf;
 
     if (errorline <= 0) {
-        BIO_printf(bio_err, "%s: Can't load ", opt_getprog());
+        VR_BIO_printf(bio_err, "%s: Can't load ", opt_getprog());
     } else {
-        BIO_printf(bio_err, "%s: Error on line %ld of ", opt_getprog(),
+        VR_BIO_printf(bio_err, "%s: Error on line %ld of ", opt_getprog(),
                    errorline);
     }
     if (filename != NULL)
-        BIO_printf(bio_err, "config file \"%s\"\n", filename);
+        VR_BIO_printf(bio_err, "config file \"%s\"\n", filename);
     else
-        BIO_printf(bio_err, "config input");
+        VR_BIO_printf(bio_err, "config input");
 
-    NCONF_free(conf);
+    VR_NCONF_free(conf);
     return NULL;
 }
 
@@ -478,7 +478,7 @@ CONF *app_load_config(const char *filename)
         return NULL;
 
     conf = app_load_config_bio(in, filename);
-    BIO_free(in);
+    VR_BIO_free(in);
     return conf;
 }
 
@@ -492,7 +492,7 @@ CONF *app_load_config_quiet(const char *filename)
         return NULL;
 
     conf = app_load_config_bio(in, filename);
-    BIO_free(in);
+    VR_BIO_free(in);
     return conf;
 }
 
@@ -505,13 +505,13 @@ int app_load_modules(const CONF *config)
     if (config == NULL)
         return 1;
 
-    if (CONF_modules_load(config, NULL, 0) <= 0) {
-        BIO_printf(bio_err, "Error configuring OpenSSL modules\n");
-        ERR_print_errors(bio_err);
-        NCONF_free(to_free);
+    if (VR_CONF_modules_load(config, NULL, 0) <= 0) {
+        VR_BIO_printf(bio_err, "Error configuring OpenSSL modules\n");
+        VR_ERR_print_errors(bio_err);
+        VR_NCONF_free(to_free);
         return 0;
     }
-    NCONF_free(to_free);
+    VR_NCONF_free(to_free);
     return 1;
 }
 
@@ -522,18 +522,18 @@ int add_oid_section(CONF *conf)
     CONF_VALUE *cnf;
     int i;
 
-    if ((p = NCONF_get_string(conf, NULL, "oid_section")) == NULL) {
-        ERR_clear_error();
+    if ((p = VR_NCONF_get_string(conf, NULL, "oid_section")) == NULL) {
+        VR_ERR_clear_error();
         return 1;
     }
-    if ((sktmp = NCONF_get_section(conf, p)) == NULL) {
-        BIO_printf(bio_err, "problem loading oid section %s\n", p);
+    if ((sktmp = VR_NCONF_get_section(conf, p)) == NULL) {
+        VR_BIO_printf(bio_err, "problem loading oid section %s\n", p);
         return 0;
     }
     for (i = 0; i < sk_CONF_VALUE_num(sktmp); i++) {
         cnf = sk_CONF_VALUE_value(sktmp, i);
-        if (OBJ_create(cnf->value, cnf->name, cnf->name) == NID_undef) {
-            BIO_printf(bio_err, "problem creating object %s=%s\n",
+        if (VR_OBJ_create(cnf->value, cnf->name, cnf->name) == NID_undef) {
+            VR_BIO_printf(bio_err, "problem creating object %s=%s\n",
                        cnf->name, cnf->value);
             return 0;
         }
@@ -549,35 +549,35 @@ static int load_pkcs12(BIO *in, const char *desc,
     char tpass[PEM_BUFSIZE];
     int len, ret = 0;
     PKCS12 *p12;
-    p12 = d2i_PKCS12_bio(in, NULL);
+    p12 = VR_d2i_PKCS12_bio(in, NULL);
     if (p12 == NULL) {
-        BIO_printf(bio_err, "Error loading PKCS12 file for %s\n", desc);
+        VR_BIO_printf(bio_err, "Error loading PKCS12 file for %s\n", desc);
         goto die;
     }
     /* See if an empty password will do */
-    if (PKCS12_verify_mac(p12, "", 0) || PKCS12_verify_mac(p12, NULL, 0)) {
+    if (VR_PKCS12_verify_mac(p12, "", 0) || VR_PKCS12_verify_mac(p12, NULL, 0)) {
         pass = "";
     } else {
         if (!pem_cb)
             pem_cb = (pem_password_cb *)password_callback;
         len = pem_cb(tpass, PEM_BUFSIZE, 0, cb_data);
         if (len < 0) {
-            BIO_printf(bio_err, "Passphrase callback error for %s\n", desc);
+            VR_BIO_printf(bio_err, "Passphrase callback error for %s\n", desc);
             goto die;
         }
         if (len < PEM_BUFSIZE)
             tpass[len] = 0;
-        if (!PKCS12_verify_mac(p12, tpass, len)) {
-            BIO_printf(bio_err,
+        if (!VR_PKCS12_verify_mac(p12, tpass, len)) {
+            VR_BIO_printf(bio_err,
                        "Mac verify error (wrong password?) in PKCS12 file for %s\n",
                        desc);
             goto die;
         }
         pass = tpass;
     }
-    ret = PKCS12_parse(p12, pass, pkey, cert, ca);
+    ret = VR_PKCS12_parse(p12, pass, pkey, cert, ca);
  die:
-    PKCS12_free(p12);
+    VR_PKCS12_free(p12);
     return ret;
 }
 
@@ -588,42 +588,42 @@ static int load_cert_crl_http(const char *url, X509 **pcert, X509_CRL **pcrl)
     BIO *bio = NULL;
     OCSP_REQ_CTX *rctx = NULL;
     int use_ssl, rv = 0;
-    if (!OCSP_parse_url(url, &host, &port, &path, &use_ssl))
+    if (!VR_OCSP_parse_url(url, &host, &port, &path, &use_ssl))
         goto err;
     if (use_ssl) {
-        BIO_puts(bio_err, "https not supported\n");
+        VR_BIO_puts(bio_err, "https not supported\n");
         goto err;
     }
-    bio = BIO_new_connect(host);
+    bio = VR_BIO_new_connect(host);
     if (!bio || !BIO_set_conn_port(bio, port))
         goto err;
-    rctx = OCSP_REQ_CTX_new(bio, 1024);
+    rctx = VR_OCSP_REQ_CTX_new(bio, 1024);
     if (rctx == NULL)
         goto err;
-    if (!OCSP_REQ_CTX_http(rctx, "GET", path))
+    if (!VR_OCSP_REQ_CTX_http(rctx, "GET", path))
         goto err;
-    if (!OCSP_REQ_CTX_add1_header(rctx, "Host", host))
+    if (!VR_OCSP_REQ_CTX_add1_header(rctx, "Host", host))
         goto err;
     if (pcert) {
         do {
-            rv = X509_http_nbio(rctx, pcert);
+            rv = VR_X509_http_nbio(rctx, pcert);
         } while (rv == -1);
     } else {
         do {
-            rv = X509_CRL_http_nbio(rctx, pcrl);
+            rv = VR_X509_CRL_http_nbio(rctx, pcrl);
         } while (rv == -1);
     }
 
  err:
-    OPENSSL_free(host);
-    OPENSSL_free(path);
-    OPENSSL_free(port);
-    BIO_free_all(bio);
-    OCSP_REQ_CTX_free(rctx);
+    OPENVR_SSL_free(host);
+    OPENVR_SSL_free(path);
+    OPENVR_SSL_free(port);
+    VR_BIO_free_all(bio);
+    VR_OCSP_REQ_CTX_free(rctx);
     if (rv != 1) {
-        BIO_printf(bio_err, "Error loading %s from %s\n",
+        VR_BIO_printf(bio_err, "Error loading %s from %s\n",
                    pcert ? "certificate" : "CRL", url);
-        ERR_print_errors(bio_err);
+        VR_ERR_print_errors(bio_err);
     }
     return rv;
 }
@@ -651,23 +651,23 @@ X509 *load_cert(const char *file, int format, const char *cert_descrip)
         goto end;
 
     if (format == FORMAT_ASN1) {
-        x = d2i_X509_bio(cert, NULL);
+        x = VR_d2i_X509_bio(cert, NULL);
     } else if (format == FORMAT_PEM) {
-        x = PEM_read_bio_X509_AUX(cert, NULL,
+        x = VR_PEM_read_bio_X509_AUX(cert, NULL,
                                   (pem_password_cb *)password_callback, NULL);
     } else if (format == FORMAT_PKCS12) {
         if (!load_pkcs12(cert, cert_descrip, NULL, NULL, NULL, &x, NULL))
             goto end;
     } else {
-        BIO_printf(bio_err, "bad input format specified for %s\n", cert_descrip);
+        VR_BIO_printf(bio_err, "bad input format specified for %s\n", cert_descrip);
         goto end;
     }
  end:
     if (x == NULL) {
-        BIO_printf(bio_err, "unable to load certificate\n");
-        ERR_print_errors(bio_err);
+        VR_BIO_printf(bio_err, "unable to load certificate\n");
+        VR_ERR_print_errors(bio_err);
     }
-    BIO_free(cert);
+    VR_BIO_free(cert);
     return x;
 }
 
@@ -687,21 +687,21 @@ X509_CRL *load_crl(const char *infile, int format)
     if (in == NULL)
         goto end;
     if (format == FORMAT_ASN1) {
-        x = d2i_X509_CRL_bio(in, NULL);
+        x = VR_d2i_X509_CRL_bio(in, NULL);
     } else if (format == FORMAT_PEM) {
-        x = PEM_read_bio_X509_CRL(in, NULL, NULL, NULL);
+        x = VR_PEM_read_bio_X509_CRL(in, NULL, NULL, NULL);
     } else {
-        BIO_printf(bio_err, "bad input format specified for input crl\n");
+        VR_BIO_printf(bio_err, "bad input format specified for input crl\n");
         goto end;
     }
     if (x == NULL) {
-        BIO_printf(bio_err, "unable to load CRL\n");
-        ERR_print_errors(bio_err);
+        VR_BIO_printf(bio_err, "unable to load CRL\n");
+        VR_ERR_print_errors(bio_err);
         goto end;
     }
 
  end:
-    BIO_free(in);
+    VR_BIO_free(in);
     return x;
 }
 
@@ -716,24 +716,24 @@ EVP_PKEY *load_key(const char *file, int format, int maybe_stdin,
     cb_data.prompt_info = file;
 
     if (file == NULL && (!maybe_stdin || format == FORMAT_ENGINE)) {
-        BIO_printf(bio_err, "no keyfile specified\n");
+        VR_BIO_printf(bio_err, "no keyfile specified\n");
         goto end;
     }
     if (format == FORMAT_ENGINE) {
         if (e == NULL) {
-            BIO_printf(bio_err, "no engine specified\n");
+            VR_BIO_printf(bio_err, "no engine specified\n");
         } else {
 #ifndef OPENSSL_NO_ENGINE
-            if (ENGINE_init(e)) {
-                pkey = ENGINE_load_private_key(e, file, ui_method, &cb_data);
-                ENGINE_finish(e);
+            if (VR_ENGINE_init(e)) {
+                pkey = VR_ENGINE_load_private_key(e, file, ui_method, &cb_data);
+                VR_ENGINE_finish(e);
             }
             if (pkey == NULL) {
-                BIO_printf(bio_err, "cannot load %s from engine\n", key_descrip);
-                ERR_print_errors(bio_err);
+                VR_BIO_printf(bio_err, "cannot load %s from engine\n", key_descrip);
+                VR_ERR_print_errors(bio_err);
             }
 #else
-            BIO_printf(bio_err, "engines not supported\n");
+            VR_BIO_printf(bio_err, "engines not supported\n");
 #endif
         }
         goto end;
@@ -747,28 +747,28 @@ EVP_PKEY *load_key(const char *file, int format, int maybe_stdin,
     if (key == NULL)
         goto end;
     if (format == FORMAT_ASN1) {
-        pkey = d2i_PrivateKey_bio(key, NULL);
+        pkey = VR_d2i_PrivateKey_bio(key, NULL);
     } else if (format == FORMAT_PEM) {
-        pkey = PEM_read_bio_PrivateKey(key, NULL, wrap_password_callback, &cb_data);
+        pkey = VR_PEM_read_bio_PrivateKey(key, NULL, wrap_password_callback, &cb_data);
     } else if (format == FORMAT_PKCS12) {
         if (!load_pkcs12(key, key_descrip, wrap_password_callback, &cb_data,
                          &pkey, NULL, NULL))
             goto end;
-#if !defined(OPENSSL_NO_RSA) && !defined(OPENSSL_NO_DSA) && !defined (OPENSSL_NO_RC4)
+#if !defined(OPENSSL_NO_RSA) && !defined(OPENSSL_NO_DSA) && !defined (OPENSSL_NO_VR_RC4)
     } else if (format == FORMAT_MSBLOB) {
-        pkey = b2i_PrivateKey_bio(key);
+        pkey = VR_b2i_PrivateKey_bio(key);
     } else if (format == FORMAT_PVK) {
-        pkey = b2i_PVK_bio(key, wrap_password_callback, &cb_data);
+        pkey = VR_b2i_PVK_bio(key, wrap_password_callback, &cb_data);
 #endif
     } else {
-        BIO_printf(bio_err, "bad input format specified for key file\n");
+        VR_BIO_printf(bio_err, "bad input format specified for key file\n");
         goto end;
     }
  end:
-    BIO_free(key);
+    VR_BIO_free(key);
     if (pkey == NULL) {
-        BIO_printf(bio_err, "unable to load %s\n", key_descrip);
-        ERR_print_errors(bio_err);
+        VR_BIO_printf(bio_err, "unable to load %s\n", key_descrip);
+        VR_ERR_print_errors(bio_err);
     }
     return pkey;
 }
@@ -784,21 +784,21 @@ EVP_PKEY *load_pubkey(const char *file, int format, int maybe_stdin,
     cb_data.prompt_info = file;
 
     if (file == NULL && (!maybe_stdin || format == FORMAT_ENGINE)) {
-        BIO_printf(bio_err, "no keyfile specified\n");
+        VR_BIO_printf(bio_err, "no keyfile specified\n");
         goto end;
     }
     if (format == FORMAT_ENGINE) {
         if (e == NULL) {
-            BIO_printf(bio_err, "no engine specified\n");
+            VR_BIO_printf(bio_err, "no engine specified\n");
         } else {
 #ifndef OPENSSL_NO_ENGINE
-            pkey = ENGINE_load_public_key(e, file, ui_method, &cb_data);
+            pkey = VR_ENGINE_load_public_key(e, file, ui_method, &cb_data);
             if (pkey == NULL) {
-                BIO_printf(bio_err, "cannot load %s from engine\n", key_descrip);
-                ERR_print_errors(bio_err);
+                VR_BIO_printf(bio_err, "cannot load %s from engine\n", key_descrip);
+                VR_ERR_print_errors(bio_err);
             }
 #else
-            BIO_printf(bio_err, "engines not supported\n");
+            VR_BIO_printf(bio_err, "engines not supported\n");
 #endif
         }
         goto end;
@@ -812,50 +812,50 @@ EVP_PKEY *load_pubkey(const char *file, int format, int maybe_stdin,
     if (key == NULL)
         goto end;
     if (format == FORMAT_ASN1) {
-        pkey = d2i_PUBKEY_bio(key, NULL);
+        pkey = VR_d2i_PUBKEY_bio(key, NULL);
     } else if (format == FORMAT_ASN1RSA) {
 #ifndef OPENSSL_NO_RSA
         RSA *rsa;
-        rsa = d2i_RSAPublicKey_bio(key, NULL);
+        rsa = VR_d2i_RSAPublicKey_bio(key, NULL);
         if (rsa) {
-            pkey = EVP_PKEY_new();
+            pkey = VR_EVP_PKEY_new();
             if (pkey != NULL)
-                EVP_PKEY_set1_RSA(pkey, rsa);
-            RSA_free(rsa);
+                VR_EVP_PKEY_set1_RSA(pkey, rsa);
+            VR_RSA_free(rsa);
         } else
 #else
-        BIO_printf(bio_err, "RSA keys not supported\n");
+        VR_BIO_printf(bio_err, "RSA keys not supported\n");
 #endif
             pkey = NULL;
     } else if (format == FORMAT_PEMRSA) {
 #ifndef OPENSSL_NO_RSA
         RSA *rsa;
-        rsa = PEM_read_bio_RSAPublicKey(key, NULL,
+        rsa = VR_PEM_read_bio_RSAPublicKey(key, NULL,
                                         (pem_password_cb *)password_callback,
                                         &cb_data);
         if (rsa != NULL) {
-            pkey = EVP_PKEY_new();
+            pkey = VR_EVP_PKEY_new();
             if (pkey != NULL)
-                EVP_PKEY_set1_RSA(pkey, rsa);
-            RSA_free(rsa);
+                VR_EVP_PKEY_set1_RSA(pkey, rsa);
+            VR_RSA_free(rsa);
         } else
 #else
-        BIO_printf(bio_err, "RSA keys not supported\n");
+        VR_BIO_printf(bio_err, "RSA keys not supported\n");
 #endif
             pkey = NULL;
     } else if (format == FORMAT_PEM) {
-        pkey = PEM_read_bio_PUBKEY(key, NULL,
+        pkey = VR_PEM_read_bio_PUBKEY(key, NULL,
                                    (pem_password_cb *)password_callback,
                                    &cb_data);
 #if !defined(OPENSSL_NO_RSA) && !defined(OPENSSL_NO_DSA)
     } else if (format == FORMAT_MSBLOB) {
-        pkey = b2i_PublicKey_bio(key);
+        pkey = VR_b2i_PublicKey_bio(key);
 #endif
     }
  end:
-    BIO_free(key);
+    VR_BIO_free(key);
     if (pkey == NULL)
-        BIO_printf(bio_err, "unable to load %s\n", key_descrip);
+        VR_BIO_printf(bio_err, "unable to load %s\n", key_descrip);
     return pkey;
 }
 
@@ -875,7 +875,7 @@ static int load_certs_crls(const char *file, int format,
     cb_data.prompt_info = file;
 
     if (format != FORMAT_PEM) {
-        BIO_printf(bio_err, "bad input format specified for %s\n", desc);
+        VR_BIO_printf(bio_err, "bad input format specified for %s\n", desc);
         return 0;
     }
 
@@ -883,20 +883,20 @@ static int load_certs_crls(const char *file, int format,
     if (bio == NULL)
         return 0;
 
-    xis = PEM_X509_INFO_read_bio(bio, NULL,
+    xis = VR_PEM_X509_INFO_read_bio(bio, NULL,
                                  (pem_password_cb *)password_callback,
                                  &cb_data);
 
-    BIO_free(bio);
+    VR_BIO_free(bio);
 
     if (pcerts != NULL && *pcerts == NULL) {
-        *pcerts = sk_X509_new_null();
+        *pcerts = sk_VR_X509_new_null();
         if (*pcerts == NULL)
             goto end;
     }
 
     if (pcrls != NULL && *pcrls == NULL) {
-        *pcrls = sk_X509_CRL_new_null();
+        *pcrls = sk_VR_X509_CRL_new_null();
         if (*pcrls == NULL)
             goto end;
     }
@@ -904,12 +904,12 @@ static int load_certs_crls(const char *file, int format,
     for (i = 0; i < sk_X509_INFO_num(xis); i++) {
         xi = sk_X509_INFO_value(xis, i);
         if (xi->x509 != NULL && pcerts != NULL) {
-            if (!sk_X509_push(*pcerts, xi->x509))
+            if (!sk_VR_X509_push(*pcerts, xi->x509))
                 goto end;
             xi->x509 = NULL;
         }
         if (xi->crl != NULL && pcrls != NULL) {
-            if (!sk_X509_CRL_push(*pcrls, xi->crl))
+            if (!sk_VR_X509_CRL_push(*pcrls, xi->crl))
                 goto end;
             xi->crl = NULL;
         }
@@ -923,20 +923,20 @@ static int load_certs_crls(const char *file, int format,
 
  end:
 
-    sk_X509_INFO_pop_free(xis, X509_INFO_free);
+    sk_VR_X509_INFO_pop_free(xis, VR_X509_INFO_free);
 
     if (rv == 0) {
         if (pcerts != NULL) {
-            sk_X509_pop_free(*pcerts, X509_free);
+            sk_VR_X509_pop_free(*pcerts, VR_X509_free);
             *pcerts = NULL;
         }
         if (pcrls != NULL) {
-            sk_X509_CRL_pop_free(*pcrls, X509_CRL_free);
+            sk_VR_X509_CRL_pop_free(*pcrls, VR_X509_CRL_free);
             *pcrls = NULL;
         }
-        BIO_printf(bio_err, "unable to load %s\n",
+        VR_BIO_printf(bio_err, "unable to load %s\n",
                    pcerts ? "certificates" : "CRLs");
-        ERR_print_errors(bio_err);
+        VR_ERR_print_errors(bio_err);
     }
     return rv;
 }
@@ -946,9 +946,9 @@ void* app_malloc(int sz, const char *what)
     void *vp = OPENSSL_malloc(sz);
 
     if (vp == NULL) {
-        BIO_printf(bio_err, "%s: Could not allocate %d bytes for %s\n",
+        VR_BIO_printf(bio_err, "%s: Could not allocate %d bytes for %s\n",
                 opt_getprog(), sz, what);
-        ERR_print_errors(bio_err);
+        VR_ERR_print_errors(bio_err);
         exit(1);
     }
     return vp;
@@ -979,7 +979,7 @@ int load_crls(const char *file, STACK_OF(X509_CRL) **crls, int format,
 #define X509V3_EXT_ERROR_UNKNOWN        (1L << 16)
 /* ASN1 parse unknown extensions */
 #define X509V3_EXT_PARSE_UNKNOWN        (2L << 16)
-/* BIO_dump unknown extensions */
+/* VR_BIO_dump unknown extensions */
 #define X509V3_EXT_DUMP_UNKNOWN         (3L << 16)
 
 #define X509_FLAG_CA (X509_FLAG_NO_ISSUER | X509_FLAG_NO_PUBKEY | \
@@ -1073,12 +1073,12 @@ int copy_extensions(X509 *x, X509_REQ *req, int copy_type)
     int i, idx, ret = 0;
     if (!x || !req || (copy_type == EXT_COPY_NONE))
         return 1;
-    exts = X509_REQ_get_extensions(req);
+    exts = VR_X509_REQ_get_extensions(req);
 
     for (i = 0; i < sk_X509_EXTENSION_num(exts); i++) {
         ext = sk_X509_EXTENSION_value(exts, i);
-        obj = X509_EXTENSION_get_object(ext);
-        idx = X509_get_ext_by_OBJ(x, obj, -1);
+        obj = VR_X509_EXTENSION_get_object(ext);
+        idx = VR_X509_get_ext_by_OBJ(x, obj, -1);
         /* Does extension exist? */
         if (idx != -1) {
             /* If normal copy don't override existing extension */
@@ -1086,13 +1086,13 @@ int copy_extensions(X509 *x, X509_REQ *req, int copy_type)
                 continue;
             /* Delete all extensions of same type */
             do {
-                tmpext = X509_get_ext(x, idx);
-                X509_delete_ext(x, idx);
-                X509_EXTENSION_free(tmpext);
-                idx = X509_get_ext_by_OBJ(x, obj, -1);
+                tmpext = VR_X509_get_ext(x, idx);
+                VR_X509_delete_ext(x, idx);
+                VR_X509_EXTENSION_free(tmpext);
+                idx = VR_X509_get_ext_by_OBJ(x, obj, -1);
             } while (idx != -1);
         }
-        if (!X509_add_ext(x, ext, -1))
+        if (!VR_X509_add_ext(x, ext, -1))
             goto end;
     }
 
@@ -1100,7 +1100,7 @@ int copy_extensions(X509 *x, X509_REQ *req, int copy_type)
 
  end:
 
-    sk_X509_EXTENSION_pop_free(exts, X509_EXTENSION_free);
+    sk_VR_X509_EXTENSION_pop_free(exts, VR_X509_EXTENSION_free);
 
     return ret;
 }
@@ -1113,13 +1113,13 @@ static int set_multi_opts(unsigned long *flags, const char *arg,
     int i, ret = 1;
     if (!arg)
         return 0;
-    vals = X509V3_parse_list(arg);
+    vals = VR_X509V3_parse_list(arg);
     for (i = 0; i < sk_CONF_VALUE_num(vals); i++) {
         val = sk_CONF_VALUE_value(vals, i);
         if (!set_table_opts(flags, val->name, in_tbl))
             ret = 0;
     }
-    sk_CONF_VALUE_pop_free(vals, X509V3_conf_free);
+    sk_VR_CONF_VALUE_pop_free(vals, VR_X509V3_conf_free);
     return ret;
 }
 
@@ -1161,76 +1161,76 @@ void print_name(BIO *out, const char *title, X509_NAME *nm,
     int indent = 0;
 
     if (title)
-        BIO_puts(out, title);
+        VR_BIO_puts(out, title);
     if ((lflags & XN_FLAG_SEP_MASK) == XN_FLAG_SEP_MULTILINE) {
         mline = 1;
         indent = 4;
     }
     if (lflags == XN_FLAG_COMPAT) {
-        buf = X509_NAME_oneline(nm, 0, 0);
-        BIO_puts(out, buf);
-        BIO_puts(out, "\n");
-        OPENSSL_free(buf);
+        buf = VR_X509_NAME_oneline(nm, 0, 0);
+        VR_BIO_puts(out, buf);
+        VR_BIO_puts(out, "\n");
+        OPENVR_SSL_free(buf);
     } else {
         if (mline)
-            BIO_puts(out, "\n");
-        X509_NAME_print_ex(out, nm, indent, lflags);
-        BIO_puts(out, "\n");
+            VR_BIO_puts(out, "\n");
+        VR_X509_NAME_print_ex(out, nm, indent, lflags);
+        VR_BIO_puts(out, "\n");
     }
 }
 
 void print_bignum_var(BIO *out, const BIGNUM *in, const char *var,
                       int len, unsigned char *buffer)
 {
-    BIO_printf(out, "    static unsigned char %s_%d[] = {", var, len);
-    if (BN_is_zero(in)) {
-        BIO_printf(out, "\n        0x00");
+    VR_BIO_printf(out, "    static unsigned char %s_%d[] = {", var, len);
+    if (VR_BN_is_zero(in)) {
+        VR_BIO_printf(out, "\n        0x00");
     } else {
         int i, l;
 
-        l = BN_bn2bin(in, buffer);
+        l = VR_BN_bn2bin(in, buffer);
         for (i = 0; i < l; i++) {
-            BIO_printf(out, (i % 10) == 0 ? "\n        " : " ");
+            VR_BIO_printf(out, (i % 10) == 0 ? "\n        " : " ");
             if (i < l - 1)
-                BIO_printf(out, "0x%02X,", buffer[i]);
+                VR_BIO_printf(out, "0x%02X,", buffer[i]);
             else
-                BIO_printf(out, "0x%02X", buffer[i]);
+                VR_BIO_printf(out, "0x%02X", buffer[i]);
         }
     }
-    BIO_printf(out, "\n    };\n");
+    VR_BIO_printf(out, "\n    };\n");
 }
 
 void print_array(BIO *out, const char* title, int len, const unsigned char* d)
 {
     int i;
 
-    BIO_printf(out, "unsigned char %s[%d] = {", title, len);
+    VR_BIO_printf(out, "unsigned char %s[%d] = {", title, len);
     for (i = 0; i < len; i++) {
         if ((i % 10) == 0)
-            BIO_printf(out, "\n    ");
+            VR_BIO_printf(out, "\n    ");
         if (i < len - 1)
-            BIO_printf(out, "0x%02X, ", d[i]);
+            VR_BIO_printf(out, "0x%02X, ", d[i]);
         else
-            BIO_printf(out, "0x%02X", d[i]);
+            VR_BIO_printf(out, "0x%02X", d[i]);
     }
-    BIO_printf(out, "\n};\n");
+    VR_BIO_printf(out, "\n};\n");
 }
 
 X509_STORE *setup_verify(const char *CAfile, const char *CApath, int noCAfile, int noCApath)
 {
-    X509_STORE *store = X509_STORE_new();
+    X509_STORE *store = VR_X509_STORE_new();
     X509_LOOKUP *lookup;
 
     if (store == NULL)
         goto end;
 
     if (CAfile != NULL || !noCAfile) {
-        lookup = X509_STORE_add_lookup(store, X509_LOOKUP_file());
+        lookup = VR_X509_STORE_add_lookup(store, VR_X509_LOOKUP_file());
         if (lookup == NULL)
             goto end;
         if (CAfile) {
             if (!X509_LOOKUP_load_file(lookup, CAfile, X509_FILETYPE_PEM)) {
-                BIO_printf(bio_err, "Error loading file %s\n", CAfile);
+                VR_BIO_printf(bio_err, "Error loading file %s\n", CAfile);
                 goto end;
             }
         } else {
@@ -1239,12 +1239,12 @@ X509_STORE *setup_verify(const char *CAfile, const char *CApath, int noCAfile, i
     }
 
     if (CApath != NULL || !noCApath) {
-        lookup = X509_STORE_add_lookup(store, X509_LOOKUP_hash_dir());
+        lookup = VR_X509_STORE_add_lookup(store, VR_X509_LOOKUP_hash_dir());
         if (lookup == NULL)
             goto end;
         if (CApath) {
             if (!X509_LOOKUP_add_dir(lookup, CApath, X509_FILETYPE_PEM)) {
-                BIO_printf(bio_err, "Error loading directory %s\n", CApath);
+                VR_BIO_printf(bio_err, "Error loading directory %s\n", CApath);
                 goto end;
             }
         } else {
@@ -1252,10 +1252,10 @@ X509_STORE *setup_verify(const char *CAfile, const char *CApath, int noCAfile, i
         }
     }
 
-    ERR_clear_error();
+    VR_ERR_clear_error();
     return store;
  end:
-    X509_STORE_free(store);
+    VR_X509_STORE_free(store);
     return NULL;
 }
 
@@ -1263,11 +1263,11 @@ X509_STORE *setup_verify(const char *CAfile, const char *CApath, int noCAfile, i
 /* Try to load an engine in a shareable library */
 static ENGINE *try_load_engine(const char *engine)
 {
-    ENGINE *e = ENGINE_by_id("dynamic");
+    ENGINE *e = VR_ENGINE_by_id("dynamic");
     if (e) {
-        if (!ENGINE_ctrl_cmd_string(e, "SO_PATH", engine, 0)
-            || !ENGINE_ctrl_cmd_string(e, "LOAD", NULL, 0)) {
-            ENGINE_free(e);
+        if (!VR_ENGINE_ctrl_cmd_string(e, "SO_PATH", engine, 0)
+            || !VR_ENGINE_ctrl_cmd_string(e, "LOAD", NULL, 0)) {
+            VR_ENGINE_free(e);
             e = NULL;
         }
     }
@@ -1282,28 +1282,28 @@ ENGINE *setup_engine(const char *engine, int debug)
 #ifndef OPENSSL_NO_ENGINE
     if (engine != NULL) {
         if (strcmp(engine, "auto") == 0) {
-            BIO_printf(bio_err, "enabling auto ENGINE support\n");
-            ENGINE_register_all_complete();
+            VR_BIO_printf(bio_err, "enabling auto ENGINE support\n");
+            VR_ENGINE_register_all_complete();
             return NULL;
         }
-        if ((e = ENGINE_by_id(engine)) == NULL
+        if ((e = VR_ENGINE_by_id(engine)) == NULL
             && (e = try_load_engine(engine)) == NULL) {
-            BIO_printf(bio_err, "invalid engine \"%s\"\n", engine);
-            ERR_print_errors(bio_err);
+            VR_BIO_printf(bio_err, "invalid engine \"%s\"\n", engine);
+            VR_ERR_print_errors(bio_err);
             return NULL;
         }
         if (debug) {
-            ENGINE_ctrl(e, ENGINE_CTRL_SET_LOGSTREAM, 0, bio_err, 0);
+            VR_ENGINE_ctrl(e, ENGINE_CTRL_SET_LOGSTREAM, 0, bio_err, 0);
         }
-        ENGINE_ctrl_cmd(e, "SET_USER_INTERFACE", 0, ui_method, 0, 1);
-        if (!ENGINE_set_default(e, ENGINE_METHOD_ALL)) {
-            BIO_printf(bio_err, "can't use that engine\n");
-            ERR_print_errors(bio_err);
-            ENGINE_free(e);
+        VR_ENGINE_ctrl_cmd(e, "SET_USER_INTERFACE", 0, ui_method, 0, 1);
+        if (!VR_ENGINE_set_default(e, ENGINE_METHOD_ALL)) {
+            VR_BIO_printf(bio_err, "can't use that engine\n");
+            VR_ERR_print_errors(bio_err);
+            VR_ENGINE_free(e);
             return NULL;
         }
 
-        BIO_printf(bio_err, "engine \"%s\" set.\n", ENGINE_get_id(e));
+        VR_BIO_printf(bio_err, "engine \"%s\" set.\n", VR_ENGINE_get_id(e));
     }
 #endif
     return e;
@@ -1314,7 +1314,7 @@ void release_engine(ENGINE *e)
 #ifndef OPENSSL_NO_ENGINE
     if (e != NULL)
         /* Free our "structural" reference. */
-        ENGINE_free(e);
+        VR_ENGINE_free(e);
 #endif
 }
 
@@ -1325,7 +1325,7 @@ static unsigned long index_serial_hash(const OPENSSL_CSTRING *a)
     n = a[DB_serial];
     while (*n == '0')
         n++;
-    return OPENSSL_LH_strhash(n);
+    return VR_OPENSSL_LH_strhash(n);
 }
 
 static int index_serial_cmp(const OPENSSL_CSTRING *a,
@@ -1345,7 +1345,7 @@ static int index_name_qual(char **a)
 
 static unsigned long index_name_hash(const OPENSSL_CSTRING *a)
 {
-    return OPENSSL_LH_strhash(a[DB_name]);
+    return VR_OPENSSL_LH_strhash(a[DB_name]);
 }
 
 int index_name_cmp(const OPENSSL_CSTRING *a, const OPENSSL_CSTRING *b)
@@ -1366,29 +1366,29 @@ BIGNUM *load_serial(const char *serialfile, int create, ASN1_INTEGER **retai)
     char buf[1024];
     ASN1_INTEGER *ai = NULL;
 
-    ai = ASN1_INTEGER_new();
+    ai = VR_ASN1_INTEGER_new();
     if (ai == NULL)
         goto err;
 
-    in = BIO_new_file(serialfile, "r");
+    in = VR_BIO_new_file(serialfile, "r");
     if (in == NULL) {
         if (!create) {
             perror(serialfile);
             goto err;
         }
-        ERR_clear_error();
-        ret = BN_new();
+        VR_ERR_clear_error();
+        ret = VR_BN_new();
         if (ret == NULL || !rand_serial(ret, ai))
-            BIO_printf(bio_err, "Out of memory\n");
+            VR_BIO_printf(bio_err, "Out of memory\n");
     } else {
-        if (!a2i_ASN1_INTEGER(in, ai, buf, 1024)) {
-            BIO_printf(bio_err, "unable to load number from %s\n",
+        if (!VR_a2i_ASN1_INTEGER(in, ai, buf, 1024)) {
+            VR_BIO_printf(bio_err, "unable to load number from %s\n",
                        serialfile);
             goto err;
         }
-        ret = ASN1_INTEGER_to_BN(ai, NULL);
+        ret = VR_ASN1_INTEGER_to_BN(ai, NULL);
         if (ret == NULL) {
-            BIO_printf(bio_err,
+            VR_BIO_printf(bio_err,
                        "error converting number from bin to BIGNUM\n");
             goto err;
         }
@@ -1399,8 +1399,8 @@ BIGNUM *load_serial(const char *serialfile, int create, ASN1_INTEGER **retai)
         ai = NULL;
     }
  err:
-    BIO_free(in);
-    ASN1_INTEGER_free(ai);
+    VR_BIO_free(in);
+    VR_ASN1_INTEGER_free(ai);
     return ret;
 }
 
@@ -1418,39 +1418,39 @@ int save_serial(const char *serialfile, const char *suffix, const BIGNUM *serial
     else
         j = strlen(serialfile) + strlen(suffix) + 1;
     if (j >= BSIZE) {
-        BIO_printf(bio_err, "file name too long\n");
+        VR_BIO_printf(bio_err, "file name too long\n");
         goto err;
     }
 
     if (suffix == NULL)
-        OPENSSL_strlcpy(buf[0], serialfile, BSIZE);
+        VR_OPENSSL_strlcpy(buf[0], serialfile, BSIZE);
     else {
 #ifndef OPENSSL_SYS_VMS
-        j = BIO_snprintf(buf[0], sizeof(buf[0]), "%s.%s", serialfile, suffix);
+        j = VR_BIO_snprintf(buf[0], sizeof(buf[0]), "%s.%s", serialfile, suffix);
 #else
-        j = BIO_snprintf(buf[0], sizeof(buf[0]), "%s-%s", serialfile, suffix);
+        j = VR_BIO_snprintf(buf[0], sizeof(buf[0]), "%s-%s", serialfile, suffix);
 #endif
     }
-    out = BIO_new_file(buf[0], "w");
+    out = VR_BIO_new_file(buf[0], "w");
     if (out == NULL) {
-        ERR_print_errors(bio_err);
+        VR_ERR_print_errors(bio_err);
         goto err;
     }
 
-    if ((ai = BN_to_ASN1_INTEGER(serial, NULL)) == NULL) {
-        BIO_printf(bio_err, "error converting serial to ASN.1 format\n");
+    if ((ai = VR_BN_to_ASN1_INTEGER(serial, NULL)) == NULL) {
+        VR_BIO_printf(bio_err, "error converting serial to ASN.1 format\n");
         goto err;
     }
-    i2a_ASN1_INTEGER(out, ai);
-    BIO_puts(out, "\n");
+    VR_i2a_ASN1_INTEGER(out, ai);
+    VR_BIO_puts(out, "\n");
     ret = 1;
     if (retai) {
         *retai = ai;
         ai = NULL;
     }
  err:
-    BIO_free_all(out);
-    ASN1_INTEGER_free(ai);
+    VR_BIO_free_all(out);
+    VR_ASN1_INTEGER_free(ai);
     return ret;
 }
 
@@ -1465,28 +1465,28 @@ int rotate_serial(const char *serialfile, const char *new_suffix,
     if (i > j)
         j = i;
     if (j + 1 >= BSIZE) {
-        BIO_printf(bio_err, "file name too long\n");
+        VR_BIO_printf(bio_err, "file name too long\n");
         goto err;
     }
 #ifndef OPENSSL_SYS_VMS
-    j = BIO_snprintf(buf[0], sizeof(buf[0]), "%s.%s", serialfile, new_suffix);
-    j = BIO_snprintf(buf[1], sizeof(buf[1]), "%s.%s", serialfile, old_suffix);
+    j = VR_BIO_snprintf(buf[0], sizeof(buf[0]), "%s.%s", serialfile, new_suffix);
+    j = VR_BIO_snprintf(buf[1], sizeof(buf[1]), "%s.%s", serialfile, old_suffix);
 #else
-    j = BIO_snprintf(buf[0], sizeof(buf[0]), "%s-%s", serialfile, new_suffix);
-    j = BIO_snprintf(buf[1], sizeof(buf[1]), "%s-%s", serialfile, old_suffix);
+    j = VR_BIO_snprintf(buf[0], sizeof(buf[0]), "%s-%s", serialfile, new_suffix);
+    j = VR_BIO_snprintf(buf[1], sizeof(buf[1]), "%s-%s", serialfile, old_suffix);
 #endif
     if (rename(serialfile, buf[1]) < 0 && errno != ENOENT
 #ifdef ENOTDIR
         && errno != ENOTDIR
 #endif
         ) {
-        BIO_printf(bio_err,
+        VR_BIO_printf(bio_err,
                    "unable to rename %s to %s\n", serialfile, buf[1]);
         perror("reason");
         goto err;
     }
     if (rename(buf[0], serialfile) < 0) {
-        BIO_printf(bio_err,
+        VR_BIO_printf(bio_err,
                    "unable to rename %s to %s\n", buf[0], serialfile);
         perror("reason");
         rename(buf[1], serialfile);
@@ -1502,13 +1502,13 @@ int rand_serial(BIGNUM *b, ASN1_INTEGER *ai)
     BIGNUM *btmp;
     int ret = 0;
 
-    btmp = b == NULL ? BN_new() : b;
+    btmp = b == NULL ? VR_BN_new() : b;
     if (btmp == NULL)
         return 0;
 
-    if (!BN_rand(btmp, SERIAL_RAND_BITS, BN_RAND_TOP_ANY, BN_RAND_BOTTOM_ANY))
+    if (!VR_BN_rand(btmp, SERIAL_RAND_BITS, BN_RAND_TOP_ANY, BN_RAND_BOTTOM_ANY))
         goto error;
-    if (ai && !BN_to_ASN1_INTEGER(btmp, ai))
+    if (ai && !VR_BN_to_ASN1_INTEGER(btmp, ai))
         goto error;
 
     ret = 1;
@@ -1516,7 +1516,7 @@ int rand_serial(BIGNUM *b, ASN1_INTEGER *ai)
  error:
 
     if (btmp != b)
-        BN_free(btmp);
+        VR_BN_free(btmp);
 
     return ret;
 }
@@ -1533,9 +1533,9 @@ CA_DB *load_index(const char *dbfile, DB_ATTR *db_attr)
     struct stat dbst;
 #endif
 
-    in = BIO_new_file(dbfile, "r");
+    in = VR_BIO_new_file(dbfile, "r");
     if (in == NULL) {
-        ERR_print_errors(bio_err);
+        VR_ERR_print_errors(bio_err);
         goto err;
     }
 
@@ -1543,19 +1543,19 @@ CA_DB *load_index(const char *dbfile, DB_ATTR *db_attr)
     BIO_get_fp(in, &dbfp);
     if (fstat(fileno(dbfp), &dbst) == -1) {
         SYSerr(SYS_F_FSTAT, errno);
-        ERR_add_error_data(3, "fstat('", dbfile, "')");
-        ERR_print_errors(bio_err);
+        VR_ERR_add_error_data(3, "fstat('", dbfile, "')");
+        VR_ERR_print_errors(bio_err);
         goto err;
     }
 #endif
 
-    if ((tmpdb = TXT_DB_read(in, DB_NUMBER)) == NULL)
+    if ((tmpdb = VR_TXT_DB_read(in, DB_NUMBER)) == NULL)
         goto err;
 
 #ifndef OPENSSL_SYS_VMS
-    BIO_snprintf(buf, sizeof(buf), "%s.attr", dbfile);
+    VR_BIO_snprintf(buf, sizeof(buf), "%s.attr", dbfile);
 #else
-    BIO_snprintf(buf, sizeof(buf), "%s-attr", dbfile);
+    VR_BIO_snprintf(buf, sizeof(buf), "%s-attr", dbfile);
 #endif
     dbattr_conf = app_load_config_quiet(buf);
 
@@ -1569,7 +1569,7 @@ CA_DB *load_index(const char *dbfile, DB_ATTR *db_attr)
     }
 
     if (dbattr_conf) {
-        char *p = NCONF_get_string(dbattr_conf, NULL, "unique_subject");
+        char *p = VR_NCONF_get_string(dbattr_conf, NULL, "unique_subject");
         if (p) {
             retdb->attributes.unique_subject = parse_yesno(p, 1);
         }
@@ -1581,9 +1581,9 @@ CA_DB *load_index(const char *dbfile, DB_ATTR *db_attr)
 #endif
 
  err:
-    NCONF_free(dbattr_conf);
-    TXT_DB_free(tmpdb);
-    BIO_free_all(in);
+    VR_NCONF_free(dbattr_conf);
+    VR_TXT_DB_free(tmpdb);
+    VR_BIO_free_all(in);
     return retdb;
 }
 
@@ -1592,20 +1592,20 @@ CA_DB *load_index(const char *dbfile, DB_ATTR *db_attr)
  */
 int index_index(CA_DB *db)
 {
-    if (!TXT_DB_create_index(db->db, DB_serial, NULL,
+    if (!VR_TXT_DB_create_index(db->db, DB_serial, NULL,
                              LHASH_HASH_FN(index_serial),
                              LHASH_COMP_FN(index_serial))) {
-        BIO_printf(bio_err,
+        VR_BIO_printf(bio_err,
                    "error creating serial number index:(%ld,%ld,%ld)\n",
                    db->db->error, db->db->arg1, db->db->arg2);
         return 0;
     }
 
     if (db->attributes.unique_subject
-        && !TXT_DB_create_index(db->db, DB_name, index_name_qual,
+        && !VR_TXT_DB_create_index(db->db, DB_name, index_name_qual,
                                 LHASH_HASH_FN(index_name),
                                 LHASH_COMP_FN(index_name))) {
-        BIO_printf(bio_err, "error creating name index:(%ld,%ld,%ld)\n",
+        VR_BIO_printf(bio_err, "error creating name index:(%ld,%ld,%ld)\n",
                    db->db->error, db->db->arg1, db->db->arg2);
         return 0;
     }
@@ -1620,38 +1620,38 @@ int save_index(const char *dbfile, const char *suffix, CA_DB *db)
 
     j = strlen(dbfile) + strlen(suffix);
     if (j + 6 >= BSIZE) {
-        BIO_printf(bio_err, "file name too long\n");
+        VR_BIO_printf(bio_err, "file name too long\n");
         goto err;
     }
 #ifndef OPENSSL_SYS_VMS
-    j = BIO_snprintf(buf[2], sizeof(buf[2]), "%s.attr", dbfile);
-    j = BIO_snprintf(buf[1], sizeof(buf[1]), "%s.attr.%s", dbfile, suffix);
-    j = BIO_snprintf(buf[0], sizeof(buf[0]), "%s.%s", dbfile, suffix);
+    j = VR_BIO_snprintf(buf[2], sizeof(buf[2]), "%s.attr", dbfile);
+    j = VR_BIO_snprintf(buf[1], sizeof(buf[1]), "%s.attr.%s", dbfile, suffix);
+    j = VR_BIO_snprintf(buf[0], sizeof(buf[0]), "%s.%s", dbfile, suffix);
 #else
-    j = BIO_snprintf(buf[2], sizeof(buf[2]), "%s-attr", dbfile);
-    j = BIO_snprintf(buf[1], sizeof(buf[1]), "%s-attr-%s", dbfile, suffix);
-    j = BIO_snprintf(buf[0], sizeof(buf[0]), "%s-%s", dbfile, suffix);
+    j = VR_BIO_snprintf(buf[2], sizeof(buf[2]), "%s-attr", dbfile);
+    j = VR_BIO_snprintf(buf[1], sizeof(buf[1]), "%s-attr-%s", dbfile, suffix);
+    j = VR_BIO_snprintf(buf[0], sizeof(buf[0]), "%s-%s", dbfile, suffix);
 #endif
-    out = BIO_new_file(buf[0], "w");
+    out = VR_BIO_new_file(buf[0], "w");
     if (out == NULL) {
         perror(dbfile);
-        BIO_printf(bio_err, "unable to open '%s'\n", dbfile);
+        VR_BIO_printf(bio_err, "unable to open '%s'\n", dbfile);
         goto err;
     }
-    j = TXT_DB_write(out, db->db);
-    BIO_free(out);
+    j = VR_TXT_DB_write(out, db->db);
+    VR_BIO_free(out);
     if (j <= 0)
         goto err;
 
-    out = BIO_new_file(buf[1], "w");
+    out = VR_BIO_new_file(buf[1], "w");
     if (out == NULL) {
         perror(buf[2]);
-        BIO_printf(bio_err, "unable to open '%s'\n", buf[2]);
+        VR_BIO_printf(bio_err, "unable to open '%s'\n", buf[2]);
         goto err;
     }
-    BIO_printf(out, "unique_subject = %s\n",
+    VR_BIO_printf(out, "unique_subject = %s\n",
                db->attributes.unique_subject ? "yes" : "no");
-    BIO_free(out);
+    VR_BIO_free(out);
 
     return 1;
  err:
@@ -1669,33 +1669,33 @@ int rotate_index(const char *dbfile, const char *new_suffix,
     if (i > j)
         j = i;
     if (j + 6 >= BSIZE) {
-        BIO_printf(bio_err, "file name too long\n");
+        VR_BIO_printf(bio_err, "file name too long\n");
         goto err;
     }
 #ifndef OPENSSL_SYS_VMS
-    j = BIO_snprintf(buf[4], sizeof(buf[4]), "%s.attr", dbfile);
-    j = BIO_snprintf(buf[3], sizeof(buf[3]), "%s.attr.%s", dbfile, old_suffix);
-    j = BIO_snprintf(buf[2], sizeof(buf[2]), "%s.attr.%s", dbfile, new_suffix);
-    j = BIO_snprintf(buf[1], sizeof(buf[1]), "%s.%s", dbfile, old_suffix);
-    j = BIO_snprintf(buf[0], sizeof(buf[0]), "%s.%s", dbfile, new_suffix);
+    j = VR_BIO_snprintf(buf[4], sizeof(buf[4]), "%s.attr", dbfile);
+    j = VR_BIO_snprintf(buf[3], sizeof(buf[3]), "%s.attr.%s", dbfile, old_suffix);
+    j = VR_BIO_snprintf(buf[2], sizeof(buf[2]), "%s.attr.%s", dbfile, new_suffix);
+    j = VR_BIO_snprintf(buf[1], sizeof(buf[1]), "%s.%s", dbfile, old_suffix);
+    j = VR_BIO_snprintf(buf[0], sizeof(buf[0]), "%s.%s", dbfile, new_suffix);
 #else
-    j = BIO_snprintf(buf[4], sizeof(buf[4]), "%s-attr", dbfile);
-    j = BIO_snprintf(buf[3], sizeof(buf[3]), "%s-attr-%s", dbfile, old_suffix);
-    j = BIO_snprintf(buf[2], sizeof(buf[2]), "%s-attr-%s", dbfile, new_suffix);
-    j = BIO_snprintf(buf[1], sizeof(buf[1]), "%s-%s", dbfile, old_suffix);
-    j = BIO_snprintf(buf[0], sizeof(buf[0]), "%s-%s", dbfile, new_suffix);
+    j = VR_BIO_snprintf(buf[4], sizeof(buf[4]), "%s-attr", dbfile);
+    j = VR_BIO_snprintf(buf[3], sizeof(buf[3]), "%s-attr-%s", dbfile, old_suffix);
+    j = VR_BIO_snprintf(buf[2], sizeof(buf[2]), "%s-attr-%s", dbfile, new_suffix);
+    j = VR_BIO_snprintf(buf[1], sizeof(buf[1]), "%s-%s", dbfile, old_suffix);
+    j = VR_BIO_snprintf(buf[0], sizeof(buf[0]), "%s-%s", dbfile, new_suffix);
 #endif
     if (rename(dbfile, buf[1]) < 0 && errno != ENOENT
 #ifdef ENOTDIR
         && errno != ENOTDIR
 #endif
         ) {
-        BIO_printf(bio_err, "unable to rename %s to %s\n", dbfile, buf[1]);
+        VR_BIO_printf(bio_err, "unable to rename %s to %s\n", dbfile, buf[1]);
         perror("reason");
         goto err;
     }
     if (rename(buf[0], dbfile) < 0) {
-        BIO_printf(bio_err, "unable to rename %s to %s\n", buf[0], dbfile);
+        VR_BIO_printf(bio_err, "unable to rename %s to %s\n", buf[0], dbfile);
         perror("reason");
         rename(buf[1], dbfile);
         goto err;
@@ -1705,14 +1705,14 @@ int rotate_index(const char *dbfile, const char *new_suffix,
         && errno != ENOTDIR
 #endif
         ) {
-        BIO_printf(bio_err, "unable to rename %s to %s\n", buf[4], buf[3]);
+        VR_BIO_printf(bio_err, "unable to rename %s to %s\n", buf[4], buf[3]);
         perror("reason");
         rename(dbfile, buf[0]);
         rename(buf[1], dbfile);
         goto err;
     }
     if (rename(buf[2], buf[4]) < 0) {
-        BIO_printf(bio_err, "unable to rename %s to %s\n", buf[2], buf[4]);
+        VR_BIO_printf(bio_err, "unable to rename %s to %s\n", buf[2], buf[4]);
         perror("reason");
         rename(buf[3], buf[4]);
         rename(dbfile, buf[0]);
@@ -1727,9 +1727,9 @@ int rotate_index(const char *dbfile, const char *new_suffix,
 void free_index(CA_DB *db)
 {
     if (db) {
-        TXT_DB_free(db->db);
-        OPENSSL_free(db->dbfname);
-        OPENSSL_free(db);
+        VR_TXT_DB_free(db->db);
+        OPENVR_SSL_free(db->dbfname);
+        OPENVR_SSL_free(db);
     }
 }
 
@@ -1765,7 +1765,7 @@ X509_NAME *parse_name(const char *cp, long chtype, int canmulti)
     X509_NAME *n;
 
     if (*cp++ != '/') {
-        BIO_printf(bio_err,
+        VR_BIO_printf(bio_err,
                    "name is expected to be in the format "
                    "/type0=value0/type1=value1/type2=... where characters may "
                    "be escaped by \\. This name is not in that format: '%s'\n",
@@ -1773,7 +1773,7 @@ X509_NAME *parse_name(const char *cp, long chtype, int canmulti)
         return NULL;
     }
 
-    n = X509_NAME_new();
+    n = VR_X509_NAME_new();
     if (n == NULL)
         return NULL;
     work = OPENSSL_strdup(cp);
@@ -1792,7 +1792,7 @@ X509_NAME *parse_name(const char *cp, long chtype, int canmulti)
         while (*cp && *cp != '=')
             *bp++ = *cp++;
         if (*cp == '\0') {
-            BIO_printf(bio_err,
+            VR_BIO_printf(bio_err,
                     "%s: Hit end of string before finding the equals.\n",
                     opt_getprog());
             goto err;
@@ -1808,7 +1808,7 @@ X509_NAME *parse_name(const char *cp, long chtype, int canmulti)
                 break;
             }
             if (*cp == '\\' && *++cp == '\0') {
-                BIO_printf(bio_err,
+                VR_BIO_printf(bio_err,
                         "%s: escape character at end of string\n",
                         opt_getprog());
                 goto err;
@@ -1821,30 +1821,30 @@ X509_NAME *parse_name(const char *cp, long chtype, int canmulti)
             ++cp;
 
         /* Parse */
-        nid = OBJ_txt2nid(typestr);
+        nid = VR_OBJ_txt2nid(typestr);
         if (nid == NID_undef) {
-            BIO_printf(bio_err, "%s: Skipping unknown attribute \"%s\"\n",
+            VR_BIO_printf(bio_err, "%s: Skipping unknown attribute \"%s\"\n",
                       opt_getprog(), typestr);
             continue;
         }
         if (*valstr == '\0') {
-            BIO_printf(bio_err,
+            VR_BIO_printf(bio_err,
                        "%s: No value provided for Subject Attribute %s, skipped\n",
                        opt_getprog(), typestr);
             continue;
         }
-        if (!X509_NAME_add_entry_by_NID(n, nid, chtype,
+        if (!VR_X509_NAME_add_entry_by_NID(n, nid, chtype,
                                         valstr, strlen((char *)valstr),
                                         -1, ismulti ? -1 : 0))
             goto err;
     }
 
-    OPENSSL_free(work);
+    OPENVR_SSL_free(work);
     return n;
 
  err:
-    X509_NAME_free(n);
-    OPENSSL_free(work);
+    VR_X509_NAME_free(n);
+    OPENVR_SSL_free(work);
     return NULL;
 }
 
@@ -1859,7 +1859,7 @@ int bio_to_mem(unsigned char **out, int maxlen, BIO *in)
     int len, ret;
     unsigned char tbuf[1024];
 
-    mem = BIO_new(BIO_s_mem());
+    mem = VR_BIO_new(VR_BIO_s_mem());
     if (mem == NULL)
         return -1;
     for (;;) {
@@ -1867,15 +1867,15 @@ int bio_to_mem(unsigned char **out, int maxlen, BIO *in)
             len = maxlen;
         else
             len = 1024;
-        len = BIO_read(in, tbuf, len);
+        len = VR_BIO_read(in, tbuf, len);
         if (len < 0) {
-            BIO_free(mem);
+            VR_BIO_free(mem);
             return -1;
         }
         if (len == 0)
             break;
-        if (BIO_write(mem, tbuf, len) != len) {
-            BIO_free(mem);
+        if (VR_BIO_write(mem, tbuf, len) != len) {
+            VR_BIO_free(mem);
             return -1;
         }
         maxlen -= len;
@@ -1884,8 +1884,8 @@ int bio_to_mem(unsigned char **out, int maxlen, BIO *in)
             break;
     }
     ret = BIO_get_mem_data(mem, (char **)out);
-    BIO_set_flags(mem, BIO_FLAGS_MEM_RDONLY);
-    BIO_free(mem);
+    VR_BIO_set_flags(mem, BIO_FLAGS_MEM_RDONLY);
+    VR_BIO_free(mem);
     return ret;
 }
 
@@ -1901,8 +1901,8 @@ int pkey_ctrl_string(EVP_PKEY_CTX *ctx, const char *value)
         *vtmp = 0;
         vtmp++;
     }
-    rv = EVP_PKEY_CTX_ctrl_str(ctx, stmp, vtmp);
-    OPENSSL_free(stmp);
+    rv = VR_EVP_PKEY_CTX_ctrl_str(ctx, stmp, vtmp);
+    OPENVR_SSL_free(stmp);
     return rv;
 }
 
@@ -1911,15 +1911,15 @@ static void nodes_print(const char *name, STACK_OF(X509_POLICY_NODE) *nodes)
     X509_POLICY_NODE *node;
     int i;
 
-    BIO_printf(bio_err, "%s Policies:", name);
+    VR_BIO_printf(bio_err, "%s Policies:", name);
     if (nodes) {
-        BIO_puts(bio_err, "\n");
+        VR_BIO_puts(bio_err, "\n");
         for (i = 0; i < sk_X509_POLICY_NODE_num(nodes); i++) {
             node = sk_X509_POLICY_NODE_value(nodes, i);
-            X509_POLICY_NODE_print(bio_err, node, 2);
+            VR_X509_POLICY_NODE_print(bio_err, node, 2);
         }
     } else {
-        BIO_puts(bio_err, " <empty>\n");
+        VR_BIO_puts(bio_err, " <empty>\n");
     }
 }
 
@@ -1927,14 +1927,14 @@ void policies_print(X509_STORE_CTX *ctx)
 {
     X509_POLICY_TREE *tree;
     int explicit_policy;
-    tree = X509_STORE_CTX_get0_policy_tree(ctx);
-    explicit_policy = X509_STORE_CTX_get_explicit_policy(ctx);
+    tree = VR_X509_STORE_CTX_get0_policy_tree(ctx);
+    explicit_policy = VR_X509_STORE_CTX_get_explicit_policy(ctx);
 
-    BIO_printf(bio_err, "Require explicit Policy: %s\n",
+    VR_BIO_printf(bio_err, "Require explicit Policy: %s\n",
                explicit_policy ? "True" : "False");
 
-    nodes_print("Authority", X509_policy_tree_get0_policies(tree));
-    nodes_print("User", X509_policy_tree_get0_user_policies(tree));
+    nodes_print("Authority", VR_X509_policy_tree_get0_policies(tree));
+    nodes_print("User", VR_X509_policy_tree_get0_user_policies(tree));
 }
 
 /*-
@@ -1960,7 +1960,7 @@ unsigned char *next_protos_parse(size_t *outlen, const char *in)
     for (i = 0; i <= len; ++i) {
         if (i == len || in[i] == ',') {
             if (i - start > 255) {
-                OPENSSL_free(out);
+                OPENVR_SSL_free(out);
                 return NULL;
             }
             out[start] = (unsigned char)(i - start);
@@ -1981,21 +1981,21 @@ void print_cert_checks(BIO *bio, X509 *x,
     if (x == NULL)
         return;
     if (checkhost) {
-        BIO_printf(bio, "Hostname %s does%s match certificate\n",
+        VR_BIO_printf(bio, "Hostname %s does%s match certificate\n",
                    checkhost,
-                   X509_check_host(x, checkhost, 0, 0, NULL) == 1
+                   VR_X509_check_host(x, checkhost, 0, 0, NULL) == 1
                        ? "" : " NOT");
     }
 
     if (checkemail) {
-        BIO_printf(bio, "Email %s does%s match certificate\n",
-                   checkemail, X509_check_email(x, checkemail, 0, 0)
+        VR_BIO_printf(bio, "Email %s does%s match certificate\n",
+                   checkemail, VR_X509_check_email(x, checkemail, 0, 0)
                    ? "" : " NOT");
     }
 
     if (checkip) {
-        BIO_printf(bio, "IP %s does%s match certificate\n",
-                   checkip, X509_check_ip_asc(x, checkip, 0) ? "" : " NOT");
+        VR_BIO_printf(bio, "IP %s does%s match certificate\n",
+                   checkip, VR_X509_check_ip_asc(x, checkip, 0) ? "" : " NOT");
     }
 }
 
@@ -2012,9 +2012,9 @@ static const char *get_dp_url(DIST_POINT *dp)
     gens = dp->distpoint->name.fullname;
     for (i = 0; i < sk_GENERAL_NAME_num(gens); i++) {
         gen = sk_GENERAL_NAME_value(gens, i);
-        uri = GENERAL_NAME_get0_value(gen, &gtype);
-        if (gtype == GEN_URI && ASN1_STRING_length(uri) > 6) {
-            const char *uptr = (const char *)ASN1_STRING_get0_data(uri);
+        uri = VR_GENERAL_NAME_get0_value(gen, &gtype);
+        if (gtype == GEN_URI && VR_ASN1_STRING_length(uri) > 6) {
+            const char *uptr = (const char *)VR_ASN1_STRING_get0_data(uri);
             if (strncmp(uptr, "http://", 7) == 0)
                 return uptr;
         }
@@ -2053,30 +2053,30 @@ static STACK_OF(X509_CRL) *crls_http_cb(X509_STORE_CTX *ctx, X509_NAME *nm)
     X509_CRL *crl;
     STACK_OF(DIST_POINT) *crldp;
 
-    crls = sk_X509_CRL_new_null();
+    crls = sk_VR_X509_CRL_new_null();
     if (!crls)
         return NULL;
-    x = X509_STORE_CTX_get_current_cert(ctx);
-    crldp = X509_get_ext_d2i(x, NID_crl_distribution_points, NULL, NULL);
+    x = VR_X509_STORE_CTX_get_current_cert(ctx);
+    crldp = VR_X509_get_ext_d2i(x, NID_crl_distribution_points, NULL, NULL);
     crl = load_crl_crldp(crldp);
-    sk_DIST_POINT_pop_free(crldp, DIST_POINT_free);
+    sk_VR_DIST_POINT_pop_free(crldp, VR_DIST_POINT_free);
     if (!crl) {
-        sk_X509_CRL_free(crls);
+        sk_VR_X509_CRL_free(crls);
         return NULL;
     }
-    sk_X509_CRL_push(crls, crl);
+    sk_VR_X509_CRL_push(crls, crl);
     /* Try to download delta CRL */
-    crldp = X509_get_ext_d2i(x, NID_freshest_crl, NULL, NULL);
+    crldp = VR_X509_get_ext_d2i(x, NID_freshest_crl, NULL, NULL);
     crl = load_crl_crldp(crldp);
-    sk_DIST_POINT_pop_free(crldp, DIST_POINT_free);
+    sk_VR_DIST_POINT_pop_free(crldp, VR_DIST_POINT_free);
     if (crl)
-        sk_X509_CRL_push(crls, crl);
+        sk_VR_X509_CRL_push(crls, crl);
     return crls;
 }
 
 void store_setup_crl_download(X509_STORE *st)
 {
-    X509_STORE_set_lookup_crls_cb(st, crls_http_cb);
+    VR_X509_STORE_set_lookup_crls_cb(st, crls_http_cb);
 }
 
 /*
@@ -2170,7 +2170,7 @@ double app_tminterval(int stop, int usertime)
         SYSTEMTIME systime;
 
         if (usertime && warning) {
-            BIO_printf(bio_err, "To get meaningful results, run "
+            VR_BIO_printf(bio_err, "To get meaningful results, run "
                        "this program on idle system.\n");
             warning = 0;
         }
@@ -2208,7 +2208,7 @@ double app_tminterval(int stop, int usertime)
     static int warning = 1;
 
     if (usertime && warning) {
-        BIO_printf(bio_err, "To get meaningful results, run "
+        VR_BIO_printf(bio_err, "To get meaningful results, run "
                    "this program on idle system.\n");
         warning = 0;
     }
@@ -2456,7 +2456,7 @@ static int istext(int format)
 
 BIO *dup_bio_in(int format)
 {
-    return BIO_new_fp(stdin,
+    return VR_BIO_new_fp(stdin,
                       BIO_NOCLOSE | (istext(format) ? BIO_FP_TEXT : 0));
 }
 
@@ -2464,20 +2464,20 @@ static BIO_METHOD *prefix_method = NULL;
 
 BIO *dup_bio_out(int format)
 {
-    BIO *b = BIO_new_fp(stdout,
+    BIO *b = VR_BIO_new_fp(stdout,
                         BIO_NOCLOSE | (istext(format) ? BIO_FP_TEXT : 0));
     void *prefix = NULL;
 
 #ifdef OPENSSL_SYS_VMS
     if (istext(format))
-        b = BIO_push(BIO_new(BIO_f_linebuffer()), b);
+        b = VR_BIO_push(VR_BIO_new(VR_BIO_f_linebuffer()), b);
 #endif
 
     if (istext(format) && (prefix = getenv("HARNESS_OSSL_PREFIX")) != NULL) {
         if (prefix_method == NULL)
             prefix_method = apps_bf_prefix();
-        b = BIO_push(BIO_new(prefix_method), b);
-        BIO_ctrl(b, PREFIX_CTRL_SET_PREFIX, 0, prefix);
+        b = VR_BIO_push(VR_BIO_new(prefix_method), b);
+        VR_BIO_ctrl(b, PREFIX_CTRL_SET_PREFIX, 0, prefix);
     }
 
     return b;
@@ -2485,18 +2485,18 @@ BIO *dup_bio_out(int format)
 
 BIO *dup_bio_err(int format)
 {
-    BIO *b = BIO_new_fp(stderr,
+    BIO *b = VR_BIO_new_fp(stderr,
                         BIO_NOCLOSE | (istext(format) ? BIO_FP_TEXT : 0));
 #ifdef OPENSSL_SYS_VMS
     if (istext(format))
-        b = BIO_push(BIO_new(BIO_f_linebuffer()), b);
+        b = VR_BIO_push(VR_BIO_new(VR_BIO_f_linebuffer()), b);
 #endif
     return b;
 }
 
 void destroy_prefix_method(void)
 {
-    BIO_meth_free(prefix_method);
+    VR_BIO_meth_free(prefix_method);
     prefix_method = NULL;
 }
 
@@ -2595,14 +2595,14 @@ BIO *bio_open_owner(const char *filename, int format, int private)
     bflags = BIO_CLOSE;
     if (textmode)
         bflags |= BIO_FP_TEXT;
-    b = BIO_new_fp(fp, bflags);
+    b = VR_BIO_new_fp(fp, bflags);
     if (b)
         return b;
 
  err:
-    BIO_printf(bio_err, "%s: Can't open \"%s\" for writing, %s\n",
+    VR_BIO_printf(bio_err, "%s: Can't open \"%s\" for writing, %s\n",
                opt_getprog(), filename, strerror(errno));
-    ERR_print_errors(bio_err);
+    VR_ERR_print_errors(bio_err);
     /* If we have fp, then fdopen took over fd, so don't close both. */
     if (fp)
         fclose(fp);
@@ -2619,27 +2619,27 @@ static BIO *bio_open_default_(const char *filename, char mode, int format,
     if (filename == NULL || strcmp(filename, "-") == 0) {
         ret = mode == 'r' ? dup_bio_in(format) : dup_bio_out(format);
         if (quiet) {
-            ERR_clear_error();
+            VR_ERR_clear_error();
             return ret;
         }
         if (ret != NULL)
             return ret;
-        BIO_printf(bio_err,
+        VR_BIO_printf(bio_err,
                    "Can't open %s, %s\n",
                    mode == 'r' ? "stdin" : "stdout", strerror(errno));
     } else {
-        ret = BIO_new_file(filename, modestr(mode, format));
+        ret = VR_BIO_new_file(filename, modestr(mode, format));
         if (quiet) {
-            ERR_clear_error();
+            VR_ERR_clear_error();
             return ret;
         }
         if (ret != NULL)
             return ret;
-        BIO_printf(bio_err,
+        VR_BIO_printf(bio_err,
                    "Can't open %s for %s, %s\n",
                    filename, modeverb(mode), strerror(errno));
     }
-    ERR_print_errors(bio_err);
+    VR_ERR_print_errors(bio_err);
     return NULL;
 }
 
@@ -2663,13 +2663,13 @@ void wait_for_async(SSL *s)
     size_t numfds;
     size_t i;
 
-    if (!SSL_get_all_async_fds(s, NULL, &numfds))
+    if (!VR_SSL_get_all_async_fds(s, NULL, &numfds))
         return;
     if (numfds == 0)
         return;
     fds = app_malloc(sizeof(OSSL_ASYNC_FD) * numfds, "allocate async fds");
-    if (!SSL_get_all_async_fds(s, fds, &numfds)) {
-        OPENSSL_free(fds);
+    if (!VR_SSL_get_all_async_fds(s, fds, &numfds)) {
+        OPENVR_SSL_free(fds);
         return;
     }
 
@@ -2680,7 +2680,7 @@ void wait_for_async(SSL *s)
         openssl_fdset((int)fds[i], &asyncfds);
     }
     select(width, (void *)&asyncfds, NULL, NULL, NULL);
-    OPENSSL_free(fds);
+    OPENVR_SSL_free(fds);
 #endif
 }
 
@@ -2723,17 +2723,17 @@ int set_cert_times(X509 *x, const char *startdate, const char *enddate,
                    int days)
 {
     if (startdate == NULL || strcmp(startdate, "today") == 0) {
-        if (X509_gmtime_adj(X509_getm_notBefore(x), 0) == NULL)
+        if (VR_X509_gmtime_adj(VR_X509_getm_notBefore(x), 0) == NULL)
             return 0;
     } else {
-        if (!ASN1_TIME_set_string_X509(X509_getm_notBefore(x), startdate))
+        if (!VR_ASN1_TIME_set_string_X509(VR_X509_getm_notBefore(x), startdate))
             return 0;
     }
     if (enddate == NULL) {
-        if (X509_time_adj_ex(X509_getm_notAfter(x), days, 0, NULL)
+        if (VR_X509_time_adj_ex(VR_X509_getm_notAfter(x), days, 0, NULL)
             == NULL)
             return 0;
-    } else if (!ASN1_TIME_set_string_X509(X509_getm_notAfter(x), enddate)) {
+    } else if (!VR_ASN1_TIME_set_string_X509(VR_X509_getm_notAfter(x), enddate)) {
         return 0;
     }
     return 1;

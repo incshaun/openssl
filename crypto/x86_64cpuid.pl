@@ -25,20 +25,20 @@ open OUT,"| \"$^X\" \"$xlate\" $flavour \"$output\"";
 				 ("%rdi","%rsi","%rdx","%rcx");	# Unix order
 
 print<<___;
-.extern		OPENSSL_cpuid_setup
-.hidden		OPENSSL_cpuid_setup
+.extern		VR_OPENSSL_cpuid_setup
+.hidden		VR_OPENSSL_cpuid_setup
 .section	.init
-	call	OPENSSL_cpuid_setup
+	call	VR_OPENSSL_cpuid_setup
 
 .hidden	OPENSSL_ia32cap_P
 .comm	OPENSSL_ia32cap_P,16,4
 
 .text
 
-.globl	OPENSSL_atomic_add
-.type	OPENSSL_atomic_add,\@abi-omnipotent
+.globl	VR_OPENSSL_atomic_add
+.type	VR_OPENSSL_atomic_add,\@abi-omnipotent
 .align	16
-OPENSSL_atomic_add:
+VR_OPENSSL_atomic_add:
 	movl	($arg1),%eax
 .Lspin:	leaq	($arg2,%rax),%r8
 	.byte	0xf0		# lock
@@ -47,22 +47,22 @@ OPENSSL_atomic_add:
 	movl	%r8d,%eax
 	.byte	0x48,0x98	# cltq/cdqe
 	ret
-.size	OPENSSL_atomic_add,.-OPENSSL_atomic_add
+.size	VR_OPENSSL_atomic_add,.-VR_OPENSSL_atomic_add
 
-.globl	OPENSSL_rdtsc
-.type	OPENSSL_rdtsc,\@abi-omnipotent
+.globl	VR_OPENSSL_rdtsc
+.type	VR_OPENSSL_rdtsc,\@abi-omnipotent
 .align	16
-OPENSSL_rdtsc:
+VR_OPENSSL_rdtsc:
 	rdtsc
 	shl	\$32,%rdx
 	or	%rdx,%rax
 	ret
-.size	OPENSSL_rdtsc,.-OPENSSL_rdtsc
+.size	VR_OPENSSL_rdtsc,.-VR_OPENSSL_rdtsc
 
-.globl	OPENSSL_ia32_cpuid
-.type	OPENSSL_ia32_cpuid,\@function,1
+.globl	VR_OPENSSL_ia32_cpuid
+.type	VR_OPENSSL_ia32_cpuid,\@function,1
 .align	16
-OPENSSL_ia32_cpuid:
+VR_OPENSSL_ia32_cpuid:
 .cfi_startproc
 	mov	%rbx,%r8		# save %rbx
 .cfi_register	%rbx,%r8
@@ -147,7 +147,7 @@ OPENSSL_ia32_cpuid:
 	and	\$15,%ah
 	cmp	\$15,%ah		# examine Family ID
 	jne	.LnotP4
-	or	\$0x00100000,%edx	# set reserved bit#20 to engage RC4_CHAR
+	or	\$0x00100000,%edx	# set reserved bit#20 to engage VR_RC4_CHAR
 .LnotP4:
 	cmp	\$6,%ah
 	jne	.Lnotintel
@@ -226,12 +226,12 @@ OPENSSL_ia32_cpuid:
 	or	%r9,%rax
 	ret
 .cfi_endproc
-.size	OPENSSL_ia32_cpuid,.-OPENSSL_ia32_cpuid
+.size	VR_OPENSSL_ia32_cpuid,.-VR_OPENSSL_ia32_cpuid
 
-.globl  OPENSSL_cleanse
-.type   OPENSSL_cleanse,\@abi-omnipotent
+.globl  VR_OPENSSL_cleanse
+.type   VR_OPENSSL_cleanse,\@abi-omnipotent
 .align  16
-OPENSSL_cleanse:
+VR_OPENSSL_cleanse:
 	xor	%rax,%rax
 	cmp	\$15,$arg2
 	jae	.Lot
@@ -261,12 +261,12 @@ OPENSSL_cleanse:
 	cmp	\$0,$arg2
 	jne	.Little
 	ret
-.size	OPENSSL_cleanse,.-OPENSSL_cleanse
+.size	VR_OPENSSL_cleanse,.-VR_OPENSSL_cleanse
 
-.globl  CRYPTO_memcmp
-.type   CRYPTO_memcmp,\@abi-omnipotent
+.globl  VR_CRYPTO_memcmp
+.type   VR_CRYPTO_memcmp,\@abi-omnipotent
 .align  16
-CRYPTO_memcmp:
+VR_CRYPTO_memcmp:
 	xor	%rax,%rax
 	xor	%r10,%r10
 	cmp	\$0,$arg3
@@ -295,14 +295,14 @@ CRYPTO_memcmp:
 	shr	\$63,%rax
 .Lno_data:
 	ret
-.size	CRYPTO_memcmp,.-CRYPTO_memcmp
+.size	VR_CRYPTO_memcmp,.-VR_CRYPTO_memcmp
 ___
 
 print<<___ if (!$win64);
-.globl	OPENSSL_wipe_cpu
-.type	OPENSSL_wipe_cpu,\@abi-omnipotent
+.globl	VR_OPENSSL_wipe_cpu
+.type	VR_OPENSSL_wipe_cpu,\@abi-omnipotent
 .align	16
-OPENSSL_wipe_cpu:
+VR_OPENSSL_wipe_cpu:
 	pxor	%xmm0,%xmm0
 	pxor	%xmm1,%xmm1
 	pxor	%xmm2,%xmm2
@@ -329,13 +329,13 @@ OPENSSL_wipe_cpu:
 	xorq	%r11,%r11
 	leaq	8(%rsp),%rax
 	ret
-.size	OPENSSL_wipe_cpu,.-OPENSSL_wipe_cpu
+.size	VR_OPENSSL_wipe_cpu,.-VR_OPENSSL_wipe_cpu
 ___
 print<<___ if ($win64);
-.globl	OPENSSL_wipe_cpu
-.type	OPENSSL_wipe_cpu,\@abi-omnipotent
+.globl	VR_OPENSSL_wipe_cpu
+.type	VR_OPENSSL_wipe_cpu,\@abi-omnipotent
 .align	16
-OPENSSL_wipe_cpu:
+VR_OPENSSL_wipe_cpu:
 	pxor	%xmm0,%xmm0
 	pxor	%xmm1,%xmm1
 	pxor	%xmm2,%xmm2
@@ -350,7 +350,7 @@ OPENSSL_wipe_cpu:
 	xorq	%r11,%r11
 	leaq	8(%rsp),%rax
 	ret
-.size	OPENSSL_wipe_cpu,.-OPENSSL_wipe_cpu
+.size	VR_OPENSSL_wipe_cpu,.-VR_OPENSSL_wipe_cpu
 ___
 {
 my $out="%r10";
@@ -361,10 +361,10 @@ my $lastdiff="%r9d";
 my $redzone=win64?8:-8;
 
 print<<___;
-.globl	OPENSSL_instrument_bus
-.type	OPENSSL_instrument_bus,\@abi-omnipotent
+.globl	VR_OPENSSL_instrument_bus
+.type	VR_OPENSSL_instrument_bus,\@abi-omnipotent
 .align	16
-OPENSSL_instrument_bus:
+VR_OPENSSL_instrument_bus:
 	mov	$arg1,$out	# tribute to Win64
 	mov	$arg2,$cnt
 	mov	$arg2,$max
@@ -391,12 +391,12 @@ OPENSSL_instrument_bus:
 
 	mov	$max,%rax
 	ret
-.size	OPENSSL_instrument_bus,.-OPENSSL_instrument_bus
+.size	VR_OPENSSL_instrument_bus,.-VR_OPENSSL_instrument_bus
 
-.globl	OPENSSL_instrument_bus2
-.type	OPENSSL_instrument_bus2,\@abi-omnipotent
+.globl	VR_OPENSSL_instrument_bus2
+.type	VR_OPENSSL_instrument_bus2,\@abi-omnipotent
 .align	16
-OPENSSL_instrument_bus2:
+VR_OPENSSL_instrument_bus2:
 	mov	$arg1,$out	# tribute to Win64
 	mov	$arg2,$cnt
 	mov	$arg3,$max
@@ -439,17 +439,17 @@ OPENSSL_instrument_bus2:
 	mov	$redzone(%rsp),%rax
 	sub	$cnt,%rax
 	ret
-.size	OPENSSL_instrument_bus2,.-OPENSSL_instrument_bus2
+.size	VR_OPENSSL_instrument_bus2,.-VR_OPENSSL_instrument_bus2
 ___
 }
 
 sub gen_random {
 my $rdop = shift;
 print<<___;
-.globl	OPENSSL_ia32_${rdop}_bytes
-.type	OPENSSL_ia32_${rdop}_bytes,\@abi-omnipotent
+.globl	VR_OPENSSL_ia32_${rdop}_bytes
+.type	VR_OPENSSL_ia32_${rdop}_bytes,\@abi-omnipotent
 .align	16
-OPENSSL_ia32_${rdop}_bytes:
+VR_OPENSSL_ia32_${rdop}_bytes:
 	xor	%rax, %rax	# return value
 	cmp	\$0,$arg2
 	je	.Ldone_${rdop}_bytes
@@ -486,7 +486,7 @@ OPENSSL_ia32_${rdop}_bytes:
 .Ldone_${rdop}_bytes:
 	xor	%r10,%r10	# Clear sensitive data from register
 	ret
-.size	OPENSSL_ia32_${rdop}_bytes,.-OPENSSL_ia32_${rdop}_bytes
+.size	VR_OPENSSL_ia32_${rdop}_bytes,.-VR_OPENSSL_ia32_${rdop}_bytes
 ___
 }
 gen_random("rdrand");

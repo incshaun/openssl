@@ -56,7 +56,7 @@ int sess_id_main(int argc, char **argv)
         case OPT_EOF:
         case OPT_ERR:
  opthelp:
-            BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
+            VR_BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
             opt_help(sess_id_options);
@@ -99,17 +99,17 @@ int sess_id_main(int argc, char **argv)
     if (x == NULL) {
         goto end;
     }
-    peer = SSL_SESSION_get0_peer(x);
+    peer = VR_SSL_SESSION_get0_peer(x);
 
     if (context != NULL) {
         size_t ctx_len = strlen(context);
         if (ctx_len > SSL_MAX_SID_CTX_LENGTH) {
-            BIO_printf(bio_err, "Context too long\n");
+            VR_BIO_printf(bio_err, "Context too long\n");
             goto end;
         }
-        if (!SSL_SESSION_set1_id_context(x, (unsigned char *)context,
+        if (!VR_SSL_SESSION_set1_id_context(x, (unsigned char *)context,
                                          ctx_len)) {
-            BIO_printf(bio_err, "Error setting id context\n");
+            VR_BIO_printf(bio_err, "Error setting id context\n");
             goto end;
         }
     }
@@ -121,49 +121,49 @@ int sess_id_main(int argc, char **argv)
     }
 
     if (text) {
-        SSL_SESSION_print(out, x);
+        VR_SSL_SESSION_print(out, x);
 
         if (cert) {
             if (peer == NULL)
-                BIO_puts(out, "No certificate present\n");
+                VR_BIO_puts(out, "No certificate present\n");
             else
-                X509_print(out, peer);
+                VR_X509_print(out, peer);
         }
     }
 
     if (!noout && !cert) {
         if (outformat == FORMAT_ASN1) {
-            i = i2d_SSL_SESSION_bio(out, x);
+            i = VR_i2d_SSL_SESSION_bio(out, x);
         } else if (outformat == FORMAT_PEM) {
-            i = PEM_write_bio_SSL_SESSION(out, x);
+            i = VR_PEM_write_bio_SSL_SESSION(out, x);
         } else if (outformat == FORMAT_NSS) {
-            i = SSL_SESSION_print_keylog(out, x);
+            i = VR_SSL_SESSION_print_keylog(out, x);
         } else {
-            BIO_printf(bio_err, "bad output format specified for outfile\n");
+            VR_BIO_printf(bio_err, "bad output format specified for outfile\n");
             goto end;
         }
         if (!i) {
-            BIO_printf(bio_err, "unable to write SSL_SESSION\n");
+            VR_BIO_printf(bio_err, "unable to write SSL_SESSION\n");
             goto end;
         }
     } else if (!noout && (peer != NULL)) { /* just print the certificate */
         if (outformat == FORMAT_ASN1) {
-            i = (int)i2d_X509_bio(out, peer);
+            i = (int)VR_i2d_X509_bio(out, peer);
         } else if (outformat == FORMAT_PEM) {
-            i = PEM_write_bio_X509(out, peer);
+            i = VR_PEM_write_bio_X509(out, peer);
         } else {
-            BIO_printf(bio_err, "bad output format specified for outfile\n");
+            VR_BIO_printf(bio_err, "bad output format specified for outfile\n");
             goto end;
         }
         if (!i) {
-            BIO_printf(bio_err, "unable to write X509\n");
+            VR_BIO_printf(bio_err, "unable to write X509\n");
             goto end;
         }
     }
     ret = 0;
  end:
-    BIO_free_all(out);
-    SSL_SESSION_free(x);
+    VR_BIO_free_all(out);
+    VR_SSL_SESSION_free(x);
     return ret;
 }
 
@@ -176,16 +176,16 @@ static SSL_SESSION *load_sess_id(char *infile, int format)
     if (in == NULL)
         goto end;
     if (format == FORMAT_ASN1)
-        x = d2i_SSL_SESSION_bio(in, NULL);
+        x = VR_d2i_SSL_SESSION_bio(in, NULL);
     else
-        x = PEM_read_bio_SSL_SESSION(in, NULL, NULL, NULL);
+        x = VR_PEM_read_bio_SSL_SESSION(in, NULL, NULL, NULL);
     if (x == NULL) {
-        BIO_printf(bio_err, "unable to load SSL_SESSION\n");
-        ERR_print_errors(bio_err);
+        VR_BIO_printf(bio_err, "unable to load SSL_SESSION\n");
+        VR_ERR_print_errors(bio_err);
         goto end;
     }
 
  end:
-    BIO_free(in);
+    VR_BIO_free(in);
     return x;
 }

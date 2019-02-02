@@ -75,18 +75,18 @@ static ASN1_TYPE *asn1_multi(int utype, const char *section, X509V3_CTX *cnf,
 static ASN1_TYPE *asn1_str2type(const char *str, int format, int utype);
 static int asn1_str2tag(const char *tagstr, int len);
 
-ASN1_TYPE *ASN1_generate_nconf(const char *str, CONF *nconf)
+ASN1_TYPE *VR_ASN1_generate_nconf(const char *str, CONF *nconf)
 {
     X509V3_CTX cnf;
 
     if (!nconf)
-        return ASN1_generate_v3(str, NULL);
+        return VR_ASN1_generate_v3(str, NULL);
 
-    X509V3_set_nconf(&cnf, nconf);
-    return ASN1_generate_v3(str, &cnf);
+    VR_X509V3_set_nconf(&cnf, nconf);
+    return VR_ASN1_generate_v3(str, &cnf);
 }
 
-ASN1_TYPE *ASN1_generate_v3(const char *str, X509V3_CTX *cnf)
+ASN1_TYPE *VR_ASN1_generate_v3(const char *str, X509V3_CTX *cnf)
 {
     int err = 0;
     ASN1_TYPE *ret = generate_v3(str, cnf, 0, &err);
@@ -117,7 +117,7 @@ static ASN1_TYPE *generate_v3(const char *str, X509V3_CTX *cnf, int depth,
     asn1_tags.imp_class = -1;
     asn1_tags.format = ASN1_GEN_FORMAT_ASCII;
     asn1_tags.exp_count = 0;
-    if (CONF_parse_list(str, ',', 1, asn1_cb, &asn1_tags) != 0) {
+    if (VR_CONF_parse_list(str, ',', 1, asn1_cb, &asn1_tags) != 0) {
         *perr = ASN1_R_UNKNOWN_TAG;
         return NULL;
     }
@@ -144,8 +144,8 @@ static ASN1_TYPE *generate_v3(const char *str, X509V3_CTX *cnf, int depth,
         return ret;
 
     /* Generate the encoding */
-    cpy_len = i2d_ASN1_TYPE(ret, &orig_der);
-    ASN1_TYPE_free(ret);
+    cpy_len = VR_i2d_ASN1_TYPE(ret, &orig_der);
+    VR_ASN1_TYPE_free(ret);
     ret = NULL;
     /* Set point to start copying for modified encoding */
     cpy_start = orig_der;
@@ -154,7 +154,7 @@ static ASN1_TYPE *generate_v3(const char *str, X509V3_CTX *cnf, int depth,
     if (asn1_tags.imp_tag != -1) {
         /* If IMPLICIT we will replace the underlying tag */
         /* Skip existing tag+len */
-        r = ASN1_get_object(&cpy_start, &hdr_len, &hdr_tag, &hdr_class,
+        r = VR_ASN1_get_object(&cpy_start, &hdr_len, &hdr_tag, &hdr_class,
                             cpy_len);
         if (r & 0x80)
             goto err;
@@ -175,7 +175,7 @@ static ASN1_TYPE *generate_v3(const char *str, X509V3_CTX *cnf, int depth,
          * Work out new length with IMPLICIT tag: ignore constructed because
          * it will mess up if indefinite length
          */
-        len = ASN1_object_size(0, hdr_len, asn1_tags.imp_tag);
+        len = VR_ASN1_object_size(0, hdr_len, asn1_tags.imp_tag);
     } else
         len = cpy_len;
 
@@ -187,7 +187,7 @@ static ASN1_TYPE *generate_v3(const char *str, X509V3_CTX *cnf, int depth,
         len += etmp->exp_pad;
         etmp->exp_len = len;
         /* Total object length: length including new header */
-        len = ASN1_object_size(0, len, etmp->exp_tag);
+        len = VR_ASN1_object_size(0, len, etmp->exp_tag);
     }
 
     /* Allocate buffer for new encoding */
@@ -204,7 +204,7 @@ static ASN1_TYPE *generate_v3(const char *str, X509V3_CTX *cnf, int depth,
 
     for (i = 0, etmp = asn1_tags.exp_list; i < asn1_tags.exp_count;
          i++, etmp++) {
-        ASN1_put_object(&p, etmp->exp_constructed, etmp->exp_len,
+        VR_ASN1_put_object(&p, etmp->exp_constructed, etmp->exp_len,
                         etmp->exp_tag, etmp->exp_class);
         if (etmp->exp_pad)
             *p++ = 0;
@@ -217,7 +217,7 @@ static ASN1_TYPE *generate_v3(const char *str, X509V3_CTX *cnf, int depth,
             && (asn1_tags.imp_tag == V_ASN1_SEQUENCE
                 || asn1_tags.imp_tag == V_ASN1_SET))
             hdr_constructed = V_ASN1_CONSTRUCTED;
-        ASN1_put_object(&p, hdr_constructed, hdr_len,
+        VR_ASN1_put_object(&p, hdr_constructed, hdr_len,
                         asn1_tags.imp_tag, asn1_tags.imp_class);
     }
 
@@ -227,11 +227,11 @@ static ASN1_TYPE *generate_v3(const char *str, X509V3_CTX *cnf, int depth,
     cp = new_der;
 
     /* Obtain new ASN1_TYPE structure */
-    ret = d2i_ASN1_TYPE(NULL, &cp, len);
+    ret = VR_d2i_ASN1_TYPE(NULL, &cp, len);
 
  err:
-    OPENSSL_free(orig_der);
-    OPENSSL_free(new_der);
+    OPENVR_SSL_free(orig_der);
+    OPENVR_SSL_free(new_der);
 
     return ret;
 
@@ -264,7 +264,7 @@ static int asn1_cb(const char *elem, int len, void *bitstr)
 
     if (utype == -1) {
         ASN1err(ASN1_F_ASN1_CB, ASN1_R_UNKNOWN_TAG);
-        ERR_add_error_data(2, "tag=", elem);
+        VR_ERR_add_error_data(2, "tag=", elem);
         return -1;
     }
 
@@ -389,7 +389,7 @@ static int parse_tagging(const char *vstart, int vlen, int *ptag, int *pclass)
             erch[0] = *eptr;
             erch[1] = 0;
             ASN1err(ASN1_F_PARSE_TAGGING, ASN1_R_INVALID_MODIFIER);
-            ERR_add_error_data(2, "Char=", erch);
+            VR_ERR_add_error_data(2, "Char=", erch);
             return 0;
 
         }
@@ -411,13 +411,13 @@ static ASN1_TYPE *asn1_multi(int utype, const char *section, X509V3_CTX *cnf,
     unsigned char *der = NULL;
     int derlen;
     int i;
-    sk = sk_ASN1_TYPE_new_null();
+    sk = sk_VR_ASN1_TYPE_new_null();
     if (!sk)
         goto bad;
     if (section) {
         if (!cnf)
             goto bad;
-        sect = X509V3_get_section(cnf, (char *)section);
+        sect = VR_X509V3_get_section(cnf, (char *)section);
         if (!sect)
             goto bad;
         for (i = 0; i < sk_CONF_VALUE_num(sect); i++) {
@@ -426,7 +426,7 @@ static ASN1_TYPE *asn1_multi(int utype, const char *section, X509V3_CTX *cnf,
                             depth + 1, perr);
             if (!typ)
                 goto bad;
-            if (!sk_ASN1_TYPE_push(sk, typ))
+            if (!sk_VR_ASN1_TYPE_push(sk, typ))
                 goto bad;
         }
     }
@@ -436,15 +436,15 @@ static ASN1_TYPE *asn1_multi(int utype, const char *section, X509V3_CTX *cnf,
      */
 
     if (utype == V_ASN1_SET)
-        derlen = i2d_ASN1_SET_ANY(sk, &der);
+        derlen = VR_i2d_ASN1_SET_ANY(sk, &der);
     else
-        derlen = i2d_ASN1_SEQUENCE_ANY(sk, &der);
+        derlen = VR_i2d_ASN1_SEQUENCE_ANY(sk, &der);
 
     if (derlen < 0)
         goto bad;
-    if ((ret = ASN1_TYPE_new()) == NULL)
+    if ((ret = VR_ASN1_TYPE_new()) == NULL)
         goto bad;
-    if ((ret->value.asn1_string = ASN1_STRING_type_new(utype)) == NULL)
+    if ((ret->value.asn1_string = VR_ASN1_STRING_type_new(utype)) == NULL)
         goto bad;
 
     ret->type = utype;
@@ -455,10 +455,10 @@ static ASN1_TYPE *asn1_multi(int utype, const char *section, X509V3_CTX *cnf,
 
  bad:
 
-    OPENSSL_free(der);
+    OPENVR_SSL_free(der);
 
-    sk_ASN1_TYPE_pop_free(sk, ASN1_TYPE_free);
-    X509V3_section_free(cnf, sect);
+    sk_VR_ASN1_TYPE_pop_free(sk, VR_ASN1_TYPE_free);
+    VR_X509V3_section_free(cnf, sect);
 
     return ret;
 }
@@ -583,7 +583,7 @@ static ASN1_TYPE *asn1_str2type(const char *str, int format, int utype)
     long rdlen;
     int no_unused = 1;
 
-    if ((atmp = ASN1_TYPE_new()) == NULL) {
+    if ((atmp = VR_ASN1_TYPE_new()) == NULL) {
         ASN1err(ASN1_F_ASN1_STR2TYPE, ERR_R_MALLOC_FAILURE);
         return NULL;
     }
@@ -608,7 +608,7 @@ static ASN1_TYPE *asn1_str2type(const char *str, int format, int utype)
         vtmp.name = NULL;
         vtmp.section = NULL;
         vtmp.value = (char *)str;
-        if (!X509V3_get_value_bool(&vtmp, &atmp->value.boolean)) {
+        if (!VR_X509V3_get_value_bool(&vtmp, &atmp->value.boolean)) {
             ASN1err(ASN1_F_ASN1_STR2TYPE, ASN1_R_ILLEGAL_BOOLEAN);
             goto bad_str;
         }
@@ -621,7 +621,7 @@ static ASN1_TYPE *asn1_str2type(const char *str, int format, int utype)
             goto bad_form;
         }
         if ((atmp->value.integer
-                    = s2i_ASN1_INTEGER(NULL, str)) == NULL) {
+                    = VR_s2i_ASN1_INTEGER(NULL, str)) == NULL) {
             ASN1err(ASN1_F_ASN1_STR2TYPE, ASN1_R_ILLEGAL_INTEGER);
             goto bad_str;
         }
@@ -632,7 +632,7 @@ static ASN1_TYPE *asn1_str2type(const char *str, int format, int utype)
             ASN1err(ASN1_F_ASN1_STR2TYPE, ASN1_R_OBJECT_NOT_ASCII_FORMAT);
             goto bad_form;
         }
-        if ((atmp->value.object = OBJ_txt2obj(str, 0)) == NULL) {
+        if ((atmp->value.object = VR_OBJ_txt2obj(str, 0)) == NULL) {
             ASN1err(ASN1_F_ASN1_STR2TYPE, ASN1_R_ILLEGAL_OBJECT);
             goto bad_str;
         }
@@ -644,16 +644,16 @@ static ASN1_TYPE *asn1_str2type(const char *str, int format, int utype)
             ASN1err(ASN1_F_ASN1_STR2TYPE, ASN1_R_TIME_NOT_ASCII_FORMAT);
             goto bad_form;
         }
-        if ((atmp->value.asn1_string = ASN1_STRING_new()) == NULL) {
+        if ((atmp->value.asn1_string = VR_ASN1_STRING_new()) == NULL) {
             ASN1err(ASN1_F_ASN1_STR2TYPE, ERR_R_MALLOC_FAILURE);
             goto bad_str;
         }
-        if (!ASN1_STRING_set(atmp->value.asn1_string, str, -1)) {
+        if (!VR_ASN1_STRING_set(atmp->value.asn1_string, str, -1)) {
             ASN1err(ASN1_F_ASN1_STR2TYPE, ERR_R_MALLOC_FAILURE);
             goto bad_str;
         }
         atmp->value.asn1_string->type = utype;
-        if (!ASN1_TIME_check(atmp->value.asn1_string)) {
+        if (!VR_ASN1_TIME_check(atmp->value.asn1_string)) {
             ASN1err(ASN1_F_ASN1_STR2TYPE, ASN1_R_ILLEGAL_TIME_VALUE);
             goto bad_str;
         }
@@ -678,8 +678,8 @@ static ASN1_TYPE *asn1_str2type(const char *str, int format, int utype)
             goto bad_form;
         }
 
-        if (ASN1_mbstring_copy(&atmp->value.asn1_string, (unsigned char *)str,
-                               -1, format, ASN1_tag2bit(utype)) <= 0) {
+        if (VR_ASN1_mbstring_copy(&atmp->value.asn1_string, (unsigned char *)str,
+                               -1, format, VR_ASN1_tag2bit(utype)) <= 0) {
             ASN1err(ASN1_F_ASN1_STR2TYPE, ERR_R_MALLOC_FAILURE);
             goto bad_str;
         }
@@ -688,13 +688,13 @@ static ASN1_TYPE *asn1_str2type(const char *str, int format, int utype)
 
     case V_ASN1_BIT_STRING:
     case V_ASN1_OCTET_STRING:
-        if ((atmp->value.asn1_string = ASN1_STRING_new()) == NULL) {
+        if ((atmp->value.asn1_string = VR_ASN1_STRING_new()) == NULL) {
             ASN1err(ASN1_F_ASN1_STR2TYPE, ERR_R_MALLOC_FAILURE);
             goto bad_form;
         }
 
         if (format == ASN1_GEN_FORMAT_HEX) {
-            if ((rdata = OPENSSL_hexstr2buf(str, &rdlen)) == NULL) {
+            if ((rdata = VR_OPENSSL_hexstr2buf(str, &rdlen)) == NULL) {
                 ASN1err(ASN1_F_ASN1_STR2TYPE, ASN1_R_ILLEGAL_HEX);
                 goto bad_str;
             }
@@ -702,10 +702,10 @@ static ASN1_TYPE *asn1_str2type(const char *str, int format, int utype)
             atmp->value.asn1_string->length = rdlen;
             atmp->value.asn1_string->type = utype;
         } else if (format == ASN1_GEN_FORMAT_ASCII)
-            ASN1_STRING_set(atmp->value.asn1_string, str, -1);
+            VR_ASN1_STRING_set(atmp->value.asn1_string, str, -1);
         else if ((format == ASN1_GEN_FORMAT_BITLIST)
                  && (utype == V_ASN1_BIT_STRING)) {
-            if (!CONF_parse_list
+            if (!VR_CONF_parse_list
                 (str, ',', 1, bitstr_cb, atmp->value.bit_string)) {
                 ASN1err(ASN1_F_ASN1_STR2TYPE, ASN1_R_LIST_ERROR);
                 goto bad_str;
@@ -734,10 +734,10 @@ static ASN1_TYPE *asn1_str2type(const char *str, int format, int utype)
     return atmp;
 
  bad_str:
-    ERR_add_error_data(2, "string=", str);
+    VR_ERR_add_error_data(2, "string=", str);
  bad_form:
 
-    ASN1_TYPE_free(atmp);
+    VR_ASN1_TYPE_free(atmp);
     return NULL;
 
 }
@@ -755,7 +755,7 @@ static int bitstr_cb(const char *elem, int len, void *bitstr)
         ASN1err(ASN1_F_BITSTR_CB, ASN1_R_INVALID_NUMBER);
         return 0;
     }
-    if (!ASN1_BIT_STRING_set_bit(bitstr, bitnum, 1)) {
+    if (!VR_ASN1_BIT_STRING_set_bit(bitstr, bitnum, 1)) {
         ASN1err(ASN1_F_BITSTR_CB, ERR_R_MALLOC_FAILURE);
         return 0;
     }
@@ -775,15 +775,15 @@ static int mask_cb(const char *elem, int len, void *arg)
     tag = asn1_str2tag(elem, len);
     if (!tag || (tag & ASN1_GEN_FLAG))
         return 0;
-    tmpmask = ASN1_tag2bit(tag);
+    tmpmask = VR_ASN1_tag2bit(tag);
     if (!tmpmask)
         return 0;
     *pmask |= tmpmask;
     return 1;
 }
 
-int ASN1_str2mask(const char *str, unsigned long *pmask)
+int VR_ASN1_str2mask(const char *str, unsigned long *pmask)
 {
     *pmask = 0;
-    return CONF_parse_list(str, '|', 1, mask_cb, pmask);
+    return VR_CONF_parse_list(str, '|', 1, mask_cb, pmask);
 }

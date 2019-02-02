@@ -77,9 +77,9 @@ $code=<<___;
 	.long	0
 	.byte	0,12,0x14,0,0,0,0,0
 
-.globl	.OPENSSL_wipe_cpu
+.globl	.VR_OPENSSL_wipe_cpu
 .align	4
-.OPENSSL_wipe_cpu:
+.VR_OPENSSL_wipe_cpu:
 	xor	r0,r0,r0
 	fmr	f0,f31
 	fmr	f1,f31
@@ -108,11 +108,11 @@ $code=<<___;
 	blr
 	.long	0
 	.byte	0,12,0x14,0,0,0,0,0
-.size	.OPENSSL_wipe_cpu,.-.OPENSSL_wipe_cpu
+.size	.VR_OPENSSL_wipe_cpu,.-.VR_OPENSSL_wipe_cpu
 
-.globl	.OPENSSL_atomic_add
+.globl	.VR_OPENSSL_atomic_add
 .align	4
-.OPENSSL_atomic_add:
+.VR_OPENSSL_atomic_add:
 Ladd:	lwarx	r5,0,r3
 	add	r0,r4,r5
 	stwcx.	r0,0,r3
@@ -122,29 +122,29 @@ Ladd:	lwarx	r5,0,r3
 	.long	0
 	.byte	0,12,0x14,0,0,0,2,0
 	.long	0
-.size	.OPENSSL_atomic_add,.-.OPENSSL_atomic_add
+.size	.VR_OPENSSL_atomic_add,.-.VR_OPENSSL_atomic_add
 
-.globl	.OPENSSL_rdtsc_mftb
+.globl	.VR_OPENSSL_rdtsc_mftb
 .align	4
-.OPENSSL_rdtsc_mftb:
+.VR_OPENSSL_rdtsc_mftb:
 	mftb	r3
 	blr
 	.long	0
 	.byte	0,12,0x14,0,0,0,0,0
-.size	.OPENSSL_rdtsc_mftb,.-.OPENSSL_rdtsc_mftb
+.size	.VR_OPENSSL_rdtsc_mftb,.-.VR_OPENSSL_rdtsc_mftb
 
-.globl	.OPENSSL_rdtsc_mfspr268
+.globl	.VR_OPENSSL_rdtsc_mfspr268
 .align	4
-.OPENSSL_rdtsc_mfspr268:
+.VR_OPENSSL_rdtsc_mfspr268:
 	mfspr	r3,268
 	blr
 	.long	0
 	.byte	0,12,0x14,0,0,0,0,0
-.size	.OPENSSL_rdtsc_mfspr268,.-.OPENSSL_rdtsc_mfspr268
+.size	.VR_OPENSSL_rdtsc_mfspr268,.-.VR_OPENSSL_rdtsc_mfspr268
 
-.globl	.OPENSSL_cleanse
+.globl	.VR_OPENSSL_cleanse
 .align	4
-.OPENSSL_cleanse:
+.VR_OPENSSL_cleanse:
 	$CMPLI	r4,7
 	li	r0,0
 	bge	Lot
@@ -173,11 +173,11 @@ Laligned:
 	.long	0
 	.byte	0,12,0x14,0,0,0,2,0
 	.long	0
-.size	.OPENSSL_cleanse,.-.OPENSSL_cleanse
+.size	.VR_OPENSSL_cleanse,.-.VR_OPENSSL_cleanse
 
-globl	.CRYPTO_memcmp
+globl	.VR_CRYPTO_memcmp
 .align	4
-.CRYPTO_memcmp:
+.VR_CRYPTO_memcmp:
 	$CMPLI	r5,0
 	li	r0,0
 	beq	Lno_data
@@ -199,7 +199,7 @@ Lno_data:
 	.long	0
 	.byte	0,12,0x14,0,0,0,3,0
 	.long	0
-.size	.CRYPTO_memcmp,.-.CRYPTO_memcmp
+.size	.VR_CRYPTO_memcmp,.-.VR_CRYPTO_memcmp
 ___
 {
 my ($out,$cnt,$max)=("r3","r4","r5");
@@ -207,9 +207,9 @@ my ($tick,$lasttick)=("r6","r7");
 my ($diff,$lastdiff)=("r8","r9");
 
 $code.=<<___;
-.globl	.OPENSSL_instrument_bus_mftb
+.globl	.VR_OPENSSL_instrument_bus_mftb
 .align	4
-.OPENSSL_instrument_bus_mftb:
+.VR_OPENSSL_instrument_bus_mftb:
 	mtctr	$cnt
 
 	mftb	$lasttick		# collect 1st tick
@@ -237,11 +237,11 @@ Loop:	mftb	$tick
 	.long	0
 	.byte	0,12,0x14,0,0,0,2,0
 	.long	0
-.size	.OPENSSL_instrument_bus_mftb,.-.OPENSSL_instrument_bus_mftb
+.size	.VR_OPENSSL_instrument_bus_mftb,.-.VR_OPENSSL_instrument_bus_mftb
 
-.globl	.OPENSSL_instrument_bus2_mftb
+.globl	.VR_OPENSSL_instrument_bus2_mftb
 .align	4
-.OPENSSL_instrument_bus2_mftb:
+.VR_OPENSSL_instrument_bus2_mftb:
 	mr	r0,$cnt
 	slwi	$cnt,$cnt,2
 
@@ -289,11 +289,11 @@ Ldone2:
 	.long	0
 	.byte	0,12,0x14,0,0,0,3,0
 	.long	0
-.size	.OPENSSL_instrument_bus2_mftb,.-.OPENSSL_instrument_bus2_mftb
+.size	.VR_OPENSSL_instrument_bus2_mftb,.-.VR_OPENSSL_instrument_bus2_mftb
 
-.globl	.OPENSSL_instrument_bus_mfspr268
+.globl	.VR_OPENSSL_instrument_bus_mfspr268
 .align	4
-.OPENSSL_instrument_bus_mfspr268:
+.VR_OPENSSL_instrument_bus_mfspr268:
 	mtctr	$cnt
 
 	mfspr	$lasttick,268		# collect 1st tick
@@ -321,11 +321,11 @@ Loop3:	mfspr	$tick,268
 	.long	0
 	.byte	0,12,0x14,0,0,0,2,0
 	.long	0
-.size	.OPENSSL_instrument_bus_mfspr268,.-.OPENSSL_instrument_bus_mfspr268
+.size	.VR_OPENSSL_instrument_bus_mfspr268,.-.VR_OPENSSL_instrument_bus_mfspr268
 
-.globl	.OPENSSL_instrument_bus2_mfspr268
+.globl	.VR_OPENSSL_instrument_bus2_mfspr268
 .align	4
-.OPENSSL_instrument_bus2_mfspr268:
+.VR_OPENSSL_instrument_bus2_mfspr268:
 	mr	r0,$cnt
 	slwi	$cnt,$cnt,2
 
@@ -373,7 +373,7 @@ Ldone4:
 	.long	0
 	.byte	0,12,0x14,0,0,0,3,0
 	.long	0
-.size	.OPENSSL_instrument_bus2_mfspr268,.-.OPENSSL_instrument_bus2_mfspr268
+.size	.VR_OPENSSL_instrument_bus2_mfspr268,.-.VR_OPENSSL_instrument_bus2_mfspr268
 ___
 }
 

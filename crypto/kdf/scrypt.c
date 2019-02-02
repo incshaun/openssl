@@ -81,9 +81,9 @@ static void pkey_scrypt_cleanup(EVP_PKEY_CTX *ctx)
 {
     SCRYPT_PKEY_CTX *kctx = ctx->data;
 
-    OPENSSL_clear_free(kctx->salt, kctx->salt_len);
-    OPENSSL_clear_free(kctx->pass, kctx->pass_len);
-    OPENSSL_free(kctx);
+    OPENVR_SSL_clear_free(kctx->salt, kctx->salt_len);
+    OPENVR_SSL_clear_free(kctx->pass, kctx->pass_len);
+    OPENVR_SSL_free(kctx);
 }
 
 static int pkey_scrypt_set_membuf(unsigned char **buffer, size_t *buflen,
@@ -97,7 +97,7 @@ static int pkey_scrypt_set_membuf(unsigned char **buffer, size_t *buflen,
         return 0;
 
     if (*buffer != NULL)
-        OPENSSL_clear_free(*buffer, *buflen);
+        OPENVR_SSL_clear_free(*buffer, *buflen);
 
     if (new_buflen > 0) {
         *buffer = OPENSSL_memdup(new_buffer, new_buflen);
@@ -185,16 +185,16 @@ static int pkey_scrypt_ctrl_str(EVP_PKEY_CTX *ctx, const char *type,
     }
 
     if (strcmp(type, "pass") == 0)
-        return EVP_PKEY_CTX_str2ctrl(ctx, EVP_PKEY_CTRL_PASS, value);
+        return VR_EVP_PKEY_CTX_str2ctrl(ctx, EVP_PKEY_CTRL_PASS, value);
 
     if (strcmp(type, "hexpass") == 0)
-        return EVP_PKEY_CTX_hex2ctrl(ctx, EVP_PKEY_CTRL_PASS, value);
+        return VR_EVP_PKEY_CTX_hex2ctrl(ctx, EVP_PKEY_CTRL_PASS, value);
 
     if (strcmp(type, "salt") == 0)
-        return EVP_PKEY_CTX_str2ctrl(ctx, EVP_PKEY_CTRL_SCRYPT_SALT, value);
+        return VR_EVP_PKEY_CTX_str2ctrl(ctx, EVP_PKEY_CTRL_SCRYPT_SALT, value);
 
     if (strcmp(type, "hexsalt") == 0)
-        return EVP_PKEY_CTX_hex2ctrl(ctx, EVP_PKEY_CTRL_SCRYPT_SALT, value);
+        return VR_EVP_PKEY_CTX_hex2ctrl(ctx, EVP_PKEY_CTRL_SCRYPT_SALT, value);
 
     if (strcmp(type, "N") == 0)
         return pkey_scrypt_ctrl_uint64(ctx, EVP_PKEY_CTRL_SCRYPT_N, value);
@@ -228,7 +228,7 @@ static int pkey_scrypt_derive(EVP_PKEY_CTX *ctx, unsigned char *key,
         return 0;
     }
 
-    return EVP_PBE_scrypt((char *)kctx->pass, kctx->pass_len, kctx->salt,
+    return VR_EVP_PBE_scrypt((char *)kctx->pass, kctx->pass_len, kctx->salt,
                           kctx->salt_len, kctx->N, kctx->r, kctx->p,
                           kctx->maxmem_bytes, key, *keylen);
 }

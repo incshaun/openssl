@@ -13,7 +13,7 @@
 
 /* Cheap and nasty Unicode stuff */
 
-unsigned char *OPENSSL_asc2uni(const char *asc, int asclen,
+unsigned char *VR_OPENSSL_asc2uni(const char *asc, int asclen,
                                unsigned char **uni, int *unilen)
 {
     int ulen, i;
@@ -40,7 +40,7 @@ unsigned char *OPENSSL_asc2uni(const char *asc, int asclen,
     return unitmp;
 }
 
-char *OPENSSL_uni2asc(const unsigned char *uni, int unilen)
+char *VR_OPENSSL_uni2asc(const unsigned char *uni, int unilen)
 {
     int asclen, i;
     char *asctmp;
@@ -71,7 +71,7 @@ char *OPENSSL_uni2asc(const unsigned char *uni, int unilen)
  * expressed not in number of UTF-16 characters, but in number of
  * bytes the string occupies, and treat it, the length, accordingly.
  */
-unsigned char *OPENSSL_utf82uni(const char *asc, int asclen,
+unsigned char *VR_OPENSSL_utf82uni(const char *asc, int asclen,
                                 unsigned char **uni, int *unilen)
 {
     int ulen, i, j;
@@ -82,7 +82,7 @@ unsigned char *OPENSSL_utf82uni(const char *asc, int asclen,
         asclen = strlen(asc);
 
     for (ulen = 0, i = 0; i < asclen; i += j) {
-        j = UTF8_getc((const unsigned char *)asc+i, asclen-i, &utf32chr);
+        j = VR_UTF8_getc((const unsigned char *)asc+i, asclen-i, &utf32chr);
 
         /*
          * Following condition is somewhat opportunistic is sense that
@@ -90,7 +90,7 @@ unsigned char *OPENSSL_utf82uni(const char *asc, int asclen,
          * string might in fact be extended ASCII/ANSI/ISO-8859-X. The
          * fallback is taken in hope that it would allow to process
          * files created with previous OpenSSL version, which used the
-         * naive OPENSSL_asc2uni all along. It might be worth noting
+         * naive VR_OPENSSL_asc2uni all along. It might be worth noting
          * that probability of false positive depends on language. In
          * cases covered by ISO Latin 1 probability is very low, because
          * any printable non-ASCII alphabet letter followed by another
@@ -101,7 +101,7 @@ unsigned char *OPENSSL_utf82uni(const char *asc, int asclen,
          * decoding failure...
          */
         if (j < 0)
-            return OPENSSL_asc2uni(asc, asclen, uni, unilen);
+            return VR_OPENSSL_asc2uni(asc, asclen, uni, unilen);
 
         if (utf32chr > 0x10FFFF)        /* UTF-16 cap */
             return NULL;
@@ -120,7 +120,7 @@ unsigned char *OPENSSL_utf82uni(const char *asc, int asclen,
     }
     /* re-run the loop writing down UTF-16 characters in big-endian order */
     for (unitmp = ret, i = 0; i < asclen; i += j) {
-        j = UTF8_getc((const unsigned char *)asc+i, asclen-i, &utf32chr);
+        j = VR_UTF8_getc((const unsigned char *)asc+i, asclen-i, &utf32chr);
         if (utf32chr >= 0x10000) {      /* pair if UTF-16 characters */
             unsigned int hi, lo;
 
@@ -170,10 +170,10 @@ static int bmp_to_utf8(char *str, const unsigned char *utf16, int len)
         utf32chr += 0x10000;
     }
 
-    return UTF8_putc((unsigned char *)str, len > 4 ? 4 : len, utf32chr);
+    return VR_UTF8_putc((unsigned char *)str, len > 4 ? 4 : len, utf32chr);
 }
 
-char *OPENSSL_uni2utf8(const unsigned char *uni, int unilen)
+char *VR_OPENSSL_uni2utf8(const unsigned char *uni, int unilen)
 {
     int asclen, i, j;
     char *asctmp;
@@ -185,11 +185,11 @@ char *OPENSSL_uni2utf8(const unsigned char *uni, int unilen)
     for (asclen = 0, i = 0; i < unilen; ) {
         j = bmp_to_utf8(NULL, uni+i, unilen-i);
         /*
-         * falling back to OPENSSL_uni2asc makes lesser sense [than
-         * falling back to OPENSSL_asc2uni in OPENSSL_utf82uni above],
+         * falling back to VR_OPENSSL_uni2asc makes lesser sense [than
+         * falling back to VR_OPENSSL_asc2uni in VR_OPENSSL_utf82uni above],
          * it's done rather to maintain symmetry...
          */
-        if (j < 0) return OPENSSL_uni2asc(uni, unilen);
+        if (j < 0) return VR_OPENSSL_uni2asc(uni, unilen);
         if (j == 4) i += 4;
         else        i += 2;
         asclen += j;
@@ -219,26 +219,26 @@ char *OPENSSL_uni2utf8(const unsigned char *uni, int unilen)
     return asctmp;
 }
 
-int i2d_PKCS12_bio(BIO *bp, PKCS12 *p12)
+int VR_i2d_PKCS12_bio(BIO *bp, PKCS12 *p12)
 {
-    return ASN1_item_i2d_bio(ASN1_ITEM_rptr(PKCS12), bp, p12);
+    return VR_ASN1_item_i2d_bio(ASN1_ITEM_rptr(PKCS12), bp, p12);
 }
 
 #ifndef OPENSSL_NO_STDIO
-int i2d_PKCS12_fp(FILE *fp, PKCS12 *p12)
+int VR_i2d_PKCS12_fp(FILE *fp, PKCS12 *p12)
 {
-    return ASN1_item_i2d_fp(ASN1_ITEM_rptr(PKCS12), fp, p12);
+    return VR_ASN1_item_i2d_fp(ASN1_ITEM_rptr(PKCS12), fp, p12);
 }
 #endif
 
-PKCS12 *d2i_PKCS12_bio(BIO *bp, PKCS12 **p12)
+PKCS12 *VR_d2i_PKCS12_bio(BIO *bp, PKCS12 **p12)
 {
-    return ASN1_item_d2i_bio(ASN1_ITEM_rptr(PKCS12), bp, p12);
+    return VR_ASN1_item_d2i_bio(ASN1_ITEM_rptr(PKCS12), bp, p12);
 }
 
 #ifndef OPENSSL_NO_STDIO
-PKCS12 *d2i_PKCS12_fp(FILE *fp, PKCS12 **p12)
+PKCS12 *VR_d2i_PKCS12_fp(FILE *fp, PKCS12 **p12)
 {
-    return ASN1_item_d2i_fp(ASN1_ITEM_rptr(PKCS12), fp, p12);
+    return VR_ASN1_item_d2i_fp(ASN1_ITEM_rptr(PKCS12), fp, p12);
 }
 #endif

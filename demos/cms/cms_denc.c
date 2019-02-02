@@ -29,52 +29,52 @@ int main(int argc, char **argv)
     ERR_load_crypto_strings();
 
     /* Read in recipient certificate */
-    tbio = BIO_new_file("signer.pem", "r");
+    tbio = VR_BIO_new_file("signer.pem", "r");
 
     if (!tbio)
         goto err;
 
-    rcert = PEM_read_bio_X509(tbio, NULL, 0, NULL);
+    rcert = VR_PEM_read_bio_X509(tbio, NULL, 0, NULL);
 
     if (!rcert)
         goto err;
 
     /* Create recipient STACK and add recipient cert to it */
-    recips = sk_X509_new_null();
+    recips = sk_VR_X509_new_null();
 
-    if (!recips || !sk_X509_push(recips, rcert))
+    if (!recips || !sk_VR_X509_push(recips, rcert))
         goto err;
 
     /*
-     * sk_X509_pop_free will free up recipient STACK and its contents so set
+     * sk_VR_X509_pop_free will free up recipient STACK and its contents so set
      * rcert to NULL so it isn't freed up twice.
      */
     rcert = NULL;
 
     /* Open content being encrypted */
 
-    in = BIO_new_file("encr.txt", "r");
+    in = VR_BIO_new_file("encr.txt", "r");
 
-    dout = BIO_new_file("smencr.out", "wb");
+    dout = VR_BIO_new_file("smencr.out", "wb");
 
     if (!in)
         goto err;
 
     /* encrypt content */
-    cms = CMS_encrypt(recips, in, EVP_des_ede3_cbc(), flags);
+    cms = VR_CMS_encrypt(recips, in, VR_EVP_des_ede3_cbc(), flags);
 
     if (!cms)
         goto err;
 
-    out = BIO_new_file("smencr.pem", "w");
+    out = VR_BIO_new_file("smencr.pem", "w");
     if (!out)
         goto err;
 
-    if (!CMS_final(cms, in, dout, flags))
+    if (!VR_CMS_final(cms, in, dout, flags))
         goto err;
 
     /* Write out CMS structure without content */
-    if (!PEM_write_bio_CMS(out, cms))
+    if (!VR_PEM_write_bio_CMS(out, cms))
         goto err;
 
     ret = 0;
@@ -83,15 +83,15 @@ int main(int argc, char **argv)
 
     if (ret) {
         fprintf(stderr, "Error Encrypting Data\n");
-        ERR_print_errors_fp(stderr);
+        VR_ERR_print_errors_fp(stderr);
     }
 
-    CMS_ContentInfo_free(cms);
-    X509_free(rcert);
-    sk_X509_pop_free(recips, X509_free);
-    BIO_free(in);
-    BIO_free(out);
-    BIO_free(dout);
-    BIO_free(tbio);
+    VR_CMS_ContentInfo_free(cms);
+    VR_X509_free(rcert);
+    sk_VR_X509_pop_free(recips, VR_X509_free);
+    VR_BIO_free(in);
+    VR_BIO_free(out);
+    VR_BIO_free(dout);
+    VR_BIO_free(tbio);
     return ret;
 }

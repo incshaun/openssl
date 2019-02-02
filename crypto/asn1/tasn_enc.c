@@ -33,13 +33,13 @@ static int asn1_ex_i2c(ASN1_VALUE **pval, unsigned char *cout, int *putype,
  * indefinite length constructed encoding, where appropriate
  */
 
-int ASN1_item_ndef_i2d(ASN1_VALUE *val, unsigned char **out,
+int VR_ASN1_item_ndef_i2d(ASN1_VALUE *val, unsigned char **out,
                        const ASN1_ITEM *it)
 {
     return asn1_item_flags_i2d(val, out, it, ASN1_TFLG_NDEF);
 }
 
-int ASN1_item_i2d(ASN1_VALUE *val, unsigned char **out, const ASN1_ITEM *it)
+int VR_ASN1_item_i2d(ASN1_VALUE *val, unsigned char **out, const ASN1_ITEM *it)
 {
     return asn1_item_flags_i2d(val, out, it, 0);
 }
@@ -58,7 +58,7 @@ static int asn1_item_flags_i2d(ASN1_VALUE *val, unsigned char **out,
         unsigned char *p, *buf;
         int len;
 
-        len = ASN1_item_ex_i2d(&val, NULL, it, -1, flags);
+        len = VR_ASN1_item_ex_i2d(&val, NULL, it, -1, flags);
         if (len <= 0)
             return len;
         if ((buf = OPENSSL_malloc(len)) == NULL) {
@@ -66,12 +66,12 @@ static int asn1_item_flags_i2d(ASN1_VALUE *val, unsigned char **out,
             return -1;
         }
         p = buf;
-        ASN1_item_ex_i2d(&val, &p, it, -1, flags);
+        VR_ASN1_item_ex_i2d(&val, &p, it, -1, flags);
         *out = buf;
         return len;
     }
 
-    return ASN1_item_ex_i2d(&val, out, it, -1, flags);
+    return VR_ASN1_item_ex_i2d(&val, out, it, -1, flags);
 }
 
 /*
@@ -79,7 +79,7 @@ static int asn1_item_flags_i2d(ASN1_VALUE *val, unsigned char **out,
  * performs the normal item handling: it can be used in external types.
  */
 
-int ASN1_item_ex_i2d(ASN1_VALUE **pval, unsigned char **out,
+int VR_ASN1_item_ex_i2d(ASN1_VALUE **pval, unsigned char **out,
                      const ASN1_ITEM *it, int tag, int aclass)
 {
     const ASN1_TEMPLATE *tt = NULL;
@@ -108,12 +108,12 @@ int ASN1_item_ex_i2d(ASN1_VALUE **pval, unsigned char **out,
     case ASN1_ITYPE_CHOICE:
         if (asn1_cb && !asn1_cb(ASN1_OP_I2D_PRE, pval, it, NULL))
             return 0;
-        i = asn1_get_choice_selector(pval, it);
+        i = VR_asn1_get_choice_selector(pval, it);
         if ((i >= 0) && (i < it->tcount)) {
             ASN1_VALUE **pchval;
             const ASN1_TEMPLATE *chtt;
             chtt = it->templates + i;
-            pchval = asn1_get_field_ptr(pval, chtt);
+            pchval = VR_asn1_get_field_ptr(pval, chtt);
             return asn1_template_ex_i2d(pchval, out, chtt, -1, aclass);
         }
         /* Fixme: error condition if selector out of range */
@@ -133,7 +133,7 @@ int ASN1_item_ex_i2d(ASN1_VALUE **pval, unsigned char **out,
         /* fall through */
 
     case ASN1_ITYPE_SEQUENCE:
-        i = asn1_enc_restore(&seqcontlen, out, pval, it);
+        i = VR_asn1_enc_restore(&seqcontlen, out, pval, it);
         /* An error occurred */
         if (i < 0)
             return 0;
@@ -156,33 +156,33 @@ int ASN1_item_ex_i2d(ASN1_VALUE **pval, unsigned char **out,
             const ASN1_TEMPLATE *seqtt;
             ASN1_VALUE **pseqval;
             int tmplen;
-            seqtt = asn1_do_adb(pval, tt, 1);
+            seqtt = VR_asn1_do_adb(pval, tt, 1);
             if (!seqtt)
                 return 0;
-            pseqval = asn1_get_field_ptr(pval, seqtt);
+            pseqval = VR_asn1_get_field_ptr(pval, seqtt);
             tmplen = asn1_template_ex_i2d(pseqval, NULL, seqtt, -1, aclass);
             if (tmplen == -1 || (tmplen > INT_MAX - seqcontlen))
                 return -1;
             seqcontlen += tmplen;
         }
 
-        seqlen = ASN1_object_size(ndef, seqcontlen, tag);
+        seqlen = VR_ASN1_object_size(ndef, seqcontlen, tag);
         if (!out || seqlen == -1)
             return seqlen;
         /* Output SEQUENCE header */
-        ASN1_put_object(out, ndef, seqcontlen, tag, aclass);
+        VR_ASN1_put_object(out, ndef, seqcontlen, tag, aclass);
         for (i = 0, tt = it->templates; i < it->tcount; tt++, i++) {
             const ASN1_TEMPLATE *seqtt;
             ASN1_VALUE **pseqval;
-            seqtt = asn1_do_adb(pval, tt, 1);
+            seqtt = VR_asn1_do_adb(pval, tt, 1);
             if (!seqtt)
                 return 0;
-            pseqval = asn1_get_field_ptr(pval, seqtt);
+            pseqval = VR_asn1_get_field_ptr(pval, seqtt);
             /* FIXME: check for errors in enhanced version */
             asn1_template_ex_i2d(pseqval, out, seqtt, -1, aclass);
         }
         if (ndef == 2)
-            ASN1_put_eoc(out);
+            VR_ASN1_put_eoc(out);
         if (asn1_cb && !asn1_cb(ASN1_OP_I2D_POST, pval, it, NULL))
             return 0;
         return seqlen;
@@ -286,18 +286,18 @@ static int asn1_template_ex_i2d(ASN1_VALUE **pval, unsigned char **out,
         for (i = 0; i < sk_ASN1_VALUE_num(sk); i++) {
             int tmplen;
             skitem = sk_ASN1_VALUE_value(sk, i);
-            tmplen = ASN1_item_ex_i2d(&skitem, NULL, ASN1_ITEM_ptr(tt->item),
+            tmplen = VR_ASN1_item_ex_i2d(&skitem, NULL, ASN1_ITEM_ptr(tt->item),
                                       -1, iclass);
             if (tmplen == -1 || (skcontlen > INT_MAX - tmplen))
                 return -1;
             skcontlen += tmplen;
         }
-        sklen = ASN1_object_size(ndef, skcontlen, sktag);
+        sklen = VR_ASN1_object_size(ndef, skcontlen, sktag);
         if (sklen == -1)
             return -1;
         /* If EXPLICIT need length of surrounding tag */
         if (flags & ASN1_TFLG_EXPTAG)
-            ret = ASN1_object_size(ndef, sklen, ttag);
+            ret = VR_ASN1_object_size(ndef, sklen, ttag);
         else
             ret = sklen;
 
@@ -307,16 +307,16 @@ static int asn1_template_ex_i2d(ASN1_VALUE **pval, unsigned char **out,
         /* Now encode this lot... */
         /* EXPLICIT tag */
         if (flags & ASN1_TFLG_EXPTAG)
-            ASN1_put_object(out, ndef, sklen, ttag, tclass);
+            VR_ASN1_put_object(out, ndef, sklen, ttag, tclass);
         /* SET or SEQUENCE and IMPLICIT tag */
-        ASN1_put_object(out, ndef, skcontlen, sktag, skaclass);
+        VR_ASN1_put_object(out, ndef, skcontlen, sktag, skaclass);
         /* And the stuff itself */
         asn1_set_seq_out(sk, out, skcontlen, ASN1_ITEM_ptr(tt->item),
                          isset, iclass);
         if (ndef == 2) {
-            ASN1_put_eoc(out);
+            VR_ASN1_put_eoc(out);
             if (flags & ASN1_TFLG_EXPTAG)
-                ASN1_put_eoc(out);
+                VR_ASN1_put_eoc(out);
         }
 
         return ret;
@@ -325,23 +325,23 @@ static int asn1_template_ex_i2d(ASN1_VALUE **pval, unsigned char **out,
     if (flags & ASN1_TFLG_EXPTAG) {
         /* EXPLICIT tagging */
         /* Find length of tagged item */
-        i = ASN1_item_ex_i2d(pval, NULL, ASN1_ITEM_ptr(tt->item), -1, iclass);
+        i = VR_ASN1_item_ex_i2d(pval, NULL, ASN1_ITEM_ptr(tt->item), -1, iclass);
         if (!i)
             return 0;
         /* Find length of EXPLICIT tag */
-        ret = ASN1_object_size(ndef, i, ttag);
+        ret = VR_ASN1_object_size(ndef, i, ttag);
         if (out && ret != -1) {
             /* Output tag and item */
-            ASN1_put_object(out, ndef, i, ttag, tclass);
-            ASN1_item_ex_i2d(pval, out, ASN1_ITEM_ptr(tt->item), -1, iclass);
+            VR_ASN1_put_object(out, ndef, i, ttag, tclass);
+            VR_ASN1_item_ex_i2d(pval, out, ASN1_ITEM_ptr(tt->item), -1, iclass);
             if (ndef == 2)
-                ASN1_put_eoc(out);
+                VR_ASN1_put_eoc(out);
         }
         return ret;
     }
 
     /* Either normal or IMPLICIT tagging: combine class and flags */
-    return ASN1_item_ex_i2d(pval, out, ASN1_ITEM_ptr(tt->item),
+    return VR_ASN1_item_ex_i2d(pval, out, ASN1_ITEM_ptr(tt->item),
                             ttag, tclass | iclass);
 
 }
@@ -386,7 +386,7 @@ static int asn1_set_seq_out(STACK_OF(ASN1_VALUE) *sk, unsigned char **out,
                 return 0;
             tmpdat = OPENSSL_malloc(skcontlen);
             if (tmpdat == NULL) {
-                OPENSSL_free(derlst);
+                OPENVR_SSL_free(derlst);
                 return 0;
             }
         }
@@ -395,7 +395,7 @@ static int asn1_set_seq_out(STACK_OF(ASN1_VALUE) *sk, unsigned char **out,
     if (!do_sort) {
         for (i = 0; i < sk_ASN1_VALUE_num(sk); i++) {
             skitem = sk_ASN1_VALUE_value(sk, i);
-            ASN1_item_ex_i2d(&skitem, out, item, -1, iclass);
+            VR_ASN1_item_ex_i2d(&skitem, out, item, -1, iclass);
         }
         return 1;
     }
@@ -405,7 +405,7 @@ static int asn1_set_seq_out(STACK_OF(ASN1_VALUE) *sk, unsigned char **out,
     for (i = 0, tder = derlst; i < sk_ASN1_VALUE_num(sk); i++, tder++) {
         skitem = sk_ASN1_VALUE_value(sk, i);
         tder->data = p;
-        tder->length = ASN1_item_ex_i2d(&skitem, &p, item, -1, iclass);
+        tder->length = VR_ASN1_item_ex_i2d(&skitem, &p, item, -1, iclass);
         tder->field = skitem;
     }
 
@@ -421,10 +421,10 @@ static int asn1_set_seq_out(STACK_OF(ASN1_VALUE) *sk, unsigned char **out,
     /* If do_sort is 2 then reorder the STACK */
     if (do_sort == 2) {
         for (i = 0, tder = derlst; i < sk_ASN1_VALUE_num(sk); i++, tder++)
-            (void)sk_ASN1_VALUE_set(sk, i, tder->field);
+            (void)sk_VR_ASN1_VALUE_set(sk, i, tder->field);
     }
-    OPENSSL_free(derlst);
-    OPENSSL_free(tmpdat);
+    OPENVR_SSL_free(derlst);
+    OPENVR_SSL_free(tmpdat);
     return 1;
 }
 
@@ -473,16 +473,16 @@ static int asn1_i2d_ex_primitive(ASN1_VALUE **pval, unsigned char **out,
     /* Output tag+length followed by content octets */
     if (out) {
         if (usetag)
-            ASN1_put_object(out, ndef, len, tag, aclass);
+            VR_ASN1_put_object(out, ndef, len, tag, aclass);
         asn1_ex_i2c(pval, *out, &utype, it);
         if (ndef)
-            ASN1_put_eoc(out);
+            VR_ASN1_put_eoc(out);
         else
             *out += len;
     }
 
     if (usetag)
-        return ASN1_object_size(ndef, len, tag);
+        return VR_ASN1_object_size(ndef, len, tag);
     return len;
 }
 
@@ -558,7 +558,7 @@ static int asn1_ex_i2c(ASN1_VALUE **pval, unsigned char *cout, int *putype,
         break;
 
     case V_ASN1_BIT_STRING:
-        return i2c_ASN1_BIT_STRING((ASN1_BIT_STRING *)*pval,
+        return VR_i2c_ASN1_BIT_STRING((ASN1_BIT_STRING *)*pval,
                                    cout ? &cout : NULL);
 
     case V_ASN1_INTEGER:
@@ -566,7 +566,7 @@ static int asn1_ex_i2c(ASN1_VALUE **pval, unsigned char *cout, int *putype,
         /*
          * These are all have the same content format as ASN1_INTEGER
          */
-        return i2c_ASN1_INTEGER((ASN1_INTEGER *)*pval, cout ? &cout : NULL);
+        return VR_i2c_ASN1_INTEGER((ASN1_INTEGER *)*pval, cout ? &cout : NULL);
 
     case V_ASN1_OCTET_STRING:
     case V_ASN1_NUMERICSTRING:

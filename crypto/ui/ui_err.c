@@ -22,24 +22,24 @@ static const ERR_STRING_DATA UI_str_functs[] = {
      "general_allocate_prompt"},
     {ERR_PACK(ERR_LIB_UI, UI_F_NOECHO_CONSOLE, 0), "noecho_console"},
     {ERR_PACK(ERR_LIB_UI, UI_F_OPEN_CONSOLE, 0), "open_console"},
-    {ERR_PACK(ERR_LIB_UI, UI_F_UI_CONSTRUCT_PROMPT, 0), "UI_construct_prompt"},
-    {ERR_PACK(ERR_LIB_UI, UI_F_UI_CREATE_METHOD, 0), "UI_create_method"},
-    {ERR_PACK(ERR_LIB_UI, UI_F_UI_CTRL, 0), "UI_ctrl"},
-    {ERR_PACK(ERR_LIB_UI, UI_F_UI_DUP_ERROR_STRING, 0), "UI_dup_error_string"},
-    {ERR_PACK(ERR_LIB_UI, UI_F_UI_DUP_INFO_STRING, 0), "UI_dup_info_string"},
+    {ERR_PACK(ERR_LIB_UI, UI_F_UI_CONSTRUCT_PROMPT, 0), "VR_UI_construct_prompt"},
+    {ERR_PACK(ERR_LIB_UI, UI_F_UI_CREATE_METHOD, 0), "VR_UI_create_method"},
+    {ERR_PACK(ERR_LIB_UI, UI_F_UI_CTRL, 0), "VR_UI_ctrl"},
+    {ERR_PACK(ERR_LIB_UI, UI_F_UI_DUP_ERROR_STRING, 0), "VR_UI_dup_error_string"},
+    {ERR_PACK(ERR_LIB_UI, UI_F_UI_DUP_INFO_STRING, 0), "VR_UI_dup_info_string"},
     {ERR_PACK(ERR_LIB_UI, UI_F_UI_DUP_INPUT_BOOLEAN, 0),
-     "UI_dup_input_boolean"},
-    {ERR_PACK(ERR_LIB_UI, UI_F_UI_DUP_INPUT_STRING, 0), "UI_dup_input_string"},
-    {ERR_PACK(ERR_LIB_UI, UI_F_UI_DUP_USER_DATA, 0), "UI_dup_user_data"},
+     "VR_UI_dup_input_boolean"},
+    {ERR_PACK(ERR_LIB_UI, UI_F_UI_DUP_INPUT_STRING, 0), "VR_UI_dup_input_string"},
+    {ERR_PACK(ERR_LIB_UI, UI_F_UI_DUP_USER_DATA, 0), "VR_UI_dup_user_data"},
     {ERR_PACK(ERR_LIB_UI, UI_F_UI_DUP_VERIFY_STRING, 0),
-     "UI_dup_verify_string"},
-    {ERR_PACK(ERR_LIB_UI, UI_F_UI_GET0_RESULT, 0), "UI_get0_result"},
+     "VR_UI_dup_verify_string"},
+    {ERR_PACK(ERR_LIB_UI, UI_F_UI_GET0_RESULT, 0), "VR_UI_get0_result"},
     {ERR_PACK(ERR_LIB_UI, UI_F_UI_GET_RESULT_LENGTH, 0),
-     "UI_get_result_length"},
-    {ERR_PACK(ERR_LIB_UI, UI_F_UI_NEW_METHOD, 0), "UI_new_method"},
-    {ERR_PACK(ERR_LIB_UI, UI_F_UI_PROCESS, 0), "UI_process"},
-    {ERR_PACK(ERR_LIB_UI, UI_F_UI_SET_RESULT, 0), "UI_set_result"},
-    {ERR_PACK(ERR_LIB_UI, UI_F_UI_SET_RESULT_EX, 0), "UI_set_result_ex"},
+     "VR_UI_get_result_length"},
+    {ERR_PACK(ERR_LIB_UI, UI_F_UI_NEW_METHOD, 0), "VR_UI_new_method"},
+    {ERR_PACK(ERR_LIB_UI, UI_F_UI_PROCESS, 0), "VR_UI_process"},
+    {ERR_PACK(ERR_LIB_UI, UI_F_UI_SET_RESULT, 0), "VR_UI_set_result"},
+    {ERR_PACK(ERR_LIB_UI, UI_F_UI_SET_RESULT_EX, 0), "VR_UI_set_result_ex"},
     {0, NULL}
 };
 
@@ -66,12 +66,12 @@ static const ERR_STRING_DATA UI_str_reasons[] = {
 
 #endif
 
-int ERR_load_UI_strings(void)
+int VR_ERR_load_UI_strings(void)
 {
 #ifndef OPENSSL_NO_ERR
-    if (ERR_func_error_string(UI_str_functs[0].error) == NULL) {
-        ERR_load_strings_const(UI_str_functs);
-        ERR_load_strings_const(UI_str_reasons);
+    if (VR_ERR_func_error_string(UI_str_functs[0].error) == NULL) {
+        VR_ERR_load_strings_const(UI_str_functs);
+        VR_ERR_load_strings_const(UI_str_reasons);
     }
 #endif
     return 1;

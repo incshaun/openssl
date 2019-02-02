@@ -126,7 +126,7 @@ static unsigned char server_ats_iv[] = {
 };
 
 /* Mocked out implementations of various functions */
-int ssl3_digest_cached_records(SSL *s, int keep)
+int VR_ssl3_digest_cached_records(SSL *s, int keep)
 {
     return 1;
 }
@@ -134,7 +134,7 @@ int ssl3_digest_cached_records(SSL *s, int keep)
 static int full_hash = 0;
 
 /* Give a hash of the currently set handshake */
-int ssl_handshake_hash(SSL *s, unsigned char *out, size_t outlen,
+int VR_ssl_handshake_hash(SSL *s, unsigned char *out, size_t outlen,
                        size_t *hashlen)
 {
     if (sizeof(hs_start_hash) > outlen
@@ -152,20 +152,20 @@ int ssl_handshake_hash(SSL *s, unsigned char *out, size_t outlen,
     return 1;
 }
 
-const EVP_MD *ssl_handshake_md(SSL *s)
+const EVP_MD *VR_ssl_handshake_md(SSL *s)
 {
-    return EVP_sha256();
+    return VR_EVP_sha256();
 }
 
-void RECORD_LAYER_reset_read_sequence(RECORD_LAYER *rl)
-{
-}
-
-void RECORD_LAYER_reset_write_sequence(RECORD_LAYER *rl)
+void VR_RECORD_LAYER_reset_read_sequence(RECORD_LAYER *rl)
 {
 }
 
-int ssl_cipher_get_evp(const SSL_SESSION *s, const EVP_CIPHER **enc,
+void VR_RECORD_LAYER_reset_write_sequence(RECORD_LAYER *rl)
+{
+}
+
+int VR_ssl_cipher_get_evp(const SSL_SESSION *s, const EVP_CIPHER **enc,
                        const EVP_MD **md, int *mac_pkey_type,
                        size_t *mac_secret_size, SSL_COMP **comp, int use_etm)
 
@@ -173,12 +173,12 @@ int ssl_cipher_get_evp(const SSL_SESSION *s, const EVP_CIPHER **enc,
     return 0;
 }
 
-int tls1_alert_code(int code)
+int VR_tls1_alert_code(int code)
 {
     return code;
 }
 
-int ssl_log_secret(SSL *ssl,
+int VR_ssl_log_secret(SSL *ssl,
                    const char *label,
                    const uint8_t *secret,
                    size_t secret_len)
@@ -186,22 +186,22 @@ int ssl_log_secret(SSL *ssl,
     return 1;
 }
 
-const EVP_MD *ssl_md(int idx)
+const EVP_MD *VR_ssl_md(int idx)
 {
-    return EVP_sha256();
+    return VR_EVP_sha256();
 }
 
-void ossl_statem_fatal(SSL *s, int al, int func, int reason, const char *file,
+void VR_ossl_statem_fatal(SSL *s, int al, int func, int reason, const char *file,
                            int line)
 {
 }
 
-int ossl_statem_export_allowed(SSL *s)
+int VR_ossl_statem_export_allowed(SSL *s)
 {
     return 1;
 }
 
-int ossl_statem_export_early_allowed(SSL *s)
+int VR_ossl_statem_export_early_allowed(SSL *s)
 {
     return 1;
 }
@@ -218,14 +218,14 @@ static int test_secret(SSL *s, unsigned char *prk,
     unsigned char hash[EVP_MAX_MD_SIZE];
     unsigned char key[KEYLEN];
     unsigned char iv[IVLEN];
-    const EVP_MD *md = ssl_handshake_md(s);
+    const EVP_MD *md = VR_ssl_handshake_md(s);
 
-    if (!ssl_handshake_hash(s, hash, sizeof(hash), &hashsize)) {
+    if (!VR_ssl_handshake_hash(s, hash, sizeof(hash), &hashsize)) {
         TEST_error("Failed to get hash");
         return 0;
     }
 
-    if (!tls13_hkdf_expand(s, md, prk, label, labellen, hash, hashsize,
+    if (!VR_tls13_hkdf_expand(s, md, prk, label, labellen, hash, hashsize,
                            gensecret, hashsize, 1)) {
         TEST_error("Secret generation failed");
         return 0;
@@ -234,7 +234,7 @@ static int test_secret(SSL *s, unsigned char *prk,
     if (!TEST_mem_eq(gensecret, hashsize, ref_secret, hashsize))
         return 0;
 
-    if (!tls13_derive_key(s, md, gensecret, key, KEYLEN)) {
+    if (!VR_tls13_derive_key(s, md, gensecret, key, KEYLEN)) {
         TEST_error("Key generation failed");
         return 0;
     }
@@ -242,7 +242,7 @@ static int test_secret(SSL *s, unsigned char *prk,
     if (!TEST_mem_eq(key, KEYLEN, ref_key, KEYLEN))
         return 0;
 
-    if (!tls13_derive_iv(s, md, gensecret, iv, IVLEN)) {
+    if (!VR_tls13_derive_iv(s, md, gensecret, iv, IVLEN)) {
         TEST_error("IV generation failed");
         return 0;
     }
@@ -262,19 +262,19 @@ static int test_handshake_secrets(void)
     unsigned char out_master_secret[EVP_MAX_MD_SIZE];
     size_t master_secret_length;
 
-    ctx = SSL_CTX_new(TLS_method());
+    ctx = VR_SSL_CTX_new(VR_TLS_method());
     if (!TEST_ptr(ctx))
         goto err;
 
-    s = SSL_new(ctx);
+    s = VR_SSL_new(ctx);
     if (!TEST_ptr(s ))
         goto err;
 
-    s->session = SSL_SESSION_new();
+    s->session = VR_SSL_SESSION_new();
     if (!TEST_ptr(s->session))
         goto err;
 
-    if (!TEST_true(tls13_generate_secret(s, ssl_handshake_md(s), NULL, NULL, 0,
+    if (!TEST_true(VR_tls13_generate_secret(s, VR_ssl_handshake_md(s), NULL, NULL, 0,
                                          (unsigned char *)&s->early_secret))) {
         TEST_info("Early secret generation failed");
         goto err;
@@ -286,7 +286,7 @@ static int test_handshake_secrets(void)
         goto err;
     }
 
-    if (!TEST_true(tls13_generate_handshake_secret(s, ecdhe_secret,
+    if (!TEST_true(VR_tls13_generate_handshake_secret(s, ecdhe_secret,
                                                    sizeof(ecdhe_secret)))) {
         TEST_info("Handshake secret generation failed");
         goto err;
@@ -296,7 +296,7 @@ static int test_handshake_secrets(void)
                      handshake_secret, sizeof(handshake_secret)))
         goto err;
 
-    hashsize = EVP_MD_size(ssl_handshake_md(s));
+    hashsize = VR_EVP_MD_size(VR_ssl_handshake_md(s));
     if (!TEST_size_t_eq(sizeof(client_hts), hashsize))
         goto err;
     if (!TEST_size_t_eq(sizeof(client_hts_key), KEYLEN))
@@ -328,12 +328,12 @@ static int test_handshake_secrets(void)
     }
 
     /*
-     * Ensure the mocked out ssl_handshake_hash() returns the full handshake
+     * Ensure the mocked out VR_ssl_handshake_hash() returns the full handshake
      * hash.
      */
     full_hash = 1;
 
-    if (!TEST_true(tls13_generate_master_secret(s, out_master_secret,
+    if (!TEST_true(VR_tls13_generate_master_secret(s, out_master_secret,
                                                 s->handshake_secret, hashsize,
                                                 &master_secret_length))) {
         TEST_info("Master secret generation failed");
@@ -378,8 +378,8 @@ static int test_handshake_secrets(void)
 
     ret = 1;
  err:
-    SSL_free(s);
-    SSL_CTX_free(ctx);
+    VR_SSL_free(s);
+    VR_SSL_CTX_free(ctx);
     return ret;
 }
 

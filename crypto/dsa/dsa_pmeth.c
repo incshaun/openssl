@@ -65,7 +65,7 @@ static int pkey_dsa_copy(EVP_PKEY_CTX *dst, EVP_PKEY_CTX *src)
 static void pkey_dsa_cleanup(EVP_PKEY_CTX *ctx)
 {
     DSA_PKEY_CTX *dctx = ctx->data;
-    OPENSSL_free(dctx);
+    OPENVR_SSL_free(dctx);
 }
 
 static int pkey_dsa_sign(EVP_PKEY_CTX *ctx, unsigned char *sig,
@@ -77,10 +77,10 @@ static int pkey_dsa_sign(EVP_PKEY_CTX *ctx, unsigned char *sig,
     DSA_PKEY_CTX *dctx = ctx->data;
     DSA *dsa = ctx->pkey->pkey.dsa;
 
-    if (dctx->md != NULL && tbslen != (size_t)EVP_MD_size(dctx->md))
+    if (dctx->md != NULL && tbslen != (size_t)VR_EVP_MD_size(dctx->md))
         return 0;
 
-    ret = DSA_sign(0, tbs, tbslen, sig, &sltmp, dsa);
+    ret = VR_DSA_sign(0, tbs, tbslen, sig, &sltmp, dsa);
 
     if (ret <= 0)
         return ret;
@@ -96,10 +96,10 @@ static int pkey_dsa_verify(EVP_PKEY_CTX *ctx,
     DSA_PKEY_CTX *dctx = ctx->data;
     DSA *dsa = ctx->pkey->pkey.dsa;
 
-    if (dctx->md != NULL && tbslen != (size_t)EVP_MD_size(dctx->md))
+    if (dctx->md != NULL && tbslen != (size_t)VR_EVP_MD_size(dctx->md))
         return 0;
 
-    ret = DSA_verify(0, tbs, tbslen, sig, siglen, dsa);
+    ret = VR_DSA_verify(0, tbs, tbslen, sig, siglen, dsa);
 
     return ret;
 }
@@ -122,9 +122,9 @@ static int pkey_dsa_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2)
         return 1;
 
     case EVP_PKEY_CTRL_DSA_PARAMGEN_MD:
-        if (EVP_MD_type((const EVP_MD *)p2) != NID_sha1 &&
-            EVP_MD_type((const EVP_MD *)p2) != NID_sha224 &&
-            EVP_MD_type((const EVP_MD *)p2) != NID_sha256) {
+        if (VR_EVP_MD_type((const EVP_MD *)p2) != NID_sha1 &&
+            VR_EVP_MD_type((const EVP_MD *)p2) != NID_sha224 &&
+            VR_EVP_MD_type((const EVP_MD *)p2) != NID_sha256) {
             DSAerr(DSA_F_PKEY_DSA_CTRL, DSA_R_INVALID_DIGEST_TYPE);
             return 0;
         }
@@ -132,13 +132,13 @@ static int pkey_dsa_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2)
         return 1;
 
     case EVP_PKEY_CTRL_MD:
-        if (EVP_MD_type((const EVP_MD *)p2) != NID_sha1 &&
-            EVP_MD_type((const EVP_MD *)p2) != NID_dsa &&
-            EVP_MD_type((const EVP_MD *)p2) != NID_dsaWithSHA &&
-            EVP_MD_type((const EVP_MD *)p2) != NID_sha224 &&
-            EVP_MD_type((const EVP_MD *)p2) != NID_sha256 &&
-            EVP_MD_type((const EVP_MD *)p2) != NID_sha384 &&
-            EVP_MD_type((const EVP_MD *)p2) != NID_sha512) {
+        if (VR_EVP_MD_type((const EVP_MD *)p2) != NID_sha1 &&
+            VR_EVP_MD_type((const EVP_MD *)p2) != NID_dsa &&
+            VR_EVP_MD_type((const EVP_MD *)p2) != NID_dsaWithSHA &&
+            VR_EVP_MD_type((const EVP_MD *)p2) != NID_sha224 &&
+            VR_EVP_MD_type((const EVP_MD *)p2) != NID_sha256 &&
+            VR_EVP_MD_type((const EVP_MD *)p2) != NID_sha384 &&
+            VR_EVP_MD_type((const EVP_MD *)p2) != NID_sha512) {
             DSAerr(DSA_F_PKEY_DSA_CTRL, DSA_R_INVALID_DIGEST_TYPE);
             return 0;
         }
@@ -177,7 +177,7 @@ static int pkey_dsa_ctrl_str(EVP_PKEY_CTX *ctx,
         return EVP_PKEY_CTX_set_dsa_paramgen_q_bits(ctx, qbits);
     }
     if (strcmp(type, "dsa_paramgen_md") == 0) {
-        const EVP_MD *md = EVP_get_digestbyname(value);
+        const EVP_MD *md = VR_EVP_get_digestbyname(value);
 
         if (md == NULL) {
             DSAerr(DSA_F_PKEY_DSA_CTRL_STR, DSA_R_INVALID_DIGEST_TYPE);
@@ -196,24 +196,24 @@ static int pkey_dsa_paramgen(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey)
     int ret;
 
     if (ctx->pkey_gencb) {
-        pcb = BN_GENCB_new();
+        pcb = VR_BN_GENCB_new();
         if (pcb == NULL)
             return 0;
-        evp_pkey_set_cb_translate(pcb, ctx);
+        VR_evp_pkey_set_cb_translate(pcb, ctx);
     } else
         pcb = NULL;
-    dsa = DSA_new();
+    dsa = VR_DSA_new();
     if (dsa == NULL) {
-        BN_GENCB_free(pcb);
+        VR_BN_GENCB_free(pcb);
         return 0;
     }
-    ret = dsa_builtin_paramgen(dsa, dctx->nbits, dctx->qbits, dctx->pmd,
+    ret = VR_dsa_builtin_paramgen(dsa, dctx->nbits, dctx->qbits, dctx->pmd,
                                NULL, 0, NULL, NULL, NULL, pcb);
-    BN_GENCB_free(pcb);
+    VR_BN_GENCB_free(pcb);
     if (ret)
-        EVP_PKEY_assign_DSA(pkey, dsa);
+        VR_EVP_PKEY_assign_DSA(pkey, dsa);
     else
-        DSA_free(dsa);
+        VR_DSA_free(dsa);
     return ret;
 }
 
@@ -225,14 +225,14 @@ static int pkey_dsa_keygen(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey)
         DSAerr(DSA_F_PKEY_DSA_KEYGEN, DSA_R_NO_PARAMETERS_SET);
         return 0;
     }
-    dsa = DSA_new();
+    dsa = VR_DSA_new();
     if (dsa == NULL)
         return 0;
-    EVP_PKEY_assign_DSA(pkey, dsa);
+    VR_EVP_PKEY_assign_DSA(pkey, dsa);
     /* Note: if error return, pkey is freed by parent routine */
-    if (!EVP_PKEY_copy_parameters(pkey, ctx->pkey))
+    if (!VR_EVP_PKEY_copy_parameters(pkey, ctx->pkey))
         return 0;
-    return DSA_generate_key(pkey->pkey.dsa);
+    return VR_DSA_generate_key(pkey->pkey.dsa);
 }
 
 const EVP_PKEY_METHOD dsa_pkey_meth = {

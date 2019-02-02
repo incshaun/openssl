@@ -46,14 +46,14 @@ static void ssl_module_free(CONF_IMODULE *md)
     for (i = 0; i < ssl_names_count; i++) {
         struct ssl_conf_name_st *tname = ssl_names + i;
 
-        OPENSSL_free(tname->name);
+        OPENVR_SSL_free(tname->name);
         for (j = 0; j < tname->cmd_count; j++) {
-            OPENSSL_free(tname->cmds[j].cmd);
-            OPENSSL_free(tname->cmds[j].arg);
+            OPENVR_SSL_free(tname->cmds[j].cmd);
+            OPENVR_SSL_free(tname->cmds[j].arg);
         }
-        OPENSSL_free(tname->cmds);
+        OPENVR_SSL_free(tname->cmds);
     }
-    OPENSSL_free(ssl_names);
+    OPENVR_SSL_free(ssl_names);
     ssl_names = NULL;
     ssl_names_count = 0;
 }
@@ -65,14 +65,14 @@ static int ssl_module_init(CONF_IMODULE *md, const CONF *cnf)
     const char *ssl_conf_section;
     STACK_OF(CONF_VALUE) *cmd_lists;
 
-    ssl_conf_section = CONF_imodule_get_value(md);
-    cmd_lists = NCONF_get_section(cnf, ssl_conf_section);
+    ssl_conf_section = VR_CONF_imodule_get_value(md);
+    cmd_lists = VR_NCONF_get_section(cnf, ssl_conf_section);
     if (sk_CONF_VALUE_num(cmd_lists) <= 0) {
         if (cmd_lists == NULL)
             CONFerr(CONF_F_SSL_MODULE_INIT, CONF_R_SSL_SECTION_NOT_FOUND);
         else
             CONFerr(CONF_F_SSL_MODULE_INIT, CONF_R_SSL_SECTION_EMPTY);
-        ERR_add_error_data(2, "section=", ssl_conf_section);
+        VR_ERR_add_error_data(2, "section=", ssl_conf_section);
         goto err;
     }
     cnt = sk_CONF_VALUE_num(cmd_lists);
@@ -82,7 +82,7 @@ static int ssl_module_init(CONF_IMODULE *md, const CONF *cnf)
     for (i = 0; i < ssl_names_count; i++) {
         struct ssl_conf_name_st *ssl_name = ssl_names + i;
         CONF_VALUE *sect = sk_CONF_VALUE_value(cmd_lists, (int)i);
-        STACK_OF(CONF_VALUE) *cmds = NCONF_get_section(cnf, sect->value);
+        STACK_OF(CONF_VALUE) *cmds = VR_NCONF_get_section(cnf, sect->value);
 
         if (sk_CONF_VALUE_num(cmds) <= 0) {
             if (cmds == NULL)
@@ -91,7 +91,7 @@ static int ssl_module_init(CONF_IMODULE *md, const CONF *cnf)
             else
                 CONFerr(CONF_F_SSL_MODULE_INIT,
                         CONF_R_SSL_COMMAND_SECTION_EMPTY);
-            ERR_add_error_data(4, "name=", sect->name, ", value=", sect->value);
+            VR_ERR_add_error_data(4, "name=", sect->name, ", value=", sect->value);
             goto err;
         }
         ssl_name->name = OPENSSL_strdup(sect->name);
@@ -129,10 +129,10 @@ static int ssl_module_init(CONF_IMODULE *md, const CONF *cnf)
 
 /*
  * Returns the set of commands with index |idx| previously searched for via
- * conf_ssl_name_find. Also stores the name of the set of commands in |*name|
+ * VR_conf_ssl_name_find. Also stores the name of the set of commands in |*name|
  * and the number of commands in the set in |*cnt|.
  */
-const SSL_CONF_CMD *conf_ssl_get(size_t idx, const char **name, size_t *cnt)
+const SSL_CONF_CMD *VR_conf_ssl_get(size_t idx, const char **name, size_t *cnt)
 {
     *name = ssl_names[idx].name;
     *cnt = ssl_names[idx].cmd_count;
@@ -144,7 +144,7 @@ const SSL_CONF_CMD *conf_ssl_get(size_t idx, const char **name, size_t *cnt)
  * index for the command set in |*idx|.
  * Returns 1 on success or 0 on failure.
  */
-int conf_ssl_name_find(const char *name, size_t *idx)
+int VR_conf_ssl_name_find(const char *name, size_t *idx)
 {
     size_t i;
     const struct ssl_conf_name_st *nm;
@@ -163,17 +163,17 @@ int conf_ssl_name_find(const char *name, size_t *idx)
 /*
  * Given a command set |cmd|, return details on the command at index |idx| which
  * must be less than the number of commands in the set (as returned by
- * conf_ssl_get). The name of the command will be returned in |*cmdstr| and the
+ * VR_conf_ssl_get). The name of the command will be returned in |*cmdstr| and the
  * argument is returned in |*arg|.
  */
-void conf_ssl_get_cmd(const SSL_CONF_CMD *cmd, size_t idx, char **cmdstr,
+void VR_conf_ssl_get_cmd(const SSL_CONF_CMD *cmd, size_t idx, char **cmdstr,
                       char **arg)
 {
     *cmdstr = cmd[idx].cmd;
     *arg = cmd[idx].arg;
 }
 
-void conf_add_ssl_module(void)
+void VR_conf_add_ssl_module(void)
 {
-    CONF_module_add("ssl_conf", ssl_module_init, ssl_module_free);
+    VR_CONF_module_add("ssl_conf", ssl_module_init, ssl_module_free);
 }

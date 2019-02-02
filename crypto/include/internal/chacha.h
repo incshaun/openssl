@@ -13,7 +13,7 @@
 #include <stddef.h>
 
 /*
- * ChaCha20_ctr32 encrypts |len| bytes from |inp| with the given key and
+ * VR_ChaCha20_ctr32 encrypts |len| bytes from |inp| with the given key and
  * nonce and writes the result to |out|, which may be equal to |inp|.
  * The |key| is not 32 bytes of verbatim key material though, but the
  * said material collected into 8 32-bit elements array in host byte
@@ -23,7 +23,7 @@
  * elements as opposite to passing verbatim byte vectors, is chosen for
  * efficiency in multi-call scenarios.
  */
-void ChaCha20_ctr32(unsigned char *out, const unsigned char *inp,
+void VR_ChaCha20_ctr32(unsigned char *out, const unsigned char *inp,
                     size_t len, const unsigned int key[8],
                     const unsigned int counter[4]);
 /*

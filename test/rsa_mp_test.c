@@ -133,21 +133,21 @@ static int key2048p3(RSA *key)
     BIGNUM **pris = NULL, **exps = NULL, **coeffs = NULL;
     int rv = 256; /* public key length */
 
-    if (!TEST_int_eq(RSA_set0_key(key,
-                                  BN_bin2bn(n, sizeof(n) - 1, NULL),
-                                  BN_bin2bn(e, sizeof(e) - 1, NULL),
-                                  BN_bin2bn(d, sizeof(d) - 1, NULL)), 1))
+    if (!TEST_int_eq(VR_RSA_set0_key(key,
+                                  VR_BN_bin2bn(n, sizeof(n) - 1, NULL),
+                                  VR_BN_bin2bn(e, sizeof(e) - 1, NULL),
+                                  VR_BN_bin2bn(d, sizeof(d) - 1, NULL)), 1))
         goto err;
 
-    if (!TEST_int_eq(RSA_set0_factors(key,
-                                      BN_bin2bn(p, sizeof(p) - 1, NULL),
-                                      BN_bin2bn(q, sizeof(q) - 1, NULL)), 1))
+    if (!TEST_int_eq(VR_RSA_set0_factors(key,
+                                      VR_BN_bin2bn(p, sizeof(p) - 1, NULL),
+                                      VR_BN_bin2bn(q, sizeof(q) - 1, NULL)), 1))
         goto err;
 
-    if (!TEST_int_eq(RSA_set0_crt_params(key,
-                                         BN_bin2bn(dmp1, sizeof(dmp1) - 1, NULL),
-                                         BN_bin2bn(dmq1, sizeof(dmq1) - 1, NULL),
-                                         BN_bin2bn(iqmp, sizeof(iqmp) - 1,
+    if (!TEST_int_eq(VR_RSA_set0_crt_params(key,
+                                         VR_BN_bin2bn(dmp1, sizeof(dmp1) - 1, NULL),
+                                         VR_BN_bin2bn(dmq1, sizeof(dmq1) - 1, NULL),
+                                         VR_BN_bin2bn(iqmp, sizeof(iqmp) - 1,
                                                    NULL)), 1))
         return 0;
 
@@ -157,28 +157,28 @@ static int key2048p3(RSA *key)
     if (!TEST_ptr(pris) || !TEST_ptr(exps) || !TEST_ptr(coeffs))
         goto err;
 
-    pris[0] = BN_bin2bn(ex_prime, sizeof(ex_prime) - 1, NULL);
-    exps[0] = BN_bin2bn(ex_exponent, sizeof(ex_exponent) - 1, NULL);
-    coeffs[0] = BN_bin2bn(ex_coefficient, sizeof(ex_coefficient) - 1, NULL);
+    pris[0] = VR_BN_bin2bn(ex_prime, sizeof(ex_prime) - 1, NULL);
+    exps[0] = VR_BN_bin2bn(ex_exponent, sizeof(ex_exponent) - 1, NULL);
+    coeffs[0] = VR_BN_bin2bn(ex_coefficient, sizeof(ex_coefficient) - 1, NULL);
     if (!TEST_ptr(pris[0]) || !TEST_ptr(exps[0]) || !TEST_ptr(coeffs[0]))
         goto err;
 
-    if (!TEST_true(RSA_set0_multi_prime_params(key, pris, exps,
+    if (!TEST_true(VR_RSA_set0_multi_prime_params(key, pris, exps,
                                                coeffs, NUM_EXTRA_PRIMES)))
         goto err;
 
  ret:
-    OPENSSL_free(pris);
-    OPENSSL_free(exps);
-    OPENSSL_free(coeffs);
+    OPENVR_SSL_free(pris);
+    OPENVR_SSL_free(exps);
+    OPENVR_SSL_free(coeffs);
     return rv;
  err:
     if (pris != NULL)
-        BN_free(pris[0]);
+        VR_BN_free(pris[0]);
     if (exps != NULL)
-        BN_free(exps[0]);
+        VR_BN_free(exps[0]);
     if (coeffs != NULL)
-        BN_free(coeffs[0]);
+        VR_BN_free(coeffs[0]);
     rv = 0;
     goto ret;
 }
@@ -195,28 +195,28 @@ static int test_rsa_mp(void)
     int num;
 
     plen = sizeof(ptext_ex) - 1;
-    key = RSA_new();
+    key = VR_RSA_new();
     if (!TEST_ptr(key))
         goto err;
     clen = key2048p3(key);
     if (!TEST_int_eq(clen, 256))
         goto err;
 
-    if (!TEST_true(RSA_check_key_ex(key, NULL)))
+    if (!TEST_true(VR_RSA_check_key_ex(key, NULL)))
         goto err;
 
-    num = RSA_public_encrypt(plen, ptext_ex, ctext, key,
+    num = VR_RSA_public_encrypt(plen, ptext_ex, ctext, key,
                              RSA_PKCS1_PADDING);
     if (!TEST_int_eq(num, clen))
         goto err;
 
-    num = RSA_private_decrypt(num, ctext, ptext, key, RSA_PKCS1_PADDING);
+    num = VR_RSA_private_decrypt(num, ctext, ptext, key, RSA_PKCS1_PADDING);
     if (!TEST_mem_eq(ptext, num, ptext_ex, plen))
         goto err;
 
     ret = 1;
 err:
-    RSA_free(key);
+    VR_RSA_free(key);
     return ret;
 }
 #endif

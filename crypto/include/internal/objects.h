@@ -9,4 +9,4 @@
 
 #include <openssl/objects.h>
 
-void obj_cleanup_int(void);
+void VR_obj_cleanup_int(void);

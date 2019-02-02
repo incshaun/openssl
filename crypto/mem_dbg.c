@@ -93,13 +93,13 @@ static CRYPTO_THREAD_ID disabling_threadid;
 
 DEFINE_RUN_ONCE_STATIC(do_memdbg_init)
 {
-    memdbg_lock = CRYPTO_THREAD_lock_new();
-    long_memdbg_lock = CRYPTO_THREAD_lock_new();
+    memdbg_lock = VR_CRYPTO_THREAD_lock_new();
+    long_memdbg_lock = VR_CRYPTO_THREAD_lock_new();
     if (memdbg_lock == NULL || long_memdbg_lock == NULL
-        || !CRYPTO_THREAD_init_local(&appinfokey, NULL)) {
-        CRYPTO_THREAD_lock_free(memdbg_lock);
+        || !VR_CRYPTO_THREAD_init_local(&appinfokey, NULL)) {
+        VR_CRYPTO_THREAD_lock_free(memdbg_lock);
         memdbg_lock = NULL;
-        CRYPTO_THREAD_lock_free(long_memdbg_lock);
+        VR_CRYPTO_THREAD_lock_free(long_memdbg_lock);
         long_memdbg_lock = NULL;
         return 0;
     }
@@ -112,12 +112,12 @@ static void app_info_free(APP_INFO *inf)
         return;
     if (--(inf->references) <= 0) {
         app_info_free(inf->next);
-        OPENSSL_free(inf);
+        OPENVR_SSL_free(inf);
     }
 }
 #endif
 
-int CRYPTO_mem_ctrl(int mode)
+int VR_CRYPTO_mem_ctrl(int mode)
 {
 #ifdef OPENSSL_NO_CRYPTO_MDEBUG
     return mode - mode;
@@ -127,7 +127,7 @@ int CRYPTO_mem_ctrl(int mode)
     if (!RUN_ONCE(&memdbg_init, do_memdbg_init))
         return -1;
 
-    CRYPTO_THREAD_write_lock(memdbg_lock);
+    VR_CRYPTO_THREAD_write_lock(memdbg_lock);
     switch (mode) {
     default:
         break;
@@ -145,10 +145,10 @@ int CRYPTO_mem_ctrl(int mode)
     /* switch off temporarily (for library-internal use): */
     case CRYPTO_MEM_CHECK_DISABLE:
         if (mh_mode & CRYPTO_MEM_CHECK_ON) {
-            CRYPTO_THREAD_ID cur = CRYPTO_THREAD_get_current_id();
+            CRYPTO_THREAD_ID cur = VR_CRYPTO_THREAD_get_current_id();
             /* see if we don't have long_memdbg_lock already */
             if (!num_disable
-                || !CRYPTO_THREAD_compare_id(disabling_threadid, cur)) {
+                || !VR_CRYPTO_THREAD_compare_id(disabling_threadid, cur)) {
                 /*
                  * Long-time lock long_memdbg_lock must not be claimed
                  * while we're holding memdbg_lock, or we'll deadlock
@@ -157,15 +157,15 @@ int CRYPTO_mem_ctrl(int mode)
                  * them a chance, first, and then claim the locks in
                  * appropriate order (long-time lock first).
                  */
-                CRYPTO_THREAD_unlock(memdbg_lock);
+                VR_CRYPTO_THREAD_unlock(memdbg_lock);
                 /*
                  * Note that after we have waited for long_memdbg_lock and
                  * memdbg_lock, we'll still be in the right "case" and
                  * "if" branch because MemCheck_start and MemCheck_stop may
                  * never be used while there are multiple OpenSSL threads.
                  */
-                CRYPTO_THREAD_write_lock(long_memdbg_lock);
-                CRYPTO_THREAD_write_lock(memdbg_lock);
+                VR_CRYPTO_THREAD_write_lock(long_memdbg_lock);
+                VR_CRYPTO_THREAD_write_lock(memdbg_lock);
                 mh_mode &= ~CRYPTO_MEM_CHECK_ENABLE;
                 disabling_threadid = cur;
             }
@@ -179,13 +179,13 @@ int CRYPTO_mem_ctrl(int mode)
                 num_disable--;
                 if (num_disable == 0) {
                     mh_mode |= CRYPTO_MEM_CHECK_ENABLE;
-                    CRYPTO_THREAD_unlock(long_memdbg_lock);
+                    VR_CRYPTO_THREAD_unlock(long_memdbg_lock);
                 }
             }
         }
         break;
     }
-    CRYPTO_THREAD_unlock(memdbg_lock);
+    VR_CRYPTO_THREAD_unlock(memdbg_lock);
     return ret;
 #endif
 }
@@ -201,13 +201,13 @@ static int mem_check_on(void)
         if (!RUN_ONCE(&memdbg_init, do_memdbg_init))
             return 0;
 
-        cur = CRYPTO_THREAD_get_current_id();
-        CRYPTO_THREAD_read_lock(memdbg_lock);
+        cur = VR_CRYPTO_THREAD_get_current_id();
+        VR_CRYPTO_THREAD_read_lock(memdbg_lock);
 
         ret = (mh_mode & CRYPTO_MEM_CHECK_ENABLE)
-            || !CRYPTO_THREAD_compare_id(disabling_threadid, cur);
+            || !VR_CRYPTO_THREAD_compare_id(disabling_threadid, cur);
 
-        CRYPTO_THREAD_unlock(memdbg_lock);
+        VR_CRYPTO_THREAD_unlock(memdbg_lock);
     }
     return ret;
 }
@@ -245,21 +245,21 @@ static int pop_info(void)
     if (!RUN_ONCE(&memdbg_init, do_memdbg_init))
         return 0;
 
-    current = (APP_INFO *)CRYPTO_THREAD_get_local(&appinfokey);
+    current = (APP_INFO *)VR_CRYPTO_THREAD_get_local(&appinfokey);
     if (current != NULL) {
         APP_INFO *next = current->next;
 
         if (next != NULL) {
             next->references++;
-            CRYPTO_THREAD_set_local(&appinfokey, next);
+            VR_CRYPTO_THREAD_set_local(&appinfokey, next);
         } else {
-            CRYPTO_THREAD_set_local(&appinfokey, NULL);
+            VR_CRYPTO_THREAD_set_local(&appinfokey, NULL);
         }
         if (--(current->references) <= 0) {
             current->next = NULL;
             if (next != NULL)
                 next->references--;
-            OPENSSL_free(current);
+            OPENVR_SSL_free(current);
         }
         return 1;
     }
@@ -272,27 +272,27 @@ int CRYPTO_mem_debug_push(const char *info, const char *file, int line)
     int ret = 0;
 
     if (mem_check_on()) {
-        CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_DISABLE);
+        VR_CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_DISABLE);
 
         if (!RUN_ONCE(&memdbg_init, do_memdbg_init)
             || (ami = OPENSSL_malloc(sizeof(*ami))) == NULL)
             goto err;
 
-        ami->threadid = CRYPTO_THREAD_get_current_id();
+        ami->threadid = VR_CRYPTO_THREAD_get_current_id();
         ami->file = file;
         ami->line = line;
         ami->info = info;
         ami->references = 1;
         ami->next = NULL;
 
-        amim = (APP_INFO *)CRYPTO_THREAD_get_local(&appinfokey);
-        CRYPTO_THREAD_set_local(&appinfokey, ami);
+        amim = (APP_INFO *)VR_CRYPTO_THREAD_get_local(&appinfokey);
+        VR_CRYPTO_THREAD_set_local(&appinfokey, ami);
 
         if (amim != NULL)
             ami->next = amim;
         ret = 1;
  err:
-        CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ENABLE);
+        VR_CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ENABLE);
     }
 
     return ret;
@@ -303,9 +303,9 @@ int CRYPTO_mem_debug_pop(void)
     int ret = 0;
 
     if (mem_check_on()) {
-        CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_DISABLE);
+        VR_CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_DISABLE);
         ret = pop_info();
-        CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ENABLE);
+        VR_CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ENABLE);
     }
     return ret;
 }
@@ -326,18 +326,18 @@ void CRYPTO_mem_debug_malloc(void *addr, size_t num, int before_p,
             break;
 
         if (mem_check_on()) {
-            CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_DISABLE);
+            VR_CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_DISABLE);
 
             if (!RUN_ONCE(&memdbg_init, do_memdbg_init)
                 || (m = OPENSSL_malloc(sizeof(*m))) == NULL) {
-                OPENSSL_free(addr);
-                CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ENABLE);
+                OPENVR_SSL_free(addr);
+                VR_CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ENABLE);
                 return;
             }
             if (mh == NULL) {
                 if ((mh = lh_MEM_new(mem_hash, mem_cmp)) == NULL) {
-                    OPENSSL_free(addr);
-                    OPENSSL_free(m);
+                    OPENVR_SSL_free(addr);
+                    OPENVR_SSL_free(m);
                     addr = NULL;
                     goto err;
                 }
@@ -347,7 +347,7 @@ void CRYPTO_mem_debug_malloc(void *addr, size_t num, int before_p,
             m->file = file;
             m->line = line;
             m->num = num;
-            m->threadid = CRYPTO_THREAD_get_current_id();
+            m->threadid = VR_CRYPTO_THREAD_get_current_id();
 
             if (order == break_order_num) {
                 /* BREAK HERE */
@@ -359,7 +359,7 @@ void CRYPTO_mem_debug_malloc(void *addr, size_t num, int before_p,
 # endif
             m->time = time(NULL);
 
-            amim = (APP_INFO *)CRYPTO_THREAD_get_local(&appinfokey);
+            amim = (APP_INFO *)VR_CRYPTO_THREAD_get_local(&appinfokey);
             m->app_info = amim;
             if (amim != NULL)
                 amim->references++;
@@ -369,10 +369,10 @@ void CRYPTO_mem_debug_malloc(void *addr, size_t num, int before_p,
                 if (mm->app_info != NULL) {
                     mm->app_info->references--;
                 }
-                OPENSSL_free(mm);
+                OPENVR_SSL_free(mm);
             }
  err:
-            CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ENABLE);
+            VR_CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ENABLE);
         }
         break;
     }
@@ -390,16 +390,16 @@ void CRYPTO_mem_debug_free(void *addr, int before_p,
             break;
 
         if (mem_check_on() && (mh != NULL)) {
-            CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_DISABLE);
+            VR_CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_DISABLE);
 
             m.addr = addr;
             mp = lh_MEM_delete(mh, &m);
             if (mp != NULL) {
                 app_info_free(mp->app_info);
-                OPENSSL_free(mp);
+                OPENVR_SSL_free(mp);
             }
 
-            CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ENABLE);
+            VR_CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ENABLE);
         }
         break;
     case 1:
@@ -425,7 +425,7 @@ void CRYPTO_mem_debug_realloc(void *addr1, void *addr2, size_t num,
         }
 
         if (mem_check_on()) {
-            CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_DISABLE);
+            VR_CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_DISABLE);
 
             m.addr = addr1;
             mp = lh_MEM_delete(mh, &m);
@@ -438,7 +438,7 @@ void CRYPTO_mem_debug_realloc(void *addr1, void *addr2, size_t num,
                 (void)lh_MEM_insert(mh, mp);
             }
 
-            CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ENABLE);
+            VR_CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ENABLE);
         }
         break;
     }
@@ -472,7 +472,7 @@ static void print_leak(const MEM *m, MEM_LEAK *l)
     CRYPTO_THREAD_ID ti;
 
     lcl = localtime(&m->time);
-    n = BIO_snprintf(bufp, len, "[%02d:%02d:%02d] ",
+    n = VR_BIO_snprintf(bufp, len, "[%02d:%02d:%02d] ",
                      lcl->tm_hour, lcl->tm_min, lcl->tm_sec);
     if (n <= 0) {
         bufp[0] = '\0';
@@ -481,7 +481,7 @@ static void print_leak(const MEM *m, MEM_LEAK *l)
     bufp += n;
     len -= n;
 
-    n = BIO_snprintf(bufp, len, "%5lu file=%s, line=%d, ",
+    n = VR_BIO_snprintf(bufp, len, "%5lu file=%s, line=%d, ",
                      m->order, m->file, m->line);
     if (n <= 0)
         return;
@@ -490,13 +490,13 @@ static void print_leak(const MEM *m, MEM_LEAK *l)
 
     tid.ltid = 0;
     tid.tid = m->threadid;
-    n = BIO_snprintf(bufp, len, "thread=%lu, ", tid.ltid);
+    n = VR_BIO_snprintf(bufp, len, "thread=%lu, ", tid.ltid);
     if (n <= 0)
         return;
     bufp += n;
     len -= n;
 
-    n = BIO_snprintf(bufp, len, "number=%d, address=%p\n", m->num, m->addr);
+    n = VR_BIO_snprintf(bufp, len, "number=%d, address=%p\n", m->num, m->addr);
     if (n <= 0)
         return;
     bufp += n;
@@ -524,7 +524,7 @@ static void print_leak(const MEM *m, MEM_LEAK *l)
             buf[ami_cnt] = '\0';
             tid.ltid = 0;
             tid.tid = amip->threadid;
-            n = BIO_snprintf(buf + ami_cnt, sizeof(buf) - ami_cnt,
+            n = VR_BIO_snprintf(buf + ami_cnt, sizeof(buf) - ami_cnt,
                              " thread=%lu, file=%s, line=%d, info=\"",
                              tid.ltid, amip->file, amip->line);
             if (n <= 0)
@@ -535,13 +535,13 @@ static void print_leak(const MEM *m, MEM_LEAK *l)
                 memcpy(buf + buf_len, amip->info, 128 - buf_len - 3);
                 buf_len = 128 - 3;
             } else {
-                n = BIO_snprintf(buf + buf_len, sizeof(buf) - buf_len, "%s",
+                n = VR_BIO_snprintf(buf + buf_len, sizeof(buf) - buf_len, "%s",
                                  amip->info);
                 if (n < 0)
                     break;
                 buf_len += n;
             }
-            n = BIO_snprintf(buf + buf_len, sizeof(buf) - buf_len, "\"\n");
+            n = VR_BIO_snprintf(buf + buf_len, sizeof(buf) - buf_len, "\"\n");
             if (n <= 0)
                 break;
 
@@ -549,7 +549,7 @@ static void print_leak(const MEM *m, MEM_LEAK *l)
 
             amip = amip->next;
         }
-        while (amip && CRYPTO_THREAD_compare_id(amip->threadid, ti));
+        while (amip && VR_CRYPTO_THREAD_compare_id(amip->threadid, ti));
     }
 
 #ifndef OPENSSL_NO_CRYPTO_MDEBUG_BACKTRACE
@@ -572,12 +572,12 @@ int CRYPTO_mem_leaks_cb(int (*cb) (const char *str, size_t len, void *u),
     MEM_LEAK ml;
 
     /* Ensure all resources are released */
-    OPENSSL_cleanup();
+    VR_OPENSSL_cleanup();
 
     if (!RUN_ONCE(&memdbg_init, do_memdbg_init))
         return -1;
 
-    CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_DISABLE);
+    VR_CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_DISABLE);
 
     ml.print_cb = cb;
     ml.print_cb_arg = u;
@@ -589,7 +589,7 @@ int CRYPTO_mem_leaks_cb(int (*cb) (const char *str, size_t len, void *u),
     if (ml.chunks != 0) {
         char buf[256];
 
-        BIO_snprintf(buf, sizeof(buf), "%ld bytes leaked in %d chunks\n",
+        VR_BIO_snprintf(buf, sizeof(buf), "%ld bytes leaked in %d chunks\n",
                      ml.bytes, ml.chunks);
         cb(buf, strlen(buf), u);
     } else {
@@ -601,7 +601,7 @@ int CRYPTO_mem_leaks_cb(int (*cb) (const char *str, size_t len, void *u),
          */
         int old_mh_mode;
 
-        CRYPTO_THREAD_write_lock(memdbg_lock);
+        VR_CRYPTO_THREAD_write_lock(memdbg_lock);
 
         /*
          * avoid deadlock when lh_free() uses CRYPTO_mem_debug_free(), which uses
@@ -614,14 +614,14 @@ int CRYPTO_mem_leaks_cb(int (*cb) (const char *str, size_t len, void *u),
         mh = NULL;
 
         mh_mode = old_mh_mode;
-        CRYPTO_THREAD_unlock(memdbg_lock);
+        VR_CRYPTO_THREAD_unlock(memdbg_lock);
     }
-    CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_OFF);
+    VR_CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_OFF);
 
     /* Clean up locks etc */
-    CRYPTO_THREAD_cleanup_local(&appinfokey);
-    CRYPTO_THREAD_lock_free(memdbg_lock);
-    CRYPTO_THREAD_lock_free(long_memdbg_lock);
+    VR_CRYPTO_THREAD_cleanup_local(&appinfokey);
+    VR_CRYPTO_THREAD_lock_free(memdbg_lock);
+    VR_CRYPTO_THREAD_lock_free(long_memdbg_lock);
     memdbg_lock = NULL;
     long_memdbg_lock = NULL;
 
@@ -630,16 +630,16 @@ int CRYPTO_mem_leaks_cb(int (*cb) (const char *str, size_t len, void *u),
 
 static int print_bio(const char *str, size_t len, void *b)
 {
-    return BIO_write((BIO *)b, str, len);
+    return VR_BIO_write((BIO *)b, str, len);
 }
 
 int CRYPTO_mem_leaks(BIO *b)
 {
     /*
-     * OPENSSL_cleanup() will free the ex_data locks so we can't have any
+     * VR_OPENSSL_cleanup() will free the ex_data locks so we can't have any
      * ex_data hanging around
      */
-    bio_free_ex_data(b);
+    VR_bio_free_ex_data(b);
 
     return CRYPTO_mem_leaks_cb(print_bio, b);
 }
@@ -655,14 +655,14 @@ int CRYPTO_mem_leaks_fp(FILE *fp)
      * we're creating them at a time when we're trying to check we've not
      * left anything un-free()'d!!
      */
-    CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_DISABLE);
-    b = BIO_new(BIO_s_file());
-    CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ENABLE);
+    VR_CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_DISABLE);
+    b = VR_BIO_new(VR_BIO_s_file());
+    VR_CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ENABLE);
     if (b == NULL)
         return -1;
     BIO_set_fp(b, fp, BIO_NOCLOSE);
     ret = CRYPTO_mem_leaks_cb(print_bio, b);
-    BIO_free(b);
+    VR_BIO_free(b);
     return ret;
 }
 # endif

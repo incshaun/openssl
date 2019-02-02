@@ -14,7 +14,7 @@
 #include <openssl/rand.h>
 #include "internal/constant_time_locl.h"
 
-int RSA_padding_add_SSLv23(unsigned char *to, int tlen,
+int VR_RSA_padding_add_SSLv23(unsigned char *to, int tlen,
                            const unsigned char *from, int flen)
 {
     int i, j;
@@ -34,12 +34,12 @@ int RSA_padding_add_SSLv23(unsigned char *to, int tlen,
     /* pad out with non-zero random data */
     j = tlen - 3 - 8 - flen;
 
-    if (RAND_bytes(p, j) <= 0)
+    if (VR_RAND_bytes(p, j) <= 0)
         return 0;
     for (i = 0; i < j; i++) {
         if (*p == '\0')
             do {
-                if (RAND_bytes(p, 1) <= 0)
+                if (VR_RAND_bytes(p, 1) <= 0)
                     return 0;
             } while (*p == '\0');
         p++;
@@ -54,11 +54,11 @@ int RSA_padding_add_SSLv23(unsigned char *to, int tlen,
 }
 
 /*
- * Copy of RSA_padding_check_PKCS1_type_2 with a twist that rejects padding
+ * Copy of VR_RSA_padding_check_PKCS1_type_2 with a twist that rejects padding
  * if nul delimiter is preceded by 8 consecutive 0x03 bytes. It also
  * preserves error code reporting for backward compatibility.
  */
-int RSA_padding_check_SSLv23(unsigned char *to, int tlen,
+int VR_RSA_padding_check_SSLv23(unsigned char *to, int tlen,
                              const unsigned char *from, int flen, int num)
 {
     int i;
@@ -79,7 +79,7 @@ int RSA_padding_check_SSLv23(unsigned char *to, int tlen,
     }
     /*
      * Caller is encouraged to pass zero-padded message created with
-     * BN_bn2binpad. Trouble is that since we can't read out of |from|'s
+     * VR_BN_bn2binpad. Trouble is that since we can't read out of |from|'s
      * bounds, it's impossible to have an invariant memory access pattern
      * in case |from| was not zero-padded in advance.
      */
@@ -159,9 +159,9 @@ int RSA_padding_check_SSLv23(unsigned char *to, int tlen,
         to[i] = constant_time_select_8(mask, from[i], to[i]);
     }
 
-    OPENSSL_clear_free(em, num);
+    OPENVR_SSL_clear_free(em, num);
     RSAerr(RSA_F_RSA_PADDING_CHECK_SSLV23, err);
-    err_clear_last_constant_time(1 & good);
+    VR_err_clear_last_constant_time(1 & good);
 
     return constant_time_select_int(good, mlen, -1);
 }

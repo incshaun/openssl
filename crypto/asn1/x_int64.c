@@ -37,7 +37,7 @@ static int uint64_new(ASN1_VALUE **pval, const ASN1_ITEM *it)
 
 static void uint64_free(ASN1_VALUE **pval, const ASN1_ITEM *it)
 {
-    OPENSSL_free(*pval);
+    OPENVR_SSL_free(*pval);
     *pval = NULL;
 }
 
@@ -62,12 +62,12 @@ static int uint64_i2c(ASN1_VALUE **pval, unsigned char *cont, int *putype,
         return -1;
     if ((it->size & INTxx_FLAG_SIGNED) == INTxx_FLAG_SIGNED
         && (int64_t)utmp < 0) {
-        /* i2c_uint64_int() assumes positive values */
+        /* VR_i2c_uint64_int() assumes positive values */
         utmp = 0 - utmp;
         neg = 1;
     }
 
-    return i2c_uint64_int(cont, utmp, neg);
+    return VR_i2c_uint64_int(cont, utmp, neg);
 }
 
 static int uint64_c2i(ASN1_VALUE **pval, const unsigned char *cont, int len,
@@ -91,7 +91,7 @@ static int uint64_c2i(ASN1_VALUE **pval, const unsigned char *cont, int len,
     if (len == 0)
         goto long_compat;
 
-    if (!c2i_uint64_int(&utmp, &neg, &cont, len))
+    if (!VR_c2i_uint64_int(&utmp, &neg, &cont, len))
         return 0;
     if ((it->size & INTxx_FLAG_SIGNED) == 0 && neg) {
         ASN1err(ASN1_F_UINT64_C2I, ASN1_R_ILLEGAL_NEGATIVE_VALUE);
@@ -103,7 +103,7 @@ static int uint64_c2i(ASN1_VALUE **pval, const unsigned char *cont, int len,
         return 0;
     }
     if (neg)
-        /* c2i_uint64_int() returns positive values */
+        /* VR_c2i_uint64_int() returns positive values */
         utmp = 0 - utmp;
 
  long_compat:
@@ -115,8 +115,8 @@ static int uint64_print(BIO *out, ASN1_VALUE **pval, const ASN1_ITEM *it,
                         int indent, const ASN1_PCTX *pctx)
 {
     if ((it->size & INTxx_FLAG_SIGNED) == INTxx_FLAG_SIGNED)
-        return BIO_printf(out, "%jd\n", **(int64_t **)pval);
-    return BIO_printf(out, "%ju\n", **(uint64_t **)pval);
+        return VR_BIO_printf(out, "%jd\n", **(int64_t **)pval);
+    return VR_BIO_printf(out, "%ju\n", **(uint64_t **)pval);
 }
 
 /* 32-bit variants */
@@ -132,7 +132,7 @@ static int uint32_new(ASN1_VALUE **pval, const ASN1_ITEM *it)
 
 static void uint32_free(ASN1_VALUE **pval, const ASN1_ITEM *it)
 {
-    OPENSSL_free(*pval);
+    OPENVR_SSL_free(*pval);
     *pval = NULL;
 }
 
@@ -157,12 +157,12 @@ static int uint32_i2c(ASN1_VALUE **pval, unsigned char *cont, int *putype,
         return -1;
     if ((it->size & INTxx_FLAG_SIGNED) == INTxx_FLAG_SIGNED
         && (int32_t)utmp < 0) {
-        /* i2c_uint64_int() assumes positive values */
+        /* VR_i2c_uint64_int() assumes positive values */
         utmp = 0 - utmp;
         neg = 1;
     }
 
-    return i2c_uint64_int(cont, (uint64_t)utmp, neg);
+    return VR_i2c_uint64_int(cont, (uint64_t)utmp, neg);
 }
 
 /*
@@ -194,7 +194,7 @@ static int uint32_c2i(ASN1_VALUE **pval, const unsigned char *cont, int len,
     if (len == 0)
         goto long_compat;
 
-    if (!c2i_uint64_int(&utmp, &neg, &cont, len))
+    if (!VR_c2i_uint64_int(&utmp, &neg, &cont, len))
         return 0;
     if ((it->size & INTxx_FLAG_SIGNED) == 0 && neg) {
         ASN1err(ASN1_F_UINT32_C2I, ASN1_R_ILLEGAL_NEGATIVE_VALUE);
@@ -224,8 +224,8 @@ static int uint32_print(BIO *out, ASN1_VALUE **pval, const ASN1_ITEM *it,
                         int indent, const ASN1_PCTX *pctx)
 {
     if ((it->size & INTxx_FLAG_SIGNED) == INTxx_FLAG_SIGNED)
-        return BIO_printf(out, "%d\n", **(int32_t **)pval);
-    return BIO_printf(out, "%u\n", **(uint32_t **)pval);
+        return VR_BIO_printf(out, "%d\n", **(int32_t **)pval);
+    return VR_BIO_printf(out, "%u\n", **(uint32_t **)pval);
 }
 
 

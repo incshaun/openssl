@@ -350,10 +350,10 @@ KeccakF1600:
 	ret
 .size	KeccakF1600,.-KeccakF1600
 
-.globl	SHA3_absorb
-.type	SHA3_absorb,%function
+.globl	VR_SHA3_absorb
+.type	VR_SHA3_absorb,%function
 .align	5
-SHA3_absorb:
+VR_SHA3_absorb:
 	stp	x29,x30,[sp,#-128]!
 	add	x29,sp,#0
 	stp	x19,x20,[sp,#16]
@@ -452,15 +452,15 @@ $code.=<<___;
 	ldp	x27,x28,[x29,#80]
 	ldp	x29,x30,[sp],#128
 	ret
-.size	SHA3_absorb,.-SHA3_absorb
+.size	VR_SHA3_absorb,.-VR_SHA3_absorb
 ___
 {
 my ($A_flat,$out,$len,$bsz) = map("x$_",(19..22));
 $code.=<<___;
-.globl	SHA3_squeeze
-.type	SHA3_squeeze,%function
+.globl	VR_SHA3_squeeze
+.type	VR_SHA3_squeeze,%function
 .align	5
-SHA3_squeeze:
+VR_SHA3_squeeze:
 	stp	x29,x30,[sp,#-48]!
 	add	x29,sp,#0
 	stp	x19,x20,[sp,#16]
@@ -524,7 +524,7 @@ SHA3_squeeze:
 	ldp	x21,x22,[sp,#32]
 	ldp	x29,x30,[sp],#48
 	ret
-.size	SHA3_squeeze,.-SHA3_squeeze
+.size	VR_SHA3_squeeze,.-VR_SHA3_squeeze
 ___
 }								}}}
 								{{{
@@ -681,10 +681,10 @@ ___
 my ($ctx,$inp,$len,$bsz) = map("x$_",(0..3));
 
 $code.=<<___;
-.globl	SHA3_absorb_cext
-.type	SHA3_absorb_cext,%function
+.globl	VR_SHA3_absorb_cext
+.type	VR_SHA3_absorb_cext,%function
 .align	5
-SHA3_absorb_cext:
+VR_SHA3_absorb_cext:
 	stp	x29,x30,[sp,#-80]!
 	add	x29,sp,#0
 	stp	d8,d9,[sp,#16]		// per ABI requirement
@@ -757,16 +757,16 @@ $code.=<<___;
 	ldp	d14,d15,[sp,#64]
 	ldp	x29,x30,[sp],#80
 	ret
-.size	SHA3_absorb_cext,.-SHA3_absorb_cext
+.size	VR_SHA3_absorb_cext,.-VR_SHA3_absorb_cext
 ___
 }
 {
 my ($ctx,$out,$len,$bsz) = map("x$_",(0..3));
 $code.=<<___;
-.globl	SHA3_squeeze_cext
-.type	SHA3_squeeze_cext,%function
+.globl	VR_SHA3_squeeze_cext
+.type	VR_SHA3_squeeze_cext,%function
 .align	5
-SHA3_squeeze_cext:
+VR_SHA3_squeeze_cext:
 	stp	x29,x30,[sp,#-16]!
 	add	x29,sp,#0
 	mov	x9,$ctx
@@ -823,7 +823,7 @@ SHA3_squeeze_cext:
 .Lsqueeze_done_ce:
 	ldr	x29,[sp],#16
 	ret
-.size	SHA3_squeeze_cext,.-SHA3_squeeze_cext
+.size	VR_SHA3_squeeze_cext,.-VR_SHA3_squeeze_cext
 ___
 }								}}}
 $code.=<<___;

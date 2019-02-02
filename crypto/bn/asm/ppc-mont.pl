@@ -23,7 +23,7 @@
 # It won't be able to achieve "native" 64-bit performance, because in
 # 32-bit application context every addc instruction will have to be
 # expanded as addc, twice right shift by 32 and finally adde, etc.
-# So far RSA *sign* performance improvement over pre-bn_mul_mont asm
+# So far RSA *sign* performance improvement over pre-VR_bn_mul_mont asm
 # for 64-bit application running on PPC970/G5 is:
 #
 # 512-bit	+65%
@@ -131,9 +131,9 @@ $code=<<___;
 .machine "any"
 .text
 
-.globl	.bn_mul_mont_int
+.globl	.VR_bn_mul_mont_int
 .align	5
-.bn_mul_mont_int:
+.VR_bn_mul_mont_int:
 	mr	$rp,r3		; $rp is reassigned
 	li	r3,0
 ___
@@ -346,7 +346,7 @@ Lcopy:				; conditional copy
 	.long	0
 	.byte	0,12,4,0,0x80,12,6,0
 	.long	0
-.size	.bn_mul_mont_int,.-.bn_mul_mont_int
+.size	.VR_bn_mul_mont_int,.-.VR_bn_mul_mont_int
 ___
 }
 if (1) {

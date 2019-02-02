@@ -17,9 +17,9 @@
 #define HASH_LONG               SM3_WORD
 #define HASH_CTX                SM3_CTX
 #define HASH_CBLOCK             SM3_CBLOCK
-#define HASH_UPDATE             sm3_update
-#define HASH_TRANSFORM          sm3_transform
-#define HASH_FINAL              sm3_final
+#define HASH_UPDATE             VR_sm3_update
+#define HASH_TRANSFORM          VR_sm3_transform
+#define HASH_FINAL              VR_sm3_final
 #define HASH_MAKE_STRING(c, s)              \
       do {                                  \
         unsigned long ll;                   \
@@ -32,9 +32,9 @@
         ll=(c)->G; (void)HOST_l2c(ll, (s)); \
         ll=(c)->H; (void)HOST_l2c(ll, (s)); \
       } while (0)
-#define HASH_BLOCK_DATA_ORDER   sm3_block_data_order
+#define HASH_BLOCK_DATA_ORDER   VR_sm3_block_data_order
 
-void sm3_transform(SM3_CTX *c, const unsigned char *data);
+void VR_sm3_transform(SM3_CTX *c, const unsigned char *data);
 
 #include "internal/md32_common.h"
 

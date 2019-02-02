@@ -82,7 +82,7 @@ static DSO_METHOD dso_meth_win32 = {
     win32_globallookup
 };
 
-DSO_METHOD *DSO_METHOD_openssl(void)
+DSO_METHOD *VR_DSO_METHOD_openssl(void)
 {
     return &dso_meth_win32;
 }
@@ -96,7 +96,7 @@ static int win32_load(DSO *dso)
 {
     HINSTANCE h = NULL, *p = NULL;
     /* See applicable comments from dso_dl.c */
-    char *filename = DSO_convert_filename(dso, NULL);
+    char *filename = VR_DSO_convert_filename(dso, NULL);
 
     if (filename == NULL) {
         DSOerr(DSO_F_WIN32_LOAD, DSO_R_NO_FILENAME);
@@ -105,7 +105,7 @@ static int win32_load(DSO *dso)
     h = LoadLibraryA(filename);
     if (h == NULL) {
         DSOerr(DSO_F_WIN32_LOAD, DSO_R_LOAD_FAILED);
-        ERR_add_error_data(3, "filename(", filename, ")");
+        VR_ERR_add_error_data(3, "filename(", filename, ")");
         goto err;
     }
     p = OPENSSL_malloc(sizeof(*p));
@@ -114,7 +114,7 @@ static int win32_load(DSO *dso)
         goto err;
     }
     *p = h;
-    if (!sk_void_push(dso->meth_data, p)) {
+    if (!sk_VR_void_push(dso->meth_data, p)) {
         DSOerr(DSO_F_WIN32_LOAD, DSO_R_STACK_ERROR);
         goto err;
     }
@@ -123,8 +123,8 @@ static int win32_load(DSO *dso)
     return 1;
  err:
     /* Cleanup ! */
-    OPENSSL_free(filename);
-    OPENSSL_free(p);
+    OPENVR_SSL_free(filename);
+    OPENVR_SSL_free(p);
     if (h != NULL)
         FreeLibrary(h);
     return 0;
@@ -139,7 +139,7 @@ static int win32_unload(DSO *dso)
     }
     if (sk_void_num(dso->meth_data) < 1)
         return 1;
-    p = sk_void_pop(dso->meth_data);
+    p = sk_VR_void_pop(dso->meth_data);
     if (p == NULL) {
         DSOerr(DSO_F_WIN32_UNLOAD, DSO_R_NULL_HANDLE);
         return 0;
@@ -149,11 +149,11 @@ static int win32_unload(DSO *dso)
         /*
          * We should push the value back onto the stack in case of a retry.
          */
-        sk_void_push(dso->meth_data, p);
+        sk_VR_void_push(dso->meth_data, p);
         return 0;
     }
     /* Cleanup */
-    OPENSSL_free(p);
+    OPENVR_SSL_free(p);
     return 1;
 }
 
@@ -181,7 +181,7 @@ static DSO_FUNC_TYPE win32_bind_func(DSO *dso, const char *symname)
     sym.f = GetProcAddress(*ptr, symname);
     if (sym.p == NULL) {
         DSOerr(DSO_F_WIN32_BIND_FUNC, DSO_R_SYM_FAILURE);
-        ERR_add_error_data(3, "symname(", symname, ")");
+        VR_ERR_add_error_data(3, "symname(", symname, ")");
         return NULL;
     }
     return (DSO_FUNC_TYPE)sym.f;
@@ -235,7 +235,7 @@ static struct file_st *win32_splitter(DSO *dso, const char *filename,
         case ':':
             if (position != IN_DEVICE) {
                 DSOerr(DSO_F_WIN32_SPLITTER, DSO_R_INCORRECT_FILE_SYNTAX);
-                OPENSSL_free(result);
+                OPENVR_SSL_free(result);
                 return NULL;
             }
             result->device = start;
@@ -418,7 +418,7 @@ static char *win32_merger(DSO *dso, const char *filespec1,
         filespec2_split = win32_splitter(dso, filespec2, 1);
         if (!filespec2_split) {
             DSOerr(DSO_F_WIN32_MERGER, ERR_R_MALLOC_FAILURE);
-            OPENSSL_free(filespec1_split);
+            OPENVR_SSL_free(filespec1_split);
             return NULL;
         }
 
@@ -444,8 +444,8 @@ static char *win32_merger(DSO *dso, const char *filespec1,
 
         merged = win32_joiner(dso, filespec1_split);
     }
-    OPENSSL_free(filespec1_split);
-    OPENSSL_free(filespec2_split);
+    OPENVR_SSL_free(filespec1_split);
+    OPENVR_SSL_free(filespec2_split);
     return merged;
 }
 

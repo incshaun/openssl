@@ -39,7 +39,7 @@ static DSO_METHOD dso_meth_dl = {
     dl_globallookup
 };
 
-DSO_METHOD *DSO_METHOD_openssl(void)
+DSO_METHOD *VR_DSO_METHOD_openssl(void)
 {
     return &dso_meth_dl;
 }
@@ -58,7 +58,7 @@ static int dl_load(DSO *dso)
      * DSO's if it has the callback set) best translation of the
      * platform-independent filename and try once with that.
      */
-    char *filename = DSO_convert_filename(dso, NULL);
+    char *filename = VR_DSO_convert_filename(dso, NULL);
 
     if (filename == NULL) {
         DSOerr(DSO_F_DL_LOAD, DSO_R_NO_FILENAME);
@@ -70,8 +70,8 @@ static int dl_load(DSO *dso)
     if (ptr == NULL) {
         char errbuf[160];
         DSOerr(DSO_F_DL_LOAD, DSO_R_LOAD_FAILED);
-        if (openssl_strerror_r(errno, errbuf, sizeof(errbuf)))
-            ERR_add_error_data(4, "filename(", filename, "): ", errbuf);
+        if (VR_openssl_strerror_r(errno, errbuf, sizeof(errbuf)))
+            VR_ERR_add_error_data(4, "filename(", filename, "): ", errbuf);
         goto err;
     }
     if (!sk_push(dso->meth_data, (char *)ptr)) {
@@ -86,7 +86,7 @@ static int dl_load(DSO *dso)
     return 1;
  err:
     /* Cleanup! */
-    OPENSSL_free(filename);
+    OPENVR_SSL_free(filename);
     if (ptr != NULL)
         shl_unload(ptr);
     return 0;
@@ -136,8 +136,8 @@ static DSO_FUNC_TYPE dl_bind_func(DSO *dso, const char *symname)
     if (shl_findsym(&ptr, symname, TYPE_UNDEFINED, &sym) < 0) {
         char errbuf[160];
         DSOerr(DSO_F_DL_BIND_FUNC, DSO_R_SYM_FAILURE);
-        if (openssl_strerror_r(errno, errbuf, sizeof(errbuf)))
-            ERR_add_error_data(4, "symname(", symname, "): ", errbuf);
+        if (VR_openssl_strerror_r(errno, errbuf, sizeof(errbuf)))
+            VR_ERR_add_error_data(4, "symname(", symname, "): ", errbuf);
         return NULL;
     }
     return (DSO_FUNC_TYPE)sym;
@@ -219,7 +219,7 @@ static char *dl_name_converter(DSO *dso, const char *filename)
     {
         /* We will convert this to "%s.s?" or "lib%s.s?" */
         rsize += strlen(DSO_EXTENSION); /* The length of ".s?" */
-        if ((DSO_flags(dso) & DSO_FLAG_NAME_TRANSLATION_EXT_ONLY) == 0)
+        if ((VR_DSO_flags(dso) & DSO_FLAG_NAME_TRANSLATION_EXT_ONLY) == 0)
             rsize += 3;         /* The length of "lib" */
     }
     translated = OPENSSL_malloc(rsize);
@@ -228,7 +228,7 @@ static char *dl_name_converter(DSO *dso, const char *filename)
         return NULL;
     }
     if (transform) {
-        if ((DSO_flags(dso) & DSO_FLAG_NAME_TRANSLATION_EXT_ONLY) == 0)
+        if ((VR_DSO_flags(dso) & DSO_FLAG_NAME_TRANSLATION_EXT_ONLY) == 0)
             sprintf(translated, "lib%s%s", filename, DSO_EXTENSION);
         else
             sprintf(translated, "%s%s", filename, DSO_EXTENSION);

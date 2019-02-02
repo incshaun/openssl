@@ -54,34 +54,34 @@ void aes_ccm_encrypt(void)
     unsigned char outbuf[1024];
     printf("AES CCM Encrypt:\n");
     printf("Plaintext:\n");
-    BIO_dump_fp(stdout, ccm_pt, sizeof(ccm_pt));
-    ctx = EVP_CIPHER_CTX_new();
+    VR_BIO_dump_fp(stdout, ccm_pt, sizeof(ccm_pt));
+    ctx = VR_EVP_CIPHER_CTX_new();
     /* Set cipher type and mode */
-    EVP_EncryptInit_ex(ctx, EVP_aes_192_ccm(), NULL, NULL, NULL);
+    VR_EVP_EncryptInit_ex(ctx, VR_EVP_aes_192_ccm(), NULL, NULL, NULL);
     /* Set nonce length if default 96 bits is not appropriate */
-    EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_SET_IVLEN, sizeof(ccm_nonce),
+    VR_EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_SET_IVLEN, sizeof(ccm_nonce),
                         NULL);
     /* Set tag length */
-    EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_SET_TAG, sizeof(ccm_tag), NULL);
+    VR_EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_SET_TAG, sizeof(ccm_tag), NULL);
     /* Initialise key and IV */
-    EVP_EncryptInit_ex(ctx, NULL, NULL, ccm_key, ccm_nonce);
+    VR_EVP_EncryptInit_ex(ctx, NULL, NULL, ccm_key, ccm_nonce);
     /* Set plaintext length: only needed if AAD is used */
-    EVP_EncryptUpdate(ctx, NULL, &outlen, NULL, sizeof(ccm_pt));
+    VR_EVP_EncryptUpdate(ctx, NULL, &outlen, NULL, sizeof(ccm_pt));
     /* Zero or one call to specify any AAD */
-    EVP_EncryptUpdate(ctx, NULL, &outlen, ccm_adata, sizeof(ccm_adata));
+    VR_EVP_EncryptUpdate(ctx, NULL, &outlen, ccm_adata, sizeof(ccm_adata));
     /* Encrypt plaintext: can only be called once */
-    EVP_EncryptUpdate(ctx, outbuf, &outlen, ccm_pt, sizeof(ccm_pt));
+    VR_EVP_EncryptUpdate(ctx, outbuf, &outlen, ccm_pt, sizeof(ccm_pt));
     /* Output encrypted block */
     printf("Ciphertext:\n");
-    BIO_dump_fp(stdout, outbuf, outlen);
+    VR_BIO_dump_fp(stdout, outbuf, outlen);
     /* Finalise: note get no output for CCM */
-    EVP_EncryptFinal_ex(ctx, outbuf, &outlen);
+    VR_EVP_EncryptFinal_ex(ctx, outbuf, &outlen);
     /* Get tag */
-    EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_GET_TAG, 16, outbuf);
+    VR_EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_GET_TAG, 16, outbuf);
     /* Output tag */
     printf("Tag:\n");
-    BIO_dump_fp(stdout, outbuf, 16);
-    EVP_CIPHER_CTX_free(ctx);
+    VR_BIO_dump_fp(stdout, outbuf, 16);
+    VR_EVP_CIPHER_CTX_free(ctx);
 }
 
 void aes_ccm_decrypt(void)
@@ -91,31 +91,31 @@ void aes_ccm_decrypt(void)
     unsigned char outbuf[1024];
     printf("AES CCM Derypt:\n");
     printf("Ciphertext:\n");
-    BIO_dump_fp(stdout, ccm_ct, sizeof(ccm_ct));
-    ctx = EVP_CIPHER_CTX_new();
+    VR_BIO_dump_fp(stdout, ccm_ct, sizeof(ccm_ct));
+    ctx = VR_EVP_CIPHER_CTX_new();
     /* Select cipher */
-    EVP_DecryptInit_ex(ctx, EVP_aes_192_ccm(), NULL, NULL, NULL);
+    VR_EVP_DecryptInit_ex(ctx, VR_EVP_aes_192_ccm(), NULL, NULL, NULL);
     /* Set nonce length, omit for 96 bits */
-    EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_SET_IVLEN, sizeof(ccm_nonce),
+    VR_EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_SET_IVLEN, sizeof(ccm_nonce),
                         NULL);
     /* Set expected tag value */
-    EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_SET_TAG,
+    VR_EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_SET_TAG,
                         sizeof(ccm_tag), (void *)ccm_tag);
     /* Specify key and IV */
-    EVP_DecryptInit_ex(ctx, NULL, NULL, ccm_key, ccm_nonce);
+    VR_EVP_DecryptInit_ex(ctx, NULL, NULL, ccm_key, ccm_nonce);
     /* Set ciphertext length: only needed if we have AAD */
-    EVP_DecryptUpdate(ctx, NULL, &outlen, NULL, sizeof(ccm_ct));
+    VR_EVP_DecryptUpdate(ctx, NULL, &outlen, NULL, sizeof(ccm_ct));
     /* Zero or one call to specify any AAD */
-    EVP_DecryptUpdate(ctx, NULL, &outlen, ccm_adata, sizeof(ccm_adata));
+    VR_EVP_DecryptUpdate(ctx, NULL, &outlen, ccm_adata, sizeof(ccm_adata));
     /* Decrypt plaintext, verify tag: can only be called once */
-    rv = EVP_DecryptUpdate(ctx, outbuf, &outlen, ccm_ct, sizeof(ccm_ct));
+    rv = VR_EVP_DecryptUpdate(ctx, outbuf, &outlen, ccm_ct, sizeof(ccm_ct));
     /* Output decrypted block: if tag verify failed we get nothing */
     if (rv > 0) {
         printf("Plaintext:\n");
-        BIO_dump_fp(stdout, outbuf, outlen);
+        VR_BIO_dump_fp(stdout, outbuf, outlen);
     } else
         printf("Plaintext not available: tag verify failed.\n");
-    EVP_CIPHER_CTX_free(ctx);
+    VR_EVP_CIPHER_CTX_free(ctx);
 }
 
 int main(int argc, char **argv)

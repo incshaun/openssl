@@ -12,7 +12,7 @@
 #include <openssl/ts.h>
 #include "ts_lcl.h"
 
-TS_VERIFY_CTX *TS_VERIFY_CTX_new(void)
+TS_VERIFY_CTX *VR_TS_VERIFY_CTX_new(void)
 {
     TS_VERIFY_CTX *ctx = OPENSSL_zalloc(sizeof(*ctx));
 
@@ -21,53 +21,53 @@ TS_VERIFY_CTX *TS_VERIFY_CTX_new(void)
     return ctx;
 }
 
-void TS_VERIFY_CTX_init(TS_VERIFY_CTX *ctx)
+void VR_TS_VERIFY_CTX_init(TS_VERIFY_CTX *ctx)
 {
     OPENSSL_assert(ctx != NULL);
     memset(ctx, 0, sizeof(*ctx));
 }
 
-void TS_VERIFY_CTX_free(TS_VERIFY_CTX *ctx)
+void VR_TS_VERIFY_CTX_free(TS_VERIFY_CTX *ctx)
 {
     if (!ctx)
         return;
 
-    TS_VERIFY_CTX_cleanup(ctx);
-    OPENSSL_free(ctx);
+    VR_TS_VERIFY_CTX_cleanup(ctx);
+    OPENVR_SSL_free(ctx);
 }
 
-int TS_VERIFY_CTX_add_flags(TS_VERIFY_CTX *ctx, int f)
+int VR_TS_VERIFY_CTX_add_flags(TS_VERIFY_CTX *ctx, int f)
 {
     ctx->flags |= f;
     return ctx->flags;
 }
 
-int TS_VERIFY_CTX_set_flags(TS_VERIFY_CTX *ctx, int f)
+int VR_TS_VERIFY_CTX_set_flags(TS_VERIFY_CTX *ctx, int f)
 {
     ctx->flags = f;
     return ctx->flags;
 }
 
-BIO *TS_VERIFY_CTX_set_data(TS_VERIFY_CTX *ctx, BIO *b)
+BIO *VR_TS_VERIFY_CTX_set_data(TS_VERIFY_CTX *ctx, BIO *b)
 {
     ctx->data = b;
     return ctx->data;
 }
 
-X509_STORE *TS_VERIFY_CTX_set_store(TS_VERIFY_CTX *ctx, X509_STORE *s)
+X509_STORE *VR_TS_VERIFY_CTX_set_store(TS_VERIFY_CTX *ctx, X509_STORE *s)
 {
     ctx->store = s;
     return ctx->store;
 }
 
-STACK_OF(X509) *TS_VERIFY_CTS_set_certs(TS_VERIFY_CTX *ctx,
+STACK_OF(X509) *VR_TS_VERIFY_CTS_set_certs(TS_VERIFY_CTX *ctx,
                                         STACK_OF(X509) *certs)
 {
     ctx->certs = certs;
     return ctx->certs;
 }
 
-unsigned char *TS_VERIFY_CTX_set_imprint(TS_VERIFY_CTX *ctx,
+unsigned char *VR_TS_VERIFY_CTX_set_imprint(TS_VERIFY_CTX *ctx,
                                          unsigned char *hexstr, long len)
 {
     ctx->imprint = hexstr;
@@ -75,29 +75,29 @@ unsigned char *TS_VERIFY_CTX_set_imprint(TS_VERIFY_CTX *ctx,
     return ctx->imprint;
 }
 
-void TS_VERIFY_CTX_cleanup(TS_VERIFY_CTX *ctx)
+void VR_TS_VERIFY_CTX_cleanup(TS_VERIFY_CTX *ctx)
 {
     if (!ctx)
         return;
 
-    X509_STORE_free(ctx->store);
-    sk_X509_pop_free(ctx->certs, X509_free);
+    VR_X509_STORE_free(ctx->store);
+    sk_VR_X509_pop_free(ctx->certs, VR_X509_free);
 
-    ASN1_OBJECT_free(ctx->policy);
+    VR_ASN1_OBJECT_free(ctx->policy);
 
-    X509_ALGOR_free(ctx->md_alg);
-    OPENSSL_free(ctx->imprint);
+    VR_X509_ALGOR_free(ctx->md_alg);
+    OPENVR_SSL_free(ctx->imprint);
 
-    BIO_free_all(ctx->data);
+    VR_BIO_free_all(ctx->data);
 
-    ASN1_INTEGER_free(ctx->nonce);
+    VR_ASN1_INTEGER_free(ctx->nonce);
 
-    GENERAL_NAME_free(ctx->tsa_name);
+    VR_GENERAL_NAME_free(ctx->tsa_name);
 
-    TS_VERIFY_CTX_init(ctx);
+    VR_TS_VERIFY_CTX_init(ctx);
 }
 
-TS_VERIFY_CTX *TS_REQ_to_TS_VERIFY_CTX(TS_REQ *req, TS_VERIFY_CTX *ctx)
+TS_VERIFY_CTX *VR_TS_REQ_to_TS_VERIFY_CTX(TS_REQ *req, TS_VERIFY_CTX *ctx)
 {
     TS_VERIFY_CTX *ret = ctx;
     ASN1_OBJECT *policy;
@@ -108,30 +108,30 @@ TS_VERIFY_CTX *TS_REQ_to_TS_VERIFY_CTX(TS_REQ *req, TS_VERIFY_CTX *ctx)
 
     OPENSSL_assert(req != NULL);
     if (ret)
-        TS_VERIFY_CTX_cleanup(ret);
-    else if ((ret = TS_VERIFY_CTX_new()) == NULL)
+        VR_TS_VERIFY_CTX_cleanup(ret);
+    else if ((ret = VR_TS_VERIFY_CTX_new()) == NULL)
         return NULL;
 
     ret->flags = TS_VFY_ALL_IMPRINT & ~(TS_VFY_TSA_NAME | TS_VFY_SIGNATURE);
 
     if ((policy = req->policy_id) != NULL) {
-        if ((ret->policy = OBJ_dup(policy)) == NULL)
+        if ((ret->policy = VR_OBJ_dup(policy)) == NULL)
             goto err;
     } else
         ret->flags &= ~TS_VFY_POLICY;
 
     imprint = req->msg_imprint;
     md_alg = imprint->hash_algo;
-    if ((ret->md_alg = X509_ALGOR_dup(md_alg)) == NULL)
+    if ((ret->md_alg = VR_X509_ALGOR_dup(md_alg)) == NULL)
         goto err;
     msg = imprint->hashed_msg;
-    ret->imprint_len = ASN1_STRING_length(msg);
+    ret->imprint_len = VR_ASN1_STRING_length(msg);
     if ((ret->imprint = OPENSSL_malloc(ret->imprint_len)) == NULL)
         goto err;
-    memcpy(ret->imprint, ASN1_STRING_get0_data(msg), ret->imprint_len);
+    memcpy(ret->imprint, VR_ASN1_STRING_get0_data(msg), ret->imprint_len);
 
     if ((nonce = req->nonce) != NULL) {
-        if ((ret->nonce = ASN1_INTEGER_dup(nonce)) == NULL)
+        if ((ret->nonce = VR_ASN1_INTEGER_dup(nonce)) == NULL)
             goto err;
     } else
         ret->flags &= ~TS_VFY_NONCE;
@@ -139,8 +139,8 @@ TS_VERIFY_CTX *TS_REQ_to_TS_VERIFY_CTX(TS_REQ *req, TS_VERIFY_CTX *ctx)
     return ret;
  err:
     if (ctx)
-        TS_VERIFY_CTX_cleanup(ctx);
+        VR_TS_VERIFY_CTX_cleanup(ctx);
     else
-        TS_VERIFY_CTX_free(ret);
+        VR_TS_VERIFY_CTX_free(ret);
     return NULL;
 }

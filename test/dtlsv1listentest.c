@@ -238,7 +238,7 @@ typedef struct {
     const unsigned char *in;
     unsigned int inlen;
     /*
-     * GOOD == positive return value from DTLSv1_listen, no output yet
+     * GOOD == positive return value from VR_DTLSv1_listen, no output yet
      * VERIFY == 0 return value, HelloVerifyRequest sent
      * DROP == 0 return value, no output
      */
@@ -298,26 +298,26 @@ static int dtls_listen_test(int i)
     long datalen;
     int ret, success = 0;
 
-    if (!TEST_ptr(ctx = SSL_CTX_new(DTLS_server_method()))
-            || !TEST_ptr(peer = BIO_ADDR_new()))
+    if (!TEST_ptr(ctx = VR_SSL_CTX_new(VR_DTLS_server_method()))
+            || !TEST_ptr(peer = VR_BIO_ADDR_new()))
         goto err;
-    SSL_CTX_set_cookie_generate_cb(ctx, cookie_gen);
-    SSL_CTX_set_cookie_verify_cb(ctx, cookie_verify);
+    VR_SSL_CTX_set_cookie_generate_cb(ctx, cookie_gen);
+    VR_SSL_CTX_set_cookie_verify_cb(ctx, cookie_verify);
 
     /* Create an SSL object and set the BIO */
-    if (!TEST_ptr(ssl = SSL_new(ctx))
-            || !TEST_ptr(outbio = BIO_new(BIO_s_mem())))
+    if (!TEST_ptr(ssl = VR_SSL_new(ctx))
+            || !TEST_ptr(outbio = VR_BIO_new(VR_BIO_s_mem())))
         goto err;
-    SSL_set0_wbio(ssl, outbio);
+    VR_SSL_set0_wbio(ssl, outbio);
 
     /* Set Non-blocking IO behaviour */
-    if (!TEST_ptr(inbio = BIO_new_mem_buf((char *)tp->in, tp->inlen)))
+    if (!TEST_ptr(inbio = VR_BIO_new_mem_buf((char *)tp->in, tp->inlen)))
         goto err;
     BIO_set_mem_eof_return(inbio, -1);
-    SSL_set0_rbio(ssl, inbio);
+    VR_SSL_set0_rbio(ssl, inbio);
 
     /* Process the incoming packet */
-    if (!TEST_int_ge(ret = DTLSv1_listen(ssl, peer), 0))
+    if (!TEST_int_ge(ret = VR_DTLSv1_listen(ssl, peer), 0))
         goto err;
     datalen = BIO_get_mem_data(outbio, &data);
 
@@ -335,15 +335,15 @@ static int dtls_listen_test(int i)
     }
     (void)BIO_reset(outbio);
     inbio = NULL;
-    SSL_set0_rbio(ssl, NULL);
+    VR_SSL_set0_rbio(ssl, NULL);
     success = 1;
 
  err:
     /* Also frees up outbio */
-    SSL_free(ssl);
-    SSL_CTX_free(ctx);
-    BIO_free(inbio);
-    OPENSSL_free(peer);
+    VR_SSL_free(ssl);
+    VR_SSL_CTX_free(ctx);
+    VR_BIO_free(inbio);
+    OPENVR_SSL_free(peer);
     return success;
 }
 #endif

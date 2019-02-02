@@ -17,7 +17,7 @@
 #include "internal/bio.h"
 #include "comp_lcl.h"
 
-COMP_METHOD *COMP_zlib(void);
+COMP_METHOD *VR_COMP_zlib(void);
 
 static COMP_METHOD zlib_method_nozlib = {
     NID_undef,
@@ -54,7 +54,7 @@ static void *zlib_zalloc(void *opaque, unsigned int no, unsigned int size)
 
 static void zlib_zfree(void *opaque, void *address)
 {
-    OPENSSL_free(address);
+    OPENVR_SSL_free(address);
 }
 
 
@@ -150,7 +150,7 @@ static int zlib_stateful_init(COMP_CTX *ctx)
     ctx->data = state;
     return 1;
  err:
-    OPENSSL_free(state);
+    OPENVR_SSL_free(state);
     return 0;
 }
 
@@ -159,7 +159,7 @@ static void zlib_stateful_finish(COMP_CTX *ctx)
     struct zlib_state *state = ctx->data;
     inflateEnd(&state->istream);
     deflateEnd(&state->ostream);
-    OPENSSL_free(state);
+    OPENVR_SSL_free(state);
 }
 
 static int zlib_stateful_compress_block(COMP_CTX *ctx, unsigned char *out,
@@ -206,7 +206,7 @@ static int zlib_stateful_expand_block(COMP_CTX *ctx, unsigned char *out,
 
 #endif
 
-COMP_METHOD *COMP_zlib(void)
+COMP_METHOD *VR_COMP_zlib(void)
 {
     COMP_METHOD *meth = &zlib_method_nozlib;
 
@@ -223,28 +223,28 @@ COMP_METHOD *COMP_zlib(void)
 # endif
 
     if (!zlib_loaded) {
-        zlib_dso = DSO_load(NULL, LIBZ, NULL, 0);
+        zlib_dso = VR_DSO_load(NULL, LIBZ, NULL, 0);
         if (zlib_dso != NULL) {
-            p_compress = (compress_ft) DSO_bind_func(zlib_dso, "compress");
+            p_compress = (compress_ft) VR_DSO_bind_func(zlib_dso, "compress");
             p_inflateEnd
-                = (inflateEnd_ft) DSO_bind_func(zlib_dso, "inflateEnd");
-            p_inflate = (inflate_ft) DSO_bind_func(zlib_dso, "inflate");
+                = (inflateEnd_ft) VR_DSO_bind_func(zlib_dso, "inflateEnd");
+            p_inflate = (inflate_ft) VR_DSO_bind_func(zlib_dso, "inflate");
             p_inflateInit_
-                = (inflateInit__ft) DSO_bind_func(zlib_dso, "inflateInit_");
+                = (inflateInit__ft) VR_DSO_bind_func(zlib_dso, "inflateInit_");
             p_deflateEnd
-                = (deflateEnd_ft) DSO_bind_func(zlib_dso, "deflateEnd");
-            p_deflate = (deflate_ft) DSO_bind_func(zlib_dso, "deflate");
+                = (deflateEnd_ft) VR_DSO_bind_func(zlib_dso, "deflateEnd");
+            p_deflate = (deflate_ft) VR_DSO_bind_func(zlib_dso, "deflate");
             p_deflateInit_
-                = (deflateInit__ft) DSO_bind_func(zlib_dso, "deflateInit_");
-            p_zError = (zError__ft) DSO_bind_func(zlib_dso, "zError");
+                = (deflateInit__ft) VR_DSO_bind_func(zlib_dso, "deflateInit_");
+            p_zError = (zError__ft) VR_DSO_bind_func(zlib_dso, "zError");
 
             if (p_compress && p_inflateEnd && p_inflate
                 && p_inflateInit_ && p_deflateEnd
                 && p_deflate && p_deflateInit_ && p_zError)
                 zlib_loaded++;
 
-            if (!OPENSSL_init_crypto(OPENSSL_INIT_ZLIB, NULL)) {
-                comp_zlib_cleanup_int();
+            if (!VR_OPENSSL_init_crypto(OPENSSL_INIT_ZLIB, NULL)) {
+                VR_comp_zlib_cleanup_int();
                 return meth;
             }
             if (zlib_loaded)
@@ -259,10 +259,10 @@ COMP_METHOD *COMP_zlib(void)
     return meth;
 }
 
-void comp_zlib_cleanup_int(void)
+void VR_comp_zlib_cleanup_int(void)
 {
 #ifdef ZLIB_SHARED
-    DSO_free(zlib_dso);
+    VR_DSO_free(zlib_dso);
     zlib_dso = NULL;
 #endif
 }
@@ -297,10 +297,10 @@ static const BIO_METHOD bio_meth_zlib = {
     BIO_TYPE_COMP,
     "zlib",
     /* TODO: Convert to new style write function */
-    bwrite_conv,
+    VR_bwrite_conv,
     bio_zlib_write,
     /* TODO: Convert to new style read function */
-    bread_conv,
+    VR_bread_conv,
     bio_zlib_read,
     NULL,                      /* bio_zlib_puts, */
     NULL,                      /* bio_zlib_gets, */
@@ -319,7 +319,7 @@ static int bio_zlib_new(BIO *bi)
 {
     BIO_ZLIB_CTX *ctx;
 # ifdef ZLIB_SHARED
-    (void)COMP_zlib();
+    (void)VR_COMP_zlib();
     if (!zlib_loaded) {
         COMPerr(COMP_F_BIO_ZLIB_NEW, COMP_R_ZLIB_NOT_SUPPORTED);
         return 0;
@@ -337,8 +337,8 @@ static int bio_zlib_new(BIO *bi)
     ctx->zout.zalloc = Z_NULL;
     ctx->zout.zfree = Z_NULL;
     ctx->comp_level = Z_DEFAULT_COMPRESSION;
-    BIO_set_init(bi, 1);
-    BIO_set_data(bi, ctx);
+    VR_BIO_set_init(bi, 1);
+    VR_BIO_set_data(bi, ctx);
 
     return 1;
 }
@@ -348,20 +348,20 @@ static int bio_zlib_free(BIO *bi)
     BIO_ZLIB_CTX *ctx;
     if (!bi)
         return 0;
-    ctx = BIO_get_data(bi);
+    ctx = VR_BIO_get_data(bi);
     if (ctx->ibuf) {
         /* Destroy decompress context */
         inflateEnd(&ctx->zin);
-        OPENSSL_free(ctx->ibuf);
+        OPENVR_SSL_free(ctx->ibuf);
     }
     if (ctx->obuf) {
         /* Destroy compress context */
         deflateEnd(&ctx->zout);
-        OPENSSL_free(ctx->obuf);
+        OPENVR_SSL_free(ctx->obuf);
     }
-    OPENSSL_free(ctx);
-    BIO_set_data(bi, NULL);
-    BIO_set_init(bi, 0);
+    OPENVR_SSL_free(ctx);
+    VR_BIO_set_data(bi, NULL);
+    VR_BIO_set_init(bi, 0);
 
     return 1;
 }
@@ -371,11 +371,11 @@ static int bio_zlib_read(BIO *b, char *out, int outl)
     BIO_ZLIB_CTX *ctx;
     int ret;
     z_stream *zin;
-    BIO *next = BIO_next(b);
+    BIO *next = VR_BIO_next(b);
 
     if (!out || !outl)
         return 0;
-    ctx = BIO_get_data(b);
+    ctx = VR_BIO_get_data(b);
     zin = &ctx->zin;
     BIO_clear_retry_flags(b);
     if (!ctx->ibuf) {
@@ -398,7 +398,7 @@ static int bio_zlib_read(BIO *b, char *out, int outl)
             ret = inflate(zin, 0);
             if ((ret != Z_OK) && (ret != Z_STREAM_END)) {
                 COMPerr(COMP_F_BIO_ZLIB_READ, COMP_R_ZLIB_INFLATE_ERROR);
-                ERR_add_error_data(2, "zlib error:", zError(ret));
+                VR_ERR_add_error_data(2, "zlib error:", zError(ret));
                 return 0;
             }
             /* If EOF or we've read everything then return */
@@ -410,11 +410,11 @@ static int bio_zlib_read(BIO *b, char *out, int outl)
          * No data in input buffer try to read some in, if an error then
          * return the total data read.
          */
-        ret = BIO_read(next, ctx->ibuf, ctx->ibufsize);
+        ret = VR_BIO_read(next, ctx->ibuf, ctx->ibufsize);
         if (ret <= 0) {
             /* Total data read */
             int tot = outl - zin->avail_out;
-            BIO_copy_next_retry(b);
+            VR_BIO_copy_next_retry(b);
             if (ret < 0)
                 return (tot > 0) ? tot : ret;
             return tot;
@@ -429,11 +429,11 @@ static int bio_zlib_write(BIO *b, const char *in, int inl)
     BIO_ZLIB_CTX *ctx;
     int ret;
     z_stream *zout;
-    BIO *next = BIO_next(b);
+    BIO *next = VR_BIO_next(b);
 
     if (!in || !inl)
         return 0;
-    ctx = BIO_get_data(b);
+    ctx = VR_BIO_get_data(b);
     if (ctx->odone)
         return 0;
     zout = &ctx->zout;
@@ -457,11 +457,11 @@ static int bio_zlib_write(BIO *b, const char *in, int inl)
     for (;;) {
         /* If data in output buffer write it first */
         while (ctx->ocount) {
-            ret = BIO_write(next, ctx->optr, ctx->ocount);
+            ret = VR_BIO_write(next, ctx->optr, ctx->ocount);
             if (ret <= 0) {
                 /* Total data written */
                 int tot = inl - zout->avail_in;
-                BIO_copy_next_retry(b);
+                VR_BIO_copy_next_retry(b);
                 if (ret < 0)
                     return (tot > 0) ? tot : ret;
                 return tot;
@@ -484,7 +484,7 @@ static int bio_zlib_write(BIO *b, const char *in, int inl)
         ret = deflate(zout, 0);
         if (ret != Z_OK) {
             COMPerr(COMP_F_BIO_ZLIB_WRITE, COMP_R_ZLIB_DEFLATE_ERROR);
-            ERR_add_error_data(2, "zlib error:", zError(ret));
+            VR_ERR_add_error_data(2, "zlib error:", zError(ret));
             return 0;
         }
         ctx->ocount = ctx->obufsize - zout->avail_out;
@@ -496,9 +496,9 @@ static int bio_zlib_flush(BIO *b)
     BIO_ZLIB_CTX *ctx;
     int ret;
     z_stream *zout;
-    BIO *next = BIO_next(b);
+    BIO *next = VR_BIO_next(b);
 
-    ctx = BIO_get_data(b);
+    ctx = VR_BIO_get_data(b);
     /* If no data written or already flush show success */
     if (!ctx->obuf || (ctx->odone && !ctx->ocount))
         return 1;
@@ -510,9 +510,9 @@ static int bio_zlib_flush(BIO *b)
     for (;;) {
         /* If data in output buffer write it first */
         while (ctx->ocount) {
-            ret = BIO_write(next, ctx->optr, ctx->ocount);
+            ret = VR_BIO_write(next, ctx->optr, ctx->ocount);
             if (ret <= 0) {
-                BIO_copy_next_retry(b);
+                VR_BIO_copy_next_retry(b);
                 return ret;
             }
             ctx->optr += ret;
@@ -533,7 +533,7 @@ static int bio_zlib_flush(BIO *b)
             ctx->odone = 1;
         else if (ret != Z_OK) {
             COMPerr(COMP_F_BIO_ZLIB_FLUSH, COMP_R_ZLIB_DEFLATE_ERROR);
-            ERR_add_error_data(2, "zlib error:", zError(ret));
+            VR_ERR_add_error_data(2, "zlib error:", zError(ret));
             return 0;
         }
         ctx->ocount = ctx->obufsize - zout->avail_out;
@@ -545,11 +545,11 @@ static long bio_zlib_ctrl(BIO *b, int cmd, long num, void *ptr)
     BIO_ZLIB_CTX *ctx;
     int ret, *ip;
     int ibs, obs;
-    BIO *next = BIO_next(b);
+    BIO *next = VR_BIO_next(b);
 
     if (next == NULL)
         return 0;
-    ctx = BIO_get_data(b);
+    ctx = VR_BIO_get_data(b);
     switch (cmd) {
 
     case BIO_CTRL_RESET:
@@ -579,13 +579,13 @@ static long bio_zlib_ctrl(BIO *b, int cmd, long num, void *ptr)
         }
 
         if (ibs != -1) {
-            OPENSSL_free(ctx->ibuf);
+            OPENVR_SSL_free(ctx->ibuf);
             ctx->ibuf = NULL;
             ctx->ibufsize = ibs;
         }
 
         if (obs != -1) {
-            OPENSSL_free(ctx->obuf);
+            OPENVR_SSL_free(ctx->obuf);
             ctx->obuf = NULL;
             ctx->obufsize = obs;
         }
@@ -594,12 +594,12 @@ static long bio_zlib_ctrl(BIO *b, int cmd, long num, void *ptr)
 
     case BIO_C_DO_STATE_MACHINE:
         BIO_clear_retry_flags(b);
-        ret = BIO_ctrl(next, cmd, num, ptr);
-        BIO_copy_next_retry(b);
+        ret = VR_BIO_ctrl(next, cmd, num, ptr);
+        VR_BIO_copy_next_retry(b);
         break;
 
     default:
-        ret = BIO_ctrl(next, cmd, num, ptr);
+        ret = VR_BIO_ctrl(next, cmd, num, ptr);
         break;
 
     }
@@ -609,10 +609,10 @@ static long bio_zlib_ctrl(BIO *b, int cmd, long num, void *ptr)
 
 static long bio_zlib_callback_ctrl(BIO *b, int cmd, BIO_info_cb *fp)
 {
-    BIO *next = BIO_next(b);
+    BIO *next = VR_BIO_next(b);
     if (next == NULL)
         return 0;
-    return BIO_callback_ctrl(next, cmd, fp);
+    return VR_BIO_callback_ctrl(next, cmd, fp);
 }
 
 #endif

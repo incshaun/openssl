@@ -54,8 +54,8 @@ const OPTIONS crl_options[] = {
     {"hash", OPT_HASH, '-', "Print hash value"},
     {"nameopt", OPT_NAMEOPT, 's', "Various certificate name options"},
     {"", OPT_MD, '-', "Any supported digest"},
-#ifndef OPENSSL_NO_MD5
-    {"hash_old", OPT_HASH_OLD, '-', "Print old-style (MD5) hash value"},
+#ifndef OPENSSL_NO_VR_MD5
+    {"hash_old", OPT_HASH_OLD, '-', "Print old-style (VR_MD5) hash value"},
 #endif
     {NULL}
 };
@@ -69,7 +69,7 @@ int crl_main(int argc, char **argv)
     X509_LOOKUP *lookup = NULL;
     X509_OBJECT *xobj = NULL;
     EVP_PKEY *pkey;
-    const EVP_MD *digest = EVP_sha1();
+    const EVP_MD *digest = VR_EVP_sha1();
     char *infile = NULL, *outfile = NULL, *crldiff = NULL, *keyfile = NULL;
     const char *CAfile = NULL, *CApath = NULL, *prog;
     OPTION_CHOICE o;
@@ -78,7 +78,7 @@ int crl_main(int argc, char **argv)
     int ret = 1, num = 0, badsig = 0, fingerprint = 0, crlnumber = 0;
     int text = 0, do_ver = 0, noCAfile = 0, noCApath = 0;
     int i;
-#ifndef OPENSSL_NO_MD5
+#ifndef OPENSSL_NO_VR_MD5
     int hash_old = 0;
 #endif
 
@@ -88,7 +88,7 @@ int crl_main(int argc, char **argv)
         case OPT_EOF:
         case OPT_ERR:
  opthelp:
-            BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
+            VR_BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
             opt_help(crl_options);
@@ -133,7 +133,7 @@ int crl_main(int argc, char **argv)
             noCAfile =  1;
             break;
         case OPT_HASH_OLD:
-#ifndef OPENSSL_NO_MD5
+#ifndef OPENSSL_NO_VR_MD5
             hash_old = ++num;
 #endif
             break;
@@ -187,41 +187,41 @@ int crl_main(int argc, char **argv)
     if (do_ver) {
         if ((store = setup_verify(CAfile, CApath, noCAfile, noCApath)) == NULL)
             goto end;
-        lookup = X509_STORE_add_lookup(store, X509_LOOKUP_file());
+        lookup = VR_X509_STORE_add_lookup(store, VR_X509_LOOKUP_file());
         if (lookup == NULL)
             goto end;
-        ctx = X509_STORE_CTX_new();
-        if (ctx == NULL || !X509_STORE_CTX_init(ctx, store, NULL, NULL)) {
-            BIO_printf(bio_err, "Error initialising X509 store\n");
+        ctx = VR_X509_STORE_CTX_new();
+        if (ctx == NULL || !VR_X509_STORE_CTX_init(ctx, store, NULL, NULL)) {
+            VR_BIO_printf(bio_err, "Error initialising X509 store\n");
             goto end;
         }
 
-        xobj = X509_STORE_CTX_get_obj_by_subject(ctx, X509_LU_X509,
-                                                 X509_CRL_get_issuer(x));
+        xobj = VR_X509_STORE_CTX_get_obj_by_subject(ctx, X509_LU_X509,
+                                                 VR_X509_CRL_get_issuer(x));
         if (xobj == NULL) {
-            BIO_printf(bio_err, "Error getting CRL issuer certificate\n");
+            VR_BIO_printf(bio_err, "Error getting CRL issuer certificate\n");
             goto end;
         }
-        pkey = X509_get_pubkey(X509_OBJECT_get0_X509(xobj));
-        X509_OBJECT_free(xobj);
+        pkey = VR_X509_get_pubkey(VR_X509_OBJECT_get0_X509(xobj));
+        VR_X509_OBJECT_free(xobj);
         if (!pkey) {
-            BIO_printf(bio_err, "Error getting CRL issuer public key\n");
+            VR_BIO_printf(bio_err, "Error getting CRL issuer public key\n");
             goto end;
         }
-        i = X509_CRL_verify(x, pkey);
-        EVP_PKEY_free(pkey);
+        i = VR_X509_CRL_verify(x, pkey);
+        VR_EVP_PKEY_free(pkey);
         if (i < 0)
             goto end;
         if (i == 0)
-            BIO_printf(bio_err, "verify failure\n");
+            VR_BIO_printf(bio_err, "verify failure\n");
         else
-            BIO_printf(bio_err, "verify OK\n");
+            VR_BIO_printf(bio_err, "verify OK\n");
     }
 
     if (crldiff) {
         X509_CRL *newcrl, *delta;
         if (!keyfile) {
-            BIO_puts(bio_err, "Missing CRL signing key\n");
+            VR_BIO_puts(bio_err, "Missing CRL signing key\n");
             goto end;
         }
         newcrl = load_crl(crldiff, informat);
@@ -229,17 +229,17 @@ int crl_main(int argc, char **argv)
             goto end;
         pkey = load_key(keyfile, keyformat, 0, NULL, NULL, "CRL signing key");
         if (!pkey) {
-            X509_CRL_free(newcrl);
+            VR_X509_CRL_free(newcrl);
             goto end;
         }
-        delta = X509_CRL_diff(x, newcrl, pkey, digest, 0);
-        X509_CRL_free(newcrl);
-        EVP_PKEY_free(pkey);
+        delta = VR_X509_CRL_diff(x, newcrl, pkey, digest, 0);
+        VR_X509_CRL_free(newcrl);
+        VR_EVP_PKEY_free(pkey);
         if (delta) {
-            X509_CRL_free(x);
+            VR_X509_CRL_free(x);
             x = delta;
         } else {
-            BIO_puts(bio_err, "Error creating delta CRL\n");
+            VR_BIO_puts(bio_err, "Error creating delta CRL\n");
             goto end;
         }
     }
@@ -247,63 +247,63 @@ int crl_main(int argc, char **argv)
     if (badsig) {
         const ASN1_BIT_STRING *sig;
 
-        X509_CRL_get0_signature(x, &sig, NULL);
+        VR_X509_CRL_get0_signature(x, &sig, NULL);
         corrupt_signature(sig);
     }
 
     if (num) {
         for (i = 1; i <= num; i++) {
             if (issuer == i) {
-                print_name(bio_out, "issuer=", X509_CRL_get_issuer(x),
+                print_name(bio_out, "issuer=", VR_X509_CRL_get_issuer(x),
                            get_nameopt());
             }
             if (crlnumber == i) {
                 ASN1_INTEGER *crlnum;
-                crlnum = X509_CRL_get_ext_d2i(x, NID_crl_number, NULL, NULL);
-                BIO_printf(bio_out, "crlNumber=");
+                crlnum = VR_X509_CRL_get_ext_d2i(x, NID_crl_number, NULL, NULL);
+                VR_BIO_printf(bio_out, "crlNumber=");
                 if (crlnum) {
-                    i2a_ASN1_INTEGER(bio_out, crlnum);
-                    ASN1_INTEGER_free(crlnum);
+                    VR_i2a_ASN1_INTEGER(bio_out, crlnum);
+                    VR_ASN1_INTEGER_free(crlnum);
                 } else
-                    BIO_puts(bio_out, "<NONE>");
-                BIO_printf(bio_out, "\n");
+                    VR_BIO_puts(bio_out, "<NONE>");
+                VR_BIO_printf(bio_out, "\n");
             }
             if (hash == i) {
-                BIO_printf(bio_out, "%08lx\n",
-                           X509_NAME_hash(X509_CRL_get_issuer(x)));
+                VR_BIO_printf(bio_out, "%08lx\n",
+                           VR_X509_NAME_hash(VR_X509_CRL_get_issuer(x)));
             }
-#ifndef OPENSSL_NO_MD5
+#ifndef OPENSSL_NO_VR_MD5
             if (hash_old == i) {
-                BIO_printf(bio_out, "%08lx\n",
-                           X509_NAME_hash_old(X509_CRL_get_issuer(x)));
+                VR_BIO_printf(bio_out, "%08lx\n",
+                           VR_X509_NAME_hash_old(VR_X509_CRL_get_issuer(x)));
             }
 #endif
             if (lastupdate == i) {
-                BIO_printf(bio_out, "lastUpdate=");
-                ASN1_TIME_print(bio_out, X509_CRL_get0_lastUpdate(x));
-                BIO_printf(bio_out, "\n");
+                VR_BIO_printf(bio_out, "lastUpdate=");
+                VR_ASN1_TIME_print(bio_out, VR_X509_CRL_get0_lastUpdate(x));
+                VR_BIO_printf(bio_out, "\n");
             }
             if (nextupdate == i) {
-                BIO_printf(bio_out, "nextUpdate=");
-                if (X509_CRL_get0_nextUpdate(x))
-                    ASN1_TIME_print(bio_out, X509_CRL_get0_nextUpdate(x));
+                VR_BIO_printf(bio_out, "nextUpdate=");
+                if (VR_X509_CRL_get0_nextUpdate(x))
+                    VR_ASN1_TIME_print(bio_out, VR_X509_CRL_get0_nextUpdate(x));
                 else
-                    BIO_printf(bio_out, "NONE");
-                BIO_printf(bio_out, "\n");
+                    VR_BIO_printf(bio_out, "NONE");
+                VR_BIO_printf(bio_out, "\n");
             }
             if (fingerprint == i) {
                 int j;
                 unsigned int n;
                 unsigned char md[EVP_MAX_MD_SIZE];
 
-                if (!X509_CRL_digest(x, digest, md, &n)) {
-                    BIO_printf(bio_err, "out of memory\n");
+                if (!VR_X509_CRL_digest(x, digest, md, &n)) {
+                    VR_BIO_printf(bio_err, "out of memory\n");
                     goto end;
                 }
-                BIO_printf(bio_out, "%s Fingerprint=",
-                           OBJ_nid2sn(EVP_MD_type(digest)));
+                VR_BIO_printf(bio_out, "%s Fingerprint=",
+                           VR_OBJ_nid2sn(VR_EVP_MD_type(digest)));
                 for (j = 0; j < (int)n; j++) {
-                    BIO_printf(bio_out, "%02X%c", md[j], (j + 1 == (int)n)
+                    VR_BIO_printf(bio_out, "%02X%c", md[j], (j + 1 == (int)n)
                                ? '\n' : ':');
                 }
             }
@@ -314,7 +314,7 @@ int crl_main(int argc, char **argv)
         goto end;
 
     if (text)
-        X509_CRL_print_ex(out, x, get_nameopt());
+        VR_X509_CRL_print_ex(out, x, get_nameopt());
 
     if (noout) {
         ret = 0;
@@ -322,21 +322,21 @@ int crl_main(int argc, char **argv)
     }
 
     if (outformat == FORMAT_ASN1)
-        i = (int)i2d_X509_CRL_bio(out, x);
+        i = (int)VR_i2d_X509_CRL_bio(out, x);
     else
-        i = PEM_write_bio_X509_CRL(out, x);
+        i = VR_PEM_write_bio_X509_CRL(out, x);
     if (!i) {
-        BIO_printf(bio_err, "unable to write CRL\n");
+        VR_BIO_printf(bio_err, "unable to write CRL\n");
         goto end;
     }
     ret = 0;
 
  end:
     if (ret != 0)
-        ERR_print_errors(bio_err);
-    BIO_free_all(out);
-    X509_CRL_free(x);
-    X509_STORE_CTX_free(ctx);
-    X509_STORE_free(store);
+        VR_ERR_print_errors(bio_err);
+    VR_BIO_free_all(out);
+    VR_X509_CRL_free(x);
+    VR_X509_STORE_CTX_free(ctx);
+    VR_X509_STORE_free(store);
     return ret;
 }

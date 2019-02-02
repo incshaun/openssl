@@ -17,12 +17,12 @@
  * SECURITY WORKSHOP, CAMBRIDGE, U.K., DECEMBER 9-11, 1993)
  */
 
-const char *BF_options(void)
+const char *VR_BF_options(void)
 {
     return "blowfish(ptr)";
 }
 
-void BF_ecb_encrypt(const unsigned char *in, unsigned char *out,
+void VR_BF_ecb_encrypt(const unsigned char *in, unsigned char *out,
                     const BF_KEY *key, int encrypt)
 {
     BF_LONG l, d[2];
@@ -32,9 +32,9 @@ void BF_ecb_encrypt(const unsigned char *in, unsigned char *out,
     n2l(in, l);
     d[1] = l;
     if (encrypt)
-        BF_encrypt(d, key);
+        VR_BF_encrypt(d, key);
     else
-        BF_decrypt(d, key);
+        VR_BF_decrypt(d, key);
     l = d[0];
     l2n(l, out);
     l = d[1];

@@ -52,10 +52,10 @@ my $FRAME = 16*8;
 $code.=<<___;
 .text
 
-.globl	x25519_fe64_mul
-.type	x25519_fe64_mul,\@function
+.globl	VR_x25519_fe64_mul
+.type	VR_x25519_fe64_mul,\@function
 .align	5
-x25519_fe64_mul:
+VR_x25519_fe64_mul:
 	stdu	$sp,-$FRAME($sp)
 	std	r22,`$FRAME-8*10`($sp)
 	std	r23,`$FRAME-8*9`($sp)
@@ -165,12 +165,12 @@ $code.=<<___;
 	.long	0
 	.byte	0,12,4,0,0x80,10,3,0
 	.long	0
-.size	x25519_fe64_mul,.-x25519_fe64_mul
+.size	VR_x25519_fe64_mul,.-VR_x25519_fe64_mul
 
-.globl	x25519_fe64_sqr
-.type	x25519_fe64_sqr,\@function
+.globl	VR_x25519_fe64_sqr
+.type	VR_x25519_fe64_sqr,\@function
 .align	5
-x25519_fe64_sqr:
+VR_x25519_fe64_sqr:
 	stdu	$sp,-$FRAME($sp)
 	std	r22,`$FRAME-8*10`($sp)
 	std	r23,`$FRAME-8*9`($sp)
@@ -305,12 +305,12 @@ x25519_fe64_sqr:
 	.long	0
 	.byte	0,12,4,0,0x80,10,2,0
 	.long	0
-.size	x25519_fe64_sqr,.-x25519_fe64_sqr
+.size	VR_x25519_fe64_sqr,.-VR_x25519_fe64_sqr
 
-.globl	x25519_fe64_mul121666
-.type	x25519_fe64_mul121666,\@function
+.globl	VR_x25519_fe64_mul121666
+.type	VR_x25519_fe64_mul121666,\@function
 .align	5
-x25519_fe64_mul121666:
+VR_x25519_fe64_mul121666:
 	lis	$bi,`65536>>16`
 	ori	$bi,$bi,`121666-65536`
 
@@ -352,12 +352,12 @@ x25519_fe64_mul121666:
 	.long	0
 	.byte	0,12,0x14,0,0,0,2,0
 	.long	0
-.size	x25519_fe64_mul121666,.-x25519_fe64_mul121666
+.size	VR_x25519_fe64_mul121666,.-VR_x25519_fe64_mul121666
 
-.globl	x25519_fe64_add
-.type	x25519_fe64_add,\@function
+.globl	VR_x25519_fe64_add
+.type	VR_x25519_fe64_add,\@function
 .align	5
-x25519_fe64_add:
+VR_x25519_fe64_add:
 	ld	$a0,0($ap)
 	ld	$t0,0($bp)
 	ld	$a1,8($ap)
@@ -393,12 +393,12 @@ x25519_fe64_add:
 	.long	0
 	.byte	0,12,0x14,0,0,0,3,0
 	.long	0
-.size	x25519_fe64_add,.-x25519_fe64_add
+.size	VR_x25519_fe64_add,.-VR_x25519_fe64_add
 
-.globl	x25519_fe64_sub
-.type	x25519_fe64_sub,\@function
+.globl	VR_x25519_fe64_sub
+.type	VR_x25519_fe64_sub,\@function
 .align	5
-x25519_fe64_sub:
+VR_x25519_fe64_sub:
 	ld	$a0,0($ap)
 	ld	$t0,0($bp)
 	ld	$a1,8($ap)
@@ -435,12 +435,12 @@ x25519_fe64_sub:
 	.long	0
 	.byte	0,12,0x14,0,0,0,3,0
 	.long	0
-.size	x25519_fe64_sub,.-x25519_fe64_sub
+.size	VR_x25519_fe64_sub,.-VR_x25519_fe64_sub
 
-.globl	x25519_fe64_tobytes
-.type	x25519_fe64_tobytes,\@function
+.globl	VR_x25519_fe64_tobytes
+.type	VR_x25519_fe64_tobytes,\@function
 .align	5
-x25519_fe64_tobytes:
+VR_x25519_fe64_tobytes:
 	ld	$a3,24($ap)
 	ld	$a0,0($ap)
 	ld	$a1,8($ap)
@@ -495,7 +495,7 @@ $code.=<<___;
 	.long	0
 	.byte	0,12,0x14,0,0,0,2,0
 	.long	0
-.size	x25519_fe64_tobytes,.-x25519_fe64_tobytes
+.size	VR_x25519_fe64_tobytes,.-VR_x25519_fe64_tobytes
 ___
 }
 ####################################################### base 2^51
@@ -509,10 +509,10 @@ my $FRAME = 18*8;
 $code.=<<___;
 .text
 
-.globl	x25519_fe51_mul
-.type	x25519_fe51_mul,\@function
+.globl	VR_x25519_fe51_mul
+.type	VR_x25519_fe51_mul,\@function
 .align	5
-x25519_fe51_mul:
+VR_x25519_fe51_mul:
 	stdu	$sp,-$FRAME($sp)
 	std	r21,`$FRAME-8*11`($sp)
 	std	r22,`$FRAME-8*10`($sp)
@@ -672,15 +672,15 @@ $code.=<<___;
 	.long	0
 	.byte	0,12,4,0,0x80,11,3,0
 	.long	0
-.size	x25519_fe51_mul,.-x25519_fe51_mul
+.size	VR_x25519_fe51_mul,.-VR_x25519_fe51_mul
 ___
 {
 my ($a0,$a1,$a2,$a3,$a4,$t0,$t1) = ($a0,$a1,$a2,$a3,$a4,$t0,$t1);
 $code.=<<___;
-.globl	x25519_fe51_sqr
-.type	x25519_fe51_sqr,\@function
+.globl	VR_x25519_fe51_sqr
+.type	VR_x25519_fe51_sqr,\@function
 .align	5
-x25519_fe51_sqr:
+VR_x25519_fe51_sqr:
 	stdu	$sp,-$FRAME($sp)
 	std	r21,`$FRAME-8*11`($sp)
 	std	r22,`$FRAME-8*10`($sp)
@@ -771,14 +771,14 @@ $code.=<<___;
 	.long	0
 	.byte	0,12,4,0,0x80,11,2,0
 	.long	0
-.size	x25519_fe51_sqr,.-x25519_fe51_sqr
+.size	VR_x25519_fe51_sqr,.-VR_x25519_fe51_sqr
 ___
 }
 $code.=<<___;
-.globl	x25519_fe51_mul121666
-.type	x25519_fe51_mul121666,\@function
+.globl	VR_x25519_fe51_mul121666
+.type	VR_x25519_fe51_mul121666,\@function
 .align	5
-x25519_fe51_mul121666:
+VR_x25519_fe51_mul121666:
 	stdu	$sp,-$FRAME($sp)
 	std	r21,`$FRAME-8*11`($sp)
 	std	r22,`$FRAME-8*10`($sp)
@@ -815,7 +815,7 @@ x25519_fe51_mul121666:
 	.long	0
 	.byte	0,12,4,0,0x80,11,2,0
 	.long	0
-.size	x25519_fe51_mul121666,.-x25519_fe51_mul121666
+.size	VR_x25519_fe51_mul121666,.-VR_x25519_fe51_mul121666
 ___
 }
 

@@ -56,36 +56,36 @@ static int test_x509_check_cert_pkey(void)
     }
 
     /* process private key */
-    if (!TEST_ptr(bio = BIO_new_file(k, "r")))
+    if (!TEST_ptr(bio = VR_BIO_new_file(k, "r")))
         goto failed;
 
-    if (!TEST_ptr(pkey = PEM_read_bio_PrivateKey(bio, NULL, NULL, NULL)))
+    if (!TEST_ptr(pkey = VR_PEM_read_bio_PrivateKey(bio, NULL, NULL, NULL)))
         goto failed;
 
-    BIO_free(bio);
+    VR_BIO_free(bio);
 
     /* process cert or cert request, use the same local var */
-    if (!TEST_ptr(bio = BIO_new_file(c, "r")))
+    if (!TEST_ptr(bio = VR_BIO_new_file(c, "r")))
         goto failed;
 
     switch (type) {
     case 1:
-        x509 = PEM_read_bio_X509(bio, NULL, NULL, NULL);
+        x509 = VR_PEM_read_bio_X509(bio, NULL, NULL, NULL);
         if (x509 == NULL) {
             TEST_error("read PEM x509 failed");
             goto failed;
         }
 
-        result = X509_check_private_key(x509, pkey);
+        result = VR_X509_check_private_key(x509, pkey);
         break;
     case 2:
-        x509_req = PEM_read_bio_X509_REQ(bio, NULL, NULL, NULL);
+        x509_req = VR_PEM_read_bio_X509_REQ(bio, NULL, NULL, NULL);
         if (x509_req == NULL) {
             TEST_error("read PEM x509 req failed");
             goto failed;
         }
 
-        result = X509_REQ_check_private_key(x509_req, pkey);
+        result = VR_X509_REQ_check_private_key(x509_req, pkey);
         break;
     default:
         /* should never be here */
@@ -99,10 +99,10 @@ static int test_x509_check_cert_pkey(void)
 
     ret = 1;
 failed:
-    BIO_free(bio);
-    X509_free(x509);
-    X509_REQ_free(x509_req);
-    EVP_PKEY_free(pkey);
+    VR_BIO_free(bio);
+    VR_X509_free(x509);
+    VR_X509_REQ_free(x509_req);
+    VR_EVP_PKEY_free(pkey);
     return ret;
 }
 

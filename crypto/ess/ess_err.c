@@ -15,17 +15,17 @@
 
 static const ERR_STRING_DATA ESS_str_functs[] = {
     {ERR_PACK(ERR_LIB_ESS, ESS_F_ESS_CERT_ID_NEW_INIT, 0),
-     "ESS_CERT_ID_new_init"},
+     "VR_ESS_CERT_ID_new_init"},
     {ERR_PACK(ERR_LIB_ESS, ESS_F_ESS_CERT_ID_V2_NEW_INIT, 0),
-     "ESS_CERT_ID_V2_new_init"},
+     "VR_ESS_CERT_ID_V2_new_init"},
     {ERR_PACK(ERR_LIB_ESS, ESS_F_ESS_SIGNING_CERT_ADD, 0),
-     "ESS_SIGNING_CERT_add"},
+     "VR_ESS_SIGNING_CERT_add"},
     {ERR_PACK(ERR_LIB_ESS, ESS_F_ESS_SIGNING_CERT_NEW_INIT, 0),
-     "ESS_SIGNING_CERT_new_init"},
+     "VR_ESS_SIGNING_CERT_new_init"},
     {ERR_PACK(ERR_LIB_ESS, ESS_F_ESS_SIGNING_CERT_V2_ADD, 0),
-     "ESS_SIGNING_CERT_V2_add"},
+     "VR_ESS_SIGNING_CERT_V2_add"},
     {ERR_PACK(ERR_LIB_ESS, ESS_F_ESS_SIGNING_CERT_V2_NEW_INIT, 0),
-     "ESS_SIGNING_CERT_V2_new_init"},
+     "VR_ESS_SIGNING_CERT_V2_new_init"},
     {0, NULL}
 };
 
@@ -41,12 +41,12 @@ static const ERR_STRING_DATA ESS_str_reasons[] = {
 
 #endif
 
-int ERR_load_ESS_strings(void)
+int VR_ERR_load_ESS_strings(void)
 {
 #ifndef OPENSSL_NO_ERR
-    if (ERR_func_error_string(ESS_str_functs[0].error) == NULL) {
-        ERR_load_strings_const(ESS_str_functs);
-        ERR_load_strings_const(ESS_str_reasons);
+    if (VR_ERR_func_error_string(ESS_str_functs[0].error) == NULL) {
+        VR_ERR_load_strings_const(ESS_str_functs);
+        VR_ERR_load_strings_const(ESS_str_reasons);
     }
 #endif
     return 1;

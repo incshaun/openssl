@@ -181,14 +181,14 @@ int opt_format_error(const char *s, unsigned long flags)
     OPT_PAIR *ap;
 
     if (flags == OPT_FMT_PEMDER) {
-        BIO_printf(bio_err, "%s: Bad format \"%s\"; must be pem or der\n",
+        VR_BIO_printf(bio_err, "%s: Bad format \"%s\"; must be pem or der\n",
                    prog, s);
     } else {
-        BIO_printf(bio_err, "%s: Bad format \"%s\"; must be one of:\n",
+        VR_BIO_printf(bio_err, "%s: Bad format \"%s\"; must be one of:\n",
                    prog, s);
         for (ap = formats; ap->name; ap++)
             if (flags & ap->retval)
-                BIO_printf(bio_err, "   %s\n", ap->name);
+                VR_BIO_printf(bio_err, "   %s\n", ap->name);
     }
     return 0;
 }
@@ -274,10 +274,10 @@ int opt_format(const char *s, unsigned long flags, int *result)
 /* Parse a cipher name, put it in *EVP_CIPHER; return 0 on failure, else 1. */
 int opt_cipher(const char *name, const EVP_CIPHER **cipherp)
 {
-    *cipherp = EVP_get_cipherbyname(name);
+    *cipherp = VR_EVP_get_cipherbyname(name);
     if (*cipherp != NULL)
         return 1;
-    BIO_printf(bio_err, "%s: Unrecognized flag %s\n", prog, name);
+    VR_BIO_printf(bio_err, "%s: Unrecognized flag %s\n", prog, name);
     return 0;
 }
 
@@ -286,10 +286,10 @@ int opt_cipher(const char *name, const EVP_CIPHER **cipherp)
  */
 int opt_md(const char *name, const EVP_MD **mdp)
 {
-    *mdp = EVP_get_digestbyname(name);
+    *mdp = VR_EVP_get_digestbyname(name);
     if (*mdp != NULL)
         return 1;
-    BIO_printf(bio_err, "%s: Unrecognized flag %s\n", prog, name);
+    VR_BIO_printf(bio_err, "%s: Unrecognized flag %s\n", prog, name);
     return 0;
 }
 
@@ -303,9 +303,9 @@ int opt_pair(const char *name, const OPT_PAIR* pairs, int *result)
             *result = pp->retval;
             return 1;
         }
-    BIO_printf(bio_err, "%s: Value must be one of:\n", prog);
+    VR_BIO_printf(bio_err, "%s: Value must be one of:\n", prog);
     for (pp = pairs; pp->name; pp++)
-        BIO_printf(bio_err, "\t%s\n", pp->name);
+        VR_BIO_printf(bio_err, "\t%s\n", pp->name);
     return 0;
 }
 
@@ -318,7 +318,7 @@ int opt_int(const char *value, int *result)
         return 0;
     *result = (int)l;
     if (*result != l) {
-        BIO_printf(bio_err, "%s: Value \"%s\" outside integer range\n",
+        VR_BIO_printf(bio_err, "%s: Value \"%s\" outside integer range\n",
                    prog, value);
         return 0;
     }
@@ -339,13 +339,13 @@ static void opt_number_error(const char *v)
 
     for (i = 0; i < OSSL_NELEM(b); i++) {
         if (strncmp(v, b[i].prefix, strlen(b[i].prefix)) == 0) {
-            BIO_printf(bio_err,
+            VR_BIO_printf(bio_err,
                        "%s: Can't parse \"%s\" as %s number\n",
                        prog, v, b[i].name);
             return;
         }
     }
-    BIO_printf(bio_err, "%s: Can't parse \"%s\" as a number\n", prog, v);
+    VR_BIO_printf(bio_err, "%s: Can't parse \"%s\" as a number\n", prog, v);
     return;
 }
 
@@ -467,139 +467,139 @@ int opt_verify(int opt, X509_VERIFY_PARAM *vpm)
     case OPT_V__LAST:
         return 0;
     case OPT_V_POLICY:
-        otmp = OBJ_txt2obj(opt_arg(), 0);
+        otmp = VR_OBJ_txt2obj(opt_arg(), 0);
         if (otmp == NULL) {
-            BIO_printf(bio_err, "%s: Invalid Policy %s\n", prog, opt_arg());
+            VR_BIO_printf(bio_err, "%s: Invalid Policy %s\n", prog, opt_arg());
             return 0;
         }
-        X509_VERIFY_PARAM_add0_policy(vpm, otmp);
+        VR_X509_VERIFY_PARAM_add0_policy(vpm, otmp);
         break;
     case OPT_V_PURPOSE:
         /* purpose name -> purpose index */
-        i = X509_PURPOSE_get_by_sname(opt_arg());
+        i = VR_X509_PURPOSE_get_by_sname(opt_arg());
         if (i < 0) {
-            BIO_printf(bio_err, "%s: Invalid purpose %s\n", prog, opt_arg());
+            VR_BIO_printf(bio_err, "%s: Invalid purpose %s\n", prog, opt_arg());
             return 0;
         }
 
         /* purpose index -> purpose object */
-        xptmp = X509_PURPOSE_get0(i);
+        xptmp = VR_X509_PURPOSE_get0(i);
 
         /* purpose object -> purpose value */
-        i = X509_PURPOSE_get_id(xptmp);
+        i = VR_X509_PURPOSE_get_id(xptmp);
 
-        if (!X509_VERIFY_PARAM_set_purpose(vpm, i)) {
-            BIO_printf(bio_err,
+        if (!VR_X509_VERIFY_PARAM_set_purpose(vpm, i)) {
+            VR_BIO_printf(bio_err,
                        "%s: Internal error setting purpose %s\n",
                        prog, opt_arg());
             return 0;
         }
         break;
     case OPT_V_VERIFY_NAME:
-        vtmp = X509_VERIFY_PARAM_lookup(opt_arg());
+        vtmp = VR_X509_VERIFY_PARAM_lookup(opt_arg());
         if (vtmp == NULL) {
-            BIO_printf(bio_err, "%s: Invalid verify name %s\n",
+            VR_BIO_printf(bio_err, "%s: Invalid verify name %s\n",
                        prog, opt_arg());
             return 0;
         }
-        X509_VERIFY_PARAM_set1(vpm, vtmp);
+        VR_X509_VERIFY_PARAM_set1(vpm, vtmp);
         break;
     case OPT_V_VERIFY_DEPTH:
         i = atoi(opt_arg());
         if (i >= 0)
-            X509_VERIFY_PARAM_set_depth(vpm, i);
+            VR_X509_VERIFY_PARAM_set_depth(vpm, i);
         break;
     case OPT_V_VERIFY_AUTH_LEVEL:
         i = atoi(opt_arg());
         if (i >= 0)
-            X509_VERIFY_PARAM_set_auth_level(vpm, i);
+            VR_X509_VERIFY_PARAM_set_auth_level(vpm, i);
         break;
     case OPT_V_ATTIME:
         if (!opt_imax(opt_arg(), &t))
             return 0;
         if (t != (time_t)t) {
-            BIO_printf(bio_err, "%s: epoch time out of range %s\n",
+            VR_BIO_printf(bio_err, "%s: epoch time out of range %s\n",
                        prog, opt_arg());
             return 0;
         }
-        X509_VERIFY_PARAM_set_time(vpm, (time_t)t);
+        VR_X509_VERIFY_PARAM_set_time(vpm, (time_t)t);
         break;
     case OPT_V_VERIFY_HOSTNAME:
-        if (!X509_VERIFY_PARAM_set1_host(vpm, opt_arg(), 0))
+        if (!VR_X509_VERIFY_PARAM_set1_host(vpm, opt_arg(), 0))
             return 0;
         break;
     case OPT_V_VERIFY_EMAIL:
-        if (!X509_VERIFY_PARAM_set1_email(vpm, opt_arg(), 0))
+        if (!VR_X509_VERIFY_PARAM_set1_email(vpm, opt_arg(), 0))
             return 0;
         break;
     case OPT_V_VERIFY_IP:
-        if (!X509_VERIFY_PARAM_set1_ip_asc(vpm, opt_arg()))
+        if (!VR_X509_VERIFY_PARAM_set1_ip_asc(vpm, opt_arg()))
             return 0;
         break;
     case OPT_V_IGNORE_CRITICAL:
-        X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_IGNORE_CRITICAL);
+        VR_X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_IGNORE_CRITICAL);
         break;
     case OPT_V_ISSUER_CHECKS:
         /* NOP, deprecated */
         break;
     case OPT_V_CRL_CHECK:
-        X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_CRL_CHECK);
+        VR_X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_CRL_CHECK);
         break;
     case OPT_V_CRL_CHECK_ALL:
-        X509_VERIFY_PARAM_set_flags(vpm,
+        VR_X509_VERIFY_PARAM_set_flags(vpm,
                                     X509_V_FLAG_CRL_CHECK |
                                     X509_V_FLAG_CRL_CHECK_ALL);
         break;
     case OPT_V_POLICY_CHECK:
-        X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_POLICY_CHECK);
+        VR_X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_POLICY_CHECK);
         break;
     case OPT_V_EXPLICIT_POLICY:
-        X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_EXPLICIT_POLICY);
+        VR_X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_EXPLICIT_POLICY);
         break;
     case OPT_V_INHIBIT_ANY:
-        X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_INHIBIT_ANY);
+        VR_X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_INHIBIT_ANY);
         break;
     case OPT_V_INHIBIT_MAP:
-        X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_INHIBIT_MAP);
+        VR_X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_INHIBIT_MAP);
         break;
     case OPT_V_X509_STRICT:
-        X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_X509_STRICT);
+        VR_X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_X509_STRICT);
         break;
     case OPT_V_EXTENDED_CRL:
-        X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_EXTENDED_CRL_SUPPORT);
+        VR_X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_EXTENDED_CRL_SUPPORT);
         break;
     case OPT_V_USE_DELTAS:
-        X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_USE_DELTAS);
+        VR_X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_USE_DELTAS);
         break;
     case OPT_V_POLICY_PRINT:
-        X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_NOTIFY_POLICY);
+        VR_X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_NOTIFY_POLICY);
         break;
     case OPT_V_CHECK_SS_SIG:
-        X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_CHECK_SS_SIGNATURE);
+        VR_X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_CHECK_SS_SIGNATURE);
         break;
     case OPT_V_TRUSTED_FIRST:
-        X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_TRUSTED_FIRST);
+        VR_X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_TRUSTED_FIRST);
         break;
     case OPT_V_SUITEB_128_ONLY:
-        X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_SUITEB_128_LOS_ONLY);
+        VR_X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_SUITEB_128_LOS_ONLY);
         break;
     case OPT_V_SUITEB_128:
-        X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_SUITEB_128_LOS);
+        VR_X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_SUITEB_128_LOS);
         break;
     case OPT_V_SUITEB_192:
-        X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_SUITEB_192_LOS);
+        VR_X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_SUITEB_192_LOS);
         break;
     case OPT_V_PARTIAL_CHAIN:
-        X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_PARTIAL_CHAIN);
+        VR_X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_PARTIAL_CHAIN);
         break;
     case OPT_V_NO_ALT_CHAINS:
-        X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_NO_ALT_CHAINS);
+        VR_X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_NO_ALT_CHAINS);
         break;
     case OPT_V_NO_CHECK_TIME:
-        X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_NO_CHECK_TIME);
+        VR_X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_NO_CHECK_TIME);
         break;
     case OPT_V_ALLOW_PROXY_CERTS:
-        X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_ALLOW_PROXY_CERTS);
+        VR_X509_VERIFY_PARAM_set_flags(vpm, X509_V_FLAG_ALLOW_PROXY_CERTS);
         break;
     }
     return 1;
@@ -651,7 +651,7 @@ int opt_next(void)
         /* If it doesn't take a value, make sure none was given. */
         if (o->valtype == 0 || o->valtype == '-') {
             if (arg) {
-                BIO_printf(bio_err,
+                VR_BIO_printf(bio_err,
                            "%s: Option -%s does not take a value\n", prog, p);
                 return -1;
             }
@@ -661,7 +661,7 @@ int opt_next(void)
         /* Want a value; get the next param if =foo not used. */
         if (arg == NULL) {
             if (argv[opt_index] == NULL) {
-                BIO_printf(bio_err,
+                VR_BIO_printf(bio_err,
                            "%s: Option -%s needs a value\n", prog, o->name);
                 return -1;
             }
@@ -677,7 +677,7 @@ int opt_next(void)
         case '/':
             if (app_isdir(arg) > 0)
                 break;
-            BIO_printf(bio_err, "%s: Not a directory: %s\n", prog, arg);
+            VR_BIO_printf(bio_err, "%s: Not a directory: %s\n", prog, arg);
             return -1;
         case '<':
             /* Input file. */
@@ -689,7 +689,7 @@ int opt_next(void)
         case 'n':
             if (!opt_int(arg, &ival)
                     || (o->valtype == 'p' && ival <= 0)) {
-                BIO_printf(bio_err,
+                VR_BIO_printf(bio_err,
                            "%s: Non-positive number \"%s\" for -%s\n",
                            prog, arg, o->name);
                 return -1;
@@ -697,7 +697,7 @@ int opt_next(void)
             break;
         case 'M':
             if (!opt_imax(arg, &imval)) {
-                BIO_printf(bio_err,
+                VR_BIO_printf(bio_err,
                            "%s: Invalid number \"%s\" for -%s\n",
                            prog, arg, o->name);
                 return -1;
@@ -705,7 +705,7 @@ int opt_next(void)
             break;
         case 'U':
             if (!opt_umax(arg, &umval)) {
-                BIO_printf(bio_err,
+                VR_BIO_printf(bio_err,
                            "%s: Invalid number \"%s\" for -%s\n",
                            prog, arg, o->name);
                 return -1;
@@ -713,7 +713,7 @@ int opt_next(void)
             break;
         case 'l':
             if (!opt_long(arg, &lval)) {
-                BIO_printf(bio_err,
+                VR_BIO_printf(bio_err,
                            "%s: Invalid number \"%s\" for -%s\n",
                            prog, arg, o->name);
                 return -1;
@@ -721,7 +721,7 @@ int opt_next(void)
             break;
         case 'u':
             if (!opt_ulong(arg, &ulval)) {
-                BIO_printf(bio_err,
+                VR_BIO_printf(bio_err,
                            "%s: Invalid number \"%s\" for -%s\n",
                            prog, arg, o->name);
                 return -1;
@@ -737,7 +737,7 @@ int opt_next(void)
                            o->valtype == 'F' ? OPT_FMT_PEMDER
                            : OPT_FMT_ANY, &ival))
                 break;
-            BIO_printf(bio_err,
+            VR_BIO_printf(bio_err,
                        "%s: Invalid format \"%s\" for -%s\n",
                        prog, arg, o->name);
             return -1;
@@ -750,7 +750,7 @@ int opt_next(void)
         dunno = p;
         return unknown->retval;
     }
-    BIO_printf(bio_err, "%s: Option unknown option -%s\n", prog, p);
+    VR_BIO_printf(bio_err, "%s: Option unknown option -%s\n", prog, p);
     return -1;
 }
 
@@ -852,14 +852,14 @@ void opt_help(const OPTIONS *list)
     }
 
     if (standard_prolog)
-        BIO_printf(bio_err, "Usage: %s [options]\nValid options are:\n",
+        VR_BIO_printf(bio_err, "Usage: %s [options]\nValid options are:\n",
                    prog);
 
     /* Now let's print. */
     for (o = list; o->name; o++) {
         help = o->helpstr ? o->helpstr : "(No additional info)";
         if (o->name == OPT_HELP_STR) {
-            BIO_printf(bio_err, help, prog);
+            VR_BIO_printf(bio_err, help, prog);
             continue;
         }
 
@@ -870,7 +870,7 @@ void opt_help(const OPTIONS *list)
         if (o->name == OPT_MORE_STR) {
             /* Continuation of previous line; pad and print. */
             start[width] = '\0';
-            BIO_printf(bio_err, "%s  %s\n", start, help);
+            VR_BIO_printf(bio_err, "%s  %s\n", start, help);
             continue;
         }
 
@@ -889,10 +889,10 @@ void opt_help(const OPTIONS *list)
         *p = ' ';
         if ((int)(p - start) >= MAX_OPT_HELP_WIDTH) {
             *p = '\0';
-            BIO_printf(bio_err, "%s\n", start);
+            VR_BIO_printf(bio_err, "%s\n", start);
             memset(start, ' ', sizeof(start));
         }
         start[width] = '\0';
-        BIO_printf(bio_err, "%s  %s\n", start, help);
+        VR_BIO_printf(bio_err, "%s  %s\n", start, help);
     }
 }

@@ -27,11 +27,11 @@ static int poly1305_size(const EVP_PKEY *pkey)
 
 static void poly1305_key_free(EVP_PKEY *pkey)
 {
-    ASN1_OCTET_STRING *os = EVP_PKEY_get0(pkey);
+    ASN1_OCTET_STRING *os = VR_EVP_PKEY_get0(pkey);
     if (os != NULL) {
         if (os->data != NULL)
-            OPENSSL_cleanse(os->data, os->length);
-        ASN1_OCTET_STRING_free(os);
+            VR_OPENSSL_cleanse(os->data, os->length);
+        VR_ASN1_OCTET_STRING_free(os);
     }
 }
 
@@ -43,7 +43,7 @@ static int poly1305_pkey_ctrl(EVP_PKEY *pkey, int op, long arg1, void *arg2)
 
 static int poly1305_pkey_public_cmp(const EVP_PKEY *a, const EVP_PKEY *b)
 {
-    return ASN1_OCTET_STRING_cmp(EVP_PKEY_get0(a), EVP_PKEY_get0(b));
+    return VR_ASN1_OCTET_STRING_cmp(VR_EVP_PKEY_get0(a), VR_EVP_PKEY_get0(b));
 }
 
 static int poly1305_set_priv_key(EVP_PKEY *pkey, const unsigned char *priv,
@@ -54,12 +54,12 @@ static int poly1305_set_priv_key(EVP_PKEY *pkey, const unsigned char *priv,
     if (pkey->pkey.ptr != NULL || len != POLY1305_KEY_SIZE)
         return 0;
 
-    os = ASN1_OCTET_STRING_new();
+    os = VR_ASN1_OCTET_STRING_new();
     if (os == NULL)
         return 0;
 
-    if (!ASN1_OCTET_STRING_set(os, priv, len)) {
-        ASN1_OCTET_STRING_free(os);
+    if (!VR_ASN1_OCTET_STRING_set(os, priv, len)) {
+        VR_ASN1_OCTET_STRING_free(os);
         return 0;
     }
 
@@ -80,7 +80,7 @@ static int poly1305_get_priv_key(const EVP_PKEY *pkey, unsigned char *priv,
     if (os == NULL || *len < POLY1305_KEY_SIZE)
         return 0;
 
-    memcpy(priv, ASN1_STRING_get0_data(os), ASN1_STRING_length(os));
+    memcpy(priv, VR_ASN1_STRING_get0_data(os), VR_ASN1_STRING_length(os));
     *len = POLY1305_KEY_SIZE;
 
     return 1;

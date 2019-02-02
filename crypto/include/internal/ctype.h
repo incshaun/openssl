@@ -53,28 +53,28 @@ int ossl_fromascii(int c);
 #  define ossl_toascii(c)       (c)
 #  define ossl_fromascii(c)     (c)
 # endif
-int ossl_ctype_check(int c, unsigned int mask);
-int ossl_tolower(int c);
-int ossl_toupper(int c);
+int VR_ossl_ctype_check(int c, unsigned int mask);
+int VR_ossl_tolower(int c);
+int VR_ossl_toupper(int c);
 
-# define ossl_isalnum(c)        (ossl_ctype_check((c), CTYPE_MASK_alnum))
-# define ossl_isalpha(c)        (ossl_ctype_check((c), CTYPE_MASK_alpha))
+# define ossl_isalnum(c)        (VR_ossl_ctype_check((c), CTYPE_MASK_alnum))
+# define ossl_isalpha(c)        (VR_ossl_ctype_check((c), CTYPE_MASK_alpha))
 # ifdef CHARSET_EBCDIC
-# define ossl_isascii(c)        (ossl_ctype_check((c), CTYPE_MASK_ascii))
+# define ossl_isascii(c)        (VR_ossl_ctype_check((c), CTYPE_MASK_ascii))
 # else
 # define ossl_isascii(c)        (((c) & ~127) == 0)
 # endif
-# define ossl_isblank(c)        (ossl_ctype_check((c), CTYPE_MASK_blank))
-# define ossl_iscntrl(c)        (ossl_ctype_check((c), CTYPE_MASK_cntrl))
-# define ossl_isdigit(c)        (ossl_ctype_check((c), CTYPE_MASK_digit))
-# define ossl_isgraph(c)        (ossl_ctype_check((c), CTYPE_MASK_graph))
-# define ossl_islower(c)        (ossl_ctype_check((c), CTYPE_MASK_lower))
-# define ossl_isprint(c)        (ossl_ctype_check((c), CTYPE_MASK_print))
-# define ossl_ispunct(c)        (ossl_ctype_check((c), CTYPE_MASK_punct))
-# define ossl_isspace(c)        (ossl_ctype_check((c), CTYPE_MASK_space))
-# define ossl_isupper(c)        (ossl_ctype_check((c), CTYPE_MASK_upper))
-# define ossl_isxdigit(c)       (ossl_ctype_check((c), CTYPE_MASK_xdigit))
-# define ossl_isbase64(c)       (ossl_ctype_check((c), CTYPE_MASK_base64))
-# define ossl_isasn1print(c)    (ossl_ctype_check((c), CTYPE_MASK_asn1print))
+# define ossl_isblank(c)        (VR_ossl_ctype_check((c), CTYPE_MASK_blank))
+# define ossl_iscntrl(c)        (VR_ossl_ctype_check((c), CTYPE_MASK_cntrl))
+# define ossl_isdigit(c)        (VR_ossl_ctype_check((c), CTYPE_MASK_digit))
+# define ossl_isgraph(c)        (VR_ossl_ctype_check((c), CTYPE_MASK_graph))
+# define ossl_islower(c)        (VR_ossl_ctype_check((c), CTYPE_MASK_lower))
+# define ossl_isprint(c)        (VR_ossl_ctype_check((c), CTYPE_MASK_print))
+# define ossl_ispunct(c)        (VR_ossl_ctype_check((c), CTYPE_MASK_punct))
+# define ossl_isspace(c)        (VR_ossl_ctype_check((c), CTYPE_MASK_space))
+# define ossl_isupper(c)        (VR_ossl_ctype_check((c), CTYPE_MASK_upper))
+# define ossl_isxdigit(c)       (VR_ossl_ctype_check((c), CTYPE_MASK_xdigit))
+# define ossl_isbase64(c)       (VR_ossl_ctype_check((c), CTYPE_MASK_base64))
+# define ossl_isasn1print(c)    (VR_ossl_ctype_check((c), CTYPE_MASK_asn1print))
 
 #endif

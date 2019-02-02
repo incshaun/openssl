@@ -17,11 +17,11 @@
 
 /* CMS DigestedData Utilities */
 
-CMS_ContentInfo *cms_DigestedData_create(const EVP_MD *md)
+CMS_ContentInfo *VR_cms_DigestedData_create(const EVP_MD *md)
 {
     CMS_ContentInfo *cms;
     CMS_DigestedData *dd;
-    cms = CMS_ContentInfo_new();
+    cms = VR_CMS_ContentInfo_new();
     if (cms == NULL)
         return NULL;
 
@@ -30,31 +30,31 @@ CMS_ContentInfo *cms_DigestedData_create(const EVP_MD *md)
     if (dd == NULL)
         goto err;
 
-    cms->contentType = OBJ_nid2obj(NID_pkcs7_digest);
+    cms->contentType = VR_OBJ_nid2obj(NID_pkcs7_digest);
     cms->d.digestedData = dd;
 
     dd->version = 0;
-    dd->encapContentInfo->eContentType = OBJ_nid2obj(NID_pkcs7_data);
+    dd->encapContentInfo->eContentType = VR_OBJ_nid2obj(NID_pkcs7_data);
 
-    X509_ALGOR_set_md(dd->digestAlgorithm, md);
+    VR_X509_ALGOR_set_md(dd->digestAlgorithm, md);
 
     return cms;
 
  err:
-    CMS_ContentInfo_free(cms);
+    VR_CMS_ContentInfo_free(cms);
     return NULL;
 }
 
-BIO *cms_DigestedData_init_bio(CMS_ContentInfo *cms)
+BIO *VR_cms_DigestedData_init_bio(CMS_ContentInfo *cms)
 {
     CMS_DigestedData *dd;
     dd = cms->d.digestedData;
-    return cms_DigestAlgorithm_init_bio(dd->digestAlgorithm);
+    return VR_cms_DigestAlgorithm_init_bio(dd->digestAlgorithm);
 }
 
-int cms_DigestedData_do_final(CMS_ContentInfo *cms, BIO *chain, int verify)
+int VR_cms_DigestedData_do_final(CMS_ContentInfo *cms, BIO *chain, int verify)
 {
-    EVP_MD_CTX *mctx = EVP_MD_CTX_new();
+    EVP_MD_CTX *mctx = VR_EVP_MD_CTX_new();
     unsigned char md[EVP_MAX_MD_SIZE];
     unsigned int mdlen;
     int r = 0;
@@ -67,10 +67,10 @@ int cms_DigestedData_do_final(CMS_ContentInfo *cms, BIO *chain, int verify)
 
     dd = cms->d.digestedData;
 
-    if (!cms_DigestAlgorithm_find_ctx(mctx, chain, dd->digestAlgorithm))
+    if (!VR_cms_DigestAlgorithm_find_ctx(mctx, chain, dd->digestAlgorithm))
         goto err;
 
-    if (EVP_DigestFinal_ex(mctx, md, &mdlen) <= 0)
+    if (VR_EVP_DigestFinal_ex(mctx, md, &mdlen) <= 0)
         goto err;
 
     if (verify) {
@@ -86,13 +86,13 @@ int cms_DigestedData_do_final(CMS_ContentInfo *cms, BIO *chain, int verify)
         else
             r = 1;
     } else {
-        if (!ASN1_STRING_set(dd->digest, md, mdlen))
+        if (!VR_ASN1_STRING_set(dd->digest, md, mdlen))
             goto err;
         r = 1;
     }
 
  err:
-    EVP_MD_CTX_free(mctx);
+    VR_EVP_MD_CTX_free(mctx);
 
     return r;
 

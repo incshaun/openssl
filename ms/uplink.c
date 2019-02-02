@@ -21,13 +21,13 @@
 #include <tchar.h>
 #include <stdio.h>
 #include "uplink.h"
-void OPENSSL_showfatal(const char *, ...);
+void VR_OPENSSL_showfatal(const char *, ...);
 
 static TCHAR msg[128];
 
 static void unimplemented(void)
 {
-    OPENSSL_showfatal(sizeof(TCHAR) == sizeof(char) ? "%s\n" : "%S\n", msg);
+    VR_OPENSSL_showfatal(sizeof(TCHAR) == sizeof(char) ? "%s\n" : "%S\n", msg);
     ExitProcess(1);
 }
 

@@ -184,7 +184,7 @@ $code.=<<___;
 ##  and %xmm9-%xmm15 as specified below.
 ##
 .align	4
-_vpaes_encrypt_preheat:
+_VR_vpaes_encrypt_preheat:
 	mflr	r8
 	bl	Lconsts
 	mtlr	r8
@@ -230,7 +230,7 @@ _vpaes_encrypt_preheat:
 ##
 ##
 .align 5
-_vpaes_encrypt_core:
+_VR_vpaes_encrypt_core:
 	lwz	r8, 240($key)		# pull rounds
 	li	r9, 16
 	lvx	v5, 0, $key		# vmovdqu	(%r9),	%xmm5		# round0 key
@@ -303,9 +303,9 @@ Lenc_entry:
 	.long	0
 	.byte	0,12,0x14,0,0,0,0,0
 
-.globl	.vpaes_encrypt
+.globl	.VR_vpaes_encrypt
 .align	5
-.vpaes_encrypt:
+.VR_vpaes_encrypt:
 	$STU	$sp,-$FRAME($sp)
 	li	r10,`15+6*$SIZE_T`
 	li	r11,`31+6*$SIZE_T`
@@ -338,7 +338,7 @@ Lenc_entry:
 	$PUSH	r6,`$FRAME+$LRSAVE`($sp)
 	mtspr	256, r0			# preserve all AltiVec registers
 
-	bl	_vpaes_encrypt_preheat
+	bl	_VR_vpaes_encrypt_preheat
 
 	?lvsl	$inpperm, 0, $inp	# prepare for unaligned access
 	lvx	v0, 0, $inp
@@ -348,7 +348,7 @@ Lenc_entry:
 	lvx	$inptail, 0, $inp	# redundant in aligned case
 	?vperm	v0, v0, $inptail, $inpperm
 
-	bl	_vpaes_encrypt_core
+	bl	_VR_vpaes_encrypt_core
 
 	andi.	r8, $out, 15
 	li	r9, 16
@@ -398,10 +398,10 @@ Lenc_done:
 	.long	0
 	.byte	0,12,0x04,1,0x80,0,3,0
 	.long	0
-.size	.vpaes_encrypt,.-.vpaes_encrypt
+.size	.VR_vpaes_encrypt,.-.VR_vpaes_encrypt
 
 .align	4
-_vpaes_decrypt_preheat:
+_VR_vpaes_decrypt_preheat:
 	mflr	r8
 	bl	Lconsts
 	mtlr	r8
@@ -446,7 +446,7 @@ _vpaes_decrypt_preheat:
 ##  Same API as encryption core.
 ##
 .align	4
-_vpaes_decrypt_core:
+_VR_vpaes_decrypt_core:
 	lwz	r8, 240($key)		# pull rounds
 	li	r9, 16
 	lvx	v5, 0, $key		# vmovdqu	(%r9),	%xmm4		# round0 key
@@ -535,9 +535,9 @@ Ldec_entry:
 	.long	0
 	.byte	0,12,0x14,0,0,0,0,0
 
-.globl	.vpaes_decrypt
+.globl	.VR_vpaes_decrypt
 .align	5
-.vpaes_decrypt:
+.VR_vpaes_decrypt:
 	$STU	$sp,-$FRAME($sp)
 	li	r10,`15+6*$SIZE_T`
 	li	r11,`31+6*$SIZE_T`
@@ -570,7 +570,7 @@ Ldec_entry:
 	$PUSH	r6,`$FRAME+$LRSAVE`($sp)
 	mtspr	256, r0			# preserve all AltiVec registers
 
-	bl	_vpaes_decrypt_preheat
+	bl	_VR_vpaes_decrypt_preheat
 
 	?lvsl	$inpperm, 0, $inp	# prepare for unaligned access
 	lvx	v0, 0, $inp
@@ -580,7 +580,7 @@ Ldec_entry:
 	lvx	$inptail, 0, $inp	# redundant in aligned case
 	?vperm	v0, v0, $inptail, $inpperm
 
-	bl	_vpaes_decrypt_core
+	bl	_VR_vpaes_decrypt_core
 
 	andi.	r8, $out, 15
 	li	r9, 16
@@ -630,11 +630,11 @@ Ldec_done:
 	.long	0
 	.byte	0,12,0x04,1,0x80,0,3,0
 	.long	0
-.size	.vpaes_decrypt,.-.vpaes_decrypt
+.size	.VR_vpaes_decrypt,.-.VR_vpaes_decrypt
 
-.globl	.vpaes_cbc_encrypt
+.globl	.VR_vpaes_cbc_encrypt
 .align	5
-.vpaes_cbc_encrypt:
+.VR_vpaes_cbc_encrypt:
 	${UCMP}i r5,16
 	bltlr-
 
@@ -699,7 +699,7 @@ Ldec_done:
 
 	beq	Lcbc_decrypt
 
-	bl	_vpaes_encrypt_preheat
+	bl	_VR_vpaes_encrypt_preheat
 	li	r0, 16
 
 	beq	cr1, Lcbc_enc_loop	# $out is aligned
@@ -710,7 +710,7 @@ Ldec_done:
 	?vperm	v0, v0, $inptail, $inpperm
 	vxor	v0, v0, v24		# ^= iv
 
-	bl	_vpaes_encrypt_core
+	bl	_VR_vpaes_encrypt_core
 
 	andi.	r8, $out, 15
 	vmr	v24, v0			# put aside iv
@@ -734,7 +734,7 @@ Lcbc_enc_loop:
 	?vperm	v0, v0, $inptail, $inpperm
 	vxor	v0, v0, v24		# ^= iv
 
-	bl	_vpaes_encrypt_core
+	bl	_VR_vpaes_encrypt_core
 
 	vmr	v24, v0			# put aside iv
 	sub.	r30, r30, r0		# len -= 16
@@ -749,7 +749,7 @@ Lcbc_enc_loop:
 
 .align	5
 Lcbc_decrypt:
-	bl	_vpaes_decrypt_preheat
+	bl	_VR_vpaes_decrypt_preheat
 	li	r0, 16
 
 	beq	cr1, Lcbc_dec_loop	# $out is aligned
@@ -760,7 +760,7 @@ Lcbc_decrypt:
 	?vperm	v0, v0, $inptail, $inpperm
 	vmr	v25, v0			# put aside input
 
-	bl	_vpaes_decrypt_core
+	bl	_VR_vpaes_decrypt_core
 
 	andi.	r8, $out, 15
 	vxor	v0, v0, v24		# ^= iv
@@ -785,7 +785,7 @@ Lcbc_dec_loop:
 	?vperm	v0, v0, $inptail, $inpperm
 	vmr	v25, v0			# put aside input
 
-	bl	_vpaes_decrypt_core
+	bl	_VR_vpaes_decrypt_core
 
 	vxor	v0, v0, v24		# ^= iv
 	vmr	v24, v25
@@ -857,7 +857,7 @@ Lcbc_abort:
 	.long	0
 	.byte	0,12,0x04,1,0x80,2,6,0
 	.long	0
-.size	.vpaes_cbc_encrypt,.-.vpaes_cbc_encrypt
+.size	.VR_vpaes_cbc_encrypt,.-.VR_vpaes_cbc_encrypt
 ___
 }
 {
@@ -1384,9 +1384,9 @@ Lschedule_mangle_dec:
 	.long	0
 	.byte	0,12,0x14,0,0,0,0,0
 
-.globl	.vpaes_set_encrypt_key
+.globl	.VR_vpaes_set_encrypt_key
 .align	5
-.vpaes_set_encrypt_key:
+.VR_vpaes_set_encrypt_key:
 	$STU	$sp,-$FRAME($sp)
 	li	r10,`15+6*$SIZE_T`
 	li	r11,`31+6*$SIZE_T`
@@ -1460,11 +1460,11 @@ Lschedule_mangle_dec:
 	.long	0
 	.byte	0,12,0x04,1,0x80,0,3,0
 	.long	0
-.size	.vpaes_set_encrypt_key,.-.vpaes_set_encrypt_key
+.size	.VR_vpaes_set_encrypt_key,.-.VR_vpaes_set_encrypt_key
 
-.globl	.vpaes_set_decrypt_key
+.globl	.VR_vpaes_set_decrypt_key
 .align	4
-.vpaes_set_decrypt_key:
+.VR_vpaes_set_decrypt_key:
 	$STU	$sp,-$FRAME($sp)
 	li	r10,`15+6*$SIZE_T`
 	li	r11,`31+6*$SIZE_T`
@@ -1543,7 +1543,7 @@ Lschedule_mangle_dec:
 	.long	0
 	.byte	0,12,0x04,1,0x80,0,3,0
 	.long	0
-.size	.vpaes_set_decrypt_key,.-.vpaes_set_decrypt_key
+.size	.VR_vpaes_set_decrypt_key,.-.VR_vpaes_set_decrypt_key
 ___
 }
 

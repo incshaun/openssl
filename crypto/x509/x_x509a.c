@@ -33,7 +33,7 @@ ASN1_SEQUENCE(X509_CERT_AUX) = {
 
 IMPLEMENT_ASN1_FUNCTIONS(X509_CERT_AUX)
 
-int X509_trusted(const X509 *x)
+int VR_X509_trusted(const X509 *x)
 {
     return x->aux ? 1 : 0;
 }
@@ -42,47 +42,47 @@ static X509_CERT_AUX *aux_get(X509 *x)
 {
     if (x == NULL)
         return NULL;
-    if (x->aux == NULL && (x->aux = X509_CERT_AUX_new()) == NULL)
+    if (x->aux == NULL && (x->aux = VR_X509_CERT_AUX_new()) == NULL)
         return NULL;
     return x->aux;
 }
 
-int X509_alias_set1(X509 *x, const unsigned char *name, int len)
+int VR_X509_alias_set1(X509 *x, const unsigned char *name, int len)
 {
     X509_CERT_AUX *aux;
     if (!name) {
         if (!x || !x->aux || !x->aux->alias)
             return 1;
-        ASN1_UTF8STRING_free(x->aux->alias);
+        VR_ASN1_UTF8STRING_free(x->aux->alias);
         x->aux->alias = NULL;
         return 1;
     }
     if ((aux = aux_get(x)) == NULL)
         return 0;
-    if (aux->alias == NULL && (aux->alias = ASN1_UTF8STRING_new()) == NULL)
+    if (aux->alias == NULL && (aux->alias = VR_ASN1_UTF8STRING_new()) == NULL)
         return 0;
-    return ASN1_STRING_set(aux->alias, name, len);
+    return VR_ASN1_STRING_set(aux->alias, name, len);
 }
 
-int X509_keyid_set1(X509 *x, const unsigned char *id, int len)
+int VR_X509_keyid_set1(X509 *x, const unsigned char *id, int len)
 {
     X509_CERT_AUX *aux;
     if (!id) {
         if (!x || !x->aux || !x->aux->keyid)
             return 1;
-        ASN1_OCTET_STRING_free(x->aux->keyid);
+        VR_ASN1_OCTET_STRING_free(x->aux->keyid);
         x->aux->keyid = NULL;
         return 1;
     }
     if ((aux = aux_get(x)) == NULL)
         return 0;
     if (aux->keyid == NULL
-        && (aux->keyid = ASN1_OCTET_STRING_new()) == NULL)
+        && (aux->keyid = VR_ASN1_OCTET_STRING_new()) == NULL)
         return 0;
-    return ASN1_STRING_set(aux->keyid, id, len);
+    return VR_ASN1_STRING_set(aux->keyid, id, len);
 }
 
-unsigned char *X509_alias_get0(X509 *x, int *len)
+unsigned char *VR_X509_alias_get0(X509 *x, int *len)
 {
     if (!x->aux || !x->aux->alias)
         return NULL;
@@ -91,7 +91,7 @@ unsigned char *X509_alias_get0(X509 *x, int *len)
     return x->aux->alias->data;
 }
 
-unsigned char *X509_keyid_get0(X509 *x, int *len)
+unsigned char *VR_X509_keyid_get0(X509 *x, int *len)
 {
     if (!x->aux || !x->aux->keyid)
         return NULL;
@@ -100,68 +100,68 @@ unsigned char *X509_keyid_get0(X509 *x, int *len)
     return x->aux->keyid->data;
 }
 
-int X509_add1_trust_object(X509 *x, const ASN1_OBJECT *obj)
+int VR_X509_add1_trust_object(X509 *x, const ASN1_OBJECT *obj)
 {
     X509_CERT_AUX *aux;
     ASN1_OBJECT *objtmp = NULL;
     if (obj) {
-        objtmp = OBJ_dup(obj);
+        objtmp = VR_OBJ_dup(obj);
         if (!objtmp)
             return 0;
     }
     if ((aux = aux_get(x)) == NULL)
         goto err;
     if (aux->trust == NULL
-        && (aux->trust = sk_ASN1_OBJECT_new_null()) == NULL)
+        && (aux->trust = sk_VR_ASN1_OBJECT_new_null()) == NULL)
         goto err;
-    if (!objtmp || sk_ASN1_OBJECT_push(aux->trust, objtmp))
+    if (!objtmp || sk_VR_ASN1_OBJECT_push(aux->trust, objtmp))
         return 1;
  err:
-    ASN1_OBJECT_free(objtmp);
+    VR_ASN1_OBJECT_free(objtmp);
     return 0;
 }
 
-int X509_add1_reject_object(X509 *x, const ASN1_OBJECT *obj)
+int VR_X509_add1_reject_object(X509 *x, const ASN1_OBJECT *obj)
 {
     X509_CERT_AUX *aux;
     ASN1_OBJECT *objtmp;
-    if ((objtmp = OBJ_dup(obj)) == NULL)
+    if ((objtmp = VR_OBJ_dup(obj)) == NULL)
         return 0;
     if ((aux = aux_get(x)) == NULL)
         goto err;
     if (aux->reject == NULL
-        && (aux->reject = sk_ASN1_OBJECT_new_null()) == NULL)
+        && (aux->reject = sk_VR_ASN1_OBJECT_new_null()) == NULL)
         goto err;
-    return sk_ASN1_OBJECT_push(aux->reject, objtmp);
+    return sk_VR_ASN1_OBJECT_push(aux->reject, objtmp);
  err:
-    ASN1_OBJECT_free(objtmp);
+    VR_ASN1_OBJECT_free(objtmp);
     return 0;
 }
 
-void X509_trust_clear(X509 *x)
+void VR_X509_trust_clear(X509 *x)
 {
     if (x->aux) {
-        sk_ASN1_OBJECT_pop_free(x->aux->trust, ASN1_OBJECT_free);
+        sk_VR_ASN1_OBJECT_pop_free(x->aux->trust, VR_ASN1_OBJECT_free);
         x->aux->trust = NULL;
     }
 }
 
-void X509_reject_clear(X509 *x)
+void VR_X509_reject_clear(X509 *x)
 {
     if (x->aux) {
-        sk_ASN1_OBJECT_pop_free(x->aux->reject, ASN1_OBJECT_free);
+        sk_VR_ASN1_OBJECT_pop_free(x->aux->reject, VR_ASN1_OBJECT_free);
         x->aux->reject = NULL;
     }
 }
 
-STACK_OF(ASN1_OBJECT) *X509_get0_trust_objects(X509 *x)
+STACK_OF(ASN1_OBJECT) *VR_X509_get0_trust_objects(X509 *x)
 {
     if (x->aux != NULL)
         return x->aux->trust;
     return NULL;
 }
 
-STACK_OF(ASN1_OBJECT) *X509_get0_reject_objects(X509 *x)
+STACK_OF(ASN1_OBJECT) *VR_X509_get0_reject_objects(X509 *x)
 {
     if (x->aux != NULL)
         return x->aux->reject;

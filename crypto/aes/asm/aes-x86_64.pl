@@ -323,9 +323,9 @@ sub enclast()
 }
 
 $code.=<<___;
-.type	_x86_64_AES_encrypt,\@abi-omnipotent
+.type	_x86_64_VR_AES_encrypt,\@abi-omnipotent
 .align	16
-_x86_64_AES_encrypt:
+_x86_64_VR_AES_encrypt:
 	xor	0($key),$s0			# xor with key
 	xor	4($key),$s1
 	xor	8($key),$s2
@@ -361,7 +361,7 @@ ___
 	}
 $code.=<<___;
 	.byte	0xf3,0xc3			# rep ret
-.size	_x86_64_AES_encrypt,.-_x86_64_AES_encrypt
+.size	_x86_64_VR_AES_encrypt,.-_x86_64_VR_AES_encrypt
 ___
 
 # it's possible to implement this by shifting tN by 8, filling least
@@ -551,9 +551,9 @@ ___
 }
 
 $code.=<<___;
-.type	_x86_64_AES_encrypt_compact,\@abi-omnipotent
+.type	_x86_64_VR_AES_encrypt_compact,\@abi-omnipotent
 .align	16
-_x86_64_AES_encrypt_compact:
+_x86_64_VR_AES_encrypt_compact:
 	lea	128($sbox),$inp			# size optimization
 	mov	0-128($inp),$acc1		# prefetch Te4
 	mov	32-128($inp),$acc2
@@ -587,18 +587,18 @@ $code.=<<___;
 	xor	8($key),$s2
 	xor	12($key),$s3
 	.byte	0xf3,0xc3			# rep ret
-.size	_x86_64_AES_encrypt_compact,.-_x86_64_AES_encrypt_compact
+.size	_x86_64_VR_AES_encrypt_compact,.-_x86_64_VR_AES_encrypt_compact
 ___
 
-# void AES_encrypt (const void *inp,void *out,const AES_KEY *key);
+# void VR_AES_encrypt (const void *inp,void *out,const AES_KEY *key);
 $code.=<<___;
-.globl	AES_encrypt
-.type	AES_encrypt,\@function,3
+.globl	VR_AES_encrypt
+.type	VR_AES_encrypt,\@function,3
 .align	16
-.globl	asm_AES_encrypt
-.hidden	asm_AES_encrypt
-asm_AES_encrypt:
-AES_encrypt:
+.globl	VR_asm_AES_encrypt
+.hidden	VR_asm_AES_encrypt
+VR_asm_AES_encrypt:
+VR_AES_encrypt:
 .cfi_startproc
 	mov	%rsp,%rax
 .cfi_def_cfa_register	%rax
@@ -649,7 +649,7 @@ AES_encrypt:
 	and	\$0x300,%rbp
 	lea	($sbox,%rbp),$sbox
 
-	call	_x86_64_AES_encrypt_compact
+	call	_x86_64_VR_AES_encrypt_compact
 
 	mov	16(%rsp),$out	# restore out
 	mov	24(%rsp),%rsi	# restore saved stack pointer
@@ -676,7 +676,7 @@ AES_encrypt:
 .Lenc_epilogue:
 	ret
 .cfi_endproc
-.size	AES_encrypt,.-AES_encrypt
+.size	VR_AES_encrypt,.-VR_AES_encrypt
 ___
 
 #------------------------------------------------------------------#
@@ -905,9 +905,9 @@ sub declast()
 }
 
 $code.=<<___;
-.type	_x86_64_AES_decrypt,\@abi-omnipotent
+.type	_x86_64_VR_AES_decrypt,\@abi-omnipotent
 .align	16
-_x86_64_AES_decrypt:
+_x86_64_VR_AES_decrypt:
 	xor	0($key),$s0			# xor with key
 	xor	4($key),$s1
 	xor	8($key),$s2
@@ -950,7 +950,7 @@ ___
 	}
 $code.=<<___;
 	.byte	0xf3,0xc3			# rep ret
-.size	_x86_64_AES_decrypt,.-_x86_64_AES_decrypt
+.size	_x86_64_VR_AES_decrypt,.-_x86_64_VR_AES_decrypt
 ___
 
 sub deccompactvert()
@@ -1158,9 +1158,9 @@ ___
 }
 
 $code.=<<___;
-.type	_x86_64_AES_decrypt_compact,\@abi-omnipotent
+.type	_x86_64_VR_AES_decrypt_compact,\@abi-omnipotent
 .align	16
-_x86_64_AES_decrypt_compact:
+_x86_64_VR_AES_decrypt_compact:
 	lea	128($sbox),$inp			# size optimization
 	mov	0-128($inp),$acc1		# prefetch Td4
 	mov	32-128($inp),$acc2
@@ -1203,18 +1203,18 @@ $code.=<<___;
 	xor	8($key),$s2
 	xor	12($key),$s3
 	.byte	0xf3,0xc3			# rep ret
-.size	_x86_64_AES_decrypt_compact,.-_x86_64_AES_decrypt_compact
+.size	_x86_64_VR_AES_decrypt_compact,.-_x86_64_VR_AES_decrypt_compact
 ___
 
-# void AES_decrypt (const void *inp,void *out,const AES_KEY *key);
+# void VR_AES_decrypt (const void *inp,void *out,const AES_KEY *key);
 $code.=<<___;
-.globl	AES_decrypt
-.type	AES_decrypt,\@function,3
+.globl	VR_AES_decrypt
+.type	VR_AES_decrypt,\@function,3
 .align	16
-.globl	asm_AES_decrypt
-.hidden	asm_AES_decrypt
-asm_AES_decrypt:
-AES_decrypt:
+.globl	VR_asm_AES_decrypt
+.hidden	VR_asm_AES_decrypt
+VR_asm_AES_decrypt:
+VR_AES_decrypt:
 .cfi_startproc
 	mov	%rsp,%rax
 .cfi_def_cfa_register	%rax
@@ -1267,7 +1267,7 @@ AES_decrypt:
 	shr	\$3,%rbp	# recall "magic" constants!
 	add	%rbp,$sbox
 
-	call	_x86_64_AES_decrypt_compact
+	call	_x86_64_VR_AES_decrypt_compact
 
 	mov	16(%rsp),$out	# restore out
 	mov	24(%rsp),%rsi	# restore saved stack pointer
@@ -1294,7 +1294,7 @@ AES_decrypt:
 .Ldec_epilogue:
 	ret
 .cfi_endproc
-.size	AES_decrypt,.-AES_decrypt
+.size	VR_AES_decrypt,.-VR_AES_decrypt
 ___
 #------------------------------------------------------------------#
 
@@ -1325,13 +1325,13 @@ $code.=<<___;
 ___
 }
 
-# int AES_set_encrypt_key(const unsigned char *userKey, const int bits,
+# int VR_AES_set_encrypt_key(const unsigned char *userKey, const int bits,
 #                        AES_KEY *key)
 $code.=<<___;
-.globl	AES_set_encrypt_key
-.type	AES_set_encrypt_key,\@function,3
+.globl	VR_AES_set_encrypt_key
+.type	VR_AES_set_encrypt_key,\@function,3
 .align	16
-AES_set_encrypt_key:
+VR_AES_set_encrypt_key:
 .cfi_startproc
 	push	%rbx
 .cfi_push	%rbx
@@ -1349,7 +1349,7 @@ AES_set_encrypt_key:
 .cfi_adjust_cfa_offset	8
 .Lenc_key_prologue:
 
-	call	_x86_64_AES_set_encrypt_key
+	call	_x86_64_VR_AES_set_encrypt_key
 
 	mov	40(%rsp),%rbp
 .cfi_restore	%rbp
@@ -1360,11 +1360,11 @@ AES_set_encrypt_key:
 .Lenc_key_epilogue:
 	ret
 .cfi_endproc
-.size	AES_set_encrypt_key,.-AES_set_encrypt_key
+.size	VR_AES_set_encrypt_key,.-VR_AES_set_encrypt_key
 
-.type	_x86_64_AES_set_encrypt_key,\@abi-omnipotent
+.type	_x86_64_VR_AES_set_encrypt_key,\@abi-omnipotent
 .align	16
-_x86_64_AES_set_encrypt_key:
+_x86_64_VR_AES_set_encrypt_key:
 	mov	%esi,%ecx			# %ecx=bits
 	mov	%rdi,%rsi			# %rsi=userKey
 	mov	%rdx,%rdi			# %rdi=key
@@ -1546,7 +1546,7 @@ $code.=<<___;
 	mov	\$-1,%rax
 .Lexit:
 	.byte	0xf3,0xc3			# rep ret
-.size	_x86_64_AES_set_encrypt_key,.-_x86_64_AES_set_encrypt_key
+.size	_x86_64_VR_AES_set_encrypt_key,.-_x86_64_VR_AES_set_encrypt_key
 ___
 
 sub deckey_ref()
@@ -1603,13 +1603,13 @@ $code.=<<___;
 ___
 }
 
-# int AES_set_decrypt_key(const unsigned char *userKey, const int bits,
+# int VR_AES_set_decrypt_key(const unsigned char *userKey, const int bits,
 #                        AES_KEY *key)
 $code.=<<___;
-.globl	AES_set_decrypt_key
-.type	AES_set_decrypt_key,\@function,3
+.globl	VR_AES_set_decrypt_key
+.type	VR_AES_set_decrypt_key,\@function,3
 .align	16
-AES_set_decrypt_key:
+VR_AES_set_decrypt_key:
 .cfi_startproc
 	push	%rbx
 .cfi_push	%rbx
@@ -1627,7 +1627,7 @@ AES_set_decrypt_key:
 .cfi_adjust_cfa_offset	8
 .Ldec_key_prologue:
 
-	call	_x86_64_AES_set_encrypt_key
+	call	_x86_64_VR_AES_set_encrypt_key
 	mov	(%rsp),%r8		# restore key schedule
 	cmp	\$0,%eax
 	jne	.Labort
@@ -1694,10 +1694,10 @@ $code.=<<___;
 .Ldec_key_epilogue:
 	ret
 .cfi_endproc
-.size	AES_set_decrypt_key,.-AES_set_decrypt_key
+.size	VR_AES_set_decrypt_key,.-VR_AES_set_decrypt_key
 ___
 
-# void AES_cbc_encrypt (const void char *inp, unsigned char *out,
+# void VR_AES_cbc_encrypt (const void char *inp, unsigned char *out,
 #			size_t length, const AES_KEY *key,
 #			unsigned char *ivp,const int enc);
 {
@@ -1716,14 +1716,14 @@ my $aes_key="80(%rsp)";		# copy of aes_key
 my $mark="80+240(%rsp)";	# copy of aes_key->rounds
 
 $code.=<<___;
-.globl	AES_cbc_encrypt
-.type	AES_cbc_encrypt,\@function,6
+.globl	VR_AES_cbc_encrypt
+.type	VR_AES_cbc_encrypt,\@function,6
 .align	16
 .extern	OPENSSL_ia32cap_P
-.globl	asm_AES_cbc_encrypt
-.hidden	asm_AES_cbc_encrypt
-asm_AES_cbc_encrypt:
-AES_cbc_encrypt:
+.globl	VR_asm_AES_cbc_encrypt
+.hidden	VR_asm_AES_cbc_encrypt
+VR_asm_AES_cbc_encrypt:
+VR_AES_cbc_encrypt:
 .cfi_startproc
 	cmp	\$0,%rdx	# check length
 	je	.Lcbc_epilogue
@@ -1852,7 +1852,7 @@ AES_cbc_encrypt:
 		mov	$keyp,$key	# restore key
 		mov	$inp,$_inp	# if ($verticalspin) save inp
 
-		call	_x86_64_AES_encrypt
+		call	_x86_64_VR_AES_encrypt
 
 		mov	$_inp,$inp	# if ($verticalspin) restore inp
 		mov	$_len,%r10
@@ -1891,7 +1891,7 @@ AES_cbc_encrypt:
 		mov	$keyp,$key	# restore key
 		mov	$inp,$_inp	# if ($verticalspin) save inp
 
-		call	_x86_64_AES_decrypt
+		call	_x86_64_VR_AES_decrypt
 
 		mov	$ivec,%rbp	# load ivp
 		mov	$_inp,$inp	# if ($verticalspin) restore inp
@@ -1936,7 +1936,7 @@ AES_cbc_encrypt:
 		mov	$keyp,$key	# restore key
 		mov	$inp,$_inp	# if ($verticalspin) save inp
 
-		call	_x86_64_AES_decrypt
+		call	_x86_64_VR_AES_decrypt
 
 		mov	$_inp,$inp	# if ($verticalspin) restore inp
 		mov	$_len,%r10
@@ -2047,7 +2047,7 @@ AES_cbc_encrypt:
 		mov	$out,$_out	# save out
 		mov	%r10,$_len	# save len
 
-		call	_x86_64_AES_encrypt_compact
+		call	_x86_64_VR_AES_encrypt_compact
 
 		mov	$_inp,$inp	# restore inp
 		mov	$_out,$out	# restore out
@@ -2111,7 +2111,7 @@ AES_cbc_encrypt:
 		mov	$out,$_out	# save out
 		mov	%r10,$_len	# save len
 
-		call	_x86_64_AES_decrypt_compact
+		call	_x86_64_VR_AES_decrypt_compact
 
 		mov	$_inp,$inp	# restore inp
 		mov	$_out,$out	# restore out
@@ -2191,7 +2191,7 @@ AES_cbc_encrypt:
 .Lcbc_epilogue:
 	ret
 .cfi_endproc
-.size	AES_cbc_encrypt,.-AES_cbc_encrypt
+.size	VR_AES_cbc_encrypt,.-VR_AES_cbc_encrypt
 ___
 }
 
@@ -2851,45 +2851,45 @@ cbc_se_handler:
 
 .section	.pdata
 .align	4
-	.rva	.LSEH_begin_AES_encrypt
-	.rva	.LSEH_end_AES_encrypt
-	.rva	.LSEH_info_AES_encrypt
+	.rva	.LSEH_begin_VR_AES_encrypt
+	.rva	.LSEH_end_VR_AES_encrypt
+	.rva	.LSEH_info_VR_AES_encrypt
 
-	.rva	.LSEH_begin_AES_decrypt
-	.rva	.LSEH_end_AES_decrypt
-	.rva	.LSEH_info_AES_decrypt
+	.rva	.LSEH_begin_VR_AES_decrypt
+	.rva	.LSEH_end_VR_AES_decrypt
+	.rva	.LSEH_info_VR_AES_decrypt
 
-	.rva	.LSEH_begin_AES_set_encrypt_key
-	.rva	.LSEH_end_AES_set_encrypt_key
-	.rva	.LSEH_info_AES_set_encrypt_key
+	.rva	.LSEH_begin_VR_AES_set_encrypt_key
+	.rva	.LSEH_end_VR_AES_set_encrypt_key
+	.rva	.LSEH_info_VR_AES_set_encrypt_key
 
-	.rva	.LSEH_begin_AES_set_decrypt_key
-	.rva	.LSEH_end_AES_set_decrypt_key
-	.rva	.LSEH_info_AES_set_decrypt_key
+	.rva	.LSEH_begin_VR_AES_set_decrypt_key
+	.rva	.LSEH_end_VR_AES_set_decrypt_key
+	.rva	.LSEH_info_VR_AES_set_decrypt_key
 
-	.rva	.LSEH_begin_AES_cbc_encrypt
-	.rva	.LSEH_end_AES_cbc_encrypt
-	.rva	.LSEH_info_AES_cbc_encrypt
+	.rva	.LSEH_begin_VR_AES_cbc_encrypt
+	.rva	.LSEH_end_VR_AES_cbc_encrypt
+	.rva	.LSEH_info_VR_AES_cbc_encrypt
 
 .section	.xdata
 .align	8
-.LSEH_info_AES_encrypt:
+.LSEH_info_VR_AES_encrypt:
 	.byte	9,0,0,0
 	.rva	block_se_handler
 	.rva	.Lenc_prologue,.Lenc_epilogue	# HandlerData[]
-.LSEH_info_AES_decrypt:
+.LSEH_info_VR_AES_decrypt:
 	.byte	9,0,0,0
 	.rva	block_se_handler
 	.rva	.Ldec_prologue,.Ldec_epilogue	# HandlerData[]
-.LSEH_info_AES_set_encrypt_key:
+.LSEH_info_VR_AES_set_encrypt_key:
 	.byte	9,0,0,0
 	.rva	key_se_handler
 	.rva	.Lenc_key_prologue,.Lenc_key_epilogue	# HandlerData[]
-.LSEH_info_AES_set_decrypt_key:
+.LSEH_info_VR_AES_set_decrypt_key:
 	.byte	9,0,0,0
 	.rva	key_se_handler
 	.rva	.Ldec_key_prologue,.Ldec_key_epilogue	# HandlerData[]
-.LSEH_info_AES_cbc_encrypt:
+.LSEH_info_VR_AES_cbc_encrypt:
 	.byte	9,0,0,0
 	.rva	cbc_se_handler
 ___

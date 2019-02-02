@@ -15,7 +15,7 @@
  * The extra state information to record how much of the 64bit block we have
  * used is contained in *num;
  */
-void BF_ofb64_encrypt(const unsigned char *in, unsigned char *out,
+void VR_BF_ofb64_encrypt(const unsigned char *in, unsigned char *out,
                       long length, const BF_KEY *schedule,
                       unsigned char *ivec, int *num)
 {
@@ -38,7 +38,7 @@ void BF_ofb64_encrypt(const unsigned char *in, unsigned char *out,
     l2n(v1, dp);
     while (l--) {
         if (n == 0) {
-            BF_encrypt((BF_LONG *)ti, schedule);
+            VR_BF_encrypt((BF_LONG *)ti, schedule);
             dp = (char *)d;
             t = ti[0];
             l2n(t, dp);

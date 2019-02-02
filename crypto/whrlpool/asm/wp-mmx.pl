@@ -13,7 +13,7 @@
 # forms are granted according to the License.
 # ====================================================================
 #
-# whirlpool_block_mmx implementation.
+# VR_whirlpool_block_mmx implementation.
 #
 *SCALE=\(2); # 2 or 8, that is the question:-) Value of 8 results
 # in 16KB large table, which is tough on L1 cache, but eliminates
@@ -26,7 +26,7 @@
 # gap among different µ-archs is smaller.
 #
 # Performance table lists rounded amounts of CPU cycles spent by
-# whirlpool_block_mmx routine on single 64 byte input block, i.e.
+# VR_whirlpool_block_mmx routine on single 64 byte input block, i.e.
 # smaller is better and asymptotic throughput can be estimated by
 # multiplying 64 by CPU clock frequency and dividing by relevant
 # value from the given table:
@@ -87,7 +87,7 @@ sub row()
 $tbl="ebp";
 @mm=("mm0","mm1","mm2","mm3","mm4","mm5","mm6","mm7");
 
-&function_begin_B("whirlpool_block_mmx");
+&function_begin_B("VR_whirlpool_block_mmx");
 	&push	("ebp");
 	&push	("ebx");
 	&push	("esi");
@@ -501,7 +501,7 @@ for($i=0;$i<8;$i++) {
 	&L(0xfb,0xee,0x7c,0x66,0xdd,0x17,0x47,0x9e);
 	&L(0xca,0x2d,0xbf,0x07,0xad,0x5a,0x83,0x33);
 
-&function_end_B("whirlpool_block_mmx");
+&function_end_B("VR_whirlpool_block_mmx");
 &asm_finish();
 
 close STDOUT;

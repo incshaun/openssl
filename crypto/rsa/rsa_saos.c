@@ -14,7 +14,7 @@
 #include <openssl/objects.h>
 #include <openssl/x509.h>
 
-int RSA_sign_ASN1_OCTET_STRING(int type,
+int VR_RSA_sign_ASN1_OCTET_STRING(int type,
                                const unsigned char *m, unsigned int m_len,
                                unsigned char *sigret, unsigned int *siglen,
                                RSA *rsa)
@@ -27,8 +27,8 @@ int RSA_sign_ASN1_OCTET_STRING(int type,
     sig.length = m_len;
     sig.data = (unsigned char *)m;
 
-    i = i2d_ASN1_OCTET_STRING(&sig, NULL);
-    j = RSA_size(rsa);
+    i = VR_i2d_ASN1_OCTET_STRING(&sig, NULL);
+    j = VR_RSA_size(rsa);
     if (i > (j - RSA_PKCS1_PADDING_SIZE)) {
         RSAerr(RSA_F_RSA_SIGN_ASN1_OCTET_STRING,
                RSA_R_DIGEST_TOO_BIG_FOR_RSA_KEY);
@@ -40,18 +40,18 @@ int RSA_sign_ASN1_OCTET_STRING(int type,
         return 0;
     }
     p = s;
-    i2d_ASN1_OCTET_STRING(&sig, &p);
-    i = RSA_private_encrypt(i, s, sigret, rsa, RSA_PKCS1_PADDING);
+    VR_i2d_ASN1_OCTET_STRING(&sig, &p);
+    i = VR_RSA_private_encrypt(i, s, sigret, rsa, RSA_PKCS1_PADDING);
     if (i <= 0)
         ret = 0;
     else
         *siglen = i;
 
-    OPENSSL_clear_free(s, (unsigned int)j + 1);
+    OPENVR_SSL_clear_free(s, (unsigned int)j + 1);
     return ret;
 }
 
-int RSA_verify_ASN1_OCTET_STRING(int dtype,
+int VR_RSA_verify_ASN1_OCTET_STRING(int dtype,
                                  const unsigned char *m,
                                  unsigned int m_len, unsigned char *sigbuf,
                                  unsigned int siglen, RSA *rsa)
@@ -61,7 +61,7 @@ int RSA_verify_ASN1_OCTET_STRING(int dtype,
     const unsigned char *p;
     ASN1_OCTET_STRING *sig = NULL;
 
-    if (siglen != (unsigned int)RSA_size(rsa)) {
+    if (siglen != (unsigned int)VR_RSA_size(rsa)) {
         RSAerr(RSA_F_RSA_VERIFY_ASN1_OCTET_STRING,
                RSA_R_WRONG_SIGNATURE_LENGTH);
         return 0;
@@ -72,13 +72,13 @@ int RSA_verify_ASN1_OCTET_STRING(int dtype,
         RSAerr(RSA_F_RSA_VERIFY_ASN1_OCTET_STRING, ERR_R_MALLOC_FAILURE);
         goto err;
     }
-    i = RSA_public_decrypt((int)siglen, sigbuf, s, rsa, RSA_PKCS1_PADDING);
+    i = VR_RSA_public_decrypt((int)siglen, sigbuf, s, rsa, RSA_PKCS1_PADDING);
 
     if (i <= 0)
         goto err;
 
     p = s;
-    sig = d2i_ASN1_OCTET_STRING(NULL, &p, (long)i);
+    sig = VR_d2i_ASN1_OCTET_STRING(NULL, &p, (long)i);
     if (sig == NULL)
         goto err;
 
@@ -89,7 +89,7 @@ int RSA_verify_ASN1_OCTET_STRING(int dtype,
         ret = 1;
     }
  err:
-    ASN1_OCTET_STRING_free(sig);
-    OPENSSL_clear_free(s, (unsigned int)siglen);
+    VR_ASN1_OCTET_STRING_free(sig);
+    OPENVR_SSL_clear_free(s, (unsigned int)siglen);
     return ret;
 }

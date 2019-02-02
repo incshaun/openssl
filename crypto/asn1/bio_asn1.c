@@ -80,10 +80,10 @@ static const BIO_METHOD methods_asn1 = {
     BIO_TYPE_ASN1,
     "asn1",
     /* TODO: Convert to new style write function */
-    bwrite_conv,
+    VR_bwrite_conv,
     asn1_bio_write,
     /* TODO: Convert to new style read function */
-    bread_conv,
+    VR_bread_conv,
     asn1_bio_read,
     asn1_bio_puts,
     asn1_bio_gets,
@@ -93,7 +93,7 @@ static const BIO_METHOD methods_asn1 = {
     asn1_bio_callback_ctrl,
 };
 
-const BIO_METHOD *BIO_f_asn1(void)
+const BIO_METHOD *VR_BIO_f_asn1(void)
 {
     return &methods_asn1;
 }
@@ -105,11 +105,11 @@ static int asn1_bio_new(BIO *b)
     if (ctx == NULL)
         return 0;
     if (!asn1_bio_init(ctx, DEFAULT_ASN1_BUF_SIZE)) {
-        OPENSSL_free(ctx);
+        OPENVR_SSL_free(ctx);
         return 0;
     }
-    BIO_set_data(b, ctx);
-    BIO_set_init(b, 1);
+    VR_BIO_set_data(b, ctx);
+    VR_BIO_set_init(b, 1);
 
     return 1;
 }
@@ -134,14 +134,14 @@ static int asn1_bio_free(BIO *b)
     if (b == NULL)
         return 0;
 
-    ctx = BIO_get_data(b);
+    ctx = VR_BIO_get_data(b);
     if (ctx == NULL)
         return 0;
 
-    OPENSSL_free(ctx->buf);
-    OPENSSL_free(ctx);
-    BIO_set_data(b, NULL);
-    BIO_set_init(b, 0);
+    OPENVR_SSL_free(ctx->buf);
+    OPENVR_SSL_free(ctx);
+    VR_BIO_set_data(b, NULL);
+    VR_BIO_set_init(b, 0);
 
     return 1;
 }
@@ -153,8 +153,8 @@ static int asn1_bio_write(BIO *b, const char *in, int inl)
     unsigned char *p;
     BIO *next;
 
-    ctx = BIO_get_data(b);
-    next = BIO_next(b);
+    ctx = VR_BIO_get_data(b);
+    next = VR_BIO_next(b);
     if (in == NULL || inl < 0 || ctx == NULL || next == NULL)
         return 0;
 
@@ -182,18 +182,18 @@ static int asn1_bio_write(BIO *b, const char *in, int inl)
             break;
 
         case ASN1_STATE_HEADER:
-            ctx->buflen = ASN1_object_size(0, inl, ctx->asn1_tag) - inl;
+            ctx->buflen = VR_ASN1_object_size(0, inl, ctx->asn1_tag) - inl;
             if (!ossl_assert(ctx->buflen <= ctx->bufsize))
                 return 0;
             p = ctx->buf;
-            ASN1_put_object(&p, 0, inl, ctx->asn1_tag, ctx->asn1_class);
+            VR_ASN1_put_object(&p, 0, inl, ctx->asn1_tag, ctx->asn1_class);
             ctx->copylen = inl;
             ctx->state = ASN1_STATE_HEADER_COPY;
 
             break;
 
         case ASN1_STATE_HEADER_COPY:
-            ret = BIO_write(next, ctx->buf + ctx->bufpos, ctx->buflen);
+            ret = VR_BIO_write(next, ctx->buf + ctx->bufpos, ctx->buflen);
             if (ret <= 0)
                 goto done;
 
@@ -213,7 +213,7 @@ static int asn1_bio_write(BIO *b, const char *in, int inl)
                 wrmax = ctx->copylen;
             else
                 wrmax = inl;
-            ret = BIO_write(next, in, wrmax);
+            ret = VR_BIO_write(next, in, wrmax);
             if (ret <= 0)
                 goto done;
             wrlen += ret;
@@ -240,7 +240,7 @@ static int asn1_bio_write(BIO *b, const char *in, int inl)
 
  done:
     BIO_clear_retry_flags(b);
-    BIO_copy_next_retry(b);
+    VR_BIO_copy_next_retry(b);
 
     return (wrlen > 0) ? wrlen : ret;
 
@@ -254,7 +254,7 @@ static int asn1_bio_flush_ex(BIO *b, BIO_ASN1_BUF_CTX *ctx,
     if (ctx->ex_len <= 0)
         return 1;
     for (;;) {
-        ret = BIO_write(BIO_next(b), ctx->ex_buf + ctx->ex_pos, ctx->ex_len);
+        ret = VR_BIO_write(VR_BIO_next(b), ctx->ex_buf + ctx->ex_pos, ctx->ex_len);
         if (ret <= 0)
             break;
         ctx->ex_len -= ret;
@@ -289,10 +289,10 @@ static int asn1_bio_setup_ex(BIO *b, BIO_ASN1_BUF_CTX *ctx,
 
 static int asn1_bio_read(BIO *b, char *in, int inl)
 {
-    BIO *next = BIO_next(b);
+    BIO *next = VR_BIO_next(b);
     if (next == NULL)
         return 0;
-    return BIO_read(next, in, inl);
+    return VR_BIO_read(next, in, inl);
 }
 
 static int asn1_bio_puts(BIO *b, const char *str)
@@ -302,18 +302,18 @@ static int asn1_bio_puts(BIO *b, const char *str)
 
 static int asn1_bio_gets(BIO *b, char *str, int size)
 {
-    BIO *next = BIO_next(b);
+    BIO *next = VR_BIO_next(b);
     if (next == NULL)
         return 0;
-    return BIO_gets(next, str, size);
+    return VR_BIO_gets(next, str, size);
 }
 
 static long asn1_bio_callback_ctrl(BIO *b, int cmd, BIO_info_cb *fp)
 {
-    BIO *next = BIO_next(b);
+    BIO *next = VR_BIO_next(b);
     if (next == NULL)
         return 0;
-    return BIO_callback_ctrl(next, cmd, fp);
+    return VR_BIO_callback_ctrl(next, cmd, fp);
 }
 
 static long asn1_bio_ctrl(BIO *b, int cmd, long arg1, void *arg2)
@@ -323,10 +323,10 @@ static long asn1_bio_ctrl(BIO *b, int cmd, long arg1, void *arg2)
     long ret = 1;
     BIO *next;
 
-    ctx = BIO_get_data(b);
+    ctx = VR_BIO_get_data(b);
     if (ctx == NULL)
         return 0;
-    next = BIO_next(b);
+    next = VR_BIO_next(b);
     switch (cmd) {
 
     case BIO_C_SET_PREFIX:
@@ -380,7 +380,7 @@ static long asn1_bio_ctrl(BIO *b, int cmd, long arg1, void *arg2)
         }
 
         if (ctx->state == ASN1_STATE_DONE)
-            return BIO_ctrl(next, cmd, arg1, arg2);
+            return VR_BIO_ctrl(next, cmd, arg1, arg2);
         else {
             BIO_clear_retry_flags(b);
             return 0;
@@ -389,7 +389,7 @@ static long asn1_bio_ctrl(BIO *b, int cmd, long arg1, void *arg2)
     default:
         if (next == NULL)
             return 0;
-        return BIO_ctrl(next, cmd, arg1, arg2);
+        return VR_BIO_ctrl(next, cmd, arg1, arg2);
 
     }
 
@@ -402,7 +402,7 @@ static int asn1_bio_set_ex(BIO *b, int cmd,
     BIO_ASN1_EX_FUNCS extmp;
     extmp.ex_func = ex_func;
     extmp.ex_free_func = ex_free_func;
-    return BIO_ctrl(b, cmd, 0, &extmp);
+    return VR_BIO_ctrl(b, cmd, 0, &extmp);
 }
 
 static int asn1_bio_get_ex(BIO *b, int cmd,
@@ -411,7 +411,7 @@ static int asn1_bio_get_ex(BIO *b, int cmd,
 {
     BIO_ASN1_EX_FUNCS extmp;
     int ret;
-    ret = BIO_ctrl(b, cmd, 0, &extmp);
+    ret = VR_BIO_ctrl(b, cmd, 0, &extmp);
     if (ret > 0) {
         *ex_func = extmp.ex_func;
         *ex_free_func = extmp.ex_free_func;
@@ -419,25 +419,25 @@ static int asn1_bio_get_ex(BIO *b, int cmd,
     return ret;
 }
 
-int BIO_asn1_set_prefix(BIO *b, asn1_ps_func *prefix,
+int VR_BIO_asn1_set_prefix(BIO *b, asn1_ps_func *prefix,
                         asn1_ps_func *prefix_free)
 {
     return asn1_bio_set_ex(b, BIO_C_SET_PREFIX, prefix, prefix_free);
 }
 
-int BIO_asn1_get_prefix(BIO *b, asn1_ps_func **pprefix,
+int VR_BIO_asn1_get_prefix(BIO *b, asn1_ps_func **pprefix,
                         asn1_ps_func **pprefix_free)
 {
     return asn1_bio_get_ex(b, BIO_C_GET_PREFIX, pprefix, pprefix_free);
 }
 
-int BIO_asn1_set_suffix(BIO *b, asn1_ps_func *suffix,
+int VR_BIO_asn1_set_suffix(BIO *b, asn1_ps_func *suffix,
                         asn1_ps_func *suffix_free)
 {
     return asn1_bio_set_ex(b, BIO_C_SET_SUFFIX, suffix, suffix_free);
 }
 
-int BIO_asn1_get_suffix(BIO *b, asn1_ps_func **psuffix,
+int VR_BIO_asn1_get_suffix(BIO *b, asn1_ps_func **psuffix,
                         asn1_ps_func **psuffix_free)
 {
     return asn1_bio_get_ex(b, BIO_C_GET_SUFFIX, psuffix, psuffix_free);
