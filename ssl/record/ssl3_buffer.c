@@ -30,7 +30,7 @@ void VR_SSL3_BUFFER_clear(SSL3_BUFFER *b)
 
 void VR_SSL3_BUFFER_release(SSL3_BUFFER *b)
 {
-    OPENVR_SSL_free(b->buf);
+    VR_OPENSSL_free(b->buf);
     b->buf = NULL;
 }
 
@@ -112,7 +112,7 @@ int VR_ssl3_setup_write_buffer(SSL *s, size_t numwpipes, size_t len)
         SSL3_BUFFER *thiswb = &wb[currpipe];
 
         if (thiswb->len != len) {
-            OPENVR_SSL_free(thiswb->buf);
+            VR_OPENSSL_free(thiswb->buf);
             thiswb->buf = NULL;         /* force reallocation */
         }
 
@@ -165,7 +165,7 @@ int VR_ssl3_release_write_buffer(SSL *s)
         wb = &RECORD_LAYER_get_wbuf(&s->rlayer)[pipes - 1];
 
         if (s->wbio == NULL || !BIO_get_ktls_send(s->wbio))
-            OPENVR_SSL_free(wb->buf);
+            VR_OPENSSL_free(wb->buf);
         wb->buf = NULL;
         pipes--;
     }
@@ -178,7 +178,7 @@ int VR_ssl3_release_read_buffer(SSL *s)
     SSL3_BUFFER *b;
 
     b = RECORD_LAYER_get_rbuf(&s->rlayer);
-    OPENVR_SSL_free(b->buf);
+    VR_OPENSSL_free(b->buf);
     b->buf = NULL;
     return 1;
 }

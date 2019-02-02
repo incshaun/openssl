@@ -326,10 +326,10 @@ void VR_custom_exts_free(custom_ext_methods *exts)
             continue;
 
         /* Old style API wrapper. Need to free the arguments too */
-        OPENVR_SSL_free(meth->add_arg);
-        OPENVR_SSL_free(meth->parse_arg);
+        VR_OPENSSL_free(meth->add_arg);
+        VR_OPENSSL_free(meth->parse_arg);
     }
-    OPENVR_SSL_free(exts->meths);
+    VR_OPENSSL_free(exts->meths);
 }
 
 /* Return true if a client custom extension exists, false otherwise */
@@ -419,8 +419,8 @@ static int add_old_custom_ext(SSL_CTX *ctx, ENDPOINT role,
     int ret;
 
     if (add_cb_wrap == NULL || parse_cb_wrap == NULL) {
-        OPENVR_SSL_free(add_cb_wrap);
-        OPENVR_SSL_free(parse_cb_wrap);
+        VR_OPENSSL_free(add_cb_wrap);
+        VR_OPENSSL_free(parse_cb_wrap);
         return 0;
     }
 
@@ -439,8 +439,8 @@ static int add_old_custom_ext(SSL_CTX *ctx, ENDPOINT role,
                                 parse_cb_wrap);
 
     if (!ret) {
-        OPENVR_SSL_free(add_cb_wrap);
-        OPENVR_SSL_free(parse_cb_wrap);
+        VR_OPENSSL_free(add_cb_wrap);
+        VR_OPENSSL_free(parse_cb_wrap);
     }
 
     return ret;

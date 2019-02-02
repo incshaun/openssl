@@ -16,7 +16,7 @@ void VR_rsa_multip_info_free_ex(RSA_PRIME_INFO *pinfo)
 {
     /* free pp and pinfo only */
     VR_BN_clear_free(pinfo->pp);
-    OPENVR_SSL_free(pinfo);
+    VR_OPENSSL_free(pinfo);
 }
 
 void VR_rsa_multip_info_free(RSA_PRIME_INFO *pinfo)
@@ -53,7 +53,7 @@ RSA_PRIME_INFO *VR_rsa_multip_info_new(void)
     VR_BN_free(pinfo->d);
     VR_BN_free(pinfo->t);
     VR_BN_free(pinfo->pp);
-    OPENVR_SSL_free(pinfo);
+    VR_OPENSSL_free(pinfo);
     return NULL;
 }
 

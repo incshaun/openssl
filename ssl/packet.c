@@ -106,7 +106,7 @@ static int wpacket_intern_init_len(WPACKET *pkt, size_t lenbytes)
     pkt->subs->lenbytes = lenbytes;
 
     if (!VR_WPACKET_allocate_bytes(pkt, lenbytes, &lenchars)) {
-        OPENVR_SSL_free(pkt->subs);
+        VR_OPENSSL_free(pkt->subs);
         pkt->subs = NULL;
         return 0;
     }
@@ -216,7 +216,7 @@ static int wpacket_intern_close(WPACKET *pkt, WPACKET_SUB *sub, int doclose)
 
     if (doclose) {
         pkt->subs = sub->parent;
-        OPENVR_SSL_free(sub);
+        VR_OPENSSL_free(sub);
     }
 
     return 1;
@@ -262,7 +262,7 @@ int VR_WPACKET_finish(WPACKET *pkt)
 
     ret = wpacket_intern_close(pkt, pkt->subs, 1);
     if (ret) {
-        OPENVR_SSL_free(pkt->subs);
+        VR_OPENSSL_free(pkt->subs);
         pkt->subs = NULL;
     }
 
@@ -418,7 +418,7 @@ void VR_WPACKET_cleanup(WPACKET *pkt)
 
     for (sub = pkt->subs; sub != NULL; sub = parent) {
         parent = sub->parent;
-        OPENVR_SSL_free(sub);
+        VR_OPENSSL_free(sub);
     }
     pkt->subs = NULL;
 }

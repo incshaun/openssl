@@ -438,7 +438,7 @@ static int ossl_hmac_init(EVP_PKEY_CTX *ctx)
     hctx->ktmp.type = V_ASN1_OCTET_STRING;
     hctx->ctx = VR_HMAC_CTX_new();
     if (hctx->ctx == NULL) {
-        OPENVR_SSL_free(hctx);
+        VR_OPENSSL_free(hctx);
         return 0;
     }
     VR_EVP_PKEY_CTX_set_data(ctx, hctx);
@@ -482,7 +482,7 @@ static void ossl_hmac_cleanup(EVP_PKEY_CTX *ctx)
     if (hctx) {
         VR_HMAC_CTX_free(hctx->ctx);
         OPENVR_SSL_clear_free(hctx->ktmp.data, hctx->ktmp.length);
-        OPENVR_SSL_free(hctx);
+        VR_OPENSSL_free(hctx);
         VR_EVP_PKEY_CTX_set_data(ctx, NULL);
     }
 }
@@ -585,7 +585,7 @@ static int ossl_hmac_ctrl_str(EVP_PKEY_CTX *ctx,
         if (!key)
             return 0;
         r = ossl_hmac_ctrl(ctx, EVP_PKEY_CTRL_SET_MAC_KEY, keylen, key);
-        OPENVR_SSL_free(key);
+        VR_OPENSSL_free(key);
         return r;
     }
     return -2;

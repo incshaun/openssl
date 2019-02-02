@@ -146,7 +146,7 @@ BIO *VR_BIO_new_dgram(int fd, int close_flag)
     ret = VR_BIO_new(VR_BIO_s_datagram());
     if (ret == NULL)
         return NULL;
-    BIO_set_fd(ret, fd, close_flag);
+    VR_BIO_set_fd(ret, fd, close_flag);
     return ret;
 }
 
@@ -170,7 +170,7 @@ static int dgram_free(BIO *a)
         return 0;
 
     data = (bio_dgram_data *)a->ptr;
-    OPENVR_SSL_free(data);
+    VR_OPENSSL_free(data);
 
     return 1;
 }
@@ -315,7 +315,7 @@ static int dgram_read(BIO *b, char *out, int outl)
         if (!data->connected && ret >= 0)
             VR_BIO_ctrl(b, BIO_CTRL_DGRAM_SET_PEER, 0, &peer);
 
-        BIO_clear_retry_flags(b);
+        VR_BIO_clear_retry_flags(b);
         if (ret < 0) {
             if (BIO_dgram_should_retry(ret)) {
                 BIO_set_retry_read(b);
@@ -343,7 +343,7 @@ static int dgram_write(BIO *b, const char *in, int inl)
                      VR_BIO_ADDR_sockaddr(&data->peer), peerlen);
     }
 
-    BIO_clear_retry_flags(b);
+    VR_BIO_clear_retry_flags(b);
     if (ret <= 0) {
         if (BIO_dgram_should_retry(ret)) {
             BIO_set_retry_write(b);
@@ -832,7 +832,7 @@ BIO *VR_BIO_new_dgram_sctp(int fd, int close_flag)
     bio = VR_BIO_new(VR_BIO_s_datagram_sctp());
     if (bio == NULL)
         return NULL;
-    BIO_set_fd(bio, fd, close_flag);
+    VR_BIO_set_fd(bio, fd, close_flag);
 
     /* Activate SCTP-AUTH for DATA and FORWARD-TSN chunks */
     auth.sauth_chunk = OPENSSL_SCTP_DATA_CHUNK_TYPE;
@@ -871,7 +871,7 @@ BIO *VR_BIO_new_dgram_sctp(int fd, int close_flag)
     ret = getsockopt(fd, IPPROTO_SCTP, SCTP_LOCAL_AUTH_CHUNKS, authchunks,
                    &sockopt_len);
     if (ret < 0) {
-        OPENVR_SSL_free(authchunks);
+        VR_OPENSSL_free(authchunks);
         VR_BIO_vfree(bio);
         return NULL;
     }
@@ -885,7 +885,7 @@ BIO *VR_BIO_new_dgram_sctp(int fd, int close_flag)
             auth_forward = 1;
     }
 
-    OPENVR_SSL_free(authchunks);
+    VR_OPENSSL_free(authchunks);
 
     if (!auth_data || !auth_forward) {
         VR_BIO_vfree(bio);
@@ -979,7 +979,7 @@ static int dgram_sctp_free(BIO *a)
 
     data = (bio_dgram_sctp_data *) a->ptr;
     if (data != NULL)
-        OPENVR_SSL_free(data);
+        VR_OPENSSL_free(data);
 
     return 1;
 }
@@ -1173,7 +1173,7 @@ static int dgram_sctp_read(BIO *b, char *out, int outl)
             return -1;
         }
 
-        BIO_clear_retry_flags(b);
+        VR_BIO_clear_retry_flags(b);
         if (ret < 0) {
             if (BIO_dgram_should_retry(ret)) {
                 BIO_set_retry_read(b);
@@ -1208,7 +1208,7 @@ static int dgram_sctp_read(BIO *b, char *out, int outl)
                         auth_forward = 1;
                 }
 
-            OPENVR_SSL_free(authchunks);
+            VR_OPENSSL_free(authchunks);
 
             if (!auth_data || !auth_forward) {
                 BIOerr(BIO_F_DGRAM_SCTP_READ, BIO_R_CONNECT_ERROR);
@@ -1269,7 +1269,7 @@ static int dgram_sctp_write(BIO *b, const char *in, int inl)
         if (ret < 0)
             return -1;
         if (ret == 0) {
-            BIO_clear_retry_flags(b);
+            VR_BIO_clear_retry_flags(b);
             BIO_set_retry_write(b);
             return -1;
         }
@@ -1327,7 +1327,7 @@ static int dgram_sctp_write(BIO *b, const char *in, int inl)
 
     ret = sendmsg(b->num, &msg, 0);
 
-    BIO_clear_retry_flags(b);
+    VR_BIO_clear_retry_flags(b);
     if (ret <= 0) {
         if (BIO_dgram_should_retry(ret)) {
             BIO_set_retry_write(b);
@@ -1424,7 +1424,7 @@ static long dgram_sctp_ctrl(BIO *b, int cmd, long num, void *ptr)
         ret =
             setsockopt(b->num, IPPROTO_SCTP, SCTP_AUTH_KEY, authkey,
                        sockopt_len);
-        OPENVR_SSL_free(authkey);
+        VR_OPENSSL_free(authkey);
         authkey = NULL;
         if (ret < 0)
             break;

@@ -602,7 +602,7 @@ size_t VR_EC_KEY_priv2buf(const EC_KEY *eckey, unsigned char **pbuf)
     }
     len = VR_EC_KEY_priv2oct(eckey, buf, len);
     if (len == 0) {
-        OPENVR_SSL_free(buf);
+        VR_OPENSSL_free(buf);
         return 0;
     }
     *pbuf = buf;

@@ -87,7 +87,7 @@ int VR_bn_mod_add_fixed_top(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
     r->neg = 0;
 
     if (tp != storage)
-        OPENVR_SSL_free(tp);
+        VR_OPENSSL_free(tp);
 
     return 1;
 }

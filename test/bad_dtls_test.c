@@ -338,7 +338,7 @@ static int send_record(BIO *rbio, unsigned char type, uint64_t seqnr,
     VR_BIO_write(rbio, iv, sizeof(iv));
     VR_BIO_write(rbio, enc, len);
 
-    OPENVR_SSL_free(enc);
+    VR_OPENSSL_free(enc);
     return 1;
 }
 
@@ -473,8 +473,8 @@ static int test_bad_dtls(void)
 
     ctx = VR_SSL_CTX_new(VR_DTLS_client_method());
     if (!TEST_ptr(ctx)
-            || !TEST_true(SSL_CTX_set_min_proto_version(ctx, DTLS1_BAD_VER))
-            || !TEST_true(SSL_CTX_set_max_proto_version(ctx, DTLS1_BAD_VER))
+            || !TEST_true(VR_SSL_CTX_set_min_proto_version(ctx, DTLS1_BAD_VER))
+            || !TEST_true(VR_SSL_CTX_set_max_proto_version(ctx, DTLS1_BAD_VER))
             || !TEST_true(VR_SSL_CTX_set_cipher_list(ctx, "AES128-SHA")))
         goto end;
 

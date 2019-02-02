@@ -28,7 +28,7 @@ int VR_TS_ASN1_INTEGER_print_bio(BIO *bio, const ASN1_INTEGER *num)
     if ((hex = VR_BN_bn2hex(num_bn))) {
         result = VR_BIO_write(bio, "0x", 2) > 0;
         result = result && VR_BIO_write(bio, hex, strlen(hex)) > 0;
-        OPENVR_SSL_free(hex);
+        VR_OPENSSL_free(hex);
     }
     VR_BN_free(num_bn);
 

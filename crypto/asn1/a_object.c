@@ -133,7 +133,7 @@ int VR_a2d_ASN1_OBJECT(unsigned char *out, int olen, const char *buf, int num)
             blsize = (blsize + 6) / 7;
             if (blsize > tmpsize) {
                 if (tmp != ftmp)
-                    OPENVR_SSL_free(tmp);
+                    VR_OPENSSL_free(tmp);
                 tmpsize = blsize + 32;
                 tmp = OPENSSL_malloc(tmpsize);
                 if (tmp == NULL)
@@ -167,12 +167,12 @@ int VR_a2d_ASN1_OBJECT(unsigned char *out, int olen, const char *buf, int num)
             len += i;
     }
     if (tmp != ftmp)
-        OPENVR_SSL_free(tmp);
+        VR_OPENSSL_free(tmp);
     VR_BN_free(bl);
     return len;
  err:
     if (tmp != ftmp)
-        OPENVR_SSL_free(tmp);
+        VR_OPENSSL_free(tmp);
     VR_BN_free(bl);
     return 0;
 }
@@ -204,7 +204,7 @@ int VR_i2a_ASN1_OBJECT(BIO *bp, const ASN1_OBJECT *a)
     }
     VR_BIO_write(bp, p, i);
     if (p != buf)
-        OPENVR_SSL_free(p);
+        VR_OPENSSL_free(p);
     return i;
 }
 
@@ -304,7 +304,7 @@ ASN1_OBJECT *VR_c2i_ASN1_OBJECT(ASN1_OBJECT **a, const unsigned char **pp,
     /* once detached we can change it */
     if ((data == NULL) || (ret->length < length)) {
         ret->length = 0;
-        OPENVR_SSL_free(data);
+        VR_OPENSSL_free(data);
         data = OPENSSL_malloc(length);
         if (data == NULL) {
             i = ERR_R_MALLOC_FAILURE;
@@ -353,18 +353,18 @@ void VR_ASN1_OBJECT_free(ASN1_OBJECT *a)
 #ifndef CONST_STRICT            /* disable purely for compile-time strict
                                  * const checking. Doing this on a "real"
                                  * compile will cause memory leaks */
-        OPENVR_SSL_free((void*)a->sn);
-        OPENVR_SSL_free((void*)a->ln);
+        VR_OPENSSL_free((void*)a->sn);
+        VR_OPENSSL_free((void*)a->ln);
 #endif
         a->sn = a->ln = NULL;
     }
     if (a->flags & ASN1_OBJECT_FLAG_DYNAMIC_DATA) {
-        OPENVR_SSL_free((void*)a->data);
+        VR_OPENSSL_free((void*)a->data);
         a->data = NULL;
         a->length = 0;
     }
     if (a->flags & ASN1_OBJECT_FLAG_DYNAMIC)
-        OPENVR_SSL_free(a);
+        VR_OPENSSL_free(a);
 }
 
 ASN1_OBJECT *VR_ASN1_OBJECT_create(int nid, unsigned char *data, int len,

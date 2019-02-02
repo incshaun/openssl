@@ -134,7 +134,7 @@ int VR_BN_generate_prime_ex(BIGNUM *ret, int bits, int safe,
     /* we have a prime :-) */
     found = 1;
  err:
-    OPENVR_SSL_free(mods);
+    VR_OPENSSL_free(mods);
     if (ctx != NULL)
         VR_BN_CTX_end(ctx);
     VR_BN_CTX_free(ctx);

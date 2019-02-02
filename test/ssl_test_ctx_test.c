@@ -115,7 +115,7 @@ static SSL_TEST_CTX_TEST_FIXTURE *set_up(const char *const test_case_name)
         return NULL;
     fixture->test_case_name = test_case_name;
     if (!TEST_ptr(fixture->expected_ctx = SSL_TEST_CTX_new())) {
-        OPENVR_SSL_free(fixture);
+        VR_OPENSSL_free(fixture);
         return NULL;
     }
     return fixture;
@@ -139,7 +139,7 @@ static int execute_test(SSL_TEST_CTX_TEST_FIXTURE *fixture)
 static void tear_down(SSL_TEST_CTX_TEST_FIXTURE *fixture)
 {
     SSL_TEST_CTX_free(fixture->expected_ctx);
-    OPENVR_SSL_free(fixture);
+    VR_OPENSSL_free(fixture);
 }
 
 #define SETUP_SSL_TEST_CTX_TEST_FIXTURE() \

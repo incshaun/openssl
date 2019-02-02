@@ -354,7 +354,7 @@ int VR_tls1_change_cipher_state(SSL *s, int which)
     }
 
     /* All future data will get encrypted by ktls. Flush the BIO or skip ktls */
-    if (BIO_flush(wbio) <= 0)
+    if (VR_BIO_flush(wbio) <= 0)
         goto skip_ktls;
 
     /* ktls doesn't support renegotiation */

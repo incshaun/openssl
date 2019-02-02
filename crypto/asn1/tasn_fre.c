@@ -72,7 +72,7 @@ void VR_asn1_item_embed_free(ASN1_VALUE **pval, const ASN1_ITEM *it, int embed)
         if (asn1_cb)
             asn1_cb(ASN1_OP_FREE_POST, pval, it, NULL);
         if (embed == 0) {
-            OPENVR_SSL_free(*pval);
+            VR_OPENSSL_free(*pval);
             *pval = NULL;
         }
         break;
@@ -112,7 +112,7 @@ void VR_asn1_item_embed_free(ASN1_VALUE **pval, const ASN1_ITEM *it, int embed)
         if (asn1_cb)
             asn1_cb(ASN1_OP_FREE_POST, pval, it, NULL);
         if (embed == 0) {
-            OPENVR_SSL_free(*pval);
+            VR_OPENSSL_free(*pval);
             *pval = NULL;
         }
         break;
@@ -197,7 +197,7 @@ void VR_asn1_primitive_free(ASN1_VALUE **pval, const ASN1_ITEM *it, int embed)
 
     case V_ASN1_ANY:
         VR_asn1_primitive_free(pval, NULL, 0);
-        OPENVR_SSL_free(*pval);
+        VR_OPENSSL_free(*pval);
         break;
 
     default:

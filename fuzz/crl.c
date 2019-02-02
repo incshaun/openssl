@@ -33,7 +33,7 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
         VR_BIO_free(bio);
 
         VR_i2d_X509_CRL(crl, &der);
-        OPENVR_SSL_free(der);
+        VR_OPENSSL_free(der);
 
         VR_X509_CRL_free(crl);
     }

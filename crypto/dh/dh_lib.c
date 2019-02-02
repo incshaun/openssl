@@ -52,7 +52,7 @@ DH *VR_DH_new_method(ENGINE *engine)
     ret->lock = VR_CRYPTO_THREAD_lock_new();
     if (ret->lock == NULL) {
         DHerr(DH_F_DH_NEW_METHOD, ERR_R_MALLOC_FAILURE);
-        OPENVR_SSL_free(ret);
+        VR_OPENSSL_free(ret);
         return NULL;
     }
 
@@ -120,11 +120,11 @@ void VR_DH_free(DH *r)
     VR_BN_clear_free(r->g);
     VR_BN_clear_free(r->q);
     VR_BN_clear_free(r->j);
-    OPENVR_SSL_free(r->seed);
+    VR_OPENSSL_free(r->seed);
     VR_BN_clear_free(r->counter);
     VR_BN_clear_free(r->pub_key);
     VR_BN_clear_free(r->priv_key);
-    OPENVR_SSL_free(r);
+    VR_OPENSSL_free(r);
 }
 
 int VR_DH_up_ref(DH *r)
@@ -156,7 +156,7 @@ int VR_DH_bits(const DH *dh)
 
 int VR_DH_size(const DH *dh)
 {
-    return BN_num_bytes(dh->p);
+    return VR_BN_num_bytes(dh->p);
 }
 
 int VR_DH_security_bits(const DH *dh)

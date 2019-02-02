@@ -106,7 +106,7 @@ int VR_CMS_add1_ReceiptRequest(CMS_SignerInfo *si, CMS_ReceiptRequest *rr)
     if (!r)
         CMSerr(CMS_F_CMS_ADD1_RECEIPTREQUEST, ERR_R_MALLOC_FAILURE);
 
-    OPENVR_SSL_free(rrder);
+    VR_OPENSSL_free(rrder);
 
     return r;
 
@@ -358,7 +358,7 @@ int VR_CMS_add1_signing_cert_v2(CMS_SignerInfo *si,
     VR_i2d_ESS_SIGNING_CERT_V2(sc, &p);
     if (!(seq = VR_ASN1_STRING_new()) || !VR_ASN1_STRING_set(seq, pp, len))
         goto err;
-    OPENVR_SSL_free(pp);
+    VR_OPENSSL_free(pp);
     pp = NULL;
     if (!VR_CMS_signed_add1_attr_by_NID(si, NID_id_smime_aa_signingCertificateV2,
                                      V_ASN1_SEQUENCE, seq, -1))
@@ -368,7 +368,7 @@ int VR_CMS_add1_signing_cert_v2(CMS_SignerInfo *si,
  err:
     CMSerr(CMS_F_CMS_ADD1_SIGNING_CERT_V2, ERR_R_MALLOC_FAILURE);
     VR_ASN1_STRING_free(seq);
-    OPENVR_SSL_free(pp);
+    VR_OPENSSL_free(pp);
     return 0;
 }
 
@@ -391,7 +391,7 @@ int VR_CMS_add1_signing_cert(CMS_SignerInfo *si, ESS_SIGNING_CERT *sc)
     VR_i2d_ESS_SIGNING_CERT(sc, &p);
     if (!(seq = VR_ASN1_STRING_new()) || !VR_ASN1_STRING_set(seq, pp, len))
         goto err;
-    OPENVR_SSL_free(pp);
+    VR_OPENSSL_free(pp);
     pp = NULL;
     if (!VR_CMS_signed_add1_attr_by_NID(si, NID_id_smime_aa_signingCertificate,
                                      V_ASN1_SEQUENCE, seq, -1))
@@ -401,6 +401,6 @@ int VR_CMS_add1_signing_cert(CMS_SignerInfo *si, ESS_SIGNING_CERT *sc)
  err:
     CMSerr(CMS_F_CMS_ADD1_SIGNING_CERT, ERR_R_MALLOC_FAILURE);
     VR_ASN1_STRING_free(seq);
-    OPENVR_SSL_free(pp);
+    VR_OPENSSL_free(pp);
     return 0;
 }

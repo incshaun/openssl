@@ -237,7 +237,7 @@ static EVP_PKEY *do_b2i_bio(BIO *in, int ispub)
         ret = b2i_rsa(&p, bitlen, ispub);
 
  err:
-    OPENVR_SSL_free(buf);
+    VR_OPENSSL_free(buf);
     return ret;
 }
 
@@ -478,7 +478,7 @@ static int do_i2b_bio(BIO *out, EVP_PKEY *pk, int ispub)
     if (outlen < 0)
         return -1;
     wrlen = VR_BIO_write(out, tmp, outlen);
-    OPENVR_SSL_free(tmp);
+    VR_OPENSSL_free(tmp);
     if (wrlen == outlen)
         return outlen;
     return -1;
@@ -535,15 +535,15 @@ static int check_bitlen_rsa(RSA *rsa, int ispub, unsigned int *pmagic)
          * For private key each component must fit within nbyte or hnbyte.
          */
         VR_RSA_get0_key(rsa, NULL, NULL, &d);
-        if (BN_num_bytes(d) > nbyte)
+        if (VR_BN_num_bytes(d) > nbyte)
             goto badkey;
         VR_RSA_get0_factors(rsa, &p, &q);
         VR_RSA_get0_crt_params(rsa, &dmp1, &dmq1, &iqmp);
-        if ((BN_num_bytes(iqmp) > hnbyte)
-            || (BN_num_bytes(p) > hnbyte)
-            || (BN_num_bytes(q) > hnbyte)
-            || (BN_num_bytes(dmp1) > hnbyte)
-            || (BN_num_bytes(dmq1) > hnbyte))
+        if ((VR_BN_num_bytes(iqmp) > hnbyte)
+            || (VR_BN_num_bytes(p) > hnbyte)
+            || (VR_BN_num_bytes(q) > hnbyte)
+            || (VR_BN_num_bytes(dmp1) > hnbyte)
+            || (VR_BN_num_bytes(dmq1) > hnbyte))
             goto badkey;
     }
     return bitlen;
@@ -582,7 +582,7 @@ static void write_dsa(unsigned char **out, DSA *dsa, int ispub)
 
     VR_DSA_get0_pqg(dsa, &p, &q, &g);
     VR_DSA_get0_key(dsa, &pub_key, &priv_key);
-    nbyte = BN_num_bytes(p);
+    nbyte = VR_BN_num_bytes(p);
     write_lebn(out, p, nbyte);
     write_lebn(out, q, 20);
     write_lebn(out, g, nbyte);
@@ -738,7 +738,7 @@ static EVP_PKEY *do_PVK_body(const unsigned char **in,
     VR_EVP_CIPHER_CTX_free(cctx);
     if (enctmp != NULL) {
         VR_OPENSSL_cleanse(keybuf, sizeof(keybuf));
-        OPENVR_SSL_free(enctmp);
+        VR_OPENSSL_free(enctmp);
     }
     return ret;
 }
@@ -857,7 +857,7 @@ static int i2b_PVK(unsigned char **out, EVP_PKEY *pk, int enclevel,
  error:
     VR_EVP_CIPHER_CTX_free(cctx);
     if (*out == NULL)
-        OPENVR_SSL_free(start);
+        VR_OPENSSL_free(start);
     return -1;
 }
 
@@ -870,7 +870,7 @@ int VR_i2b_PVK_bio(BIO *out, EVP_PKEY *pk, int enclevel,
     if (outlen < 0)
         return -1;
     wrlen = VR_BIO_write(out, tmp, outlen);
-    OPENVR_SSL_free(tmp);
+    VR_OPENSSL_free(tmp);
     if (wrlen == outlen) {
         PEMerr(PEM_F_I2B_PVK_BIO, PEM_R_BIO_WRITE_FAILURE);
         return outlen;

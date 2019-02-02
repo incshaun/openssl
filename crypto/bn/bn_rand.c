@@ -215,7 +215,7 @@ int VR_BN_generate_dsa_nonce(BIGNUM *out, const BIGNUM *range,
     unsigned char digest[VR_SHA512_DIGEST_LENGTH];
     unsigned done, todo;
     /* We generate |range|+8 bytes of random output. */
-    const unsigned num_k_bytes = BN_num_bytes(range) + 8;
+    const unsigned num_k_bytes = VR_BN_num_bytes(range) + 8;
     unsigned char private_bytes[96];
     unsigned char *k_bytes;
     int ret = 0;
@@ -262,7 +262,7 @@ int VR_BN_generate_dsa_nonce(BIGNUM *out, const BIGNUM *range,
     ret = 1;
 
  err:
-    OPENVR_SSL_free(k_bytes);
+    VR_OPENSSL_free(k_bytes);
     VR_OPENSSL_cleanse(private_bytes, sizeof(private_bytes));
     return ret;
 }

@@ -39,7 +39,7 @@ BIO_METHOD *VR_BIO_meth_new(int type, const char *name)
 
     if (biom == NULL
             || (biom->name = OPENSSL_strdup(name)) == NULL) {
-        OPENVR_SSL_free(biom);
+        VR_OPENSSL_free(biom);
         BIOerr(BIO_F_BIO_METH_NEW, ERR_R_MALLOC_FAILURE);
         return NULL;
     }
@@ -50,8 +50,8 @@ BIO_METHOD *VR_BIO_meth_new(int type, const char *name)
 void VR_BIO_meth_free(BIO_METHOD *biom)
 {
     if (biom != NULL) {
-        OPENVR_SSL_free(biom->name);
-        OPENVR_SSL_free(biom);
+        VR_OPENSSL_free(biom->name);
+        VR_OPENSSL_free(biom);
     }
 }
 

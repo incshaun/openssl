@@ -59,7 +59,7 @@ DSA *VR_DSA_new_method(ENGINE *engine)
     ret->lock = VR_CRYPTO_THREAD_lock_new();
     if (ret->lock == NULL) {
         DSAerr(DSA_F_DSA_NEW_METHOD, ERR_R_MALLOC_FAILURE);
-        OPENVR_SSL_free(ret);
+        VR_OPENSSL_free(ret);
         return NULL;
     }
 
@@ -128,7 +128,7 @@ void VR_DSA_free(DSA *r)
     VR_BN_clear_free(r->g);
     VR_BN_clear_free(r->pub_key);
     VR_BN_clear_free(r->priv_key);
-    OPENVR_SSL_free(r);
+    VR_OPENSSL_free(r);
 }
 
 int VR_DSA_up_ref(DSA *r)

@@ -72,7 +72,7 @@ static int enc_new(BIO *bi)
 
     ctx->cipher = VR_EVP_CIPHER_CTX_new();
     if (ctx->cipher == NULL) {
-        OPENVR_SSL_free(ctx);
+        VR_OPENSSL_free(ctx);
         return 0;
     }
     ctx->cont = 1;
@@ -157,7 +157,7 @@ static int enc_read(BIO *b, char *out, int outl)
 
         if (i <= 0) {
             /* Should be continue next time we are called? */
-            if (!BIO_should_retry(next)) {
+            if (!VR_BIO_should_retry(next)) {
                 ctx->cont = i;
                 i = VR_EVP_CipherFinal_ex(ctx->cipher,
                                        ctx->buf, &(ctx->buf_len));
@@ -179,7 +179,7 @@ static int enc_read(BIO *b, char *out, int outl)
                 if (!VR_EVP_CipherUpdate(ctx->cipher,
                                       (unsigned char *)out, &buf_len,
                                       ctx->read_start, i > j ? j : i)) {
-                    BIO_clear_retry_flags(b);
+                    VR_BIO_clear_retry_flags(b);
                     return 0;
                 }
                 ret += buf_len;
@@ -197,7 +197,7 @@ static int enc_read(BIO *b, char *out, int outl)
             if (!VR_EVP_CipherUpdate(ctx->cipher,
                                   ctx->buf, &ctx->buf_len,
                                   ctx->read_start, i)) {
-                BIO_clear_retry_flags(b);
+                VR_BIO_clear_retry_flags(b);
                 ctx->ok = 0;
                 return 0;
             }
@@ -226,7 +226,7 @@ static int enc_read(BIO *b, char *out, int outl)
         out += i;
     }
 
-    BIO_clear_retry_flags(b);
+    VR_BIO_clear_retry_flags(b);
     VR_BIO_copy_next_retry(b);
     return ((ret == 0) ? ctx->cont : ret);
 }
@@ -244,7 +244,7 @@ static int enc_write(BIO *b, const char *in, int inl)
 
     ret = inl;
 
-    BIO_clear_retry_flags(b);
+    VR_BIO_clear_retry_flags(b);
     n = ctx->buf_len - ctx->buf_off;
     while (n > 0) {
         i = VR_BIO_write(next, &(ctx->buf[ctx->buf_off]), n);
@@ -266,7 +266,7 @@ static int enc_write(BIO *b, const char *in, int inl)
         if (!VR_EVP_CipherUpdate(ctx->cipher,
                               ctx->buf, &ctx->buf_len,
                               (const unsigned char *)in, n)) {
-            BIO_clear_retry_flags(b);
+            VR_BIO_clear_retry_flags(b);
             ctx->ok = 0;
             return 0;
         }
@@ -360,7 +360,7 @@ static long enc_ctrl(BIO *b, int cmd, long num, void *ptr)
         ret = (long)ctx->ok;
         break;
     case BIO_C_DO_STATE_MACHINE:
-        BIO_clear_retry_flags(b);
+        VR_BIO_clear_retry_flags(b);
         ret = VR_BIO_ctrl(next, cmd, num, ptr);
         VR_BIO_copy_next_retry(b);
         break;

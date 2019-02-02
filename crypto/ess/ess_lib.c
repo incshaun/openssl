@@ -226,14 +226,14 @@ int VR_ESS_SIGNING_CERT_add(PKCS7_SIGNER_INFO *si, ESS_SIGNING_CERT *sc)
         ESSerr(ESS_F_ESS_SIGNING_CERT_ADD, ERR_R_MALLOC_FAILURE);
         goto err;
     }
-    OPENVR_SSL_free(pp);
+    VR_OPENSSL_free(pp);
     pp = NULL;
     return VR_PKCS7_add_signed_attribute(si,
                                       NID_id_smime_aa_signingCertificate,
                                       V_ASN1_SEQUENCE, seq);
  err:
     VR_ASN1_STRING_free(seq);
-    OPENVR_SSL_free(pp);
+    VR_OPENSSL_free(pp);
 
     return 0;
 }
@@ -257,13 +257,13 @@ int VR_ESS_SIGNING_CERT_V2_add(PKCS7_SIGNER_INFO *si,
         goto err;
     }
 
-    OPENVR_SSL_free(pp);
+    VR_OPENSSL_free(pp);
     pp = NULL;
     return VR_PKCS7_add_signed_attribute(si,
                                       NID_id_smime_aa_signingCertificateV2,
                                       V_ASN1_SEQUENCE, seq);
  err:
     VR_ASN1_STRING_free(seq);
-    OPENVR_SSL_free(pp);
+    VR_OPENSSL_free(pp);
     return 0;
 }

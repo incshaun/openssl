@@ -126,7 +126,7 @@ int asn1_item_embed_new(ASN1_VALUE **pval, const ASN1_ITEM *it, int embed)
         /* 0 : init. lock */
         if (VR_asn1_do_lock(pval, 0, it) < 0) {
             if (!embed) {
-                OPENVR_SSL_free(*pval);
+                VR_OPENSSL_free(*pval);
                 *pval = NULL;
             }
             goto memerr;

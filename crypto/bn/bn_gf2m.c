@@ -481,7 +481,7 @@ int VR_BN_GF2m_mod_mul(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
     ret = VR_BN_GF2m_mod_mul_arr(r, a, b, arr, ctx);
     bn_check_top(r);
  err:
-    OPENVR_SSL_free(arr);
+    VR_OPENSSL_free(arr);
     return ret;
 }
 
@@ -539,7 +539,7 @@ int VR_BN_GF2m_mod_sqr(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
     ret = VR_BN_GF2m_mod_sqr_arr(r, a, arr, ctx);
     bn_check_top(r);
  err:
-    OPENVR_SSL_free(arr);
+    VR_OPENSSL_free(arr);
     return ret;
 }
 
@@ -913,7 +913,7 @@ int VR_BN_GF2m_mod_exp(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
     ret = VR_BN_GF2m_mod_exp_arr(r, a, b, arr, ctx);
     bn_check_top(r);
  err:
-    OPENVR_SSL_free(arr);
+    VR_OPENSSL_free(arr);
     return ret;
 }
 
@@ -972,7 +972,7 @@ int VR_BN_GF2m_mod_sqrt(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx
     ret = VR_BN_GF2m_mod_sqrt_arr(r, a, arr, ctx);
     bn_check_top(r);
  err:
-    OPENVR_SSL_free(arr);
+    VR_OPENSSL_free(arr);
     return ret;
 }
 
@@ -1102,7 +1102,7 @@ int VR_BN_GF2m_mod_solve_quad(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
     ret = VR_BN_GF2m_mod_solve_quad_arr(r, a, arr, ctx);
     bn_check_top(r);
  err:
-    OPENVR_SSL_free(arr);
+    VR_OPENSSL_free(arr);
     return ret;
 }
 

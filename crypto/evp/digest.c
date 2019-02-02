@@ -54,7 +54,7 @@ EVP_MD_CTX *VR_EVP_MD_CTX_new(void)
 void VR_EVP_MD_CTX_free(EVP_MD_CTX *ctx)
 {
     VR_EVP_MD_CTX_reset(ctx);
-    OPENVR_SSL_free(ctx);
+    VR_OPENSSL_free(ctx);
 }
 
 int VR_EVP_DigestInit(EVP_MD_CTX *ctx, const EVP_MD *type)

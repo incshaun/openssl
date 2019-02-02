@@ -63,7 +63,7 @@ static EC_PRE_COMP *ec_pre_comp_new(const EC_GROUP *group)
     ret->lock = VR_CRYPTO_THREAD_lock_new();
     if (ret->lock == NULL) {
         ECerr(EC_F_EC_PRE_COMP_NEW, ERR_R_MALLOC_FAILURE);
-        OPENVR_SSL_free(ret);
+        VR_OPENSSL_free(ret);
         return NULL;
     }
     return ret;
@@ -95,10 +95,10 @@ void VR_EC_ec_pre_comp_free(EC_PRE_COMP *pre)
 
         for (pts = pre->points; *pts != NULL; pts++)
             VR_EC_POINT_free(*pts);
-        OPENVR_SSL_free(pre->points);
+        VR_OPENSSL_free(pre->points);
     }
     VR_CRYPTO_THREAD_lock_free(pre->lock);
-    OPENVR_SSL_free(pre);
+    VR_OPENSSL_free(pre);
 }
 
 #define EC_POINT_VR_BN_set_flags(P, flags) do { \
@@ -603,7 +603,7 @@ int VR_ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
                     numblocks = (tmp_len + blocksize - 1) / blocksize;
                     if (numblocks > pre_comp->numblocks) {
                         ECerr(EC_F_EC_WNAF_MUL, ERR_R_INTERNAL_ERROR);
-                        OPENVR_SSL_free(tmp_wNAF);
+                        VR_OPENSSL_free(tmp_wNAF);
                         goto err;
                     }
                     totalnum = num + numblocks;
@@ -618,7 +618,7 @@ int VR_ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
                         wNAF_len[i] = blocksize;
                         if (tmp_len < blocksize) {
                             ECerr(EC_F_EC_WNAF_MUL, ERR_R_INTERNAL_ERROR);
-                            OPENVR_SSL_free(tmp_wNAF);
+                            VR_OPENSSL_free(tmp_wNAF);
                             goto err;
                         }
                         tmp_len -= blocksize;
@@ -633,7 +633,7 @@ int VR_ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
                     wNAF[i] = OPENSSL_malloc(wNAF_len[i]);
                     if (wNAF[i] == NULL) {
                         ECerr(EC_F_EC_WNAF_MUL, ERR_R_MALLOC_FAILURE);
-                        OPENVR_SSL_free(tmp_wNAF);
+                        VR_OPENSSL_free(tmp_wNAF);
                         goto err;
                     }
                     memcpy(wNAF[i], pp, wNAF_len[i]);
@@ -642,14 +642,14 @@ int VR_ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
 
                     if (*tmp_points == NULL) {
                         ECerr(EC_F_EC_WNAF_MUL, ERR_R_INTERNAL_ERROR);
-                        OPENVR_SSL_free(tmp_wNAF);
+                        VR_OPENSSL_free(tmp_wNAF);
                         goto err;
                     }
                     val_sub[i] = tmp_points;
                     tmp_points += pre_points_per_block;
                     pp += blocksize;
                 }
-                OPENVR_SSL_free(tmp_wNAF);
+                VR_OPENSSL_free(tmp_wNAF);
             }
         }
     }
@@ -771,23 +771,23 @@ int VR_ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
 
  err:
     VR_EC_POINT_free(tmp);
-    OPENVR_SSL_free(wsize);
-    OPENVR_SSL_free(wNAF_len);
+    VR_OPENSSL_free(wsize);
+    VR_OPENSSL_free(wNAF_len);
     if (wNAF != NULL) {
         signed char **w;
 
         for (w = wNAF; *w != NULL; w++)
-            OPENVR_SSL_free(*w);
+            VR_OPENSSL_free(*w);
 
-        OPENVR_SSL_free(wNAF);
+        VR_OPENSSL_free(wNAF);
     }
     if (val != NULL) {
         for (v = val; *v != NULL; v++)
             VR_EC_POINT_clear_free(*v);
 
-        OPENVR_SSL_free(val);
+        VR_OPENSSL_free(val);
     }
-    OPENVR_SSL_free(val_sub);
+    VR_OPENSSL_free(val_sub);
     return ret;
 }
 
@@ -957,7 +957,7 @@ int VR_ec_wNAF_precompute_mult(EC_GROUP *group, BN_CTX *ctx)
 
         for (p = points; *p != NULL; p++)
             VR_EC_POINT_free(*p);
-        OPENVR_SSL_free(points);
+        VR_OPENSSL_free(points);
     }
     VR_EC_POINT_free(tmp_point);
     VR_EC_POINT_free(base);

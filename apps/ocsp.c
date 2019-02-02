@@ -280,9 +280,9 @@ int ocsp_main(int argc, char **argv)
 #endif
             break;
         case OPT_URL:
-            OPENVR_SSL_free(thost);
-            OPENVR_SSL_free(tport);
-            OPENVR_SSL_free(tpath);
+            VR_OPENSSL_free(thost);
+            VR_OPENSSL_free(tport);
+            VR_OPENSSL_free(tpath);
             thost = tport = tpath = NULL;
             if (!VR_OCSP_parse_url(opt_arg(), &host, &port, &path, &use_ssl)) {
                 VR_BIO_printf(bio_err, "%s Error parsing URL\n", prog);
@@ -811,9 +811,9 @@ redo_accept:
     sk_VR_X509_pop_free(sign_other, VR_X509_free);
     sk_VR_X509_pop_free(verify_other, VR_X509_free);
     sk_VR_CONF_VALUE_pop_free(headers, VR_X509V3_conf_free);
-    OPENVR_SSL_free(thost);
-    OPENVR_SSL_free(tport);
-    OPENVR_SSL_free(tpath);
+    VR_OPENSSL_free(thost);
+    VR_OPENSSL_free(tport);
+    VR_OPENSSL_free(tpath);
 
     return ret;
 }
@@ -877,7 +877,7 @@ static void killall(int ret, pid_t *kidpids)
     for (i = 0; i < multi; ++i)
         if (kidpids[i] != 0)
             (void)kill(kidpids[i], SIGTERM);
-    OPENVR_SSL_free(kidpids);
+    VR_OPENSSL_free(kidpids);
     sleep(1);
     exit(ret);
 }
@@ -965,7 +965,7 @@ static void spawn_loop(void)
             sleep(30);
             break;
         case 0:             /* child */
-            OPENVR_SSL_free(kidpids);
+            VR_OPENSSL_free(kidpids);
             signal(SIGINT, SIG_DFL);
             signal(SIGTERM, SIG_DFL);
             if (termsig)
@@ -1264,7 +1264,7 @@ static char **lookup_serial(CA_DB *db, ASN1_INTEGER *ser)
     row[DB_serial] = itmp;
     VR_BN_free(bn);
     rrow = VR_TXT_DB_get_by_index(db->db, DB_serial, row);
-    OPENVR_SSL_free(itmp);
+    VR_OPENSSL_free(itmp);
     return rrow;
 }
 
@@ -1365,7 +1365,7 @@ static int do_responder(OCSP_REQUEST **preq, BIO **pcbio, BIO *acbio,
 
 #  ifdef OCSP_DAEMON
     if (timeout > 0) {
-        (void) BIO_get_fd(cbio, &acfd);
+        (void) VR_BIO_get_fd(cbio, &acfd);
         alarm(timeout);
     }
 #  endif
@@ -1467,7 +1467,7 @@ static int send_ocsp_response(BIO *cbio, OCSP_RESPONSE *resp)
         return 0;
     VR_BIO_printf(cbio, http_resp, VR_i2d_OCSP_RESPONSE(resp, NULL));
     VR_i2d_OCSP_RESPONSE_bio(cbio, resp);
-    (void)BIO_flush(cbio);
+    (void)VR_BIO_flush(cbio);
     return 1;
 }
 
@@ -1491,12 +1491,12 @@ static OCSP_RESPONSE *query_responder(BIO *cbio, const char *host,
 
     rv = BIO_do_connect(cbio);
 
-    if ((rv <= 0) && ((req_timeout == -1) || !BIO_should_retry(cbio))) {
+    if ((rv <= 0) && ((req_timeout == -1) || !VR_BIO_should_retry(cbio))) {
         VR_BIO_puts(bio_err, "Error connecting BIO\n");
         return NULL;
     }
 
-    if (BIO_get_fd(cbio, &fd) < 0) {
+    if (VR_BIO_get_fd(cbio, &fd) < 0) {
         VR_BIO_puts(bio_err, "Can't get connection fd\n");
         goto err;
     }
@@ -1541,9 +1541,9 @@ static OCSP_RESPONSE *query_responder(BIO *cbio, const char *host,
         openssl_fdset(fd, &confds);
         tv.tv_usec = 0;
         tv.tv_sec = req_timeout;
-        if (BIO_should_read(cbio)) {
+        if (VR_BIO_should_read(cbio)) {
             rv = select(fd + 1, (void *)&confds, NULL, NULL, &tv);
-        } else if (BIO_should_write(cbio)) {
+        } else if (VR_BIO_should_write(cbio)) {
             rv = select(fd + 1, NULL, (void *)&confds, NULL, &tv);
         } else {
             VR_BIO_puts(bio_err, "Unexpected retry condition\n");
@@ -1589,7 +1589,7 @@ OCSP_RESPONSE *process_responder(OCSP_REQUEST *req,
             VR_BIO_printf(bio_err, "Error creating SSL context.\n");
             goto end;
         }
-        SSL_CTX_set_mode(ctx, SSL_MODE_AUTO_RETRY);
+        VR_SSL_CTX_set_mode(ctx, SSL_MODE_AUTO_RETRY);
         sbio = VR_BIO_new_ssl(ctx, 1);
         cbio = VR_BIO_push(sbio, cbio);
     }

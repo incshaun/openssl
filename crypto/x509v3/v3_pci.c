@@ -144,19 +144,19 @@ static int process_pci_value(CONF_VALUE *val,
                 (*policy)->length += val_len;
                 (*policy)->data[(*policy)->length] = '\0';
             } else {
-                OPENVR_SSL_free(tmp_data2);
+                VR_OPENSSL_free(tmp_data2);
                 /*
                  * realloc failure implies the original data space is b0rked
                  * too!
                  */
-                OPENVR_SSL_free((*policy)->data);
+                VR_OPENSSL_free((*policy)->data);
                 (*policy)->data = NULL;
                 (*policy)->length = 0;
                 X509V3err(X509V3_F_PROCESS_PCI_VALUE, ERR_R_MALLOC_FAILURE);
                 X509V3_conf_err(val);
                 goto err;
             }
-            OPENVR_SSL_free(tmp_data2);
+            VR_OPENSSL_free(tmp_data2);
         } else if (strncmp(val->value, "file:", 5) == 0) {
             unsigned char buf[2048];
             int n;
@@ -167,7 +167,7 @@ static int process_pci_value(CONF_VALUE *val,
                 goto err;
             }
             while ((n = VR_BIO_read(b, buf, sizeof(buf))) > 0
-                   || (n == 0 && BIO_should_retry(b))) {
+                   || (n == 0 && VR_BIO_should_retry(b))) {
                 if (!n)
                     continue;
 
@@ -175,7 +175,7 @@ static int process_pci_value(CONF_VALUE *val,
                                            (*policy)->length + n + 1);
 
                 if (!tmp_data) {
-                    OPENVR_SSL_free((*policy)->data);
+                    VR_OPENSSL_free((*policy)->data);
                     (*policy)->data = NULL;
                     (*policy)->length = 0;
                     X509V3err(X509V3_F_PROCESS_PCI_VALUE,
@@ -212,7 +212,7 @@ static int process_pci_value(CONF_VALUE *val,
                  * realloc failure implies the original data space is b0rked
                  * too!
                  */
-                OPENVR_SSL_free((*policy)->data);
+                VR_OPENSSL_free((*policy)->data);
                 (*policy)->data = NULL;
                 (*policy)->length = 0;
                 X509V3err(X509V3_F_PROCESS_PCI_VALUE, ERR_R_MALLOC_FAILURE);

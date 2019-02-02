@@ -68,8 +68,8 @@ static int prefix_destroy(BIO *b)
 {
     PREFIX_CTX *ctx = VR_BIO_get_data(b);
 
-    OPENVR_SSL_free(ctx->prefix);
-    OPENVR_SSL_free(ctx);
+    VR_OPENSSL_free(ctx->prefix);
+    VR_OPENSSL_free(ctx);
     return 1;
 }
 
@@ -148,7 +148,7 @@ static long prefix_ctrl(BIO *b, int cmd, long num, void *ptr)
             if (ctx == NULL)
                 break;
 
-            OPENVR_SSL_free(ctx->prefix);
+            VR_OPENSSL_free(ctx->prefix);
             ctx->prefix = OPENSSL_strdup((const char *)ptr);
             ret = ctx->prefix != NULL;
         }

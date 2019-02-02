@@ -89,7 +89,7 @@ int VR_ecdh_simple_compute_key(unsigned char **pout, size_t *poutlen,
     }
 
     buflen = (VR_EC_GROUP_get_degree(group) + 7) / 8;
-    len = BN_num_bytes(x);
+    len = VR_BN_num_bytes(x);
     if (len > buflen) {
         ECerr(EC_F_ECDH_SIMPLE_COMPUTE_KEY, ERR_R_INTERNAL_ERROR);
         goto err;
@@ -116,6 +116,6 @@ int VR_ecdh_simple_compute_key(unsigned char **pout, size_t *poutlen,
     if (ctx)
         VR_BN_CTX_end(ctx);
     VR_BN_CTX_free(ctx);
-    OPENVR_SSL_free(buf);
+    VR_OPENSSL_free(buf);
     return ret;
 }

@@ -85,7 +85,7 @@ static int eckey_pub_encode(X509_PUBKEY *pk, const EVP_PKEY *pkey)
         VR_ASN1_OBJECT_free(pval);
     else
         VR_ASN1_STRING_free(pval);
-    OPENVR_SSL_free(penc);
+    VR_OPENSSL_free(penc);
     return 0;
 }
 
@@ -249,14 +249,14 @@ static int eckey_priv_encode(PKCS8_PRIV_KEY_INFO *p8, const EVP_PKEY *pkey)
     }
     p = ep;
     if (!VR_i2d_ECPrivateKey(&ec_key, &p)) {
-        OPENVR_SSL_free(ep);
+        VR_OPENSSL_free(ep);
         ECerr(EC_F_ECKEY_PRIV_ENCODE, ERR_R_EC_LIB);
         return 0;
     }
 
     if (!VR_PKCS8_pkey_set0(p8, VR_OBJ_nid2obj(NID_X9_62_id_ecPublicKey), 0,
                          ptype, pval, ep, eplen)) {
-        OPENVR_SSL_free(ep);
+        VR_OPENSSL_free(ep);
         return 0;
     }
 
@@ -398,7 +398,7 @@ static int do_VR_EC_KEY_print(BIO *bp, const EC_KEY *x, int off, ec_print_t ktyp
     if (!ret)
         ECerr(EC_F_DO_EC_KEY_PRINT, ERR_R_EC_LIB);
     OPENVR_SSL_clear_free(priv, privlen);
-    OPENVR_SSL_free(pub);
+    VR_OPENSSL_free(pub);
     return ret;
 }
 
@@ -766,7 +766,7 @@ static int ecdh_cms_set_shared_info(EVP_PKEY_CTX *pctx, CMS_RecipientInfo *ri)
     rv = 1;
  err:
     VR_X509_ALGOR_free(kekalg);
-    OPENVR_SSL_free(der);
+    VR_OPENSSL_free(der);
     return rv;
 }
 
@@ -934,7 +934,7 @@ static int ecdh_cms_encrypt(CMS_RecipientInfo *ri)
     rv = 1;
 
  err:
-    OPENVR_SSL_free(penc);
+    VR_OPENSSL_free(penc);
     VR_X509_ALGOR_free(wrap_alg);
     return rv;
 }

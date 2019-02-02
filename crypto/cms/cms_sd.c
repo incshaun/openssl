@@ -609,7 +609,7 @@ static int cms_SignerInfo_content_sign(CMS_ContentInfo *cms,
             goto err;
         }
         if (VR_EVP_PKEY_sign(pctx, sig, &siglen, md, mdlen) <= 0) {
-            OPENVR_SSL_free(sig);
+            VR_OPENSSL_free(sig);
             goto err;
         }
         VR_ASN1_STRING_set0(si->signature, sig, siglen);
@@ -623,7 +623,7 @@ static int cms_SignerInfo_content_sign(CMS_ContentInfo *cms,
         }
         if (!VR_EVP_SignFinal(mctx, sig, &siglen, si->pkey)) {
             CMSerr(CMS_F_CMS_SIGNERINFO_CONTENT_SIGN, CMS_R_SIGNFINAL_ERROR);
-            OPENVR_SSL_free(sig);
+            VR_OPENSSL_free(sig);
             goto err;
         }
         VR_ASN1_STRING_set0(si->signature, sig, siglen);
@@ -694,7 +694,7 @@ int VR_CMS_SignerInfo_sign(CMS_SignerInfo *si)
         goto err;
     if (VR_EVP_DigestSignFinal(mctx, NULL, &siglen) <= 0)
         goto err;
-    OPENVR_SSL_free(abuf);
+    VR_OPENSSL_free(abuf);
     abuf = OPENSSL_malloc(siglen);
     if (abuf == NULL)
         goto err;
@@ -714,7 +714,7 @@ int VR_CMS_SignerInfo_sign(CMS_SignerInfo *si)
     return 1;
 
  err:
-    OPENVR_SSL_free(abuf);
+    VR_OPENSSL_free(abuf);
     VR_EVP_MD_CTX_reset(mctx);
     return 0;
 
@@ -751,7 +751,7 @@ int VR_CMS_SignerInfo_verify(CMS_SignerInfo *si)
     if (!abuf)
         goto err;
     r = VR_EVP_DigestVerifyUpdate(mctx, abuf, alen);
-    OPENVR_SSL_free(abuf);
+    VR_OPENSSL_free(abuf);
     if (r <= 0) {
         r = -1;
         goto err;
@@ -881,7 +881,7 @@ int VR_CMS_add_smimecap(CMS_SignerInfo *si, STACK_OF(X509_ALGOR) *algs)
         return 0;
     r = VR_CMS_signed_add1_attr_by_NID(si, NID_SMIMECapabilities,
                                     V_ASN1_SEQUENCE, smder, smderlen);
-    OPENVR_SSL_free(smder);
+    VR_OPENSSL_free(smder);
     return r;
 }
 

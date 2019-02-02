@@ -26,7 +26,7 @@ BIGNUM *VR_EC_POINT_point2bn(const EC_GROUP *group,
 
     ret = VR_BN_bin2bn(buf, buf_len, ret);
 
-    OPENVR_SSL_free(buf);
+    VR_OPENSSL_free(buf);
 
     return ret;
 }
@@ -38,7 +38,7 @@ EC_POINT *VR_EC_POINT_bn2point(const EC_GROUP *group,
     unsigned char *buf;
     EC_POINT *ret;
 
-    if ((buf_len = BN_num_bytes(bn)) == 0)
+    if ((buf_len = VR_BN_num_bytes(bn)) == 0)
         return NULL;
     if ((buf = OPENSSL_malloc(buf_len)) == NULL) {
         ECerr(EC_F_EC_POINT_BN2POINT, ERR_R_MALLOC_FAILURE);
@@ -46,13 +46,13 @@ EC_POINT *VR_EC_POINT_bn2point(const EC_GROUP *group,
     }
 
     if (!VR_BN_bn2bin(bn, buf)) {
-        OPENVR_SSL_free(buf);
+        VR_OPENSSL_free(buf);
         return NULL;
     }
 
     if (point == NULL) {
         if ((ret = VR_EC_POINT_new(group)) == NULL) {
-            OPENVR_SSL_free(buf);
+            VR_OPENSSL_free(buf);
             return NULL;
         }
     } else
@@ -61,17 +61,17 @@ EC_POINT *VR_EC_POINT_bn2point(const EC_GROUP *group,
     if (!VR_EC_POINT_oct2point(group, ret, buf, buf_len, ctx)) {
         if (ret != point)
             VR_EC_POINT_clear_free(ret);
-        OPENVR_SSL_free(buf);
+        VR_OPENSSL_free(buf);
         return NULL;
     }
 
-    OPENVR_SSL_free(buf);
+    VR_OPENSSL_free(buf);
     return ret;
 }
 
 static const char *HEX_DIGITS = "0123456789ABCDEF";
 
-/* the return value must be freed (using OPENVR_SSL_free()) */
+/* the return value must be freed (using VR_OPENSSL_free()) */
 char *VR_EC_POINT_point2hex(const EC_GROUP *group,
                          const EC_POINT *point,
                          point_conversion_form_t form, BN_CTX *ctx)
@@ -87,7 +87,7 @@ char *VR_EC_POINT_point2hex(const EC_GROUP *group,
 
     ret = OPENSSL_malloc(buf_len * 2 + 2);
     if (ret == NULL) {
-        OPENVR_SSL_free(buf);
+        VR_OPENSSL_free(buf);
         return NULL;
     }
     p = ret;
@@ -99,7 +99,7 @@ char *VR_EC_POINT_point2hex(const EC_GROUP *group,
     }
     *p = '\0';
 
-    OPENVR_SSL_free(buf);
+    VR_OPENSSL_free(buf);
 
     return ret;
 }

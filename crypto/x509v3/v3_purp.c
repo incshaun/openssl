@@ -170,10 +170,10 @@ int VR_X509_PURPOSE_add(int id, int trust, int flags,
     } else
         ptmp = VR_X509_PURPOSE_get0(idx);
 
-    /* OPENVR_SSL_free existing name if dynamic */
+    /* VR_OPENSSL_free existing name if dynamic */
     if (ptmp->flags & X509_PURPOSE_DYNAMIC_NAME) {
-        OPENVR_SSL_free(ptmp->name);
-        OPENVR_SSL_free(ptmp->sname);
+        VR_OPENSSL_free(ptmp->name);
+        VR_OPENSSL_free(ptmp->sname);
     }
     /* dup supplied name */
     ptmp->name = OPENSSL_strdup(name);
@@ -207,9 +207,9 @@ int VR_X509_PURPOSE_add(int id, int trust, int flags,
     return 1;
  err:
     if (idx == -1) {
-        OPENVR_SSL_free(ptmp->name);
-        OPENVR_SSL_free(ptmp->sname);
-        OPENVR_SSL_free(ptmp);
+        VR_OPENSSL_free(ptmp->name);
+        VR_OPENSSL_free(ptmp->sname);
+        VR_OPENSSL_free(ptmp);
     }
     return 0;
 }
@@ -220,10 +220,10 @@ static void xptable_free(X509_PURPOSE *p)
         return;
     if (p->flags & X509_PURPOSE_DYNAMIC) {
         if (p->flags & X509_PURPOSE_DYNAMIC_NAME) {
-            OPENVR_SSL_free(p->name);
-            OPENVR_SSL_free(p->sname);
+            VR_OPENSSL_free(p->name);
+            VR_OPENSSL_free(p->sname);
         }
-        OPENVR_SSL_free(p);
+        VR_OPENSSL_free(p);
     }
 }
 

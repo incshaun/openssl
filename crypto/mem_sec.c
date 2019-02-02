@@ -499,9 +499,9 @@ static int sh_init(size_t size, int minsize)
 
 static void sh_done(void)
 {
-    OPENVR_SSL_free(sh.freelist);
-    OPENVR_SSL_free(sh.bittable);
-    OPENVR_SSL_free(sh.bitmalloc);
+    VR_OPENSSL_free(sh.freelist);
+    VR_OPENSSL_free(sh.bittable);
+    VR_OPENSSL_free(sh.bitmalloc);
     if (sh.map_result != NULL && sh.map_size)
         munmap(sh.map_result, sh.map_size);
     memset(&sh, 0, sizeof(sh));

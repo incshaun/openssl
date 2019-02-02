@@ -92,7 +92,7 @@ static int fbytes(unsigned char *buf, int num)
         return 0;
     }
     fbytes_counter++;
-    if (TEST_int_eq(BN_num_bytes(tmp), num)
+    if (TEST_int_eq(VR_BN_num_bytes(tmp), num)
             && TEST_true(VR_BN_bn2bin(tmp, buf)))
         ret = 1;
     VR_BN_free(tmp);
@@ -314,8 +314,8 @@ static int test_builtin(void)
         VR_ECDSA_SIG_get0(ecdsa_sig, &sig_r, &sig_s);
 
         /* Store the two BIGNUMs in raw_buf. */
-        r_len = BN_num_bytes(sig_r);
-        s_len = BN_num_bytes(sig_s);
+        r_len = VR_BN_num_bytes(sig_r);
+        s_len = VR_BN_num_bytes(sig_s);
         bn_len = (degree + 7) / 8;
         if (!TEST_false(r_len > bn_len)
                 || !TEST_false(s_len > bn_len))
@@ -369,7 +369,7 @@ static int test_builtin(void)
 
         /* cleanup */
         VR_ERR_clear_error();
-        OPENVR_SSL_free(signature);
+        VR_OPENSSL_free(signature);
         signature = NULL;
         VR_EC_KEY_free(eckey);
         eckey = NULL;
@@ -379,7 +379,7 @@ static int test_builtin(void)
         ecdsa_sig = NULL;
         VR_ECDSA_SIG_free(modified_sig);
         modified_sig = NULL;
-        OPENVR_SSL_free(raw_buf);
+        VR_OPENSSL_free(raw_buf);
         raw_buf = NULL;
     }
 
@@ -389,9 +389,9 @@ static int test_builtin(void)
     VR_EC_KEY_free(wrong_eckey);
     VR_ECDSA_SIG_free(ecdsa_sig);
     VR_ECDSA_SIG_free(modified_sig);
-    OPENVR_SSL_free(signature);
-    OPENVR_SSL_free(raw_buf);
-    OPENVR_SSL_free(curves);
+    VR_OPENSSL_free(signature);
+    VR_OPENSSL_free(raw_buf);
+    VR_OPENSSL_free(curves);
 
     return ret;
 }

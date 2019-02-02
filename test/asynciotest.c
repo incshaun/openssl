@@ -79,7 +79,7 @@ static int async_free(BIO *bio)
     if (bio == NULL)
         return 0;
     ctrs = VR_BIO_get_data(bio);
-    OPENVR_SSL_free(ctrs);
+    VR_OPENSSL_free(ctrs);
     VR_BIO_set_data(bio, NULL);
     VR_BIO_set_init(bio, 0);
 
@@ -99,11 +99,11 @@ static int async_read(BIO *bio, char *out, int outl)
 
     ctrs = VR_BIO_get_data(bio);
 
-    BIO_clear_retry_flags(bio);
+    VR_BIO_clear_retry_flags(bio);
 
     if (ctrs->rctr > 0) {
         ret = VR_BIO_read(next, out, 1);
-        if (ret <= 0 && BIO_should_read(next))
+        if (ret <= 0 && VR_BIO_should_read(next))
             BIO_set_retry_read(bio);
         ctrs->rctr = 0;
     } else {
@@ -135,7 +135,7 @@ static int async_write(BIO *bio, const char *in, int inl)
 
     ctrs = VR_BIO_get_data(bio);
 
-    BIO_clear_retry_flags(bio);
+    VR_BIO_clear_retry_flags(bio);
 
     if (ctrs->wctr > 0) {
         ctrs->wctr = 0;
@@ -242,7 +242,7 @@ static int async_write(BIO *bio, const char *in, int inl)
             ret = VR_BIO_write(next, in + written, inl - written);
         }
 
-        if (ret <= 0 && BIO_should_write(next))
+        if (ret <= 0 && VR_BIO_should_write(next))
             BIO_set_retry_write(bio);
         else
             ret += written;

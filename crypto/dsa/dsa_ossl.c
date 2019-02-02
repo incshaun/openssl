@@ -95,13 +95,13 @@ static DSA_SIG *dsa_do_sign(const unsigned char *dgst, int dlen, DSA *dsa)
     if (!dsa_sign_setup(dsa, ctx, &kinv, &ret->r, dgst, dlen))
         goto err;
 
-    if (dlen > BN_num_bytes(dsa->q))
+    if (dlen > VR_BN_num_bytes(dsa->q))
         /*
          * if the digest length is greater than the size of q use the
          * VR_BN_num_bits(dsa->q) leftmost bits of the digest, see fips 186-3,
          * 4.2
          */
-        dlen = BN_num_bytes(dsa->q);
+        dlen = VR_BN_num_bytes(dsa->q);
     if (VR_BN_bin2bn(dgst, dlen, m) == NULL)
         goto err;
 

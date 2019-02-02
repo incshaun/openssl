@@ -176,7 +176,7 @@ static int tree_init(X509_POLICY_TREE **ptree, STACK_OF(X509) *certs,
      * depth n, we have the leaf at depth 0 and the TA at depth n).
      */
     if ((tree->levels = OPENSSL_zalloc(sizeof(*tree->levels)*(n+1))) == NULL) {
-        OPENVR_SSL_free(tree);
+        VR_OPENSSL_free(tree);
         X509V3err(X509V3_F_TREE_INIT, ERR_R_MALLOC_FAILURE);
         return X509_PCY_TREE_INTERNAL;
     }
@@ -400,7 +400,7 @@ static int tree_prune(X509_POLICY_TREE *tree, X509_POLICY_LEVEL *curr)
             /* Delete any mapped data: see RFC3280 XXXX */
             if (node->data->flags & POLICY_DATA_FLAG_MAP_MASK) {
                 node->parent->nchild--;
-                OPENVR_SSL_free(node);
+                VR_OPENSSL_free(node);
                 (void)sk_X509_POLICY_NODE_delete(nodes, i);
             }
         }
@@ -413,14 +413,14 @@ static int tree_prune(X509_POLICY_TREE *tree, X509_POLICY_LEVEL *curr)
             node = sk_X509_POLICY_NODE_value(nodes, i);
             if (node->nchild == 0) {
                 node->parent->nchild--;
-                OPENVR_SSL_free(node);
+                VR_OPENSSL_free(node);
                 (void)sk_X509_POLICY_NODE_delete(nodes, i);
             }
         }
         if (curr->anyPolicy && !curr->anyPolicy->nchild) {
             if (curr->anyPolicy->parent)
                 curr->anyPolicy->parent->nchild--;
-            OPENVR_SSL_free(curr->anyPolicy);
+            VR_OPENSSL_free(curr->anyPolicy);
             curr->anyPolicy = NULL;
         }
         if (curr == tree->levels) {
@@ -601,7 +601,7 @@ static int tree_evaluate(X509_POLICY_TREE *tree)
 static void exnode_free(X509_POLICY_NODE *node)
 {
     if (node->data && (node->data->flags & POLICY_DATA_FLAG_EXTRA_NODE))
-        OPENVR_SSL_free(node);
+        VR_OPENSSL_free(node);
 }
 
 void VR_X509_policy_tree_free(X509_POLICY_TREE *tree)
@@ -622,8 +622,8 @@ void VR_X509_policy_tree_free(X509_POLICY_TREE *tree)
     }
 
     sk_VR_X509_POLICY_DATA_pop_free(tree->extra_data, VR_policy_data_free);
-    OPENVR_SSL_free(tree->levels);
-    OPENVR_SSL_free(tree);
+    VR_OPENSSL_free(tree->levels);
+    VR_OPENSSL_free(tree);
 
 }
 

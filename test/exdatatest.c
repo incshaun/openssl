@@ -78,7 +78,7 @@ static void exnew2(void *parent, void *ptr, CRYPTO_EX_DATA *ad,
         || !TEST_ptr(ex_data)
         || !TEST_true(VR_CRYPTO_set_ex_data(ad, saved_idx2, ex_data))) {
         gbl_result = 0;
-        OPENVR_SSL_free(ex_data);
+        VR_OPENSSL_free(ex_data);
     } else {
         ex_data->new = 1;
     }
@@ -112,7 +112,7 @@ static void exfree2(void *parent, void *ptr, CRYPTO_EX_DATA *ad,
             int idx, long argl, void *argp)
 {
     MYOBJ_EX_DATA *ex_data = VR_CRYPTO_get_ex_data(ad, saved_idx2);
-    OPENVR_SSL_free(ex_data);
+    VR_OPENSSL_free(ex_data);
     if (!TEST_int_eq(idx, saved_idx2)
         || !TEST_long_eq(argl, saved_argl)
         || !TEST_ptr_eq(argp, saved_argp)
@@ -171,7 +171,7 @@ static char *MYOBJ_gethello2(MYOBJ *obj)
 static void MYOBJ_free(MYOBJ *obj)
 {
     VR_CRYPTO_free_ex_data(CRYPTO_EX_INDEX_APP, obj, &obj->ex_data);
-    OPENVR_SSL_free(obj);
+    VR_OPENSSL_free(obj);
 }
 
 static MYOBJ *MYVR_OBJ_dup(MYOBJ *in)
@@ -249,8 +249,8 @@ static int test_exdata(void)
     MYOBJ_free(t1);
     MYOBJ_free(t2);
     MYOBJ_free(t3);
-    OPENVR_SSL_free(saved_argp);
-    OPENVR_SSL_free(p);
+    VR_OPENSSL_free(saved_argp);
+    VR_OPENSSL_free(p);
 
     if (gbl_result)
       return 1;

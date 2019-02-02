@@ -26,7 +26,7 @@
  *
  * On success, it returns one and sets |*out| to a newly allocated buffer
  * containing the result and |*out_len| to its length. The caller must free
- * |*out| with |OPENVR_SSL_free|. Otherwise, it returns zero.
+ * |*out| with |VR_OPENSSL_free|. Otherwise, it returns zero.
  */
 static int encode_pkcs1(unsigned char **out, int *out_len, int type,
                         const unsigned char *m, unsigned int m_len)

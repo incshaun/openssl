@@ -53,14 +53,14 @@ static int buffer_new(BIO *bi)
     ctx->ibuf_size = DEFAULT_BUFFER_SIZE;
     ctx->ibuf = OPENSSL_malloc(DEFAULT_BUFFER_SIZE);
     if (ctx->ibuf == NULL) {
-        OPENVR_SSL_free(ctx);
+        VR_OPENSSL_free(ctx);
         return 0;
     }
     ctx->obuf_size = DEFAULT_BUFFER_SIZE;
     ctx->obuf = OPENSSL_malloc(DEFAULT_BUFFER_SIZE);
     if (ctx->obuf == NULL) {
-        OPENVR_SSL_free(ctx->ibuf);
-        OPENVR_SSL_free(ctx);
+        VR_OPENSSL_free(ctx->ibuf);
+        VR_OPENSSL_free(ctx);
         return 0;
     }
 
@@ -77,9 +77,9 @@ static int buffer_free(BIO *a)
     if (a == NULL)
         return 0;
     b = (BIO_F_BUFFER_CTX *)a->ptr;
-    OPENVR_SSL_free(b->ibuf);
-    OPENVR_SSL_free(b->obuf);
-    OPENVR_SSL_free(a->ptr);
+    VR_OPENSSL_free(b->ibuf);
+    VR_OPENSSL_free(b->obuf);
+    VR_OPENSSL_free(a->ptr);
     a->ptr = NULL;
     a->init = 0;
     a->flags = 0;
@@ -98,7 +98,7 @@ static int buffer_read(BIO *b, char *out, int outl)
     if ((ctx == NULL) || (b->next_bio == NULL))
         return 0;
     num = 0;
-    BIO_clear_retry_flags(b);
+    VR_BIO_clear_retry_flags(b);
 
  start:
     i = ctx->ibuf_len;
@@ -168,7 +168,7 @@ static int buffer_write(BIO *b, const char *in, int inl)
     if ((ctx == NULL) || (b->next_bio == NULL))
         return 0;
 
-    BIO_clear_retry_flags(b);
+    VR_BIO_clear_retry_flags(b);
  start:
     i = ctx->obuf_size - (ctx->obuf_len + ctx->obuf_off);
     /* add to buffer and return */
@@ -292,7 +292,7 @@ static long buffer_ctrl(BIO *b, int cmd, long num, void *ptr)
             p1 = OPENSSL_malloc((int)num);
             if (p1 == NULL)
                 goto malloc_error;
-            OPENVR_SSL_free(ctx->ibuf);
+            VR_OPENSSL_free(ctx->ibuf);
             ctx->ibuf = p1;
         }
         ctx->ibuf_off = 0;
@@ -326,19 +326,19 @@ static long buffer_ctrl(BIO *b, int cmd, long num, void *ptr)
             p2 = OPENSSL_malloc((int)num);
             if (p2 == NULL) {
                 if (p1 != ctx->ibuf)
-                    OPENVR_SSL_free(p1);
+                    VR_OPENSSL_free(p1);
                 goto malloc_error;
             }
         }
         if (ctx->ibuf != p1) {
-            OPENVR_SSL_free(ctx->ibuf);
+            VR_OPENSSL_free(ctx->ibuf);
             ctx->ibuf = p1;
             ctx->ibuf_off = 0;
             ctx->ibuf_len = 0;
             ctx->ibuf_size = ibs;
         }
         if (ctx->obuf != p2) {
-            OPENVR_SSL_free(ctx->obuf);
+            VR_OPENSSL_free(ctx->obuf);
             ctx->obuf = p2;
             ctx->obuf_off = 0;
             ctx->obuf_len = 0;
@@ -348,7 +348,7 @@ static long buffer_ctrl(BIO *b, int cmd, long num, void *ptr)
     case BIO_C_DO_STATE_MACHINE:
         if (b->next_bio == NULL)
             return 0;
-        BIO_clear_retry_flags(b);
+        VR_BIO_clear_retry_flags(b);
         ret = VR_BIO_ctrl(b->next_bio, cmd, num, ptr);
         VR_BIO_copy_next_retry(b);
         break;
@@ -362,7 +362,7 @@ static long buffer_ctrl(BIO *b, int cmd, long num, void *ptr)
         }
 
         for (;;) {
-            BIO_clear_retry_flags(b);
+            VR_BIO_clear_retry_flags(b);
             if (ctx->obuf_len > 0) {
                 r = VR_BIO_write(b->next_bio,
                               &(ctx->obuf[ctx->obuf_off]), ctx->obuf_len);
@@ -430,7 +430,7 @@ static int buffer_gets(BIO *b, char *buf, int size)
 
     ctx = (BIO_F_BUFFER_CTX *)b->ptr;
     size--;                     /* reserve space for a '\0' */
-    BIO_clear_retry_flags(b);
+    VR_BIO_clear_retry_flags(b);
 
     for (;;) {
         if (ctx->ibuf_len > 0) {

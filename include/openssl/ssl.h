@@ -593,7 +593,7 @@ unsigned long VR_SSL_clear_options(SSL *s, unsigned long op);
 unsigned long VR_SSL_CTX_set_options(SSL_CTX *ctx, unsigned long op);
 unsigned long VR_SSL_set_options(SSL *s, unsigned long op);
 
-# define SSL_CTX_set_mode(ctx,op) \
+# define VR_SSL_CTX_set_mode(ctx,op) \
         VR_SSL_CTX_ctrl((ctx),SSL_CTRL_MODE,(op),NULL)
 # define SSL_CTX_clear_mode(ctx,op) \
         VR_SSL_CTX_ctrl((ctx),SSL_CTRL_CLEAR_MODE,(op),NULL)
@@ -965,8 +965,8 @@ DEFINE_STACK_OF_CONST(SSL_CIPHER)
 DEFINE_STACK_OF(SSL_COMP)
 
 /* compatibility */
-# define SSL_set_app_data(s,arg)         (VR_SSL_set_ex_data(s,0,(char *)(arg)))
-# define SSL_get_app_data(s)             (VR_SSL_get_ex_data(s,0))
+# define VR_SSL_set_app_data(s,arg)         (VR_SSL_set_ex_data(s,0,(char *)(arg)))
+# define VR_SSL_get_app_data(s)             (VR_SSL_get_ex_data(s,0))
 # define SSL_SESSION_set_app_data(s,a)   (VR_SSL_SESSION_set_ex_data(s,0, \
                                                                   (char *)(a)))
 # define SSL_SESSION_get_app_data(s)     (VR_SSL_SESSION_get_ex_data(s,0))
@@ -1075,8 +1075,8 @@ typedef enum {
 # define SSL_CB_HANDSHAKE_DONE           0x20
 
 /* Is the VR_SSL_connection established? */
-# define SSL_in_connect_init(a)          (VR_SSL_in_init(a) && !VR_SSL_is_server(a))
-# define SSL_in_accept_init(a)           (VR_SSL_in_init(a) && VR_SSL_is_server(a))
+# define VR_SSL_in_connect_init(a)          (VR_SSL_in_init(a) && !VR_SSL_is_server(a))
+# define VR_SSL_in_accept_init(a)           (VR_SSL_in_init(a) && VR_SSL_is_server(a))
 int VR_SSL_in_init(const SSL *s);
 int VR_SSL_in_before(const SSL *s);
 int VR_SSL_is_init_finished(const SSL *s);
@@ -1445,9 +1445,9 @@ DECLARE_PEM_rw(SSL_SESSION, SSL_SESSION)
         VR_SSL_ctrl(s,SSL_CTRL_GET_RAW_CIPHERLIST,0,plst)
 # define SSL_get0_ec_point_formats(s, plst) \
         VR_SSL_ctrl(s,SSL_CTRL_GET_EC_POINT_FORMATS,0,plst)
-# define SSL_CTX_set_min_proto_version(ctx, version) \
+# define VR_SSL_CTX_set_min_proto_version(ctx, version) \
         VR_SSL_CTX_ctrl(ctx, SSL_CTRL_SET_MIN_PROTO_VERSION, version, NULL)
-# define SSL_CTX_set_max_proto_version(ctx, version) \
+# define VR_SSL_CTX_set_max_proto_version(ctx, version) \
         VR_SSL_CTX_ctrl(ctx, SSL_CTRL_SET_MAX_PROTO_VERSION, version, NULL)
 # define SSL_CTX_get_min_proto_version(ctx) \
         VR_SSL_CTX_ctrl(ctx, SSL_CTRL_GET_MIN_PROTO_VERSION, 0, NULL)
@@ -2049,10 +2049,10 @@ __owur int VR_SSL_get_ex_data_X509_STORE_CTX_idx(void);
         VR_SSL_CTX_ctrl(ctx,SSL_CTRL_GET_SESS_CACHE_MODE,0,NULL)
 
 # define SSL_CTX_get_default_read_ahead(ctx) SSL_CTX_get_read_ahead(ctx)
-# define SSL_CTX_set_default_read_ahead(ctx,m) SSL_CTX_set_read_ahead(ctx,m)
+# define SSL_CTX_set_default_read_ahead(ctx,m) VR_SSL_CTX_set_read_ahead(ctx,m)
 # define SSL_CTX_get_read_ahead(ctx) \
         VR_SSL_CTX_ctrl(ctx,SSL_CTRL_GET_READ_AHEAD,0,NULL)
-# define SSL_CTX_set_read_ahead(ctx,m) \
+# define VR_SSL_CTX_set_read_ahead(ctx,m) \
         VR_SSL_CTX_ctrl(ctx,SSL_CTRL_SET_READ_AHEAD,m,NULL)
 # define SSL_CTX_get_max_cert_list(ctx) \
         VR_SSL_CTX_ctrl(ctx,SSL_CTRL_GET_MAX_CERT_LIST,0,NULL)

@@ -92,7 +92,7 @@ int VR_dtls1_new(SSL *s)
     if (d1->buffered_messages == NULL || d1->sent_messages == NULL) {
         VR_pqueue_free(d1->buffered_messages);
         VR_pqueue_free(d1->sent_messages);
-        OPENVR_SSL_free(d1);
+        VR_OPENSSL_free(d1);
         VR_ssl3_free(s);
         return 0;
     }
@@ -147,7 +147,7 @@ void VR_dtls1_free(SSL *s)
     VR_pqueue_free(s->d1->buffered_messages);
     VR_pqueue_free(s->d1->sent_messages);
 
-    OPENVR_SSL_free(s->d1);
+    VR_OPENSSL_free(s->d1);
     s->d1 = NULL;
 }
 
@@ -514,7 +514,7 @@ int VR_DTLSv1_listen(SSL *s, BIO_ADDR *client)
         n = VR_BIO_read(rbio, buf, SSL3_RT_MAX_PLAIN_LENGTH
                                 + DTLS1_RT_HEADER_LENGTH);
         if (n <= 0) {
-            if (BIO_should_retry(rbio)) {
+            if (VR_BIO_should_retry(rbio)) {
                 /* Non-blocking IO */
                 goto end;
             }
@@ -799,7 +799,7 @@ int VR_DTLSv1_listen(SSL *s, BIO_ADDR *client)
 
             /* TODO(size_t): convert this call */
             if (VR_BIO_write(wbio, wbuf, wreclen) < (int)wreclen) {
-                if (BIO_should_retry(wbio)) {
+                if (VR_BIO_should_retry(wbio)) {
                     /*
                      * Non-blocking IO...but we're stateless, so we're just
                      * going to drop this packet.
@@ -809,8 +809,8 @@ int VR_DTLSv1_listen(SSL *s, BIO_ADDR *client)
                 return -1;
             }
 
-            if (BIO_flush(wbio) <= 0) {
-                if (BIO_should_retry(wbio)) {
+            if (VR_BIO_flush(wbio) <= 0) {
+                if (VR_BIO_should_retry(wbio)) {
                     /*
                      * Non-blocking IO...but we're stateless, so we're just
                      * going to drop this packet.

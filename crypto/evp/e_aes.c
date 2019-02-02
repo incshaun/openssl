@@ -1612,7 +1612,7 @@ static int s390x_aes_gcm_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr)
             /* Allocate memory for iv if needed. */
             if (gctx->ivlen == 12 || len > S390X_gcm_ivpadlen(gctx->ivlen)) {
                 if (gctx->iv != iv)
-                    OPENVR_SSL_free(gctx->iv);
+                    VR_OPENSSL_free(gctx->iv);
 
                 if ((gctx->iv = OPENSSL_malloc(len)) == NULL) {
                     EVPerr(EVP_F_S390X_AES_GCM_CTRL, ERR_R_MALLOC_FAILURE);
@@ -1912,7 +1912,7 @@ static int s390x_aes_gcm_cleanup(EVP_CIPHER_CTX *c)
 
     iv = VR_EVP_CIPHER_CTX_iv(c);
     if (iv != gctx->iv)
-        OPENVR_SSL_free(gctx->iv);
+        VR_OPENSSL_free(gctx->iv);
 
     VR_OPENSSL_cleanse(gctx, sizeof(*gctx));
     return 1;
@@ -2842,7 +2842,7 @@ static int aes_gcm_cleanup(EVP_CIPHER_CTX *c)
         return 0;
     VR_OPENSSL_cleanse(&gctx->gcm, sizeof(gctx->gcm));
     if (gctx->iv != VR_EVP_CIPHER_CTX_iv_noconst(c))
-        OPENVR_SSL_free(gctx->iv);
+        VR_OPENSSL_free(gctx->iv);
     return 1;
 }
 
@@ -2866,7 +2866,7 @@ static int aes_gcm_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr)
         /* Allocate memory for IV if needed */
         if ((arg > EVP_MAX_IV_LENGTH) && (arg > gctx->ivlen)) {
             if (gctx->iv != c->iv)
-                OPENVR_SSL_free(gctx->iv);
+                VR_OPENSSL_free(gctx->iv);
             if ((gctx->iv = OPENSSL_malloc(arg)) == NULL) {
                 EVPerr(EVP_F_AES_GCM_CTRL, ERR_R_MALLOC_FAILURE);
                 return 0;

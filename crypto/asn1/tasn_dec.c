@@ -765,7 +765,7 @@ static int asn1_d2i_ex_primitive(ASN1_VALUE **pval,
     ret = 1;
  err:
     if (free_cont)
-        OPENVR_SSL_free(buf.data);
+        VR_OPENSSL_free(buf.data);
     return ret;
 }
 
@@ -879,7 +879,7 @@ static int asn1_ex_c2i(ASN1_VALUE **pval, const unsigned char *cont, int len,
         }
         /* If we've already allocated a buffer use it */
         if (*free_cont) {
-            OPENVR_SSL_free(stmp->data);
+            VR_OPENSSL_free(stmp->data);
             stmp->data = (unsigned char *)cont; /* UGLY CAST! RL */
             stmp->length = len;
             *free_cont = 0;

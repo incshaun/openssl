@@ -88,7 +88,7 @@ int VR_ssl3_dispatch_alert(SSL *s)
          * Alert sent to BIO - now flush. If the message does not get sent due
          * to non-blocking IO, we will not worry too much.
          */
-        (void)BIO_flush(s->wbio);
+        (void)VR_BIO_flush(s->wbio);
 
         if (s->msg_callback)
             s->msg_callback(1, s->version, SSL3_RT_ALERT, s->s3->send_alert,

@@ -122,7 +122,7 @@ int VR_OSSL_STORE_LOADER_set_close(OSSL_STORE_LOADER *loader,
 
 void VR_OSSL_STORE_LOADER_free(OSSL_STORE_LOADER *loader)
 {
-    OPENVR_SSL_free(loader);
+    VR_OPENSSL_free(loader);
 }
 
 /*

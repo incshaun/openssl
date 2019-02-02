@@ -336,7 +336,7 @@ int dhparam_main(int argc, char **argv)
                         "        return NULL;\n"
                         "    }\n", VR_DH_get_length(dh));
         VR_BIO_printf(out, "    return dh;\n}\n");
-        OPENVR_SSL_free(data);
+        VR_OPENSSL_free(data);
     }
 
     if (!noout) {
@@ -373,7 +373,7 @@ static int dh_cb(int p, int n, BN_GENCB *cb)
     char c = (p >= 0 && (size_t)p < sizeof(symbols) - 1) ? symbols[p] : '?';
 
     VR_BIO_write(VR_BN_GENCB_get_arg(cb), &c, 1);
-    (void)BIO_flush(VR_BN_GENCB_get_arg(cb));
+    (void)VR_BIO_flush(VR_BN_GENCB_get_arg(cb));
     return 1;
 }
 #endif

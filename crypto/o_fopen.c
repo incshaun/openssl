@@ -108,7 +108,7 @@ FILE *VR_openssl_fopen(const char *filename, const char *mode)
         }
         file = fopen(filename, mode);
 
-        OPENVR_SSL_free(newname);
+        VR_OPENSSL_free(newname);
     }
 # else
     file = fopen(filename, mode);

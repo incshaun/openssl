@@ -61,9 +61,9 @@ int VR_X509V3_add_value(const char *name, const char *value,
         sk_VR_CONF_VALUE_free(*extlist);
         *extlist = NULL;
     }
-    OPENVR_SSL_free(vtmp);
-    OPENVR_SSL_free(tname);
-    OPENVR_SSL_free(tvalue);
+    VR_OPENSSL_free(vtmp);
+    VR_OPENSSL_free(tname);
+    VR_OPENSSL_free(tvalue);
     return 0;
 }
 
@@ -79,10 +79,10 @@ void VR_X509V3_conf_free(CONF_VALUE *conf)
 {
     if (!conf)
         return;
-    OPENVR_SSL_free(conf->name);
-    OPENVR_SSL_free(conf->value);
-    OPENVR_SSL_free(conf->section);
-    OPENVR_SSL_free(conf);
+    VR_OPENSSL_free(conf->name);
+    VR_OPENSSL_free(conf->value);
+    VR_OPENSSL_free(conf->section);
+    VR_OPENSSL_free(conf);
 }
 
 int VR_X509V3_add_value_bool(const char *name, int asn1_bool,
@@ -122,7 +122,7 @@ static char *bignum_to_string(const BIGNUM *bn)
     ret = OPENSSL_malloc(len);
     if (ret == NULL) {
         X509V3err(X509V3_F_BIGNUM_TO_STRING, ERR_R_MALLOC_FAILURE);
-        OPENVR_SSL_free(tmp);
+        VR_OPENSSL_free(tmp);
         return NULL;
     }
 
@@ -134,7 +134,7 @@ static char *bignum_to_string(const BIGNUM *bn)
         VR_OPENSSL_strlcpy(ret, "0x", len);
         VR_OPENSSL_strlcat(ret, tmp, len);
     }
-    OPENVR_SSL_free(tmp);
+    VR_OPENSSL_free(tmp);
     return ret;
 }
 
@@ -230,7 +230,7 @@ int VR_X509V3_add_value_int(const char *name, const ASN1_INTEGER *aint,
     if ((strtmp = VR_i2s_ASN1_INTEGER(NULL, aint)) == NULL)
         return 0;
     ret = VR_X509V3_add_value(name, strtmp, extlist);
-    OPENVR_SSL_free(strtmp);
+    VR_OPENSSL_free(strtmp);
     return ret;
 }
 
@@ -362,11 +362,11 @@ STACK_OF(CONF_VALUE) *VR_X509V3_parse_list(const char *line)
         }
         VR_X509V3_add_value(ntmp, NULL, &values);
     }
-    OPENVR_SSL_free(linebuf);
+    VR_OPENSSL_free(linebuf);
     return values;
 
  err:
-    OPENVR_SSL_free(linebuf);
+    VR_OPENSSL_free(linebuf);
     sk_VR_CONF_VALUE_pop_free(values, VR_X509V3_conf_free);
     return NULL;
 
@@ -493,7 +493,7 @@ static STACK_OF(OPENSSL_STRING) *get_email(X509_NAME *name,
 
 static void str_free(OPENSSL_STRING str)
 {
-    OPENVR_SSL_free(str);
+    VR_OPENSSL_free(str);
 }
 
 static int append_ia5(STACK_OF(OPENSSL_STRING) **sk, const ASN1_IA5STRING *email)
@@ -513,7 +513,7 @@ static int append_ia5(STACK_OF(OPENSSL_STRING) **sk, const ASN1_IA5STRING *email
         return 1;
     emtmp = OPENSSL_strdup((char *)email->data);
     if (emtmp == NULL || !sk_VR_OPENSSL_STRING_push(*sk, emtmp)) {
-        OPENVR_SSL_free(emtmp);    /* free on push failure */
+        VR_OPENSSL_free(emtmp);    /* free on push failure */
         VR_X509_email_free(*sk);
         *sk = NULL;
         return 0;
@@ -810,7 +810,7 @@ static int do_check_string(const ASN1_STRING *a, int cmp_type, equal_fn equal,
         rv = equal(astr, astrlen, (unsigned char *)b, blen, flags);
         if (rv > 0 && peername)
             *peername = OPENSSL_strndup((char *)astr, astrlen);
-        OPENVR_SSL_free(astr);
+        VR_OPENSSL_free(astr);
     }
     return rv;
 }
@@ -1005,7 +1005,7 @@ ASN1_OCTET_STRING *VR_a2i_IPADDRESS_NC(const char *ipasc)
 
     iplen2 = VR_a2i_ipadd(ipout + iplen1, p);
 
-    OPENVR_SSL_free(iptmp);
+    VR_OPENSSL_free(iptmp);
     iptmp = NULL;
 
     if (!iplen2 || (iplen1 != iplen2))
@@ -1020,7 +1020,7 @@ ASN1_OCTET_STRING *VR_a2i_IPADDRESS_NC(const char *ipasc)
     return ret;
 
  err:
-    OPENVR_SSL_free(iptmp);
+    VR_OPENSSL_free(iptmp);
     VR_ASN1_OCTET_STRING_free(ret);
     return NULL;
 }

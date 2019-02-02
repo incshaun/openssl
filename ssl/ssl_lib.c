@@ -144,8 +144,8 @@ static int dane_ctx_enable(struct dane_ctx_st *dctx)
     mdord = OPENSSL_zalloc(n * sizeof(*mdord));
 
     if (mdord == NULL || mdevp == NULL) {
-        OPENVR_SSL_free(mdord);
-        OPENVR_SSL_free(mdevp);
+        VR_OPENSSL_free(mdord);
+        VR_OPENSSL_free(mdevp);
         SSLerr(SSL_F_DANE_CTX_ENABLE, ERR_R_MALLOC_FAILURE);
         return 0;
     }
@@ -170,10 +170,10 @@ static int dane_ctx_enable(struct dane_ctx_st *dctx)
 
 static void dane_ctx_final(struct dane_ctx_st *dctx)
 {
-    OPENVR_SSL_free(dctx->mdevp);
+    VR_OPENSSL_free(dctx->mdevp);
     dctx->mdevp = NULL;
 
-    OPENVR_SSL_free(dctx->mdord);
+    VR_OPENSSL_free(dctx->mdord);
     dctx->mdord = NULL;
     dctx->mdmax = 0;
 }
@@ -182,9 +182,9 @@ static void tlsa_free(danetls_record *t)
 {
     if (t == NULL)
         return;
-    OPENVR_SSL_free(t->data);
+    VR_OPENSSL_free(t->data);
     VR_EVP_PKEY_free(t->spki);
-    OPENVR_SSL_free(t);
+    VR_OPENSSL_free(t);
 }
 
 static void dane_final(SSL_DANE *dane)
@@ -586,7 +586,7 @@ int VR_SSL_clear(SSL *s)
     }
     VR_SSL_SESSION_free(s->psksession);
     s->psksession = NULL;
-    OPENVR_SSL_free(s->psksession_id);
+    VR_OPENSSL_free(s->psksession_id);
     s->psksession_id = NULL;
     s->psksession_id_len = 0;
     s->hello_retry_request = 0;
@@ -689,7 +689,7 @@ SSL *VR_SSL_new(SSL_CTX *ctx)
     s->references = 1;
     s->lock = VR_CRYPTO_THREAD_lock_new();
     if (s->lock == NULL) {
-        OPENVR_SSL_free(s);
+        VR_OPENSSL_free(s);
         s = NULL;
         goto err;
     }
@@ -1015,7 +1015,7 @@ int VR_SSL_dane_enable(SSL *s, const char *basedomain)
      * invalid input, set the SNI name first.
      */
     if (s->ext.hostname == NULL) {
-        if (!SSL_set_tlsext_host_name(s, basedomain)) {
+        if (!VR_SSL_set_tlsext_host_name(s, basedomain)) {
             SSLerr(SSL_F_SSL_DANE_ENABLE, SSL_R_ERROR_SETTING_TLSA_BASE_DOMAIN);
             return -1;
         }
@@ -1173,18 +1173,18 @@ void VR_SSL_free(SSL *s)
         VR_SSL_SESSION_free(s->session);
     }
     VR_SSL_SESSION_free(s->psksession);
-    OPENVR_SSL_free(s->psksession_id);
+    VR_OPENSSL_free(s->psksession_id);
 
     clear_ciphers(s);
 
     VR_ssl_cert_free(s->cert);
     /* Free up if allocated */
 
-    OPENVR_SSL_free(s->ext.hostname);
+    VR_OPENSSL_free(s->ext.hostname);
     VR_SSL_CTX_free(s->session_ctx);
 #ifndef OPENSSL_NO_EC
-    OPENVR_SSL_free(s->ext.ecpointformats);
-    OPENVR_SSL_free(s->ext.supportedgroups);
+    VR_OPENSSL_free(s->ext.ecpointformats);
+    VR_OPENSSL_free(s->ext.supportedgroups);
 #endif                          /* OPENSSL_NO_EC */
     sk_VR_X509_EXTENSION_pop_free(s->ext.ocsp.exts, VR_X509_EXTENSION_free);
 #ifndef OPENSSL_NO_OCSP
@@ -1192,13 +1192,13 @@ void VR_SSL_free(SSL *s)
 #endif
 #ifndef OPENSSL_NO_CT
     VR_SCT_LIST_free(s->scts);
-    OPENVR_SSL_free(s->ext.scts);
+    VR_OPENSSL_free(s->ext.scts);
 #endif
-    OPENVR_SSL_free(s->ext.ocsp.resp);
-    OPENVR_SSL_free(s->ext.alpn);
-    OPENVR_SSL_free(s->ext.tls13_cookie);
-    OPENVR_SSL_free(s->clienthello);
-    OPENVR_SSL_free(s->pha_context);
+    VR_OPENSSL_free(s->ext.ocsp.resp);
+    VR_OPENSSL_free(s->ext.alpn);
+    VR_OPENSSL_free(s->ext.tls13_cookie);
+    VR_OPENSSL_free(s->clienthello);
+    VR_OPENSSL_free(s->pha_context);
     VR_EVP_MD_CTX_free(s->pha_dgst);
 
     sk_VR_X509_NAME_pop_free(s->ca_names, VR_X509_NAME_free);
@@ -1214,7 +1214,7 @@ void VR_SSL_free(SSL *s)
     VR_ASYNC_WAIT_CTX_free(s->waitctx);
 
 #if !defined(OPENSSL_NO_NEXTPROTONEG)
-    OPENVR_SSL_free(s->ext.npn);
+    VR_OPENSSL_free(s->ext.npn);
 #endif
 
 #ifndef OPENSSL_NO_SRTP
@@ -1223,7 +1223,7 @@ void VR_SSL_free(SSL *s)
 
     VR_CRYPTO_THREAD_lock_free(s->lock);
 
-    OPENVR_SSL_free(s);
+    VR_OPENSSL_free(s);
 }
 
 void VR_SSL_set0_rbio(SSL *s, BIO *rbio)
@@ -1318,7 +1318,7 @@ int VR_SSL_get_rfd(const SSL *s)
     b = VR_SSL_get_rbio(s);
     r = VR_BIO_find_type(b, BIO_TYPE_DESCRIPTOR);
     if (r != NULL)
-        BIO_get_fd(r, &ret);
+        VR_BIO_get_fd(r, &ret);
     return ret;
 }
 
@@ -1330,7 +1330,7 @@ int VR_SSL_get_wfd(const SSL *s)
     b = VR_SSL_get_wbio(s);
     r = VR_BIO_find_type(b, BIO_TYPE_DESCRIPTOR);
     if (r != NULL)
-        BIO_get_fd(r, &ret);
+        VR_BIO_get_fd(r, &ret);
     return ret;
 }
 
@@ -1346,7 +1346,7 @@ int VR_SSL_set_fd(SSL *s, int fd)
         SSLerr(SSL_F_SSL_SET_FD, ERR_R_BUF_LIB);
         goto err;
     }
-    BIO_set_fd(bio, fd, BIO_NOCLOSE);
+    VR_BIO_set_fd(bio, fd, BIO_NOCLOSE);
     VR_SSL_set_bio(s, bio, bio);
 #ifndef OPENSSL_NO_KTLS
     /*
@@ -1367,14 +1367,14 @@ int VR_SSL_set_wfd(SSL *s, int fd)
     BIO *rbio = VR_SSL_get_rbio(s);
 
     if (rbio == NULL || VR_BIO_method_type(rbio) != BIO_TYPE_SOCKET
-        || (int)BIO_get_fd(rbio, NULL) != fd) {
+        || (int)VR_BIO_get_fd(rbio, NULL) != fd) {
         BIO *bio = VR_BIO_new(VR_BIO_s_socket());
 
         if (bio == NULL) {
             SSLerr(SSL_F_SSL_SET_WFD, ERR_R_BUF_LIB);
             return 0;
         }
-        BIO_set_fd(bio, fd, BIO_NOCLOSE);
+        VR_BIO_set_fd(bio, fd, BIO_NOCLOSE);
         VR_SSL_set0_wbio(s, bio);
 #ifndef OPENSSL_NO_KTLS
         /*
@@ -1397,14 +1397,14 @@ int VR_SSL_set_rfd(SSL *s, int fd)
     BIO *wbio = VR_SSL_get_wbio(s);
 
     if (wbio == NULL || VR_BIO_method_type(wbio) != BIO_TYPE_SOCKET
-        || ((int)BIO_get_fd(wbio, NULL) != fd)) {
+        || ((int)VR_BIO_get_fd(wbio, NULL) != fd)) {
         BIO *bio = VR_BIO_new(VR_BIO_s_socket());
 
         if (bio == NULL) {
             SSLerr(SSL_F_SSL_SET_RFD, ERR_R_BUF_LIB);
             return 0;
         }
-        BIO_set_fd(bio, fd, BIO_NOCLOSE);
+        VR_BIO_set_fd(bio, fd, BIO_NOCLOSE);
         VR_SSL_set0_rbio(s, bio);
     } else {
         VR_BIO_up_ref(wbio);
@@ -2104,7 +2104,7 @@ int VR_SSL_write_early_data(SSL *s, const void *buf, size_t num, size_t *written
         ret = VR_SSL_write_ex(s, buf, num, written);
         /* The buffering BIO is still in place */
         if (ret)
-            (void)BIO_flush(s->wbio);
+            (void)VR_BIO_flush(s->wbio);
         s->early_data_state = early_data_state;
         return ret;
 
@@ -2818,7 +2818,7 @@ void SSL_CTX_set_npn_select_cb(SSL_CTX *ctx,
 int VR_SSL_CTX_set_alpn_protos(SSL_CTX *ctx, const unsigned char *protos,
                             unsigned int protos_len)
 {
-    OPENVR_SSL_free(ctx->ext.alpn);
+    VR_OPENSSL_free(ctx->ext.alpn);
     ctx->ext.alpn = OPENSSL_memdup(protos, protos_len);
     if (ctx->ext.alpn == NULL) {
         SSLerr(SSL_F_SSL_CTX_SET_ALPN_PROTOS, ERR_R_MALLOC_FAILURE);
@@ -2837,7 +2837,7 @@ int VR_SSL_CTX_set_alpn_protos(SSL_CTX *ctx, const unsigned char *protos,
 int VR_SSL_set_alpn_protos(SSL *ssl, const unsigned char *protos,
                         unsigned int protos_len)
 {
-    OPENVR_SSL_free(ssl->ext.alpn);
+    VR_OPENSSL_free(ssl->ext.alpn);
     ssl->ext.alpn = OPENSSL_memdup(protos, protos_len);
     if (ssl->ext.alpn == NULL) {
         SSLerr(SSL_F_SSL_SET_ALPN_PROTOS, ERR_R_MALLOC_FAILURE);
@@ -2979,7 +2979,7 @@ SSL_CTX *VR_SSL_CTX_new(const SSL_METHOD *meth)
     ret->lock = VR_CRYPTO_THREAD_lock_new();
     if (ret->lock == NULL) {
         SSLerr(SSL_F_SSL_CTX_NEW, ERR_R_MALLOC_FAILURE);
-        OPENVR_SSL_free(ret);
+        VR_OPENSSL_free(ret);
         return NULL;
     }
     ret->max_cert_list = SSL_MAX_CERT_LIST_DEFAULT;
@@ -3201,15 +3201,15 @@ void VR_SSL_CTX_free(SSL_CTX *a)
 #endif
 
 #ifndef OPENSSL_NO_EC
-    OPENVR_SSL_free(a->ext.ecpointformats);
-    OPENVR_SSL_free(a->ext.supportedgroups);
+    VR_OPENSSL_free(a->ext.ecpointformats);
+    VR_OPENSSL_free(a->ext.supportedgroups);
 #endif
-    OPENVR_SSL_free(a->ext.alpn);
+    VR_OPENSSL_free(a->ext.alpn);
     OPENSSL_secure_free(a->ext.secure);
 
     VR_CRYPTO_THREAD_lock_free(a->lock);
 
-    OPENVR_SSL_free(a);
+    VR_OPENSSL_free(a);
 }
 
 void VR_SSL_CTX_set_default_passwd_cb(SSL_CTX *ctx, pem_password_cb *cb)
@@ -3555,9 +3555,9 @@ int VR_SSL_get_error(const SSL *s, int i)
 
     if (VR_SSL_want_read(s)) {
         bio = VR_SSL_get_rbio(s);
-        if (BIO_should_read(bio))
+        if (VR_BIO_should_read(bio))
             return SSL_ERROR_WANT_READ;
-        else if (BIO_should_write(bio))
+        else if (VR_BIO_should_write(bio))
             /*
              * This one doesn't make too much sense ... We never try to write
              * to the rbio, and an application program where rbio and wbio
@@ -3582,11 +3582,11 @@ int VR_SSL_get_error(const SSL *s, int i)
     if (VR_SSL_want_write(s)) {
         /* Access wbio directly - in order to use the buffered bio if present */
         bio = s->wbio;
-        if (BIO_should_write(bio))
+        if (VR_BIO_should_write(bio))
             return SSL_ERROR_WANT_WRITE;
-        else if (BIO_should_read(bio))
+        else if (VR_BIO_should_read(bio))
             /*
-             * See above (VR_SSL_want_read(s) with BIO_should_write(bio))
+             * See above (VR_SSL_want_read(s) with VR_BIO_should_write(bio))
              */
             return SSL_ERROR_WANT_READ;
         else if (BIO_should_io_special(bio)) {
@@ -4098,7 +4098,7 @@ int VR_SSL_CTX_set_default_verify_dir(SSL_CTX *ctx)
     lookup = VR_X509_STORE_add_lookup(ctx->cert_store, VR_X509_LOOKUP_hash_dir());
     if (lookup == NULL)
         return 0;
-    X509_LOOKUP_add_dir(lookup, NULL, X509_FILETYPE_DEFAULT);
+    VR_X509_LOOKUP_add_dir(lookup, NULL, X509_FILETYPE_DEFAULT);
 
     /* Clear any errors if the default directory does not exist */
     VR_ERR_clear_error();
@@ -4268,7 +4268,7 @@ int VR_SSL_CTX_use_psk_identity_hint(SSL_CTX *ctx, const char *identity_hint)
         SSLerr(SSL_F_SSL_CTX_USE_PSK_IDENTITY_HINT, SSL_R_DATA_LENGTH_TOO_LONG);
         return 0;
     }
-    OPENVR_SSL_free(ctx->cert->psk_identity_hint);
+    VR_OPENSSL_free(ctx->cert->psk_identity_hint);
     if (identity_hint != NULL) {
         ctx->cert->psk_identity_hint = OPENSSL_strdup(identity_hint);
         if (ctx->cert->psk_identity_hint == NULL)
@@ -4287,7 +4287,7 @@ int VR_SSL_use_psk_identity_hint(SSL *s, const char *identity_hint)
         SSLerr(SSL_F_SSL_USE_PSK_IDENTITY_HINT, SSL_R_DATA_LENGTH_TOO_LONG);
         return 0;
     }
-    OPENVR_SSL_free(s->cert->psk_identity_hint);
+    VR_OPENSSL_free(s->cert->psk_identity_hint);
     if (identity_hint != NULL) {
         s->cert->psk_identity_hint = OPENSSL_strdup(identity_hint);
         if (s->cert->psk_identity_hint == NULL)
@@ -5138,7 +5138,7 @@ int VR_SSL_client_hello_get1_extensions_present(SSL *s, int **out, size_t *outle
     *outlen = num;
     return 1;
  err:
-    OPENVR_SSL_free(present);
+    VR_OPENSSL_free(present);
     return 0;
 }
 
@@ -5297,7 +5297,7 @@ int VR_ssl_cache_cipherlist(SSL *s, PACKET *cipher_suites, int sslv2format)
         return 0;
     }
 
-    OPENVR_SSL_free(s->s3->tmp.ciphers_raw);
+    VR_OPENSSL_free(s->s3->tmp.ciphers_raw);
     s->s3->tmp.ciphers_raw = NULL;
     s->s3->tmp.ciphers_rawlen = 0;
 
@@ -5332,7 +5332,7 @@ int VR_ssl_cache_cipherlist(SSL *s, PACKET *cipher_suites, int sslv2format)
                         && !PACKET_forward(&sslv2ciphers, TLS_CIPHER_LEN))) {
                 SSLfatal(s, SSL_AD_DECODE_ERROR, SSL_F_SSL_CACHE_CIPHERLIST,
                          SSL_R_BAD_PACKET);
-                OPENVR_SSL_free(s->s3->tmp.ciphers_raw);
+                VR_OPENSSL_free(s->s3->tmp.ciphers_raw);
                 s->s3->tmp.ciphers_raw = NULL;
                 s->s3->tmp.ciphers_rawlen = 0;
                 return 0;

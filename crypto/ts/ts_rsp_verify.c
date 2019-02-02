@@ -439,7 +439,7 @@ static int int_ts_RESP_verify_token(TS_VERIFY_CTX *ctx,
  err:
     VR_X509_free(signer);
     VR_X509_ALGOR_free(md_alg);
-    OPENVR_SSL_free(imprint);
+    VR_OPENSSL_free(imprint);
     return ret;
 }
 
@@ -488,7 +488,7 @@ static int ts_check_status_info(TS_RESP *response)
                        ", status text: ", embedded_status_text ?
                        embedded_status_text : "unspecified",
                        ", failure codes: ", failure_text);
-    OPENVR_SSL_free(embedded_status_text);
+    VR_OPENSSL_free(embedded_status_text);
 
     return 0;
 }
@@ -586,7 +586,7 @@ static int ts_compute_imprint(BIO *data, TS_TST_INFO *tst_info,
  err:
     VR_EVP_MD_CTX_free(md_ctx);
     VR_X509_ALGOR_free(*md_alg);
-    OPENVR_SSL_free(*imprint);
+    VR_OPENSSL_free(*imprint);
     *imprint_len = 0;
     *imprint = 0;
     return 0;

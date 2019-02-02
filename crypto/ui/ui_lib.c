@@ -32,7 +32,7 @@ UI *VR_UI_new_method(const UI_METHOD *method)
     ret->lock = VR_CRYPTO_THREAD_lock_new();
     if (ret->lock == NULL) {
         UIerr(UI_F_UI_NEW_METHOD, ERR_R_MALLOC_FAILURE);
-        OPENVR_SSL_free(ret);
+        VR_OPENSSL_free(ret);
         return NULL;
     }
 
@@ -43,7 +43,7 @@ UI *VR_UI_new_method(const UI_METHOD *method)
     ret->meth = method;
 
     if (!VR_CRYPTO_new_ex_data(CRYPTO_EX_INDEX_UI, ret, &ret->ex_data)) {
-        OPENVR_SSL_free(ret);
+        VR_OPENSSL_free(ret);
         return NULL;
     }
     return ret;
@@ -52,12 +52,12 @@ UI *VR_UI_new_method(const UI_METHOD *method)
 static void free_string(UI_STRING *uis)
 {
     if (uis->flags & OUT_STRING_FREEABLE) {
-        OPENVR_SSL_free((char *)uis->out_string);
+        VR_OPENSSL_free((char *)uis->out_string);
         switch (uis->type) {
         case UIT_BOOLEAN:
-            OPENVR_SSL_free((char *)uis->_.boolean_data.action_desc);
-            OPENVR_SSL_free((char *)uis->_.boolean_data.ok_chars);
-            OPENVR_SSL_free((char *)uis->_.boolean_data.cancel_chars);
+            VR_OPENSSL_free((char *)uis->_.boolean_data.action_desc);
+            VR_OPENSSL_free((char *)uis->_.boolean_data.ok_chars);
+            VR_OPENSSL_free((char *)uis->_.boolean_data.cancel_chars);
             break;
         case UIT_NONE:
         case UIT_PROMPT:
@@ -67,7 +67,7 @@ static void free_string(UI_STRING *uis)
             break;
         }
     }
-    OPENVR_SSL_free(uis);
+    VR_OPENSSL_free(uis);
 }
 
 void VR_UI_free(UI *ui)
@@ -80,7 +80,7 @@ void VR_UI_free(UI *ui)
     sk_VR_UI_STRING_pop_free(ui->strings, free_string);
     VR_CRYPTO_free_ex_data(CRYPTO_EX_INDEX_UI, ui, &ui->ex_data);
     VR_CRYPTO_THREAD_lock_free(ui->lock);
-    OPENVR_SSL_free(ui);
+    VR_OPENSSL_free(ui);
 }
 
 static int allocate_string_stack(UI *ui)
@@ -304,10 +304,10 @@ int VR_UI_dup_input_boolean(UI *ui, const char *prompt, const char *action_desc,
                                     ok_chars_copy, cancel_chars_copy, 1,
                                     UIT_BOOLEAN, flags, result_buf);
  err:
-    OPENVR_SSL_free(prompt_copy);
-    OPENVR_SSL_free(action_desc_copy);
-    OPENVR_SSL_free(ok_chars_copy);
-    OPENVR_SSL_free(cancel_chars_copy);
+    VR_OPENSSL_free(prompt_copy);
+    VR_OPENSSL_free(action_desc_copy);
+    VR_OPENSSL_free(ok_chars_copy);
+    VR_OPENSSL_free(cancel_chars_copy);
     return -1;
 }
 
@@ -601,8 +601,8 @@ UI_METHOD *VR_UI_create_method(const char *name)
         || !VR_CRYPTO_new_ex_data(CRYPTO_EX_INDEX_UI_METHOD, ui_method,
                                &ui_method->ex_data)) {
         if (ui_method)
-            OPENVR_SSL_free(ui_method->name);
-        OPENVR_SSL_free(ui_method);
+            VR_OPENSSL_free(ui_method->name);
+        VR_OPENSSL_free(ui_method);
         UIerr(UI_F_UI_CREATE_METHOD, ERR_R_MALLOC_FAILURE);
         return NULL;
     }
@@ -620,9 +620,9 @@ void VR_UI_destroy_method(UI_METHOD *ui_method)
         return;
     VR_CRYPTO_free_ex_data(CRYPTO_EX_INDEX_UI_METHOD, ui_method,
                         &ui_method->ex_data);
-    OPENVR_SSL_free(ui_method->name);
+    VR_OPENSSL_free(ui_method->name);
     ui_method->name = NULL;
-    OPENVR_SSL_free(ui_method);
+    VR_OPENSSL_free(ui_method);
 }
 
 int VR_UI_method_set_opener(UI_METHOD *method, int (*opener) (UI *ui))

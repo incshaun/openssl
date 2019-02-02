@@ -278,7 +278,7 @@ static unsigned char *next_protos_parse(size_t *outlen,
     for (i = 0; i <= len; ++i) {
         if (i == len || in[i] == ',') {
             if (i - start > 255) {
-                OPENVR_SSL_free(out);
+                VR_OPENSSL_free(out);
                 return NULL;
             }
             out[start] = (unsigned char)(i - start);
@@ -309,7 +309,7 @@ static int cb_server_alpn(SSL *s, const unsigned char **out,
     if (VR_SSL_select_next_proto
         ((unsigned char **)out, outlen, protos, protos_len, in,
          inlen) != OPENSSL_NPN_NEGOTIATED) {
-        OPENVR_SSL_free(protos);
+        VR_OPENSSL_free(protos);
         return SSL_TLSEXT_ERR_NOACK;
     }
 
@@ -321,7 +321,7 @@ static int cb_server_alpn(SSL *s, const unsigned char **out,
     memcpy(alpn_selected, *out, *outlen);
     *out = alpn_selected;
 
-    OPENVR_SSL_free(protos);
+    VR_OPENSSL_free(protos);
     return SSL_TLSEXT_ERR_OK;
 }
 
@@ -332,7 +332,7 @@ static int verify_alpn(SSL *client, SSL *server)
     VR_SSL_get0_alpn_selected(client, &client_proto, &client_proto_len);
     VR_SSL_get0_alpn_selected(server, &server_proto, &server_proto_len);
 
-    OPENVR_SSL_free(alpn_selected);
+    VR_OPENSSL_free(alpn_selected);
     alpn_selected = NULL;
 
     if (client_proto_len != server_proto_len) {
@@ -1372,13 +1372,13 @@ int main(int argc, char *argv[])
         VR_SSL_CTX_set_options(s_ctx, SSL_OP_NO_TICKET);
     }
 
-    if (SSL_CTX_set_min_proto_version(c_ctx, min_version) == 0)
+    if (VR_SSL_CTX_set_min_proto_version(c_ctx, min_version) == 0)
         goto end;
-    if (SSL_CTX_set_max_proto_version(c_ctx, max_version) == 0)
+    if (VR_SSL_CTX_set_max_proto_version(c_ctx, max_version) == 0)
         goto end;
-    if (SSL_CTX_set_min_proto_version(s_ctx, min_version) == 0)
+    if (VR_SSL_CTX_set_min_proto_version(s_ctx, min_version) == 0)
         goto end;
-    if (SSL_CTX_set_max_proto_version(s_ctx, max_version) == 0)
+    if (VR_SSL_CTX_set_max_proto_version(s_ctx, max_version) == 0)
         goto end;
 
     if (cipher != NULL) {
@@ -1640,10 +1640,10 @@ int main(int argc, char *argv[])
         /* Returns 0 on success!! */
         if (VR_SSL_CTX_set_alpn_protos(c_ctx, alpn, alpn_len)) {
             VR_BIO_printf(bio_err, "Error setting ALPN\n");
-            OPENVR_SSL_free(alpn);
+            VR_OPENSSL_free(alpn);
             goto end;
         }
-        OPENVR_SSL_free(alpn);
+        VR_OPENSSL_free(alpn);
     }
 
     if (server_sess_in != NULL) {
@@ -1665,7 +1665,7 @@ int main(int argc, char *argv[])
         size = SSL_CTX_set_tlsext_ticket_keys(s_ctx, NULL, 0);
         keys = OPENSSL_zalloc(size);
         SSL_CTX_set_tlsext_ticket_keys(s_ctx, keys, size);
-        OPENVR_SSL_free(keys);
+        VR_OPENSSL_free(keys);
     }
 
     if (sn_server1 != NULL || sn_server2 != NULL)
@@ -1675,7 +1675,7 @@ int main(int argc, char *argv[])
     s_ssl = VR_SSL_new(s_ctx);
 
     if (sn_client)
-        SSL_set_tlsext_host_name(c_ssl, sn_client);
+        VR_SSL_set_tlsext_host_name(c_ssl, sn_client);
 
     if (!set_protocol_version(server_min_proto, s_ssl, SSL_CTRL_SET_MIN_PROTO_VERSION))
         goto end;
@@ -1863,7 +1863,7 @@ int doit_localhost(SSL *s_ssl, SSL *c_ssl, int family, long count,
         while(!st_connect || !st_accept) {
             if (!st_connect) {
                 if (BIO_do_connect(client) <= 0) {
-                    if (!BIO_should_retry(client))
+                    if (!VR_BIO_should_retry(client))
                         goto err;
                 } else {
                     st_connect = 1;
@@ -1871,7 +1871,7 @@ int doit_localhost(SSL *s_ssl, SSL *c_ssl, int family, long count,
             }
             if (!st_accept) {
                 if (BIO_do_accept(acpt) <= 0) {
-                    if (!BIO_should_retry(acpt))
+                    if (!VR_BIO_should_retry(acpt))
                         goto err;
                 } else {
                     st_accept = 1;
@@ -1894,11 +1894,11 @@ int doit_localhost(SSL *s_ssl, SSL *c_ssl, int family, long count,
 
     VR_SSL_set_connect_state(c_ssl);
     VR_SSL_set_bio(c_ssl, client, client);
-    (void)BIO_set_ssl(c_ssl_bio, c_ssl, BIO_NOCLOSE);
+    (void)VR_BIO_set_ssl(c_ssl_bio, c_ssl, BIO_NOCLOSE);
 
     VR_SSL_set_accept_state(s_ssl);
     VR_SSL_set_bio(s_ssl, server, server);
-    (void)BIO_set_ssl(s_ssl_bio, s_ssl, BIO_NOCLOSE);
+    (void)VR_BIO_set_ssl(s_ssl_bio, s_ssl, BIO_NOCLOSE);
 
     do {
         /*-
@@ -1942,13 +1942,13 @@ int doit_localhost(SSL *s_ssl, SSL *c_ssl, int family, long count,
                     i = (int)cw_num;
                 r = VR_BIO_write(c_ssl_bio, cbuf, i);
                 if (r < 0) {
-                    if (!BIO_should_retry(c_ssl_bio)) {
+                    if (!VR_BIO_should_retry(c_ssl_bio)) {
                         fprintf(stderr, "ERROR in CLIENT\n");
                         err_in_client = 1;
                         goto err;
                     }
                     /*
-                     * BIO_should_retry(...) can just be ignored here. The
+                     * VR_BIO_should_retry(...) can just be ignored here. The
                      * library expects us to call VR_BIO_write with the same
                      * arguments again, and that's what we will do in the
                      * next iteration.
@@ -1968,13 +1968,13 @@ int doit_localhost(SSL *s_ssl, SSL *c_ssl, int family, long count,
 
                 r = VR_BIO_read(c_ssl_bio, cbuf, sizeof(cbuf));
                 if (r < 0) {
-                    if (!BIO_should_retry(c_ssl_bio)) {
+                    if (!VR_BIO_should_retry(c_ssl_bio)) {
                         fprintf(stderr, "ERROR in CLIENT\n");
                         err_in_client = 1;
                         goto err;
                     }
                     /*
-                     * Again, "BIO_should_retry" can be ignored.
+                     * Again, "VR_BIO_should_retry" can be ignored.
                      */
                 } else if (r == 0) {
                     fprintf(stderr, "SSL CLIENT STARTUP FAILED\n");
@@ -2021,12 +2021,12 @@ int doit_localhost(SSL *s_ssl, SSL *c_ssl, int family, long count,
                     i = (int)sw_num;
                 r = VR_BIO_write(s_ssl_bio, sbuf, i);
                 if (r < 0) {
-                    if (!BIO_should_retry(s_ssl_bio)) {
+                    if (!VR_BIO_should_retry(s_ssl_bio)) {
                         fprintf(stderr, "ERROR in SERVER\n");
                         err_in_server = 1;
                         goto err;
                     }
-                    /* Ignore "BIO_should_retry". */
+                    /* Ignore "VR_BIO_should_retry". */
                 } else if (r == 0) {
                     fprintf(stderr, "SSL SERVER STARTUP FAILED\n");
                     goto err;
@@ -2042,7 +2042,7 @@ int doit_localhost(SSL *s_ssl, SSL *c_ssl, int family, long count,
 
                 r = VR_BIO_read(s_ssl_bio, sbuf, sizeof(sbuf));
                 if (r < 0) {
-                    if (!BIO_should_retry(s_ssl_bio)) {
+                    if (!VR_BIO_should_retry(s_ssl_bio)) {
                         fprintf(stderr, "ERROR in SERVER\n");
                         err_in_server = 1;
                         goto err;
@@ -2132,11 +2132,11 @@ int doit_biopair(SSL *s_ssl, SSL *c_ssl, long count,
 
     VR_SSL_set_connect_state(c_ssl);
     VR_SSL_set_bio(c_ssl, client, client);
-    (void)BIO_set_ssl(c_ssl_bio, c_ssl, BIO_NOCLOSE);
+    (void)VR_BIO_set_ssl(c_ssl_bio, c_ssl, BIO_NOCLOSE);
 
     VR_SSL_set_accept_state(s_ssl);
     VR_SSL_set_bio(s_ssl, server, server);
-    (void)BIO_set_ssl(s_ssl_bio, s_ssl, BIO_NOCLOSE);
+    (void)VR_BIO_set_ssl(s_ssl_bio, s_ssl, BIO_NOCLOSE);
 
     do {
         /*-
@@ -2204,13 +2204,13 @@ int doit_biopair(SSL *s_ssl, SSL *c_ssl, long count,
                     i = (int)cw_num;
                 r = VR_BIO_write(c_ssl_bio, cbuf, i);
                 if (r < 0) {
-                    if (!BIO_should_retry(c_ssl_bio)) {
+                    if (!VR_BIO_should_retry(c_ssl_bio)) {
                         fprintf(stderr, "ERROR in CLIENT\n");
                         err_in_client = 1;
                         goto err;
                     }
                     /*
-                     * BIO_should_retry(...) can just be ignored here. The
+                     * VR_BIO_should_retry(...) can just be ignored here. The
                      * library expects us to call VR_BIO_write with the same
                      * arguments again, and that's what we will do in the
                      * next iteration.
@@ -2230,13 +2230,13 @@ int doit_biopair(SSL *s_ssl, SSL *c_ssl, long count,
 
                 r = VR_BIO_read(c_ssl_bio, cbuf, sizeof(cbuf));
                 if (r < 0) {
-                    if (!BIO_should_retry(c_ssl_bio)) {
+                    if (!VR_BIO_should_retry(c_ssl_bio)) {
                         fprintf(stderr, "ERROR in CLIENT\n");
                         err_in_client = 1;
                         goto err;
                     }
                     /*
-                     * Again, "BIO_should_retry" can be ignored.
+                     * Again, "VR_BIO_should_retry" can be ignored.
                      */
                 } else if (r == 0) {
                     fprintf(stderr, "SSL CLIENT STARTUP FAILED\n");
@@ -2283,12 +2283,12 @@ int doit_biopair(SSL *s_ssl, SSL *c_ssl, long count,
                     i = (int)sw_num;
                 r = VR_BIO_write(s_ssl_bio, sbuf, i);
                 if (r < 0) {
-                    if (!BIO_should_retry(s_ssl_bio)) {
+                    if (!VR_BIO_should_retry(s_ssl_bio)) {
                         fprintf(stderr, "ERROR in SERVER\n");
                         err_in_server = 1;
                         goto err;
                     }
-                    /* Ignore "BIO_should_retry". */
+                    /* Ignore "VR_BIO_should_retry". */
                 } else if (r == 0) {
                     fprintf(stderr, "SSL SERVER STARTUP FAILED\n");
                     goto err;
@@ -2304,7 +2304,7 @@ int doit_biopair(SSL *s_ssl, SSL *c_ssl, long count,
 
                 r = VR_BIO_read(s_ssl_bio, sbuf, sizeof(sbuf));
                 if (r < 0) {
-                    if (!BIO_should_retry(s_ssl_bio)) {
+                    if (!VR_BIO_should_retry(s_ssl_bio)) {
                         fprintf(stderr, "ERROR in SERVER\n");
                         err_in_server = 1;
                         goto err;
@@ -2528,7 +2528,7 @@ int doit(SSL *s_ssl, SSL *c_ssl, long count)
     VR_SSL_set_connect_state(c_ssl);
     VR_SSL_set_bio(c_ssl, s_to_c, c_to_s);
     SSL_set_max_send_fragment(c_ssl, max_frag);
-    BIO_set_ssl(c_bio, c_ssl, BIO_NOCLOSE);
+    VR_BIO_set_ssl(c_bio, c_ssl, BIO_NOCLOSE);
 
     /*
      * We've just given our ref to these BIOs to c_ssl. We need another one to
@@ -2554,7 +2554,7 @@ int doit(SSL *s_ssl, SSL *c_ssl, long count)
     s_to_c = NULL;
 
     SSL_set_max_send_fragment(s_ssl, max_frag);
-    BIO_set_ssl(s_bio, s_ssl, BIO_NOCLOSE);
+    VR_BIO_set_ssl(s_bio, s_ssl, BIO_NOCLOSE);
 
     c_r = 0;
     s_r = 1;
@@ -2567,11 +2567,11 @@ int doit(SSL *s_ssl, SSL *c_ssl, long count)
         do_server = 0;
         do_client = 0;
 
-        i = (int)BIO_pending(s_bio);
+        i = (int)VR_BIO_pending(s_bio);
         if ((i && s_r) || s_w)
             do_server = 1;
 
-        i = (int)BIO_pending(c_bio);
+        i = (int)VR_BIO_pending(c_bio);
         if ((i && c_r) || c_w)
             do_client = 1;
 
@@ -2599,10 +2599,10 @@ int doit(SSL *s_ssl, SSL *c_ssl, long count)
                 if (i < 0) {
                     c_r = 0;
                     c_w = 0;
-                    if (BIO_should_retry(c_bio)) {
-                        if (BIO_should_read(c_bio))
+                    if (VR_BIO_should_retry(c_bio)) {
+                        if (VR_BIO_should_read(c_bio))
                             c_r = 1;
-                        if (BIO_should_write(c_bio))
+                        if (VR_BIO_should_write(c_bio))
                             c_w = 1;
                     } else {
                         fprintf(stderr, "ERROR in CLIENT\n");
@@ -2628,10 +2628,10 @@ int doit(SSL *s_ssl, SSL *c_ssl, long count)
                 if (i < 0) {
                     c_r = 0;
                     c_w = 0;
-                    if (BIO_should_retry(c_bio)) {
-                        if (BIO_should_read(c_bio))
+                    if (VR_BIO_should_retry(c_bio)) {
+                        if (VR_BIO_should_read(c_bio))
                             c_r = 1;
-                        if (BIO_should_write(c_bio))
+                        if (VR_BIO_should_write(c_bio))
                             c_w = 1;
                     } else {
                         fprintf(stderr, "ERROR in CLIENT\n");
@@ -2665,10 +2665,10 @@ int doit(SSL *s_ssl, SSL *c_ssl, long count)
                 if (i < 0) {
                     s_r = 0;
                     s_w = 0;
-                    if (BIO_should_retry(s_bio)) {
-                        if (BIO_should_read(s_bio))
+                    if (VR_BIO_should_retry(s_bio)) {
+                        if (VR_BIO_should_read(s_bio))
                             s_r = 1;
-                        if (BIO_should_write(s_bio))
+                        if (VR_BIO_should_write(s_bio))
                             s_w = 1;
                     } else {
                         fprintf(stderr, "ERROR in SERVER\n");
@@ -2701,10 +2701,10 @@ int doit(SSL *s_ssl, SSL *c_ssl, long count)
                 if (i < 0) {
                     s_r = 0;
                     s_w = 0;
-                    if (BIO_should_retry(s_bio)) {
-                        if (BIO_should_read(s_bio))
+                    if (VR_BIO_should_retry(s_bio)) {
+                        if (VR_BIO_should_read(s_bio))
                             s_r = 1;
-                        if (BIO_should_write(s_bio))
+                        if (VR_BIO_should_write(s_bio))
                             s_w = 1;
                     } else {
                         fprintf(stderr, "ERROR in SERVER\n");
@@ -2755,8 +2755,8 @@ int doit(SSL *s_ssl, SSL *c_ssl, long count)
     VR_BIO_free(s_to_c);
     VR_BIO_free_all(c_bio);
     VR_BIO_free_all(s_bio);
-    OPENVR_SSL_free(cbuf);
-    OPENVR_SSL_free(sbuf);
+    VR_OPENSSL_free(cbuf);
+    VR_OPENSSL_free(sbuf);
 
     if (should_negotiate != NULL && strcmp(should_negotiate, "fail-client") == 0)
         ret = (err_in_client != 0) ? EXIT_SUCCESS : EXIT_FAILURE;
@@ -2995,10 +2995,10 @@ static int psk_key2bn(const char *pskkey, unsigned char *psk,
         VR_BN_free(bn);
         return 0;
     }
-    if (BN_num_bytes(bn) > (int)max_psk_len) {
+    if (VR_BN_num_bytes(bn) > (int)max_psk_len) {
         VR_BIO_printf(bio_err,
                    "psk buffer of callback is too small (%d) for key (%d)\n",
-                   max_psk_len, BN_num_bytes(bn));
+                   max_psk_len, VR_BN_num_bytes(bn));
         VR_BN_free(bn);
         return 0;
     }

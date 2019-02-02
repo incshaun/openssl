@@ -54,7 +54,7 @@ EC_GROUP *VR_EC_GROUP_new(const EC_METHOD *meth)
  err:
     VR_BN_free(ret->order);
     VR_BN_free(ret->cofactor);
-    OPENVR_SSL_free(ret);
+    VR_OPENSSL_free(ret);
     return NULL;
 }
 
@@ -104,8 +104,8 @@ void VR_EC_GROUP_free(EC_GROUP *group)
     VR_EC_POINT_free(group->generator);
     VR_BN_free(group->order);
     VR_BN_free(group->cofactor);
-    OPENVR_SSL_free(group->seed);
-    OPENVR_SSL_free(group);
+    VR_OPENSSL_free(group->seed);
+    VR_OPENSSL_free(group);
 }
 
 void VR_EC_GROUP_clear_free(EC_GROUP *group)
@@ -213,7 +213,7 @@ int VR_EC_GROUP_copy(EC_GROUP *dest, const EC_GROUP *src)
     dest->asn1_form = src->asn1_form;
 
     if (src->seed) {
-        OPENVR_SSL_free(dest->seed);
+        VR_OPENSSL_free(dest->seed);
         if ((dest->seed = OPENSSL_malloc(src->seed_len)) == NULL) {
             ECerr(EC_F_EC_GROUP_COPY, ERR_R_MALLOC_FAILURE);
             return 0;
@@ -222,7 +222,7 @@ int VR_EC_GROUP_copy(EC_GROUP *dest, const EC_GROUP *src)
             return 0;
         dest->seed_len = src->seed_len;
     } else {
-        OPENVR_SSL_free(dest->seed);
+        VR_OPENSSL_free(dest->seed);
         dest->seed = NULL;
         dest->seed_len = 0;
     }
@@ -388,7 +388,7 @@ point_conversion_form_t VR_EC_GROUP_get_point_conversion_form(const EC_GROUP
 
 size_t VR_EC_GROUP_set_seed(EC_GROUP *group, const unsigned char *p, size_t len)
 {
-    OPENVR_SSL_free(group->seed);
+    VR_OPENSSL_free(group->seed);
     group->seed = NULL;
     group->seed_len = 0;
 
@@ -580,7 +580,7 @@ EC_POINT *VR_EC_POINT_new(const EC_GROUP *group)
     ret->curve_name = group->curve_name;
 
     if (!ret->meth->point_init(ret)) {
-        OPENVR_SSL_free(ret);
+        VR_OPENSSL_free(ret);
         return NULL;
     }
 
@@ -594,7 +594,7 @@ void VR_EC_POINT_free(EC_POINT *point)
 
     if (point->meth->point_finish != 0)
         point->meth->point_finish(point);
-    OPENVR_SSL_free(point);
+    VR_OPENSSL_free(point);
 }
 
 void VR_EC_POINT_clear_free(EC_POINT *point)

@@ -26,7 +26,7 @@ CRYPTO_RWLOCK *VR_CRYPTO_THREAD_lock_new(void)
 
     /* 0x400 is the spin count value suggested in the documentation */
     if (!InitializeCriticalSectionAndSpinCount(lock, 0x400)) {
-        OPENVR_SSL_free(lock);
+        VR_OPENSSL_free(lock);
         return NULL;
     }
 
@@ -57,7 +57,7 @@ void VR_CRYPTO_THREAD_lock_free(CRYPTO_RWLOCK *lock)
         return;
 
     DeleteCriticalSection(lock);
-    OPENVR_SSL_free(lock);
+    VR_OPENSSL_free(lock);
 
     return;
 }

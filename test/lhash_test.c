@@ -206,7 +206,7 @@ static int test_stress(void)
             TEST_info("lhash stress bad value %d", i);
             goto end;
         }
-        OPENVR_SSL_free(p);
+        VR_OPENSSL_free(p);
     }
 
     TEST_info("hash empty statistics:");

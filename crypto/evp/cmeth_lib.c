@@ -37,7 +37,7 @@ EVP_CIPHER *VR_EVP_CIPHER_meth_dup(const EVP_CIPHER *cipher)
 
 void VR_EVP_CIPHER_meth_free(EVP_CIPHER *cipher)
 {
-    OPENVR_SSL_free(cipher);
+    VR_OPENSSL_free(cipher);
 }
 
 int VR_EVP_CIPHER_meth_set_iv_length(EVP_CIPHER *cipher, int iv_len)

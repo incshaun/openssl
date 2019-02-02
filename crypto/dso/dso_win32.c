@@ -123,8 +123,8 @@ static int win32_load(DSO *dso)
     return 1;
  err:
     /* Cleanup ! */
-    OPENVR_SSL_free(filename);
-    OPENVR_SSL_free(p);
+    VR_OPENSSL_free(filename);
+    VR_OPENSSL_free(p);
     if (h != NULL)
         FreeLibrary(h);
     return 0;
@@ -153,7 +153,7 @@ static int win32_unload(DSO *dso)
         return 0;
     }
     /* Cleanup */
-    OPENVR_SSL_free(p);
+    VR_OPENSSL_free(p);
     return 1;
 }
 
@@ -235,7 +235,7 @@ static struct file_st *win32_splitter(DSO *dso, const char *filename,
         case ':':
             if (position != IN_DEVICE) {
                 DSOerr(DSO_F_WIN32_SPLITTER, DSO_R_INCORRECT_FILE_SYNTAX);
-                OPENVR_SSL_free(result);
+                VR_OPENSSL_free(result);
                 return NULL;
             }
             result->device = start;
@@ -418,7 +418,7 @@ static char *win32_merger(DSO *dso, const char *filespec1,
         filespec2_split = win32_splitter(dso, filespec2, 1);
         if (!filespec2_split) {
             DSOerr(DSO_F_WIN32_MERGER, ERR_R_MALLOC_FAILURE);
-            OPENVR_SSL_free(filespec1_split);
+            VR_OPENSSL_free(filespec1_split);
             return NULL;
         }
 
@@ -444,8 +444,8 @@ static char *win32_merger(DSO *dso, const char *filespec1,
 
         merged = win32_joiner(dso, filespec1_split);
     }
-    OPENVR_SSL_free(filespec1_split);
-    OPENVR_SSL_free(filespec2_split);
+    VR_OPENSSL_free(filespec1_split);
+    VR_OPENSSL_free(filespec2_split);
     return merged;
 }
 

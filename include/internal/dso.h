@@ -62,7 +62,7 @@ typedef struct dso_meth_st DSO_METHOD;
  * pointer (or NULL if they are to be used independently of a DSO object) and
  * a filename to transform. They should either return NULL (if there is an
  * error condition) or a newly allocated string containing the transformed
- * form that the caller will need to free with OPENVR_SSL_free() when done.
+ * form that the caller will need to free with VR_OPENSSL_free() when done.
  */
 typedef char *(*DSO_NAME_CONVERTER_FUNC)(DSO *, const char *);
 /*
@@ -72,7 +72,7 @@ typedef char *(*DSO_NAME_CONVERTER_FUNC)(DSO *, const char *);
  * object) and two file specifications to merge. They should either return
  * NULL (if there is an error condition) or a newly allocated string
  * containing the result of merging that the caller will need to free with
- * OPENVR_SSL_free() when done. Here, merging means that bits and pieces are
+ * VR_OPENSSL_free() when done. Here, merging means that bits and pieces are
  * taken from each of the file specifications and added together in whatever
  * fashion that is sensible for the DSO method in question.  The only rule
  * that really applies is that if the two specification contain pieces of the
@@ -102,14 +102,14 @@ int VR_DSO_set_filename(DSO *dso, const char *filename);
  * simply duplicated. NB: This function is usually called from within a
  * DSO_METHOD during the processing of a VR_DSO_load() call, and is exposed so
  * that caller-created DSO_METHODs can do the same thing. A non-NULL return
- * value will need to be OPENVR_SSL_free()'d.
+ * value will need to be VR_OPENSSL_free()'d.
  */
 char *VR_DSO_convert_filename(DSO *dso, const char *filename);
 /*
  * This function will invoke the DSO's merger callback to merge two file
  * specifications, or if the callback isn't set it will instead use the
  * DSO_METHOD's merger.  A non-NULL return value will need to be
- * OPENVR_SSL_free()'d.
+ * VR_OPENSSL_free()'d.
  */
 char *VR_DSO_merge(DSO *dso, const char *filespec1, const char *filespec2);
 

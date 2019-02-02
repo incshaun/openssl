@@ -105,7 +105,7 @@ static int update_index(CA_DB *db, char **row)
     if (!VR_TXT_DB_insert(db->db, irow)) {
         VR_BIO_printf(bio_err, "failed to update srpvfile\n");
         VR_BIO_printf(bio_err, "TXT_DB error number %ld\n", db->db->error);
-        OPENVR_SSL_free(irow);
+        VR_OPENSSL_free(irow);
         return 0;
     }
     return 1;
@@ -149,7 +149,7 @@ static char *srp_verify_user(const char *user, const char *srp_verifier,
         } else {
             if (strcmp(verifier, srp_verifier))
                 gNid = NULL;
-            OPENVR_SSL_free(verifier);
+            VR_OPENSSL_free(verifier);
         }
         VR_OPENSSL_cleanse(password, len);
     }
@@ -455,12 +455,12 @@ int srp_main(int argc, char **argv)
                     || (userinfo
                         && ((row[DB_srpinfo] = OPENSSL_strdup(userinfo)) == NULL))
                     || !update_index(db, row)) {
-                    OPENVR_SSL_free(row[DB_srpid]);
-                    OPENVR_SSL_free(row[DB_srpgN]);
-                    OPENVR_SSL_free(row[DB_srpinfo]);
-                    OPENVR_SSL_free(row[DB_srptype]);
-                    OPENVR_SSL_free(row[DB_srpverifier]);
-                    OPENVR_SSL_free(row[DB_srpsalt]);
+                    VR_OPENSSL_free(row[DB_srpid]);
+                    VR_OPENSSL_free(row[DB_srpgN]);
+                    VR_OPENSSL_free(row[DB_srpinfo]);
+                    VR_OPENSSL_free(row[DB_srptype]);
+                    VR_OPENSSL_free(row[DB_srpverifier]);
+                    VR_OPENSSL_free(row[DB_srpsalt]);
                     goto end;
                 }
                 doupdatedb = 1;
@@ -601,8 +601,8 @@ int srp_main(int argc, char **argv)
     if (verbose)
         VR_BIO_printf(bio_err, "SRP terminating with code %d.\n", ret);
 
-    OPENVR_SSL_free(passin);
-    OPENVR_SSL_free(passout);
+    VR_OPENSSL_free(passin);
+    VR_OPENSSL_free(passout);
     if (ret)
         VR_ERR_print_errors(bio_err);
     VR_NCONF_free(conf);

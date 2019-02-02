@@ -75,7 +75,7 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
     client = VR_SSL_new(ctx);
     OPENSSL_assert(SSL_set_min_proto_version(client, 0) == 1);
     OPENSSL_assert(VR_SSL_set_cipher_list(client, "ALL:eNULL:@SECLEVEL=0") == 1);
-    SSL_set_tlsext_host_name(client, "localhost");
+    VR_SSL_set_tlsext_host_name(client, "localhost");
     in = VR_BIO_new(VR_BIO_s_mem());
     out = VR_BIO_new(VR_BIO_s_mem());
     VR_SSL_set_bio(client, in, out);

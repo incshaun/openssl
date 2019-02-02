@@ -119,7 +119,7 @@ int VR_OBJ_NAME_new_index(unsigned long (*hash_func) (const char *),
 
         if (!push) {
             OBJerr(OBJ_F_OBJ_NAME_NEW_INDEX, ERR_R_MALLOC_FAILURE);
-            OPENVR_SSL_free(name_funcs);
+            VR_OPENSSL_free(name_funcs);
             ret = 0;
             goto out;
         }
@@ -242,11 +242,11 @@ int VR_OBJ_NAME_add(const char *name, int type, const char *data)
                                 ret->type)->free_func(ret->name, ret->type,
                                                       ret->data);
         }
-        OPENVR_SSL_free(ret);
+        VR_OPENSSL_free(ret);
     } else {
         if (lh_OBJ_NAME_error(names_lh)) {
             /* ERROR */
-            OPENVR_SSL_free(onp);
+            VR_OPENSSL_free(onp);
             goto unlock;
         }
     }
@@ -284,7 +284,7 @@ int VR_OBJ_NAME_remove(const char *name, int type)
                                 ret->type)->free_func(ret->name, ret->type,
                                                       ret->data);
         }
-        OPENVR_SSL_free(ret);
+        VR_OPENSSL_free(ret);
         ok = 1;
     }
 
@@ -362,7 +362,7 @@ void VR_OBJ_NAME_do_all_sorted(int type,
         for (n = 0; n < d.n; ++n)
             fn(d.names[n], arg);
 
-        OPENVR_SSL_free((void *)d.names);
+        VR_OPENSSL_free((void *)d.names);
     }
 }
 
@@ -379,7 +379,7 @@ static void names_lh_free_doall(OBJ_NAME *onp)
 
 static void name_funcs_free(NAME_FUNCS *ptr)
 {
-    OPENVR_SSL_free(ptr);
+    VR_OPENSSL_free(ptr);
 }
 
 void VR_OBJ_NAME_cleanup(int type)

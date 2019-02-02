@@ -103,7 +103,7 @@ BIO *VR_BIO_new(const BIO_METHOD *method)
     return bio;
 
 err:
-    OPENVR_SSL_free(bio);
+    VR_OPENSSL_free(bio);
     return NULL;
 }
 
@@ -135,7 +135,7 @@ int VR_BIO_free(BIO *a)
 
     VR_CRYPTO_THREAD_lock_free(a->lock);
 
-    OPENVR_SSL_free(a);
+    VR_OPENSSL_free(a);
 
     return 1;
 }
@@ -623,7 +623,7 @@ BIO *VR_BIO_get_retry_BIO(BIO *bio, int *reason)
 
     b = last = bio;
     for (;;) {
-        if (!BIO_should_retry(b))
+        if (!VR_BIO_should_retry(b))
             break;
         last = b;
         b = b->next_bio;

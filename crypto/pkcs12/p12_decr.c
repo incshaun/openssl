@@ -49,7 +49,7 @@ unsigned char *VR_PKCS12_pbe_crypt(const X509_ALGOR *algor,
     }
 
     if (!VR_EVP_CipherUpdate(ctx, out, &i, in, inlen)) {
-        OPENVR_SSL_free(out);
+        VR_OPENSSL_free(out);
         out = NULL;
         PKCS12err(PKCS12_F_PKCS12_PBE_CRYPT, ERR_R_EVP_LIB);
         goto err;
@@ -57,7 +57,7 @@ unsigned char *VR_PKCS12_pbe_crypt(const X509_ALGOR *algor,
 
     outlen = i;
     if (!VR_EVP_CipherFinal_ex(ctx, out + i, &i)) {
-        OPENVR_SSL_free(out);
+        VR_OPENSSL_free(out);
         out = NULL;
         PKCS12err(PKCS12_F_PKCS12_PBE_CRYPT,
                   PKCS12_R_PKCS12_CIPHERFINAL_ERROR);
@@ -112,7 +112,7 @@ void *VR_PKCS12_item_decrypt_d2i(const X509_ALGOR *algor, const ASN1_ITEM *it,
         VR_OPENSSL_cleanse(out, outlen);
     if (!ret)
         PKCS12err(PKCS12_F_PKCS12_ITEM_DECRYPT_D2I, PKCS12_R_DECODE_ERROR);
-    OPENVR_SSL_free(out);
+    VR_OPENSSL_free(out);
     return ret;
 }
 
@@ -142,12 +142,12 @@ ASN1_OCTET_STRING *VR_PKCS12_item_i2d_encrypt(X509_ALGOR *algor,
     if (!VR_PKCS12_pbe_crypt(algor, pass, passlen, in, inlen, &oct->data,
                           &oct->length, 1)) {
         PKCS12err(PKCS12_F_PKCS12_ITEM_I2D_ENCRYPT, PKCS12_R_ENCRYPT_ERROR);
-        OPENVR_SSL_free(in);
+        VR_OPENSSL_free(in);
         goto err;
     }
     if (zbuf)
         VR_OPENSSL_cleanse(in, inlen);
-    OPENVR_SSL_free(in);
+    VR_OPENSSL_free(in);
     return oct;
  err:
     VR_ASN1_OCTET_STRING_free(oct);

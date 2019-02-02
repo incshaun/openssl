@@ -402,12 +402,12 @@ int dgst_main(int argc, char **argv)
  end:
     OPENVR_SSL_clear_free(buf, BUFSIZE);
     VR_BIO_free(in);
-    OPENVR_SSL_free(passin);
+    VR_OPENSSL_free(passin);
     VR_BIO_free_all(out);
     VR_EVP_PKEY_free(sigkey);
     sk_VR_OPENSSL_STRING_free(sigopts);
     sk_VR_OPENSSL_STRING_free(macopts);
-    OPENVR_SSL_free(sigbuf);
+    VR_OPENSSL_free(sigbuf);
     VR_BIO_free(bmd);
     release_engine(e);
     return ret;

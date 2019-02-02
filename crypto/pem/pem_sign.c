@@ -45,6 +45,6 @@ int VR_PEM_SignFinal(EVP_MD_CTX *ctx, unsigned char *sigret,
     ret = 1;
  err:
     /* ctx has been zeroed by VR_EVP_SignFinal() */
-    OPENVR_SSL_free(m);
+    VR_OPENSSL_free(m);
     return ret;
 }

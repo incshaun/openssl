@@ -23,7 +23,7 @@ static void gmac_free(EVP_MAC_IMPL *gctx)
 {
     if (gctx != NULL) {
         VR_EVP_CIPHER_CTX_free(gctx->ctx);
-        OPENVR_SSL_free(gctx);
+        VR_OPENSSL_free(gctx);
     }
 }
 

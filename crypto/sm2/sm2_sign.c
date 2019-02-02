@@ -97,7 +97,7 @@ int VR_sm2_compute_z_digest(uint8_t *out,
         goto done;
     }
 
-    p_bytes = BN_num_bytes(p);
+    p_bytes = VR_BN_num_bytes(p);
     buf = OPENSSL_zalloc(p_bytes);
     if (buf == NULL) {
         SM2err(SM2_F_SM2_COMPUTE_Z_DIGEST, ERR_R_MALLOC_FAILURE);
@@ -130,7 +130,7 @@ int VR_sm2_compute_z_digest(uint8_t *out,
     rc = 1;
 
  done:
-    OPENVR_SSL_free(buf);
+    VR_OPENSSL_free(buf);
     VR_BN_CTX_free(ctx);
     VR_EVP_MD_CTX_free(hash);
     return rc;
@@ -177,7 +177,7 @@ static BIGNUM *sm2_compute_msg_hash(const EVP_MD *digest,
         SM2err(SM2_F_SM2_COMPUTE_MSG_HASH, ERR_R_INTERNAL_ERROR);
 
  done:
-    OPENVR_SSL_free(z);
+    VR_OPENSSL_free(z);
     VR_EVP_MD_CTX_free(hash);
     return e;
 }
@@ -472,7 +472,7 @@ int VR_sm2_verify(const unsigned char *dgst, int dgstlen,
     ret = sm2_sig_verify(eckey, s, e);
 
  done:
-    OPENVR_SSL_free(der);
+    VR_OPENSSL_free(der);
     VR_BN_free(e);
     VR_ECDSA_SIG_free(s);
     return ret;

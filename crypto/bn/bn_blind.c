@@ -41,7 +41,7 @@ BN_BLINDING *VR_BN_BLINDING_new(const BIGNUM *A, const BIGNUM *Ai, BIGNUM *mod)
     ret->lock = VR_CRYPTO_THREAD_lock_new();
     if (ret->lock == NULL) {
         BNerr(BN_F_BN_BLINDING_NEW, ERR_R_MALLOC_FAILURE);
-        OPENVR_SSL_free(ret);
+        VR_OPENSSL_free(ret);
         return NULL;
     }
 
@@ -87,7 +87,7 @@ void VR_BN_BLINDING_free(BN_BLINDING *r)
     VR_BN_free(r->e);
     VR_BN_free(r->mod);
     VR_CRYPTO_THREAD_lock_free(r->lock);
-    OPENVR_SSL_free(r);
+    VR_OPENSSL_free(r);
 }
 
 int VR_BN_BLINDING_update(BN_BLINDING *b, BN_CTX *ctx)

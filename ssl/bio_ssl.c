@@ -85,7 +85,7 @@ static int ssl_free(BIO *a)
         VR_BIO_clear_flags(a, ~0);
         VR_BIO_set_init(a, 0);
     }
-    OPENVR_SSL_free(bs);
+    VR_OPENSSL_free(bs);
     return 1;
 }
 
@@ -102,7 +102,7 @@ static int ssl_read(BIO *b, char *buf, size_t size, size_t *readbytes)
     sb = VR_BIO_get_data(b);
     ssl = sb->ssl;
 
-    BIO_clear_retry_flags(b);
+    VR_BIO_clear_retry_flags(b);
 
     ret = VR_ssl_read_internal(ssl, buf, size, readbytes);
 
@@ -171,7 +171,7 @@ static int ssl_write(BIO *b, const char *buf, size_t size, size_t *written)
     bs = VR_BIO_get_data(b);
     ssl = bs->ssl;
 
-    BIO_clear_retry_flags(b);
+    VR_BIO_clear_retry_flags(b);
 
     ret = VR_ssl_write_internal(ssl, buf, size, written);
 
@@ -316,10 +316,10 @@ static long ssl_ctrl(BIO *b, int cmd, long num, void *ptr)
     case BIO_CTRL_PENDING:
         ret = VR_SSL_pending(ssl);
         if (ret == 0)
-            ret = BIO_pending(ssl->rbio);
+            ret = VR_BIO_pending(ssl->rbio);
         break;
     case BIO_CTRL_FLUSH:
-        BIO_clear_retry_flags(b);
+        VR_BIO_clear_retry_flags(b);
         ret = VR_BIO_ctrl(ssl->wbio, cmd, num, ptr);
         VR_BIO_copy_next_retry(b);
         break;
@@ -341,7 +341,7 @@ static long ssl_ctrl(BIO *b, int cmd, long num, void *ptr)
         }
         break;
     case BIO_C_DO_STATE_MACHINE:
-        BIO_clear_retry_flags(b);
+        VR_BIO_clear_retry_flags(b);
 
         VR_BIO_set_retry_reason(b, 0);
         ret = (int)VR_SSL_do_handshake(ssl);
@@ -471,7 +471,7 @@ BIO *VR_BIO_new_ssl(SSL_CTX *ctx, int client)
     else
         VR_SSL_set_accept_state(ssl);
 
-    BIO_set_ssl(ret, ssl, BIO_CLOSE);
+    VR_BIO_set_ssl(ret, ssl, BIO_CLOSE);
     return ret;
 }
 

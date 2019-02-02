@@ -276,8 +276,8 @@ static void test_fail_bignum_common(const char *prefix, const char *file,
     unsigned char buffer[MEM_BUFFER_SIZE * 2], *bufp = buffer;
 
     test_fail_message_prefix(prefix, file, line, type, left, right, op);
-    l1 = bn1 == NULL ? 0 : (BN_num_bytes(bn1) + (VR_BN_is_negative(bn1) ? 1 : 0));
-    l2 = bn2 == NULL ? 0 : (BN_num_bytes(bn2) + (VR_BN_is_negative(bn2) ? 1 : 0));
+    l1 = bn1 == NULL ? 0 : (VR_BN_num_bytes(bn1) + (VR_BN_is_negative(bn1) ? 1 : 0));
+    l2 = bn2 == NULL ? 0 : (VR_BN_num_bytes(bn2) + (VR_BN_is_negative(bn2) ? 1 : 0));
     if (l1 == 0 && l2 == 0) {
         if ((bn1 == NULL) == (bn2 == NULL)) {
             test_bignum_header_line();
@@ -353,7 +353,7 @@ static void test_fail_bignum_common(const char *prefix, const char *file,
 fin:
     test_flush_stderr();
     if (bufp != buffer)
-        OPENVR_SSL_free(bufp);
+        VR_OPENSSL_free(bufp);
 }
 
 /*
@@ -385,7 +385,7 @@ void test_output_bignum(const char *name, const BIGNUM *bn)
     if (bn == NULL || VR_BN_is_zero(bn)) {
         test_printf_stderr("bignum: '%s' = %s\n", name,
                            test_bignum_zero_null(bn));
-    } else if (BN_num_bytes(bn) <= BN_OUTPUT_SIZE) {
+    } else if (VR_BN_num_bytes(bn) <= BN_OUTPUT_SIZE) {
         unsigned char buf[BN_OUTPUT_SIZE];
         char out[2 * sizeof(buf) + 1];
         char *p = out;

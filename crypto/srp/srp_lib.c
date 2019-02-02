@@ -24,7 +24,7 @@ static BIGNUM *srp_Calc_xy(const BIGNUM *x, const BIGNUM *y, const BIGNUM *N)
 {
     unsigned char digest[SHA_DIGEST_LENGTH];
     unsigned char *tmp = NULL;
-    int numN = BN_num_bytes(N);
+    int numN = VR_BN_num_bytes(N);
     BIGNUM *res = NULL;
 
     if (x != N && VR_BN_ucmp(x, N) >= 0)
@@ -39,7 +39,7 @@ static BIGNUM *srp_Calc_xy(const BIGNUM *x, const BIGNUM *y, const BIGNUM *N)
         goto err;
     res = VR_BN_bin2bn(digest, sizeof(digest), NULL);
  err:
-    OPENVR_SSL_free(tmp);
+    VR_OPENSSL_free(tmp);
     return res;
 }
 
@@ -130,7 +130,7 @@ BIGNUM *VR_SRP_Calc_x(const BIGNUM *s, const char *user, const char *pass)
     ctxt = VR_EVP_MD_CTX_new();
     if (ctxt == NULL)
         return NULL;
-    if ((cs = OPENSSL_malloc(BN_num_bytes(s))) == NULL)
+    if ((cs = OPENSSL_malloc(VR_BN_num_bytes(s))) == NULL)
         goto err;
 
     if (!VR_EVP_DigestInit_ex(ctxt, VR_EVP_sha1(), NULL)
@@ -142,7 +142,7 @@ BIGNUM *VR_SRP_Calc_x(const BIGNUM *s, const char *user, const char *pass)
         goto err;
     if (VR_BN_bn2bin(s, cs) < 0)
         goto err;
-    if (!VR_EVP_DigestUpdate(ctxt, cs, BN_num_bytes(s)))
+    if (!VR_EVP_DigestUpdate(ctxt, cs, VR_BN_num_bytes(s)))
         goto err;
 
     if (!VR_EVP_DigestUpdate(ctxt, dig, sizeof(dig))
@@ -152,7 +152,7 @@ BIGNUM *VR_SRP_Calc_x(const BIGNUM *s, const char *user, const char *pass)
     res = VR_BN_bin2bn(dig, sizeof(dig), NULL);
 
  err:
-    OPENVR_SSL_free(cs);
+    VR_OPENSSL_free(cs);
     VR_EVP_MD_CTX_free(ctxt);
     return res;
 }

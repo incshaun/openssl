@@ -52,9 +52,9 @@ static int test_b64(int idx)
     ret = 1;
  err:
     VR_BIO_free(b);
-    OPENVR_SSL_free(name);
-    OPENVR_SSL_free(header);
-    OPENVR_SSL_free(data);
+    VR_OPENSSL_free(name);
+    VR_OPENSSL_free(header);
+    VR_OPENSSL_free(data);
     return ret;
 }
 
@@ -77,9 +77,9 @@ static int test_invalid(void)
         return 0;
     }
     VR_BIO_free(b);
-    OPENVR_SSL_free(name);
-    OPENVR_SSL_free(header);
-    OPENVR_SSL_free(data);
+    VR_OPENSSL_free(name);
+    VR_OPENSSL_free(header);
+    VR_OPENSSL_free(data);
     return 1;
 }
 

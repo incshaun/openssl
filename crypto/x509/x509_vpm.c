@@ -30,7 +30,7 @@ static char *str_copy(const char *s)
 
 static void str_free(char *s)
 {
-    OPENVR_SSL_free(s);
+    VR_OPENSSL_free(s);
 }
 
 static int int_x509_param_set_hosts(X509_VERIFY_PARAM *vpm, int mode,
@@ -62,12 +62,12 @@ static int int_x509_param_set_hosts(X509_VERIFY_PARAM *vpm, int mode,
 
     if (vpm->hosts == NULL &&
         (vpm->hosts = sk_VR_OPENSSL_STRING_new_null()) == NULL) {
-        OPENVR_SSL_free(copy);
+        VR_OPENSSL_free(copy);
         return 0;
     }
 
     if (!sk_VR_OPENSSL_STRING_push(vpm->hosts, copy)) {
-        OPENVR_SSL_free(copy);
+        VR_OPENSSL_free(copy);
         if (sk_OPENSSL_STRING_num(vpm->hosts) == 0) {
             sk_VR_OPENSSL_STRING_free(vpm->hosts);
             vpm->hosts = NULL;
@@ -101,10 +101,10 @@ void VR_X509_VERIFY_PARAM_free(X509_VERIFY_PARAM *param)
         return;
     sk_VR_ASN1_OBJECT_pop_free(param->policies, VR_ASN1_OBJECT_free);
     sk_VR_OPENSSL_STRING_pop_free(param->hosts, str_free);
-    OPENVR_SSL_free(param->peername);
-    OPENVR_SSL_free(param->email);
-    OPENVR_SSL_free(param->ip);
-    OPENVR_SSL_free(param);
+    VR_OPENSSL_free(param->peername);
+    VR_OPENSSL_free(param->email);
+    VR_OPENSSL_free(param->ip);
+    VR_OPENSSL_free(param);
 }
 
 /*-
@@ -251,7 +251,7 @@ static int int_x509_param_set1(char **pdest, size_t *pdestlen,
         tmp = NULL;
         srclen = 0;
     }
-    OPENVR_SSL_free(*pdest);
+    VR_OPENSSL_free(*pdest);
     *pdest = tmp;
     if (pdestlen != NULL)
         *pdestlen = srclen;
@@ -260,7 +260,7 @@ static int int_x509_param_set1(char **pdest, size_t *pdestlen,
 
 int VR_X509_VERIFY_PARAM_set1_name(X509_VERIFY_PARAM *param, const char *name)
 {
-    OPENVR_SSL_free(param->name);
+    VR_OPENSSL_free(param->name);
     param->name = OPENSSL_strdup(name);
     if (param->name)
         return 1;
@@ -414,7 +414,7 @@ void VR_X509_VERIFY_PARAM_move_peername(X509_VERIFY_PARAM *to,
     char *peername = (from != NULL) ? from->peername : NULL;
 
     if (to->peername != peername) {
-        OPENVR_SSL_free(to->peername);
+        VR_OPENSSL_free(to->peername);
         to->peername = peername;
     }
     if (from)

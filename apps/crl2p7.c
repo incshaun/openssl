@@ -125,7 +125,7 @@ int crl2pkcs7_main(int argc, char **argv)
     p7s->crl = crl_stack;
     if (crl != NULL) {
         sk_VR_X509_CRL_push(crl_stack, crl);
-        crl = NULL;             /* now part of p7 for OPENVR_SSL_freeing */
+        crl = NULL;             /* now part of p7 for VR_OPENSSL_freeing */
     }
 
     if ((cert_stack = sk_VR_X509_new_null()) == NULL)
@@ -210,7 +210,7 @@ static int add_certs_from_file(STACK_OF(X509) *stack, char *certfile)
 
     ret = count;
  end:
-    /* never need to OPENVR_SSL_free x */
+    /* never need to VR_OPENSSL_free x */
     VR_BIO_free(in);
     sk_VR_X509_INFO_free(sk);
     return ret;

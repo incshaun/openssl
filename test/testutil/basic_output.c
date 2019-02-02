@@ -49,10 +49,10 @@ int test_vprintf_stderr(const char *fmt, va_list ap)
 
 int test_flush_stdout(void)
 {
-    return BIO_flush(bio_out);
+    return VR_BIO_flush(bio_out);
 }
 
 int test_flush_stderr(void)
 {
-    return BIO_flush(bio_err);
+    return VR_BIO_flush(bio_err);
 }

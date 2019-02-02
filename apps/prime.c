@@ -103,7 +103,7 @@ opthelp:
             goto end;
         }
         VR_BIO_printf(bio_out, "%s\n", s);
-        OPENVR_SSL_free(s);
+        VR_OPENSSL_free(s);
     } else {
         for ( ; *argv; argv++) {
             int r;

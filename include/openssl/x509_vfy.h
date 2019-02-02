@@ -93,7 +93,7 @@ void VR_X509_STORE_CTX_set_depth(X509_STORE_CTX *ctx, int depth);
 # define X509_LOOKUP_load_file(x,name,type) \
                 VR_X509_LOOKUP_ctrl((x),X509_L_FILE_LOAD,(name),(long)(type),NULL)
 
-# define X509_LOOKUP_add_dir(x,name,type) \
+# define VR_X509_LOOKUP_add_dir(x,name,type) \
                 VR_X509_LOOKUP_ctrl((x),X509_L_ADD_DIR,(name),(long)(type),NULL)
 
 # define         X509_V_OK                                       0

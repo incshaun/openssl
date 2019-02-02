@@ -111,7 +111,7 @@ int VR_tls1_new(SSL *s)
 
 void VR_tls1_free(SSL *s)
 {
-    OPENVR_SSL_free(s->ext.session_ticket);
+    VR_OPENSSL_free(s->ext.session_ticket);
     VR_ssl3_free(s);
 }
 
@@ -358,13 +358,13 @@ int VR_tls1_set_groups(uint16_t **pext, size_t *pextlen,
         id = tls1_nid2group_id(groups[i]);
         idmask = 1L << id;
         if (!id || (dup_list & idmask)) {
-            OPENVR_SSL_free(glist);
+            VR_OPENSSL_free(glist);
             return 0;
         }
         dup_list |= idmask;
         glist[i] = id;
     }
-    OPENVR_SSL_free(*pext);
+    VR_OPENSSL_free(*pext);
     *pext = glist;
     *pextlen = ngroups;
     return 1;
@@ -1215,7 +1215,7 @@ int VR_tls1_set_server_sigalgs(SSL *s)
     size_t i;
 
     /* Clear any shared signature algorithms */
-    OPENVR_SSL_free(s->cert->shared_sigalgs);
+    VR_OPENSSL_free(s->cert->shared_sigalgs);
     s->cert->shared_sigalgs = NULL;
     s->cert->shared_sigalgslen = 0;
     /* Clear certificate validity flags */
@@ -1438,12 +1438,12 @@ SSL_TICKET_STATUS VR_tls_decrypt_ticket(SSL *s, const unsigned char *etick,
     sdec = OPENSSL_malloc(eticklen);
     if (sdec == NULL || VR_EVP_DecryptUpdate(ctx, sdec, &slen, p,
                                           (int)eticklen) <= 0) {
-        OPENVR_SSL_free(sdec);
+        VR_OPENSSL_free(sdec);
         ret = SSL_TICKET_FATAL_ERR_OTHER;
         goto end;
     }
     if (VR_EVP_DecryptFinal(ctx, sdec + slen, &declen) <= 0) {
-        OPENVR_SSL_free(sdec);
+        VR_OPENSSL_free(sdec);
         ret = SSL_TICKET_NO_DECRYPT;
         goto end;
     }
@@ -1452,7 +1452,7 @@ SSL_TICKET_STATUS VR_tls_decrypt_ticket(SSL *s, const unsigned char *etick,
 
     sess = VR_d2i_SSL_SESSION(NULL, &p, slen);
     slen -= p - sdec;
-    OPENVR_SSL_free(sdec);
+    VR_OPENSSL_free(sdec);
     if (sess) {
         /* Some additional consistency checks */
         if (slen != 0) {
@@ -1724,7 +1724,7 @@ static int tls1_set_shared_sigalgs(SSL *s)
     CERT *c = s->cert;
     unsigned int is_suiteb = tls1_suiteb(s);
 
-    OPENVR_SSL_free(c->shared_sigalgs);
+    VR_OPENSSL_free(c->shared_sigalgs);
     c->shared_sigalgs = NULL;
     c->shared_sigalgslen = 0;
     /* If client use client signature algorithms if not NULL */
@@ -1784,11 +1784,11 @@ int VR_tls1_save_u16(PACKET *pkt, uint16_t **pdest, size_t *pdestlen)
         buf[i] = stmp;
 
     if (i != size) {
-        OPENVR_SSL_free(buf);
+        VR_OPENSSL_free(buf);
         return 0;
     }
 
-    OPENVR_SSL_free(*pdest);
+    VR_OPENSSL_free(*pdest);
     *pdest = buf;
     *pdestlen = size;
 
@@ -2014,11 +2014,11 @@ int VR_tls1_set_raw_sigalgs(CERT *c, const uint16_t *psigs, size_t salglen,
     memcpy(sigalgs, psigs, salglen * sizeof(*sigalgs));
 
     if (client) {
-        OPENVR_SSL_free(c->client_sigalgs);
+        VR_OPENSSL_free(c->client_sigalgs);
         c->client_sigalgs = sigalgs;
         c->client_sigalgslen = salglen;
     } else {
-        OPENVR_SSL_free(c->conf_sigalgs);
+        VR_OPENSSL_free(c->conf_sigalgs);
         c->conf_sigalgs = sigalgs;
         c->conf_sigalgslen = salglen;
     }
@@ -2056,11 +2056,11 @@ int VR_tls1_set_sigalgs(CERT *c, const int *psig_nids, size_t salglen, int clien
     }
 
     if (client) {
-        OPENVR_SSL_free(c->client_sigalgs);
+        VR_OPENSSL_free(c->client_sigalgs);
         c->client_sigalgs = sigalgs;
         c->client_sigalgslen = salglen / 2;
     } else {
-        OPENVR_SSL_free(c->conf_sigalgs);
+        VR_OPENSSL_free(c->conf_sigalgs);
         c->conf_sigalgs = sigalgs;
         c->conf_sigalgslen = salglen / 2;
     }
@@ -2068,7 +2068,7 @@ int VR_tls1_set_sigalgs(CERT *c, const int *psig_nids, size_t salglen, int clien
     return 1;
 
  err:
-    OPENVR_SSL_free(sigalgs);
+    VR_OPENSSL_free(sigalgs);
     return 0;
 }
 

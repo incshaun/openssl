@@ -76,7 +76,7 @@ int VR_i2d_ASN1_bio_stream(BIO *out, ASN1_VALUE *val, BIO *in, int flags,
             return 0;
         }
         VR_SMIME_crlf_copy(in, bio, flags);
-        (void)BIO_flush(bio);
+        (void)VR_BIO_flush(bio);
         /* Free up successive BIOs until we hit the old output BIO */
         do {
             tbio = VR_BIO_pop(bio);
@@ -110,7 +110,7 @@ static int B64_write_ASN1(BIO *out, ASN1_VALUE *val, BIO *in, int flags,
      */
     out = VR_BIO_push(b64, out);
     r = VR_i2d_ASN1_bio_stream(out, val, in, flags, it);
-    (void)BIO_flush(out);
+    (void)VR_BIO_flush(out);
     VR_BIO_pop(out);
     VR_BIO_free(b64);
     return r;
@@ -141,7 +141,7 @@ static ASN1_VALUE *b64_read_asn1(BIO *bio, const ASN1_ITEM *it)
     val = VR_ASN1_item_d2i_bio(it, bio, NULL);
     if (!val)
         ASN1err(ASN1_F_B64_READ_ASN1, ASN1_R_DECODE_ERROR);
-    (void)BIO_flush(bio);
+    (void)VR_BIO_flush(bio);
     VR_BIO_pop(bio);
     VR_BIO_free(b64);
     return val;
@@ -167,7 +167,7 @@ static int asn1_write_micalg(BIO *out, STACK_OF(X509_ALGOR) *mdalgs)
             rv = md->md_ctrl(NULL, EVP_MD_CTRL_MICALG, 0, &micstr);
             if (rv > 0) {
                 VR_BIO_puts(out, micstr);
-                OPENVR_SSL_free(micstr);
+                VR_OPENSSL_free(micstr);
                 continue;
             }
             if (rv != -2)
@@ -515,7 +515,7 @@ int VR_SMIME_crlf_copy(BIO *in, BIO *out, int flags)
                 VR_BIO_write(out, "\r\n", 2);
         }
     }
-    (void)BIO_flush(out);
+    (void)VR_BIO_flush(out);
     VR_BIO_pop(out);
     VR_BIO_free(bf);
     return 1;
@@ -815,9 +815,9 @@ static MIME_HEADER *mime_hdr_new(const char *name, const char *value)
     return mhdr;
 
  err:
-    OPENVR_SSL_free(tmpname);
-    OPENVR_SSL_free(tmpval);
-    OPENVR_SSL_free(mhdr);
+    VR_OPENSSL_free(tmpname);
+    VR_OPENSSL_free(tmpval);
+    VR_OPENSSL_free(mhdr);
     return NULL;
 }
 
@@ -848,9 +848,9 @@ static int mime_hdr_addparam(MIME_HEADER *mhdr, const char *name, const char *va
         goto err;
     return 1;
  err:
-    OPENVR_SSL_free(tmpname);
-    OPENVR_SSL_free(tmpval);
-    OPENVR_SSL_free(mparam);
+    VR_OPENSSL_free(tmpname);
+    VR_OPENSSL_free(tmpval);
+    VR_OPENSSL_free(mparam);
     return 0;
 }
 
@@ -901,18 +901,18 @@ static void mime_hdr_free(MIME_HEADER *hdr)
 {
     if (hdr == NULL)
         return;
-    OPENVR_SSL_free(hdr->name);
-    OPENVR_SSL_free(hdr->value);
+    VR_OPENSSL_free(hdr->name);
+    VR_OPENSSL_free(hdr->value);
     if (hdr->params)
         sk_VR_MIME_PARAM_pop_free(hdr->params, mime_param_free);
-    OPENVR_SSL_free(hdr);
+    VR_OPENSSL_free(hdr);
 }
 
 static void mime_param_free(MIME_PARAM *param)
 {
-    OPENVR_SSL_free(param->param_name);
-    OPENVR_SSL_free(param->param_value);
-    OPENVR_SSL_free(param);
+    VR_OPENSSL_free(param->param_name);
+    VR_OPENSSL_free(param->param_value);
+    VR_OPENSSL_free(param);
 }
 
 /*-

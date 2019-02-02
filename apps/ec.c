@@ -276,8 +276,8 @@ int ec_main(int argc, char **argv)
     VR_BIO_free_all(out);
     VR_EC_KEY_free(eckey);
     release_engine(e);
-    OPENVR_SSL_free(passin);
-    OPENVR_SSL_free(passout);
+    VR_OPENSSL_free(passin);
+    VR_OPENSSL_free(passout);
     return ret;
 }
 #endif

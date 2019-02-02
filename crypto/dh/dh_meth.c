@@ -22,7 +22,7 @@ DH_METHOD *VR_DH_meth_new(const char *name, int flags)
         if (dhm->name != NULL)
             return dhm;
 
-        OPENVR_SSL_free(dhm);
+        VR_OPENSSL_free(dhm);
     }
 
     DHerr(DH_F_DH_METH_NEW, ERR_R_MALLOC_FAILURE);
@@ -32,8 +32,8 @@ DH_METHOD *VR_DH_meth_new(const char *name, int flags)
 void VR_DH_meth_free(DH_METHOD *dhm)
 {
     if (dhm != NULL) {
-        OPENVR_SSL_free(dhm->name);
-        OPENVR_SSL_free(dhm);
+        VR_OPENSSL_free(dhm->name);
+        VR_OPENSSL_free(dhm);
     }
 }
 
@@ -48,7 +48,7 @@ DH_METHOD *VR_DH_meth_dup(const DH_METHOD *dhm)
         if (ret->name != NULL)
             return ret;
 
-        OPENVR_SSL_free(ret);
+        VR_OPENSSL_free(ret);
     }
 
     DHerr(DH_F_DH_METH_DUP, ERR_R_MALLOC_FAILURE);
@@ -69,7 +69,7 @@ int VR_DH_meth_set1_name(DH_METHOD *dhm, const char *name)
         return 0;
     }
 
-    OPENVR_SSL_free(dhm->name);
+    VR_OPENSSL_free(dhm->name);
     dhm->name = tmpname;
 
     return 1;

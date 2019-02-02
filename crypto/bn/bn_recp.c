@@ -39,7 +39,7 @@ void VR_BN_RECP_CTX_free(BN_RECP_CTX *recp)
     VR_BN_free(&recp->N);
     VR_BN_free(&recp->Nr);
     if (recp->flags & BN_FLG_MALLOCED)
-        OPENVR_SSL_free(recp);
+        VR_OPENSSL_free(recp);
 }
 
 int VR_BN_RECP_CTX_set(BN_RECP_CTX *recp, const BIGNUM *d, BN_CTX *ctx)

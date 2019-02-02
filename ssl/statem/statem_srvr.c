@@ -289,7 +289,7 @@ int VR_ossl_statem_server_read_transition(SSL *s, int mt)
         s->init_num = 0;
         s->rwstate = SSL_READING;
         rbio = VR_SSL_get_rbio(s);
-        BIO_clear_retry_flags(rbio);
+        VR_BIO_clear_retry_flags(rbio);
         BIO_set_retry_read(rbio);
         return 0;
     }
@@ -1526,7 +1526,7 @@ MSG_PROCESS_RETURN VR_tls_process_client_hello(SSL *s, PACKET *pkt)
              */
             if (VR_SSL_get_options(s) & SSL_OP_COOKIE_EXCHANGE) {
                 if (clienthello->dtls_cookie_len == 0) {
-                    OPENVR_SSL_free(clienthello);
+                    VR_OPENSSL_free(clienthello);
                     return MSG_PROCESS_FINISHED_READING;
                 }
             }
@@ -1579,8 +1579,8 @@ MSG_PROCESS_RETURN VR_tls_process_client_hello(SSL *s, PACKET *pkt)
 
  err:
     if (clienthello != NULL)
-        OPENVR_SSL_free(clienthello->pre_proc_exts);
-    OPENVR_SSL_free(clienthello);
+        VR_OPENSSL_free(clienthello->pre_proc_exts);
+    VR_OPENSSL_free(clienthello);
 
     return MSG_PROCESS_ERROR;
 }
@@ -2068,15 +2068,15 @@ static int tls_early_post_process_client_hello(SSL *s)
 
     sk_VR_SSL_CIPHER_free(ciphers);
     sk_VR_SSL_CIPHER_free(scsvs);
-    OPENVR_SSL_free(clienthello->pre_proc_exts);
-    OPENVR_SSL_free(s->clienthello);
+    VR_OPENSSL_free(clienthello->pre_proc_exts);
+    VR_OPENSSL_free(s->clienthello);
     s->clienthello = NULL;
     return 1;
  err:
     sk_VR_SSL_CIPHER_free(ciphers);
     sk_VR_SSL_CIPHER_free(scsvs);
-    OPENVR_SSL_free(clienthello->pre_proc_exts);
-    OPENVR_SSL_free(s->clienthello);
+    VR_OPENSSL_free(clienthello->pre_proc_exts);
+    VR_OPENSSL_free(s->clienthello);
     s->clienthello = NULL;
 
     return 0;
@@ -2148,7 +2148,7 @@ int VR_tls_handle_alpn(SSL *s)
                                            s->ctx->ext.alpn_select_cb_arg);
 
         if (r == SSL_TLSEXT_ERR_OK) {
-            OPENVR_SSL_free(s->s3->alpn_selected);
+            VR_OPENSSL_free(s->s3->alpn_selected);
             s->s3->alpn_selected = OPENSSL_memdup(selected, selected_len);
             if (s->s3->alpn_selected == NULL) {
                 SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_HANDLE_ALPN,
@@ -2696,7 +2696,7 @@ int VR_tls_construct_server_key_exchange(SSL *s, WPACKET *pkt)
          * as the prime
          */
         if ((i == 2) && (type & (SSL_kDHE | SSL_kDHEPSK))) {
-            size_t len = BN_num_bytes(r[0]) - BN_num_bytes(r[2]);
+            size_t len = VR_BN_num_bytes(r[0]) - VR_BN_num_bytes(r[2]);
 
             if (len > 0) {
                 if (!VR_WPACKET_allocate_bytes(pkt, len, &binval)) {
@@ -2709,7 +2709,7 @@ int VR_tls_construct_server_key_exchange(SSL *s, WPACKET *pkt)
             }
         }
 #endif
-        if (!VR_WPACKET_allocate_bytes(pkt, BN_num_bytes(r[i]), &binval)
+        if (!VR_WPACKET_allocate_bytes(pkt, VR_BN_num_bytes(r[i]), &binval)
                 || !VR_WPACKET_close(pkt)) {
             SSLfatal(s, SSL_AD_INTERNAL_ERROR,
                      SSL_F_TLS_CONSTRUCT_SERVER_KEY_EXCHANGE,
@@ -2737,7 +2737,7 @@ int VR_tls_construct_server_key_exchange(SSL *s, WPACKET *pkt)
                      ERR_R_INTERNAL_ERROR);
             goto err;
         }
-        OPENVR_SSL_free(encodedPoint);
+        VR_OPENSSL_free(encodedPoint);
         encodedPoint = NULL;
     }
 #endif
@@ -2802,7 +2802,7 @@ int VR_tls_construct_server_key_exchange(SSL *s, WPACKET *pkt)
             goto err;
         }
         rv = VR_EVP_DigestSign(md_ctx, sigbytes1, &siglen, tbs, tbslen);
-        OPENVR_SSL_free(tbs);
+        VR_OPENSSL_free(tbs);
         if (rv <= 0 || !WPACKET_sub_allocate_bytes_u16(pkt, siglen, &sigbytes2)
             || sigbytes1 != sigbytes2) {
             SSLfatal(s, SSL_AD_INTERNAL_ERROR,
@@ -2819,7 +2819,7 @@ int VR_tls_construct_server_key_exchange(SSL *s, WPACKET *pkt)
     VR_EVP_PKEY_free(pkdh);
 #endif
 #ifndef OPENSSL_NO_EC
-    OPENVR_SSL_free(encodedPoint);
+    VR_OPENSSL_free(encodedPoint);
 #endif
     VR_EVP_MD_CTX_free(md_ctx);
     return 0;
@@ -2830,7 +2830,7 @@ int VR_tls_construct_certificate_request(SSL *s, WPACKET *pkt)
     if (SSL_IS_TLS13(s)) {
         /* Send random context when doing post-handshake auth */
         if (s->post_handshake_auth == SSL_PHA_REQUEST_PENDING) {
-            OPENVR_SSL_free(s->pha_context);
+            VR_OPENSSL_free(s->pha_context);
             s->pha_context_len = 32;
             if ((s->pha_context = OPENSSL_malloc(s->pha_context_len)) == NULL
                     || VR_RAND_bytes(s->pha_context, s->pha_context_len) <= 0
@@ -2943,7 +2943,7 @@ static int tls_process_cke_psk_preamble(SSL *s, PACKET *pkt)
         return 0;
     }
 
-    OPENVR_SSL_free(s->s3->tmp.psk);
+    VR_OPENSSL_free(s->s3->tmp.psk);
     s->s3->tmp.psk = OPENSSL_memdup(psk, psklen);
     VR_OPENSSL_cleanse(psk, psklen);
 
@@ -3125,7 +3125,7 @@ static int tls_process_cke_rsa(SSL *s, PACKET *pkt)
 
     ret = 1;
  err:
-    OPENVR_SSL_free(rsa_decrypt);
+    VR_OPENSSL_free(rsa_decrypt);
     return ret;
 #else
     /* Should never happen */
@@ -3293,7 +3293,7 @@ static int tls_process_cke_srp(SSL *s, PACKET *pkt)
                  SSL_R_BAD_SRP_PARAMETERS);
         return 0;
     }
-    OPENVR_SSL_free(s->session->srp_username);
+    VR_OPENSSL_free(s->session->srp_username);
     s->session->srp_username = OPENSSL_strdup(s->srp_ctx.login);
     if (s->session->srp_username == NULL) {
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_PROCESS_CKE_SRP,
@@ -3645,10 +3645,10 @@ MSG_PROCESS_RETURN VR_tls_process_client_certificate(SSL *s, PACKET *pkt)
                 || !VR_tls_parse_all_extensions(s, SSL_EXT_TLS1_3_CERTIFICATE,
                                              rawexts, x, chainidx,
                                              PACKET_remaining(&spkt) == 0)) {
-                OPENVR_SSL_free(rawexts);
+                VR_OPENSSL_free(rawexts);
                 goto err;
             }
-            OPENVR_SSL_free(rawexts);
+            VR_OPENSSL_free(rawexts);
         }
 
         if (!sk_VR_X509_push(sk, x)) {
@@ -3927,7 +3927,7 @@ static int construct_stateless_ticket(SSL *s, WPACKET *pkt, uint32_t age_add,
                          ERR_R_INTERNAL_ERROR);
                 goto err;
             }
-            OPENVR_SSL_free(senc);
+            VR_OPENSSL_free(senc);
             VR_EVP_CIPHER_CTX_free(ctx);
             VR_HMAC_CTX_free(hctx);
             return 1;
@@ -3999,7 +3999,7 @@ static int construct_stateless_ticket(SSL *s, WPACKET *pkt, uint32_t age_add,
 
     ok = 1;
  err:
-    OPENVR_SSL_free(senc);
+    VR_OPENSSL_free(senc);
     VR_EVP_CIPHER_CTX_free(ctx);
     VR_HMAC_CTX_free(hctx);
     return ok;
@@ -4119,7 +4119,7 @@ int VR_tls_construct_new_session_ticket(SSL *s, WPACKET *pkt)
 
         s->session->time = (long)time(NULL);
         if (s->s3->alpn_selected != NULL) {
-            OPENVR_SSL_free(s->session->ext.alpn_selected);
+            VR_OPENSSL_free(s->session->ext.alpn_selected);
             s->session->ext.alpn_selected =
                 OPENSSL_memdup(s->s3->alpn_selected, s->s3->alpn_selected_len);
             if (s->session->ext.alpn_selected == NULL) {

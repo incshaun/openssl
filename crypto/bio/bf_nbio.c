@@ -72,7 +72,7 @@ static int nbiof_free(BIO *a)
 {
     if (a == NULL)
         return 0;
-    OPENVR_SSL_free(a->ptr);
+    VR_OPENSSL_free(a->ptr);
     a->ptr = NULL;
     a->init = 0;
     a->flags = 0;
@@ -90,7 +90,7 @@ static int nbiof_read(BIO *b, char *out, int outl)
     if (b->next_bio == NULL)
         return 0;
 
-    BIO_clear_retry_flags(b);
+    VR_BIO_clear_retry_flags(b);
     if (VR_RAND_priv_bytes(&n, 1) <= 0)
         return -1;
     num = (n & 0x07);
@@ -122,7 +122,7 @@ static int nbiof_write(BIO *b, const char *in, int inl)
         return 0;
     nt = (NBIO_TEST *)b->ptr;
 
-    BIO_clear_retry_flags(b);
+    VR_BIO_clear_retry_flags(b);
 
     if (nt->lwn > 0) {
         num = nt->lwn;
@@ -157,7 +157,7 @@ static long nbiof_ctrl(BIO *b, int cmd, long num, void *ptr)
         return 0;
     switch (cmd) {
     case BIO_C_DO_STATE_MACHINE:
-        BIO_clear_retry_flags(b);
+        VR_BIO_clear_retry_flags(b);
         ret = VR_BIO_ctrl(b->next_bio, cmd, num, ptr);
         VR_BIO_copy_next_retry(b);
         break;

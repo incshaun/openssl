@@ -98,7 +98,7 @@ static int md_read(BIO *b, char *out, int outl)
                 return -1;
         }
     }
-    BIO_clear_retry_flags(b);
+    VR_BIO_clear_retry_flags(b);
     VR_BIO_copy_next_retry(b);
     return ret;
 }
@@ -121,13 +121,13 @@ static int md_write(BIO *b, const char *in, int inl)
         if (ret > 0) {
             if (!VR_EVP_DigestUpdate(ctx, (const unsigned char *)in,
                                   (unsigned int)ret)) {
-                BIO_clear_retry_flags(b);
+                VR_BIO_clear_retry_flags(b);
                 return 0;
             }
         }
     }
     if (next != NULL) {
-        BIO_clear_retry_flags(b);
+        VR_BIO_clear_retry_flags(b);
         VR_BIO_copy_next_retry(b);
     }
     return ret;
@@ -173,7 +173,7 @@ static long md_ctrl(BIO *b, int cmd, long num, void *ptr)
             ret = 0;
         break;
     case BIO_C_DO_STATE_MACHINE:
-        BIO_clear_retry_flags(b);
+        VR_BIO_clear_retry_flags(b);
         ret = VR_BIO_ctrl(next, cmd, num, ptr);
         VR_BIO_copy_next_retry(b);
         break;

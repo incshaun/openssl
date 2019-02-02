@@ -3324,15 +3324,15 @@ void VR_ssl3_free(SSL *s)
     s->s3->tmp.pkey = NULL;
 #endif
 
-    OPENVR_SSL_free(s->s3->tmp.ctype);
+    VR_OPENSSL_free(s->s3->tmp.ctype);
     sk_VR_X509_NAME_pop_free(s->s3->tmp.peer_ca_names, VR_X509_NAME_free);
-    OPENVR_SSL_free(s->s3->tmp.ciphers_raw);
+    VR_OPENSSL_free(s->s3->tmp.ciphers_raw);
     OPENVR_SSL_clear_free(s->s3->tmp.pms, s->s3->tmp.pmslen);
-    OPENVR_SSL_free(s->s3->tmp.peer_sigalgs);
-    OPENVR_SSL_free(s->s3->tmp.peer_cert_sigalgs);
+    VR_OPENSSL_free(s->s3->tmp.peer_sigalgs);
+    VR_OPENSSL_free(s->s3->tmp.peer_cert_sigalgs);
     VR_ssl3_free_digest_list(s);
-    OPENVR_SSL_free(s->s3->alpn_selected);
-    OPENVR_SSL_free(s->s3->alpn_proposed);
+    VR_OPENSSL_free(s->s3->alpn_selected);
+    VR_OPENSSL_free(s->s3->alpn_proposed);
 
 #ifndef OPENSSL_NO_SRP
     VR_SSL_SRP_CTX_free(s);
@@ -3344,12 +3344,12 @@ void VR_ssl3_free(SSL *s)
 int VR_ssl3_clear(SSL *s)
 {
     VR_ssl3_cleanup_key_block(s);
-    OPENVR_SSL_free(s->s3->tmp.ctype);
+    VR_OPENSSL_free(s->s3->tmp.ctype);
     sk_VR_X509_NAME_pop_free(s->s3->tmp.peer_ca_names, VR_X509_NAME_free);
-    OPENVR_SSL_free(s->s3->tmp.ciphers_raw);
+    VR_OPENSSL_free(s->s3->tmp.ciphers_raw);
     OPENVR_SSL_clear_free(s->s3->tmp.pms, s->s3->tmp.pmslen);
-    OPENVR_SSL_free(s->s3->tmp.peer_sigalgs);
-    OPENVR_SSL_free(s->s3->tmp.peer_cert_sigalgs);
+    VR_OPENSSL_free(s->s3->tmp.peer_sigalgs);
+    VR_OPENSSL_free(s->s3->tmp.peer_cert_sigalgs);
 
 #if !defined(OPENSSL_NO_EC) || !defined(OPENSSL_NO_DH)
     VR_EVP_PKEY_free(s->s3->tmp.pkey);
@@ -3358,8 +3358,8 @@ int VR_ssl3_clear(SSL *s)
 
     VR_ssl3_free_digest_list(s);
 
-    OPENVR_SSL_free(s->s3->alpn_selected);
-    OPENVR_SSL_free(s->s3->alpn_proposed);
+    VR_OPENSSL_free(s->s3->alpn_selected);
+    VR_OPENSSL_free(s->s3->alpn_proposed);
 
     /* NULL/zero-out everything in the s3 struct */
     memset(s->s3, 0, sizeof(*s->s3));
@@ -3370,7 +3370,7 @@ int VR_ssl3_clear(SSL *s)
     s->version = SSL3_VERSION;
 
 #if !defined(OPENSSL_NO_NEXTPROTONEG)
-    OPENVR_SSL_free(s->ext.npn);
+    VR_OPENSSL_free(s->ext.npn);
     s->ext.npn = NULL;
     s->ext.npn_len = 0;
 #endif
@@ -3478,7 +3478,7 @@ long VR_ssl3_ctrl(SSL *s, int cmd, long larg, void *parg)
         if (larg == TLSEXT_NAMETYPE_host_name) {
             size_t len;
 
-            OPENVR_SSL_free(s->ext.hostname);
+            VR_OPENSSL_free(s->ext.hostname);
             s->ext.hostname = NULL;
 
             ret = 1;
@@ -3540,7 +3540,7 @@ long VR_ssl3_ctrl(SSL *s, int cmd, long larg, void *parg)
         return (long)s->ext.ocsp.resp_len;
 
     case SSL_CTRL_SET_TLSEXT_STATUS_REQ_OCSP_RESP:
-        OPENVR_SSL_free(s->ext.ocsp.resp);
+        VR_OPENSSL_free(s->ext.ocsp.resp);
         s->ext.ocsp.resp = parg;
         s->ext.ocsp.resp_len = larg;
         ret = 1;
@@ -3881,7 +3881,7 @@ long VR_ssl3_ctx_ctrl(SSL_CTX *ctx, int cmd, long larg, void *parg)
 #ifndef OPENSSL_NO_SRP
     case SSL_CTRL_SET_TLS_EXT_SRP_USERNAME:
         ctx->srp_ctx.srp_Mask |= SSL_kSRP;
-        OPENVR_SSL_free(ctx->srp_ctx.login);
+        VR_OPENSSL_free(ctx->srp_ctx.login);
         ctx->srp_ctx.login = NULL;
         if (parg == NULL)
             break;
@@ -3898,7 +3898,7 @@ long VR_ssl3_ctx_ctrl(SSL_CTX *ctx, int cmd, long larg, void *parg)
         ctx->srp_ctx.SRP_give_srp_client_pwd_callback =
             srp_password_from_info_cb;
         if (ctx->srp_ctx.info != NULL)
-            OPENVR_SSL_free(ctx->srp_ctx.info);
+            VR_OPENSSL_free(ctx->srp_ctx.info);
         if ((ctx->srp_ctx.info = BUF_strdup((char *)parg)) == NULL) {
             SSLerr(SSL_F_SSL3_CTX_CTRL, ERR_R_INTERNAL_ERROR);
             return 0;
@@ -4386,7 +4386,7 @@ int VR_ssl3_get_req_cert_type(SSL *s, WPACKET *pkt)
 
 static int ssl3_set_req_cert_type(CERT *c, const unsigned char *p, size_t len)
 {
-    OPENVR_SSL_free(c->ctype);
+    VR_OPENSSL_free(c->ctype);
     c->ctype = NULL;
     c->ctype_len = 0;
     if (p == NULL || len == 0)

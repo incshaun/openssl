@@ -211,7 +211,7 @@ static int slg_write(BIO *b, const char *in, int inl)
 
     xsyslog(b, priority, pp);
 
-    OPENVR_SSL_free(buf);
+    VR_OPENSSL_free(buf);
     return ret;
 }
 
@@ -378,7 +378,7 @@ static void xsyslog(BIO *bp, int priority, const char *string)
 
     sys$sndopr(opc_dsc, 0);
 
-    OPENVR_SSL_free(opcdef_p);
+    VR_OPENSSL_free(opcdef_p);
 }
 
 static void xcloselog(BIO *bp)

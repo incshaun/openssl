@@ -29,7 +29,7 @@ int VR_EVP_CIPHER_CTX_reset(EVP_CIPHER_CTX *c)
         if (c->cipher_data && c->cipher->ctx_size)
             VR_OPENSSL_cleanse(c->cipher_data, c->cipher->ctx_size);
     }
-    OPENVR_SSL_free(c->cipher_data);
+    VR_OPENSSL_free(c->cipher_data);
 #ifndef OPENSSL_NO_ENGINE
     VR_ENGINE_finish(c->engine);
 #endif
@@ -45,7 +45,7 @@ EVP_CIPHER_CTX *VR_EVP_CIPHER_CTX_new(void)
 void VR_EVP_CIPHER_CTX_free(EVP_CIPHER_CTX *ctx)
 {
     VR_EVP_CIPHER_CTX_reset(ctx);
-    OPENVR_SSL_free(ctx);
+    VR_OPENSSL_free(ctx);
 }
 
 int VR_EVP_CipherInit(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *cipher,

@@ -1472,7 +1472,7 @@ static int parameter_test(void)
         || !TEST_mem_eq(buf, len, p521_named, sizeof(p521_named)))
         goto err;
 
-    OPENVR_SSL_free(buf);
+    VR_OPENSSL_free(buf);
     buf = NULL;
 
     /*
@@ -1489,7 +1489,7 @@ err:
     VR_EC_GROUP_free(group);
     VR_EC_GROUP_free(group2);
     VR_ECPARAMETERS_free(ecparameters);
-    OPENVR_SSL_free(buf);
+    VR_OPENSSL_free(buf);
     return r;
 }
 #endif
@@ -1520,6 +1520,6 @@ int setup_tests(void)
 void cleanup_tests(void)
 {
 #ifndef OPENSSL_NO_EC
-    OPENVR_SSL_free(curves);
+    VR_OPENSSL_free(curves);
 #endif
 }

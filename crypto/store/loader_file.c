@@ -83,7 +83,7 @@ static char *file_get_pass(const UI_METHOD *ui_method, char *pass,
         }
     }
 
-    OPENVR_SSL_free(prompt);
+    VR_OPENSSL_free(prompt);
     VR_UI_free(ui);
     return pass;
 }
@@ -741,7 +741,7 @@ struct ossl_store_loader_ctx_st {
 static void OSSL_STORE_LOADER_CTX_free(OSSL_STORE_LOADER_CTX *ctx)
 {
     if (ctx->type == is_dir) {
-        OPENVR_SSL_free(ctx->_.dir.uri);
+        VR_OPENSSL_free(ctx->_.dir.uri);
     } else {
         if (ctx->_.file.last_handler != NULL) {
             ctx->_.file.last_handler->destroy_ctx(&ctx->_.file.last_handler_ctx);
@@ -749,7 +749,7 @@ static void OSSL_STORE_LOADER_CTX_free(OSSL_STORE_LOADER_CTX *ctx)
             ctx->_.file.last_handler = NULL;
         }
     }
-    OPENVR_SSL_free(ctx);
+    VR_OPENSSL_free(ctx);
 }
 
 static OSSL_STORE_LOADER_CTX *file_open(const OSSL_STORE_LOADER *loader,
@@ -1041,11 +1041,11 @@ static OSSL_STORE_INFO *file_load_try_decode(OSSL_STORE_LOADER_CTX *ctx,
             ctx->_.file.last_handler_ctx = handler_ctx;
         }
 
-        OPENVR_SSL_free(matching_handlers);
+        VR_OPENSSL_free(matching_handlers);
     }
 
  err:
-    OPENVR_SSL_free(new_pem_name);
+    VR_OPENSSL_free(new_pem_name);
     VR_BUF_MEM_free(new_mem);
 
     if (result != NULL
@@ -1055,7 +1055,7 @@ static OSSL_STORE_INFO *file_load_try_decode(OSSL_STORE_LOADER_CTX *ctx,
         new_mem = VR_ossl_store_info_get0_EMBEDDED_buffer(result);
         data = (unsigned char *)new_mem->data;
         len = new_mem->length;
-        OPENVR_SSL_free(result);
+        VR_OPENSSL_free(result);
         result = NULL;
         goto again;
     }
@@ -1094,7 +1094,7 @@ static void pem_free_flag(void *pem_data, int secure, size_t num)
     if (secure)
         OPENSSL_secure_clear_free(pem_data, num);
     else
-        OPENVR_SSL_free(pem_data);
+        VR_OPENSSL_free(pem_data);
 }
 static int file_read_pem(BIO *bp, char **pem_name, char **pem_header,
                          unsigned char **data, long *len,
@@ -1138,7 +1138,7 @@ static int file_read_asn1(BIO *bp, unsigned char **data, long *len)
 
     *data = (unsigned char *)mem->data;
     *len = (long)mem->length;
-    OPENVR_SSL_free(mem);
+    VR_OPENSSL_free(mem);
 
     return 1;
 }
@@ -1288,7 +1288,7 @@ static OSSL_STORE_INFO *file_load(OSSL_STORE_LOADER_CTX *ctx,
 
             if (newname != NULL
                 && (result = VR_OSSL_STORE_INFO_new_NAME(newname)) == NULL) {
-                OPENVR_SSL_free(newname);
+                VR_OPENSSL_free(newname);
                 OSSL_STOREerr(OSSL_STORE_F_FILE_LOAD, ERR_R_OSSL_STORE_LIB);
                 return NULL;
             }

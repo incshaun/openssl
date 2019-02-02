@@ -46,14 +46,14 @@ static void ssl_module_free(CONF_IMODULE *md)
     for (i = 0; i < ssl_names_count; i++) {
         struct ssl_conf_name_st *tname = ssl_names + i;
 
-        OPENVR_SSL_free(tname->name);
+        VR_OPENSSL_free(tname->name);
         for (j = 0; j < tname->cmd_count; j++) {
-            OPENVR_SSL_free(tname->cmds[j].cmd);
-            OPENVR_SSL_free(tname->cmds[j].arg);
+            VR_OPENSSL_free(tname->cmds[j].cmd);
+            VR_OPENSSL_free(tname->cmds[j].arg);
         }
-        OPENVR_SSL_free(tname->cmds);
+        VR_OPENSSL_free(tname->cmds);
     }
-    OPENVR_SSL_free(ssl_names);
+    VR_OPENSSL_free(ssl_names);
     ssl_names = NULL;
     ssl_names_count = 0;
 }

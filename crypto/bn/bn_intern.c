@@ -134,7 +134,7 @@ signed char *VR_bn_compute_wNAF(const BIGNUM *scalar, int w, size_t *ret_len)
     return r;
 
  err:
-    OPENVR_SSL_free(r);
+    VR_OPENSSL_free(r);
     return NULL;
 }
 

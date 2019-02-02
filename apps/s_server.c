@@ -161,12 +161,12 @@ static unsigned int psk_server_cb(SSL *ssl, const char *identity,
         VR_BIO_printf(bio_err,
                    "psk buffer of callback is too small (%d) for key (%ld)\n",
                    max_psk_len, key_len);
-        OPENVR_SSL_free(key);
+        VR_OPENSSL_free(key);
         return 0;
     }
 
     memcpy(psk, key, key_len);
-    OPENVR_SSL_free(key);
+    VR_OPENSSL_free(key);
 
     if (s_debug)
         VR_BIO_printf(bio_s_out, "fetched PSK len=%ld\n", key_len);
@@ -174,8 +174,8 @@ static unsigned int psk_server_cb(SSL *ssl, const char *identity,
  out_err:
     if (s_debug)
         VR_BIO_printf(bio_err, "Error in PSK server callback\n");
-    (void)BIO_flush(bio_err);
-    (void)BIO_flush(bio_s_out);
+    (void)VR_BIO_flush(bio_err);
+    (void)VR_BIO_flush(bio_s_out);
     return 0;
 }
 #endif
@@ -214,7 +214,7 @@ static int psk_find_session_cb(SSL *ssl, const unsigned char *identity,
     cipher = VR_SSL_CIPHER_find(ssl, tls13_aes128gcmsha256_id);
     if (cipher == NULL) {
         VR_BIO_printf(bio_err, "Error finding suitable ciphersuite\n");
-        OPENVR_SSL_free(key);
+        VR_OPENSSL_free(key);
         return 0;
     }
 
@@ -223,10 +223,10 @@ static int psk_find_session_cb(SSL *ssl, const unsigned char *identity,
             || !VR_SSL_SESSION_set1_master_key(tmpsess, key, key_len)
             || !VR_SSL_SESSION_set_cipher(tmpsess, cipher)
             || !VR_SSL_SESSION_set_protocol_version(tmpsess, VR_SSL_version(ssl))) {
-        OPENVR_SSL_free(key);
+        VR_OPENSSL_free(key);
         return 0;
     }
-    OPENVR_SSL_free(key);
+    VR_OPENSSL_free(key);
     *sess = tmpsess;
 
     return 1;
@@ -344,7 +344,7 @@ static int ebcdic_free(BIO *a)
     if (a == NULL)
         return 0;
     wbuf = VR_BIO_get_data(a);
-    OPENVR_SSL_free(wbuf);
+    VR_OPENSSL_free(wbuf);
     VR_BIO_set_data(a, NULL);
     VR_BIO_set_init(a, 0);
 
@@ -385,7 +385,7 @@ static int ebcdic_write(BIO *b, const char *in, int inl)
         num = num + num;        /* double the size */
         if (num < inl)
             num = inl;
-        OPENVR_SSL_free(wbuf);
+        VR_OPENSSL_free(wbuf);
         wbuf = app_malloc(sizeof(*wbuf) + num, "grow ebcdic wbuf");
 
         wbuf->alloced = num;
@@ -595,9 +595,9 @@ static int get_ocsp_resp_from_responder(SSL *s, tlsextstatusctx *srctx,
      * don't
      */
     if (aia != NULL) {
-        OPENVR_SSL_free(host);
-        OPENVR_SSL_free(path);
-        OPENVR_SSL_free(port);
+        VR_OPENSSL_free(host);
+        VR_OPENSSL_free(path);
+        VR_OPENSSL_free(port);
         VR_X509_email_free(aia);
     }
     VR_OCSP_CERTID_free(id);
@@ -1100,8 +1100,8 @@ int s_server_main(int argc, char *argv[])
         case OPT_4:
 #ifdef AF_UNIX
             if (socket_family == AF_UNIX) {
-                OPENVR_SSL_free(host); host = NULL;
-                OPENVR_SSL_free(port); port = NULL;
+                VR_OPENSSL_free(host); host = NULL;
+                VR_OPENSSL_free(port); port = NULL;
             }
 #endif
             socket_family = AF_INET;
@@ -1111,8 +1111,8 @@ int s_server_main(int argc, char *argv[])
 #ifdef AF_INET6
 #ifdef AF_UNIX
                 if (socket_family == AF_UNIX) {
-                    OPENVR_SSL_free(host); host = NULL;
-                    OPENVR_SSL_free(port); port = NULL;
+                    VR_OPENSSL_free(host); host = NULL;
+                    VR_OPENSSL_free(port); port = NULL;
                 }
 #endif
                 socket_family = AF_INET6;
@@ -1128,8 +1128,8 @@ int s_server_main(int argc, char *argv[])
                 socket_family = AF_UNSPEC;
             }
 #endif
-            OPENVR_SSL_free(port); port = NULL;
-            OPENVR_SSL_free(host); host = NULL;
+            VR_OPENSSL_free(port); port = NULL;
+            VR_OPENSSL_free(host); host = NULL;
             if (VR_BIO_parse_hostserv(opt_arg(), NULL, &port, BIO_PARSE_PRIO_SERV) < 1) {
                 VR_BIO_printf(bio_err,
                            "%s: -port argument malformed or ambiguous\n",
@@ -1143,8 +1143,8 @@ int s_server_main(int argc, char *argv[])
                 socket_family = AF_UNSPEC;
             }
 #endif
-            OPENVR_SSL_free(port); port = NULL;
-            OPENVR_SSL_free(host); host = NULL;
+            VR_OPENSSL_free(port); port = NULL;
+            VR_OPENSSL_free(host); host = NULL;
             if (VR_BIO_parse_hostserv(opt_arg(), &host, &port, BIO_PARSE_PRIO_SERV) < 1) {
                 VR_BIO_printf(bio_err,
                            "%s: -accept argument malformed or ambiguous\n",
@@ -1155,8 +1155,8 @@ int s_server_main(int argc, char *argv[])
 #ifdef AF_UNIX
         case OPT_UNIX:
             socket_family = AF_UNIX;
-            OPENVR_SSL_free(host); host = BUF_strdup(opt_arg());
-            OPENVR_SSL_free(port); port = NULL;
+            VR_OPENSSL_free(host); host = BUF_strdup(opt_arg());
+            VR_OPENSSL_free(port); port = NULL;
             break;
         case OPT_UNLINK:
             unlink_unix_path = 1;
@@ -1804,14 +1804,14 @@ int s_server_main(int argc, char *argv[])
 
 #ifndef OPENSSL_NO_SCTP
     if (protocol == IPPROTO_SCTP && sctp_label_bug == 1)
-        SSL_CTX_set_mode(ctx, SSL_MODE_DTLS_SCTP_LABEL_LENGTH_BUG);
+        VR_SSL_CTX_set_mode(ctx, SSL_MODE_DTLS_SCTP_LABEL_LENGTH_BUG);
 #endif
 
     if (min_version != 0
-        && SSL_CTX_set_min_proto_version(ctx, min_version) == 0)
+        && VR_SSL_CTX_set_min_proto_version(ctx, min_version) == 0)
         goto end;
     if (max_version != 0
-        && SSL_CTX_set_max_proto_version(ctx, max_version) == 0)
+        && VR_SSL_CTX_set_max_proto_version(ctx, max_version) == 0)
         goto end;
 
     if (session_id_prefix) {
@@ -1839,7 +1839,7 @@ int s_server_main(int argc, char *argv[])
         SSL_CTX_sess_set_cache_size(ctx, 128);
 
     if (async) {
-        SSL_CTX_set_mode(ctx, SSL_MODE_ASYNC);
+        VR_SSL_CTX_set_mode(ctx, SSL_MODE_ASYNC);
     }
 
     if (max_send_fragment > 0
@@ -1935,7 +1935,7 @@ int s_server_main(int argc, char *argv[])
             SSL_CTX_sess_set_cache_size(ctx2, 128);
 
         if (async)
-            SSL_CTX_set_mode(ctx2, SSL_MODE_ASYNC);
+            VR_SSL_CTX_set_mode(ctx2, SSL_MODE_ASYNC);
 
         if (!ctx_set_verify_locations(ctx2, CAfile, CApath, noCAfile,
                                       noCApath)) {
@@ -1974,7 +1974,7 @@ int s_server_main(int argc, char *argv[])
         } else {
             VR_BIO_printf(bio_s_out, "Using default temp DH parameters\n");
         }
-        (void)BIO_flush(bio_s_out);
+        (void)VR_BIO_flush(bio_s_out);
 
         if (dh == NULL) {
             SSL_CTX_set_dh_auto(ctx, 1);
@@ -1990,7 +1990,7 @@ int s_server_main(int argc, char *argv[])
                 DH *dh2 = load_dh_param(s_cert_file2);
                 if (dh2 != NULL) {
                     VR_BIO_printf(bio_s_out, "Setting temp DH parameters\n");
-                    (void)BIO_flush(bio_s_out);
+                    (void)VR_BIO_flush(bio_s_out);
 
                     VR_DH_free(dh);
                     dh = dh2;
@@ -2170,22 +2170,22 @@ int s_server_main(int argc, char *argv[])
     VR_EVP_PKEY_free(s_dkey);
     sk_VR_X509_pop_free(s_chain, VR_X509_free);
     sk_VR_X509_pop_free(s_dchain, VR_X509_free);
-    OPENVR_SSL_free(pass);
-    OPENVR_SSL_free(dpass);
-    OPENVR_SSL_free(host);
-    OPENVR_SSL_free(port);
+    VR_OPENSSL_free(pass);
+    VR_OPENSSL_free(dpass);
+    VR_OPENSSL_free(host);
+    VR_OPENSSL_free(port);
     VR_X509_VERIFY_PARAM_free(vpm);
     free_sessions();
-    OPENVR_SSL_free(tlscstatp.host);
-    OPENVR_SSL_free(tlscstatp.port);
-    OPENVR_SSL_free(tlscstatp.path);
+    VR_OPENSSL_free(tlscstatp.host);
+    VR_OPENSSL_free(tlscstatp.port);
+    VR_OPENSSL_free(tlscstatp.path);
     VR_SSL_CTX_free(ctx2);
     VR_X509_free(s_cert2);
     VR_EVP_PKEY_free(s_key2);
 #ifndef OPENSSL_NO_NEXTPROTONEG
-    OPENVR_SSL_free(next_proto.data);
+    VR_OPENSSL_free(next_proto.data);
 #endif
-    OPENVR_SSL_free(alpn_ctx.data);
+    VR_OPENSSL_free(alpn_ctx.data);
     ssl_excert_free(exc);
     sk_VR_OPENSSL_STRING_free(ssl_args);
     VR_SSL_CONF_CTX_free(cctx);
@@ -2392,7 +2392,7 @@ static int sv_body(int s, int stype, int prot, unsigned char *context)
                     write_header = 0;
                 }
                 raw_write_stdout(buf, (unsigned int)readbytes);
-                (void)BIO_flush(bio_s_out);
+                (void)VR_BIO_flush(bio_s_out);
             }
         }
         if (write_header) {
@@ -2491,7 +2491,7 @@ static int sv_body(int s, int stype, int prot, unsigned char *context)
             if (!s_quiet && !s_brief) {
                 if ((i <= 0) || (buf[0] == 'Q')) {
                     VR_BIO_printf(bio_s_out, "DONE\n");
-                    (void)BIO_flush(bio_s_out);
+                    (void)VR_BIO_flush(bio_s_out);
                     VR_BIO_closesocket(s);
                     close_accept_socket();
                     ret = -11;
@@ -2499,7 +2499,7 @@ static int sv_body(int s, int stype, int prot, unsigned char *context)
                 }
                 if ((i <= 0) || (buf[0] == 'q')) {
                     VR_BIO_printf(bio_s_out, "DONE\n");
-                    (void)BIO_flush(bio_s_out);
+                    (void)VR_BIO_flush(bio_s_out);
                     if (VR_SSL_version(con) != DTLS1_VERSION)
                         VR_BIO_closesocket(s);
                     /*
@@ -2597,14 +2597,14 @@ static int sv_body(int s, int stype, int prot, unsigned char *context)
                     break;
                 case SSL_ERROR_WANT_ASYNC:
                     VR_BIO_printf(bio_s_out, "Write BLOCK (Async)\n");
-                    (void)BIO_flush(bio_s_out);
+                    (void)VR_BIO_flush(bio_s_out);
                     wait_for_async(con);
                     break;
                 case SSL_ERROR_WANT_WRITE:
                 case SSL_ERROR_WANT_READ:
                 case SSL_ERROR_WANT_X509_LOOKUP:
                     VR_BIO_printf(bio_s_out, "Write BLOCK\n");
-                    (void)BIO_flush(bio_s_out);
+                    (void)VR_BIO_flush(bio_s_out);
                     break;
                 case SSL_ERROR_WANT_ASYNC_JOB:
                     /*
@@ -2613,14 +2613,14 @@ static int sv_body(int s, int stype, int prot, unsigned char *context)
                 case SSL_ERROR_SYSCALL:
                 case SSL_ERROR_SSL:
                     VR_BIO_printf(bio_s_out, "ERROR\n");
-                    (void)BIO_flush(bio_s_out);
+                    (void)VR_BIO_flush(bio_s_out);
                     VR_ERR_print_errors(bio_err);
                     ret = 1;
                     goto err;
                     /* break; */
                 case SSL_ERROR_ZERO_RETURN:
                     VR_BIO_printf(bio_s_out, "DONE\n");
-                    (void)BIO_flush(bio_s_out);
+                    (void)VR_BIO_flush(bio_s_out);
                     ret = 1;
                     goto err;
                 }
@@ -2673,19 +2673,19 @@ static int sv_body(int s, int stype, int prot, unsigned char *context)
                     ascii2ebcdic(buf, buf, i);
 #endif
                     raw_write_stdout(buf, (unsigned int)i);
-                    (void)BIO_flush(bio_s_out);
+                    (void)VR_BIO_flush(bio_s_out);
                     if (VR_SSL_has_pending(con))
                         goto again;
                     break;
                 case SSL_ERROR_WANT_ASYNC:
                     VR_BIO_printf(bio_s_out, "Read BLOCK (Async)\n");
-                    (void)BIO_flush(bio_s_out);
+                    (void)VR_BIO_flush(bio_s_out);
                     wait_for_async(con);
                     break;
                 case SSL_ERROR_WANT_WRITE:
                 case SSL_ERROR_WANT_READ:
                     VR_BIO_printf(bio_s_out, "Read BLOCK\n");
-                    (void)BIO_flush(bio_s_out);
+                    (void)VR_BIO_flush(bio_s_out);
                     break;
                 case SSL_ERROR_WANT_ASYNC_JOB:
                     /*
@@ -2694,13 +2694,13 @@ static int sv_body(int s, int stype, int prot, unsigned char *context)
                 case SSL_ERROR_SYSCALL:
                 case SSL_ERROR_SSL:
                     VR_BIO_printf(bio_s_out, "ERROR\n");
-                    (void)BIO_flush(bio_s_out);
+                    (void)VR_BIO_flush(bio_s_out);
                     VR_ERR_print_errors(bio_err);
                     ret = 1;
                     goto err;
                 case SSL_ERROR_ZERO_RETURN:
                     VR_BIO_printf(bio_s_out, "DONE\n");
-                    (void)BIO_flush(bio_s_out);
+                    (void)VR_BIO_flush(bio_s_out);
                     ret = 1;
                     goto err;
                 }
@@ -2761,7 +2761,7 @@ static int init_ssl_connection(SSL *con)
             if (dtlslisten) {
                 wbio = VR_SSL_get_wbio(con);
                 if (wbio) {
-                    BIO_get_fd(wbio, &fd);
+                    VR_BIO_get_fd(wbio, &fd);
                 }
 
                 if (!wbio || VR_BIO_connect(fd, client, 0) == 0) {
@@ -2924,14 +2924,14 @@ static void print_connection_info(SSL *con)
                 VR_BIO_printf(bio_s_out, "%02X", exportedkeymat[i]);
             VR_BIO_printf(bio_s_out, "\n");
         }
-        OPENVR_SSL_free(exportedkeymat);
+        VR_OPENSSL_free(exportedkeymat);
     }
 #ifndef OPENSSL_NO_KTLS
     if (BIO_get_ktls_send(VR_SSL_get_wbio(con)))
         VR_BIO_printf(bio_err, "Using Kernel TLS for sending\n");
 #endif
 
-    (void)BIO_flush(bio_s_out);
+    (void)VR_BIO_flush(bio_s_out);
 }
 
 #ifndef OPENSSL_NO_DH
@@ -3009,7 +3009,7 @@ static int www_body(int s, int stype, int prot, unsigned char *context)
     VR_SSL_set_accept_state(con);
 
     /* No need to free |con| after this. Done by VR_BIO_free(ssl_bio) */
-    BIO_set_ssl(ssl_bio, con, BIO_CLOSE);
+    VR_BIO_set_ssl(ssl_bio, con, BIO_CLOSE);
     VR_BIO_push(io, ssl_bio);
 #ifdef CHARSET_EBCDIC
     io = VR_BIO_push(VR_BIO_new(BIO_f_ebcdic_filter()), io);
@@ -3032,7 +3032,7 @@ static int www_body(int s, int stype, int prot, unsigned char *context)
     for (;;) {
         i = VR_BIO_gets(io, buf, bufsize - 1);
         if (i < 0) {            /* error */
-            if (!BIO_should_retry(io) && !VR_SSL_waiting_for_async(con)) {
+            if (!VR_BIO_should_retry(io) && !VR_SSL_waiting_for_async(con)) {
                 if (!s_quiet)
                     VR_ERR_print_errors(bio_err);
                 goto err;
@@ -3301,7 +3301,7 @@ static int www_body(int s, int stype, int prot, unsigned char *context)
 #endif
                     k = VR_BIO_write(io, &(buf[j]), i - j);
                     if (k <= 0) {
-                        if (!BIO_should_retry(io)
+                        if (!VR_BIO_should_retry(io)
                             && !VR_SSL_waiting_for_async(con))
                             goto write_error;
                         else {
@@ -3319,9 +3319,9 @@ static int www_body(int s, int stype, int prot, unsigned char *context)
     }
 
     for (;;) {
-        i = (int)BIO_flush(io);
+        i = (int)VR_BIO_flush(io);
         if (i <= 0) {
-            if (!BIO_should_retry(io))
+            if (!VR_BIO_should_retry(io))
                 break;
         } else
             break;
@@ -3331,7 +3331,7 @@ static int www_body(int s, int stype, int prot, unsigned char *context)
     VR_SSL_set_shutdown(con, SSL_SENT_SHUTDOWN | SSL_RECEIVED_SHUTDOWN);
 
  err:
-    OPENVR_SSL_free(buf);
+    VR_OPENSSL_free(buf);
     VR_BIO_free_all(io);
     return ret;
 }
@@ -3374,7 +3374,7 @@ static int rev_body(int s, int stype, int prot, unsigned char *context)
     VR_SSL_set_accept_state(con);
 
     /* No need to free |con| after this. Done by VR_BIO_free(ssl_bio) */
-    BIO_set_ssl(ssl_bio, con, BIO_CLOSE);
+    VR_BIO_set_ssl(ssl_bio, con, BIO_CLOSE);
     VR_BIO_push(io, ssl_bio);
 #ifdef CHARSET_EBCDIC
     io = VR_BIO_push(VR_BIO_new(BIO_f_ebcdic_filter()), io);
@@ -3395,10 +3395,10 @@ static int rev_body(int s, int stype, int prot, unsigned char *context)
     }
 
     for (;;) {
-        i = BIO_do_handshake(io);
+        i = VR_BIO_do_handshake(io);
         if (i > 0)
             break;
-        if (!BIO_should_retry(io)) {
+        if (!VR_BIO_should_retry(io)) {
             VR_BIO_puts(bio_err, "CONNECTION FAILURE\n");
             VR_ERR_print_errors(bio_err);
             goto end;
@@ -3426,7 +3426,7 @@ static int rev_body(int s, int stype, int prot, unsigned char *context)
     for (;;) {
         i = VR_BIO_gets(io, buf, bufsize - 1);
         if (i < 0) {            /* error */
-            if (!BIO_should_retry(io)) {
+            if (!VR_BIO_should_retry(io)) {
                 if (!s_quiet)
                     VR_ERR_print_errors(bio_err);
                 goto err;
@@ -3472,10 +3472,10 @@ static int rev_body(int s, int stype, int prot, unsigned char *context)
             buf[i] = '\n';
             VR_BIO_write(io, buf, i + 1);
             for (;;) {
-                i = BIO_flush(io);
+                i = VR_BIO_flush(io);
                 if (i > 0)
                     break;
-                if (!BIO_should_retry(io))
+                if (!VR_BIO_should_retry(io))
                     goto end;
             }
         }
@@ -3486,7 +3486,7 @@ static int rev_body(int s, int stype, int prot, unsigned char *context)
 
  err:
 
-    OPENVR_SSL_free(buf);
+    VR_OPENSSL_free(buf);
     VR_BIO_free_all(io);
     return ret;
 }
@@ -3543,7 +3543,7 @@ static int add_session(SSL *ssl, SSL_SESSION *session)
     sess->derlen = VR_i2d_SSL_SESSION(session, NULL);
     if (sess->derlen < 0) {
         VR_BIO_printf(bio_err, "Error encoding session\n");
-        OPENVR_SSL_free(sess);
+        VR_OPENSSL_free(sess);
         return 0;
     }
 
@@ -3551,9 +3551,9 @@ static int add_session(SSL *ssl, SSL_SESSION *session)
     sess->der = app_malloc(sess->derlen, "get session buffer");
     if (!sess->id) {
         VR_BIO_printf(bio_err, "Out of memory adding to external cache\n");
-        OPENVR_SSL_free(sess->id);
-        OPENVR_SSL_free(sess->der);
-        OPENVR_SSL_free(sess);
+        VR_OPENSSL_free(sess->id);
+        VR_OPENSSL_free(sess->der);
+        VR_OPENSSL_free(sess);
         return 0;
     }
     p = sess->der;
@@ -3561,9 +3561,9 @@ static int add_session(SSL *ssl, SSL_SESSION *session)
     /* Assume it still works. */
     if (VR_i2d_SSL_SESSION(session, &p) != sess->derlen) {
         VR_BIO_printf(bio_err, "Unexpected session encoding length\n");
-        OPENVR_SSL_free(sess->id);
-        OPENVR_SSL_free(sess->der);
-        OPENVR_SSL_free(sess);
+        VR_OPENSSL_free(sess->id);
+        VR_OPENSSL_free(sess->der);
+        VR_OPENSSL_free(sess);
         return 0;
     }
 
@@ -3601,9 +3601,9 @@ static void del_session(SSL_CTX *sctx, SSL_SESSION *session)
                 prev->next = sess->next;
             else
                 first = sess->next;
-            OPENVR_SSL_free(sess->id);
-            OPENVR_SSL_free(sess->der);
-            OPENVR_SSL_free(sess);
+            VR_OPENSSL_free(sess->id);
+            VR_OPENSSL_free(sess->der);
+            VR_OPENSSL_free(sess);
             return;
         }
         prev = sess;
@@ -3624,11 +3624,11 @@ static void free_sessions(void)
 {
     simple_ssl_session *sess, *tsess;
     for (sess = first; sess;) {
-        OPENVR_SSL_free(sess->id);
-        OPENVR_SSL_free(sess->der);
+        VR_OPENSSL_free(sess->id);
+        VR_OPENSSL_free(sess->der);
         tsess = sess;
         sess = sess->next;
-        OPENVR_SSL_free(tsess);
+        VR_OPENSSL_free(tsess);
     }
     first = NULL;
 }

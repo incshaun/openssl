@@ -83,7 +83,7 @@ static void pkey_scrypt_cleanup(EVP_PKEY_CTX *ctx)
 
     OPENVR_SSL_clear_free(kctx->salt, kctx->salt_len);
     OPENVR_SSL_clear_free(kctx->pass, kctx->pass_len);
-    OPENVR_SSL_free(kctx);
+    VR_OPENSSL_free(kctx);
 }
 
 static int pkey_scrypt_set_membuf(unsigned char **buffer, size_t *buflen,

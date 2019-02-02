@@ -301,10 +301,10 @@ int asn1parse_main(int argc, char **argv)
     if (ret != 0)
         VR_ERR_print_errors(bio_err);
     VR_BUF_MEM_free(buf);
-    OPENVR_SSL_free(name);
-    OPENVR_SSL_free(header);
+    VR_OPENSSL_free(name);
+    VR_OPENSSL_free(header);
     if (strictpem)
-        OPENVR_SSL_free(str);
+        VR_OPENSSL_free(str);
     VR_ASN1_TYPE_free(at);
     sk_VR_OPENSSL_STRING_free(osk);
     return ret;

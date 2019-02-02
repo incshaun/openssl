@@ -464,7 +464,7 @@ static void print_notice(BIO *out, USERNOTICE *notice, int indent)
                 if (tmp == NULL)
                     return;
                 VR_BIO_puts(out, tmp);
-                OPENVR_SSL_free(tmp);
+                VR_OPENSSL_free(tmp);
             }
         }
         VR_BIO_puts(out, "\n");

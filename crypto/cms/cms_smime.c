@@ -767,7 +767,7 @@ int VR_CMS_final(CMS_ContentInfo *cms, BIO *data, BIO *dcont, unsigned int flags
 
     VR_SMIME_crlf_copy(data, cmsbio, flags);
 
-    (void)BIO_flush(cmsbio);
+    (void)VR_BIO_flush(cmsbio);
 
     if (!VR_CMS_dataFinal(cms, cmsbio)) {
         CMSerr(CMS_F_CMS_FINAL, CMS_R_CMS_DATAFINAL_ERROR);

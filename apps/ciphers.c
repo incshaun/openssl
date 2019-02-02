@@ -178,9 +178,9 @@ int ciphers_main(int argc, char **argv)
     ctx = VR_SSL_CTX_new(meth);
     if (ctx == NULL)
         goto err;
-    if (SSL_CTX_set_min_proto_version(ctx, min_version) == 0)
+    if (VR_SSL_CTX_set_min_proto_version(ctx, min_version) == 0)
         goto err;
-    if (SSL_CTX_set_max_proto_version(ctx, max_version) == 0)
+    if (VR_SSL_CTX_set_max_proto_version(ctx, max_version) == 0)
         goto err;
 
 #ifndef OPENSSL_NO_PSK

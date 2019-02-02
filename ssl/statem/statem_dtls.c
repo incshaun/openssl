@@ -67,7 +67,7 @@ static hm_fragment *dtls1_hm_fragment_new(size_t frag_len, int reassembly)
     if (frag_len) {
         if ((buf = OPENSSL_malloc(frag_len)) == NULL) {
             SSLerr(SSL_F_DTLS1_HM_FRAGMENT_NEW, ERR_R_MALLOC_FAILURE);
-            OPENVR_SSL_free(frag);
+            VR_OPENSSL_free(frag);
             return NULL;
         }
     }
@@ -80,8 +80,8 @@ static hm_fragment *dtls1_hm_fragment_new(size_t frag_len, int reassembly)
         bitmask = OPENSSL_zalloc(RSMBLY_BITMASK_SIZE(frag_len));
         if (bitmask == NULL) {
             SSLerr(SSL_F_DTLS1_HM_FRAGMENT_NEW, ERR_R_MALLOC_FAILURE);
-            OPENVR_SSL_free(buf);
-            OPENVR_SSL_free(frag);
+            VR_OPENSSL_free(buf);
+            VR_OPENSSL_free(frag);
             return NULL;
         }
     }
@@ -100,9 +100,9 @@ void VR_dtls1_hm_fragment_free(hm_fragment *frag)
                             saved_retransmit_state.enc_write_ctx);
         VR_EVP_MD_CTX_free(frag->msg_header.saved_retransmit_state.write_hash);
     }
-    OPENVR_SSL_free(frag->fragment);
-    OPENVR_SSL_free(frag->reassembly);
-    OPENVR_SSL_free(frag);
+    VR_OPENSSL_free(frag->fragment);
+    VR_OPENSSL_free(frag->reassembly);
+    VR_OPENSSL_free(frag);
 }
 
 /*
@@ -196,7 +196,7 @@ int VR_dtls1_do_write(SSL *s, int type)
             /*
              * grr.. we could get an error if MTU picked was wrong
              */
-            ret = BIO_flush(s->wbio);
+            ret = VR_BIO_flush(s->wbio);
             if (ret <= 0) {
                 s->rwstate = SSL_WRITING;
                 return ret;
@@ -606,7 +606,7 @@ dtls1_reassemble_fragment(SSL *s, const struct hm_header_st *msg_hdr)
                                is_complete);
 
     if (is_complete) {
-        OPENVR_SSL_free(frag->reassembly);
+        VR_OPENSSL_free(frag->reassembly);
         frag->reassembly = NULL;
     }
 
@@ -957,7 +957,7 @@ WORK_STATE dtls_wait_for_dry(SSL *s)
 
         s->s3->in_read_app_data = 2;
         s->rwstate = SSL_READING;
-        BIO_clear_retry_flags(VR_SSL_get_rbio(s));
+        VR_BIO_clear_retry_flags(VR_SSL_get_rbio(s));
         BIO_set_retry_read(VR_SSL_get_rbio(s));
         return WORK_MORE_A;
     }
@@ -1164,7 +1164,7 @@ int VR_dtls1_retransmit_message(SSL *s, unsigned short seq, int *found)
 
     s->d1->retransmitting = 0;
 
-    (void)BIO_flush(s->wbio);
+    (void)VR_BIO_flush(s->wbio);
     return ret;
 }
 

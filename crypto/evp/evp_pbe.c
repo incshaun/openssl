@@ -178,7 +178,7 @@ int VR_EVP_PBE_alg_add_type(int pbe_type, int pbe_nid, int cipher_nid,
     pbe_tmp->keygen = keygen;
 
     if (!sk_VR_EVP_PBE_CTL_push(pbe_algs, pbe_tmp)) {
-        OPENVR_SSL_free(pbe_tmp);
+        VR_OPENSSL_free(pbe_tmp);
         goto err;
     }
     return 1;
@@ -237,7 +237,7 @@ int VR_EVP_PBE_find(int type, int pbe_nid,
 
 static void free_evp_pbe_ctl(EVP_PBE_CTL *pbe)
 {
-    OPENVR_SSL_free(pbe);
+    VR_OPENSSL_free(pbe);
 }
 
 void VR_EVP_PBE_cleanup(void)

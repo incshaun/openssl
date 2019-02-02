@@ -430,8 +430,8 @@ static int ec_asn1_group2curve(const EC_GROUP *group, X9_62_CURVE *curve)
     ok = 1;
 
  err:
-    OPENVR_SSL_free(a_buf);
-    OPENVR_SSL_free(b_buf);
+    VR_OPENSSL_free(a_buf);
+    VR_OPENSSL_free(b_buf);
     VR_BN_free(tmp_1);
     VR_BN_free(tmp_2);
     return ok;
@@ -484,7 +484,7 @@ ECPARAMETERS *VR_EC_GROUP_get_ecparameters(const EC_GROUP *group,
         goto err;
     }
     if (ret->base == NULL && (ret->base = VR_ASN1_OCTET_STRING_new()) == NULL) {
-        OPENVR_SSL_free(buffer);
+        VR_OPENSSL_free(buffer);
         ECerr(EC_F_EC_GROUP_GET_ECPARAMETERS, ERR_R_MALLOC_FAILURE);
         goto err;
     }
@@ -732,7 +732,7 @@ EC_GROUP *VR_EC_GROUP_new_from_ecparameters(const ECPARAMETERS *params)
 
     /* extract seed (optional) */
     if (params->curve->seed != NULL) {
-        OPENVR_SSL_free(ret->seed);
+        VR_OPENSSL_free(ret->seed);
         if ((ret->seed = OPENSSL_malloc(params->curve->seed->length)) == NULL) {
             ECerr(EC_F_EC_GROUP_NEW_FROM_ECPARAMETERS, ERR_R_MALLOC_FAILURE);
             goto err;
@@ -1035,7 +1035,7 @@ int VR_i2d_ECPrivateKey(EC_KEY *a, unsigned char **out)
     ok = 1;
  err:
     OPENVR_SSL_clear_free(priv, privlen);
-    OPENVR_SSL_free(pub);
+    VR_OPENSSL_free(pub);
     VR_EC_PRIVATEKEY_free(priv_key);
     return (ok ? ret : 0);
 }
@@ -1127,7 +1127,7 @@ int VR_i2o_ECPublicKey(const EC_KEY *a, unsigned char **out)
                             *out, buf_len, NULL)) {
         ECerr(EC_F_I2O_ECPUBLICKEY, ERR_R_EC_LIB);
         if (new_buffer) {
-            OPENVR_SSL_free(*out);
+            VR_OPENSSL_free(*out);
             *out = NULL;
         }
         return 0;
@@ -1160,7 +1160,7 @@ void VR_ECDSA_SIG_free(ECDSA_SIG *sig)
         return;
     VR_BN_clear_free(sig->r);
     VR_BN_clear_free(sig->s);
-    OPENVR_SSL_free(sig);
+    VR_OPENSSL_free(sig);
 }
 
 void VR_ECDSA_SIG_get0(const ECDSA_SIG *sig, const BIGNUM **pr, const BIGNUM **ps)

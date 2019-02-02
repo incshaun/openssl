@@ -3380,8 +3380,8 @@ int speed_main(int argc, char **argv)
  end:
     VR_ERR_print_errors(bio_err);
     for (i = 0; i < loopargs_len; i++) {
-        OPENVR_SSL_free(loopargs[i].buf_malloc);
-        OPENVR_SSL_free(loopargs[i].buf2_malloc);
+        VR_OPENSSL_free(loopargs[i].buf_malloc);
+        VR_OPENSSL_free(loopargs[i].buf2_malloc);
 
 #ifndef OPENSSL_NO_RSA
         for (k = 0; k < RSA_NUM; k++)
@@ -3398,11 +3398,11 @@ int speed_main(int argc, char **argv)
             VR_EVP_PKEY_CTX_free(loopargs[i].ecdh_ctx[k]);
         for (k = 0; k < EdDSA_NUM; k++)
             VR_EVP_MD_CTX_free(loopargs[i].eddsa_ctx[k]);
-        OPENVR_SSL_free(loopargs[i].secret_a);
-        OPENVR_SSL_free(loopargs[i].secret_b);
+        VR_OPENSSL_free(loopargs[i].secret_a);
+        VR_OPENSSL_free(loopargs[i].secret_b);
 #endif
     }
-    OPENVR_SSL_free(evp_hmac_name);
+    VR_OPENSSL_free(evp_hmac_name);
 
     if (async_jobs > 0) {
         for (i = 0; i < loopargs_len; i++)
@@ -3412,7 +3412,7 @@ int speed_main(int argc, char **argv)
     if (VR_async_init) {
         VR_ASYNC_cleanup_thread();
     }
-    OPENVR_SSL_free(loopargs);
+    VR_OPENSSL_free(loopargs);
     release_engine(e);
     return ret;
 }
@@ -3423,13 +3423,13 @@ static void print_message(const char *s, long num, int length, int tm)
     VR_BIO_printf(bio_err,
                mr ? "+DT:%s:%d:%d\n"
                : "Doing %s for %ds on %d size blocks: ", s, tm, length);
-    (void)BIO_flush(bio_err);
+    (void)VR_BIO_flush(bio_err);
     alarm(tm);
 #else
     VR_BIO_printf(bio_err,
                mr ? "+DN:%s:%ld:%d\n"
                : "Doing %s %ld times on %d size blocks: ", s, num, length);
-    (void)BIO_flush(bio_err);
+    (void)VR_BIO_flush(bio_err);
 #endif
 }
 
@@ -3440,13 +3440,13 @@ static void pkey_print_message(const char *str, const char *str2, long num,
     VR_BIO_printf(bio_err,
                mr ? "+DTP:%d:%s:%s:%d\n"
                : "Doing %u bits %s %s's for %ds: ", bits, str, str2, tm);
-    (void)BIO_flush(bio_err);
+    (void)VR_BIO_flush(bio_err);
     alarm(tm);
 #else
     VR_BIO_printf(bio_err,
                mr ? "+DNP:%ld:%d:%s:%s\n"
                : "Doing %ld %u bits %s %s's: ", num, bits, str, str2);
-    (void)BIO_flush(bio_err);
+    (void)VR_BIO_flush(bio_err);
 #endif
 }
 
@@ -3505,7 +3505,7 @@ static int do_multi(int multi, int size_num)
             exit(1);
         }
         fflush(stdout);
-        (void)BIO_flush(bio_err);
+        (void)VR_BIO_flush(bio_err);
         if (fork()) {
             close(fd[1]);
             fds[n] = fd[0];
@@ -3741,7 +3741,7 @@ static void multiblock_speed(const EVP_CIPHER *evp_cipher, int lengths_single,
         fprintf(stdout, "\n");
     }
 
-    OPENVR_SSL_free(inp);
-    OPENVR_SSL_free(out);
+    VR_OPENSSL_free(inp);
+    VR_OPENSSL_free(out);
     VR_EVP_CIPHER_CTX_free(ctx);
 }

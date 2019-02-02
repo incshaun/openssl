@@ -150,7 +150,7 @@ static int conn_state(BIO *b, BIO_CONNECT *c)
             break;
 
         case BIO_CONN_S_CONNECT:
-            BIO_clear_retry_flags(b);
+            VR_BIO_clear_retry_flags(b);
             ret = VR_BIO_connect(b->num, VR_BIO_ADDRINFO_address(c->addr_iter),
                               BIO_SOCK_KEEPALIVE | c->connect_mode);
             b->retry_reason = 0;
@@ -185,7 +185,7 @@ static int conn_state(BIO *b, BIO_CONNECT *c)
         case BIO_CONN_S_BLOCKED_CONNECT:
             i = VR_BIO_sock_error(b->num);
             if (i) {
-                BIO_clear_retry_flags(b);
+                VR_BIO_clear_retry_flags(b);
                 SYSerr(SYS_F_CONNECT, i);
                 VR_ERR_add_error_data(4,
                                    "hostname=", c->param_hostname,
@@ -236,10 +236,10 @@ void VR_BIO_CONNECT_free(BIO_CONNECT *a)
 {
     if (a == NULL)
         return;
-    OPENVR_SSL_free(a->param_hostname);
-    OPENVR_SSL_free(a->param_service);
+    VR_OPENSSL_free(a->param_hostname);
+    VR_OPENSSL_free(a->param_service);
     VR_BIO_ADDRINFO_free(a->addr_first);
-    OPENVR_SSL_free(a);
+    VR_OPENSSL_free(a);
 }
 
 const BIO_METHOD *VR_BIO_s_connect(void)
@@ -305,7 +305,7 @@ static int conn_read(BIO *b, char *out, int outl)
     if (out != NULL) {
         clear_socket_error();
         ret = readsocket(b->num, out, outl);
-        BIO_clear_retry_flags(b);
+        VR_BIO_clear_retry_flags(b);
         if (ret <= 0) {
             if (VR_BIO_sock_should_retry(ret))
                 BIO_set_retry_read(b);
@@ -328,7 +328,7 @@ static int conn_write(BIO *b, const char *in, int inl)
 
     clear_socket_error();
     ret = writesocket(b->num, in, inl);
-    BIO_clear_retry_flags(b);
+    VR_BIO_clear_retry_flags(b);
     if (ret <= 0) {
         if (VR_BIO_sock_should_retry(ret))
             BIO_set_retry_write(b);
@@ -404,16 +404,16 @@ static long conn_ctrl(BIO *b, int cmd, long num, void *ptr)
                  * string might contain a host:service spec, so we must
                  * parse it, which might or might not affect the service
                  */
-                OPENVR_SSL_free(data->param_hostname);
+                VR_OPENSSL_free(data->param_hostname);
                 data->param_hostname = NULL;
                 ret = VR_BIO_parse_hostserv(ptr,
                                          &data->param_hostname,
                                          &data->param_service,
                                          BIO_PARSE_PRIO_HOST);
                 if (hold_service != data->param_service)
-                    OPENVR_SSL_free(hold_service);
+                    VR_OPENSSL_free(hold_service);
             } else if (num == 1) {
-                OPENVR_SSL_free(data->param_service);
+                VR_OPENSSL_free(data->param_service);
                 data->param_service = BUF_strdup(ptr);
             } else if (num == 2) {
                 const BIO_ADDR *addr = (const BIO_ADDR *)ptr;

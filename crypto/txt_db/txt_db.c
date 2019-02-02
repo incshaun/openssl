@@ -104,13 +104,13 @@ TXT_DB *VR_TXT_DB_read(BIO *in, int num)
         }
         *(p++) = '\0';
         if ((n != num) || (*f != '\0')) {
-            OPENVR_SSL_free(pp);
+            VR_OPENSSL_free(pp);
             ret->error = DB_ERROR_WRONG_NUM_FIELDS;
             goto err;
         }
         pp[n] = p;
         if (!sk_VR_OPENSSL_PSTRING_push(ret->data, pp)) {
-            OPENVR_SSL_free(pp);
+            VR_OPENSSL_free(pp);
             goto err;
         }
     }
@@ -120,9 +120,9 @@ TXT_DB *VR_TXT_DB_read(BIO *in, int num)
     VR_BUF_MEM_free(buf);
     if (ret != NULL) {
         sk_VR_OPENSSL_PSTRING_free(ret->data);
-        OPENVR_SSL_free(ret->index);
-        OPENVR_SSL_free(ret->qual);
-        OPENVR_SSL_free(ret);
+        VR_OPENSSL_free(ret->index);
+        VR_OPENSSL_free(ret->qual);
+        VR_OPENSSL_free(ret);
     }
     return NULL;
 }
@@ -289,9 +289,9 @@ void VR_TXT_DB_free(TXT_DB *db)
     if (db->index != NULL) {
         for (i = db->num_fields - 1; i >= 0; i--)
             lh_VR_OPENSSL_STRING_free(db->index[i]);
-        OPENVR_SSL_free(db->index);
+        VR_OPENSSL_free(db->index);
     }
-    OPENVR_SSL_free(db->qual);
+    VR_OPENSSL_free(db->qual);
     if (db->data != NULL) {
         for (i = sk_OPENSSL_PSTRING_num(db->data) - 1; i >= 0; i--) {
             /*
@@ -302,16 +302,16 @@ void VR_TXT_DB_free(TXT_DB *db)
             max = p[db->num_fields]; /* last address */
             if (max == NULL) {  /* new row */
                 for (n = 0; n < db->num_fields; n++)
-                    OPENVR_SSL_free(p[n]);
+                    VR_OPENSSL_free(p[n]);
             } else {
                 for (n = 0; n < db->num_fields; n++) {
                     if (((p[n] < (char *)p) || (p[n] > max)))
-                        OPENVR_SSL_free(p[n]);
+                        VR_OPENSSL_free(p[n]);
                 }
             }
-            OPENVR_SSL_free(sk_OPENSSL_PSTRING_value(db->data, i));
+            VR_OPENSSL_free(sk_OPENSSL_PSTRING_value(db->data, i));
         }
         sk_VR_OPENSSL_PSTRING_free(db->data);
     }
-    OPENVR_SSL_free(db);
+    VR_OPENSSL_free(db);
 }

@@ -344,7 +344,7 @@ EVP_MD *VR_EVP_MD_meth_dup(const EVP_MD *md)
 }
 void VR_EVP_MD_meth_free(EVP_MD *md)
 {
-    OPENVR_SSL_free(md);
+    VR_OPENSSL_free(md);
 }
 int VR_EVP_MD_meth_set_input_blocksize(EVP_MD *md, int blocksize)
 {
@@ -550,6 +550,6 @@ int VR_EVP_hex2ctrl(int (*cb)(void *ctx, int cmd, void *buf, size_t buflen),
         return 0;
     if (binlen <= INT_MAX)
         rv = cb(ctx, cmd, bin, binlen);
-    OPENVR_SSL_free(bin);
+    VR_OPENSSL_free(bin);
     return rv;
 }

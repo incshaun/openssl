@@ -287,7 +287,7 @@ static int do_dump(unsigned long lflags, char_io *io_ch, void *arg,
     p = der_buf;
     VR_i2d_ASN1_TYPE(&t, &p);
     outlen = do_hex_dump(io_ch, arg, der_buf, der_len);
-    OPENVR_SSL_free(der_buf);
+    VR_OPENSSL_free(der_buf);
     if (outlen < 0)
         return -1;
     return outlen + 1;

@@ -181,7 +181,7 @@ size_t VR_ec_GFp_simple_point2oct(const EC_GROUP *group, const EC_POINT *point,
     }
 
     /* ret := required output buffer length */
-    field_len = BN_num_bytes(group->field);
+    field_len = VR_BN_num_bytes(group->field);
     ret =
         (form ==
          POINT_CONVERSION_COMPRESSED) ? 1 + field_len : 1 + 2 * field_len;
@@ -217,7 +217,7 @@ size_t VR_ec_GFp_simple_point2oct(const EC_GROUP *group, const EC_POINT *point,
 
         i = 1;
 
-        skip = field_len - BN_num_bytes(x);
+        skip = field_len - VR_BN_num_bytes(x);
         if (skip > field_len) {
             ECerr(EC_F_EC_GFP_SIMPLE_POINT2OCT, ERR_R_INTERNAL_ERROR);
             goto err;
@@ -235,7 +235,7 @@ size_t VR_ec_GFp_simple_point2oct(const EC_GROUP *group, const EC_POINT *point,
 
         if (form == POINT_CONVERSION_UNCOMPRESSED
             || form == POINT_CONVERSION_HYBRID) {
-            skip = field_len - BN_num_bytes(y);
+            skip = field_len - VR_BN_num_bytes(y);
             if (skip > field_len) {
                 ECerr(EC_F_EC_GFP_SIMPLE_POINT2OCT, ERR_R_INTERNAL_ERROR);
                 goto err;
@@ -303,7 +303,7 @@ int VR_ec_GFp_simple_oct2point(const EC_GROUP *group, EC_POINT *point,
         return VR_EC_POINT_set_to_infinity(group, point);
     }
 
-    field_len = BN_num_bytes(group->field);
+    field_len = VR_BN_num_bytes(group->field);
     enc_len =
         (form ==
          POINT_CONVERSION_COMPRESSED) ? 1 + field_len : 1 + 2 * field_len;

@@ -35,7 +35,7 @@ void VR_DSA_SIG_free(DSA_SIG *sig)
         return;
     VR_BN_clear_free(sig->r);
     VR_BN_clear_free(sig->s);
-    OPENVR_SSL_free(sig);
+    VR_OPENSSL_free(sig);
 }
 
 void VR_DSA_SIG_get0(const DSA_SIG *sig, const BIGNUM **pr, const BIGNUM **ps)

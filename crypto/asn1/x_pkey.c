@@ -42,6 +42,6 @@ void VR_X509_PKEY_free(X509_PKEY *x)
     VR_ASN1_OCTET_STRING_free(x->enc_pkey);
     VR_EVP_PKEY_free(x->dec_pkey);
     if (x->key_free)
-        OPENVR_SSL_free(x->key_data);
-    OPENVR_SSL_free(x);
+        VR_OPENSSL_free(x->key_data);
+    VR_OPENSSL_free(x);
 }

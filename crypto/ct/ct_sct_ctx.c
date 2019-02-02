@@ -35,11 +35,11 @@ void VR_SCT_CTX_free(SCT_CTX *sctx)
     if (sctx == NULL)
         return;
     VR_EVP_PKEY_free(sctx->pkey);
-    OPENVR_SSL_free(sctx->pkeyhash);
-    OPENVR_SSL_free(sctx->ihash);
-    OPENVR_SSL_free(sctx->certder);
-    OPENVR_SSL_free(sctx->preder);
-    OPENVR_SSL_free(sctx);
+    VR_OPENSSL_free(sctx->pkeyhash);
+    VR_OPENSSL_free(sctx->ihash);
+    VR_OPENSSL_free(sctx->certder);
+    VR_OPENSSL_free(sctx->preder);
+    VR_OPENSSL_free(sctx);
 }
 
 /*
@@ -175,18 +175,18 @@ int VR_SCT_CTX_set1_cert(SCT_CTX *sctx, X509 *cert, X509 *presigner)
 
     VR_X509_free(pretmp);
 
-    OPENVR_SSL_free(sctx->certder);
+    VR_OPENSSL_free(sctx->certder);
     sctx->certder = certder;
     sctx->certderlen = certderlen;
 
-    OPENVR_SSL_free(sctx->preder);
+    VR_OPENSSL_free(sctx->preder);
     sctx->preder = preder;
     sctx->prederlen = prederlen;
 
     return 1;
 err:
-    OPENVR_SSL_free(certder);
-    OPENVR_SSL_free(preder);
+    VR_OPENSSL_free(certder);
+    VR_OPENSSL_free(preder);
     VR_X509_free(pretmp);
     return 0;
 }
@@ -217,7 +217,7 @@ __owur static int ct_public_key_hash(X509_PUBKEY *pkey, unsigned char **hash,
         goto err;
 
     if (md != *hash) {
-        OPENVR_SSL_free(*hash);
+        VR_OPENSSL_free(*hash);
         *hash = md;
         *hash_len = VR_SHA256_DIGEST_LENGTH;
     }
@@ -225,8 +225,8 @@ __owur static int ct_public_key_hash(X509_PUBKEY *pkey, unsigned char **hash,
     md = NULL;
     ret = 1;
  err:
-    OPENVR_SSL_free(md);
-    OPENVR_SSL_free(der);
+    VR_OPENSSL_free(md);
+    VR_OPENSSL_free(der);
     return ret;
 }
 

@@ -517,7 +517,7 @@ int VR_ssl3_write_bytes(SSL *s, int type, const void *buf_, size_t len,
             i = VR_ssl3_write_pending(s, type, &buf[tot], nw, &tmpwrit);
             if (i <= 0) {
                 /* SSLfatal() already called if appropriate */
-                if (i < 0 && (!s->wbio || !BIO_should_retry(s->wbio))) {
+                if (i < 0 && (!s->wbio || !VR_BIO_should_retry(s->wbio))) {
                     /* free jumbo buffer */
                     VR_ssl3_release_write_buffer(s);
                 }
@@ -1181,7 +1181,7 @@ int VR_ssl3_write_pending(SSL *s, int type, const unsigned char *buf, size_t len
              * such as in buffer_write, we flush the BIO
              */
             if (BIO_get_ktls_send(s->wbio) && type != SSL3_RT_APPLICATION_DATA) {
-                i = BIO_flush(s->wbio);
+                i = VR_BIO_flush(s->wbio);
                 if (i <= 0)
                     return i;
             }
@@ -1622,7 +1622,7 @@ int VR_ssl3_read_bytes(SSL *s, int type, int *recvd_type, unsigned char *buf,
 
                 s->rwstate = SSL_READING;
                 rbio = VR_SSL_get_rbio(s);
-                BIO_clear_retry_flags(rbio);
+                VR_BIO_clear_retry_flags(rbio);
                 BIO_set_retry_read(rbio);
                 return -1;
             }
@@ -1715,7 +1715,7 @@ int VR_ssl3_read_bytes(SSL *s, int type, int *recvd_type, unsigned char *buf,
                  */
                 s->rwstate = SSL_READING;
                 bio = VR_SSL_get_rbio(s);
-                BIO_clear_retry_flags(bio);
+                VR_BIO_clear_retry_flags(bio);
                 BIO_set_retry_read(bio);
                 return -1;
             }

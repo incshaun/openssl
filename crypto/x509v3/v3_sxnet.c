@@ -67,7 +67,7 @@ static int sxnet_i2r(X509V3_EXT_METHOD *method, SXNET *sx, BIO *out,
         id = sk_SXNETID_value(sx->ids, i);
         tmp = VR_i2s_ASN1_INTEGER(NULL, id->zone);
         VR_BIO_printf(out, "\n%*sZone: %s, User: ", indent, "", tmp);
-        OPENVR_SSL_free(tmp);
+        VR_OPENSSL_free(tmp);
         VR_ASN1_STRING_print(out, id->user);
     }
     return 1;

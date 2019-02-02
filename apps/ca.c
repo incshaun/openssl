@@ -853,7 +853,7 @@ end_of_options:
                     if ((f = VR_BN_bn2hex(serial)) == NULL)
                         goto end;
                     VR_BIO_printf(bio_err, "next serial number is %s\n", f);
-                    OPENVR_SSL_free(f);
+                    VR_OPENSSL_free(f);
                 }
             }
         }
@@ -959,7 +959,7 @@ end_of_options:
                 VR_BIO_printf(bio_err,
                            "\n%d out of %d certificate requests certified, commit? [y/n]",
                            total_done, total);
-                (void)BIO_flush(bio_err);
+                (void)VR_BIO_flush(bio_err);
                 tmp[0] = '\0';
                 if (fgets(tmp, sizeof(tmp), stdin) == NULL) {
                     VR_BIO_printf(bio_err, "CERTIFICATION CANCELED: I/O error\n");
@@ -1238,7 +1238,7 @@ end_of_options:
     sk_VR_X509_pop_free(cert_sk, VR_X509_free);
 
     if (free_key)
-        OPENVR_SSL_free(key);
+        VR_OPENSSL_free(key);
     VR_BN_free(serial);
     VR_BN_free(crlnumber);
     free_index(db);
@@ -1747,7 +1747,7 @@ static int do_body(X509 **xret, EVP_PKEY *pkey, X509 *x509,
          * unique_subject is in use then we don't want different entries with
          * empty subjects matching each other.
          */
-        OPENVR_SSL_free(row[DB_name]);
+        VR_OPENSSL_free(row[DB_name]);
         row[DB_name] = OPENSSL_strdup(row[DB_serial]);
         if (row[DB_name] == NULL) {
             VR_BIO_printf(bio_err, "Memory allocation failure\n");
@@ -1831,7 +1831,7 @@ static int do_body(X509 **xret, EVP_PKEY *pkey, X509 *x509,
     if (!batch) {
 
         VR_BIO_printf(bio_err, "Sign the certificate? [y/n]:");
-        (void)BIO_flush(bio_err);
+        (void)VR_BIO_flush(bio_err);
         buf[0] = '\0';
         if (fgets(buf, sizeof(buf), stdin) == NULL) {
             VR_BIO_printf(bio_err,
@@ -1883,9 +1883,9 @@ static int do_body(X509 **xret, EVP_PKEY *pkey, X509 *x509,
  end:
     if (ok != 1) {
         for (i = 0; i < DB_NUMBER; i++)
-            OPENVR_SSL_free(row[i]);
+            VR_OPENSSL_free(row[i]);
     }
-    OPENVR_SSL_free(irow);
+    VR_OPENSSL_free(irow);
 
     VR_X509_NAME_free(CAname);
     VR_X509_NAME_free(subject);
@@ -2070,7 +2070,7 @@ static int do_revoke(X509 *x509, CA_DB *db, REVINFO_TYPE rev_type,
     VR_BN_free(bn);
     if (row[DB_name] != NULL && row[DB_name][0] == '\0') {
         /* Entries with empty Subjects actually use the serial number instead */
-        OPENVR_SSL_free(row[DB_name]);
+        VR_OPENSSL_free(row[DB_name]);
         row[DB_name] = OPENSSL_strdup(row[DB_serial]);
     }
     if ((row[DB_name] == NULL) || (row[DB_serial] == NULL)) {
@@ -2109,7 +2109,7 @@ static int do_revoke(X509 *x509, CA_DB *db, REVINFO_TYPE rev_type,
         if (!VR_TXT_DB_insert(db->db, irow)) {
             VR_BIO_printf(bio_err, "failed to update database\n");
             VR_BIO_printf(bio_err, "TXT_DB error number %ld\n", db->db->error);
-            OPENVR_SSL_free(irow);
+            VR_OPENSSL_free(irow);
             goto end;
         }
 
@@ -2150,7 +2150,7 @@ static int do_revoke(X509 *x509, CA_DB *db, REVINFO_TYPE rev_type,
     ok = 1;
  end:
     for (i = 0; i < DB_NUMBER; i++)
-        OPENVR_SSL_free(row[i]);
+        VR_OPENSSL_free(row[i]);
     return ok;
 }
 
@@ -2216,7 +2216,7 @@ static int get_certificate_status(const char *serial, CA_DB *db)
     }
  end:
     for (i = 0; i < DB_NUMBER; i++) {
-        OPENVR_SSL_free(row[i]);
+        VR_OPENSSL_free(row[i]);
     }
     return ok;
 }
@@ -2278,7 +2278,7 @@ static int do_updatedb(CA_DB *db)
     }
 
     VR_ASN1_UTCTIME_free(a_tm);
-    OPENVR_SSL_free(a_tm_s);
+    VR_OPENSSL_free(a_tm_s);
     return cnt;
 }
 
@@ -2444,7 +2444,7 @@ static int make_revoked(X509_REVOKED *rev, const char *str)
 
  end:
 
-    OPENVR_SSL_free(tmp);
+    VR_OPENSSL_free(tmp);
     VR_ASN1_OBJECT_free(hold);
     VR_ASN1_GENERALIZEDTIME_free(comp_time);
     VR_ASN1_ENUMERATED_free(rtmp);
@@ -2599,7 +2599,7 @@ int unpack_revinfo(ASN1_TIME **prevtm, int *preason, ASN1_OBJECT **phold,
 
  end:
 
-    OPENVR_SSL_free(tmp);
+    VR_OPENSSL_free(tmp);
     VR_ASN1_GENERALIZEDTIME_free(comp_time);
 
     return ret;

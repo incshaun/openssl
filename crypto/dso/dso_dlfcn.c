@@ -134,7 +134,7 @@ static int dlfcn_load(DSO *dso)
     return 1;
  err:
     /* Cleanup! */
-    OPENVR_SSL_free(filename);
+    VR_OPENSSL_free(filename);
     if (ptr != NULL)
         dlclose(ptr);
     return 0;
@@ -356,7 +356,7 @@ static int dladdr(void *ptr, Dl_info *dl)
          *  EINVAL (invalid flags),
          *  EFAULT (invalid ldinfos ptr)
          */
-        OPENVR_SSL_free((void *)ldinfos);
+        VR_OPENSSL_free((void *)ldinfos);
         dl->dli_fname = NULL;
         return 0;
     }
@@ -399,7 +399,7 @@ static int dladdr(void *ptr, Dl_info *dl)
                                           this_ldi->ldinfo_next);
         }
     } while (this_ldi->ldinfo_next && !found);
-    OPENVR_SSL_free((void *)ldinfos);
+    VR_OPENSSL_free((void *)ldinfos);
     return (found && dl->dli_fname != NULL);
 }
 # endif                         /* _AIX */
@@ -424,7 +424,7 @@ static int dlfcn_pathbyaddr(void *addr, char *path, int sz)
         len = (int)strlen(dli.dli_fname);
         if (sz <= 0) {
 #  ifdef _AIX
-            OPENVR_SSL_free((void *)dli.dli_fname);
+            VR_OPENSSL_free((void *)dli.dli_fname);
 #  endif
             return len + 1;
         }
@@ -433,7 +433,7 @@ static int dlfcn_pathbyaddr(void *addr, char *path, int sz)
         memcpy(path, dli.dli_fname, len);
         path[len++] = 0;
 #  ifdef _AIX
-        OPENVR_SSL_free((void *)dli.dli_fname);
+        VR_OPENSSL_free((void *)dli.dli_fname);
 #  endif
         return len;
     }

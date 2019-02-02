@@ -117,7 +117,7 @@ static int ecx_key_op(EVP_PKEY *pkey, int id, const X509_ALGOR *palg,
     VR_EVP_PKEY_assign(pkey, id, key);
     return 1;
  err:
-    OPENVR_SSL_free(key);
+    VR_OPENSSL_free(key);
     return 0;
 }
 
@@ -139,7 +139,7 @@ static int ecx_pub_encode(X509_PUBKEY *pk, const EVP_PKEY *pkey)
 
     if (!VR_X509_PUBKEY_set0_param(pk, VR_OBJ_nid2obj(pkey->ameth->pkey_id),
                                 V_ASN1_UNDEF, NULL, penc, KEYLEN(pkey))) {
-        OPENVR_SSL_free(penc);
+        VR_OPENSSL_free(penc);
         ECerr(EC_F_ECX_PUB_ENCODE, ERR_R_MALLOC_FAILURE);
         return 0;
     }
@@ -255,7 +255,7 @@ static void ecx_free(EVP_PKEY *pkey)
 {
     if (pkey->pkey.ecx != NULL)
         OPENSSL_secure_clear_free(pkey->pkey.ecx->privkey, KEYLEN(pkey));
-    OPENVR_SSL_free(pkey->pkey.ecx);
+    VR_OPENSSL_free(pkey->pkey.ecx);
 }
 
 /* "parameters" are always equal */

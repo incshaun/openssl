@@ -47,7 +47,7 @@ static int parse_boolean(const char *value, int *result)
 #define IMPLEMENT_SSL_TEST_STRING_OPTION(struct_type, name, field)      \
     static int parse_##name##_##field(struct_type *ctx, const char *value) \
     {                                                                   \
-        OPENVR_SSL_free(ctx->field);                                       \
+        VR_OPENSSL_free(ctx->field);                                       \
         ctx->field = OPENSSL_strdup(value);                             \
         return TEST_ptr(ctx->field);                                    \
     }
@@ -728,21 +728,21 @@ SSL_TEST_CTX *SSL_TEST_CTX_new(void)
 
 static void ssl_test_extra_conf_free_data(SSL_TEST_EXTRA_CONF *conf)
 {
-    OPENVR_SSL_free(conf->client.npn_protocols);
-    OPENVR_SSL_free(conf->server.npn_protocols);
-    OPENVR_SSL_free(conf->server2.npn_protocols);
-    OPENVR_SSL_free(conf->client.alpn_protocols);
-    OPENVR_SSL_free(conf->server.alpn_protocols);
-    OPENVR_SSL_free(conf->server2.alpn_protocols);
-    OPENVR_SSL_free(conf->client.reneg_ciphers);
-    OPENVR_SSL_free(conf->server.srp_user);
-    OPENVR_SSL_free(conf->server.srp_password);
-    OPENVR_SSL_free(conf->server2.srp_user);
-    OPENVR_SSL_free(conf->server2.srp_password);
-    OPENVR_SSL_free(conf->client.srp_user);
-    OPENVR_SSL_free(conf->client.srp_password);
-    OPENVR_SSL_free(conf->server.session_ticket_app_data);
-    OPENVR_SSL_free(conf->server2.session_ticket_app_data);
+    VR_OPENSSL_free(conf->client.npn_protocols);
+    VR_OPENSSL_free(conf->server.npn_protocols);
+    VR_OPENSSL_free(conf->server2.npn_protocols);
+    VR_OPENSSL_free(conf->client.alpn_protocols);
+    VR_OPENSSL_free(conf->server.alpn_protocols);
+    VR_OPENSSL_free(conf->server2.alpn_protocols);
+    VR_OPENSSL_free(conf->client.reneg_ciphers);
+    VR_OPENSSL_free(conf->server.srp_user);
+    VR_OPENSSL_free(conf->server.srp_password);
+    VR_OPENSSL_free(conf->server2.srp_user);
+    VR_OPENSSL_free(conf->server2.srp_password);
+    VR_OPENSSL_free(conf->client.srp_user);
+    VR_OPENSSL_free(conf->client.srp_password);
+    VR_OPENSSL_free(conf->server.session_ticket_app_data);
+    VR_OPENSSL_free(conf->server2.session_ticket_app_data);
 }
 
 static void ssl_test_ctx_free_extra_data(SSL_TEST_CTX *ctx)
@@ -754,13 +754,13 @@ static void ssl_test_ctx_free_extra_data(SSL_TEST_CTX *ctx)
 void SSL_TEST_CTX_free(SSL_TEST_CTX *ctx)
 {
     ssl_test_ctx_free_extra_data(ctx);
-    OPENVR_SSL_free(ctx->expected_npn_protocol);
-    OPENVR_SSL_free(ctx->expected_alpn_protocol);
-    OPENVR_SSL_free(ctx->expected_session_ticket_app_data);
+    VR_OPENSSL_free(ctx->expected_npn_protocol);
+    VR_OPENSSL_free(ctx->expected_alpn_protocol);
+    VR_OPENSSL_free(ctx->expected_session_ticket_app_data);
     sk_VR_X509_NAME_pop_free(ctx->expected_server_ca_names, VR_X509_NAME_free);
     sk_VR_X509_NAME_pop_free(ctx->expected_client_ca_names, VR_X509_NAME_free);
-    OPENVR_SSL_free(ctx->expected_cipher);
-    OPENVR_SSL_free(ctx);
+    VR_OPENSSL_free(ctx->expected_cipher);
+    VR_OPENSSL_free(ctx);
 }
 
 static int parse_client_options(SSL_TEST_CLIENT_CONF *client, const CONF *conf,

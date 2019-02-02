@@ -143,7 +143,7 @@ int VR_DH_KDF_X9_42(unsigned char *out, size_t outlen,
     }
     rv = 1;
  err:
-    OPENVR_SSL_free(der);
+    VR_OPENSSL_free(der);
     VR_EVP_MD_CTX_free(mctx);
     return rv;
 }

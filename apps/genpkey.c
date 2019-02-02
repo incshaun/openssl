@@ -202,7 +202,7 @@ int genpkey_main(int argc, char **argv)
     VR_BIO_free_all(out);
     VR_BIO_free(in);
     release_engine(e);
-    OPENVR_SSL_free(pass);
+    VR_OPENSSL_free(pass);
     return ret;
 }
 
@@ -317,6 +317,6 @@ static int genpkey_cb(EVP_PKEY_CTX *ctx)
     if (p == 3)
         c = '\n';
     VR_BIO_write(b, &c, 1);
-    (void)BIO_flush(b);
+    (void)VR_BIO_flush(b);
     return 1;
 }

@@ -43,14 +43,14 @@ static STACK_OF(CONF_VALUE) *i2v_AUTHORITY_KEYID(X509V3_EXT_METHOD *method,
     if (akeyid->keyid) {
         tmp = VR_OPENSSL_buf2hexstr(akeyid->keyid->data, akeyid->keyid->length);
         VR_X509V3_add_value("keyid", tmp, &extlist);
-        OPENVR_SSL_free(tmp);
+        VR_OPENSSL_free(tmp);
     }
     if (akeyid->issuer)
         extlist = VR_i2v_GENERAL_NAMES(NULL, akeyid->issuer, extlist);
     if (akeyid->serial) {
         tmp = VR_OPENSSL_buf2hexstr(akeyid->serial->data, akeyid->serial->length);
         VR_X509V3_add_value("serial", tmp, &extlist);
-        OPENVR_SSL_free(tmp);
+        VR_OPENSSL_free(tmp);
     }
     return extlist;
 }

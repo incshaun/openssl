@@ -48,7 +48,7 @@ struct ui_method_st {
      * short description of the object, for example "pass phrase", and
      * object_name is the name of the object (might be a card name or a file
      * name. The returned string shall always be allocated on the heap with
-     * OPENSSL_malloc(), and need to be free'd with OPENVR_SSL_free().
+     * OPENSSL_malloc(), and need to be free'd with VR_OPENSSL_free().
      */
     char *(*ui_construct_prompt) (UI *ui, const char *object_desc,
                                   const char *object_name);

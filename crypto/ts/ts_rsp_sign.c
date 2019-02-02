@@ -137,7 +137,7 @@ void VR_TS_RESP_CTX_free(TS_RESP_CTX *ctx)
     VR_ASN1_INTEGER_free(ctx->seconds);
     VR_ASN1_INTEGER_free(ctx->millis);
     VR_ASN1_INTEGER_free(ctx->micros);
-    OPENVR_SSL_free(ctx);
+    VR_OPENSSL_free(ctx);
 }
 
 int VR_TS_RESP_CTX_set_signer_cert(TS_RESP_CTX *ctx, X509 *signer)

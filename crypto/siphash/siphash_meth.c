@@ -28,7 +28,7 @@ static EVP_MAC_IMPL *siphash_new(void)
 
 static void siphash_free(EVP_MAC_IMPL *sctx)
 {
-    OPENVR_SSL_free(sctx);
+    VR_OPENSSL_free(sctx);
 }
 
 static int siphash_copy(EVP_MAC_IMPL *sdst, EVP_MAC_IMPL *ssrc)

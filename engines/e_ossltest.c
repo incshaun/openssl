@@ -608,7 +608,7 @@ int ossltest_aes128_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
     /* Throw it all away and just use the plaintext as the output */
     if (tmpbuf != NULL)
         memcpy(out, tmpbuf, inl);
-    OPENVR_SSL_free(tmpbuf);
+    VR_OPENSSL_free(tmpbuf);
 
     return ret;
 }
@@ -639,7 +639,7 @@ int ossltest_aes128_gcm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
     /* Throw it all away and just use the plaintext as the output */
     if (tmpbuf != NULL && out != NULL)
         memcpy(out, tmpbuf, inl);
-    OPENVR_SSL_free(tmpbuf);
+    VR_OPENSSL_free(tmpbuf);
 
     return inl;
 }

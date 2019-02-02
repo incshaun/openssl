@@ -110,8 +110,8 @@ struct evp_test_buffer_st {
 static void evp_test_buffer_free(EVP_TEST_BUFFER *db)
 {
     if (db != NULL) {
-        OPENVR_SSL_free(db->buf);
-        OPENVR_SSL_free(db);
+        VR_OPENSSL_free(db->buf);
+        VR_OPENSSL_free(db);
     }
 }
 
@@ -167,7 +167,7 @@ static int evp_test_buffer_ncopy(const char *value,
     for (i = 0, p = tbuf; i < ncopy; i++, p += db->buflen)
         memcpy(p, db->buf, db->buflen);
 
-    OPENVR_SSL_free(db->buf);
+    VR_OPENSSL_free(db->buf);
     db->buf = tbuf;
     db->buflen = tbuflen;
     return 1;
@@ -258,7 +258,7 @@ static unsigned char* unescape(const char *input, size_t input_len,
     return ret;
 
  err:
-    OPENVR_SSL_free(ret);
+    VR_OPENSSL_free(ret);
     return NULL;
 }
 
@@ -354,7 +354,7 @@ static void digest_test_cleanup(EVP_TEST *t)
     DIGEST_DATA *mdat = t->data;
 
     sk_VR_EVP_TEST_BUFFER_pop_free(mdat->input, evp_test_buffer_free);
-    OPENVR_SSL_free(mdat->output);
+    VR_OPENSSL_free(mdat->output);
 }
 
 static int digest_test_parse(EVP_TEST *t,
@@ -427,7 +427,7 @@ static int digest_test_run(EVP_TEST *t)
     t->err = NULL;
 
  err:
-    OPENVR_SSL_free(got);
+    VR_OPENSSL_free(got);
     VR_EVP_MD_CTX_free(mctx);
     return 1;
 }
@@ -502,13 +502,13 @@ static void cipher_test_cleanup(EVP_TEST *t)
     int i;
     CIPHER_DATA *cdat = t->data;
 
-    OPENVR_SSL_free(cdat->key);
-    OPENVR_SSL_free(cdat->iv);
-    OPENVR_SSL_free(cdat->ciphertext);
-    OPENVR_SSL_free(cdat->plaintext);
+    VR_OPENSSL_free(cdat->key);
+    VR_OPENSSL_free(cdat->iv);
+    VR_OPENSSL_free(cdat->ciphertext);
+    VR_OPENSSL_free(cdat->plaintext);
     for (i = 0; i < AAD_NUM; i++)
-        OPENVR_SSL_free(cdat->aad[i]);
-    OPENVR_SSL_free(cdat->tag);
+        VR_OPENSSL_free(cdat->aad[i]);
+    VR_OPENSSL_free(cdat->tag);
 }
 
 static int cipher_test_parse(EVP_TEST *t, const char *keyword,
@@ -747,7 +747,7 @@ static int cipher_test_enc(EVP_TEST *t, int enc,
     t->err = NULL;
     ok = 1;
  err:
-    OPENVR_SSL_free(tmp);
+    VR_OPENSSL_free(tmp);
     VR_EVP_CIPHER_CTX_free(ctx);
     return ok;
 }
@@ -932,10 +932,10 @@ static int mac_test_init(EVP_TEST *t, const char *alg)
     return 1;
 }
 
-/* Because OPENVR_SSL_free is a macro, it can't be passed as a function pointer */
+/* Because VR_OPENSSL_free is a macro, it can't be passed as a function pointer */
 static void openssl_free(char *m)
 {
-    OPENVR_SSL_free(m);
+    VR_OPENSSL_free(m);
 }
 
 static void mac_test_cleanup(EVP_TEST *t)
@@ -943,12 +943,12 @@ static void mac_test_cleanup(EVP_TEST *t)
     MAC_DATA *mdat = t->data;
 
     sk_VR_OPENSSL_STRING_pop_free(mdat->controls, openssl_free);
-    OPENVR_SSL_free(mdat->alg);
-    OPENVR_SSL_free(mdat->key);
-    OPENVR_SSL_free(mdat->iv);
-    OPENVR_SSL_free(mdat->custom);
-    OPENVR_SSL_free(mdat->input);
-    OPENVR_SSL_free(mdat->output);
+    VR_OPENSSL_free(mdat->alg);
+    VR_OPENSSL_free(mdat->key);
+    VR_OPENSSL_free(mdat->iv);
+    VR_OPENSSL_free(mdat->custom);
+    VR_OPENSSL_free(mdat->input);
+    VR_OPENSSL_free(mdat->output);
 }
 
 static int mac_test_parse(EVP_TEST *t,
@@ -996,7 +996,7 @@ static int mac_test_ctrl_pkey(EVP_TEST *t, EVP_PKEY_CTX *pctx,
         t->err = "PKEY_CTRL_ERROR";
     else
         rv = 1;
-    OPENVR_SSL_free(tmpval);
+    VR_OPENSSL_free(tmpval);
     return rv > 0;
 }
 
@@ -1079,7 +1079,7 @@ static int mac_test_run_pkey(EVP_TEST *t)
     t->err = NULL;
  err:
     VR_EVP_MD_CTX_free(mctx);
-    OPENVR_SSL_free(got);
+    VR_OPENSSL_free(got);
     VR_EVP_PKEY_CTX_free(genctx);
     VR_EVP_PKEY_free(key);
     return 1;
@@ -1184,7 +1184,7 @@ static int mac_test_run_mac(EVP_TEST *t)
         if (p != NULL)
             *p++ = '\0';
         rv = VR_EVP_MAC_ctrl_str(ctx, tmpval, p);
-        OPENVR_SSL_free(tmpval);
+        VR_OPENSSL_free(tmpval);
         if (rv == -2) {
             t->err = "MAC_CTRL_INVALID";
             goto err;
@@ -1215,7 +1215,7 @@ static int mac_test_run_mac(EVP_TEST *t)
     t->err = NULL;
  err:
     VR_EVP_MAC_CTX_free(ctx);
-    OPENVR_SSL_free(got);
+    VR_OPENSSL_free(got);
     return 1;
 }
 
@@ -1289,7 +1289,7 @@ static int pkey_test_init(EVP_TEST *t, const char *name,
     kdata->keyop = keyop;
     if (!TEST_ptr(kdata->ctx = VR_EVP_PKEY_CTX_new(pkey, NULL))) {
         VR_EVP_PKEY_free(pkey);
-        OPENVR_SSL_free(kdata);
+        VR_OPENSSL_free(kdata);
         return 0;
     }
     if (keyopinit(kdata->ctx) <= 0)
@@ -1302,8 +1302,8 @@ static void pkey_test_cleanup(EVP_TEST *t)
 {
     PKEY_DATA *kdata = t->data;
 
-    OPENVR_SSL_free(kdata->input);
-    OPENVR_SSL_free(kdata->output);
+    VR_OPENSSL_free(kdata->input);
+    VR_OPENSSL_free(kdata->output);
     VR_EVP_PKEY_CTX_free(kdata->ctx);
 }
 
@@ -1338,7 +1338,7 @@ static int pkey_test_ctrl(EVP_TEST *t, EVP_PKEY_CTX *pctx,
             rv = 1;
         }
     }
-    OPENVR_SSL_free(tmpval);
+    VR_OPENSSL_free(tmpval);
     return rv > 0;
 }
 
@@ -1379,7 +1379,7 @@ static int pkey_test_run(EVP_TEST *t)
 
     t->err = NULL;
  err:
-    OPENVR_SSL_free(got);
+    VR_OPENSSL_free(got);
     return 1;
 }
 
@@ -1498,7 +1498,7 @@ static int pderive_test_run(EVP_TEST *t)
 
     t->err = NULL;
  err:
-    OPENVR_SSL_free(got);
+    VR_OPENSSL_free(got);
     return 1;
 }
 
@@ -1646,9 +1646,9 @@ static void pbe_test_cleanup(EVP_TEST *t)
 {
     PBE_DATA *pdat = t->data;
 
-    OPENVR_SSL_free(pdat->pass);
-    OPENVR_SSL_free(pdat->salt);
-    OPENVR_SSL_free(pdat->key);
+    VR_OPENSSL_free(pdat->pass);
+    VR_OPENSSL_free(pdat->salt);
+    VR_OPENSSL_free(pdat->key);
 }
 
 static int pbe_test_parse(EVP_TEST *t,
@@ -1715,7 +1715,7 @@ static int pbe_test_run(EVP_TEST *t)
 
     t->err = NULL;
 err:
-    OPENVR_SSL_free(key);
+    VR_OPENSSL_free(key);
     return 1;
 }
 
@@ -1771,7 +1771,7 @@ static int encode_test_init(EVP_TEST *t, const char *encoding)
     t->data = edata;
     return 1;
 err:
-    OPENVR_SSL_free(edata);
+    VR_OPENSSL_free(edata);
     return 0;
 }
 
@@ -1779,8 +1779,8 @@ static void encode_test_cleanup(EVP_TEST *t)
 {
     ENCODE_DATA *edata = t->data;
 
-    OPENVR_SSL_free(edata->input);
-    OPENVR_SSL_free(edata->output);
+    VR_OPENSSL_free(edata->input);
+    VR_OPENSSL_free(edata->output);
     memset(edata, 0, sizeof(*edata));
 }
 
@@ -1859,8 +1859,8 @@ static int encode_test_run(EVP_TEST *t)
 
     t->err = NULL;
  err:
-    OPENVR_SSL_free(encode_out);
-    OPENVR_SSL_free(decode_out);
+    VR_OPENSSL_free(encode_out);
+    VR_OPENSSL_free(decode_out);
     VR_EVP_ENCODE_CTX_free(decode_ctx);
     VR_EVP_ENCODE_CTX_free(encode_ctx);
     return 1;
@@ -1909,12 +1909,12 @@ static int kdf_test_init(EVP_TEST *t, const char *name)
         return 0;
     kdata->ctx = VR_EVP_PKEY_CTX_new_id(kdf_nid, NULL);
     if (kdata->ctx == NULL) {
-        OPENVR_SSL_free(kdata);
+        VR_OPENSSL_free(kdata);
         return 0;
     }
     if (VR_EVP_PKEY_derive_init(kdata->ctx) <= 0) {
         VR_EVP_PKEY_CTX_free(kdata->ctx);
-        OPENVR_SSL_free(kdata);
+        VR_OPENSSL_free(kdata);
         return 0;
     }
     t->data = kdata;
@@ -1924,7 +1924,7 @@ static int kdf_test_init(EVP_TEST *t, const char *name)
 static void kdf_test_cleanup(EVP_TEST *t)
 {
     KDF_DATA *kdata = t->data;
-    OPENVR_SSL_free(kdata->output);
+    VR_OPENSSL_free(kdata->output);
     VR_EVP_PKEY_CTX_free(kdata->ctx);
 }
 
@@ -1962,7 +1962,7 @@ static int kdf_test_run(EVP_TEST *t)
     t->err = NULL;
 
  err:
-    OPENVR_SSL_free(got);
+    VR_OPENSSL_free(got);
     return 1;
 }
 
@@ -2026,13 +2026,13 @@ static int keypair_test_init(EVP_TEST *t, const char *pair)
     t->err = NULL;
 
 end:
-    OPENVR_SSL_free(priv);
+    VR_OPENSSL_free(priv);
     return rv;
 }
 
 static void keypair_test_cleanup(EVP_TEST *t)
 {
-    OPENVR_SSL_free(t->data);
+    VR_OPENSSL_free(t->data);
     t->data = NULL;
 }
 
@@ -2141,8 +2141,8 @@ static void keygen_test_cleanup(EVP_TEST *t)
     KEYGEN_TEST_DATA *keygen = t->data;
 
     VR_EVP_PKEY_CTX_free(keygen->genctx);
-    OPENVR_SSL_free(keygen->keyname);
-    OPENVR_SSL_free(t->data);
+    VR_OPENSSL_free(keygen->keyname);
+    VR_OPENSSL_free(t->data);
     t->data = NULL;
 }
 
@@ -2240,7 +2240,7 @@ static int digestsigver_test_init(EVP_TEST *t, const char *alg, int is_verify,
         return 0;
     mdat->md = md;
     if (!TEST_ptr(mdat->ctx = VR_EVP_MD_CTX_new())) {
-        OPENVR_SSL_free(mdat);
+        VR_OPENSSL_free(mdat);
         return 0;
     }
     mdat->is_verify = is_verify;
@@ -2260,9 +2260,9 @@ static void digestsigver_test_cleanup(EVP_TEST *t)
 
     VR_EVP_MD_CTX_free(mdata->ctx);
     sk_VR_EVP_TEST_BUFFER_pop_free(mdata->input, evp_test_buffer_free);
-    OPENVR_SSL_free(mdata->osin);
-    OPENVR_SSL_free(mdata->output);
-    OPENVR_SSL_free(mdata);
+    VR_OPENSSL_free(mdata->osin);
+    VR_OPENSSL_free(mdata->output);
+    VR_OPENSSL_free(mdata);
     t->data = NULL;
 }
 
@@ -2354,7 +2354,7 @@ static int digestsign_test_run(EVP_TEST *t)
 
     t->err = NULL;
  err:
-    OPENVR_SSL_free(got);
+    VR_OPENSSL_free(got);
     return 1;
 }
 
@@ -2432,7 +2432,7 @@ static int oneshot_digestsign_test_run(EVP_TEST *t)
 
     t->err = NULL;
  err:
-    OPENVR_SSL_free(got);
+    VR_OPENSSL_free(got);
     return 1;
 }
 
@@ -2511,14 +2511,14 @@ static void clear_test(EVP_TEST *t)
     if (t->data != NULL) {
         if (t->meth != NULL)
             t->meth->cleanup(t);
-        OPENVR_SSL_free(t->data);
+        VR_OPENSSL_free(t->data);
         t->data = NULL;
     }
-    OPENVR_SSL_free(t->expected_err);
+    VR_OPENSSL_free(t->expected_err);
     t->expected_err = NULL;
-    OPENVR_SSL_free(t->func);
+    VR_OPENSSL_free(t->func);
     t->func = NULL;
-    OPENVR_SSL_free(t->reason);
+    VR_OPENSSL_free(t->reason);
     t->reason = NULL;
 
     /* Text literal. */
@@ -2639,8 +2639,8 @@ static void free_key_list(KEY_LIST *lst)
         KEY_LIST *next = lst->next;
 
         VR_EVP_PKEY_free(lst->key);
-        OPENVR_SSL_free(lst->name);
-        OPENVR_SSL_free(lst);
+        VR_OPENSSL_free(lst->name);
+        VR_OPENSSL_free(lst);
         lst = next;
     }
 }
@@ -2763,11 +2763,11 @@ top:
             pkey = VR_EVP_PKEY_new_raw_public_key(nid, NULL, keybin, keylen);
         if (pkey == NULL && !key_unsupported()) {
             TEST_info("Can't read %s data", pp->key);
-            OPENVR_SSL_free(keybin);
+            VR_OPENSSL_free(keybin);
             TEST_openssl_errors();
             return 0;
         }
-        OPENVR_SSL_free(keybin);
+        VR_OPENSSL_free(keybin);
     }
 
     /* If we have a key add to list */
@@ -2859,7 +2859,7 @@ static int run_file_tests(int i)
     if (!TEST_ptr(t = OPENSSL_zalloc(sizeof(*t))))
         return 0;
     if (!test_start_file(&t->s, testfile)) {
-        OPENVR_SSL_free(t);
+        VR_OPENSSL_free(t);
         return 0;
     }
 
@@ -2879,7 +2879,7 @@ static int run_file_tests(int i)
     free_key_list(private_keys);
     VR_BIO_free(t->s.key);
     c = t->s.errors;
-    OPENVR_SSL_free(t);
+    VR_OPENSSL_free(t);
     return c == 0;
 }
 

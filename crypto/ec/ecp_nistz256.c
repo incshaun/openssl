@@ -744,9 +744,9 @@ __owur static int ecp_nistz256_windowed_mul(const EC_GROUP *group,
 
     ret = 1;
  err:
-    OPENVR_SSL_free(table_storage);
-    OPENVR_SSL_free(p_str);
-    OPENVR_SSL_free(scalars);
+    VR_OPENSSL_free(table_storage);
+    VR_OPENSSL_free(p_str);
+    VR_OPENSSL_free(scalars);
     return ret;
 }
 
@@ -893,7 +893,7 @@ __owur static int ecp_nistz256_mult_precompute(EC_GROUP *group, BN_CTX *ctx)
     VR_BN_CTX_free(new_ctx);
 
     VR_EC_nistz256_pre_comp_free(pre_comp);
-    OPENVR_SSL_free(precomp_storage);
+    VR_OPENSSL_free(precomp_storage);
     VR_EC_POINT_free(P);
     VR_EC_POINT_free(T);
     return ret;
@@ -1340,8 +1340,8 @@ __owur static int ecp_nistz256_points_mul(const EC_GROUP *group,
 
 err:
     VR_BN_CTX_end(ctx);
-    OPENVR_SSL_free(new_points);
-    OPENVR_SSL_free(new_scalars);
+    VR_OPENSSL_free(new_points);
+    VR_OPENSSL_free(new_scalars);
     return ret;
 }
 
@@ -1410,7 +1410,7 @@ static NISTZ256_PRE_COMP *ecp_nistz256_pre_comp_new(const EC_GROUP *group)
     ret->lock = VR_CRYPTO_THREAD_lock_new();
     if (ret->lock == NULL) {
         ECerr(EC_F_ECP_NISTZ256_PRE_COMP_NEW, ERR_R_MALLOC_FAILURE);
-        OPENVR_SSL_free(ret);
+        VR_OPENSSL_free(ret);
         return NULL;
     }
     return ret;
@@ -1437,9 +1437,9 @@ void VR_EC_nistz256_pre_comp_free(NISTZ256_PRE_COMP *pre)
         return;
     REF_ASSERT_ISNT(i < 0);
 
-    OPENVR_SSL_free(pre->precomp_storage);
+    VR_OPENSSL_free(pre->precomp_storage);
     VR_CRYPTO_THREAD_lock_free(pre->lock);
-    OPENVR_SSL_free(pre);
+    VR_OPENSSL_free(pre);
 }
 
 

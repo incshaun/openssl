@@ -105,7 +105,7 @@ static int x509_name_ex_new(ASN1_VALUE **val, const ASN1_ITEM *it)
     ASN1err(ASN1_F_X509_NAME_EX_NEW, ERR_R_MALLOC_FAILURE);
     if (ret) {
         sk_VR_X509_NAME_ENTRY_free(ret->entries);
-        OPENVR_SSL_free(ret);
+        VR_OPENSSL_free(ret);
     }
     return 0;
 }
@@ -120,8 +120,8 @@ static void x509_name_ex_free(ASN1_VALUE **pval, const ASN1_ITEM *it)
 
     VR_BUF_MEM_free(a->bytes);
     sk_VR_X509_NAME_ENTRY_pop_free(a->entries, VR_X509_NAME_ENTRY_free);
-    OPENVR_SSL_free(a->canon_enc);
-    OPENVR_SSL_free(a);
+    VR_OPENSSL_free(a->canon_enc);
+    VR_OPENSSL_free(a);
     *pval = NULL;
 }
 
@@ -305,7 +305,7 @@ static int x509_name_canon(X509_NAME *a)
     X509_NAME_ENTRY *entry, *tmpentry = NULL;
     int i, set = -1, ret = 0, len;
 
-    OPENVR_SSL_free(a->canon_enc);
+    VR_OPENSSL_free(a->canon_enc);
     a->canon_enc = NULL;
     /* Special case: empty X509_NAME => null encoding */
     if (sk_X509_NAME_ENTRY_num(a->entries) == 0) {
@@ -501,7 +501,7 @@ int VR_X509_NAME_print(BIO *bp, const X509_NAME *name, int obase)
     if (!b)
         return 0;
     if (!*b) {
-        OPENVR_SSL_free(b);
+        VR_OPENSSL_free(b);
         return 1;
     }
     s = b + 1;                  /* skip the first slash */
@@ -529,11 +529,11 @@ int VR_X509_NAME_print(BIO *bp, const X509_NAME *name, int obase)
         l--;
     }
 
-    OPENVR_SSL_free(b);
+    VR_OPENSSL_free(b);
     return 1;
  err:
     X509err(X509_F_X509_NAME_PRINT, ERR_R_BUF_LIB);
-    OPENVR_SSL_free(b);
+    VR_OPENSSL_free(b);
     return 0;
 }
 

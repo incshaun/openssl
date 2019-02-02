@@ -60,7 +60,7 @@ RSA *VR_RSA_new_method(ENGINE *engine)
     ret->lock = VR_CRYPTO_THREAD_lock_new();
     if (ret->lock == NULL) {
         RSAerr(RSA_F_RSA_NEW_METHOD, ERR_R_MALLOC_FAILURE);
-        OPENVR_SSL_free(ret);
+        VR_OPENSSL_free(ret);
         return NULL;
     }
 
@@ -137,8 +137,8 @@ void VR_RSA_free(RSA *r)
     sk_VR_RSA_PRIME_INFO_pop_free(r->prime_infos, VR_rsa_multip_info_free);
     VR_BN_BLINDING_free(r->blinding);
     VR_BN_BLINDING_free(r->mt_blinding);
-    OPENVR_SSL_free(r->bignum_data);
-    OPENVR_SSL_free(r);
+    VR_OPENSSL_free(r->bignum_data);
+    VR_OPENSSL_free(r);
 }
 
 int VR_RSA_up_ref(RSA *r)

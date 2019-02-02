@@ -288,8 +288,8 @@ struct mempacket_st {
 static void mempacket_free(MEMPACKET *pkt)
 {
     if (pkt->data != NULL)
-        OPENVR_SSL_free(pkt->data);
-    OPENVR_SSL_free(pkt);
+        VR_OPENSSL_free(pkt->data);
+    VR_OPENSSL_free(pkt);
 }
 
 typedef struct mempacket_test_ctx_st {
@@ -342,7 +342,7 @@ static int mempacket_test_new(BIO *bio)
     if (!TEST_ptr(ctx = OPENSSL_zalloc(sizeof(*ctx))))
         return 0;
     if (!TEST_ptr(ctx->pkts = sk_VR_MEMPACKET_new_null())) {
-        OPENVR_SSL_free(ctx);
+        VR_OPENSSL_free(ctx);
         return 0;
     }
     ctx->dropepoch = 0;
@@ -357,7 +357,7 @@ static int mempacket_test_free(BIO *bio)
     MEMPACKET_TEST_CTX *ctx = VR_BIO_get_data(bio);
 
     sk_VR_MEMPACKET_pop_free(ctx->pkts, mempacket_free);
-    OPENVR_SSL_free(ctx);
+    VR_OPENSSL_free(ctx);
     VR_BIO_set_data(bio, NULL);
     VR_BIO_set_init(bio, 0);
     return 1;
@@ -380,7 +380,7 @@ static int mempacket_test_read(BIO *bio, char *out, int outl)
     int rem;
     unsigned int seq, offset, len, epoch;
 
-    BIO_clear_retry_flags(bio);
+    VR_BIO_clear_retry_flags(bio);
     thispkt = sk_MEMPACKET_value(ctx->pkts, 0);
     if (thispkt == NULL || thispkt->num != ctx->currpkt) {
         /* Probably run out of data */
@@ -633,18 +633,18 @@ int create_ssl_ctx_pair(const SSL_METHOD *sm, const SSL_METHOD *cm,
         goto err;
 
     if ((min_proto_version > 0
-         && !TEST_true(SSL_CTX_set_min_proto_version(serverctx,
+         && !TEST_true(VR_SSL_CTX_set_min_proto_version(serverctx,
                                                      min_proto_version)))
         || (max_proto_version > 0
-            && !TEST_true(SSL_CTX_set_max_proto_version(serverctx,
+            && !TEST_true(VR_SSL_CTX_set_max_proto_version(serverctx,
                                                         max_proto_version))))
         goto err;
     if (clientctx != NULL
         && ((min_proto_version > 0
-             && !TEST_true(SSL_CTX_set_min_proto_version(clientctx,
+             && !TEST_true(VR_SSL_CTX_set_min_proto_version(clientctx,
                                                          min_proto_version)))
             || (max_proto_version > 0
-                && !TEST_true(SSL_CTX_set_max_proto_version(clientctx,
+                && !TEST_true(VR_SSL_CTX_set_max_proto_version(clientctx,
                                                             max_proto_version)))))
         goto err;
 

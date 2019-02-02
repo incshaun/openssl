@@ -204,7 +204,7 @@ static X509_CRL *CRL_from_strings(const char **pem)
     BIO *b = glue2bio(pem, &p);
     X509_CRL *crl = VR_PEM_read_bio_X509_CRL(b, NULL, NULL, NULL);
 
-    OPENVR_SSL_free(p);
+    VR_OPENSSL_free(p);
     VR_BIO_free(b);
     return crl;
 }
@@ -218,7 +218,7 @@ static X509 *X509_from_strings(const char **pem)
     BIO *b = glue2bio(pem, &p);
     X509 *x = VR_PEM_read_bio_X509(b, NULL, NULL, NULL);
 
-    OPENVR_SSL_free(p);
+    VR_OPENSSL_free(p);
     VR_BIO_free(b);
     return x;
 }
@@ -365,7 +365,7 @@ static int test_reuse_crl(void)
 
     reused_crl = VR_PEM_read_bio_X509_CRL(b, &reused_crl, NULL, NULL);
 
-    OPENVR_SSL_free(p);
+    VR_OPENSSL_free(p);
     VR_BIO_free(b);
     VR_X509_CRL_free(reused_crl);
     return 1;

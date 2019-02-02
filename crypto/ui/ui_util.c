@@ -81,7 +81,7 @@ static int ui_dup_method_data(CRYPTO_EX_DATA *to, const CRYPTO_EX_DATA *from,
 static void ui_free_method_data(void *parent, void *ptr, CRYPTO_EX_DATA *ad,
                                 int idx, long argl, void *argp)
 {
-    OPENVR_SSL_free(ptr);
+    VR_OPENSSL_free(ptr);
 }
 
 static CRYPTO_ONCE get_index_once = CRYPTO_ONCE_STATIC_INIT;
@@ -152,7 +152,7 @@ UI_METHOD *VR_UI_UTIL_wrap_read_pem_callback(pem_password_cb *cb, int rwflag)
         || !RUN_ONCE(&get_index_once, ui_method_data_index_init)
         || VR_UI_method_set_ex_data(ui_method, ui_method_data_index, data) < 0) {
         VR_UI_destroy_method(ui_method);
-        OPENVR_SSL_free(data);
+        VR_OPENSSL_free(data);
         return NULL;
     }
     data->rwflag = rwflag;

@@ -878,12 +878,12 @@ int VR_BIO_vprintf(BIO *bio, const char *format, va_list args)
     dynbuf = NULL;
     if (!_dopr(&hugebufp, &dynbuf, &hugebufsize, &retlen, &ignored, format,
                 args)) {
-        OPENVR_SSL_free(dynbuf);
+        VR_OPENSSL_free(dynbuf);
         return -1;
     }
     if (dynbuf) {
         ret = VR_BIO_write(bio, dynbuf, (int)retlen);
-        OPENVR_SSL_free(dynbuf);
+        VR_OPENSSL_free(dynbuf);
     } else {
         ret = VR_BIO_write(bio, hugebuf, (int)retlen);
     }

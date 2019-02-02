@@ -201,17 +201,17 @@ void VR_BIO_clear_flags(BIO *b, int flags);
                 VR_BIO_set_flags(b, (BIO_FLAGS_WRITE|BIO_FLAGS_SHOULD_RETRY))
 
 /* These are normally used internally in BIOs */
-# define BIO_clear_retry_flags(b) \
+# define VR_BIO_clear_retry_flags(b) \
                 VR_BIO_clear_flags(b, (BIO_FLAGS_RWS|BIO_FLAGS_SHOULD_RETRY))
 # define BIO_get_retry_flags(b) \
                 VR_BIO_test_flags(b, (BIO_FLAGS_RWS|BIO_FLAGS_SHOULD_RETRY))
 
 /* These should be used by the application to tell why we should retry */
-# define BIO_should_read(a)              VR_BIO_test_flags(a, BIO_FLAGS_READ)
-# define BIO_should_write(a)             VR_BIO_test_flags(a, BIO_FLAGS_WRITE)
+# define VR_BIO_should_read(a)              VR_BIO_test_flags(a, BIO_FLAGS_READ)
+# define VR_BIO_should_write(a)             VR_BIO_test_flags(a, BIO_FLAGS_WRITE)
 # define BIO_should_io_special(a)        VR_BIO_test_flags(a, BIO_FLAGS_IO_SPECIAL)
 # define BIO_retry_type(a)               VR_BIO_test_flags(a, BIO_FLAGS_RWS)
-# define BIO_should_retry(a)             VR_BIO_test_flags(a, BIO_FLAGS_SHOULD_RETRY)
+# define VR_BIO_should_retry(a)             VR_BIO_test_flags(a, BIO_FLAGS_SHOULD_RETRY)
 
 /*
  * The next three are used in conjunction with the BIO_should_io_special()
@@ -415,15 +415,15 @@ struct bio_dgram_sctp_prinfo {
 #  define BIO_get_bind_mode(b)    VR_BIO_ctrl(b,BIO_C_GET_BIND_MODE,0,NULL)
 
 /* VR_BIO_s_accept() and VR_BIO_s_connect() */
-#  define BIO_do_connect(b)       BIO_do_handshake(b)
-#  define BIO_do_accept(b)        BIO_do_handshake(b)
+#  define BIO_do_connect(b)       VR_BIO_do_handshake(b)
+#  define BIO_do_accept(b)        VR_BIO_do_handshake(b)
 # endif /* OPENSSL_NO_SOCK */
 
-# define BIO_do_handshake(b)     VR_BIO_ctrl(b,BIO_C_DO_STATE_MACHINE,0,NULL)
+# define VR_BIO_do_handshake(b)     VR_BIO_ctrl(b,BIO_C_DO_STATE_MACHINE,0,NULL)
 
 /* VR_BIO_s_datagram(), VR_BIO_s_fd(), VR_BIO_s_socket(), VR_BIO_s_accept() and VR_BIO_s_connect() */
-# define BIO_set_fd(b,fd,c)      VR_BIO_int_ctrl(b,BIO_C_SET_FD,c,fd)
-# define BIO_get_fd(b,c)         VR_BIO_ctrl(b,BIO_C_GET_FD,0,(char *)(c))
+# define VR_BIO_set_fd(b,fd,c)      VR_BIO_int_ctrl(b,BIO_C_SET_FD,c,fd)
+# define VR_BIO_get_fd(b,c)         VR_BIO_ctrl(b,BIO_C_GET_FD,0,(char *)(c))
 
 /* VR_BIO_s_file() */
 # define BIO_set_fp(b,fp,c)      VR_BIO_ctrl(b,BIO_C_SET_FILE_PTR,c,(char *)(fp))
@@ -460,14 +460,14 @@ int VR_BIO_read_filename(BIO *b, const char *name);
  * next_bio field in the bio.  So when you free the BIO, make sure you are
  * doing a VR_BIO_free_all() to catch the underlying BIO.
  */
-# define BIO_set_ssl(b,ssl,c)    VR_BIO_ctrl(b,BIO_C_SET_SSL,c,(char *)(ssl))
-# define BIO_get_ssl(b,sslp)     VR_BIO_ctrl(b,BIO_C_GET_SSL,0,(char *)(sslp))
-# define BIO_set_ssl_mode(b,client)      VR_BIO_ctrl(b,BIO_C_SSL_MODE,client,NULL)
-# define BIO_set_ssl_renegotiate_bytes(b,num) \
+# define VR_BIO_set_ssl(b,ssl,c)    VR_BIO_ctrl(b,BIO_C_SET_SSL,c,(char *)(ssl))
+# define VR_BIO_get_ssl(b,sslp)     VR_BIO_ctrl(b,BIO_C_GET_SSL,0,(char *)(sslp))
+# define VR_BIO_set_ssl_mode(b,client)      VR_BIO_ctrl(b,BIO_C_SSL_MODE,client,NULL)
+# define VR_BIO_set_ssl_renegotiate_bytes(b,num) \
         VR_BIO_ctrl(b,BIO_C_SET_SSL_RENEGOTIATE_BYTES,num,NULL)
 # define BIO_get_num_renegotiates(b) \
         VR_BIO_ctrl(b,BIO_C_GET_SSL_NUM_RENEGOTIATES,0,NULL)
-# define BIO_set_ssl_renegotiate_timeout(b,seconds) \
+# define VR_BIO_set_ssl_renegotiate_timeout(b,seconds) \
         VR_BIO_ctrl(b,BIO_C_SET_SSL_RENEGOTIATE_TIMEOUT,seconds,NULL)
 
 /* defined in evp.h */
@@ -494,12 +494,12 @@ int VR_BIO_read_filename(BIO *b, const char *name);
 # define BIO_eof(b)              (int)VR_BIO_ctrl(b,BIO_CTRL_EOF,0,NULL)
 # define BIO_set_close(b,c)      (int)VR_BIO_ctrl(b,BIO_CTRL_SET_CLOSE,(c),NULL)
 # define BIO_get_close(b)        (int)VR_BIO_ctrl(b,BIO_CTRL_GET_CLOSE,0,NULL)
-# define BIO_pending(b)          (int)VR_BIO_ctrl(b,BIO_CTRL_PENDING,0,NULL)
+# define VR_BIO_pending(b)          (int)VR_BIO_ctrl(b,BIO_CTRL_PENDING,0,NULL)
 # define BIO_wpending(b)         (int)VR_BIO_ctrl(b,BIO_CTRL_WPENDING,0,NULL)
 /* ...pending macros have inappropriate return type */
 size_t VR_BIO_ctrl_pending(BIO *b);
 size_t VR_BIO_ctrl_wpending(BIO *b);
-# define BIO_flush(b)            (int)VR_BIO_ctrl(b,BIO_CTRL_FLUSH,0,NULL)
+# define VR_BIO_flush(b)            (int)VR_BIO_ctrl(b,BIO_CTRL_FLUSH,0,NULL)
 # define BIO_get_info_callback(b,cbp) (int)VR_BIO_ctrl(b,BIO_CTRL_GET_CALLBACK,0, \
                                                    cbp)
 # define BIO_set_info_callback(b,cb) (int)VR_BIO_callback_ctrl(b,BIO_CTRL_SET_CALLBACK,cb)
@@ -509,9 +509,9 @@ size_t VR_BIO_ctrl_wpending(BIO *b);
 # define BIO_buffer_peek(b,s,l) VR_BIO_ctrl(b,BIO_CTRL_PEEK,(l),(s))
 
 /* For VR_BIO_s_bio() */
-# define BIO_set_write_buf_size(b,size) (int)VR_BIO_ctrl(b,BIO_C_SET_WRITE_BUF_SIZE,size,NULL)
+# define VR_BIO_set_write_buf_size(b,size) (int)VR_BIO_ctrl(b,BIO_C_SET_WRITE_BUF_SIZE,size,NULL)
 # define BIO_get_write_buf_size(b,size) (size_t)VR_BIO_ctrl(b,BIO_C_GET_WRITE_BUF_SIZE,size,NULL)
-# define BIO_make_bio_pair(b1,b2)   (int)VR_BIO_ctrl(b1,BIO_C_MAKE_BIO_PAIR,0,b2)
+# define VR_BIO_make_bio_pair(b1,b2)   (int)VR_BIO_ctrl(b1,BIO_C_MAKE_BIO_PAIR,0,b2)
 # define BIO_destroy_bio_pair(b)    (int)VR_BIO_ctrl(b,BIO_C_DESTROY_BIO_PAIR,0,NULL)
 # define BIO_shutdown_wr(b) (int)VR_BIO_ctrl(b, BIO_C_SHUTDOWN_WR, 0, NULL)
 /* macros with inappropriate type -- but ...pending macros use int too: */

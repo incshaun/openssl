@@ -21,7 +21,7 @@ int VR_RSA_bits(const RSA *r)
 
 int VR_RSA_size(const RSA *r)
 {
-    return BN_num_bytes(r->n);
+    return VR_BN_num_bytes(r->n);
 }
 
 int VR_RSA_public_encrypt(int flen, const unsigned char *from, unsigned char *to,

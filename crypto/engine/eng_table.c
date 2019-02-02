@@ -104,14 +104,14 @@ int VR_engine_table_register(ENGINE_TABLE **table, ENGINE_CLEANUP_CB *cleanup,
             fnd->nid = *nids;
             fnd->sk = sk_VR_ENGINE_new_null();
             if (!fnd->sk) {
-                OPENVR_SSL_free(fnd);
+                VR_OPENSSL_free(fnd);
                 goto end;
             }
             fnd->funct = NULL;
             (void)lh_ENGINE_PILE_insert(&(*table)->piles, fnd);
             if (lh_ENGINE_PILE_retrieve(&(*table)->piles, &tmplate) != fnd) {
                 sk_VR_ENGINE_free(fnd->sk);
-                OPENVR_SSL_free(fnd);
+                VR_OPENSSL_free(fnd);
                 goto end;
             }
         }
@@ -174,7 +174,7 @@ static void int_cleanup_cb_doall(ENGINE_PILE *p)
     sk_VR_ENGINE_free(p->sk);
     if (p->funct)
         VR_engine_unlocked_finish(p->funct, 0);
-    OPENVR_SSL_free(p);
+    VR_OPENSSL_free(p);
 }
 
 void VR_engine_table_cleanup(ENGINE_TABLE **table)

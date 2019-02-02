@@ -34,11 +34,11 @@ void VR_ASYNC_WAIT_CTX_free(ASYNC_WAIT_CTX *ctx)
         }
         /* Always free the fd_lookup_st */
         next = curr->next;
-        OPENVR_SSL_free(curr);
+        VR_OPENSSL_free(curr);
         curr = next;
     }
 
-    OPENVR_SSL_free(ctx);
+    VR_OPENSSL_free(ctx);
 }
 int VR_ASYNC_WAIT_CTX_set_wait_fd(ASYNC_WAIT_CTX *ctx, const void *key,
                                OSSL_ASYNC_FD fd, void *custom_data,
@@ -162,7 +162,7 @@ int VR_ASYNC_WAIT_CTX_clear_fd(ASYNC_WAIT_CTX *ctx, const void *key)
                 /* It is responsibility of the caller to cleanup before calling
                  * VR_ASYNC_WAIT_CTX_clear_fd
                  */
-                OPENVR_SSL_free(curr);
+                VR_OPENSSL_free(curr);
                 ctx->numadd--;
                 return 1;
             }
@@ -232,7 +232,7 @@ void VR_async_wait_ctx_reset_counts(ASYNC_WAIT_CTX *ctx)
                 ctx->fds = curr->next;
             else
                 prev->next = curr->next;
-            OPENVR_SSL_free(curr);
+            VR_OPENSSL_free(curr);
             if (prev == NULL)
                 curr = ctx->fds;
             else

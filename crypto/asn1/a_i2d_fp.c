@@ -61,7 +61,7 @@ int VR_ASN1_i2d_bio(i2d_of_void *i2d, BIO *out, unsigned char *x)
         j += i;
         n -= i;
     }
-    OPENVR_SSL_free(b);
+    VR_OPENSSL_free(b);
     return ret;
 }
 
@@ -106,6 +106,6 @@ int VR_ASN1_item_i2d_bio(const ASN1_ITEM *it, BIO *out, void *x)
         j += i;
         n -= i;
     }
-    OPENVR_SSL_free(b);
+    VR_OPENSSL_free(b);
     return ret;
 }

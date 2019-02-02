@@ -79,7 +79,7 @@ static int b64_new(BIO *bi)
     ctx->start = 1;
     ctx->base64 = VR_EVP_ENCODE_CTX_new();
     if (ctx->base64 == NULL) {
-        OPENVR_SSL_free(ctx);
+        VR_OPENSSL_free(ctx);
         return 0;
     }
 
@@ -100,7 +100,7 @@ static int b64_free(BIO *a)
         return 0;
 
     VR_EVP_ENCODE_CTX_free(ctx->base64);
-    OPENVR_SSL_free(ctx);
+    VR_OPENSSL_free(ctx);
     VR_BIO_set_data(a, NULL);
     VR_BIO_set_init(a, 0);
 
@@ -122,7 +122,7 @@ static int b64_read(BIO *b, char *out, int outl)
     if ((ctx == NULL) || (next == NULL))
         return 0;
 
-    BIO_clear_retry_flags(b);
+    VR_BIO_clear_retry_flags(b);
 
     if (ctx->encode != B64_DECODE) {
         ctx->encode = B64_DECODE;
@@ -167,7 +167,7 @@ static int b64_read(BIO *b, char *out, int outl)
             ret_code = i;
 
             /* Should we continue next time we are called? */
-            if (!BIO_should_retry(next)) {
+            if (!VR_BIO_should_retry(next)) {
                 ctx->cont = i;
                 /* If buffer empty break */
                 if (ctx->tmp_len == 0)
@@ -320,7 +320,7 @@ static int b64_read(BIO *b, char *out, int outl)
         outl -= i;
         out += i;
     }
-    /* BIO_clear_retry_flags(b); */
+    /* VR_BIO_clear_retry_flags(b); */
     VR_BIO_copy_next_retry(b);
     return ((ret == 0) ? ret_code : ret);
 }
@@ -338,7 +338,7 @@ static int b64_write(BIO *b, const char *in, int inl)
     if ((ctx == NULL) || (next == NULL))
         return 0;
 
-    BIO_clear_retry_flags(b);
+    VR_BIO_clear_retry_flags(b);
 
     if (ctx->encode != B64_ENCODE) {
         ctx->encode = B64_ENCODE;
@@ -515,7 +515,7 @@ static long b64_ctrl(BIO *b, int cmd, long num, void *ptr)
         break;
 
     case BIO_C_DO_STATE_MACHINE:
-        BIO_clear_retry_flags(b);
+        VR_BIO_clear_retry_flags(b);
         ret = VR_BIO_ctrl(next, cmd, num, ptr);
         VR_BIO_copy_next_retry(b);
         break;

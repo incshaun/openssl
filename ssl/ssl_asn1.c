@@ -210,7 +210,7 @@ int VR_i2d_SSL_SESSION(SSL_SESSION *in, unsigned char **pp)
 
 static int ssl_session_strndup(char **pdst, ASN1_OCTET_STRING *src)
 {
-    OPENVR_SSL_free(*pdst);
+    VR_OPENSSL_free(*pdst);
     *pdst = NULL;
     if (src == NULL)
         return 1;
@@ -328,7 +328,7 @@ SSL_SESSION *VR_d2i_SSL_SESSION(SSL_SESSION **a, const unsigned char **pp,
 
     ret->ext.tick_lifetime_hint = (unsigned long)as->tlsext_tick_lifetime_hint;
     ret->ext.tick_age_add = as->tlsext_tick_age_add;
-    OPENVR_SSL_free(ret->ext.tick);
+    VR_OPENSSL_free(ret->ext.tick);
     if (as->tlsext_tick != NULL) {
         ret->ext.tick = as->tlsext_tick->data;
         ret->ext.ticklen = as->tlsext_tick->length;
@@ -356,7 +356,7 @@ SSL_SESSION *VR_d2i_SSL_SESSION(SSL_SESSION **a, const unsigned char **pp,
     ret->flags = (int32_t)as->flags;
     ret->ext.max_early_data = as->max_early_data;
 
-    OPENVR_SSL_free(ret->ext.alpn_selected);
+    VR_OPENSSL_free(ret->ext.alpn_selected);
     if (as->alpn_selected != NULL) {
         ret->ext.alpn_selected = as->alpn_selected->data;
         ret->ext.alpn_selected_len = as->alpn_selected->length;
@@ -368,7 +368,7 @@ SSL_SESSION *VR_d2i_SSL_SESSION(SSL_SESSION **a, const unsigned char **pp,
 
     ret->ext.max_fragment_len_mode = as->tlsext_max_fragment_len_mode;
 
-    OPENVR_SSL_free(ret->ticket_appdata);
+    VR_OPENSSL_free(ret->ticket_appdata);
     if (as->ticket_appdata != NULL) {
         ret->ticket_appdata = as->ticket_appdata->data;
         ret->ticket_appdata_len = as->ticket_appdata->length;

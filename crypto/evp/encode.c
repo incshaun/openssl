@@ -131,7 +131,7 @@ EVP_ENCODE_CTX *VR_EVP_ENCODE_CTX_new(void)
 
 void VR_EVP_ENCODE_CTX_free(EVP_ENCODE_CTX *ctx)
 {
-    OPENVR_SSL_free(ctx);
+    VR_OPENSSL_free(ctx);
 }
 
 int VR_EVP_ENCODE_CTX_copy(EVP_ENCODE_CTX *dctx, EVP_ENCODE_CTX *sctx)

@@ -74,7 +74,7 @@ int VR_PKCS7_final(PKCS7 *p7, BIO *data, int flags)
 
     VR_SMIME_crlf_copy(data, p7bio, flags);
 
-    (void)BIO_flush(p7bio);
+    (void)VR_BIO_flush(p7bio);
 
     if (!VR_PKCS7_dataFinal(p7, p7bio)) {
         PKCS7err(PKCS7_F_PKCS7_FINAL, PKCS7_R_PKCS7_DATASIGN);
@@ -359,7 +359,7 @@ int VR_PKCS7_verify(PKCS7 *p7, STACK_OF(X509) *certs, X509_STORE *store,
 
  err:
     VR_X509_STORE_CTX_free(cert_ctx);
-    OPENVR_SSL_free(buf);
+    VR_OPENSSL_free(buf);
     if (tmpin == indata) {
         if (indata)
             VR_BIO_pop(p7bio);
@@ -543,7 +543,7 @@ int VR_PKCS7_decrypt(PKCS7 *p7, EVP_PKEY *pkey, X509 *cert, BIO *data, int flags
         }
     }
 err:
-    OPENVR_SSL_free(buf);
+    VR_OPENSSL_free(buf);
     VR_BIO_free_all(tmpmem);
     return ret;
 }

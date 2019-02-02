@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
 
     /* Use it inside an SSL BIO */
     ssl_bio = VR_BIO_new(VR_BIO_f_ssl());
-    BIO_set_ssl(ssl_bio, ssl, BIO_CLOSE);
+    VR_BIO_set_ssl(ssl_bio, ssl, BIO_CLOSE);
 
     /* Lets use a connect BIO under the SSL BIO */
     out = VR_BIO_new(VR_BIO_s_connect());
@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
     for (;;) {
         i = VR_BIO_write(out, &(p[off]), len);
         if (i <= 0) {
-            if (BIO_should_retry(out)) {
+            if (VR_BIO_should_retry(out)) {
                 fprintf(stderr, "write DELAY\n");
                 sleep(1);
                 continue;
@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
         if (i == 0)
             break;
         if (i < 0) {
-            if (BIO_should_retry(out)) {
+            if (VR_BIO_should_retry(out)) {
                 fprintf(stderr, "read DELAY\n");
                 sleep(1);
                 continue;

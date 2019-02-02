@@ -410,7 +410,7 @@ static int test_EVP_Enveloped(void)
 
     ret = 1;
 err:
-    OPENVR_SSL_free(kek);
+    VR_OPENSSL_free(kek);
     VR_EVP_PKEY_free(keypair);
     VR_EVP_CIPHER_CTX_free(ctx);
     return ret;
@@ -457,7 +457,7 @@ static int test_VR_EVP_DigestSignInit(void)
     VR_EVP_MD_CTX_free(md_ctx);
     VR_EVP_MD_CTX_free(md_ctx_verify);
     VR_EVP_PKEY_free(pkey);
-    OPENVR_SSL_free(sig);
+    VR_OPENSSL_free(sig);
 
     return ret;
 }
@@ -744,7 +744,7 @@ done:
     VR_EVP_PKEY_free(params);
     VR_EVP_MD_CTX_free(md_ctx);
     VR_EVP_MD_CTX_free(md_ctx_verify);
-    OPENVR_SSL_free(sig);
+    VR_OPENSSL_free(sig);
     return ret;
 }
 

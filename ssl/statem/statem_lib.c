@@ -323,11 +323,11 @@ int VR_tls_construct_cert_verify(SSL *s, WPACKET *pkt)
         goto err;
     }
 
-    OPENVR_SSL_free(sig);
+    VR_OPENSSL_free(sig);
     VR_EVP_MD_CTX_free(mctx);
     return 1;
  err:
-    OPENVR_SSL_free(sig);
+    VR_OPENSSL_free(sig);
     VR_EVP_MD_CTX_free(mctx);
     return 0;
 }
@@ -514,7 +514,7 @@ MSG_PROCESS_RETURN VR_tls_process_cert_verify(SSL *s, PACKET *pkt)
     s->s3->handshake_buffer = NULL;
     VR_EVP_MD_CTX_free(mctx);
 #ifndef OPENSSL_NO_GOST
-    OPENVR_SSL_free(gost_data);
+    VR_OPENSSL_free(gost_data);
 #endif
     return ret;
 }

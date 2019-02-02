@@ -24,7 +24,7 @@ int VR_X509_STORE_set_default_paths(X509_STORE *ctx)
     lookup = VR_X509_STORE_add_lookup(ctx, VR_X509_LOOKUP_hash_dir());
     if (lookup == NULL)
         return 0;
-    X509_LOOKUP_add_dir(lookup, NULL, X509_FILETYPE_DEFAULT);
+    VR_X509_LOOKUP_add_dir(lookup, NULL, X509_FILETYPE_DEFAULT);
 
     /* clear any errors */
     VR_ERR_clear_error();
@@ -48,7 +48,7 @@ int VR_X509_STORE_load_locations(X509_STORE *ctx, const char *file,
         lookup = VR_X509_STORE_add_lookup(ctx, VR_X509_LOOKUP_hash_dir());
         if (lookup == NULL)
             return 0;
-        if (X509_LOOKUP_add_dir(lookup, path, X509_FILETYPE_PEM) != 1)
+        if (VR_X509_LOOKUP_add_dir(lookup, path, X509_FILETYPE_PEM) != 1)
             return 0;
     }
     if ((path == NULL) && (file == NULL))

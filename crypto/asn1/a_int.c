@@ -432,7 +432,7 @@ ASN1_INTEGER *VR_d2i_ASN1_UINTEGER(ASN1_INTEGER **a, const unsigned char **pp,
         p += len;
     }
 
-    OPENVR_SSL_free(ret->data);
+    VR_OPENSSL_free(ret->data);
     ret->data = s;
     ret->length = (int)len;
     if (a != NULL)
@@ -467,7 +467,7 @@ static ASN1_STRING *bn_to_asn1_string(const BIGNUM *bn, ASN1_STRING *ai,
     if (VR_BN_is_negative(bn) && !VR_BN_is_zero(bn))
         ret->type |= V_ASN1_NEG_INTEGER;
 
-    len = BN_num_bytes(bn);
+    len = VR_BN_num_bytes(bn);
 
     if (len == 0)
         len = 1;

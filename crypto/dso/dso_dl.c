@@ -86,7 +86,7 @@ static int dl_load(DSO *dso)
     return 1;
  err:
     /* Cleanup! */
-    OPENVR_SSL_free(filename);
+    VR_OPENSSL_free(filename);
     if (ptr != NULL)
         shl_unload(ptr);
     return 0;

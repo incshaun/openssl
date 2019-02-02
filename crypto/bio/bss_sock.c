@@ -64,7 +64,7 @@ BIO *VR_BIO_new_socket(int fd, int close_flag)
     ret = VR_BIO_new(VR_BIO_s_socket());
     if (ret == NULL)
         return NULL;
-    BIO_set_fd(ret, fd, close_flag);
+    VR_BIO_set_fd(ret, fd, close_flag);
 # ifndef OPENSSL_NO_KTLS
     {
         /*
@@ -109,7 +109,7 @@ static int sock_read(BIO *b, char *out, int outl)
     if (out != NULL) {
         clear_socket_error();
         ret = readsocket(b->num, out, outl);
-        BIO_clear_retry_flags(b);
+        VR_BIO_clear_retry_flags(b);
         if (ret <= 0) {
             if (VR_BIO_sock_should_retry(ret))
                 BIO_set_retry_read(b);
@@ -134,7 +134,7 @@ static int sock_write(BIO *b, const char *in, int inl)
     } else
 # endif
         ret = writesocket(b->num, in, inl);
-    BIO_clear_retry_flags(b);
+    VR_BIO_clear_retry_flags(b);
     if (ret <= 0) {
         if (VR_BIO_sock_should_retry(ret))
             BIO_set_retry_write(b);

@@ -670,7 +670,7 @@ int VR_tls_collect_extensions(SSL *s, PACKET *packet, unsigned int context,
     return 1;
 
  err:
-    OPENVR_SSL_free(raw_extensions);
+    VR_OPENSSL_free(raw_extensions);
     return 0;
 }
 
@@ -914,7 +914,7 @@ static int init_server_name(SSL *s, unsigned int context)
     if (s->server) {
         s->servername_done = 0;
 
-        OPENVR_SSL_free(s->ext.hostname);
+        VR_OPENSSL_free(s->ext.hostname);
         s->ext.hostname = NULL;
     }
 
@@ -952,7 +952,7 @@ static int final_server_name(SSL *s, unsigned int context, int sent)
         /* TODO(OpenSSL1.2) revisit !sent case */
         if (sent && ret == SSL_TLSEXT_ERR_OK && (!s->hit || SSL_IS_TLS13(s))) {
             /* Only store the hostname in the session if we accepted it. */
-            OPENVR_SSL_free(s->session->ext.hostname);
+            VR_OPENSSL_free(s->session->ext.hostname);
             s->session->ext.hostname = OPENSSL_strdup(s->ext.hostname);
             if (s->session->ext.hostname == NULL && s->ext.hostname != NULL) {
                 SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_FINAL_SERVER_NAME,
@@ -984,7 +984,7 @@ static int final_server_name(SSL *s, unsigned int context, int sent)
             SSL_SESSION* ss = VR_SSL_get_session(s);
 
             if (ss != NULL) {
-                OPENVR_SSL_free(ss->ext.tick);
+                VR_OPENSSL_free(ss->ext.tick);
                 ss->ext.tick = NULL;
                 ss->ext.ticklen = 0;
                 ss->ext.tick_lifetime_hint = 0;
@@ -1081,7 +1081,7 @@ static int init_status_request(SSL *s, unsigned int context)
          * Ensure we get sensible values passed to tlsext_status_cb in the event
          * that we don't receive a status message
          */
-        OPENVR_SSL_free(s->ext.ocsp.resp);
+        VR_OPENSSL_free(s->ext.ocsp.resp);
         s->ext.ocsp.resp = NULL;
         s->ext.ocsp.resp_len = 0;
     }
@@ -1101,11 +1101,11 @@ static int init_npn(SSL *s, unsigned int context)
 
 static int init_alpn(SSL *s, unsigned int context)
 {
-    OPENVR_SSL_free(s->s3->alpn_selected);
+    VR_OPENSSL_free(s->s3->alpn_selected);
     s->s3->alpn_selected = NULL;
     s->s3->alpn_selected_len = 0;
     if (s->server) {
-        OPENVR_SSL_free(s->s3->alpn_proposed);
+        VR_OPENSSL_free(s->s3->alpn_proposed);
         s->s3->alpn_proposed = NULL;
         s->s3->alpn_proposed_len = 0;
     }
@@ -1135,7 +1135,7 @@ static int final_alpn(SSL *s, unsigned int context, int sent)
 static int init_sig_algs(SSL *s, unsigned int context)
 {
     /* Clear any signature algorithms extension received */
-    OPENVR_SSL_free(s->s3->tmp.peer_sigalgs);
+    VR_OPENSSL_free(s->s3->tmp.peer_sigalgs);
     s->s3->tmp.peer_sigalgs = NULL;
 
     return 1;
@@ -1144,7 +1144,7 @@ static int init_sig_algs(SSL *s, unsigned int context)
 static int init_sig_algs_cert(SSL *s, unsigned int context)
 {
     /* Clear any signature algorithms extension received */
-    OPENVR_SSL_free(s->s3->tmp.peer_cert_sigalgs);
+    VR_OPENSSL_free(s->s3->tmp.peer_cert_sigalgs);
     s->s3->tmp.peer_cert_sigalgs = NULL;
 
     return 1;
@@ -1153,7 +1153,7 @@ static int init_sig_algs_cert(SSL *s, unsigned int context)
 #ifndef OPENSSL_NO_SRP
 static int init_srp(SSL *s, unsigned int context)
 {
-    OPENVR_SSL_free(s->srp_ctx.login);
+    VR_OPENSSL_free(s->srp_ctx.login);
     s->srp_ctx.login = NULL;
 
     return 1;

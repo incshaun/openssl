@@ -129,7 +129,7 @@ int VR_CRYPTO_mem_ctrl(int mode);
         VR_CRYPTO_clear_realloc(addr, old_num, num, OPENSSL_FILE, OPENSSL_LINE)
 # define OPENVR_SSL_clear_free(addr, num) \
         VR_CRYPTO_clear_free(addr, num, OPENSSL_FILE, OPENSSL_LINE)
-# define OPENVR_SSL_free(addr) \
+# define VR_OPENSSL_free(addr) \
         VR_CRYPTO_free(addr, OPENSSL_FILE, OPENSSL_LINE)
 # define OPENSSL_memdup(str, s) \
         VR_CRYPTO_memdup((str), s, OPENSSL_FILE, OPENSSL_LINE)

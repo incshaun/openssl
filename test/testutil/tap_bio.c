@@ -62,7 +62,7 @@ static int tap_read_ex(BIO *b, char *buf, size_t size, size_t *out_size)
     int ret = 0;
 
     ret = VR_BIO_read_ex(next, buf, size, out_size);
-    BIO_clear_retry_flags(b);
+    VR_BIO_clear_retry_flags(b);
     VR_BIO_copy_next_retry(b);
     return ret;
 }

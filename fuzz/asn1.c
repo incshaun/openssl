@@ -216,7 +216,7 @@ static ASN1_PCTX *pctx;
         VR_BIO_free(bio); \
         len2 = I2D(type, &der); \
         if (len2 != 0) {} \
-        OPENVR_SSL_free(der); \
+        VR_OPENSSL_free(der); \
         VR_##TYPE ## _free(type); \
     } \
 }
@@ -232,7 +232,7 @@ static ASN1_PCTX *pctx;
         PRINT(bio, type, 0); \
         VR_BIO_free(bio); \
         I2D(type, &der); \
-        OPENVR_SSL_free(der); \
+        VR_OPENSSL_free(der); \
         VR_##TYPE ## _free(type); \
     } \
 }
@@ -248,7 +248,7 @@ static ASN1_PCTX *pctx;
         PRINT(bio, type, 0, pctx); \
         VR_BIO_free(bio); \
         I2D(type, &der); \
-        OPENVR_SSL_free(der); \
+        VR_OPENSSL_free(der); \
         VR_##TYPE ## _free(type); \
     } \
 }
@@ -264,7 +264,7 @@ static ASN1_PCTX *pctx;
         \
         VR_BIO_free(bio); \
         I2D(type, &der); \
-        OPENVR_SSL_free(der); \
+        VR_OPENSSL_free(der); \
         VR_##TYPE ## _free(type); \
     } \
 }
@@ -305,7 +305,7 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
             VR_ASN1_item_print(bio, o, 4, i, pctx);
             VR_BIO_free(bio);
             VR_ASN1_item_i2d(o, &der, i);
-            OPENVR_SSL_free(der);
+            VR_OPENSSL_free(der);
             VR_ASN1_item_free(o, i);
         }
     }

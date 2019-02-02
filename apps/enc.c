@@ -595,7 +595,7 @@ int enc_main(int argc, char **argv)
             goto end;
         }
     }
-    if (!BIO_flush(wbio)) {
+    if (!VR_BIO_flush(wbio)) {
         VR_BIO_printf(bio_err, "bad decrypt\n");
         goto end;
     }
@@ -607,8 +607,8 @@ int enc_main(int argc, char **argv)
     }
  end:
     VR_ERR_print_errors(bio_err);
-    OPENVR_SSL_free(strbuf);
-    OPENVR_SSL_free(buff);
+    VR_OPENSSL_free(strbuf);
+    VR_OPENSSL_free(buff);
     VR_BIO_free(in);
     VR_BIO_free_all(out);
     VR_BIO_free(benc);
@@ -617,7 +617,7 @@ int enc_main(int argc, char **argv)
     VR_BIO_free(bzl);
 #endif
     release_engine(e);
-    OPENVR_SSL_free(pass);
+    VR_OPENSSL_free(pass);
     return ret;
 }
 

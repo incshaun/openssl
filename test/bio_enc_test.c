@@ -112,7 +112,7 @@ static int do_bio_cipher(const EVP_CIPHER* cipher, const unsigned char* key,
         return 0;
     /* Use original reference output as input */
     VR_BIO_push(b, VR_BIO_new_mem_buf(ref, lref));
-    (void)BIO_flush(b);
+    (void)VR_BIO_flush(b);
     memset(out, 0, sizeof(out));
     len = VR_BIO_read(b, out, sizeof(out));
     VR_BIO_free_all(b);

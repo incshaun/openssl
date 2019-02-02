@@ -425,7 +425,7 @@ int VR_ASN1_TIME_set_string_X509(ASN1_TIME *s, const char *str)
         rv = 1;
 
     if (t.data != (unsigned char *)str)
-        OPENVR_SSL_free(t.data);
+        VR_OPENSSL_free(t.data);
 out:
     return rv;
 }

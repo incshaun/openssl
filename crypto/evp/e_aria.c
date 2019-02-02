@@ -265,7 +265,7 @@ static int aria_gcm_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr)
         /* Allocate memory for IV if needed */
         if ((arg > EVP_MAX_IV_LENGTH) && (arg > gctx->ivlen)) {
             if (gctx->iv != VR_EVP_CIPHER_CTX_iv_noconst(c))
-                OPENVR_SSL_free(gctx->iv);
+                VR_OPENSSL_free(gctx->iv);
             if ((gctx->iv = OPENSSL_malloc(arg)) == NULL) {
                 EVPerr(EVP_F_ARIA_GCM_CTRL, ERR_R_MALLOC_FAILURE);
                 return 0;

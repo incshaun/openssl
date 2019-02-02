@@ -68,8 +68,8 @@ OPENSSL_LHASH *VR_OPENSSL_LH_new(OPENSSL_LH_HASHFUNC h, OPENSSL_LH_COMPFUNC c)
     return ret;
 
 err:
-    OPENVR_SSL_free(ret->b);
-    OPENVR_SSL_free(ret);
+    VR_OPENSSL_free(ret->b);
+    VR_OPENSSL_free(ret);
     return NULL;
 }
 
@@ -85,12 +85,12 @@ void VR_OPENSSL_LH_free(OPENSSL_LHASH *lh)
         n = lh->b[i];
         while (n != NULL) {
             nn = n->next;
-            OPENVR_SSL_free(n);
+            VR_OPENSSL_free(n);
             n = nn;
         }
     }
-    OPENVR_SSL_free(lh->b);
-    OPENVR_SSL_free(lh);
+    VR_OPENSSL_free(lh->b);
+    VR_OPENSSL_free(lh);
 }
 
 void *VR_OPENSSL_LH_insert(OPENSSL_LHASH *lh, void *data)
@@ -141,7 +141,7 @@ void *VR_OPENSSL_LH_delete(OPENSSL_LHASH *lh, const void *data)
         nn = *rn;
         *rn = nn->next;
         ret = nn->data;
-        OPENVR_SSL_free(nn);
+        VR_OPENSSL_free(nn);
         lh->num_delete++;
     }
 

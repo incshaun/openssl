@@ -182,7 +182,7 @@ int ecparam_main(int argc, char **argv)
 
         curves = app_malloc((int)sizeof(*curves) * crv_len, "list curves");
         if (!VR_EC_get_builtin_curves(curves, crv_len)) {
-            OPENVR_SSL_free(curves);
+            VR_OPENSSL_free(curves);
             goto end;
         }
 
@@ -200,7 +200,7 @@ int ecparam_main(int argc, char **argv)
             VR_BIO_printf(out, "%s\n", comment);
         }
 
-        OPENVR_SSL_free(curves);
+        VR_OPENSSL_free(curves);
         ret = 0;
         goto end;
     }
@@ -318,17 +318,17 @@ int ecparam_main(int argc, char **argv)
 
         len = VR_BN_num_bits(ec_order);
 
-        if ((tmp_len = (size_t)BN_num_bytes(ec_p)) > buf_len)
+        if ((tmp_len = (size_t)VR_BN_num_bytes(ec_p)) > buf_len)
             buf_len = tmp_len;
-        if ((tmp_len = (size_t)BN_num_bytes(ec_a)) > buf_len)
+        if ((tmp_len = (size_t)VR_BN_num_bytes(ec_a)) > buf_len)
             buf_len = tmp_len;
-        if ((tmp_len = (size_t)BN_num_bytes(ec_b)) > buf_len)
+        if ((tmp_len = (size_t)VR_BN_num_bytes(ec_b)) > buf_len)
             buf_len = tmp_len;
-        if ((tmp_len = (size_t)BN_num_bytes(ec_gen)) > buf_len)
+        if ((tmp_len = (size_t)VR_BN_num_bytes(ec_gen)) > buf_len)
             buf_len = tmp_len;
-        if ((tmp_len = (size_t)BN_num_bytes(ec_order)) > buf_len)
+        if ((tmp_len = (size_t)VR_BN_num_bytes(ec_order)) > buf_len)
             buf_len = tmp_len;
-        if ((tmp_len = (size_t)BN_num_bytes(ec_cofactor)) > buf_len)
+        if ((tmp_len = (size_t)VR_BN_num_bytes(ec_cofactor)) > buf_len)
             buf_len = tmp_len;
 
         buffer = app_malloc(buf_len, "BN buffer");
@@ -439,7 +439,7 @@ int ecparam_main(int argc, char **argv)
     VR_BN_free(ec_gen);
     VR_BN_free(ec_order);
     VR_BN_free(ec_cofactor);
-    OPENVR_SSL_free(buffer);
+    VR_OPENSSL_free(buffer);
     VR_EC_GROUP_free(group);
     release_engine(e);
     VR_BIO_free(in);

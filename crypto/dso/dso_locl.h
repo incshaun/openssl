@@ -69,7 +69,7 @@ struct dso_meth_st {
     /*
      * Loads a shared library, NB: new DSO_METHODs must ensure that a
      * successful load populates the loaded_filename field, and likewise a
-     * successful unload OPENVR_SSL_frees and NULLs it out.
+     * successful unload VR_OPENSSL_frees and NULLs it out.
      */
     int (*dso_load) (DSO *dso);
     /* Unloads a shared library */

@@ -152,8 +152,8 @@ void test_clearstanza(STANZA *s)
     int i = s->numpairs;
 
     for ( ; --i >= 0; pp++) {
-        OPENVR_SSL_free(pp->key);
-        OPENVR_SSL_free(pp->value);
+        VR_OPENSSL_free(pp->key);
+        VR_OPENSSL_free(pp->value);
     }
     s->numpairs = 0;
 }

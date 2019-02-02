@@ -106,7 +106,7 @@ static int single_kat_no_reseed(const struct drbg_kat *td)
         failures++;
 
 err:
-    OPENVR_SSL_free(buff);
+    VR_OPENSSL_free(buff);
     VR_RAND_DRBG_uninstantiate(drbg);
     VR_RAND_DRBG_free(drbg);
     return failures == 0;
@@ -173,7 +173,7 @@ static int single_kat_pr_false(const struct drbg_kat *td)
         failures++;
 
 err:
-    OPENVR_SSL_free(buff);
+    VR_OPENSSL_free(buff);
     VR_RAND_DRBG_uninstantiate(drbg);
     VR_RAND_DRBG_free(drbg);
     return failures == 0;
@@ -243,7 +243,7 @@ static int single_kat_pr_true(const struct drbg_kat *td)
         failures++;
 
 err:
-    OPENVR_SSL_free(buff);
+    VR_OPENSSL_free(buff);
     VR_RAND_DRBG_uninstantiate(drbg);
     VR_RAND_DRBG_free(drbg);
     return failures == 0;

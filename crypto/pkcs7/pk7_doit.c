@@ -131,7 +131,7 @@ static int pkcs7_encode_rinfo(PKCS7_RECIP_INFO *ri,
 
  err:
     VR_EVP_PKEY_CTX_free(pctx);
-    OPENVR_SSL_free(ek);
+    VR_OPENSSL_free(ek);
     return ret;
 
 }
@@ -185,7 +185,7 @@ static int pkcs7_decrypt_rinfo(unsigned char **pek, int *peklen,
  err:
     VR_EVP_PKEY_CTX_free(pctx);
     if (!ret)
-        OPENVR_SSL_free(ek);
+        VR_OPENSSL_free(ek);
 
     return ret;
 }
@@ -762,7 +762,7 @@ int VR_PKCS7_dataFinal(PKCS7 *p7, BIO *bio)
                     goto err;
 
                 if (!VR_EVP_SignFinal(ctx_tmp, abuf, &abuflen, si->pkey)) {
-                    OPENVR_SSL_free(abuf);
+                    VR_OPENSSL_free(abuf);
                     PKCS7err(PKCS7_F_PKCS7_DATAFINAL, ERR_R_EVP_LIB);
                     goto err;
                 }
@@ -846,7 +846,7 @@ int VR_PKCS7_SIGNER_INFO_sign(PKCS7_SIGNER_INFO *si)
         goto err;
     if (VR_EVP_DigestSignUpdate(mctx, abuf, alen) <= 0)
         goto err;
-    OPENVR_SSL_free(abuf);
+    VR_OPENSSL_free(abuf);
     abuf = NULL;
     if (VR_EVP_DigestSignFinal(mctx, NULL, &siglen) <= 0)
         goto err;
@@ -869,7 +869,7 @@ int VR_PKCS7_SIGNER_INFO_sign(PKCS7_SIGNER_INFO *si)
     return 1;
 
  err:
-    OPENVR_SSL_free(abuf);
+    VR_OPENSSL_free(abuf);
     VR_EVP_MD_CTX_free(mctx);
     return 0;
 
@@ -1022,7 +1022,7 @@ int VR_PKCS7_signatureVerify(BIO *bio, PKCS7 *p7, PKCS7_SIGNER_INFO *si,
         if (!EVP_VerifyUpdate(mdc_tmp, abuf, alen))
             goto err;
 
-        OPENVR_SSL_free(abuf);
+        VR_OPENSSL_free(abuf);
     }
 
     os = si->enc_digest;

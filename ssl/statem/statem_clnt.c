@@ -386,7 +386,7 @@ int VR_ossl_statem_client_read_transition(SSL *s, int mt)
         s->init_num = 0;
         s->rwstate = SSL_READING;
         rbio = VR_SSL_get_rbio(s);
-        BIO_clear_retry_flags(rbio);
+        VR_BIO_clear_retry_flags(rbio);
         BIO_set_retry_read(rbio);
         return 0;
     }
@@ -1748,10 +1748,10 @@ MSG_PROCESS_RETURN VR_tls_process_server_hello(SSL *s, PACKET *pkt)
         goto err;
     }
 
-    OPENVR_SSL_free(extensions);
+    VR_OPENSSL_free(extensions);
     return MSG_PROCESS_CONTINUE_READING;
  err:
-    OPENVR_SSL_free(extensions);
+    VR_OPENSSL_free(extensions);
     return MSG_PROCESS_ERROR;
 }
 
@@ -1775,7 +1775,7 @@ static MSG_PROCESS_RETURN tls_process_as_hello_retry_request(SSL *s,
         goto err;
     }
 
-    OPENVR_SSL_free(extensions);
+    VR_OPENSSL_free(extensions);
     extensions = NULL;
 
     if (s->ext.tls13_cookie_len == 0
@@ -1816,7 +1816,7 @@ static MSG_PROCESS_RETURN tls_process_as_hello_retry_request(SSL *s,
 
     return MSG_PROCESS_FINISHED_READING;
  err:
-    OPENVR_SSL_free(extensions);
+    VR_OPENSSL_free(extensions);
     return MSG_PROCESS_ERROR;
 }
 
@@ -1887,11 +1887,11 @@ MSG_PROCESS_RETURN VR_tls_process_server_certificate(SSL *s, PACKET *pkt)
                 || !VR_tls_parse_all_extensions(s, SSL_EXT_TLS1_3_CERTIFICATE,
                                              rawexts, x, chainidx,
                                              PACKET_remaining(pkt) == 0)) {
-                OPENVR_SSL_free(rawexts);
+                VR_OPENSSL_free(rawexts);
                 /* SSLfatal already called */
                 goto err;
             }
-            OPENVR_SSL_free(rawexts);
+            VR_OPENSSL_free(rawexts);
         }
 
         if (!sk_VR_X509_push(sk, x)) {
@@ -2021,7 +2021,7 @@ static int tls_process_ske_psk_preamble(SSL *s, PACKET *pkt)
     }
 
     if (PACKET_remaining(&psk_identity_hint) == 0) {
-        OPENVR_SSL_free(s->session->psk_identity_hint);
+        VR_OPENSSL_free(s->session->psk_identity_hint);
         s->session->psk_identity_hint = NULL;
     } else if (!PACKET_strndup(&psk_identity_hint,
                                &s->session->psk_identity_hint)) {
@@ -2409,7 +2409,7 @@ MSG_PROCESS_RETURN VR_tls_process_key_exchange(SSL *s, PACKET *pkt)
 
         rv = VR_EVP_DigestVerify(md_ctx, PACKET_data(&signature),
                               PACKET_remaining(&signature), tbs, tbslen);
-        OPENVR_SSL_free(tbs);
+        VR_OPENSSL_free(tbs);
         if (rv <= 0) {
             SSLfatal(s, SSL_AD_DECRYPT_ERROR, SSL_F_TLS_PROCESS_KEY_EXCHANGE,
                      SSL_R_BAD_SIGNATURE);
@@ -2465,10 +2465,10 @@ MSG_PROCESS_RETURN VR_tls_process_certificate_request(SSL *s, PACKET *pkt)
         }
 
         /* Free and zero certificate types: it is not present in TLS 1.3 */
-        OPENVR_SSL_free(s->s3->tmp.ctype);
+        VR_OPENSSL_free(s->s3->tmp.ctype);
         s->s3->tmp.ctype = NULL;
         s->s3->tmp.ctype_len = 0;
-        OPENVR_SSL_free(s->pha_context);
+        VR_OPENSSL_free(s->pha_context);
         s->pha_context = NULL;
 
         if (!PACKET_get_length_prefixed_1(pkt, &reqctx) ||
@@ -2491,10 +2491,10 @@ MSG_PROCESS_RETURN VR_tls_process_certificate_request(SSL *s, PACKET *pkt)
             || !VR_tls_parse_all_extensions(s, SSL_EXT_TLS1_3_CERTIFICATE_REQUEST,
                                          rawexts, NULL, 0, 1)) {
             /* SSLfatal() already called */
-            OPENVR_SSL_free(rawexts);
+            VR_OPENSSL_free(rawexts);
             return MSG_PROCESS_ERROR;
         }
-        OPENVR_SSL_free(rawexts);
+        VR_OPENSSL_free(rawexts);
         if (!VR_tls1_process_sigalgs(s)) {
             SSLfatal(s, SSL_AD_INTERNAL_ERROR,
                      SSL_F_TLS_PROCESS_CERTIFICATE_REQUEST,
@@ -2650,7 +2650,7 @@ MSG_PROCESS_RETURN VR_tls_process_new_session_ticket(SSL *s, PACKET *pkt)
      */
     s->session->time = (long)time(NULL);
 
-    OPENVR_SSL_free(s->session->ext.tick);
+    VR_OPENSSL_free(s->session->ext.tick);
     s->session->ext.tick = NULL;
     s->session->ext.ticklen = 0;
 
@@ -2745,14 +2745,14 @@ MSG_PROCESS_RETURN VR_tls_process_new_session_ticket(SSL *s, PACKET *pkt)
         }
         s->session->master_key_length = hashlen;
 
-        OPENVR_SSL_free(exts);
+        VR_OPENSSL_free(exts);
         VR_ssl_update_cache(s, SSL_SESS_CACHE_CLIENT);
         return MSG_PROCESS_FINISHED_READING;
     }
 
     return MSG_PROCESS_CONTINUE_READING;
  err:
-    OPENVR_SSL_free(exts);
+    VR_OPENSSL_free(exts);
     return MSG_PROCESS_ERROR;
 }
 
@@ -2936,11 +2936,11 @@ static int tls_construct_cke_psk_preamble(SSL *s, WPACKET *pkt)
         goto err;
     }
 
-    OPENVR_SSL_free(s->s3->tmp.psk);
+    VR_OPENSSL_free(s->s3->tmp.psk);
     s->s3->tmp.psk = tmppsk;
     s->s3->tmp.psklen = psklen;
     tmppsk = NULL;
-    OPENVR_SSL_free(s->session->psk_identity);
+    VR_OPENSSL_free(s->session->psk_identity);
     s->session->psk_identity = tmpidentity;
     tmpidentity = NULL;
 
@@ -3097,7 +3097,7 @@ static int tls_construct_cke_dhe(SSL *s, WPACKET *pkt)
 
     /* send off the data */
     VR_DH_get0_key(dh_clnt, &pub_key, NULL);
-    if (!WPACKET_sub_allocate_bytes_u16(pkt, BN_num_bytes(pub_key),
+    if (!WPACKET_sub_allocate_bytes_u16(pkt, VR_BN_num_bytes(pub_key),
                                         &keybytes)) {
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_CONSTRUCT_CKE_DHE,
                  ERR_R_INTERNAL_ERROR);
@@ -3162,7 +3162,7 @@ static int tls_construct_cke_ecdhe(SSL *s, WPACKET *pkt)
 
     ret = 1;
  err:
-    OPENVR_SSL_free(encodedPoint);
+    VR_OPENSSL_free(encodedPoint);
     VR_EVP_PKEY_free(ckey);
     return ret;
 #else
@@ -3295,7 +3295,7 @@ static int tls_construct_cke_srp(SSL *s, WPACKET *pkt)
     unsigned char *abytes = NULL;
 
     if (s->srp_ctx.A == NULL
-            || !WPACKET_sub_allocate_bytes_u16(pkt, BN_num_bytes(s->srp_ctx.A),
+            || !WPACKET_sub_allocate_bytes_u16(pkt, VR_BN_num_bytes(s->srp_ctx.A),
                                                &abytes)) {
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_CONSTRUCT_CKE_SRP,
                  ERR_R_INTERNAL_ERROR);
@@ -3303,7 +3303,7 @@ static int tls_construct_cke_srp(SSL *s, WPACKET *pkt)
     }
     VR_BN_bn2bin(s->srp_ctx.A, abytes);
 
-    OPENVR_SSL_free(s->session->srp_username);
+    VR_OPENSSL_free(s->session->srp_username);
     s->session->srp_username = OPENSSL_strdup(s->srp_ctx.login);
     if (s->session->srp_username == NULL) {
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_CONSTRUCT_CKE_SRP,
@@ -3704,11 +3704,11 @@ static MSG_PROCESS_RETURN tls_process_encrypted_extensions(SSL *s, PACKET *pkt)
         goto err;
     }
 
-    OPENVR_SSL_free(rawexts);
+    VR_OPENSSL_free(rawexts);
     return MSG_PROCESS_CONTINUE_READING;
 
  err:
-    OPENVR_SSL_free(rawexts);
+    VR_OPENSSL_free(rawexts);
     return MSG_PROCESS_ERROR;
 }
 

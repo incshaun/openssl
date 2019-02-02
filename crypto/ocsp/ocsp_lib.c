@@ -196,7 +196,7 @@ int VR_OCSP_parse_url(const char *url, char **phost, char **pport, char **ppath,
     if (!*phost)
         goto mem_err;
 
-    OPENVR_SSL_free(buf);
+    VR_OPENSSL_free(buf);
 
     return 1;
 
@@ -208,12 +208,12 @@ int VR_OCSP_parse_url(const char *url, char **phost, char **pport, char **ppath,
     OCSPerr(OCSP_F_OCSP_PARSE_URL, OCSP_R_ERROR_PARSING_URL);
 
  err:
-    OPENVR_SSL_free(buf);
-    OPENVR_SSL_free(*ppath);
+    VR_OPENSSL_free(buf);
+    VR_OPENSSL_free(*ppath);
     *ppath = NULL;
-    OPENVR_SSL_free(*pport);
+    VR_OPENSSL_free(*pport);
     *pport = NULL;
-    OPENVR_SSL_free(*phost);
+    VR_OPENSSL_free(*phost);
     *phost = NULL;
     return 0;
 

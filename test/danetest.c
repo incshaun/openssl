@@ -130,9 +130,9 @@ static STACK_OF(X509) *load_chain(BIO *fp, int nelem)
             goto err;
         }
 
-        OPENVR_SSL_free(name);
-        OPENVR_SSL_free(header);
-        OPENVR_SSL_free(data);
+        VR_OPENSSL_free(name);
+        VR_OPENSSL_free(header);
+        VR_OPENSSL_free(data);
         name = header = NULL;
         data = NULL;
     }
@@ -143,9 +143,9 @@ static STACK_OF(X509) *load_chain(BIO *fp, int nelem)
     }
 
 err:
-    OPENVR_SSL_free(name);
-    OPENVR_SSL_free(header);
-    OPENVR_SSL_free(data);
+    VR_OPENSSL_free(name);
+    VR_OPENSSL_free(header);
+    VR_OPENSSL_free(data);
     sk_VR_X509_pop_free(chain, VR_X509_free);
     return NULL;
 }
@@ -196,7 +196,7 @@ static ossl_ssize_t hexdecode(const char *in, void *result)
             continue;
         x = VR_OPENSSL_hexchar2int(*in);
         if (x < 0) {
-            OPENVR_SSL_free(ret);
+            VR_OPENSSL_free(ret);
             return 0;
         }
         byte |= (char)x;
@@ -208,7 +208,7 @@ static ossl_ssize_t hexdecode(const char *in, void *result)
         }
     }
     if (nibble != 0) {
-        OPENVR_SSL_free(ret);
+        VR_OPENSSL_free(ret);
         return 0;
     }
 
@@ -269,7 +269,7 @@ static int tlsa_import_rr(SSL *ssl, const char *rrdata)
     }
 
     ret = VR_SSL_dane_tlsa_add(ssl, usage, selector, mtype, data, len);
-    OPENVR_SSL_free(data);
+    VR_OPENSSL_free(data);
     if (ret == 0) {
         TEST_info("unusable TLSA rrdata: %s", rrdata);
         return 0;

@@ -165,10 +165,10 @@ int VR_PKCS12_key_gen_uni(unsigned char *pass, int passlen, unsigned char *salt,
     PKCS12err(PKCS12_F_PKCS12_KEY_GEN_UNI, ERR_R_MALLOC_FAILURE);
 
  end:
-    OPENVR_SSL_free(Ai);
-    OPENVR_SSL_free(B);
-    OPENVR_SSL_free(D);
-    OPENVR_SSL_free(I);
+    VR_OPENSSL_free(Ai);
+    VR_OPENSSL_free(B);
+    VR_OPENSSL_free(D);
+    VR_OPENSSL_free(I);
     VR_EVP_MD_CTX_free(ctx);
     return ret;
 }

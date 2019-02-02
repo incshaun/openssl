@@ -247,15 +247,15 @@ int main(int argc, char *argv[])
         }
         if (ret != 0)
             VR_BIO_printf(bio_err, "error in %s\n", arg.argv[0]);
-        (void)BIO_flush(bio_out);
-        (void)BIO_flush(bio_err);
+        (void)VR_BIO_flush(bio_out);
+        (void)VR_BIO_flush(bio_err);
     }
     ret = 1;
  end:
-    OPENVR_SSL_free(copied_argv);
-    OPENVR_SSL_free(default_config_file);
+    VR_OPENSSL_free(copied_argv);
+    VR_OPENSSL_free(default_config_file);
     lh_VR_FUNCTION_free(prog);
-    OPENVR_SSL_free(arg.argv);
+    VR_OPENSSL_free(arg.argv);
     app_RAND_write();
 
     VR_BIO_free(bio_in);
@@ -377,7 +377,7 @@ static void list_objects(void)
             VR_BIO_printf(bio_out, "%s = %s, %s\n", sn, ln, oid_buf);
     }
 
-    OPENVR_SSL_free(oid_buf);
+    VR_OPENSSL_free(oid_buf);
 }
 
 static void list_options_for_command(const char *command)

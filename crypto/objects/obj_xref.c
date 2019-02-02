@@ -112,7 +112,7 @@ int VR_OBJ_add_sigid(int signid, int dig_id, int pkey_id)
     ntr->pkey_id = pkey_id;
 
     if (!sk_VR_nid_triple_push(sig_app, ntr)) {
-        OPENVR_SSL_free(ntr);
+        VR_OPENSSL_free(ntr);
         return 0;
     }
 
@@ -127,7 +127,7 @@ int VR_OBJ_add_sigid(int signid, int dig_id, int pkey_id)
 
 static void sid_free(nid_triple *tt)
 {
-    OPENVR_SSL_free(tt);
+    VR_OPENSSL_free(tt);
 }
 
 void VR_OBJ_sigid_free(void)

@@ -343,7 +343,7 @@ static int dtls_listen_test(int i)
     VR_SSL_free(ssl);
     VR_SSL_CTX_free(ctx);
     VR_BIO_free(inbio);
-    OPENVR_SSL_free(peer);
+    VR_OPENSSL_free(peer);
     return success;
 }
 #endif

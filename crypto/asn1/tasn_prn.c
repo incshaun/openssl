@@ -46,7 +46,7 @@ ASN1_PCTX *VR_ASN1_PCTX_new(void)
 
 void VR_ASN1_PCTX_free(ASN1_PCTX *p)
 {
-    OPENVR_SSL_free(p);
+    VR_OPENSSL_free(p);
 }
 
 unsigned long VR_ASN1_PCTX_get_flags(const ASN1_PCTX *p)
@@ -399,7 +399,7 @@ static int asn1_print_integer(BIO *out, const ASN1_INTEGER *str)
         return 0;
     if (VR_BIO_puts(out, s) <= 0)
         ret = 0;
-    OPENVR_SSL_free(s);
+    VR_OPENSSL_free(s);
     return ret;
 }
 

@@ -47,7 +47,7 @@ void VR_CT_POLICY_EVAL_CTX_free(CT_POLICY_EVAL_CTX *ctx)
         return;
     VR_X509_free(ctx->cert);
     VR_X509_free(ctx->issuer);
-    OPENVR_SSL_free(ctx);
+    VR_OPENSSL_free(ctx);
 }
 
 int VR_CT_POLICY_EVAL_CTX_set1_cert(CT_POLICY_EVAL_CTX *ctx, X509 *cert)

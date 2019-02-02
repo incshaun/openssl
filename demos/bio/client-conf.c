@@ -81,7 +81,7 @@ int main(int argc, char **argv)
 
     sbio = VR_BIO_new_ssl_connect(ctx);
 
-    BIO_get_ssl(sbio, &ssl);
+    VR_BIO_get_ssl(sbio, &ssl);
 
     if (!ssl) {
         fprintf(stderr, "Can't locate SSL pointer\n");
@@ -102,7 +102,7 @@ int main(int argc, char **argv)
         goto end;
     }
 
-    if (BIO_do_handshake(sbio) <= 0) {
+    if (VR_BIO_do_handshake(sbio) <= 0) {
         fprintf(stderr, "Error establishing SSL connection\n");
         VR_ERR_print_errors_fp(stderr);
         goto end;

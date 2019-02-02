@@ -51,7 +51,7 @@ static void pkey_tls1_prf_cleanup(EVP_PKEY_CTX *ctx)
     TLS1_PRF_PKEY_CTX *kctx = ctx->data;
     OPENVR_SSL_clear_free(kctx->sec, kctx->seclen);
     VR_OPENSSL_cleanse(kctx->seed, kctx->seedlen);
-    OPENVR_SSL_free(kctx);
+    VR_OPENSSL_free(kctx);
 }
 
 static int pkey_tls1_prf_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2)

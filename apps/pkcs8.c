@@ -352,8 +352,8 @@ int pkcs8_main(int argc, char **argv)
     release_engine(e);
     VR_BIO_free_all(out);
     VR_BIO_free(in);
-    OPENVR_SSL_free(passin);
-    OPENVR_SSL_free(passout);
+    VR_OPENSSL_free(passin);
+    VR_OPENSSL_free(passout);
 
     return ret;
 }

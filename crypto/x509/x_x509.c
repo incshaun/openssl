@@ -220,7 +220,7 @@ int VR_i2d_X509_AUX(X509 *a, unsigned char **pp)
     /* Encode, but keep *pp at the originally malloced pointer */
     length = i2d_x509_aux_internal(a, &tmp);
     if (length <= 0) {
-        OPENVR_SSL_free(*pp);
+        VR_OPENSSL_free(*pp);
         *pp = NULL;
     }
     return length;

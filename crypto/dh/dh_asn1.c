@@ -107,11 +107,11 @@ DH *VR_d2i_DHxparams(DH **a, const unsigned char **pp, long length)
         dh->counter = dhx->vparams->counter;
         dhx->vparams->seed->data = NULL;
         VR_ASN1_BIT_STRING_free(dhx->vparams->seed);
-        OPENVR_SSL_free(dhx->vparams);
+        VR_OPENSSL_free(dhx->vparams);
         dhx->vparams = NULL;
     }
 
-    OPENVR_SSL_free(dhx);
+    VR_OPENSSL_free(dhx);
     return dh;
 }
 

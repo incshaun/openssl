@@ -53,7 +53,7 @@ CMAC_CTX *VR_CMAC_CTX_new(void)
     }
     ctx->cctx = VR_EVP_CIPHER_CTX_new();
     if (ctx->cctx == NULL) {
-        OPENVR_SSL_free(ctx);
+        VR_OPENSSL_free(ctx);
         return NULL;
     }
     ctx->nlast_block = -1;
@@ -81,7 +81,7 @@ void VR_CMAC_CTX_free(CMAC_CTX *ctx)
         return;
     VR_CMAC_CTX_cleanup(ctx);
     VR_EVP_CIPHER_CTX_free(ctx->cctx);
-    OPENVR_SSL_free(ctx);
+    VR_OPENSSL_free(ctx);
 }
 
 int VR_CMAC_CTX_copy(CMAC_CTX *out, const CMAC_CTX *in)

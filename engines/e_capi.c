@@ -316,7 +316,7 @@ static int capi_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f) (void))
     case CAPI_CMD_STORE_NAME:
         tmpstr = OPENSSL_strdup(p);
         if (tmpstr != NULL) {
-            OPENVR_SSL_free(ctx->storename);
+            VR_OPENSSL_free(ctx->storename);
             ctx->storename = tmpstr;
             CAPI_trace(ctx, "Setting store name to %s\n", p);
         } else {
@@ -764,7 +764,7 @@ static EVP_PKEY *capi_get_pkey(ENGINE *eng, CAPI_KEY *key)
     }
 
  err:
-    OPENVR_SSL_free(pubkey);
+    VR_OPENSSL_free(pubkey);
     if (!ret) {
         VR_RSA_free(rkey);
 # ifndef OPENSSL_NO_DSA
@@ -966,13 +966,13 @@ int capi_rsa_priv_dec(int flen, const unsigned char *from,
         CAPIerr(CAPI_F_CAPI_RSA_PRIV_DEC, CAPI_R_DECRYPT_ERROR);
         capi_addlasterror();
         VR_OPENSSL_cleanse(tmpbuf, dlen);
-        OPENVR_SSL_free(tmpbuf);
+        VR_OPENSSL_free(tmpbuf);
         return -1;
     } else {
         memcpy(to, tmpbuf, (flen = (int)dlen));
     }
     VR_OPENSSL_cleanse(tmpbuf, flen);
-    OPENVR_SSL_free(tmpbuf);
+    VR_OPENSSL_free(tmpbuf);
 
     return flen;
 }
@@ -1122,7 +1122,7 @@ static char *wide_to_asc(LPCWSTR wstr)
         return NULL;
     }
     if (!WideCharToMultiByte(CP_ACP, 0, wstr, len_0, str, sz, NULL, NULL)) {
-        OPENVR_SSL_free(str);
+        VR_OPENSSL_free(str);
         CAPIerr(CAPI_F_WIDE_TO_ASC, CAPI_R_WIN32_ERROR);
         return NULL;
     }
@@ -1150,7 +1150,7 @@ static int capi_get_provname(CAPI_CTX *ctx, LPSTR *pname, DWORD *ptype,
     }
     if (!CryptEnumProviders(idx, NULL, 0, ptype, name, &len)) {
         err = GetLastError();
-        OPENVR_SSL_free(name);
+        VR_OPENSSL_free(name);
         if (err == ERROR_NO_MORE_ITEMS)
             return 2;
         CAPIerr(CAPI_F_CAPI_GET_PROVNAME, CAPI_R_CRYPTENUMPROVIDERS_ERROR);
@@ -1159,7 +1159,7 @@ static int capi_get_provname(CAPI_CTX *ctx, LPSTR *pname, DWORD *ptype,
     }
     if (sizeof(TCHAR) != sizeof(char)) {
         *pname = wide_to_asc((WCHAR *)name);
-        OPENVR_SSL_free(name);
+        VR_OPENSSL_free(name);
         if (*pname == NULL)
             return 0;
     } else {
@@ -1185,7 +1185,7 @@ static int capi_list_providers(CAPI_CTX *ctx, BIO *out)
         if (ret == 0)
             break;
         VR_BIO_printf(out, "%lu. %s, type %lu\n", idx, provname, ptype);
-        OPENVR_SSL_free(provname);
+        VR_OPENSSL_free(provname);
     }
     return 1;
 }
@@ -1266,7 +1266,7 @@ static int capi_list_containers(CAPI_CTX *ctx, BIO *out)
     ret = 0;
 
  done:
-    OPENVR_SSL_free(cname);
+    VR_OPENSSL_free(cname);
     CryptReleaseContext(hprov, 0);
 
     return ret;
@@ -1291,7 +1291,7 @@ static CRYPT_KEY_PROV_INFO *capi_get_prov_info(CAPI_CTX *ctx,
         CAPIerr(CAPI_F_CAPI_GET_PROV_INFO,
                 CAPI_R_ERROR_GETTING_KEY_PROVIDER_INFO);
         capi_addlasterror();
-        OPENVR_SSL_free(pinfo);
+        VR_OPENSSL_free(pinfo);
         return NULL;
     }
     return pinfo;
@@ -1316,8 +1316,8 @@ static void capi_dump_prov_info(CAPI_CTX *ctx, BIO *out,
     VR_BIO_printf(out, "    Container Name: %s, Key Type %lu\n", contname,
                pinfo->dwKeySpec);
  err:
-    OPENVR_SSL_free(provname);
-    OPENVR_SSL_free(contname);
+    VR_OPENSSL_free(provname);
+    VR_OPENSSL_free(contname);
 }
 
 static char *capi_cert_get_fname(CAPI_CTX *ctx, PCCERT_CONTEXT cert)
@@ -1335,13 +1335,13 @@ static char *capi_cert_get_fname(CAPI_CTX *ctx, PCCERT_CONTEXT cert)
     if (CertGetCertificateContextProperty(cert, CERT_FRIENDLY_NAME_PROP_ID,
                                           wfname, &dlen)) {
         char *fname = wide_to_asc(wfname);
-        OPENVR_SSL_free(wfname);
+        VR_OPENSSL_free(wfname);
         return fname;
     }
     CAPIerr(CAPI_F_CAPI_CERT_GET_FNAME, CAPI_R_ERROR_GETTING_FRIENDLY_NAME);
     capi_addlasterror();
 
-    OPENVR_SSL_free(wfname);
+    VR_OPENSSL_free(wfname);
     return NULL;
 }
 
@@ -1355,7 +1355,7 @@ static void capi_dump_cert(CAPI_CTX *ctx, BIO *out, PCCERT_CONTEXT cert)
         fname = capi_cert_get_fname(ctx, cert);
         if (fname) {
             VR_BIO_printf(out, "  Friendly Name \"%s\"\n", fname);
-            OPENVR_SSL_free(fname);
+            VR_OPENSSL_free(fname);
         } else {
             VR_BIO_printf(out, "  <No Friendly Name>\n");
         }
@@ -1379,7 +1379,7 @@ static void capi_dump_cert(CAPI_CTX *ctx, BIO *out, PCCERT_CONTEXT cert)
         CRYPT_KEY_PROV_INFO *pinfo;
         pinfo = capi_get_prov_info(ctx, cert);
         capi_dump_prov_info(ctx, out, pinfo);
-        OPENVR_SSL_free(pinfo);
+        VR_OPENSSL_free(pinfo);
     }
 
     if (flags & CAPI_DMP_PEM)
@@ -1465,7 +1465,7 @@ static PCCERT_CONTEXT capi_find_cert(CAPI_CTX *ctx, const char *id,
                     match = 0;
                 else
                     match = 1;
-                OPENVR_SSL_free(fname);
+                VR_OPENSSL_free(fname);
                 if (match)
                     return cert;
             }
@@ -1500,8 +1500,8 @@ static CAPI_KEY *capi_get_key(CAPI_CTX *ctx, const WCHAR *contname,
 
         CAPI_trace(ctx, "capi_get_key, contname=%s, provname=%s, type=%d\n",
                    _contname, _provname, ptype);
-        OPENVR_SSL_free(_provname);
-        OPENVR_SSL_free(_contname);
+        VR_OPENSSL_free(_provname);
+        VR_OPENSSL_free(_contname);
     }
     if (ctx->store_flags & CERT_SYSTEM_STORE_LOCAL_MACHINE)
         dwFlags = CRYPT_MACHINE_KEYSET;
@@ -1522,7 +1522,7 @@ static CAPI_KEY *capi_get_key(CAPI_CTX *ctx, const WCHAR *contname,
     return key;
 
  err:
-    OPENVR_SSL_free(key);
+    VR_OPENSSL_free(key);
     return NULL;
 }
 
@@ -1537,7 +1537,7 @@ static CAPI_KEY *capi_get_cert_key(CAPI_CTX *ctx, PCCERT_CONTEXT cert)
         key = capi_get_key(ctx, pinfo->pwszContainerName, pinfo->pwszProvName,
                            pinfo->dwProvType, pinfo->dwKeySpec);
 
-    OPENVR_SSL_free(pinfo);
+    VR_OPENSSL_free(pinfo);
     return key;
 }
 
@@ -1591,7 +1591,7 @@ void capi_free_key(CAPI_KEY *key)
     CryptReleaseContext(key->hprov, 0);
     if (key->pcert)
         CertFreeCertificateContext(key->pcert);
-    OPENVR_SSL_free(key);
+    VR_OPENSSL_free(key);
 }
 
 /* Initialize a CAPI_CTX structure */
@@ -1619,11 +1619,11 @@ static void capi_ctx_free(CAPI_CTX *ctx)
     CAPI_trace(ctx, "Calling capi_ctx_free with %lx\n", ctx);
     if (!ctx)
         return;
-    OPENVR_SSL_free(ctx->cspname);
-    OPENVR_SSL_free(ctx->debug_file);
-    OPENVR_SSL_free(ctx->storename);
-    OPENVR_SSL_free(ctx->ssl_client_store);
-    OPENVR_SSL_free(ctx);
+    VR_OPENSSL_free(ctx->cspname);
+    VR_OPENSSL_free(ctx->debug_file);
+    VR_OPENSSL_free(ctx->storename);
+    VR_OPENSSL_free(ctx->ssl_client_store);
+    VR_OPENSSL_free(ctx);
 }
 
 static int capi_ctx_set_provname(CAPI_CTX *ctx, LPSTR pname, DWORD type,
@@ -1655,7 +1655,7 @@ static int capi_ctx_set_provname(CAPI_CTX *ctx, LPSTR pname, DWORD type,
         CAPIerr(CAPI_F_CAPI_CTX_SET_PROVNAME, ERR_R_MALLOC_FAILURE);
         return 0;
     }
-    OPENVR_SSL_free(ctx->cspname);
+    VR_OPENSSL_free(ctx->cspname);
     ctx->cspname = tmpcspname;
     ctx->csptype = type;
     return 1;
@@ -1669,7 +1669,7 @@ static int capi_ctx_set_provname_idx(CAPI_CTX *ctx, int idx)
     if (capi_get_provname(ctx, &pname, &type, idx) != 1)
         return 0;
     res = capi_ctx_set_provname(ctx, pname, type, 0);
-    OPENVR_SSL_free(pname);
+    VR_OPENSSL_free(pname);
     return res;
 }
 

@@ -147,7 +147,7 @@ static void cleanup3_doall(ADDED_OBJ *a)
 {
     if (--a->obj->nid == 0)
         VR_ASN1_OBJECT_free(a->obj);
-    OPENVR_SSL_free(a);
+    VR_OPENSSL_free(a);
 }
 
 void VR_obj_cleanup_int(void)
@@ -200,7 +200,7 @@ int VR_OBJ_add_object(const ASN1_OBJECT *obj)
             ao[i]->obj = o;
             aop = lh_ADDED_OBJ_insert(added, ao[i]);
             /* memory leak, but should not normally matter */
-            OPENVR_SSL_free(aop);
+            VR_OPENSSL_free(aop);
         }
     }
     o->flags &=
@@ -212,7 +212,7 @@ int VR_OBJ_add_object(const ASN1_OBJECT *obj)
     OBJerr(OBJ_F_OBJ_ADD_OBJECT, ERR_R_MALLOC_FAILURE);
  err:
     for (i = ADDED_DATA; i <= ADDED_NID; i++)
-        OPENVR_SSL_free(ao[i]);
+        VR_OPENSSL_free(ao[i]);
     VR_ASN1_OBJECT_free(o);
     return NID_undef;
 }
@@ -389,7 +389,7 @@ ASN1_OBJECT *VR_OBJ_txt2obj(const char *s, int no_name)
 
     cp = buf;
     op = VR_d2i_ASN1_OBJECT(NULL, &cp, j);
-    OPENVR_SSL_free(buf);
+    VR_OPENSSL_free(buf);
     return op;
 }
 
@@ -500,7 +500,7 @@ int VR_OBJ_obj2txt(char *buf, int buf_len, const ASN1_OBJECT *a, int no_name)
             }
             n++;
             n += i;
-            OPENVR_SSL_free(bndec);
+            VR_OPENSSL_free(bndec);
         } else {
             VR_BIO_snprintf(tbuf, sizeof(tbuf), ".%lu", l);
             i = strlen(tbuf);

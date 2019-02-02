@@ -250,9 +250,9 @@ int VR_sm2_encrypt(const EC_KEY *key,
  done:
     VR_ASN1_OCTET_STRING_free(ctext_struct.C2);
     VR_ASN1_OCTET_STRING_free(ctext_struct.C3);
-    OPENVR_SSL_free(msg_mask);
-    OPENVR_SSL_free(x2y2);
-    OPENVR_SSL_free(C3);
+    VR_OPENSSL_free(msg_mask);
+    VR_OPENSSL_free(x2y2);
+    VR_OPENSSL_free(C3);
     VR_EVP_MD_CTX_free(hash);
     VR_BN_CTX_free(ctx);
     VR_EC_POINT_free(kG);
@@ -381,9 +381,9 @@ int VR_sm2_decrypt(const EC_KEY *key,
     if (rc == 0)
         memset(ptext_buf, 0, *ptext_len);
 
-    OPENVR_SSL_free(msg_mask);
-    OPENVR_SSL_free(x2y2);
-    OPENVR_SSL_free(computed_C3);
+    VR_OPENSSL_free(msg_mask);
+    VR_OPENSSL_free(x2y2);
+    VR_OPENSSL_free(computed_C3);
     VR_EC_POINT_free(C1);
     VR_BN_CTX_free(ctx);
     VR_SM2_Ciphertext_free(sm2_ctext);

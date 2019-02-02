@@ -299,7 +299,7 @@ int VR_ASN1_STRING_set(ASN1_STRING *str, const void *_data, int len)
 
 void VR_ASN1_STRING_set0(ASN1_STRING *str, void *data, int len)
 {
-    OPENVR_SSL_free(str->data);
+    VR_OPENSSL_free(str->data);
     str->data = data;
     str->length = len;
 }
@@ -327,9 +327,9 @@ void VR_asn1_string_embed_free(ASN1_STRING *a, int embed)
     if (a == NULL)
         return;
     if (!(a->flags & ASN1_STRING_FLAG_NDEF))
-        OPENVR_SSL_free(a->data);
+        VR_OPENSSL_free(a->data);
     if (embed == 0)
-        OPENVR_SSL_free(a);
+        VR_OPENSSL_free(a);
 }
 
 void VR_ASN1_STRING_free(ASN1_STRING *a)

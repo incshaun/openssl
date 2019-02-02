@@ -112,12 +112,12 @@ static int mem_init(BIO *bi, unsigned long flags)
     if (bb == NULL)
         return 0;
     if ((bb->buf = VR_BUF_MEM_new_ex(flags)) == NULL) {
-        OPENVR_SSL_free(bb);
+        VR_OPENSSL_free(bb);
         return 0;
     }
     if ((bb->readp = OPENSSL_zalloc(sizeof(*bb->readp))) == NULL) {
         VR_BUF_MEM_free(bb->buf);
-        OPENVR_SSL_free(bb);
+        VR_OPENSSL_free(bb);
         return 0;
     }
     *bb->readp = *bb->buf;
@@ -148,8 +148,8 @@ static int mem_free(BIO *a)
     bb = (BIO_BUF_MEM *)a->ptr;
     if (!mem_buf_free(a))
         return 0;
-    OPENVR_SSL_free(bb->readp);
-    OPENVR_SSL_free(bb);
+    VR_OPENSSL_free(bb->readp);
+    VR_OPENSSL_free(bb);
     return 1;
 }
 
@@ -192,7 +192,7 @@ static int mem_read(BIO *b, char *out, int outl)
     BIO_BUF_MEM *bbm = (BIO_BUF_MEM *)b->ptr;
     BUF_MEM *bm = bbm->readp;
 
-    BIO_clear_retry_flags(b);
+    VR_BIO_clear_retry_flags(b);
     ret = (outl >= 0 && (size_t)outl > bm->length) ? (int)bm->length : outl;
     if ((out != NULL) && (ret > 0)) {
         memcpy(out, bm->data, ret);
@@ -220,7 +220,7 @@ static int mem_write(BIO *b, const char *in, int inl)
         BIOerr(BIO_F_MEM_WRITE, BIO_R_WRITE_TO_READ_ONLY_BIO);
         goto end;
     }
-    BIO_clear_retry_flags(b);
+    VR_BIO_clear_retry_flags(b);
     if (inl == 0)
         return 0;
     blen = bbm->readp->length;
@@ -318,7 +318,7 @@ static int mem_gets(BIO *bp, char *buf, int size)
     BIO_BUF_MEM *bbm = (BIO_BUF_MEM *)bp->ptr;
     BUF_MEM *bm = bbm->readp;
 
-    BIO_clear_retry_flags(bp);
+    VR_BIO_clear_retry_flags(bp);
     j = bm->length;
     if ((size - 1) < j)
         j = size - 1;

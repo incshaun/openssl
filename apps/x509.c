@@ -757,7 +757,7 @@ int x509_main(int argc, char **argv)
                 d = (unsigned char *)m;
                 len = VR_i2d_X509(x, &d);
                 print_array(out, "the_certificate", len, (unsigned char *)m);
-                OPENVR_SSL_free(m);
+                VR_OPENSSL_free(m);
             } else if (text == i) {
                 VR_X509_print_ex(out, x, get_nameopt(), certflag);
             } else if (startdate == i) {
@@ -904,7 +904,7 @@ int x509_main(int argc, char **argv)
     sk_VR_ASN1_OBJECT_pop_free(reject, VR_ASN1_OBJECT_free);
     VR_ASN1_OBJECT_free(objtmp);
     release_engine(e);
-    OPENVR_SSL_free(passin);
+    VR_OPENSSL_free(passin);
     return ret;
 }
 
@@ -938,7 +938,7 @@ static ASN1_INTEGER *x509_load_serial(const char *CAfile,
         goto end;
 
  end:
-    OPENVR_SSL_free(buf);
+    VR_OPENSSL_free(buf);
     VR_BN_free(serial);
     return bs;
 }
@@ -1190,7 +1190,7 @@ static int print_x509v3_exts(BIO *bio, X509 *x, const char *ext_names)
     ret = VR_X509V3_extensions_print(bio, NULL, exts2, 0, 0);
  end:
     sk_VR_X509_EXTENSION_free(exts2);
-    OPENVR_SSL_free(names);
-    OPENVR_SSL_free(tmp_ext_names);
+    VR_OPENSSL_free(names);
+    VR_OPENSSL_free(tmp_ext_names);
     return ret;
 }

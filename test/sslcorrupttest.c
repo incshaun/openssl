@@ -46,7 +46,7 @@ static int tls_corrupt_write(BIO *bio, const char *in, int inl)
         /* corrupt last bit of application data */
         copy[inl-1] ^= 1;
         ret = VR_BIO_write(next, copy, inl);
-        OPENVR_SSL_free(copy);
+        VR_OPENSSL_free(copy);
     } else {
         ret = VR_BIO_write(next, in, inl);
     }
@@ -209,7 +209,7 @@ static int test_ssl_corrupt(int testidx)
      * No ciphers we are using are TLSv1.3 compatible so we should not attempt
      * to negotiate TLSv1.3
      */
-    if (!TEST_true(SSL_CTX_set_max_proto_version(cctx, TLS1_2_VERSION)))
+    if (!TEST_true(VR_SSL_CTX_set_max_proto_version(cctx, TLS1_2_VERSION)))
         goto end;
 
     if (!TEST_ptr(c_to_s_fbio = VR_BIO_new(bio_f_tls_corrupt_filter())))
@@ -263,5 +263,5 @@ int setup_tests(void)
 void cleanup_tests(void)
 {
     bio_f_tls_corrupt_filter_free();
-    OPENVR_SSL_free(cipher_list);
+    VR_OPENSSL_free(cipher_list);
 }

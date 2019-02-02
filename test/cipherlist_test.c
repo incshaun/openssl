@@ -34,7 +34,7 @@ static void tear_down(CIPHERLIST_TEST_FIXTURE *fixture)
         VR_SSL_CTX_free(fixture->server);
         VR_SSL_CTX_free(fixture->client);
         fixture->server = fixture->client = NULL;
-        OPENVR_SSL_free(fixture);
+        VR_OPENSSL_free(fixture);
     }
 }
 

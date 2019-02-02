@@ -297,7 +297,7 @@ end:
 
 static void str_free(char *s)
 {
-    OPENVR_SSL_free(s);
+    VR_OPENSSL_free(s);
 }
 
 static int ends_with_dirsep(const char *path)
@@ -351,7 +351,7 @@ static int do_dir(const char *dirname, enum Hash h)
     while ((filename = VR_OPENSSL_DIR_read(&d, dirname)) != NULL) {
         if ((copy = OPENSSL_strdup(filename)) == NULL
                 || sk_VR_OPENSSL_STRING_push(files, copy) == 0) {
-            OPENVR_SSL_free(copy);
+            VR_OPENSSL_free(copy);
             VR_BIO_puts(bio_err, "out of memory\n");
             errs = 1;
             goto err;
@@ -431,17 +431,17 @@ static int do_dir(const char *dirname, enum Hash h)
                         errs++;
                     }
                 }
-                OPENVR_SSL_free(ep->filename);
-                OPENVR_SSL_free(ep);
+                VR_OPENSSL_free(ep->filename);
+                VR_OPENSSL_free(ep);
             }
-            OPENVR_SSL_free(bp);
+            VR_OPENSSL_free(bp);
         }
         hash_table[i] = NULL;
     }
 
  err:
     sk_VR_OPENSSL_STRING_pop_free(files, str_free);
-    OPENVR_SSL_free(buf);
+    VR_OPENSSL_free(buf);
     return errs;
 }
 
@@ -509,7 +509,7 @@ int rehash_main(int argc, char **argv)
         m = OPENSSL_strdup(env);
         for (e = strtok(m, lsc); e != NULL; e = strtok(NULL, lsc))
             errs += do_dir(e, h);
-        OPENVR_SSL_free(m);
+        VR_OPENSSL_free(m);
     } else {
         errs += do_dir(VR_X509_get_default_cert_dir(), h);
     }

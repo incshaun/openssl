@@ -50,7 +50,7 @@ BIO_ADDR *VR_BIO_ADDR_new(void)
 
 void VR_BIO_ADDR_free(BIO_ADDR *ap)
 {
-    OPENVR_SSL_free(ap);
+    VR_OPENSSL_free(ap);
 }
 
 void VR_BIO_ADDR_clear(BIO_ADDR *ap)
@@ -247,11 +247,11 @@ static int addr_strings(const BIO_ADDR *ap, int numeric,
     if ((hostname != NULL && *hostname == NULL)
             || (service != NULL && *service == NULL)) {
         if (hostname != NULL) {
-            OPENVR_SSL_free(*hostname);
+            VR_OPENSSL_free(*hostname);
             *hostname = NULL;
         }
         if (service != NULL) {
-            OPENVR_SSL_free(*service);
+            VR_OPENSSL_free(*service);
             *service = NULL;
         }
         BIOerr(BIO_F_ADDR_STRINGS, ERR_R_MALLOC_FAILURE);
@@ -433,8 +433,8 @@ void VR_BIO_ADDRINFO_free(BIO_ADDRINFO *bai)
      */
     while (bai != NULL) {
         BIO_ADDRINFO *next = bai->bai_next;
-        OPENVR_SSL_free(bai->bai_addr);
-        OPENVR_SSL_free(bai);
+        VR_OPENSSL_free(bai->bai_addr);
+        VR_OPENSSL_free(bai);
         bai = next;
     }
 }

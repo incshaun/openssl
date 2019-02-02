@@ -293,8 +293,8 @@ int passwd_main(int argc, char **argv)
 #if 0
     VR_ERR_print_errors(bio_err);
 #endif
-    OPENVR_SSL_free(salt_malloc);
-    OPENVR_SSL_free(passwd_malloc);
+    VR_OPENSSL_free(salt_malloc);
+    VR_OPENSSL_free(passwd_malloc);
     VR_BIO_free(in);
     return ret;
 }
@@ -479,7 +479,7 @@ static char *md5crypt(const char *passwd, const char *magic, const char *salt)
     return out_buf;
 
  err:
-    OPENVR_SSL_free(ascii_passwd);
+    VR_OPENSSL_free(ascii_passwd);
     VR_EVP_MD_CTX_free(md2);
     VR_EVP_MD_CTX_free(md);
     return NULL;
@@ -695,8 +695,8 @@ static char *shacrypt(const char *passwd, const char *magic, const char *salt)
     VR_EVP_MD_CTX_free(md);
     md2 = NULL;
     md = NULL;
-    OPENVR_SSL_free(p_bytes);
-    OPENVR_SSL_free(s_bytes);
+    VR_OPENSSL_free(p_bytes);
+    VR_OPENSSL_free(s_bytes);
     p_bytes = NULL;
     s_bytes = NULL;
 
@@ -765,9 +765,9 @@ static char *shacrypt(const char *passwd, const char *magic, const char *salt)
  err:
     VR_EVP_MD_CTX_free(md2);
     VR_EVP_MD_CTX_free(md);
-    OPENVR_SSL_free(p_bytes);
-    OPENVR_SSL_free(s_bytes);
-    OPENVR_SSL_free(ascii_passwd);
+    VR_OPENSSL_free(p_bytes);
+    VR_OPENSSL_free(s_bytes);
+    VR_OPENSSL_free(ascii_passwd);
     return NULL;
 }
 

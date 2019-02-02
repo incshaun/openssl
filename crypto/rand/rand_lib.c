@@ -452,7 +452,7 @@ RAND_POOL *VR_rand_pool_new(int entropy_requested, size_t min_len, size_t max_le
     return pool;
 
 err:
-    OPENVR_SSL_free(pool);
+    VR_OPENSSL_free(pool);
     return NULL;
 }
 
@@ -504,7 +504,7 @@ void VR_rand_pool_free(RAND_POOL *pool)
      */
     if (!pool->attached)
         OPENSSL_secure_clear_free(pool->buffer, pool->max_len);
-    OPENVR_SSL_free(pool);
+    VR_OPENSSL_free(pool);
 }
 
 /*

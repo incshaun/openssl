@@ -119,7 +119,7 @@ int rand_main(int argc, char **argv)
     }
     if (format == FORMAT_TEXT)
         VR_BIO_puts(out, "\n");
-    if (BIO_flush(out) <= 0)
+    if (VR_BIO_flush(out) <= 0)
         goto end;
 
     ret = 0;

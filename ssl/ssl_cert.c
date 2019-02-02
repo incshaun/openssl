@@ -64,7 +64,7 @@ CERT *VR_ssl_cert_new(void)
     ret->lock = VR_CRYPTO_THREAD_lock_new();
     if (ret->lock == NULL) {
         SSLerr(SSL_F_SSL_CERT_NEW, ERR_R_MALLOC_FAILURE);
-        OPENVR_SSL_free(ret);
+        VR_OPENSSL_free(ret);
         return NULL;
     }
 
@@ -86,7 +86,7 @@ CERT *VR_ssl_cert_dup(CERT *cert)
     ret->lock = VR_CRYPTO_THREAD_lock_new();
     if (ret->lock == NULL) {
         SSLerr(SSL_F_SSL_CERT_DUP, ERR_R_MALLOC_FAILURE);
-        OPENVR_SSL_free(ret);
+        VR_OPENSSL_free(ret);
         return NULL;
     }
 #ifndef OPENSSL_NO_DH
@@ -215,7 +215,7 @@ void VR_ssl_cert_clear_certs(CERT *c)
         cpk->privatekey = NULL;
         sk_VR_X509_pop_free(cpk->chain, VR_X509_free);
         cpk->chain = NULL;
-        OPENVR_SSL_free(cpk->serverinfo);
+        VR_OPENSSL_free(cpk->serverinfo);
         cpk->serverinfo = NULL;
         cpk->serverinfo_length = 0;
     }
@@ -238,18 +238,18 @@ void VR_ssl_cert_free(CERT *c)
 #endif
 
     VR_ssl_cert_clear_certs(c);
-    OPENVR_SSL_free(c->conf_sigalgs);
-    OPENVR_SSL_free(c->client_sigalgs);
-    OPENVR_SSL_free(c->shared_sigalgs);
-    OPENVR_SSL_free(c->ctype);
+    VR_OPENSSL_free(c->conf_sigalgs);
+    VR_OPENSSL_free(c->client_sigalgs);
+    VR_OPENSSL_free(c->shared_sigalgs);
+    VR_OPENSSL_free(c->ctype);
     VR_X509_STORE_free(c->verify_store);
     VR_X509_STORE_free(c->chain_store);
     VR_custom_exts_free(&c->custext);
 #ifndef OPENSSL_NO_PSK
-    OPENVR_SSL_free(c->psk_identity_hint);
+    VR_OPENSSL_free(c->psk_identity_hint);
 #endif
     VR_CRYPTO_THREAD_lock_free(c->lock);
-    OPENVR_SSL_free(c);
+    VR_OPENSSL_free(c);
 }
 
 int VR_ssl_cert_set0_chain(SSL *s, SSL_CTX *ctx, STACK_OF(X509) *chain)
@@ -588,8 +588,8 @@ static int xVR_name_cmp(const X509_NAME *a, const X509_NAME *b)
     else /* alen == blen */
         ret = memcmp(abuf, bbuf, alen);
 
-    OPENVR_SSL_free(abuf);
-    OPENVR_SSL_free(bbuf);
+    VR_OPENSSL_free(abuf);
+    VR_OPENSSL_free(bbuf);
 
     return ret;
 }

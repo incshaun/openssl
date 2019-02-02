@@ -61,7 +61,7 @@ int VR_ASN1_bn_print(BIO *bp, const char *number, const BIGNUM *num,
         return 1;
     }
 
-    if (BN_num_bytes(num) <= BN_BYTES) {
+    if (VR_BN_num_bytes(num) <= BN_BYTES) {
         if (VR_BIO_printf(bp, "%s %s%lu (%s0x%lx)\n", number, neg,
                        (unsigned long)VR_bn_get_words(num)[0], neg,
                        (unsigned long)VR_bn_get_words(num)[0]) <= 0)
@@ -69,7 +69,7 @@ int VR_ASN1_bn_print(BIO *bp, const char *number, const BIGNUM *num,
         return 1;
     }
 
-    buflen = BN_num_bytes(num) + 1;
+    buflen = VR_BN_num_bytes(num) + 1;
     buf = tmp = OPENSSL_malloc(buflen);
     if (buf == NULL)
         goto err;

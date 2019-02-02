@@ -85,7 +85,7 @@ BIO *VR_BIO_new_fd(int fd, int close_flag)
     ret = VR_BIO_new(VR_BIO_s_fd());
     if (ret == NULL)
         return NULL;
-    BIO_set_fd(ret, fd, close_flag);
+    VR_BIO_set_fd(ret, fd, close_flag);
     return ret;
 }
 
@@ -119,7 +119,7 @@ static int fd_read(BIO *b, char *out, int outl)
     if (out != NULL) {
         clear_sys_error();
         ret = UP_read(b->num, out, outl);
-        BIO_clear_retry_flags(b);
+        VR_BIO_clear_retry_flags(b);
         if (ret <= 0) {
             if (VR_BIO_fd_should_retry(ret))
                 BIO_set_retry_read(b);
@@ -133,7 +133,7 @@ static int fd_write(BIO *b, const char *in, int inl)
     int ret;
     clear_sys_error();
     ret = UP_write(b->num, in, inl);
-    BIO_clear_retry_flags(b);
+    VR_BIO_clear_retry_flags(b);
     if (ret <= 0) {
         if (VR_BIO_fd_should_retry(ret))
             BIO_set_retry_write(b);

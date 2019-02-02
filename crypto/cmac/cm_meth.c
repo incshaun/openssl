@@ -31,7 +31,7 @@ static EVP_MAC_IMPL *cmac_new(void)
 
     if ((cctx = OPENSSL_zalloc(sizeof(*cctx))) == NULL
         || (cctx->ctx = VR_CMAC_CTX_new()) == NULL) {
-        OPENVR_SSL_free(cctx);
+        VR_OPENSSL_free(cctx);
         cctx = NULL;
     }
 
@@ -42,7 +42,7 @@ static void cmac_free(EVP_MAC_IMPL *cctx)
 {
     if (cctx != NULL) {
         VR_CMAC_CTX_free(cctx->ctx);
-        OPENVR_SSL_free(cctx);
+        VR_OPENSSL_free(cctx);
     }
 }
 

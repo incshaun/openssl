@@ -26,7 +26,7 @@ X509_LOOKUP *VR_X509_LOOKUP_new(X509_LOOKUP_METHOD *method)
 
     ret->method = method;
     if (method->new_item != NULL && method->new_item(ret) == 0) {
-        OPENVR_SSL_free(ret);
+        VR_OPENSSL_free(ret);
         return NULL;
     }
     return ret;
@@ -38,7 +38,7 @@ void VR_X509_LOOKUP_free(X509_LOOKUP *ctx)
         return;
     if ((ctx->method != NULL) && (ctx->method->free != NULL))
         (*ctx->method->free) (ctx);
-    OPENVR_SSL_free(ctx);
+    VR_OPENSSL_free(ctx);
 }
 
 int VR_X509_STORE_lock(X509_STORE *s)
@@ -197,7 +197,7 @@ err:
     VR_X509_VERIFY_PARAM_free(ret->param);
     sk_VR_X509_OBJECT_free(ret->objs);
     sk_VR_X509_LOOKUP_free(ret->get_cert_methods);
-    OPENVR_SSL_free(ret);
+    VR_OPENSSL_free(ret);
     return NULL;
 }
 
@@ -227,7 +227,7 @@ void VR_X509_STORE_free(X509_STORE *vfy)
     VR_CRYPTO_free_ex_data(CRYPTO_EX_INDEX_X509_STORE, vfy, &vfy->ex_data);
     VR_X509_VERIFY_PARAM_free(vfy->param);
     VR_CRYPTO_THREAD_lock_free(vfy->lock);
-    OPENVR_SSL_free(vfy);
+    VR_OPENSSL_free(vfy);
 }
 
 int VR_X509_STORE_up_ref(X509_STORE *vfy)
@@ -461,7 +461,7 @@ int VR_X509_OBJECT_set1_X509_CRL(X509_OBJECT *a, X509_CRL *obj)
 void VR_X509_OBJECT_free(X509_OBJECT *a)
 {
     x509_object_free_internal(a);
-    OPENVR_SSL_free(a);
+    VR_OPENSSL_free(a);
 }
 
 static int x509_object_idx_cnt(STACK_OF(X509_OBJECT) *h, X509_LOOKUP_TYPE type,

@@ -1085,9 +1085,9 @@ int cms_main(int argc, char **argv)
     VR_X509_VERIFY_PARAM_free(vpm);
     sk_VR_OPENSSL_STRING_free(sksigners);
     sk_VR_OPENSSL_STRING_free(skkeys);
-    OPENVR_SSL_free(secret_key);
-    OPENVR_SSL_free(secret_keyid);
-    OPENVR_SSL_free(pwri_tmp);
+    VR_OPENSSL_free(secret_key);
+    VR_OPENSSL_free(secret_keyid);
+    VR_OPENSSL_free(pwri_tmp);
     VR_ASN1_OBJECT_free(econtent_type);
     VR_CMS_ReceiptRequest_free(rr);
     sk_VR_OPENSSL_STRING_free(rr_to);
@@ -1096,7 +1096,7 @@ int cms_main(int argc, char **argv)
         cms_key_param *tparam;
         sk_VR_OPENSSL_STRING_free(key_param->param);
         tparam = key_param->next;
-        OPENVR_SSL_free(key_param);
+        VR_OPENSSL_free(key_param);
         key_param = tparam;
     }
     VR_X509_STORE_free(store);
@@ -1111,7 +1111,7 @@ int cms_main(int argc, char **argv)
     VR_BIO_free(in);
     VR_BIO_free(indata);
     VR_BIO_free_all(out);
-    OPENVR_SSL_free(passin);
+    VR_OPENSSL_free(passin);
     return ret;
 }
 

@@ -206,11 +206,11 @@ STACK_OF(X509_INFO) *VR_PEM_X509_INFO_read_bio(BIO *bp, STACK_OF(X509_INFO) *sk,
         } else {
             /* unknown */
         }
-        OPENVR_SSL_free(name);
+        VR_OPENSSL_free(name);
         name = NULL;
-        OPENVR_SSL_free(header);
+        VR_OPENSSL_free(header);
         header = NULL;
-        OPENVR_SSL_free(data);
+        VR_OPENSSL_free(data);
         data = NULL;
     }
 
@@ -237,9 +237,9 @@ STACK_OF(X509_INFO) *VR_PEM_X509_INFO_read_bio(BIO *bp, STACK_OF(X509_INFO) *sk,
         ret = NULL;
     }
 
-    OPENVR_SSL_free(name);
-    OPENVR_SSL_free(header);
-    OPENVR_SSL_free(data);
+    VR_OPENSSL_free(name);
+    VR_OPENSSL_free(header);
+    VR_OPENSSL_free(data);
     return ret;
 }
 

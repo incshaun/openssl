@@ -181,7 +181,7 @@ void VR_policy_cache_free(X509_POLICY_CACHE *cache)
         return;
     VR_policy_data_free(cache->anyPolicy);
     sk_VR_X509_POLICY_DATA_pop_free(cache->data, VR_policy_data_free);
-    OPENVR_SSL_free(cache);
+    VR_OPENSSL_free(cache);
 }
 
 const X509_POLICY_CACHE *VR_policy_cache_set(X509 *x)

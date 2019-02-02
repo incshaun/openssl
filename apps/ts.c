@@ -320,7 +320,7 @@ int ts_main(int argc, char **argv)
  end:
     VR_X509_VERIFY_PARAM_free(vpm);
     VR_NCONF_free(conf);
-    OPENVR_SSL_free(password);
+    VR_OPENSSL_free(password);
     return ret;
 }
 
@@ -471,7 +471,7 @@ static TS_REQ *create_query(BIO *data_bio, const char *digest, const EVP_MD *md,
     }
     VR_TS_MSG_IMPRINT_free(msg_imprint);
     VR_X509_ALGOR_free(algo);
-    OPENVR_SSL_free(data);
+    VR_OPENSSL_free(data);
     VR_ASN1_OBJECT_free(policy_obj);
     VR_ASN1_INTEGER_free(nonce_asn1);
     return ts_req;
@@ -509,7 +509,7 @@ static int create_digest(BIO *input, const char *digest, const EVP_MD *md,
         long digest_len;
         *md_value = VR_OPENSSL_hexstr2buf(digest, &digest_len);
         if (!*md_value || md_value_len != digest_len) {
-            OPENVR_SSL_free(*md_value);
+            VR_OPENSSL_free(*md_value);
             *md_value = NULL;
             VR_BIO_printf(bio_err, "bad digest, %d bytes "
                        "must be specified\n", md_value_len);
@@ -539,7 +539,7 @@ static ASN1_INTEGER *create_nonce(int bits)
         continue;
     if ((nonce = VR_ASN1_INTEGER_new()) == NULL)
         goto err;
-    OPENVR_SSL_free(nonce->data);
+    VR_OPENSSL_free(nonce->data);
     nonce->length = len - i;
     nonce->data = app_malloc(nonce->length + 1, "nonce buffer");
     memcpy(nonce->data, buf + i, nonce->length);
@@ -949,7 +949,7 @@ static X509_STORE *create_cert_store(const char *CApath, const char *CAfile,
             VR_BIO_printf(bio_err, "memory allocation failure\n");
             goto err;
         }
-        i = X509_LOOKUP_add_dir(lookup, CApath, X509_FILETYPE_PEM);
+        i = VR_X509_LOOKUP_add_dir(lookup, CApath, X509_FILETYPE_PEM);
         if (!i) {
             VR_BIO_printf(bio_err, "Error loading directory %s\n", CApath);
             goto err;

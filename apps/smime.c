@@ -609,7 +609,7 @@ int smime_main(int argc, char **argv)
     VR_BIO_free(in);
     VR_BIO_free(indata);
     VR_BIO_free_all(out);
-    OPENVR_SSL_free(passin);
+    VR_OPENSSL_free(passin);
     return ret;
 }
 

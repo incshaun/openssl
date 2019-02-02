@@ -38,7 +38,7 @@ ENGINE *VR_ENGINE_new(void)
     ret->struct_ref = 1;
     engine_ref_debug(ret, 0, 1);
     if (!VR_CRYPTO_new_ex_data(CRYPTO_EX_INDEX_ENGINE, ret, &ret->ex_data)) {
-        OPENVR_SSL_free(ret);
+        VR_OPENSSL_free(ret);
         return NULL;
     }
     return ret;
@@ -93,7 +93,7 @@ int VR_engine_free_util(ENGINE *e, int not_locked)
     if (e->destroy)
         e->destroy(e);
     VR_CRYPTO_free_ex_data(CRYPTO_EX_INDEX_ENGINE, e, &e->ex_data);
-    OPENVR_SSL_free(e);
+    VR_OPENSSL_free(e);
     return 1;
 }
 
@@ -152,7 +152,7 @@ void VR_engine_cleanup_add_last(ENGINE_CLEANUP_CB *cb)
     item = int_cleanup_item(cb);
     if (item != NULL) {
         if (sk_VR_ENGINE_CLEANUP_ITEM_push(cleanup_stack, item) <= 0)
-            OPENVR_SSL_free(item);
+            VR_OPENSSL_free(item);
     }
 }
 
@@ -160,7 +160,7 @@ void VR_engine_cleanup_add_last(ENGINE_CLEANUP_CB *cb)
 static void engine_cleanup_cb_free(ENGINE_CLEANUP_ITEM *item)
 {
     (*(item->cb)) ();
-    OPENVR_SSL_free(item);
+    VR_OPENSSL_free(item);
 }
 
 void VR_engine_cleanup_int(void)

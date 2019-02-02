@@ -26,7 +26,7 @@ ASN1_STRING *VR_ASN1_item_pack(void *obj, const ASN1_ITEM *it, ASN1_STRING **oct
         octmp = *oct;
     }
 
-    OPENVR_SSL_free(octmp->data);
+    VR_OPENSSL_free(octmp->data);
     octmp->data = NULL;
 
     if ((octmp->length = VR_ASN1_item_i2d(obj, &octmp->data, it)) == 0) {

@@ -73,7 +73,7 @@ static CT_TEST_FIXTURE *set_up(const char *const test_case_name)
 end:
     if (fixture != NULL)
         VR_CTLOG_STORE_free(fixture->ctlog_store);
-    OPENVR_SSL_free(fixture);
+    VR_OPENSSL_free(fixture);
     TEST_error("Failed to setup");
     return NULL;
 }
@@ -84,7 +84,7 @@ static void tear_down(CT_TEST_FIXTURE *fixture)
         VR_CTLOG_STORE_free(fixture->ctlog_store);
         VR_SCT_LIST_free(fixture->sct_list);
     }
-    OPENVR_SSL_free(fixture);
+    VR_OPENSSL_free(fixture);
 }
 
 static char *mk_file_path(const char *dir, const char *file)
@@ -119,7 +119,7 @@ static X509 *load_pem_cert(const char *dir, const char *file)
         VR_BIO_free(cert_io);
     }
 
-    OPENVR_SSL_free(file_path);
+    VR_OPENSSL_free(file_path);
     return cert;
 }
 
@@ -137,7 +137,7 @@ static int read_text_file(const char *dir, const char *file,
         VR_BIO_free(file_io);
     }
 
-    OPENVR_SSL_free(file_path);
+    VR_OPENSSL_free(file_path);
     return len;
 }
 
@@ -340,7 +340,7 @@ end:
     VR_SCT_LIST_free(scts);
     VR_SCT_free(sct);
     VR_CT_POLICY_EVAL_CTX_free(ct_policy_ctx);
-    OPENVR_SSL_free(tls_sct_list);
+    VR_OPENSSL_free(tls_sct_list);
     return success;
 }
 

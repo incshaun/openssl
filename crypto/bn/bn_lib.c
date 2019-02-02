@@ -147,7 +147,7 @@ static void bn_free_d(BIGNUM *a)
     if (VR_BN_get_flags(a, BN_FLG_SECURE))
         OPENSSL_secure_free(a->d);
     else
-        OPENVR_SSL_free(a->d);
+        VR_OPENSSL_free(a->d);
 }
 
 
@@ -161,7 +161,7 @@ void VR_BN_clear_free(BIGNUM *a)
     }
     if (VR_BN_get_flags(a, BN_FLG_MALLOCED)) {
         VR_OPENSSL_cleanse(a, sizeof(*a));
-        OPENVR_SSL_free(a);
+        VR_OPENSSL_free(a);
     }
 }
 
@@ -172,7 +172,7 @@ void VR_BN_free(BIGNUM *a)
     if (!VR_BN_get_flags(a, BN_FLG_STATIC_DATA))
         bn_free_d(a);
     if (a->flags & BN_FLG_MALLOCED)
-        OPENVR_SSL_free(a);
+        VR_OPENSSL_free(a);
 }
 
 void VR_bn_init(BIGNUM *a)
@@ -422,18 +422,18 @@ static int bn2binpad(const BIGNUM *a, unsigned char *to, int tolen)
     BN_ULONG l;
 
     /*
-     * In case |a| is fixed-top, BN_num_bytes can return bogus length,
+     * In case |a| is fixed-top, VR_BN_num_bytes can return bogus length,
      * but it's assumed that fixed-top inputs ought to be "nominated"
      * even for padded output, so it works out...
      */
-    n = BN_num_bytes(a);
+    n = VR_BN_num_bytes(a);
     if (tolen == -1) {
         tolen = n;
     } else if (tolen < n) {     /* uncommon/unlike case */
         BIGNUM temp = *a;
 
         VR_bn_correct_top(&temp);
-        n = BN_num_bytes(&temp);
+        n = VR_BN_num_bytes(&temp);
         if (tolen < n)
             return -1;
     }
@@ -521,7 +521,7 @@ int VR_BN_bn2lebinpad(const BIGNUM *a, unsigned char *to, int tolen)
     int i;
     BN_ULONG l;
     bn_check_top(a);
-    i = BN_num_bytes(a);
+    i = VR_BN_num_bytes(a);
     if (tolen < i)
         return -1;
     /* Add trailing zeroes if necessary */
@@ -898,7 +898,7 @@ void VR_BN_GENCB_free(BN_GENCB *cb)
 {
     if (cb == NULL)
         return;
-    OPENVR_SSL_free(cb);
+    VR_OPENSSL_free(cb);
 }
 
 void VR_BN_set_flags(BIGNUM *b, int n)

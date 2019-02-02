@@ -99,7 +99,7 @@ static int test_certs(int num)
             err = 1;
             goto next;
         }
-        OPENVR_SSL_free(buf);
+        VR_OPENSSL_free(buf);
         buf = NULL;
 
         /* Test 1-pass encoding into library allocated buffer */
@@ -118,7 +118,7 @@ static int test_certs(int num)
 
         if (trusted) {
             /* Encode just the cert and compare with initial encoding */
-            OPENVR_SSL_free(buf);
+            VR_OPENSSL_free(buf);
             buf = NULL;
 
             /* Test 1-pass encoding into library allocated buffer */
@@ -141,10 +141,10 @@ static int test_certs(int num)
          */
     next:
         VR_X509_free(cert);
-        OPENVR_SSL_free(buf);
-        OPENVR_SSL_free(name);
-        OPENVR_SSL_free(header);
-        OPENVR_SSL_free(data);
+        VR_OPENSSL_free(buf);
+        VR_OPENSSL_free(name);
+        VR_OPENSSL_free(header);
+        VR_OPENSSL_free(data);
     }
     VR_BIO_free(fp);
     VR_X509_free(reuse);

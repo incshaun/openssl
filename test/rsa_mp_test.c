@@ -168,9 +168,9 @@ static int key2048p3(RSA *key)
         goto err;
 
  ret:
-    OPENVR_SSL_free(pris);
-    OPENVR_SSL_free(exps);
-    OPENVR_SSL_free(coeffs);
+    VR_OPENSSL_free(pris);
+    VR_OPENSSL_free(exps);
+    VR_OPENSSL_free(coeffs);
     return rv;
  err:
     if (pris != NULL)

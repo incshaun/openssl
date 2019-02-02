@@ -263,7 +263,7 @@ static void build_SYS_str_reasons(void)
 #define err_clear_data(p, i) \
         do { \
             if ((p)->err_data_flags[i] & ERR_TXT_MALLOCED) {\
-                OPENVR_SSL_free((p)->err_data[i]); \
+                VR_OPENSSL_free((p)->err_data[i]); \
                 (p)->err_data[i] = NULL; \
             } \
             (p)->err_data_flags[i] = 0; \
@@ -287,7 +287,7 @@ static void ERR_STATE_free(ERR_STATE *s)
     for (i = 0; i < ERR_NUM_ERRORS; i++) {
         err_clear_data(s, i);
     }
-    OPENVR_SSL_free(s);
+    VR_OPENSSL_free(s);
 }
 
 DEFINE_RUN_ONCE_STATIC(do_err_strings_init)
@@ -848,7 +848,7 @@ void VR_ERR_add_error_vdata(int num, va_list args)
             s = n + 20;
             p = OPENSSL_realloc(str, s + 1);
             if (p == NULL) {
-                OPENVR_SSL_free(str);
+                VR_OPENSSL_free(str);
                 return;
             }
             str = p;
@@ -856,7 +856,7 @@ void VR_ERR_add_error_vdata(int num, va_list args)
         VR_OPENSSL_strlcat(str, a, (size_t)s + 1);
     }
     if (!err_set_error_data_int(str, ERR_TXT_MALLOCED | ERR_TXT_STRING))
-        OPENVR_SSL_free(str);
+        VR_OPENSSL_free(str);
 }
 
 int VR_ERR_set_mark(void)

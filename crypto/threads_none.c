@@ -52,7 +52,7 @@ void VR_CRYPTO_THREAD_lock_free(CRYPTO_RWLOCK *lock) {
         return;
 
     *(unsigned int *)lock = 0;
-    OPENVR_SSL_free(lock);
+    VR_OPENSSL_free(lock);
 
     return;
 }

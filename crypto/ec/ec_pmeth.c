@@ -91,8 +91,8 @@ static void pkey_ec_cleanup(EVP_PKEY_CTX *ctx)
     if (dctx != NULL) {
         VR_EC_GROUP_free(dctx->gen_group);
         VR_EC_KEY_free(dctx->co_key);
-        OPENVR_SSL_free(dctx->kdf_ukm);
-        OPENVR_SSL_free(dctx);
+        VR_OPENSSL_free(dctx->kdf_ukm);
+        VR_OPENSSL_free(dctx);
         ctx->data = NULL;
     }
 }
@@ -305,7 +305,7 @@ static int pkey_ec_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2)
         return 1;
 
     case EVP_PKEY_CTRL_EC_KDF_UKM:
-        OPENVR_SSL_free(dctx->kdf_ukm);
+        VR_OPENSSL_free(dctx->kdf_ukm);
         dctx->kdf_ukm = p2;
         if (p2)
             dctx->kdf_ukmlen = p1;

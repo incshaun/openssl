@@ -83,7 +83,7 @@ EC_KEY *VR_EC_KEY_new_method(ENGINE *engine)
     ret->lock = VR_CRYPTO_THREAD_lock_new();
     if (ret->lock == NULL) {
         ECerr(EC_F_EC_KEY_NEW_METHOD, ERR_R_MALLOC_FAILURE);
-        OPENVR_SSL_free(ret);
+        VR_OPENSSL_free(ret);
         return NULL;
     }
 
@@ -167,7 +167,7 @@ EC_KEY_METHOD *VR_EC_KEY_METHOD_new(const EC_KEY_METHOD *meth)
 void VR_EC_KEY_METHOD_free(EC_KEY_METHOD *meth)
 {
     if (meth->flags & EC_KEY_METHOD_DYNAMIC)
-        OPENVR_SSL_free(meth);
+        VR_OPENSSL_free(meth);
 }
 
 void VR_EC_KEY_METHOD_set_init(EC_KEY_METHOD *meth,

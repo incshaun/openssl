@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
             goto again;
         }
         if (i < 0) {
-            if (BIO_should_retry(in))
+            if (VR_BIO_should_retry(in))
                 continue;
             goto err;
         }

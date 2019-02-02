@@ -60,9 +60,9 @@ int VR__CONF_add_string(CONF *conf, CONF_VALUE *section, CONF_VALUE *value)
     v = lh_CONF_VALUE_insert(conf->data, value);
     if (v != NULL) {
         (void)sk_CONF_VALUE_delete_ptr(ts, v);
-        OPENVR_SSL_free(v->name);
-        OPENVR_SSL_free(v->value);
-        OPENVR_SSL_free(v);
+        VR_OPENSSL_free(v->name);
+        VR_OPENSSL_free(v->value);
+        VR_OPENSSL_free(v);
     }
     return 1;
 }
@@ -145,7 +145,7 @@ void VR__CONF_free_data(CONF *conf)
     if (conf == NULL || conf->data == NULL)
         return;
 
-    /* evil thing to make sure the 'OPENVR_SSL_free()' works as expected */
+    /* evil thing to make sure the 'VR_OPENSSL_free()' works as expected */
     lh_CONF_VALUE_set_down_load(conf->data, 0);
     lh_CONF_VALUE_doall_LH_CONF_VALUE(conf->data, value_free_hash, conf->data);
 
@@ -176,13 +176,13 @@ static void value_free_stack_doall(CONF_VALUE *a)
     sk = (STACK_OF(CONF_VALUE) *)a->value;
     for (i = sk_CONF_VALUE_num(sk) - 1; i >= 0; i--) {
         vv = sk_CONF_VALUE_value(sk, i);
-        OPENVR_SSL_free(vv->value);
-        OPENVR_SSL_free(vv->name);
-        OPENVR_SSL_free(vv);
+        VR_OPENSSL_free(vv->value);
+        VR_OPENSSL_free(vv->name);
+        VR_OPENSSL_free(vv);
     }
     sk_VR_CONF_VALUE_free(sk);
-    OPENVR_SSL_free(a->section);
-    OPENVR_SSL_free(a);
+    VR_OPENSSL_free(a->section);
+    VR_OPENSSL_free(a);
 }
 
 /* Up until OpenSSL 0.9.5a, this was new_section */
@@ -212,7 +212,7 @@ CONF_VALUE *VR__CONF_new_section(CONF *conf, const char *section)
  err:
     sk_VR_CONF_VALUE_free(sk);
     if (v != NULL)
-        OPENVR_SSL_free(v->section);
-    OPENVR_SSL_free(v);
+        VR_OPENSSL_free(v->section);
+    VR_OPENSSL_free(v);
     return NULL;
 }

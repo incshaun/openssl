@@ -22,7 +22,7 @@ RSA_METHOD *VR_RSA_meth_new(const char *name, int flags)
         if (meth->name != NULL)
             return meth;
 
-        OPENVR_SSL_free(meth);
+        VR_OPENSSL_free(meth);
     }
 
     RSAerr(RSA_F_RSA_METH_NEW, ERR_R_MALLOC_FAILURE);
@@ -32,8 +32,8 @@ RSA_METHOD *VR_RSA_meth_new(const char *name, int flags)
 void VR_RSA_meth_free(RSA_METHOD *meth)
 {
     if (meth != NULL) {
-        OPENVR_SSL_free(meth->name);
-        OPENVR_SSL_free(meth);
+        VR_OPENSSL_free(meth->name);
+        VR_OPENSSL_free(meth);
     }
 }
 
@@ -48,7 +48,7 @@ RSA_METHOD *VR_RSA_meth_dup(const RSA_METHOD *meth)
         if (ret->name != NULL)
             return ret;
 
-        OPENVR_SSL_free(ret);
+        VR_OPENSSL_free(ret);
     }
 
     RSAerr(RSA_F_RSA_METH_DUP, ERR_R_MALLOC_FAILURE);
@@ -69,7 +69,7 @@ int VR_RSA_meth_set1_name(RSA_METHOD *meth, const char *name)
         return 0;
     }
 
-    OPENVR_SSL_free(meth->name);
+    VR_OPENSSL_free(meth->name);
     meth->name = tmpname;
 
     return 1;

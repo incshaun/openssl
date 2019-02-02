@@ -68,7 +68,7 @@ static int start_fake_rand(const char *hex_bytes)
 
 static int restore_rand(void)
 {
-    OPENVR_SSL_free(fake_rand_bytes);
+    VR_OPENSSL_free(fake_rand_bytes);
     fake_rand_bytes = NULL;
     fake_rand_bytes_offset = 0;
     if (!TEST_true(VR_RAND_set_rand_method(saved_rand)))
@@ -200,9 +200,9 @@ static int test_sm2_crypt(const EC_GROUP *group,
  done:
     VR_BN_free(priv);
     VR_EC_POINT_free(pt);
-    OPENVR_SSL_free(ctext);
-    OPENVR_SSL_free(recovered);
-    OPENVR_SSL_free(expected);
+    VR_OPENSSL_free(ctext);
+    VR_OPENSSL_free(recovered);
+    VR_OPENSSL_free(expected);
     VR_EC_KEY_free(key);
     return rc;
 }

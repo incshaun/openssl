@@ -1120,7 +1120,7 @@ int VR_BN_mod_exp_mont_consttime(BIGNUM *rr, const BIGNUM *a, const BIGNUM *p,
         VR_BN_MONT_CTX_free(mont);
     if (powerbuf != NULL) {
         VR_OPENSSL_cleanse(powerbuf, powerbufLen);
-        OPENVR_SSL_free(powerbufFree);
+        VR_OPENSSL_free(powerbufFree);
     }
     VR_BN_CTX_end(ctx);
     return ret;

@@ -230,8 +230,8 @@ static ASN1_TYPE *generate_v3(const char *str, X509V3_CTX *cnf, int depth,
     ret = VR_d2i_ASN1_TYPE(NULL, &cp, len);
 
  err:
-    OPENVR_SSL_free(orig_der);
-    OPENVR_SSL_free(new_der);
+    VR_OPENSSL_free(orig_der);
+    VR_OPENSSL_free(new_der);
 
     return ret;
 
@@ -455,7 +455,7 @@ static ASN1_TYPE *asn1_multi(int utype, const char *section, X509V3_CTX *cnf,
 
  bad:
 
-    OPENVR_SSL_free(der);
+    VR_OPENSSL_free(der);
 
     sk_VR_ASN1_TYPE_pop_free(sk, VR_ASN1_TYPE_free);
     VR_X509V3_section_free(cnf, sect);

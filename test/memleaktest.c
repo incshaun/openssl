@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
 
     if (argv[1] && strcmp(argv[1], "freeit") == 0) {
-        OPENVR_SSL_free(lost);
+        VR_OPENSSL_free(lost);
         lost = NULL;
     }
 

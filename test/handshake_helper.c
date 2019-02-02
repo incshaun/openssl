@@ -38,15 +38,15 @@ void HANDSHAKE_RESULT_free(HANDSHAKE_RESULT *result)
 {
     if (result == NULL)
         return;
-    OPENVR_SSL_free(result->client_npn_negotiated);
-    OPENVR_SSL_free(result->server_npn_negotiated);
-    OPENVR_SSL_free(result->client_alpn_negotiated);
-    OPENVR_SSL_free(result->server_alpn_negotiated);
-    OPENVR_SSL_free(result->result_session_ticket_app_data);
+    VR_OPENSSL_free(result->client_npn_negotiated);
+    VR_OPENSSL_free(result->server_npn_negotiated);
+    VR_OPENSSL_free(result->client_alpn_negotiated);
+    VR_OPENSSL_free(result->server_alpn_negotiated);
+    VR_OPENSSL_free(result->result_session_ticket_app_data);
     sk_VR_X509_NAME_pop_free(result->server_ca_names, VR_X509_NAME_free);
     sk_VR_X509_NAME_pop_free(result->client_ca_names, VR_X509_NAME_free);
-    OPENVR_SSL_free(result->cipher);
-    OPENVR_SSL_free(result);
+    VR_OPENSSL_free(result->cipher);
+    VR_OPENSSL_free(result);
 }
 
 /*
@@ -75,15 +75,15 @@ typedef struct ctx_data_st {
 /* |ctx_data| itself is stack-allocated. */
 static void ctx_data_free_data(CTX_DATA *ctx_data)
 {
-    OPENVR_SSL_free(ctx_data->npn_protocols);
+    VR_OPENSSL_free(ctx_data->npn_protocols);
     ctx_data->npn_protocols = NULL;
-    OPENVR_SSL_free(ctx_data->alpn_protocols);
+    VR_OPENSSL_free(ctx_data->alpn_protocols);
     ctx_data->alpn_protocols = NULL;
-    OPENVR_SSL_free(ctx_data->srp_user);
+    VR_OPENSSL_free(ctx_data->srp_user);
     ctx_data->srp_user = NULL;
-    OPENVR_SSL_free(ctx_data->srp_password);
+    VR_OPENSSL_free(ctx_data->srp_password);
     ctx_data->srp_password = NULL;
-    OPENVR_SSL_free(ctx_data->session_ticket_app_data);
+    VR_OPENSSL_free(ctx_data->session_ticket_app_data);
     ctx_data->session_ticket_app_data = NULL;
 }
 
@@ -371,7 +371,7 @@ static int parse_protos(const char *protos, unsigned char **out, size_t *outlen)
     return 1;
 
 err:
-    OPENVR_SSL_free(*out);
+    VR_OPENSSL_free(*out);
     *out = NULL;
     return 0;
 }
@@ -644,7 +644,7 @@ static int configure_handshake_ctx(SSL_CTX *server_ctx, SSL_CTX *server2_ctx,
                 || !TEST_int_eq(VR_SSL_CTX_set_alpn_protos(client_ctx, alpn_protos,
                                                         alpn_protos_len), 0))
             goto err;
-        OPENVR_SSL_free(alpn_protos);
+        VR_OPENSSL_free(alpn_protos);
     }
 
     if (extra->server.session_ticket_app_data != NULL) {
@@ -671,10 +671,10 @@ static int configure_handshake_ctx(SSL_CTX *server_ctx, SSL_CTX *server2_ctx,
             || !TEST_int_eq(SSL_CTX_set_tlsext_ticket_keys(server_ctx,
                                                            ticket_keys,
                                                            ticket_key_len), 1)) {
-        OPENVR_SSL_free(ticket_keys);
+        VR_OPENSSL_free(ticket_keys);
         goto err;
     }
-    OPENVR_SSL_free(ticket_keys);
+    VR_OPENSSL_free(ticket_keys);
 
     /* The default log list includes EC keys, so CT can't work without EC. */
 #if !defined(OPENSSL_NO_CT) && !defined(OPENSSL_NO_EC)
@@ -728,7 +728,7 @@ static void configure_handshake_ssl(SSL *server, SSL *client,
                                     const SSL_TEST_EXTRA_CONF *extra)
 {
     if (extra->client.servername != SSL_TEST_SERVERNAME_NONE)
-        SSL_set_tlsext_host_name(client,
+        VR_SSL_set_tlsext_host_name(client,
                                  ssl_servername_name(extra->client.servername));
     if (extra->client.enable_pha)
         VR_SSL_set_post_handshake_auth(client, 1);
@@ -774,16 +774,16 @@ static int create_peer(PEER *peer, SSL_CTX *ctx)
     return 1;
 err:
     VR_SSL_free(ssl);
-    OPENVR_SSL_free(write_buf);
-    OPENVR_SSL_free(read_buf);
+    VR_OPENSSL_free(write_buf);
+    VR_OPENSSL_free(read_buf);
     return 0;
 }
 
 static void peer_free_data(PEER *peer)
 {
     VR_SSL_free(peer->ssl);
-    OPENVR_SSL_free(peer->write_buf);
-    OPENVR_SSL_free(peer->read_buf);
+    VR_OPENSSL_free(peer->write_buf);
+    VR_OPENSSL_free(peer->read_buf);
 }
 
 /*
@@ -1464,9 +1464,9 @@ static HANDSHAKE_RESULT *do_handshake_internal(
 
 #if !defined(OPENSSL_NO_SCTP) && !defined(OPENSSL_NO_SOCK)
     if (test_ctx->enable_client_sctp_label_bug)
-        SSL_CTX_set_mode(client_ctx, SSL_MODE_DTLS_SCTP_LABEL_LENGTH_BUG);
+        VR_SSL_CTX_set_mode(client_ctx, SSL_MODE_DTLS_SCTP_LABEL_LENGTH_BUG);
     if (test_ctx->enable_server_sctp_label_bug)
-        SSL_CTX_set_mode(server_ctx, SSL_MODE_DTLS_SCTP_LABEL_LENGTH_BUG);
+        VR_SSL_CTX_set_mode(server_ctx, SSL_MODE_DTLS_SCTP_LABEL_LENGTH_BUG);
 #endif
 
     /* Setup SSL and buffers; additional configuration happens below. */

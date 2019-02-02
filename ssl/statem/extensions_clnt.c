@@ -629,13 +629,13 @@ static int add_key_share(SSL *s, WPACKET *pkt, unsigned int curve_id)
      */
     s->s3->tmp.pkey = key_share_key;
     s->s3->group_id = curve_id;
-    OPENVR_SSL_free(encoded_point);
+    VR_OPENSSL_free(encoded_point);
 
     return 1;
  err:
     if (s->s3->tmp.pkey == NULL)
         VR_EVP_PKEY_free(key_share_key);
-    OPENVR_SSL_free(encoded_point);
+    VR_OPENSSL_free(encoded_point);
     return 0;
 }
 #endif
@@ -723,7 +723,7 @@ EXT_RETURN VR_tls_construct_ctos_cookie(SSL *s, WPACKET *pkt, unsigned int conte
 
     ret = EXT_RETURN_SENT;
  end:
-    OPENVR_SSL_free(s->ext.tls13_cookie);
+    VR_OPENSSL_free(s->ext.tls13_cookie);
     s->ext.tls13_cookie = NULL;
     s->ext.tls13_cookie_len = 0;
 
@@ -813,7 +813,7 @@ EXT_RETURN VR_tls_construct_ctos_early_data(SSL *s, WPACKET *pkt,
     VR_SSL_SESSION_free(s->psksession);
     s->psksession = psksess;
     if (psksess != NULL) {
-        OPENVR_SSL_free(s->psksession_id);
+        VR_OPENSSL_free(s->psksession_id);
         s->psksession_id = OPENSSL_memdup(id, idlen);
         if (s->psksession_id == NULL) {
             SSLfatal(s, SSL_AD_INTERNAL_ERROR,
@@ -1375,7 +1375,7 @@ int VR_tls_parse_stoc_ec_pt_formats(SSL *s, PACKET *pkt, unsigned int context,
         }
 
         s->session->ext.ecpointformats_len = 0;
-        OPENVR_SSL_free(s->session->ext.ecpointformats);
+        VR_OPENSSL_free(s->session->ext.ecpointformats);
         s->session->ext.ecpointformats = OPENSSL_malloc(ecpointformats_len);
         if (s->session->ext.ecpointformats == NULL) {
             SSLfatal(s, SSL_AD_INTERNAL_ERROR,
@@ -1489,7 +1489,7 @@ int VR_tls_parse_stoc_sct(SSL *s, PACKET *pkt, unsigned int context, X509 *x,
         size_t size = PACKET_remaining(pkt);
 
         /* Simply copy it off for later processing */
-        OPENVR_SSL_free(s->ext.scts);
+        VR_OPENSSL_free(s->ext.scts);
         s->ext.scts = NULL;
 
         s->ext.scts_len = (uint16_t)size;
@@ -1592,7 +1592,7 @@ int VR_tls_parse_stoc_npn(SSL *s, PACKET *pkt, unsigned int context, X509 *x,
      * Could be non-NULL if server has sent multiple NPN extensions in
      * a single Serverhello
      */
-    OPENVR_SSL_free(s->ext.npn);
+    VR_OPENSSL_free(s->ext.npn);
     s->ext.npn = OPENSSL_malloc(selected_len);
     if (s->ext.npn == NULL) {
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_PARSE_STOC_NPN,
@@ -1632,7 +1632,7 @@ int VR_tls_parse_stoc_alpn(SSL *s, PACKET *pkt, unsigned int context, X509 *x,
                  SSL_R_BAD_EXTENSION);
         return 0;
     }
-    OPENVR_SSL_free(s->s3->alpn_selected);
+    VR_OPENSSL_free(s->s3->alpn_selected);
     s->s3->alpn_selected = OPENSSL_malloc(len);
     if (s->s3->alpn_selected == NULL) {
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_PARSE_STOC_ALPN,

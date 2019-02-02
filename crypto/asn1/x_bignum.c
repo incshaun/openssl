@@ -109,7 +109,7 @@ static int bn_i2c(ASN1_VALUE **pval, unsigned char *cont, int *putype,
             *cont++ = 0;
         VR_BN_bn2bin(bn, cont);
     }
-    return pad + BN_num_bytes(bn);
+    return pad + VR_BN_num_bytes(bn);
 }
 
 static int bn_c2i(ASN1_VALUE **pval, const unsigned char *cont, int len,

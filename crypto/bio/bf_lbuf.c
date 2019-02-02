@@ -66,7 +66,7 @@ static int linebuffer_new(BIO *bi)
     ctx->obuf = OPENSSL_malloc(DEFAULT_LINEBUFFER_SIZE);
     if (ctx->obuf == NULL) {
         BIOerr(BIO_F_LINEBUFFER_NEW, ERR_R_MALLOC_FAILURE);
-        OPENVR_SSL_free(ctx);
+        VR_OPENSSL_free(ctx);
         return 0;
     }
     ctx->obuf_size = DEFAULT_LINEBUFFER_SIZE;
@@ -85,8 +85,8 @@ static int linebuffer_free(BIO *a)
     if (a == NULL)
         return 0;
     b = (BIO_LINEBUFFER_CTX *)a->ptr;
-    OPENVR_SSL_free(b->obuf);
-    OPENVR_SSL_free(a->ptr);
+    VR_OPENSSL_free(b->obuf);
+    VR_OPENSSL_free(a->ptr);
     a->ptr = NULL;
     a->init = 0;
     a->flags = 0;
@@ -102,7 +102,7 @@ static int linebuffer_read(BIO *b, char *out, int outl)
     if (b->next_bio == NULL)
         return 0;
     ret = VR_BIO_read(b->next_bio, out, outl);
-    BIO_clear_retry_flags(b);
+    VR_BIO_clear_retry_flags(b);
     VR_BIO_copy_next_retry(b);
     return ret;
 }
@@ -118,7 +118,7 @@ static int linebuffer_write(BIO *b, const char *in, int inl)
     if ((ctx == NULL) || (b->next_bio == NULL))
         return 0;
 
-    BIO_clear_retry_flags(b);
+    VR_BIO_clear_retry_flags(b);
 
     do {
         const char *p;
@@ -244,7 +244,7 @@ static long linebuffer_ctrl(BIO *b, int cmd, long num, void *ptr)
                 ctx->obuf_len = obs;
             }
             memcpy(p, ctx->obuf, ctx->obuf_len);
-            OPENVR_SSL_free(ctx->obuf);
+            VR_OPENSSL_free(ctx->obuf);
             ctx->obuf = p;
             ctx->obuf_size = obs;
         }
@@ -252,7 +252,7 @@ static long linebuffer_ctrl(BIO *b, int cmd, long num, void *ptr)
     case BIO_C_DO_STATE_MACHINE:
         if (b->next_bio == NULL)
             return 0;
-        BIO_clear_retry_flags(b);
+        VR_BIO_clear_retry_flags(b);
         ret = VR_BIO_ctrl(b->next_bio, cmd, num, ptr);
         VR_BIO_copy_next_retry(b);
         break;
@@ -266,7 +266,7 @@ static long linebuffer_ctrl(BIO *b, int cmd, long num, void *ptr)
         }
 
         for (;;) {
-            BIO_clear_retry_flags(b);
+            VR_BIO_clear_retry_flags(b);
             if (ctx->obuf_len > 0) {
                 r = VR_BIO_write(b->next_bio, ctx->obuf, ctx->obuf_len);
                 VR_BIO_copy_next_retry(b);

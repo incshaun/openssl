@@ -65,7 +65,7 @@ void app_RAND_write(void)
         VR_BIO_printf(bio_err, "Cannot write random bytes:\n");
         VR_ERR_print_errors(bio_err);
     }
-    OPENVR_SSL_free(save_rand_file);
+    VR_OPENSSL_free(save_rand_file);
     save_rand_file =  NULL;
 }
 
@@ -85,7 +85,7 @@ int opt_rand(int opt)
         return loadfiles(opt_arg());
         break;
     case OPT_R_WRITERAND:
-        OPENVR_SSL_free(save_rand_file);
+        VR_OPENSSL_free(save_rand_file);
         save_rand_file = OPENSSL_strdup(opt_arg());
         break;
     }

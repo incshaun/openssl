@@ -43,7 +43,7 @@ unsigned long VR_X509_issuer_and_serial_hash(X509 *a)
         goto err;
     if (!VR_EVP_DigestUpdate(ctx, (unsigned char *)f, strlen(f)))
         goto err;
-    OPENVR_SSL_free(f);
+    VR_OPENSSL_free(f);
     if (!VR_EVP_DigestUpdate
         (ctx, (unsigned char *)a->cert_info.serialNumber.data,
          (unsigned long)a->cert_info.serialNumber.length))

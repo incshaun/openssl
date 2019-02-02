@@ -106,7 +106,7 @@ static CONF *def_create(CONF_METHOD *meth)
     ret = OPENSSL_malloc(sizeof(*ret));
     if (ret != NULL)
         if (meth->init(ret) == 0) {
-            OPENVR_SSL_free(ret);
+            VR_OPENSSL_free(ret);
             ret = NULL;
         }
     return ret;
@@ -139,7 +139,7 @@ static int def_init_WIN32(CONF *conf)
 static int def_destroy(CONF *conf)
 {
     if (def_destroy_data(conf)) {
-        OPENVR_SSL_free(conf);
+        VR_OPENSSL_free(conf);
         return 1;
     }
     return 0;
@@ -247,7 +247,7 @@ static int def_load_bio(CONF *conf, BIO *in, long *line)
                     in = next;
                     goto read_retry;
                 } else {
-                    OPENVR_SSL_free(dirpath);
+                    VR_OPENSSL_free(dirpath);
                     dirpath = NULL;
                 }
             }
@@ -360,11 +360,11 @@ static int def_load_bio(CONF *conf, BIO *in, long *line)
                 next = process_include(include, &dirctx, &dirpath);
                 if (include != dirpath) {
                     /* dirpath will contain include in case of a directory */
-                    OPENVR_SSL_free(include);
+                    VR_OPENSSL_free(include);
                 }
 #else
                 next = VR_BIO_new_file(include, "r");
-                OPENVR_SSL_free(include);
+                VR_OPENSSL_free(include);
 #endif
                 if (next != NULL) {
                     /* push the currently processing BIO onto stack */
@@ -423,7 +423,7 @@ static int def_load_bio(CONF *conf, BIO *in, long *line)
         }
     }
     VR_BUF_MEM_free(buff);
-    OPENVR_SSL_free(section);
+    VR_OPENSSL_free(section);
     /*
      * No need to pop, since we only get here if the stack is empty.
      * If this causes a BIO leak, THE ISSUE IS SOMEWHERE ELSE!
@@ -432,7 +432,7 @@ static int def_load_bio(CONF *conf, BIO *in, long *line)
     return 1;
  err:
     VR_BUF_MEM_free(buff);
-    OPENVR_SSL_free(section);
+    VR_OPENSSL_free(section);
     /*
      * Since |in| is the first element of the stack and should NOT be freed
      * here, we cannot use sk_VR_BIO_pop_free().  Instead, we pop and free one
@@ -445,7 +445,7 @@ static int def_load_bio(CONF *conf, BIO *in, long *line)
     }
     sk_VR_BIO_free(biosk);
 #ifndef OPENSSL_NO_POSIX_IO
-    OPENVR_SSL_free(dirpath);
+    VR_OPENSSL_free(dirpath);
     if (dirctx != NULL)
         VR_OPENSSL_DIR_end(&dirctx);
 #endif
@@ -458,9 +458,9 @@ static int def_load_bio(CONF *conf, BIO *in, long *line)
         conf->data = NULL;
     }
     if (v != NULL) {
-        OPENVR_SSL_free(v->name);
-        OPENVR_SSL_free(v->value);
-        OPENVR_SSL_free(v);
+        VR_OPENSSL_free(v->name);
+        VR_OPENSSL_free(v->value);
+        VR_OPENSSL_free(v);
     }
     return 0;
 }
@@ -646,9 +646,9 @@ static int str_copy(CONF *conf, char *section, char **pto, char *from)
             buf->data[to++] = *(from++);
     }
     buf->data[to] = '\0';
-    OPENVR_SSL_free(*pto);
+    VR_OPENSSL_free(*pto);
     *pto = buf->data;
-    OPENVR_SSL_free(buf);
+    VR_OPENSSL_free(buf);
     return 1;
  err:
     VR_BUF_MEM_free(buf);
@@ -739,7 +739,7 @@ static BIO *get_next_file(const char *path, OPENSSL_DIR_CTX **dirctx)
             VR_OPENSSL_strlcat(newpath, filename, newlen);
 
             bio = VR_BIO_new_file(newpath, "r");
-            OPENVR_SSL_free(newpath);
+            VR_OPENSSL_free(newpath);
             /* Errors when opening files are non-fatal. */
             if (bio != NULL)
                 return bio;

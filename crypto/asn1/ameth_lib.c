@@ -287,9 +287,9 @@ void VR_EVP_PKEY_asn1_copy(EVP_PKEY_ASN1_METHOD *dst,
 void VR_EVP_PKEY_asn1_free(EVP_PKEY_ASN1_METHOD *ameth)
 {
     if (ameth && (ameth->pkey_flags & ASN1_PKEY_DYNAMIC)) {
-        OPENVR_SSL_free(ameth->pem_str);
-        OPENVR_SSL_free(ameth->info);
-        OPENVR_SSL_free(ameth);
+        VR_OPENSSL_free(ameth->pem_str);
+        VR_OPENSSL_free(ameth->info);
+        VR_OPENSSL_free(ameth);
     }
 }
 

@@ -70,7 +70,7 @@ int VR_PKCS5_pbe_set0_algor(X509_ALGOR *algor, int alg, int iter,
         return 1;
 
  err:
-    OPENVR_SSL_free(sstr);
+    VR_OPENSSL_free(sstr);
     VR_PBEPARAM_free(pbe);
     VR_ASN1_STRING_free(pbe_str);
     return 0;

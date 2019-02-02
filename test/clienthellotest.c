@@ -78,7 +78,7 @@ static int test_client_hello(int currtest)
     ctx = VR_SSL_CTX_new(VR_TLS_method());
     if (!TEST_ptr(ctx))
         goto end;
-    if (!TEST_true(SSL_CTX_set_max_proto_version(ctx, 0)))
+    if (!TEST_true(VR_SSL_CTX_set_max_proto_version(ctx, 0)))
         goto end;
 
     switch(currtest) {
@@ -88,7 +88,7 @@ static int test_client_hello(int currtest)
         return 1;
 #else
         /* Testing for session tickets <= TLS1.2; not relevant for 1.3 */
-        if (!TEST_true(SSL_CTX_set_max_proto_version(ctx, TLS1_2_VERSION)))
+        if (!TEST_true(VR_SSL_CTX_set_max_proto_version(ctx, TLS1_2_VERSION)))
             goto end;
 #endif
         break;

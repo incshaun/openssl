@@ -494,7 +494,7 @@ static void destroy_all_cipher_methods(void)
 
     for (i = 0; i < OSSL_NELEM(cipher_data); i++) {
         destroy_cipher_method(cipher_data[i].nid);
-        OPENVR_SSL_free(cipher_driver_info[i].driver_name);
+        VR_OPENSSL_free(cipher_driver_info[i].driver_name);
         cipher_driver_info[i].driver_name = NULL;
     }
 }
@@ -536,7 +536,7 @@ static int cryptodev_select_cipher_cb(const char *str, int len, void *usr)
         cipher_list[i] = 1;
     else
         fprintf(stderr, "devcrypto: cipher %s not available\n", name);
-    OPENVR_SSL_free(name);
+    VR_OPENSSL_free(name);
     return 1;
 }
 
@@ -925,7 +925,7 @@ static void destroy_all_digest_methods(void)
 
     for (i = 0; i < OSSL_NELEM(digest_data); i++) {
         destroy_digest_method(digest_data[i].nid);
-        OPENVR_SSL_free(digest_driver_info[i].driver_name);
+        VR_OPENSSL_free(digest_driver_info[i].driver_name);
         digest_driver_info[i].driver_name = NULL;
     }
 }
@@ -967,7 +967,7 @@ static int cryptodev_select_digest_cb(const char *str, int len, void *usr)
         digest_list[i] = 1;
     else
         fprintf(stderr, "devcrypto: digest %s not available\n", name);
-    OPENVR_SSL_free(name);
+    VR_OPENSSL_free(name);
     return 1;
 }
 
@@ -1089,11 +1089,11 @@ static int devcrypto_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f) (void))
         } else {
             new_list=OPENSSL_zalloc(sizeof(selected_ciphers));
             if (!VR_CONF_parse_list(p, ',', 1, cryptodev_select_cipher_cb, new_list)) {
-                OPENVR_SSL_free(new_list);
+                VR_OPENSSL_free(new_list);
                 return 0;
             }
             memcpy(selected_ciphers, new_list, sizeof(selected_ciphers));
-            OPENVR_SSL_free(new_list);
+            VR_OPENSSL_free(new_list);
         }
         rebuild_known_cipher_nids(e);
         return 1;
@@ -1109,11 +1109,11 @@ static int devcrypto_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f) (void))
         } else {
             new_list=OPENSSL_zalloc(sizeof(selected_digests));
             if (!VR_CONF_parse_list(p, ',', 1, cryptodev_select_digest_cb, new_list)) {
-                OPENVR_SSL_free(new_list);
+                VR_OPENSSL_free(new_list);
                 return 0;
             }
             memcpy(selected_digests, new_list, sizeof(selected_digests));
-            OPENVR_SSL_free(new_list);
+            VR_OPENSSL_free(new_list);
         }
         rebuild_known_digest_nids(e);
         return 1;

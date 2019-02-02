@@ -226,8 +226,8 @@ int VR_BIO_get_accept_socket(char *host, int bind_mode)
 
  err:
     VR_BIO_ADDRINFO_free(res);
-    OPENVR_SSL_free(h);
-    OPENVR_SSL_free(p);
+    VR_OPENSSL_free(h);
+    VR_OPENSSL_free(p);
 
     return s;
 }
@@ -265,8 +265,8 @@ int VR_BIO_accept(int sock, char **ip_port)
             strcat(*ip_port, ":");
             strcat(*ip_port, port);
         }
-        OPENVR_SSL_free(host);
-        OPENVR_SSL_free(port);
+        VR_OPENSSL_free(host);
+        VR_OPENSSL_free(port);
     }
 
  end:

@@ -163,8 +163,8 @@ static int test_engines(void)
         VR_ENGINE_free(ptr);
     }
     for (loop = 0; loop < NUMTOADD; loop++) {
-        OPENVR_SSL_free(eid[loop]);
-        OPENVR_SSL_free(ename[loop]);
+        VR_OPENSSL_free(eid[loop]);
+        VR_OPENSSL_free(ename[loop]);
     }
     to_return = 1;
 
@@ -342,7 +342,7 @@ static int test_redirect(void)
     VR_EVP_PKEY_CTX_free(ctx);
     VR_EVP_PKEY_free(pkey);
     VR_ENGINE_free(e);
-    OPENVR_SSL_free(tmp);
+    VR_OPENSSL_free(tmp);
     return to_return;
 }
 #endif

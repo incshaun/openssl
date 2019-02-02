@@ -25,7 +25,7 @@ COMP_CTX *VR_COMP_CTX_new(COMP_METHOD *meth)
     }
     ret->meth = meth;
     if ((ret->meth->init != NULL) && !ret->meth->init(ret)) {
-        OPENVR_SSL_free(ret);
+        VR_OPENSSL_free(ret);
         ret = NULL;
     }
     return ret;
@@ -53,7 +53,7 @@ void VR_COMP_CTX_free(COMP_CTX *ctx)
     if (ctx->meth->finish != NULL)
         ctx->meth->finish(ctx);
 
-    OPENVR_SSL_free(ctx);
+    VR_OPENSSL_free(ctx);
 }
 
 int VR_COMP_compress_block(COMP_CTX *ctx, unsigned char *out, int olen,

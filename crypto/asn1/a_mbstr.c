@@ -141,7 +141,7 @@ int VR_ASN1_mbstring_ncopy(ASN1_STRING **out, const unsigned char *in, int len,
     if (*out) {
         free_out = 0;
         dest = *out;
-        OPENVR_SSL_free(dest->data);
+        VR_OPENSSL_free(dest->data);
         dest->data = NULL;
         dest->length = 0;
         dest->type = str_type;

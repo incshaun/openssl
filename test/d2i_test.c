@@ -101,7 +101,7 @@ static int test_bad_asn1(void)
         && !TEST_false(ERR_GET_REASON(VR_ERR_peek_error()) == ERR_R_MALLOC_FAILURE))
         ret = 0;
     VR_BIO_free(bio);
-    OPENVR_SSL_free(der);
+    VR_OPENSSL_free(der);
     VR_ASN1_item_free(value, item_type);
     return ret;
 }

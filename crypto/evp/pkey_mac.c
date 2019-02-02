@@ -52,7 +52,7 @@ static int pkey_mac_init(EVP_PKEY_CTX *ctx)
     /* We're being smart and using the same base NIDs for PKEY and for MAC */
     hctx->ctx = VR_EVP_MAC_CTX_new_id(nid);
     if (hctx->ctx == NULL) {
-        OPENVR_SSL_free(hctx);
+        VR_OPENSSL_free(hctx);
         return 0;
     }
 
@@ -116,7 +116,7 @@ static void pkey_mac_cleanup(EVP_PKEY_CTX *ctx)
             break;
         }
         VR_EVP_MAC_CTX_free(hctx->ctx);
-        OPENVR_SSL_free(hctx);
+        VR_OPENSSL_free(hctx);
         VR_EVP_PKEY_CTX_set_data(ctx, NULL);
     }
 }

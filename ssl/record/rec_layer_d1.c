@@ -36,7 +36,7 @@ int VR_DTLS_RECORD_LAYER_new(RECORD_LAYER *rl)
         VR_pqueue_free(d->unprocessed_rcds.q);
         VR_pqueue_free(d->processed_rcds.q);
         VR_pqueue_free(d->buffered_app_data.q);
-        OPENVR_SSL_free(d);
+        VR_OPENSSL_free(d);
         rl->d = NULL;
         return 0;
     }
@@ -50,7 +50,7 @@ void VR_DTLS_RECORD_LAYER_free(RECORD_LAYER *rl)
     VR_pqueue_free(rl->d->unprocessed_rcds.q);
     VR_pqueue_free(rl->d->processed_rcds.q);
     VR_pqueue_free(rl->d->buffered_app_data.q);
-    OPENVR_SSL_free(rl->d);
+    VR_OPENSSL_free(rl->d);
     rl->d = NULL;
 }
 
@@ -67,22 +67,22 @@ void VR_DTLS_RECORD_LAYER_clear(RECORD_LAYER *rl)
 
     while ((item = VR_pqueue_pop(d->unprocessed_rcds.q)) != NULL) {
         rdata = (DTLS1_RECORD_DATA *)item->data;
-        OPENVR_SSL_free(rdata->rbuf.buf);
-        OPENVR_SSL_free(item->data);
+        VR_OPENSSL_free(rdata->rbuf.buf);
+        VR_OPENSSL_free(item->data);
         VR_pitem_free(item);
     }
 
     while ((item = VR_pqueue_pop(d->processed_rcds.q)) != NULL) {
         rdata = (DTLS1_RECORD_DATA *)item->data;
-        OPENVR_SSL_free(rdata->rbuf.buf);
-        OPENVR_SSL_free(item->data);
+        VR_OPENSSL_free(rdata->rbuf.buf);
+        VR_OPENSSL_free(item->data);
         VR_pitem_free(item);
     }
 
     while ((item = VR_pqueue_pop(d->buffered_app_data.q)) != NULL) {
         rdata = (DTLS1_RECORD_DATA *)item->data;
-        OPENVR_SSL_free(rdata->rbuf.buf);
-        OPENVR_SSL_free(item->data);
+        VR_OPENSSL_free(rdata->rbuf.buf);
+        VR_OPENSSL_free(item->data);
         VR_pitem_free(item);
     }
 
@@ -148,7 +148,7 @@ int VR_dtls1_buffer_record(SSL *s, record_pqueue *queue, unsigned char *priority
     rdata = OPENSSL_malloc(sizeof(*rdata));
     item = VR_pitem_new(priority, rdata);
     if (rdata == NULL || item == NULL) {
-        OPENVR_SSL_free(rdata);
+        VR_OPENSSL_free(rdata);
         VR_pitem_free(item);
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_DTLS1_BUFFER_RECORD,
                  ERR_R_INTERNAL_ERROR);
@@ -179,16 +179,16 @@ int VR_dtls1_buffer_record(SSL *s, record_pqueue *queue, unsigned char *priority
 
     if (!VR_ssl3_setup_buffers(s)) {
         /* SSLfatal() already called */
-        OPENVR_SSL_free(rdata->rbuf.buf);
-        OPENVR_SSL_free(rdata);
+        VR_OPENSSL_free(rdata->rbuf.buf);
+        VR_OPENSSL_free(rdata);
         VR_pitem_free(item);
         return -1;
     }
 
     if (VR_pqueue_insert(queue->q, item) == NULL) {
         /* Must be a duplicate so ignore it */
-        OPENVR_SSL_free(rdata->rbuf.buf);
-        OPENVR_SSL_free(rdata);
+        VR_OPENSSL_free(rdata->rbuf.buf);
+        VR_OPENSSL_free(rdata);
         VR_pitem_free(item);
     }
 
@@ -203,7 +203,7 @@ int VR_dtls1_retrieve_buffered_record(SSL *s, record_pqueue *queue)
     if (item) {
         dtls1_copy_record(s, item);
 
-        OPENVR_SSL_free(item->data);
+        VR_OPENSSL_free(item->data);
         VR_pitem_free(item);
 
         return 1;
@@ -400,7 +400,7 @@ int VR_dtls1_read_bytes(SSL *s, int type, int *recvd_type, unsigned char *buf,
 
             dtls1_copy_record(s, item);
 
-            OPENVR_SSL_free(item->data);
+            VR_OPENSSL_free(item->data);
             VR_pitem_free(item);
         }
     }
@@ -595,7 +595,7 @@ int VR_dtls1_read_bytes(SSL *s, int type, int *recvd_type, unsigned char *buf,
                     BIO_dgram_sctp_msg_waiting(VR_SSL_get_rbio(s))) {
                     s->d1->shutdown_received = 1;
                     s->rwstate = SSL_READING;
-                    BIO_clear_retry_flags(VR_SSL_get_rbio(s));
+                    VR_BIO_clear_retry_flags(VR_SSL_get_rbio(s));
                     BIO_set_retry_read(VR_SSL_get_rbio(s));
                     return -1;
                 }
@@ -687,7 +687,7 @@ int VR_dtls1_read_bytes(SSL *s, int type, int *recvd_type, unsigned char *buf,
 
                     s->rwstate = SSL_READING;
                     bio = VR_SSL_get_rbio(s);
-                    BIO_clear_retry_flags(bio);
+                    VR_BIO_clear_retry_flags(bio);
                     BIO_set_retry_read(bio);
                     return -1;
                 }
@@ -729,7 +729,7 @@ int VR_dtls1_read_bytes(SSL *s, int type, int *recvd_type, unsigned char *buf,
                  */
                 s->rwstate = SSL_READING;
                 bio = VR_SSL_get_rbio(s);
-                BIO_clear_retry_flags(bio);
+                VR_BIO_clear_retry_flags(bio);
                 BIO_set_retry_read(bio);
                 return -1;
             }

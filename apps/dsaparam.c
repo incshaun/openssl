@@ -174,7 +174,7 @@ int dsaparam_main(int argc, char **argv)
         int len, bits_p;
 
         VR_DSA_get0_pqg(dsa, &p, &q, &g);
-        len = BN_num_bytes(p);
+        len = VR_BN_num_bytes(p);
         bits_p = VR_BN_num_bits(p);
 
         data = app_malloc(len + 20, "BN space");
@@ -201,7 +201,7 @@ int dsaparam_main(int argc, char **argv)
                             "        return NULL;\n"
                             "    }\n"
                             "    return dsa;\n}\n");
-        OPENVR_SSL_free(data);
+        VR_OPENSSL_free(data);
     }
 
     if (outformat == FORMAT_ASN1 && genkey)
@@ -252,7 +252,7 @@ static int dsa_cb(int p, int n, BN_GENCB *cb)
     char c = (p >= 0 && (size_t)p < sizeof(symbols) - 1) ? symbols[p] : '?';
 
     VR_BIO_write(VR_BN_GENCB_get_arg(cb), &c, 1);
-    (void)BIO_flush(VR_BN_GENCB_get_arg(cb));
+    (void)VR_BIO_flush(VR_BN_GENCB_get_arg(cb));
     return 1;
 }
 #endif

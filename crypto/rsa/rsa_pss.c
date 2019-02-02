@@ -128,7 +128,7 @@ int VR_RSA_verify_PKCS1_PSS_mgf1(RSA *rsa, const unsigned char *mHash,
     }
 
  err:
-    OPENVR_SSL_free(DB);
+    VR_OPENSSL_free(DB);
     VR_EVP_MD_CTX_free(ctx);
 
     return ret;

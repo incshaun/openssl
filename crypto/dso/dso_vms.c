@@ -210,8 +210,8 @@ static int vms_load(DSO *dso)
     return 1;
  err:
     /* Cleanup! */
-    OPENVR_SSL_free(p);
-    OPENVR_SSL_free(filename);
+    VR_OPENSSL_free(p);
+    VR_OPENSSL_free(filename);
     return 0;
 }
 
@@ -235,7 +235,7 @@ static int vms_unload(DSO *dso)
         return 0;
     }
     /* Cleanup */
-    OPENVR_SSL_free(p);
+    VR_OPENSSL_free(p);
     return 1;
 }
 

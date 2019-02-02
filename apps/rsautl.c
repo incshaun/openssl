@@ -274,9 +274,9 @@ int rsautl_main(int argc, char **argv)
     release_engine(e);
     VR_BIO_free(in);
     VR_BIO_free_all(out);
-    OPENVR_SSL_free(rsa_in);
-    OPENVR_SSL_free(rsa_out);
-    OPENVR_SSL_free(passin);
+    VR_OPENSSL_free(rsa_in);
+    VR_OPENSSL_free(rsa_out);
+    VR_OPENSSL_free(passin);
     return ret;
 }
 #endif

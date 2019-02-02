@@ -119,7 +119,7 @@ static void kmac_free(EVP_MAC_IMPL *kctx)
         VR_EVP_MD_CTX_free(kctx->ctx);
         VR_OPENSSL_cleanse(kctx->key, kctx->key_len);
         VR_OPENSSL_cleanse(kctx->custom, kctx->custom_len);
-        OPENVR_SSL_free(kctx);
+        VR_OPENSSL_free(kctx);
     }
 }
 

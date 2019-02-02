@@ -105,7 +105,7 @@ static int asn1_bio_new(BIO *b)
     if (ctx == NULL)
         return 0;
     if (!asn1_bio_init(ctx, DEFAULT_ASN1_BUF_SIZE)) {
-        OPENVR_SSL_free(ctx);
+        VR_OPENSSL_free(ctx);
         return 0;
     }
     VR_BIO_set_data(b, ctx);
@@ -138,8 +138,8 @@ static int asn1_bio_free(BIO *b)
     if (ctx == NULL)
         return 0;
 
-    OPENVR_SSL_free(ctx->buf);
-    OPENVR_SSL_free(ctx);
+    VR_OPENSSL_free(ctx->buf);
+    VR_OPENSSL_free(ctx);
     VR_BIO_set_data(b, NULL);
     VR_BIO_set_init(b, 0);
 
@@ -231,7 +231,7 @@ static int asn1_bio_write(BIO *b, const char *in, int inl)
 
         case ASN1_STATE_POST_COPY:
         case ASN1_STATE_DONE:
-            BIO_clear_retry_flags(b);
+            VR_BIO_clear_retry_flags(b);
             return 0;
 
         }
@@ -239,7 +239,7 @@ static int asn1_bio_write(BIO *b, const char *in, int inl)
     }
 
  done:
-    BIO_clear_retry_flags(b);
+    VR_BIO_clear_retry_flags(b);
     VR_BIO_copy_next_retry(b);
 
     return (wrlen > 0) ? wrlen : ret;
@@ -277,7 +277,7 @@ static int asn1_bio_setup_ex(BIO *b, BIO_ASN1_BUF_CTX *ctx,
                              asn1_bio_state_t other_state)
 {
     if (setup && !setup(b, &ctx->ex_buf, &ctx->ex_len, &ctx->ex_arg)) {
-        BIO_clear_retry_flags(b);
+        VR_BIO_clear_retry_flags(b);
         return 0;
     }
     if (ctx->ex_len > 0)
@@ -382,7 +382,7 @@ static long asn1_bio_ctrl(BIO *b, int cmd, long arg1, void *arg2)
         if (ctx->state == ASN1_STATE_DONE)
             return VR_BIO_ctrl(next, cmd, arg1, arg2);
         else {
-            BIO_clear_retry_flags(b);
+            VR_BIO_clear_retry_flags(b);
             return 0;
         }
 

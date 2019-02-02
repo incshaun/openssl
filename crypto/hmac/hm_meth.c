@@ -30,7 +30,7 @@ static EVP_MAC_IMPL *hmac_new(void)
 
     if ((hctx = OPENSSL_zalloc(sizeof(*hctx))) == NULL
         || (hctx->ctx = VR_HMAC_CTX_new()) == NULL) {
-        OPENVR_SSL_free(hctx);
+        VR_OPENSSL_free(hctx);
         return NULL;
     }
 
@@ -41,7 +41,7 @@ static void hmac_free(EVP_MAC_IMPL *hctx)
 {
     if (hctx != NULL) {
         VR_HMAC_CTX_free(hctx->ctx);
-        OPENVR_SSL_free(hctx);
+        VR_OPENSSL_free(hctx);
     }
 }
 

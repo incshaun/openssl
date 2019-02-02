@@ -146,7 +146,7 @@ int VR_tls_parse_ctos_server_name(SSL *s, PACKET *pkt, unsigned int context,
          * Store the requested SNI in the SSL as temporary storage.
          * If we accept it, it will get stored in the SSL_SESSION as well.
          */
-        OPENVR_SSL_free(s->ext.hostname);
+        VR_OPENSSL_free(s->ext.hostname);
         s->ext.hostname = NULL;
         if (!PACKET_strndup(&hostname, &s->ext.hostname)) {
             SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_PARSE_CTOS_SERVER_NAME,
@@ -482,7 +482,7 @@ int VR_tls_parse_ctos_alpn(SSL *s, PACKET *pkt, unsigned int context, X509 *x,
         }
     } while (PACKET_remaining(&protocol_list) != 0);
 
-    OPENVR_SSL_free(s->s3->alpn_proposed);
+    VR_OPENSSL_free(s->s3->alpn_proposed);
     s->s3->alpn_proposed = NULL;
     s->s3->alpn_proposed_len = 0;
     if (!PACKET_memdup(&save_protocol_list,
@@ -962,7 +962,7 @@ int VR_tls_parse_ctos_supported_groups(SSL *s, PACKET *pkt, unsigned int context
     }
 
     if (!s->hit || SSL_IS_TLS13(s)) {
-        OPENVR_SSL_free(s->session->ext.supportedgroups);
+        VR_OPENSSL_free(s->session->ext.supportedgroups);
         s->session->ext.supportedgroups = NULL;
         s->session->ext.supportedgroups_len = 0;
         if (!VR_tls1_save_u16(&supported_groups_list,
@@ -1101,7 +1101,7 @@ int VR_tls_parse_ctos_psk(SSL *s, PACKET *pkt, unsigned int context, X509 *x,
             }
             pskdatalen = s->psk_server_callback(s, pskid, pskdata,
                                                 sizeof(pskdata));
-            OPENVR_SSL_free(pskid);
+            VR_OPENSSL_free(pskid);
             if (pskdatalen > PSK_MAX_PSK_LEN) {
                 SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_PARSE_CTOS_PSK,
                          ERR_R_INTERNAL_ERROR);
@@ -1729,10 +1729,10 @@ EXT_RETURN VR_tls_construct_stoc_key_share(SSL *s, WPACKET *pkt,
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_CONSTRUCT_STOC_KEY_SHARE,
                  ERR_R_INTERNAL_ERROR);
         VR_EVP_PKEY_free(skey);
-        OPENVR_SSL_free(encodedPoint);
+        VR_OPENSSL_free(encodedPoint);
         return EXT_RETURN_FAIL;
     }
-    OPENVR_SSL_free(encodedPoint);
+    VR_OPENSSL_free(encodedPoint);
 
     /* This causes the crypto state to be updated based on the derived keys */
     s->s3->tmp.pkey = skey;

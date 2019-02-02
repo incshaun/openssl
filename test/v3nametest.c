@@ -335,7 +335,7 @@ static int run_cert(X509 *crt, const char *nameincert,
             match = 1;
         if (!TEST_true(check_message(fn, "email", nameincert, match, *pname)))
             failed = 1;
-        OPENVR_SSL_free(name);
+        VR_OPENSSL_free(name);
     }
 
     return failed == 0;

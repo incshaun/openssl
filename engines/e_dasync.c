@@ -395,7 +395,7 @@ static void wait_cleanup(ASYNC_WAIT_CTX *ctx, const void *key,
     close(readfd);
     close(*pwritefd);
 #endif
-    OPENVR_SSL_free(pwritefd);
+    VR_OPENSSL_free(pwritefd);
 }
 
 #define DUMMY_CHAR 'X'
@@ -440,12 +440,12 @@ static void dummy_pause_job(void) {
             return;
 #if defined(ASYNC_WIN)
         if (CreatePipe(&pipefds[0], &pipefds[1], NULL, 256) == 0) {
-            OPENVR_SSL_free(writefd);
+            VR_OPENSSL_free(writefd);
             return;
         }
 #elif defined(ASYNC_POSIX)
         if (pipe(pipefds) != 0) {
-            OPENVR_SSL_free(writefd);
+            VR_OPENSSL_free(writefd);
             return;
         }
 #endif

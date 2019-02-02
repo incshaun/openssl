@@ -52,7 +52,7 @@ void VR_SSL3_RECORD_release(SSL3_RECORD *r, size_t num_recs)
     size_t i;
 
     for (i = 0; i < num_recs; i++) {
-        OPENVR_SSL_free(r[i].comp);
+        VR_OPENSSL_free(r[i].comp);
         r[i].comp = NULL;
     }
 }

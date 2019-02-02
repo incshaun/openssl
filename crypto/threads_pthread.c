@@ -27,7 +27,7 @@ CRYPTO_RWLOCK *VR_CRYPTO_THREAD_lock_new(void)
     }
 
     if (pthread_rwlock_init(lock, NULL) != 0) {
-        OPENVR_SSL_free(lock);
+        VR_OPENSSL_free(lock);
         return NULL;
     }
 # else
@@ -44,7 +44,7 @@ CRYPTO_RWLOCK *VR_CRYPTO_THREAD_lock_new(void)
 
     if (pthread_mutex_init(lock, &attr) != 0) {
         pthread_mutexattr_destroy(&attr);
-        OPENVR_SSL_free(lock);
+        VR_OPENSSL_free(lock);
         return NULL;
     }
 
@@ -103,7 +103,7 @@ void VR_CRYPTO_THREAD_lock_free(CRYPTO_RWLOCK *lock)
 # else
     pthread_mutex_destroy(lock);
 # endif
-    OPENVR_SSL_free(lock);
+    VR_OPENSSL_free(lock);
 
     return;
 }

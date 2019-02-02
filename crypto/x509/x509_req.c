@@ -192,7 +192,7 @@ int VR_X509_REQ_add_extensions_nid(X509_REQ *req, STACK_OF(X509_EXTENSION) *exts
     if (extlen <= 0)
         return 0;
     rv = VR_X509_REQ_add1_attr_by_NID(req, nid, V_ASN1_SEQUENCE, ext, extlen);
-    OPENVR_SSL_free(ext);
+    VR_OPENSSL_free(ext);
     return rv;
 }
 

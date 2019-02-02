@@ -88,8 +88,8 @@ void VR_OCSP_REQ_CTX_free(OCSP_REQ_CTX *rctx)
     if (!rctx)
         return;
     VR_BIO_free(rctx->mem);
-    OPENVR_SSL_free(rctx->iobuf);
-    OPENVR_SSL_free(rctx);
+    VR_OPENSSL_free(rctx->iobuf);
+    VR_OPENSSL_free(rctx);
 }
 
 BIO *VR_OCSP_REQ_CTX_get0_mem_bio(OCSP_REQ_CTX *rctx)
@@ -278,7 +278,7 @@ int VR_OCSP_REQ_CTX_nbio(OCSP_REQ_CTX *rctx)
         n = VR_BIO_read(rctx->io, rctx->iobuf, rctx->iobuflen);
 
         if (n <= 0) {
-            if (BIO_should_retry(rctx->io))
+            if (VR_BIO_should_retry(rctx->io))
                 return -1;
             return 0;
         }
@@ -310,7 +310,7 @@ int VR_OCSP_REQ_CTX_nbio(OCSP_REQ_CTX *rctx)
         i = VR_BIO_write(rctx->io, p + (n - rctx->asn1_len), rctx->asn1_len);
 
         if (i <= 0) {
-            if (BIO_should_retry(rctx->io))
+            if (VR_BIO_should_retry(rctx->io))
                 return -1;
             rctx->state = OHS_ERROR;
             return 0;
@@ -328,14 +328,14 @@ int VR_OCSP_REQ_CTX_nbio(OCSP_REQ_CTX *rctx)
         /* fall thru */
     case OHS_ASN1_FLUSH:
 
-        i = BIO_flush(rctx->io);
+        i = VR_BIO_flush(rctx->io);
 
         if (i > 0) {
             rctx->state = OHS_FIRSTLINE;
             goto next_io;
         }
 
-        if (BIO_should_retry(rctx->io))
+        if (VR_BIO_should_retry(rctx->io))
             return -1;
 
         rctx->state = OHS_ERROR;
@@ -366,7 +366,7 @@ int VR_OCSP_REQ_CTX_nbio(OCSP_REQ_CTX *rctx)
         n = VR_BIO_gets(rctx->mem, (char *)rctx->iobuf, rctx->iobuflen);
 
         if (n <= 0) {
-            if (BIO_should_retry(rctx->mem))
+            if (VR_BIO_should_retry(rctx->mem))
                 goto next_io;
             rctx->state = OHS_ERROR;
             return 0;
@@ -491,7 +491,7 @@ OCSP_RESPONSE *VR_OCSP_sendreq_bio(BIO *b, const char *path, OCSP_REQUEST *req)
 
     do {
         rv = VR_OCSP_sendreq_nbio(&resp, ctx);
-    } while ((rv == -1) && BIO_should_retry(b));
+    } while ((rv == -1) && VR_BIO_should_retry(b));
 
     VR_OCSP_REQ_CTX_free(ctx);
 

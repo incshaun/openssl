@@ -178,7 +178,7 @@ void *VR_BN_GENCB_get_arg(BN_GENCB *cb);
                                 (b) >=  55  ? 27 : \
                                 /* b >= 6 */ 34)
 
-# define BN_num_bytes(a) ((VR_BN_num_bits(a)+7)/8)
+# define VR_BN_num_bytes(a) ((VR_BN_num_bits(a)+7)/8)
 
 int VR_BN_abs_is_word(const BIGNUM *a, const BN_ULONG w);
 int VR_BN_is_zero(const BIGNUM *a);

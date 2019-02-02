@@ -604,9 +604,9 @@ int VR_dsa_builtin_paramgen2(DSA *ret, size_t L, size_t N,
         if (h_ret != NULL)
             *h_ret = h;
     }
-    OPENVR_SSL_free(seed);
+    VR_OPENSSL_free(seed);
     if (seed_out != seed_tmp)
-        OPENVR_SSL_free(seed_tmp);
+        VR_OPENSSL_free(seed_tmp);
     if (ctx)
         VR_BN_CTX_end(ctx);
     VR_BN_CTX_free(ctx);

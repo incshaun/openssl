@@ -54,7 +54,7 @@ static int change_path(const char *file)
 
     TEST_note("changing path to %s", s);
     ret = chdir(s);
-    OPENVR_SSL_free(s);
+    VR_OPENSSL_free(s);
     return ret;
 }
 

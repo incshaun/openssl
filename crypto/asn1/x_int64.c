@@ -37,7 +37,7 @@ static int uint64_new(ASN1_VALUE **pval, const ASN1_ITEM *it)
 
 static void uint64_free(ASN1_VALUE **pval, const ASN1_ITEM *it)
 {
-    OPENVR_SSL_free(*pval);
+    VR_OPENSSL_free(*pval);
     *pval = NULL;
 }
 
@@ -132,7 +132,7 @@ static int uint32_new(ASN1_VALUE **pval, const ASN1_ITEM *it)
 
 static void uint32_free(ASN1_VALUE **pval, const ASN1_ITEM *it)
 {
-    OPENVR_SSL_free(*pval);
+    VR_OPENSSL_free(*pval);
     *pval = NULL;
 }
 

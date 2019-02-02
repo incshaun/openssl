@@ -33,7 +33,7 @@ void VR_TS_VERIFY_CTX_free(TS_VERIFY_CTX *ctx)
         return;
 
     VR_TS_VERIFY_CTX_cleanup(ctx);
-    OPENVR_SSL_free(ctx);
+    VR_OPENSSL_free(ctx);
 }
 
 int VR_TS_VERIFY_CTX_add_flags(TS_VERIFY_CTX *ctx, int f)
@@ -86,7 +86,7 @@ void VR_TS_VERIFY_CTX_cleanup(TS_VERIFY_CTX *ctx)
     VR_ASN1_OBJECT_free(ctx->policy);
 
     VR_X509_ALGOR_free(ctx->md_alg);
-    OPENVR_SSL_free(ctx->imprint);
+    VR_OPENSSL_free(ctx->imprint);
 
     VR_BIO_free_all(ctx->data);
 

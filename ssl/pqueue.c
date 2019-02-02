@@ -32,7 +32,7 @@ pitem *VR_pitem_new(unsigned char *prio64be, void *data)
 
 void VR_pitem_free(pitem *item)
 {
-    OPENVR_SSL_free(item);
+    VR_OPENSSL_free(item);
 }
 
 pqueue *VR_pqueue_new(void)
@@ -47,7 +47,7 @@ pqueue *VR_pqueue_new(void)
 
 void VR_pqueue_free(pqueue *pq)
 {
-    OPENVR_SSL_free(pq);
+    VR_OPENSSL_free(pq);
 }
 
 pitem *VR_pqueue_insert(pqueue *pq, pitem *item)

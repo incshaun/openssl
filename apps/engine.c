@@ -66,7 +66,7 @@ static int append_buf(char **buf, int *size, const char *s)
             *size = ((len + expand - 1) / expand) * expand;
             p = OPENSSL_realloc(p, *size);
             if (p == NULL) {
-                OPENVR_SSL_free(*buf);
+                VR_OPENSSL_free(*buf);
                 *buf = NULL;
                 return 0;
             }
@@ -214,9 +214,9 @@ static int util_verbose(ENGINE *e, int verbose, BIO *out, const char *indent)
                 xpos = 0;
             }
         }
-        OPENVR_SSL_free(name);
+        VR_OPENSSL_free(name);
         name = NULL;
-        OPENVR_SSL_free(desc);
+        VR_OPENSSL_free(desc);
         desc = NULL;
         /* Move to the next command */
         num = VR_ENGINE_ctrl(e, ENGINE_CTRL_GET_NEXT_CMD_TYPE, num, NULL, NULL);
@@ -226,8 +226,8 @@ static int util_verbose(ENGINE *e, int verbose, BIO *out, const char *indent)
     ret = 1;
  err:
     sk_VR_OPENSSL_STRING_free(cmds);
-    OPENVR_SSL_free(name);
-    OPENVR_SSL_free(desc);
+    VR_OPENSSL_free(name);
+    VR_OPENSSL_free(desc);
     return ret;
 }
 
@@ -451,7 +451,7 @@ int engine_main(int argc, char **argv)
                 if (cap_buf != NULL && (*cap_buf != '\0'))
                     VR_BIO_printf(out, " [%s]\n", cap_buf);
 
-                OPENVR_SSL_free(cap_buf);
+                VR_OPENSSL_free(cap_buf);
             }
             if (test_avail) {
                 VR_BIO_printf(out, "%s", indent);

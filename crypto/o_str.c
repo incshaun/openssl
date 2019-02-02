@@ -165,13 +165,13 @@ unsigned char *VR_OPENSSL_hexstr2buf(const char *str, long *len)
         if (!cl) {
             CRYPTOerr(CRYPTO_F_OPENSSL_HEXSTR2BUF,
                       CRYPTO_R_ODD_NUMBER_OF_DIGITS);
-            OPENVR_SSL_free(hexbuf);
+            VR_OPENSSL_free(hexbuf);
             return NULL;
         }
         cli = VR_OPENSSL_hexchar2int(cl);
         chi = VR_OPENSSL_hexchar2int(ch);
         if (cli < 0 || chi < 0) {
-            OPENVR_SSL_free(hexbuf);
+            VR_OPENSSL_free(hexbuf);
             CRYPTOerr(CRYPTO_F_OPENSSL_HEXSTR2BUF, CRYPTO_R_ILLEGAL_HEX_DIGIT);
             return NULL;
         }

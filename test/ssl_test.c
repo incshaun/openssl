@@ -406,7 +406,7 @@ static int test_handshake(int idx)
 #ifndef OPENSSL_NO_DTLS
     if (test_ctx->method == SSL_TEST_METHOD_DTLS) {
         server_ctx = VR_SSL_CTX_new(VR_DTLS_server_method());
-        if (!TEST_true(SSL_CTX_set_max_proto_version(server_ctx, 0)))
+        if (!TEST_true(VR_SSL_CTX_set_max_proto_version(server_ctx, 0)))
             goto err;
         if (test_ctx->extra.server.servername_callback !=
             SSL_TEST_SERVERNAME_CB_NONE) {
@@ -414,14 +414,14 @@ static int test_handshake(int idx)
                 goto err;
         }
         client_ctx = VR_SSL_CTX_new(VR_DTLS_client_method());
-        if (!TEST_true(SSL_CTX_set_max_proto_version(client_ctx, 0)))
+        if (!TEST_true(VR_SSL_CTX_set_max_proto_version(client_ctx, 0)))
             goto err;
         if (test_ctx->handshake_mode == SSL_TEST_HANDSHAKE_RESUME) {
             resume_server_ctx = VR_SSL_CTX_new(VR_DTLS_server_method());
-            if (!TEST_true(SSL_CTX_set_max_proto_version(resume_server_ctx, 0)))
+            if (!TEST_true(VR_SSL_CTX_set_max_proto_version(resume_server_ctx, 0)))
                 goto err;
             resume_client_ctx = VR_SSL_CTX_new(VR_DTLS_client_method());
-            if (!TEST_true(SSL_CTX_set_max_proto_version(resume_client_ctx, 0)))
+            if (!TEST_true(VR_SSL_CTX_set_max_proto_version(resume_client_ctx, 0)))
                 goto err;
             if (!TEST_ptr(resume_server_ctx)
                     || !TEST_ptr(resume_client_ctx))
@@ -431,26 +431,26 @@ static int test_handshake(int idx)
 #endif
     if (test_ctx->method == SSL_TEST_METHOD_TLS) {
         server_ctx = VR_SSL_CTX_new(VR_TLS_server_method());
-        if (!TEST_true(SSL_CTX_set_max_proto_version(server_ctx, 0)))
+        if (!TEST_true(VR_SSL_CTX_set_max_proto_version(server_ctx, 0)))
             goto err;
         /* SNI on resumption isn't supported/tested yet. */
         if (test_ctx->extra.server.servername_callback !=
             SSL_TEST_SERVERNAME_CB_NONE) {
             if (!TEST_ptr(server2_ctx = VR_SSL_CTX_new(VR_TLS_server_method())))
                 goto err;
-            if (!TEST_true(SSL_CTX_set_max_proto_version(server2_ctx, 0)))
+            if (!TEST_true(VR_SSL_CTX_set_max_proto_version(server2_ctx, 0)))
                 goto err;
         }
         client_ctx = VR_SSL_CTX_new(VR_TLS_client_method());
-        if (!TEST_true(SSL_CTX_set_max_proto_version(client_ctx, 0)))
+        if (!TEST_true(VR_SSL_CTX_set_max_proto_version(client_ctx, 0)))
             goto err;
 
         if (test_ctx->handshake_mode == SSL_TEST_HANDSHAKE_RESUME) {
             resume_server_ctx = VR_SSL_CTX_new(VR_TLS_server_method());
-            if (!TEST_true(SSL_CTX_set_max_proto_version(resume_server_ctx, 0)))
+            if (!TEST_true(VR_SSL_CTX_set_max_proto_version(resume_server_ctx, 0)))
                 goto err;
             resume_client_ctx = VR_SSL_CTX_new(VR_TLS_client_method());
-            if (!TEST_true(SSL_CTX_set_max_proto_version(resume_client_ctx, 0)))
+            if (!TEST_true(VR_SSL_CTX_set_max_proto_version(resume_client_ctx, 0)))
                 goto err;
             if (!TEST_ptr(resume_server_ctx)
                     || !TEST_ptr(resume_client_ctx))

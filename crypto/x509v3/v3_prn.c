@@ -55,7 +55,7 @@ void VR_X509V3_EXT_val_prn(BIO *out, STACK_OF(CONF_VALUE) *val, int indent,
             if (tmp != NULL) {
                 ascii2ebcdic(tmp, nval->value, len);
                 VR_BIO_printf(out, "%s:%s", nval->name, tmp);
-                OPENVR_SSL_free(tmp);
+                VR_OPENSSL_free(tmp);
             }
         }
 #endif
@@ -108,7 +108,7 @@ int VR_X509V3_EXT_print(BIO *out, X509_EXTENSION *ext, unsigned long flag,
             if (tmp != NULL) {
                 ascii2ebcdic(tmp, value, len);
                 VR_BIO_printf(out, "%*s%s", indent, "", tmp);
-                OPENVR_SSL_free(tmp);
+                VR_OPENSSL_free(tmp);
             }
         }
 #endif
@@ -127,7 +127,7 @@ int VR_X509V3_EXT_print(BIO *out, X509_EXTENSION *ext, unsigned long flag,
 
  err:
     sk_VR_CONF_VALUE_pop_free(nval, VR_X509V3_conf_free);
-    OPENVR_SSL_free(value);
+    VR_OPENSSL_free(value);
     if (method->it)
         VR_ASN1_item_free(ext_str, ASN1_ITEM_ptr(method->it));
     else

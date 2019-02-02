@@ -179,7 +179,7 @@ size_t VR_ec_GF2m_simple_point2oct(const EC_GROUP *group, const EC_POINT *point,
 
         i = 1;
 
-        skip = field_len - BN_num_bytes(x);
+        skip = field_len - VR_BN_num_bytes(x);
         if (skip > field_len) {
             ECerr(EC_F_EC_GF2M_SIMPLE_POINT2OCT, ERR_R_INTERNAL_ERROR);
             goto err;
@@ -197,7 +197,7 @@ size_t VR_ec_GF2m_simple_point2oct(const EC_GROUP *group, const EC_POINT *point,
 
         if (form == POINT_CONVERSION_UNCOMPRESSED
             || form == POINT_CONVERSION_HYBRID) {
-            skip = field_len - BN_num_bytes(y);
+            skip = field_len - VR_BN_num_bytes(y);
             if (skip > field_len) {
                 ECerr(EC_F_EC_GF2M_SIMPLE_POINT2OCT, ERR_R_INTERNAL_ERROR);
                 goto err;

@@ -33,7 +33,7 @@ static DSO *VR_DSO_new_method(DSO_METHOD *meth)
     if (ret->meth_data == NULL) {
         /* sk_new doesn't generate any errors so we do */
         DSOerr(DSO_F_DSO_NEW_METHOD, ERR_R_MALLOC_FAILURE);
-        OPENVR_SSL_free(ret);
+        VR_OPENSSL_free(ret);
         return NULL;
     }
     ret->meth = default_DSO_meth;
@@ -42,7 +42,7 @@ static DSO *VR_DSO_new_method(DSO_METHOD *meth)
     if (ret->lock == NULL) {
         DSOerr(DSO_F_DSO_NEW_METHOD, ERR_R_MALLOC_FAILURE);
         sk_VR_void_free(ret->meth_data);
-        OPENVR_SSL_free(ret);
+        VR_OPENSSL_free(ret);
         return NULL;
     }
 
@@ -87,10 +87,10 @@ int VR_DSO_free(DSO *dso)
     }
 
     sk_VR_void_free(dso->meth_data);
-    OPENVR_SSL_free(dso->filename);
-    OPENVR_SSL_free(dso->loaded_filename);
+    VR_OPENSSL_free(dso->filename);
+    VR_OPENSSL_free(dso->loaded_filename);
     VR_CRYPTO_THREAD_lock_free(dso->lock);
-    OPENVR_SSL_free(dso);
+    VR_OPENSSL_free(dso);
     return 1;
 }
 
@@ -255,7 +255,7 @@ int VR_DSO_set_filename(DSO *dso, const char *filename)
         DSOerr(DSO_F_DSO_SET_FILENAME, ERR_R_MALLOC_FAILURE);
         return 0;
     }
-    OPENVR_SSL_free(dso->filename);
+    VR_OPENSSL_free(dso->filename);
     dso->filename = copied;
     return 1;
 }
@@ -333,7 +333,7 @@ DSO *VR_DSO_dsobyaddr(void *addr, int flags)
             && VR_DSO_pathbyaddr(addr, filename, len) == len)
         ret = VR_DSO_load(NULL, filename, NULL, flags);
 
-    OPENVR_SSL_free(filename);
+    VR_OPENSSL_free(filename);
     return ret;
 }
 

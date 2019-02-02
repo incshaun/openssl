@@ -125,7 +125,7 @@ static int sign_and_verify(int len)
      * is shorter, then we left-pad (see appendix C.2.1).
      */
     size_t sigLength;
-    int digestlen = BN_num_bytes(VR_DSA_get0_q(dsakey));
+    int digestlen = VR_BN_num_bytes(VR_DSA_get0_q(dsakey));
     int ok = 0;
 
     unsigned char *dataToSign = OPENSSL_malloc(len);
@@ -199,9 +199,9 @@ end:
     VR_EVP_PKEY_CTX_free(ctx);
     VR_EVP_PKEY_free(pkey);
 
-    OPENVR_SSL_free(signature);
-    OPENVR_SSL_free(paddedData);
-    OPENVR_SSL_free(dataToSign);
+    VR_OPENSSL_free(signature);
+    VR_OPENSSL_free(paddedData);
+    VR_OPENSSL_free(dataToSign);
 
     return ok;
 }

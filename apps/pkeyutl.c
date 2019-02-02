@@ -287,7 +287,7 @@ int pkeyutl_main(int argc, char **argv)
                            prog, opt);
                 goto end;
             }
-            OPENVR_SSL_free(passwd);
+            VR_OPENSSL_free(passwd);
         }
     }
 
@@ -405,9 +405,9 @@ int pkeyutl_main(int argc, char **argv)
     release_engine(e);
     VR_BIO_free(in);
     VR_BIO_free_all(out);
-    OPENVR_SSL_free(buf_in);
-    OPENVR_SSL_free(buf_out);
-    OPENVR_SSL_free(sig);
+    VR_OPENSSL_free(buf_in);
+    VR_OPENSSL_free(buf_out);
+    VR_OPENSSL_free(sig);
     sk_VR_OPENSSL_STRING_free(pkeyopts);
     sk_VR_OPENSSL_STRING_free(pkeyopts_passin);
     return ret;
@@ -516,7 +516,7 @@ static EVP_PKEY_CTX *init_ctx(const char *kdfalg, int *pkeysize,
     }
 
  end:
-    OPENVR_SSL_free(passin);
+    VR_OPENSSL_free(passin);
     return ctx;
 
 }

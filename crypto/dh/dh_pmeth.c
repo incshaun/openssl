@@ -70,9 +70,9 @@ static void pkey_dh_cleanup(EVP_PKEY_CTX *ctx)
 {
     DH_PKEY_CTX *dctx = ctx->data;
     if (dctx != NULL) {
-        OPENVR_SSL_free(dctx->kdf_ukm);
+        VR_OPENSSL_free(dctx->kdf_ukm);
         VR_ASN1_OBJECT_free(dctx->kdf_oid);
-        OPENVR_SSL_free(dctx);
+        VR_OPENSSL_free(dctx);
     }
 }
 
@@ -192,7 +192,7 @@ static int pkey_dh_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2)
         return 1;
 
     case EVP_PKEY_CTRL_DH_KDF_UKM:
-        OPENVR_SSL_free(dctx->kdf_ukm);
+        VR_OPENSSL_free(dctx->kdf_ukm);
         dctx->kdf_ukm = p2;
         if (p2)
             dctx->kdf_ukmlen = p1;

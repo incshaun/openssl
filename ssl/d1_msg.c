@@ -53,7 +53,7 @@ int VR_dtls1_dispatch_alert(SSL *s)
         /* fprintf( stderr, "not done with alert\n" ); */
     } else {
         if (s->s3->send_alert[0] == SSL3_AL_FATAL)
-            (void)BIO_flush(s->wbio);
+            (void)VR_BIO_flush(s->wbio);
 
         if (s->msg_callback)
             s->msg_callback(1, s->version, SSL3_RT_ALERT, s->s3->send_alert,

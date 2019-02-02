@@ -220,7 +220,7 @@ int VR_OSSL_STORE_close(OSSL_STORE_CTX *ctx)
 {
     int loader_ret = ctx->loader->close(ctx->loader_ctx);
 
-    OPENVR_SSL_free(ctx);
+    VR_OPENSSL_free(ctx);
     return loader_ret;
 }
 
@@ -445,11 +445,11 @@ void VR_OSSL_STORE_INFO_free(OSSL_STORE_INFO *info)
         switch (info->type) {
         case OSSL_STORE_INFO_EMBEDDED:
             VR_BUF_MEM_free(info->_.embedded.blob);
-            OPENVR_SSL_free(info->_.embedded.pem_name);
+            VR_OPENSSL_free(info->_.embedded.pem_name);
             break;
         case OSSL_STORE_INFO_NAME:
-            OPENVR_SSL_free(info->_.name.name);
-            OPENVR_SSL_free(info->_.name.desc);
+            VR_OPENSSL_free(info->_.name.name);
+            VR_OPENSSL_free(info->_.name.desc);
             break;
         case OSSL_STORE_INFO_PARAMS:
             VR_EVP_PKEY_free(info->_.params);
@@ -464,7 +464,7 @@ void VR_OSSL_STORE_INFO_free(OSSL_STORE_INFO *info)
             VR_X509_CRL_free(info->_.crl);
             break;
         }
-        OPENVR_SSL_free(info);
+        VR_OPENSSL_free(info);
     }
 }
 
@@ -560,7 +560,7 @@ OSSL_STORE_SEARCH *VR_OSSL_STORE_SEARCH_by_alias(const char *alias)
 /* Search term destructor */
 void VR_OSSL_STORE_SEARCH_free(OSSL_STORE_SEARCH *search)
 {
-    OPENVR_SSL_free(search);
+    VR_OPENSSL_free(search);
 }
 
 /* Search term accessors */
@@ -676,6 +676,6 @@ int VR_ossl_store_detach_pem_bio(OSSL_STORE_CTX *ctx)
 {
     int loader_ret = VR_ossl_store_file_detach_pem_bio_int(ctx->loader_ctx);
 
-    OPENVR_SSL_free(ctx);
+    VR_OPENSSL_free(ctx);
     return loader_ret;
 }

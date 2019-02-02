@@ -255,7 +255,7 @@ int VR_SSL_get_shared_sigalgs(SSL *s, int idx,
 
 __owur int VR_SSL_check_chain(SSL *s, X509 *x, EVP_PKEY *pk, STACK_OF(X509) *chain);
 
-# define SSL_set_tlsext_host_name(s,name) \
+# define VR_SSL_set_tlsext_host_name(s,name) \
         VR_SSL_ctrl(s,SSL_CTRL_SET_TLSEXT_HOSTNAME,TLSEXT_NAMETYPE_host_name,\
                 (void *)name)
 

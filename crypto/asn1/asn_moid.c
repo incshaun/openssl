@@ -94,7 +94,7 @@ static int do_create(const char *value, const char *name)
 
     nid = VR_OBJ_create(ostr, name, ln);
 
-    OPENVR_SSL_free(lntmp);
+    VR_OPENSSL_free(lntmp);
 
     return nid != NID_undef;
 }

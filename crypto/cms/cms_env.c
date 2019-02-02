@@ -348,7 +348,7 @@ static int cms_RecipientInfo_ktri_encrypt(CMS_ContentInfo *cms,
  err:
     VR_EVP_PKEY_CTX_free(pctx);
     ktri->pctx = NULL;
-    OPENVR_SSL_free(ek);
+    VR_OPENSSL_free(ek);
     return ret;
 
 }
@@ -416,7 +416,7 @@ static int cms_RecipientInfo_ktri_decrypt(CMS_ContentInfo *cms,
     VR_EVP_PKEY_CTX_free(ktri->pctx);
     ktri->pctx = NULL;
     if (!ret)
-        OPENVR_SSL_free(ek);
+        VR_OPENSSL_free(ek);
 
     return ret;
 }
@@ -656,7 +656,7 @@ static int cms_RecipientInfo_kekri_encrypt(CMS_ContentInfo *cms,
  err:
 
     if (!r)
-        OPENVR_SSL_free(wkey);
+        VR_OPENSSL_free(wkey);
     VR_OPENSSL_cleanse(&actx, sizeof(actx));
 
     return r;
@@ -729,7 +729,7 @@ static int cms_RecipientInfo_kekri_decrypt(CMS_ContentInfo *cms,
  err:
 
     if (!r)
-        OPENVR_SSL_free(ukey);
+        VR_OPENSSL_free(ukey);
     VR_OPENSSL_cleanse(&actx, sizeof(actx));
 
     return r;

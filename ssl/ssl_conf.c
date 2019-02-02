@@ -424,7 +424,7 @@ static int cmd_Certificate(SSL_CONF_CTX *cctx, const char *value)
     }
     if (rv > 0 && c && cctx->flags & SSL_CONF_FLAG_REQUIRE_PRIVATE) {
         char **pfilename = &cctx->cert_filename[c->key - c->pkeys];
-        OPENVR_SSL_free(*pfilename);
+        VR_OPENSSL_free(*pfilename);
         *pfilename = OPENSSL_strdup(value);
         if (!*pfilename)
             rv = 0;
@@ -914,10 +914,10 @@ void VR_SSL_CONF_CTX_free(SSL_CONF_CTX *cctx)
     if (cctx) {
         size_t i;
         for (i = 0; i < SSL_PKEY_NUM; i++)
-            OPENVR_SSL_free(cctx->cert_filename[i]);
-        OPENVR_SSL_free(cctx->prefix);
+            VR_OPENSSL_free(cctx->cert_filename[i]);
+        VR_OPENSSL_free(cctx->prefix);
         sk_VR_X509_NAME_pop_free(cctx->canames, VR_X509_NAME_free);
-        OPENVR_SSL_free(cctx);
+        VR_OPENSSL_free(cctx);
     }
 }
 
@@ -941,7 +941,7 @@ int VR_SSL_CONF_CTX_set1_prefix(SSL_CONF_CTX *cctx, const char *pre)
         if (tmp == NULL)
             return 0;
     }
-    OPENVR_SSL_free(cctx->prefix);
+    VR_OPENSSL_free(cctx->prefix);
     cctx->prefix = tmp;
     if (tmp)
         cctx->prefixlen = strlen(tmp);

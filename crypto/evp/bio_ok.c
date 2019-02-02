@@ -142,7 +142,7 @@ static int ok_new(BIO *bi)
     ctx->sigio = 1;
     ctx->md = VR_EVP_MD_CTX_new();
     if (ctx->md == NULL) {
-        OPENVR_SSL_free(ctx);
+        VR_OPENSSL_free(ctx);
         return 0;
     }
     VR_BIO_set_init(bi, 0);
@@ -230,7 +230,7 @@ static int ok_read(BIO *b, char *out, int outl)
         /* no signature yet -- check if we got one */
         if (ctx->sigio == 1) {
             if (!sig_in(b)) {
-                BIO_clear_retry_flags(b);
+                VR_BIO_clear_retry_flags(b);
                 return 0;
             }
         }
@@ -238,7 +238,7 @@ static int ok_read(BIO *b, char *out, int outl)
         /* signature ok -- check if we got block */
         if (ctx->sigio == 0) {
             if (!block_in(b)) {
-                BIO_clear_retry_flags(b);
+                VR_BIO_clear_retry_flags(b);
                 return 0;
             }
         }
@@ -249,7 +249,7 @@ static int ok_read(BIO *b, char *out, int outl)
 
     }
 
-    BIO_clear_retry_flags(b);
+    VR_BIO_clear_retry_flags(b);
     VR_BIO_copy_next_retry(b);
     return ret;
 }
@@ -274,13 +274,13 @@ static int ok_write(BIO *b, const char *in, int inl)
         return 0;
 
     do {
-        BIO_clear_retry_flags(b);
+        VR_BIO_clear_retry_flags(b);
         n = ctx->buf_len - ctx->buf_off;
         while (ctx->blockout && n > 0) {
             i = VR_BIO_write(next, &(ctx->buf[ctx->buf_off]), n);
             if (i <= 0) {
                 VR_BIO_copy_next_retry(b);
-                if (!BIO_should_retry(b))
+                if (!VR_BIO_should_retry(b))
                     ctx->cont = 0;
                 return i;
             }
@@ -308,13 +308,13 @@ static int ok_write(BIO *b, const char *in, int inl)
 
         if (ctx->buf_len >= OK_BLOCK_SIZE + OK_BLOCK_BLOCK) {
             if (!block_out(b)) {
-                BIO_clear_retry_flags(b);
+                VR_BIO_clear_retry_flags(b);
                 return 0;
             }
         }
     } while (inl > 0);
 
-    BIO_clear_retry_flags(b);
+    VR_BIO_clear_retry_flags(b);
     VR_BIO_copy_next_retry(b);
     return ret;
 }
@@ -377,7 +377,7 @@ static long ok_ctrl(BIO *b, int cmd, long num, void *ptr)
         ret = VR_BIO_ctrl(next, cmd, num, ptr);
         break;
     case BIO_C_DO_STATE_MACHINE:
-        BIO_clear_retry_flags(b);
+        VR_BIO_clear_retry_flags(b);
         ret = VR_BIO_ctrl(next, cmd, num, ptr);
         VR_BIO_copy_next_retry(b);
         break;
@@ -481,7 +481,7 @@ static int sig_out(BIO *b)
     ctx->sigio = 0;
     return 1;
  berr:
-    BIO_clear_retry_flags(b);
+    VR_BIO_clear_retry_flags(b);
     return 0;
 }
 
@@ -529,7 +529,7 @@ static int sig_in(BIO *b)
     }
     return 1;
  berr:
-    BIO_clear_retry_flags(b);
+    VR_BIO_clear_retry_flags(b);
     return 0;
 }
 
@@ -560,7 +560,7 @@ static int block_out(BIO *b)
     ctx->blockout = 1;
     return 1;
  berr:
-    BIO_clear_retry_flags(b);
+    VR_BIO_clear_retry_flags(b);
     return 0;
 }
 
@@ -605,6 +605,6 @@ static int block_in(BIO *b)
     }
     return 1;
  berr:
-    BIO_clear_retry_flags(b);
+    VR_BIO_clear_retry_flags(b);
     return 0;
 }

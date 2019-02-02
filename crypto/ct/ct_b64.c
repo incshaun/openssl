@@ -56,7 +56,7 @@ static int ct_base64_decode(const char *in, unsigned char **out)
     *out = outbuf;
     return outlen;
 err:
-    OPENVR_SSL_free(outbuf);
+    VR_OPENSSL_free(outbuf);
     return -1;
 }
 
@@ -110,7 +110,7 @@ SCT *VR_SCT_new_from_base64(unsigned char version, const char *logid_base64,
     p = dec;
     if (VR_o2i_SCT_signature(sct, &p, declen) <= 0)
         goto err;
-    OPENVR_SSL_free(dec);
+    VR_OPENSSL_free(dec);
     dec = NULL;
 
     VR_SCT_set_timestamp(sct, timestamp);
@@ -121,7 +121,7 @@ SCT *VR_SCT_new_from_base64(unsigned char version, const char *logid_base64,
     return sct;
 
  err:
-    OPENVR_SSL_free(dec);
+    VR_OPENSSL_free(dec);
     VR_SCT_free(sct);
     return NULL;
 }
@@ -152,7 +152,7 @@ int VR_CTLOG_new_from_base64(CTLOG **ct_log, const char *pkey_base64, const char
 
     p = pkey_der;
     pkey = VR_d2i_PUBKEY(NULL, &p, pkey_der_len);
-    OPENVR_SSL_free(pkey_der);
+    VR_OPENSSL_free(pkey_der);
     if (pkey == NULL) {
         CTerr(CT_F_CTLOG_NEW_FROM_BASE64, CT_R_LOG_CONF_INVALID_KEY);
         return 0;

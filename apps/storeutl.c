@@ -308,14 +308,14 @@ int storeutl_main(int argc, char *argv[])
                   text, noout, recursive, 0, out, prog);
 
  end:
-    OPENVR_SSL_free(fingerprint);
-    OPENVR_SSL_free(alias);
+    VR_OPENSSL_free(fingerprint);
+    VR_OPENSSL_free(alias);
     VR_ASN1_INTEGER_free(serial);
     VR_X509_NAME_free(subject);
     VR_X509_NAME_free(issuer);
     VR_OSSL_STORE_SEARCH_free(search);
     VR_BIO_free_all(out);
-    OPENVR_SSL_free(passin);
+    VR_OPENSSL_free(passin);
     release_engine(e);
     return ret;
 }

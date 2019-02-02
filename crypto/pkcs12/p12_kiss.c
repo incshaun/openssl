@@ -224,7 +224,7 @@ static int parse_bag(PKCS12_SAFEBAG *bag, const char *pass, int passlen,
             len = VR_ASN1_STRING_to_UTF8(&data, fname);
             if (len >= 0) {
                 r = VR_X509_alias_set1(x509, data, len);
-                OPENVR_SSL_free(data);
+                VR_OPENSSL_free(data);
                 if (!r) {
                     VR_X509_free(x509);
                     return 0;

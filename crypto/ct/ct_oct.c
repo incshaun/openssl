@@ -193,7 +193,7 @@ int VR_i2o_SCT_signature(const SCT *sct, unsigned char **out)
 
     return len;
 err:
-    OPENVR_SSL_free(pstart);
+    VR_OPENSSL_free(pstart);
     return -1;
 }
 
@@ -250,7 +250,7 @@ int VR_i2o_SCT(const SCT *sct, unsigned char **out)
 
     return len;
 err:
-    OPENVR_SSL_free(pstart);
+    VR_OPENSSL_free(pstart);
     return -1;
 }
 
@@ -367,7 +367,7 @@ int VR_i2o_SCT_LIST(const STACK_OF(SCT) *a, unsigned char **pp)
 
  err:
     if (is_pp_new) {
-        OPENVR_SSL_free(*pp);
+        VR_OPENSSL_free(*pp);
         *pp = NULL;
     }
     return -1;
@@ -402,6 +402,6 @@ int VR_i2d_SCT_LIST(const STACK_OF(SCT) *a, unsigned char **out)
         return -1;
 
     len = VR_i2d_ASN1_OCTET_STRING(&oct, out);
-    OPENVR_SSL_free(oct.data);
+    VR_OPENSSL_free(oct.data);
     return len;
 }

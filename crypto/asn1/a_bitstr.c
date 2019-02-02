@@ -126,7 +126,7 @@ ASN1_BIT_STRING *VR_c2i_ASN1_BIT_STRING(ASN1_BIT_STRING **a,
         s = NULL;
 
     ret->length = (int)len;
-    OPENVR_SSL_free(ret->data);
+    VR_OPENSSL_free(ret->data);
     ret->data = s;
     ret->type = V_ASN1_BIT_STRING;
     if (a != NULL)

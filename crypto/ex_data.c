@@ -81,7 +81,7 @@ static EX_CALLBACKS *get_and_lock(int class_index)
 
 static void cleanup_cb(EX_CALLBACK *funcs)
 {
-    OPENVR_SSL_free(funcs);
+    VR_OPENSSL_free(funcs);
 }
 
 /*
@@ -187,7 +187,7 @@ int VR_CRYPTO_get_ex_new_index(int class_index, long argl, void *argp,
 
     if (!sk_VR_EX_CALLBACK_push(ip->meth, NULL)) {
         CRYPTOerr(CRYPTO_F_CRYPTO_GET_EX_NEW_INDEX, ERR_R_MALLOC_FAILURE);
-        OPENVR_SSL_free(a);
+        VR_OPENSSL_free(a);
         goto err;
     }
     toret = sk_EX_CALLBACK_num(ip->meth) - 1;
@@ -242,7 +242,7 @@ int VR_CRYPTO_new_ex_data(int class_index, void *obj, CRYPTO_EX_DATA *ad)
         }
     }
     if (storage != stack)
-        OPENVR_SSL_free(storage);
+        VR_OPENSSL_free(storage);
     return 1;
 }
 
@@ -308,7 +308,7 @@ int VR_CRYPTO_dup_ex_data(int class_index, CRYPTO_EX_DATA *to,
     toret = 1;
  err:
     if (storage != stack)
-        OPENVR_SSL_free(storage);
+        VR_OPENSSL_free(storage);
     return toret;
 }
 
@@ -356,7 +356,7 @@ void VR_CRYPTO_free_ex_data(int class_index, void *obj, CRYPTO_EX_DATA *ad)
     }
 
     if (storage != stack)
-        OPENVR_SSL_free(storage);
+        VR_OPENSSL_free(storage);
  err:
     sk_VR_void_free(ad->sk);
     ad->sk = NULL;

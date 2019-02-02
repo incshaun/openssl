@@ -83,7 +83,7 @@ static STACK_OF(CONF_VALUE) *i2v_AUTHORITY_INFO_ACCESS(
         if (ntmp == NULL)
             goto err;
         VR_BIO_snprintf(ntmp, nlen, "%s - %s", objtmp, vtmp->name);
-        OPENVR_SSL_free(vtmp->name);
+        VR_OPENSSL_free(vtmp->name);
         vtmp->name = ntmp;
     }
     if (ret == NULL && tret == NULL)
@@ -143,10 +143,10 @@ static AUTHORITY_INFO_ACCESS *v2i_AUTHORITY_INFO_ACCESS(X509V3_EXT_METHOD
             X509V3err(X509V3_F_V2I_AUTHORITY_INFO_ACCESS,
                       X509V3_R_BAD_OBJECT);
             VR_ERR_add_error_data(2, "value=", objtmp);
-            OPENVR_SSL_free(objtmp);
+            VR_OPENSSL_free(objtmp);
             goto err;
         }
-        OPENVR_SSL_free(objtmp);
+        VR_OPENSSL_free(objtmp);
 
     }
     return ainfo;

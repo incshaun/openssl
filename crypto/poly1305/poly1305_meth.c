@@ -23,7 +23,7 @@ static EVP_MAC_IMPL *poly1305_new(void)
 
     if ((ctx = OPENSSL_zalloc(sizeof(*ctx))) == NULL
             || (ctx->ctx = OPENSSL_zalloc(sizeof(POLY1305))) == NULL) {
-        OPENVR_SSL_free(ctx);
+        VR_OPENSSL_free(ctx);
         return 0;
     }
     return ctx;
@@ -32,8 +32,8 @@ static EVP_MAC_IMPL *poly1305_new(void)
 static void poly1305_free(EVP_MAC_IMPL *ctx)
 {
     if (ctx != NULL) {
-        OPENVR_SSL_free(ctx->ctx);
-        OPENVR_SSL_free(ctx);
+        VR_OPENSSL_free(ctx->ctx);
+        VR_OPENSSL_free(ctx);
     }
 }
 

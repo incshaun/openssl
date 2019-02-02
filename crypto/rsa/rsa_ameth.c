@@ -88,7 +88,7 @@ static int rsa_pub_encode(X509_PUBKEY *pk, const EVP_PKEY *pkey)
                                strtype, str, penc, penclen))
         return 1;
 
-    OPENVR_SSL_free(penc);
+    VR_OPENSSL_free(penc);
     return 0;
 }
 

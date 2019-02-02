@@ -105,15 +105,15 @@ static void BIO_ACCEPT_free(BIO_ACCEPT *a)
 {
     if (a == NULL)
         return;
-    OPENVR_SSL_free(a->param_addr);
-    OPENVR_SSL_free(a->param_serv);
+    VR_OPENSSL_free(a->param_addr);
+    VR_OPENSSL_free(a->param_serv);
     VR_BIO_ADDRINFO_free(a->addr_first);
-    OPENVR_SSL_free(a->cache_accepting_name);
-    OPENVR_SSL_free(a->cache_accepting_serv);
-    OPENVR_SSL_free(a->cache_peer_name);
-    OPENVR_SSL_free(a->cache_peer_serv);
+    VR_OPENSSL_free(a->cache_accepting_name);
+    VR_OPENSSL_free(a->cache_accepting_serv);
+    VR_OPENSSL_free(a->cache_peer_name);
+    VR_OPENSSL_free(a->cache_peer_serv);
     VR_BIO_free(a->bio_chain);
-    OPENVR_SSL_free(a);
+    VR_OPENSSL_free(a);
 }
 
 static void acpt_close_socket(BIO *bio)
@@ -167,13 +167,13 @@ static int acpt_state(BIO *b, BIO_ACCEPT *c)
              * are now obsolete and need to be cleaned out.
              * QUESTION: should this be done in acpt_close_socket() instead?
              */
-            OPENVR_SSL_free(c->cache_accepting_name);
+            VR_OPENSSL_free(c->cache_accepting_name);
             c->cache_accepting_name = NULL;
-            OPENVR_SSL_free(c->cache_accepting_serv);
+            VR_OPENSSL_free(c->cache_accepting_serv);
             c->cache_accepting_serv = NULL;
-            OPENVR_SSL_free(c->cache_peer_name);
+            VR_OPENSSL_free(c->cache_peer_name);
             c->cache_peer_name = NULL;
-            OPENVR_SSL_free(c->cache_peer_serv);
+            VR_OPENSSL_free(c->cache_peer_serv);
             c->cache_peer_serv = NULL;
 
             c->state = ACPT_S_GET_ADDR;
@@ -273,12 +273,12 @@ static int acpt_state(BIO *b, BIO_ACCEPT *c)
                 c->state = ACPT_S_OK;
                 break;
             }
-            BIO_clear_retry_flags(b);
+            VR_BIO_clear_retry_flags(b);
             b->retry_reason = 0;
 
-            OPENVR_SSL_free(c->cache_peer_name);
+            VR_OPENSSL_free(c->cache_peer_name);
             c->cache_peer_name = NULL;
-            OPENVR_SSL_free(c->cache_peer_serv);
+            VR_OPENSSL_free(c->cache_peer_serv);
             c->cache_peer_serv = NULL;
 
             s = VR_BIO_accept_ex(c->accept_sock, &c->cache_peer_addr,
@@ -359,7 +359,7 @@ static int acpt_read(BIO *b, char *out, int outl)
     int ret = 0;
     BIO_ACCEPT *data;
 
-    BIO_clear_retry_flags(b);
+    VR_BIO_clear_retry_flags(b);
     data = (BIO_ACCEPT *)b->ptr;
 
     while (b->next_bio == NULL) {
@@ -378,7 +378,7 @@ static int acpt_write(BIO *b, const char *in, int inl)
     int ret;
     BIO_ACCEPT *data;
 
-    BIO_clear_retry_flags(b);
+    VR_BIO_clear_retry_flags(b);
     data = (BIO_ACCEPT *)b->ptr;
 
     while (b->next_bio == NULL) {
@@ -422,17 +422,17 @@ static long acpt_ctrl(BIO *b, int cmd, long num, void *ptr)
                  * string might contain a host:service spec, so we must
                  * parse it, which might or might not affect the service
                  */
-                OPENVR_SSL_free(data->param_addr);
+                VR_OPENSSL_free(data->param_addr);
                 data->param_addr = NULL;
                 ret = VR_BIO_parse_hostserv(ptr,
                                          &data->param_addr,
                                          &data->param_serv,
                                          BIO_PARSE_PRIO_SERV);
                 if (hold_serv != data->param_serv)
-                    OPENVR_SSL_free(hold_serv);
+                    VR_OPENSSL_free(hold_serv);
                 b->init = 1;
             } else if (num == 1) {
-                OPENVR_SSL_free(data->param_serv);
+                VR_OPENSSL_free(data->param_serv);
                 data->param_serv = BUF_strdup(ptr);
                 b->init = 1;
             } else if (num == 2) {

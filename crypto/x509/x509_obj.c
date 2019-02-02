@@ -50,7 +50,7 @@ char *VR_X509_NAME_oneline(const X509_NAME *a, char *buf, int len)
     if (a == NULL) {
         if (b) {
             buf = b->data;
-            OPENVR_SSL_free(b);
+            VR_OPENSSL_free(b);
         }
         strncpy(buf, "NO X509_NAME", len);
         buf[len - 1] = '\0';
@@ -167,7 +167,7 @@ char *VR_X509_NAME_oneline(const X509_NAME *a, char *buf, int len)
     }
     if (b != NULL) {
         p = b->data;
-        OPENVR_SSL_free(b);
+        VR_OPENSSL_free(b);
     } else
         p = buf;
     if (i == 0)

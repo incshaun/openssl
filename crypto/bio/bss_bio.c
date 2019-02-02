@@ -102,8 +102,8 @@ static int bio_free(BIO *bio)
     if (b->peer)
         bio_destroy_pair(bio);
 
-    OPENVR_SSL_free(b->buf);
-    OPENVR_SSL_free(b);
+    VR_OPENSSL_free(b->buf);
+    VR_OPENSSL_free(b);
 
     return 1;
 }
@@ -114,7 +114,7 @@ static int bio_read(BIO *bio, char *buf, int size_)
     size_t rest;
     struct bio_bio_st *b, *peer_b;
 
-    BIO_clear_retry_flags(bio);
+    VR_BIO_clear_retry_flags(bio);
 
     if (!bio->init)
         return 0;
@@ -204,7 +204,7 @@ static ossl_ssize_t bio_nread0(BIO *bio, char **buf)
     struct bio_bio_st *b, *peer_b;
     ossl_ssize_t num;
 
-    BIO_clear_retry_flags(bio);
+    VR_BIO_clear_retry_flags(bio);
 
     if (!bio->init)
         return 0;
@@ -273,7 +273,7 @@ static int bio_write(BIO *bio, const char *buf, int num_)
     size_t rest;
     struct bio_bio_st *b;
 
-    BIO_clear_retry_flags(bio);
+    VR_BIO_clear_retry_flags(bio);
 
     if (!bio->init || buf == NULL || num == 0)
         return 0;
@@ -350,7 +350,7 @@ static ossl_ssize_t bio_nwrite0(BIO *bio, char **buf)
     size_t num;
     size_t write_offset;
 
-    BIO_clear_retry_flags(bio);
+    VR_BIO_clear_retry_flags(bio);
 
     if (!bio->init)
         return 0;
@@ -436,7 +436,7 @@ static long bio_ctrl(BIO *bio, int cmd, long num, void *ptr)
             size_t new_size = num;
 
             if (b->size != new_size) {
-                OPENVR_SSL_free(b->buf);
+                VR_OPENSSL_free(b->buf);
                 b->buf = NULL;
                 b->size = new_size;
             }
@@ -697,17 +697,17 @@ int VR_BIO_new_bio_pair(BIO **bio1_p, size_t writebuf1,
         goto err;
 
     if (writebuf1) {
-        r = BIO_set_write_buf_size(bio1, writebuf1);
+        r = VR_BIO_set_write_buf_size(bio1, writebuf1);
         if (!r)
             goto err;
     }
     if (writebuf2) {
-        r = BIO_set_write_buf_size(bio2, writebuf2);
+        r = VR_BIO_set_write_buf_size(bio2, writebuf2);
         if (!r)
             goto err;
     }
 
-    r = BIO_make_bio_pair(bio1, bio2);
+    r = VR_BIO_make_bio_pair(bio1, bio2);
     if (!r)
         goto err;
     ret = 1;

@@ -1016,11 +1016,11 @@ int VR_SSL_CTX_use_serverinfo_file(SSL_CTX *ctx, const char *file)
                extension, extension_length);
         serverinfo_length += extension_length + contextoff;
 
-        OPENVR_SSL_free(name);
+        VR_OPENSSL_free(name);
         name = NULL;
-        OPENVR_SSL_free(header);
+        VR_OPENSSL_free(header);
         header = NULL;
-        OPENVR_SSL_free(extension);
+        VR_OPENSSL_free(extension);
         extension = NULL;
     }
 
@@ -1028,10 +1028,10 @@ int VR_SSL_CTX_use_serverinfo_file(SSL_CTX *ctx, const char *file)
                                     serverinfo_length);
  end:
     /* VR_SSL_CTX_use_serverinfo makes a local copy of the serverinfo. */
-    OPENVR_SSL_free(name);
-    OPENVR_SSL_free(header);
-    OPENVR_SSL_free(extension);
-    OPENVR_SSL_free(serverinfo);
+    VR_OPENSSL_free(name);
+    VR_OPENSSL_free(header);
+    VR_OPENSSL_free(extension);
+    VR_OPENSSL_free(serverinfo);
     VR_BIO_free(bin);
     return ret;
 }

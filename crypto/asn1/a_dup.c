@@ -33,7 +33,7 @@ void *VR_ASN1_dup(i2d_of_void *i2d, d2i_of_void *d2i, void *x)
     i = i2d(x, &p);
     p2 = b;
     ret = d2i(NULL, &p2, i);
-    OPENVR_SSL_free(b);
+    VR_OPENSSL_free(b);
     return ret;
 }
 
@@ -63,6 +63,6 @@ void *VR_ASN1_item_dup(const ASN1_ITEM *it, void *x)
     }
     p = b;
     ret = VR_ASN1_item_d2i(NULL, &p, i, it);
-    OPENVR_SSL_free(b);
+    VR_OPENSSL_free(b);
     return ret;
 }

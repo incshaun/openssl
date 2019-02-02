@@ -340,7 +340,7 @@ static int BN_to_felem(felem out, const BIGNUM *bn)
 
     /* VR_BN_bn2bin eats leading zeroes */
     memset(b_out, 0, sizeof(b_out));
-    num_bytes = BN_num_bytes(bn);
+    num_bytes = VR_BN_num_bytes(bn);
     if (num_bytes > sizeof(b_out)) {
         ECerr(EC_F_BN_TO_FELEM, EC_R_BIGNUM_OUT_OF_RANGE);
         return 0;
@@ -1229,7 +1229,7 @@ static NISTP224_PRE_COMP *nistp224_pre_comp_new(void)
     ret->lock = VR_CRYPTO_THREAD_lock_new();
     if (ret->lock == NULL) {
         ECerr(EC_F_NISTP224_PRE_COMP_NEW, ERR_R_MALLOC_FAILURE);
-        OPENVR_SSL_free(ret);
+        VR_OPENSSL_free(ret);
         return NULL;
     }
     return ret;
@@ -1257,7 +1257,7 @@ void EC_nistp224_pre_comp_free(NISTP224_PRE_COMP *p)
     REF_ASSERT_ISNT(i < 0);
 
     VR_CRYPTO_THREAD_lock_free(p->lock);
-    OPENVR_SSL_free(p);
+    VR_OPENSSL_free(p);
 }
 
 /******************************************************************************/
@@ -1574,9 +1574,9 @@ int ec_GFp_nistp224_points_mul(const EC_GROUP *group, EC_POINT *r,
  err:
     VR_BN_CTX_end(ctx);
     VR_EC_POINT_free(generator);
-    OPENVR_SSL_free(secrets);
-    OPENVR_SSL_free(pre_comp);
-    OPENVR_SSL_free(tmp_felems);
+    VR_OPENSSL_free(secrets);
+    VR_OPENSSL_free(pre_comp);
+    VR_OPENSSL_free(tmp_felems);
     return ret;
 }
 

@@ -153,7 +153,7 @@ void VR_HMAC_CTX_free(VR_HMAC_CTX *ctx)
         VR_EVP_MD_CTX_free(ctx->i_ctx);
         VR_EVP_MD_CTX_free(ctx->o_ctx);
         VR_EVP_MD_CTX_free(ctx->md_ctx);
-        OPENVR_SSL_free(ctx);
+        VR_OPENSSL_free(ctx);
     }
 }
 

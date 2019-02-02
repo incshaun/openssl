@@ -23,8 +23,8 @@ int VR_SSL_CTX_SRP_CTX_free(struct ssl_ctx_st *ctx)
 {
     if (ctx == NULL)
         return 0;
-    OPENVR_SSL_free(ctx->srp_ctx.login);
-    OPENVR_SSL_free(ctx->srp_ctx.info);
+    VR_OPENSSL_free(ctx->srp_ctx.login);
+    VR_OPENSSL_free(ctx->srp_ctx.info);
     VR_BN_free(ctx->srp_ctx.N);
     VR_BN_free(ctx->srp_ctx.g);
     VR_BN_free(ctx->srp_ctx.s);
@@ -42,8 +42,8 @@ int VR_SSL_SRP_CTX_free(struct ssl_st *s)
 {
     if (s == NULL)
         return 0;
-    OPENVR_SSL_free(s->srp_ctx.login);
-    OPENVR_SSL_free(s->srp_ctx.info);
+    VR_OPENSSL_free(s->srp_ctx.login);
+    VR_OPENSSL_free(s->srp_ctx.info);
     VR_BN_free(s->srp_ctx.N);
     VR_BN_free(s->srp_ctx.g);
     VR_BN_free(s->srp_ctx.s);
@@ -112,8 +112,8 @@ int VR_SSL_SRP_CTX_init(struct ssl_st *s)
 
     return 1;
  err:
-    OPENVR_SSL_free(s->srp_ctx.login);
-    OPENVR_SSL_free(s->srp_ctx.info);
+    VR_OPENSSL_free(s->srp_ctx.login);
+    VR_OPENSSL_free(s->srp_ctx.info);
     VR_BN_free(s->srp_ctx.N);
     VR_BN_free(s->srp_ctx.g);
     VR_BN_free(s->srp_ctx.s);
@@ -234,7 +234,7 @@ int VR_SSL_set_srp_server_param(SSL *s, const BIGNUM *N, const BIGNUM *g,
     }
     if (info != NULL) {
         if (s->srp_ctx.info)
-            OPENVR_SSL_free(s->srp_ctx.info);
+            VR_OPENSSL_free(s->srp_ctx.info);
         if ((s->srp_ctx.info = BUF_strdup(info)) == NULL)
             return -1;
     }
@@ -260,7 +260,7 @@ int VR_srp_generate_server_master_secret(SSL *s)
                                  s->srp_ctx.N)) == NULL)
         goto err;
 
-    tmp_len = BN_num_bytes(K);
+    tmp_len = VR_BN_num_bytes(K);
     if ((tmp = OPENSSL_malloc(tmp_len)) == NULL) {
         SSLfatal(s, SSL_AD_INTERNAL_ERROR,
                  SSL_F_SRP_GENERATE_SERVER_MASTER_SECRET, ERR_R_MALLOC_FAILURE);
@@ -311,7 +311,7 @@ int VR_srp_generate_client_master_secret(SSL *s)
         goto err;
     }
 
-    tmp_len = BN_num_bytes(K);
+    tmp_len = VR_BN_num_bytes(K);
     if ((tmp = OPENSSL_malloc(tmp_len)) == NULL) {
         SSLfatal(s, SSL_AD_INTERNAL_ERROR,
                  SSL_F_SRP_GENERATE_CLIENT_MASTER_SECRET, ERR_R_MALLOC_FAILURE);

@@ -54,7 +54,7 @@ static void *zlib_zalloc(void *opaque, unsigned int no, unsigned int size)
 
 static void zlib_zfree(void *opaque, void *address)
 {
-    OPENVR_SSL_free(address);
+    VR_OPENSSL_free(address);
 }
 
 
@@ -150,7 +150,7 @@ static int zlib_stateful_init(COMP_CTX *ctx)
     ctx->data = state;
     return 1;
  err:
-    OPENVR_SSL_free(state);
+    VR_OPENSSL_free(state);
     return 0;
 }
 
@@ -159,7 +159,7 @@ static void zlib_stateful_finish(COMP_CTX *ctx)
     struct zlib_state *state = ctx->data;
     inflateEnd(&state->istream);
     deflateEnd(&state->ostream);
-    OPENVR_SSL_free(state);
+    VR_OPENSSL_free(state);
 }
 
 static int zlib_stateful_compress_block(COMP_CTX *ctx, unsigned char *out,
@@ -352,14 +352,14 @@ static int bio_zlib_free(BIO *bi)
     if (ctx->ibuf) {
         /* Destroy decompress context */
         inflateEnd(&ctx->zin);
-        OPENVR_SSL_free(ctx->ibuf);
+        VR_OPENSSL_free(ctx->ibuf);
     }
     if (ctx->obuf) {
         /* Destroy compress context */
         deflateEnd(&ctx->zout);
-        OPENVR_SSL_free(ctx->obuf);
+        VR_OPENSSL_free(ctx->obuf);
     }
-    OPENVR_SSL_free(ctx);
+    VR_OPENSSL_free(ctx);
     VR_BIO_set_data(bi, NULL);
     VR_BIO_set_init(bi, 0);
 
@@ -377,7 +377,7 @@ static int bio_zlib_read(BIO *b, char *out, int outl)
         return 0;
     ctx = VR_BIO_get_data(b);
     zin = &ctx->zin;
-    BIO_clear_retry_flags(b);
+    VR_BIO_clear_retry_flags(b);
     if (!ctx->ibuf) {
         ctx->ibuf = OPENSSL_malloc(ctx->ibufsize);
         if (ctx->ibuf == NULL) {
@@ -437,7 +437,7 @@ static int bio_zlib_write(BIO *b, const char *in, int inl)
     if (ctx->odone)
         return 0;
     zout = &ctx->zout;
-    BIO_clear_retry_flags(b);
+    VR_BIO_clear_retry_flags(b);
     if (!ctx->obuf) {
         ctx->obuf = OPENSSL_malloc(ctx->obufsize);
         /* Need error here */
@@ -503,7 +503,7 @@ static int bio_zlib_flush(BIO *b)
     if (!ctx->obuf || (ctx->odone && !ctx->ocount))
         return 1;
     zout = &ctx->zout;
-    BIO_clear_retry_flags(b);
+    VR_BIO_clear_retry_flags(b);
     /* No more input data */
     zout->next_in = NULL;
     zout->avail_in = 0;
@@ -561,7 +561,7 @@ static long bio_zlib_ctrl(BIO *b, int cmd, long num, void *ptr)
     case BIO_CTRL_FLUSH:
         ret = bio_zlib_flush(b);
         if (ret > 0)
-            ret = BIO_flush(next);
+            ret = VR_BIO_flush(next);
         break;
 
     case BIO_C_SET_BUFF_SIZE:
@@ -579,13 +579,13 @@ static long bio_zlib_ctrl(BIO *b, int cmd, long num, void *ptr)
         }
 
         if (ibs != -1) {
-            OPENVR_SSL_free(ctx->ibuf);
+            VR_OPENSSL_free(ctx->ibuf);
             ctx->ibuf = NULL;
             ctx->ibufsize = ibs;
         }
 
         if (obs != -1) {
-            OPENVR_SSL_free(ctx->obuf);
+            VR_OPENSSL_free(ctx->obuf);
             ctx->obuf = NULL;
             ctx->obufsize = obs;
         }
@@ -593,7 +593,7 @@ static long bio_zlib_ctrl(BIO *b, int cmd, long num, void *ptr)
         break;
 
     case BIO_C_DO_STATE_MACHINE:
-        BIO_clear_retry_flags(b);
+        VR_BIO_clear_retry_flags(b);
         ret = VR_BIO_ctrl(next, cmd, num, ptr);
         VR_BIO_copy_next_retry(b);
         break;

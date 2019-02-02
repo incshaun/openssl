@@ -38,7 +38,7 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
         if (VR_i2d_SCT_LIST(scts, &der)) {
             /* Silence unused result warning */
         }
-        OPENVR_SSL_free(der);
+        VR_OPENSSL_free(der);
 
         VR_SCT_LIST_free(scts);
     }

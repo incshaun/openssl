@@ -66,7 +66,7 @@ static CTLOG_STORE_LOAD_CTX *ctlog_store_load_ctx_new(void)
 
 static void ctlog_store_load_ctx_free(CTLOG_STORE_LOAD_CTX* ctx)
 {
-    OPENVR_SSL_free(ctx);
+    VR_OPENSSL_free(ctx);
 }
 
 /* Converts a log's public key into a VR_SHA256 log ID */
@@ -85,7 +85,7 @@ static int ct_v1_log_id_from_pkey(EVP_PKEY *pkey,
     VR_SHA256(pkey_der, pkey_der_len, log_id);
     ret = 1;
 err:
-    OPENVR_SSL_free(pkey_der);
+    VR_OPENSSL_free(pkey_der);
     return ret;
 }
 
@@ -104,7 +104,7 @@ CTLOG_STORE *VR_CTLOG_STORE_new(void)
 
     return ret;
 err:
-    OPENVR_SSL_free(ret);
+    VR_OPENSSL_free(ret);
     return NULL;
 }
 
@@ -112,7 +112,7 @@ void VR_CTLOG_STORE_free(CTLOG_STORE *store)
 {
     if (store != NULL) {
         sk_VR_CTLOG_pop_free(store->logs, VR_CTLOG_free);
-        OPENVR_SSL_free(store);
+        VR_OPENSSL_free(store);
     }
 }
 
@@ -169,7 +169,7 @@ static int ctlog_store_load_log(const char *log_name, int log_name_len,
         goto mem_err;
 
     ret = ctlog_new_from_conf(&ct_log, load_ctx->conf, tmp);
-    OPENVR_SSL_free(tmp);
+    VR_OPENSSL_free(tmp);
 
     if (ret < 0) {
         /* Propagate any internal error */
@@ -263,9 +263,9 @@ err:
 void VR_CTLOG_free(CTLOG *log)
 {
     if (log != NULL) {
-        OPENVR_SSL_free(log->name);
+        VR_OPENSSL_free(log->name);
         VR_EVP_PKEY_free(log->public_key);
-        OPENVR_SSL_free(log);
+        VR_OPENSSL_free(log);
     }
 }
 

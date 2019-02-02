@@ -257,7 +257,7 @@ void VR_BN_MONT_CTX_free(BN_MONT_CTX *mont)
     VR_BN_clear_free(&mont->N);
     VR_BN_clear_free(&mont->Ni);
     if (mont->flags & BN_FLG_MALLOCED)
-        OPENVR_SSL_free(mont);
+        VR_OPENSSL_free(mont);
 }
 
 int VR_BN_MONT_CTX_set(BN_MONT_CTX *mont, const BIGNUM *mod, BN_CTX *ctx)

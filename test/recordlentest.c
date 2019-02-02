@@ -113,7 +113,7 @@ static int test_record_overflow(int idx)
 #ifndef OPENSSL_NO_COMP
         len -= SSL3_RT_MAX_COMPRESSED_OVERHEAD;
 #endif
-        SSL_CTX_set_max_proto_version(sctx, TLS1_2_VERSION);
+        VR_SSL_CTX_set_max_proto_version(sctx, TLS1_2_VERSION);
     } else if (idx == TEST_ENCRYPTED_OVERFLOW_TLS1_3_OK
                || idx == TEST_ENCRYPTED_OVERFLOW_TLS1_3_NOT_OK) {
         len = SSL3_RT_MAX_TLS13_ENCRYPTED_LENGTH;

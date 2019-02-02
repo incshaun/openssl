@@ -237,7 +237,7 @@ void VR_EVP_PKEY_meth_copy(EVP_PKEY_METHOD *dst, const EVP_PKEY_METHOD *src)
 void VR_EVP_PKEY_meth_free(EVP_PKEY_METHOD *pmeth)
 {
     if (pmeth && (pmeth->flags & EVP_PKEY_FLAG_DYNAMIC))
-        OPENVR_SSL_free(pmeth);
+        VR_OPENSSL_free(pmeth);
 }
 
 EVP_PKEY_CTX *VR_EVP_PKEY_CTX_new(EVP_PKEY *pkey, ENGINE *e)
@@ -360,7 +360,7 @@ void VR_EVP_PKEY_CTX_free(EVP_PKEY_CTX *ctx)
 #ifndef OPENSSL_NO_ENGINE
     VR_ENGINE_finish(ctx->engine);
 #endif
-    OPENVR_SSL_free(ctx);
+    VR_OPENSSL_free(ctx);
 }
 
 int VR_EVP_PKEY_CTX_ctrl(EVP_PKEY_CTX *ctx, int keytype, int optype,
@@ -440,7 +440,7 @@ int VR_EVP_PKEY_CTX_hex2ctrl(EVP_PKEY_CTX *ctx, int cmd, const char *hex)
         return 0;
     if (binlen <= INT_MAX)
         rv = ctx->pmeth->ctrl(ctx, cmd, binlen, bin);
-    OPENVR_SSL_free(bin);
+    VR_OPENSSL_free(bin);
     return rv;
 }
 

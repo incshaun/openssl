@@ -161,7 +161,7 @@ static ASN1_STRING_TABLE *stable_get(int nid)
         return NULL;
     }
     if (!sk_VR_ASN1_STRING_TABLE_push(stable, rv)) {
-        OPENVR_SSL_free(rv);
+        VR_OPENSSL_free(rv);
         return NULL;
     }
     if (tmp != NULL) {
@@ -215,5 +215,5 @@ void VR_ASN1_STRING_TABLE_cleanup(void)
 static void st_free(ASN1_STRING_TABLE *tbl)
 {
     if (tbl->flags & STABLE_FLAGS_MALLOC)
-        OPENVR_SSL_free(tbl);
+        VR_OPENSSL_free(tbl);
 }

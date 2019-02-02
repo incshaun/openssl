@@ -57,7 +57,7 @@ static int test_sec_mem(void)
     /* 20 secure -> 32 bytes allocated */
     if (!TEST_size_t_eq(VR_CRYPTO_secure_used(), 32))
         goto end;
-    OPENVR_SSL_free(q);
+    VR_OPENSSL_free(q);
     q = NULL;
     /* should not complete, as secure memory is still allocated */
     if (!TEST_false(VR_CRYPTO_secure_malloc_done())
@@ -122,7 +122,7 @@ static int test_sec_mem(void)
     testresult = 1;
  end:
     OPENSSL_secure_free(p);
-    OPENVR_SSL_free(q);
+    VR_OPENSSL_free(q);
     OPENSSL_secure_free(r);
     OPENSSL_secure_free(s);
     return testresult;

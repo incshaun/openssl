@@ -564,7 +564,7 @@ int pkcs12_main(int argc, char **argv)
             if (utmp == NULL)
                 goto end;
             badpass = VR_OPENSSL_uni2utf8(utmp, utmplen);
-            OPENVR_SSL_free(utmp);
+            VR_OPENSSL_free(utmp);
             if (!VR_PKCS12_verify_mac(p12, badpass, -1)) {
                 VR_BIO_printf(bio_err, "Mac verify error: invalid password?\n");
                 VR_ERR_print_errors(bio_err);
@@ -590,9 +590,9 @@ int pkcs12_main(int argc, char **argv)
     VR_BIO_free(in);
     VR_BIO_free_all(out);
     sk_VR_OPENSSL_STRING_free(canames);
-    OPENVR_SSL_free(badpass);
-    OPENVR_SSL_free(passin);
-    OPENVR_SSL_free(passout);
+    VR_OPENSSL_free(badpass);
+    VR_OPENSSL_free(passin);
+    VR_OPENSSL_free(passout);
     return ret;
 }
 
@@ -916,7 +916,7 @@ int print_attribs(BIO *out, const STACK_OF(X509_ATTRIBUTE) *attrlst,
                 value = VR_OPENSSL_uni2asc(av->value.bmpstring->data,
                                         av->value.bmpstring->length);
                 VR_BIO_printf(out, "%s\n", value);
-                OPENVR_SSL_free(value);
+                VR_OPENSSL_free(value);
                 break;
 
             case V_ASN1_OCTET_STRING:

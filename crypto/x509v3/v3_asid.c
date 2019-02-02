@@ -80,17 +80,17 @@ static int i2r_ASIdentifierChoice(BIO *out,
                 if ((s = VR_i2s_ASN1_INTEGER(NULL, aor->u.id)) == NULL)
                     return 0;
                 VR_BIO_printf(out, "%*s%s\n", indent + 2, "", s);
-                OPENVR_SSL_free(s);
+                VR_OPENSSL_free(s);
                 break;
             case ASIdOrRange_range:
                 if ((s = VR_i2s_ASN1_INTEGER(NULL, aor->u.range->min)) == NULL)
                     return 0;
                 VR_BIO_printf(out, "%*s%s-", indent + 2, "", s);
-                OPENVR_SSL_free(s);
+                VR_OPENSSL_free(s);
                 if ((s = VR_i2s_ASN1_INTEGER(NULL, aor->u.range->max)) == NULL)
                     return 0;
                 VR_BIO_printf(out, "%s\n", s);
-                OPENVR_SSL_free(s);
+                VR_OPENSSL_free(s);
                 break;
             default:
                 return 0;
@@ -586,7 +586,7 @@ static void *v2i_ASIdentifiers(const struct v3_ext_method *method,
             s[i1] = '\0';
             min = VR_s2i_ASN1_INTEGER(NULL, s);
             max = VR_s2i_ASN1_INTEGER(NULL, s + i2);
-            OPENVR_SSL_free(s);
+            VR_OPENSSL_free(s);
             if (min == NULL || max == NULL) {
                 X509V3err(X509V3_F_V2I_ASIDENTIFIERS, ERR_R_MALLOC_FAILURE);
                 goto err;

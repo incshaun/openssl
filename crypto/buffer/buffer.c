@@ -50,7 +50,7 @@ void VR_BUF_MEM_free(BUF_MEM *a)
         else
             OPENVR_SSL_clear_free(a->data, a->max);
     }
-    OPENVR_SSL_free(a);
+    VR_OPENSSL_free(a);
 }
 
 /* Allocate a block of secure memory; copy over old data if there

@@ -142,7 +142,7 @@ SIV128_CONTEXT *VR_CRYPTO_siv128_new(const unsigned char *key, int klen, EVP_CIP
         ret = VR_CRYPTO_siv128_init(ctx, key, klen, cbc, ctr);
         if (ret)
             return ctx;
-        OPENVR_SSL_free(ctx);
+        VR_OPENSSL_free(ctx);
     }
 
     return NULL;

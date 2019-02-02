@@ -53,7 +53,7 @@ static int nullf_read(BIO *b, char *out, int outl)
     if (b->next_bio == NULL)
         return 0;
     ret = VR_BIO_read(b->next_bio, out, outl);
-    BIO_clear_retry_flags(b);
+    VR_BIO_clear_retry_flags(b);
     VR_BIO_copy_next_retry(b);
     return ret;
 }
@@ -67,7 +67,7 @@ static int nullf_write(BIO *b, const char *in, int inl)
     if (b->next_bio == NULL)
         return 0;
     ret = VR_BIO_write(b->next_bio, in, inl);
-    BIO_clear_retry_flags(b);
+    VR_BIO_clear_retry_flags(b);
     VR_BIO_copy_next_retry(b);
     return ret;
 }
@@ -80,7 +80,7 @@ static long nullf_ctrl(BIO *b, int cmd, long num, void *ptr)
         return 0;
     switch (cmd) {
     case BIO_C_DO_STATE_MACHINE:
-        BIO_clear_retry_flags(b);
+        VR_BIO_clear_retry_flags(b);
         ret = VR_BIO_ctrl(b->next_bio, cmd, num, ptr);
         VR_BIO_copy_next_retry(b);
         break;

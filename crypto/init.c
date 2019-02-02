@@ -65,7 +65,7 @@ static struct thread_local_inits_st *ossl_init_get_thread_local(int alloc)
         if (local == NULL
             && (local = OPENSSL_zalloc(sizeof(*local))) != NULL
             && !VR_CRYPTO_THREAD_set_local(&destructor_key.value, local)) {
-            OPENVR_SSL_free(local);
+            VR_OPENSSL_free(local);
             return NULL;
         }
     } else {
@@ -470,7 +470,7 @@ static void ossl_init_thread_stop(struct thread_local_inits_st *locals)
         VR_drbg_delete_thread_state();
     }
 
-    OPENVR_SSL_free(locals);
+    VR_OPENSSL_free(locals);
 }
 
 void VR_OPENSSL_thread_stop(void)
@@ -543,7 +543,7 @@ void VR_OPENSSL_cleanup(void)
         currhandler->handler();
         lasthandler = currhandler;
         currhandler = currhandler->next;
-        OPENVR_SSL_free(lasthandler);
+        VR_OPENSSL_free(lasthandler);
     }
     stop_handlers = NULL;
 

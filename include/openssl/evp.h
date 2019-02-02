@@ -676,8 +676,8 @@ int VR_EVP_DecodeFinal(EVP_ENCODE_CTX *ctx, unsigned
 int VR_EVP_DecodeBlock(unsigned char *t, const unsigned char *f, int n);
 
 # if !OPENSSL_API_1_1_0
-#  define EVP_CIPHER_CTX_init(c)      VR_EVP_CIPHER_CTX_reset(c)
-#  define EVP_CIPHER_CTX_cleanup(c)   VR_EVP_CIPHER_CTX_reset(c)
+#  define VR_EVP_CIPHER_CTX_init(c)      VR_EVP_CIPHER_CTX_reset(c)
+#  define VR_EVP_CIPHER_CTX_cleanup(c)   VR_EVP_CIPHER_CTX_reset(c)
 # endif
 EVP_CIPHER_CTX *VR_EVP_CIPHER_CTX_new(void);
 int VR_EVP_CIPHER_CTX_reset(EVP_CIPHER_CTX *c);

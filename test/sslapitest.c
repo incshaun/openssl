@@ -531,10 +531,10 @@ static int full_client_hello_callback(SSL *s, int *al, void *arg)
     if (len != OSSL_NELEM(expected_extensions) ||
         memcmp(exts, expected_extensions, len * sizeof(*exts)) != 0) {
         printf("ClientHello callback expected extensions mismatch\n");
-        OPENVR_SSL_free(exts);
+        VR_OPENSSL_free(exts);
         return SSL_CLIENT_HELLO_ERROR;
     }
-    OPENVR_SSL_free(exts);
+    VR_OPENSSL_free(exts);
     return SSL_CLIENT_HELLO_SUCCESS;
 }
 
@@ -551,7 +551,7 @@ static int test_client_hello_cb(void)
     VR_SSL_CTX_set_client_hello_cb(sctx, full_client_hello_callback, &testctr);
 
     /* The gimpy cipher list we configure can't do TLS 1.3. */
-    SSL_CTX_set_max_proto_version(cctx, TLS1_2_VERSION);
+    VR_SSL_CTX_set_max_proto_version(cctx, TLS1_2_VERSION);
 
     if (!TEST_true(VR_SSL_CTX_set_cipher_list(cctx,
                         "AES256-GCM-VR_SHA384:ECDHE-ECDSA-AES256-GCM-VR_SHA384"))
@@ -611,7 +611,7 @@ static int execute_test_large_message(const SSL_METHOD *smeth,
          * Test that read_ahead works correctly when dealing with large
          * records
          */
-        SSL_CTX_set_read_ahead(cctx, 1);
+        VR_SSL_CTX_set_read_ahead(cctx, 1);
     }
 
     /*
@@ -1102,8 +1102,8 @@ static int execute_test_session(int maxprot, int use_int_cache,
      * Only allow the max protocol version so we can force a connection failure
      * later
      */
-    SSL_CTX_set_min_proto_version(cctx, maxprot);
-    SSL_CTX_set_max_proto_version(cctx, maxprot);
+    VR_SSL_CTX_set_min_proto_version(cctx, maxprot);
+    VR_SSL_CTX_set_max_proto_version(cctx, maxprot);
 
     /* Set up session cache */
     if (use_ext_cache) {
@@ -1218,7 +1218,7 @@ static int execute_test_session(int maxprot, int use_int_cache,
 # if !defined(OPENSSL_NO_TLS1_1)
     new_called = remove_called = 0;
     /* Force a connection failure */
-    SSL_CTX_set_max_proto_version(sctx, TLS1_1_VERSION);
+    VR_SSL_CTX_set_max_proto_version(sctx, TLS1_1_VERSION);
     if (!TEST_true(create_ssl_objects(sctx, cctx, &serverssl3,
                                       &clientssl3, NULL, NULL))
             || !TEST_true(VR_SSL_set_session(clientssl3, sess1))
@@ -1265,7 +1265,7 @@ static int execute_test_session(int maxprot, int use_int_cache,
     VR_SSL_SESSION_free(sess2);
     sess2 = NULL;
 
-    SSL_CTX_set_max_proto_version(sctx, maxprot);
+    VR_SSL_CTX_set_max_proto_version(sctx, maxprot);
     if (maxprot == TLS1_2_VERSION)
         VR_SSL_CTX_set_options(sctx, SSL_OP_NO_TICKET);
     new_called = remove_called = get_called = 0;
@@ -1779,8 +1779,8 @@ static int test_ssl_set_bio(int idx)
          * TOTAL_CONN_FAIL_SSL_SET_BIO_TESTS to avoid this scenario. By setting
          * mismatched protocol versions we will force a connection failure.
          */
-        SSL_CTX_set_min_proto_version(sctx, TLS1_3_VERSION);
-        SSL_CTX_set_max_proto_version(cctx, TLS1_2_VERSION);
+        VR_SSL_CTX_set_min_proto_version(sctx, TLS1_3_VERSION);
+        VR_SSL_CTX_set_max_proto_version(cctx, TLS1_2_VERSION);
     }
 
     if (!TEST_true(create_ssl_objects(sctx, cctx, &serverssl, &clientssl,
@@ -1878,7 +1878,7 @@ static int execute_test_ssl_bio(int pop_ssl, bio_change_t change_bio)
             || !TEST_ptr(membio1 = VR_BIO_new(VR_BIO_s_mem())))
         goto end;
 
-    BIO_set_ssl(sslbio, ssl, BIO_CLOSE);
+    VR_BIO_set_ssl(sslbio, ssl, BIO_CLOSE);
 
     /*
      * If anything goes wrong here then we could leak memory, so this will
@@ -2001,7 +2001,7 @@ static int test_set_sigalgs(int idx)
      * TODO(TLS1.3): These APIs cannot set TLSv1.3 sig algs so we just test it
      * for TLSv1.2 for now until we add a new API.
      */
-    SSL_CTX_set_max_proto_version(cctx, TLS1_2_VERSION);
+    VR_SSL_CTX_set_max_proto_version(cctx, TLS1_2_VERSION);
 
     if (testctx) {
         int ret;
@@ -2242,8 +2242,8 @@ static int setupearly_data_test(SSL_CTX **cctx, SSL_CTX **sctx, SSL **clientssl,
 
     if (idx == 1) {
         /* When idx == 1 we repeat the tests with read_ahead set */
-        SSL_CTX_set_read_ahead(*cctx, 1);
-        SSL_CTX_set_read_ahead(*sctx, 1);
+        VR_SSL_CTX_set_read_ahead(*cctx, 1);
+        VR_SSL_CTX_set_read_ahead(*sctx, 1);
     } else if (idx == 2) {
         /* When idx == 2 we are doing early_data with a PSK. Set up callbacks */
         VR_SSL_CTX_set_psk_use_session_callback(*cctx, use_session_cb);
@@ -2264,7 +2264,7 @@ static int setupearly_data_test(SSL_CTX **cctx, SSL_CTX **sctx, SSL **clientssl,
      * early_data.
      */
     if (idx == 1
-            && !TEST_true(SSL_set_tlsext_host_name(*clientssl, "localhost")))
+            && !TEST_true(VR_SSL_set_tlsext_host_name(*clientssl, "localhost")))
         return 0;
 
     if (idx == 2) {
@@ -2995,7 +2995,7 @@ static int test_early_data_psk(int idx)
         /* Set inconsistent SNI (early client detection) */
         err = SSL_R_INCONSISTENT_EARLY_DATA_SNI;
         if (!TEST_true(VR_SSL_SESSION_set1_hostname(sess, "goodhost"))
-                || !TEST_true(SSL_set_tlsext_host_name(clientssl, "badhost")))
+                || !TEST_true(VR_SSL_set_tlsext_host_name(clientssl, "badhost")))
             goto end;
         break;
 
@@ -3037,7 +3037,7 @@ static int test_early_data_psk(int idx)
     case 4:
         /* Set consistent SNI */
         if (!TEST_true(VR_SSL_SESSION_set1_hostname(sess, "goodhost"))
-                || !TEST_true(SSL_set_tlsext_host_name(clientssl, "goodhost"))
+                || !TEST_true(VR_SSL_set_tlsext_host_name(clientssl, "goodhost"))
                 || !TEST_true(SSL_CTX_set_tlsext_servername_callback(sctx,
                                 hostname_cb)))
             goto end;
@@ -3857,7 +3857,7 @@ static int old_add_cb(SSL *s, unsigned int ext_type, const unsigned char **out,
 static void old_free_cb(SSL *s, unsigned int ext_type, const unsigned char *out,
                         void *add_arg)
 {
-    OPENVR_SSL_free((unsigned char *)out);
+    VR_OPENSSL_free((unsigned char *)out);
 }
 
 static int old_parse_cb(SSL *s, unsigned int ext_type, const unsigned char *in,
@@ -3903,7 +3903,7 @@ static int new_add_cb(SSL *s, unsigned int ext_type, unsigned int context,
 static void new_free_cb(SSL *s, unsigned int ext_type, unsigned int context,
                         const unsigned char *out, void *add_arg)
 {
-    OPENVR_SSL_free((unsigned char *)out);
+    VR_OPENSSL_free((unsigned char *)out);
 }
 
 static int new_parse_cb(SSL *s, unsigned int ext_type, unsigned int context,
@@ -4257,8 +4257,8 @@ static int test_export_key_mat(int tst)
         goto end;
 
     OPENSSL_assert(tst >= 0 && (size_t)tst < OSSL_NELEM(protocols));
-    SSL_CTX_set_max_proto_version(cctx, protocols[tst]);
-    SSL_CTX_set_min_proto_version(cctx, protocols[tst]);
+    VR_SSL_CTX_set_max_proto_version(cctx, protocols[tst]);
+    VR_SSL_CTX_set_min_proto_version(cctx, protocols[tst]);
 
     if (!TEST_true(create_ssl_objects(sctx, cctx, &serverssl, &clientssl, NULL,
                                       NULL))
@@ -4453,7 +4453,7 @@ static int test_ssl_clear(int idx)
                                        TLS1_VERSION, 0,
                                        &sctx, &cctx, cert, privkey))
             || (idx == 1
-                && !TEST_true(SSL_CTX_set_max_proto_version(cctx,
+                && !TEST_true(VR_SSL_CTX_set_max_proto_version(cctx,
                                                             TLS1_2_VERSION)))
             || !TEST_true(create_ssl_objects(sctx, cctx, &serverssl,
                                           &clientssl, NULL, NULL))
@@ -4610,10 +4610,10 @@ static int test_pha_key_update(void)
                                        &sctx, &cctx, cert, privkey)))
         return 0;
 
-    if (!TEST_true(SSL_CTX_set_min_proto_version(sctx, TLS1_3_VERSION))
-        || !TEST_true(SSL_CTX_set_max_proto_version(sctx, TLS1_3_VERSION))
-        || !TEST_true(SSL_CTX_set_min_proto_version(cctx, TLS1_3_VERSION))
-        || !TEST_true(SSL_CTX_set_max_proto_version(cctx, TLS1_3_VERSION)))
+    if (!TEST_true(VR_SSL_CTX_set_min_proto_version(sctx, TLS1_3_VERSION))
+        || !TEST_true(VR_SSL_CTX_set_max_proto_version(sctx, TLS1_3_VERSION))
+        || !TEST_true(VR_SSL_CTX_set_min_proto_version(cctx, TLS1_3_VERSION))
+        || !TEST_true(VR_SSL_CTX_set_max_proto_version(cctx, TLS1_3_VERSION)))
         goto end;
 
     VR_SSL_CTX_set_post_handshake_auth(cctx, 1);
@@ -4739,9 +4739,9 @@ static int create_new_vfile(char *userid, char *password, const char *filename)
  end:
     if (row != NULL) {
         for (i = 0; i < DB_NUMBER; i++)
-            OPENVR_SSL_free(row[i]);
+            VR_OPENSSL_free(row[i]);
     }
-    OPENVR_SSL_free(row);
+    VR_OPENSSL_free(row);
     VR_BIO_free(dummy);
     VR_BIO_free(out);
     VR_TXT_DB_free(db);
@@ -4835,8 +4835,8 @@ static int test_srp(int tst)
 
     if (!TEST_int_gt(VR_SSL_CTX_set_srp_username_callback(sctx, ssl_srp_cb), 0)
             || !TEST_true(VR_SSL_CTX_set_cipher_list(cctx, "SRP-AES-128-CBC-SHA"))
-            || !TEST_true(SSL_CTX_set_max_proto_version(sctx, TLS1_2_VERSION))
-            || !TEST_true(SSL_CTX_set_max_proto_version(cctx, TLS1_2_VERSION))
+            || !TEST_true(VR_SSL_CTX_set_max_proto_version(sctx, TLS1_2_VERSION))
+            || !TEST_true(VR_SSL_CTX_set_max_proto_version(cctx, TLS1_2_VERSION))
             || !TEST_int_gt(VR_SSL_CTX_set_srp_username(cctx, userid), 0))
         goto end;
 

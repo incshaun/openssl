@@ -139,7 +139,7 @@ OCB128_CONTEXT *VR_CRYPTO_ocb128_new(void *keyenc, void *keydec,
                                  stream);
         if (ret)
             return octx;
-        OPENVR_SSL_free(octx);
+        VR_OPENSSL_free(octx);
     }
 
     return NULL;

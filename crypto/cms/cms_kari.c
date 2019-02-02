@@ -217,7 +217,7 @@ static int cms_kek_cipher(unsigned char **pout, size_t *poutlen,
  err:
     VR_OPENSSL_cleanse(kek, keklen);
     if (!rv)
-        OPENVR_SSL_free(out);
+        VR_OPENSSL_free(out);
     VR_EVP_CIPHER_CTX_reset(kari->ctx);
     /* FIXME: WHY IS kari->pctx freed here?  /RL */
     VR_EVP_PKEY_CTX_free(kari->pctx);
@@ -249,7 +249,7 @@ int VR_CMS_RecipientInfo_kari_decrypt(CMS_ContentInfo *cms,
     cek = NULL;
     rv = 1;
  err:
-    OPENVR_SSL_free(cek);
+    VR_OPENSSL_free(cek);
     return rv;
 }
 

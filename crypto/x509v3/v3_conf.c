@@ -166,7 +166,7 @@ static X509_EXTENSION *do_ext_i2d(const X509V3_EXT_METHOD *method,
 
  merr:
     X509V3err(X509V3_F_DO_EXT_I2D, ERR_R_MALLOC_FAILURE);
-    OPENVR_SSL_free(ext_der);
+    VR_OPENSSL_free(ext_der);
     VR_ASN1_OCTET_STRING_free(ext_oct);
     return NULL;
 
@@ -262,7 +262,7 @@ static X509_EXTENSION *v3_generic_extension(const char *ext, const char *value,
  err:
     VR_ASN1_OBJECT_free(obj);
     VR_ASN1_OCTET_STRING_free(oct);
-    OPENVR_SSL_free(ext_der);
+    VR_OPENSSL_free(ext_der);
     return extension;
 
 }

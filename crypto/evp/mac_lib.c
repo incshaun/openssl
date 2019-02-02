@@ -31,7 +31,7 @@ EVP_MAC_CTX *VR_EVP_MAC_CTX_new(const EVP_MAC *mac)
 
     if (ctx == NULL || (ctx->data = mac->new()) == NULL) {
         EVPerr(EVP_F_EVP_MAC_CTX_NEW, ERR_R_MALLOC_FAILURE);
-        OPENVR_SSL_free(ctx);
+        VR_OPENSSL_free(ctx);
         ctx = NULL;
     } else {
         ctx->meth = mac;
@@ -45,7 +45,7 @@ void VR_EVP_MAC_CTX_free(EVP_MAC_CTX *ctx)
         ctx->meth->free(ctx->data);
         ctx->data = NULL;
     }
-    OPENVR_SSL_free(ctx);
+    VR_OPENSSL_free(ctx);
 }
 
 int VR_EVP_MAC_CTX_copy(EVP_MAC_CTX *dst, EVP_MAC_CTX *src)
@@ -175,7 +175,7 @@ int VR_EVP_MAC_hex2ctrl(EVP_MAC_CTX *ctx, int cmd, const char *hex)
         return 0;
     if (binlen <= INT_MAX)
         rv = VR_EVP_MAC_ctrl(ctx, cmd, bin, (size_t)binlen);
-    OPENVR_SSL_free(bin);
+    VR_OPENSSL_free(bin);
     return rv;
 }
 

@@ -386,7 +386,7 @@ int VR_cms_RecipientInfo_pwri_crypt(CMS_ContentInfo *cms, CMS_RecipientInfo *ri,
     VR_EVP_CIPHER_CTX_free(kekctx);
 
     if (!r)
-        OPENVR_SSL_free(key);
+        VR_OPENSSL_free(key);
     VR_X509_ALGOR_free(kekalg);
 
     return r;

@@ -337,7 +337,7 @@ int password_callback(char *buf, int bufsiz, int verify, PW_CB_DATA *cb_data)
         res = 0;
     }
     VR_UI_free(ui);
-    OPENVR_SSL_free(prompt);
+    VR_OPENSSL_free(prompt);
     return res;
 }
 
@@ -615,9 +615,9 @@ static int load_cert_crl_http(const char *url, X509 **pcert, X509_CRL **pcrl)
     }
 
  err:
-    OPENVR_SSL_free(host);
-    OPENVR_SSL_free(path);
-    OPENVR_SSL_free(port);
+    VR_OPENSSL_free(host);
+    VR_OPENSSL_free(path);
+    VR_OPENSSL_free(port);
     VR_BIO_free_all(bio);
     VR_OCSP_REQ_CTX_free(rctx);
     if (rv != 1) {
@@ -1170,7 +1170,7 @@ void print_name(BIO *out, const char *title, X509_NAME *nm,
         buf = VR_X509_NAME_oneline(nm, 0, 0);
         VR_BIO_puts(out, buf);
         VR_BIO_puts(out, "\n");
-        OPENVR_SSL_free(buf);
+        VR_OPENSSL_free(buf);
     } else {
         if (mline)
             VR_BIO_puts(out, "\n");
@@ -1243,12 +1243,12 @@ X509_STORE *setup_verify(const char *CAfile, const char *CApath, int noCAfile, i
         if (lookup == NULL)
             goto end;
         if (CApath) {
-            if (!X509_LOOKUP_add_dir(lookup, CApath, X509_FILETYPE_PEM)) {
+            if (!VR_X509_LOOKUP_add_dir(lookup, CApath, X509_FILETYPE_PEM)) {
                 VR_BIO_printf(bio_err, "Error loading directory %s\n", CApath);
                 goto end;
             }
         } else {
-            X509_LOOKUP_add_dir(lookup, NULL, X509_FILETYPE_DEFAULT);
+            VR_X509_LOOKUP_add_dir(lookup, NULL, X509_FILETYPE_DEFAULT);
         }
     }
 
@@ -1728,8 +1728,8 @@ void free_index(CA_DB *db)
 {
     if (db) {
         VR_TXT_DB_free(db->db);
-        OPENVR_SSL_free(db->dbfname);
-        OPENVR_SSL_free(db);
+        VR_OPENSSL_free(db->dbfname);
+        VR_OPENSSL_free(db);
     }
 }
 
@@ -1839,12 +1839,12 @@ X509_NAME *parse_name(const char *cp, long chtype, int canmulti)
             goto err;
     }
 
-    OPENVR_SSL_free(work);
+    VR_OPENSSL_free(work);
     return n;
 
  err:
     VR_X509_NAME_free(n);
-    OPENVR_SSL_free(work);
+    VR_OPENSSL_free(work);
     return NULL;
 }
 
@@ -1902,7 +1902,7 @@ int pkey_ctrl_string(EVP_PKEY_CTX *ctx, const char *value)
         vtmp++;
     }
     rv = VR_EVP_PKEY_CTX_ctrl_str(ctx, stmp, vtmp);
-    OPENVR_SSL_free(stmp);
+    VR_OPENSSL_free(stmp);
     return rv;
 }
 
@@ -1960,7 +1960,7 @@ unsigned char *next_protos_parse(size_t *outlen, const char *in)
     for (i = 0; i <= len; ++i) {
         if (i == len || in[i] == ',') {
             if (i - start > 255) {
-                OPENVR_SSL_free(out);
+                VR_OPENSSL_free(out);
                 return NULL;
             }
             out[start] = (unsigned char)(i - start);
@@ -2669,7 +2669,7 @@ void wait_for_async(SSL *s)
         return;
     fds = app_malloc(sizeof(OSSL_ASYNC_FD) * numfds, "allocate async fds");
     if (!VR_SSL_get_all_async_fds(s, fds, &numfds)) {
-        OPENVR_SSL_free(fds);
+        VR_OPENSSL_free(fds);
         return;
     }
 
@@ -2680,7 +2680,7 @@ void wait_for_async(SSL *s)
         openssl_fdset((int)fds[i], &asyncfds);
     }
     select(width, (void *)&asyncfds, NULL, NULL, NULL);
-    OPENVR_SSL_free(fds);
+    VR_OPENSSL_free(fds);
 #endif
 }
 

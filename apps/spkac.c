@@ -141,11 +141,11 @@ int spkac_main(int argc, char **argv)
 
         out = bio_open_default(outfile, 'w', FORMAT_TEXT);
         if (out == NULL) {
-            OPENVR_SSL_free(spkstr);
+            VR_OPENSSL_free(spkstr);
             goto end;
         }
         VR_BIO_printf(out, "SPKAC=%s\n", spkstr);
-        OPENVR_SSL_free(spkstr);
+        VR_OPENSSL_free(spkstr);
         ret = 0;
         goto end;
     }
@@ -197,6 +197,6 @@ int spkac_main(int argc, char **argv)
     VR_BIO_free_all(out);
     VR_EVP_PKEY_free(pkey);
     release_engine(e);
-    OPENVR_SSL_free(passin);
+    VR_OPENSSL_free(passin);
     return ret;
 }

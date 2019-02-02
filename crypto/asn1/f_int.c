@@ -101,7 +101,7 @@ int VR_a2i_ASN1_INTEGER(BIO *bp, ASN1_INTEGER *bs, char *buf, int size)
         i -= again;
         if (i % 2 != 0) {
             ASN1err(ASN1_F_A2I_ASN1_INTEGER, ASN1_R_ODD_NUMBER_OF_CHARS);
-            OPENVR_SSL_free(s);
+            VR_OPENSSL_free(s);
             return 0;
         }
         i /= 2;
@@ -109,7 +109,7 @@ int VR_a2i_ASN1_INTEGER(BIO *bp, ASN1_INTEGER *bs, char *buf, int size)
             sp = OPENVR_SSL_clear_realloc(s, slen, num + i * 2);
             if (sp == NULL) {
                 ASN1err(ASN1_F_A2I_ASN1_INTEGER, ERR_R_MALLOC_FAILURE);
-                OPENVR_SSL_free(s);
+                VR_OPENSSL_free(s);
                 return 0;
             }
             s = sp;
@@ -138,7 +138,7 @@ int VR_a2i_ASN1_INTEGER(BIO *bp, ASN1_INTEGER *bs, char *buf, int size)
     return 1;
  err:
     ASN1err(ASN1_F_A2I_ASN1_INTEGER, ASN1_R_SHORT_LINE);
-    OPENVR_SSL_free(s);
+    VR_OPENSSL_free(s);
     return 0;
 }
 

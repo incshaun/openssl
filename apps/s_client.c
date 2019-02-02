@@ -157,12 +157,12 @@ static unsigned int psk_client_cb(SSL *ssl, const char *hint, char *identity,
         VR_BIO_printf(bio_err,
                    "psk buffer of callback is too small (%d) for key (%ld)\n",
                    max_psk_len, key_len);
-        OPENVR_SSL_free(key);
+        VR_OPENSSL_free(key);
         return 0;
     }
 
     memcpy(psk, key, key_len);
-    OPENVR_SSL_free(key);
+    VR_OPENSSL_free(key);
 
     if (c_debug)
         VR_BIO_printf(bio_c_out, "created PSK len=%ld\n", key_len);
@@ -202,7 +202,7 @@ static int psk_use_session_cb(SSL *s, const EVP_MD *md,
         cipher = VR_SSL_CIPHER_find(s, tls13_aes128gcmsha256_id);
         if (cipher == NULL) {
             VR_BIO_printf(bio_err, "Error finding suitable ciphersuite\n");
-            OPENVR_SSL_free(key);
+            VR_OPENSSL_free(key);
             return 0;
         }
 
@@ -211,10 +211,10 @@ static int psk_use_session_cb(SSL *s, const EVP_MD *md,
                 || !VR_SSL_SESSION_set1_master_key(usesess, key, key_len)
                 || !VR_SSL_SESSION_set_cipher(usesess, cipher)
                 || !VR_SSL_SESSION_set_protocol_version(usesess, TLS1_3_VERSION)) {
-            OPENVR_SSL_free(key);
+            VR_OPENSSL_free(key);
             goto err;
         }
-        OPENVR_SSL_free(key);
+        VR_OPENSSL_free(key);
     }
 
     cipher = VR_SSL_SESSION_get0_cipher(usesess);
@@ -359,7 +359,7 @@ static char *ssl_give_srp_client_pwd_cb(SSL *s, void *arg)
     cb_tmp.prompt_info = "SRP user";
     if ((l = password_callback(pass, PWD_STRLEN, 0, &cb_tmp)) < 0) {
         VR_BIO_printf(bio_err, "Can't read Password\n");
-        OPENVR_SSL_free(pass);
+        VR_OPENSSL_free(pass);
         return NULL;
     }
     *(pass + l) = '\0';
@@ -448,7 +448,7 @@ static ossl_ssize_t hexdecode(const char **inptr, void *result)
             continue;
         x = VR_OPENSSL_hexchar2int(*in);
         if (x < 0) {
-            OPENVR_SSL_free(ret);
+            VR_OPENSSL_free(ret);
             return 0;
         }
         byte |= (char)x;
@@ -460,7 +460,7 @@ static ossl_ssize_t hexdecode(const char **inptr, void *result)
         }
     }
     if (nibble != 0) {
-        OPENVR_SSL_free(ret);
+        VR_OPENSSL_free(ret);
         return 0;
     }
     *inptr = in;
@@ -531,7 +531,7 @@ static int tlsa_import_rr(SSL *con, const char *rrdata)
     }
     /* The data field is last, so len is its length */
     ret = VR_SSL_dane_tlsa_add(con, usage, selector, mtype, data, len);
-    OPENVR_SSL_free(data);
+    VR_OPENSSL_free(data);
 
     if (ret == 0) {
         VR_ERR_print_errors(bio_err);
@@ -844,7 +844,7 @@ static const OPT_PAIR services[] = {
 /* Free |*dest| and optionally set it to a copy of |source|. */
 static void freeandcopy(char **dest, const char *source)
 {
-    OPENVR_SSL_free(*dest);
+    VR_OPENSSL_free(*dest);
     *dest = NULL;
     if (source != NULL)
         *dest = OPENSSL_strdup(source);
@@ -1570,9 +1570,9 @@ int s_client_main(int argc, char **argv)
         }
         res = VR_BIO_parse_hostserv(proxystr, &host, &port, BIO_PARSE_PRIO_HOST);
         if (tmp_host != host)
-            OPENVR_SSL_free(tmp_host);
+            VR_OPENSSL_free(tmp_host);
         if (tmp_port != port)
-            OPENVR_SSL_free(tmp_port);
+            VR_OPENSSL_free(tmp_port);
         if (!res) {
             VR_BIO_printf(bio_err,
                        "%s: -proxy argument malformed or ambiguous\n", prog);
@@ -1585,9 +1585,9 @@ int s_client_main(int argc, char **argv)
             res = VR_BIO_parse_hostserv(connectstr, &host, &port,
                                      BIO_PARSE_PRIO_HOST);
         if (tmp_host != host)
-            OPENVR_SSL_free(tmp_host);
+            VR_OPENSSL_free(tmp_host);
         if (tmp_port != port)
-            OPENVR_SSL_free(tmp_port);
+            VR_OPENSSL_free(tmp_port);
         if (!res) {
             VR_BIO_printf(bio_err,
                        "%s: -connect argument or target parameter malformed or ambiguous\n",
@@ -1741,14 +1741,14 @@ int s_client_main(int argc, char **argv)
 
 #ifndef OPENSSL_NO_SCTP
     if (protocol == IPPROTO_SCTP && sctp_label_bug == 1)
-        SSL_CTX_set_mode(ctx, SSL_MODE_DTLS_SCTP_LABEL_LENGTH_BUG);
+        VR_SSL_CTX_set_mode(ctx, SSL_MODE_DTLS_SCTP_LABEL_LENGTH_BUG);
 #endif
 
     if (min_version != 0
-        && SSL_CTX_set_min_proto_version(ctx, min_version) == 0)
+        && VR_SSL_CTX_set_min_proto_version(ctx, min_version) == 0)
         goto end;
     if (max_version != 0
-        && SSL_CTX_set_max_proto_version(ctx, max_version) == 0)
+        && VR_SSL_CTX_set_max_proto_version(ctx, max_version) == 0)
         goto end;
 
     if (vpmtouched && !VR_SSL_CTX_set1_param(ctx, vpm)) {
@@ -1758,7 +1758,7 @@ int s_client_main(int argc, char **argv)
     }
 
     if (async) {
-        SSL_CTX_set_mode(ctx, SSL_MODE_ASYNC);
+        VR_SSL_CTX_set_mode(ctx, SSL_MODE_ASYNC);
     }
 
     if (max_send_fragment > 0
@@ -1880,7 +1880,7 @@ int s_client_main(int argc, char **argv)
             VR_BIO_printf(bio_err, "Error setting ALPN\n");
             goto end;
         }
-        OPENVR_SSL_free(alpn);
+        VR_OPENSSL_free(alpn);
     }
 
     for (i = 0; i < serverinfo_count; i++) {
@@ -2014,7 +2014,7 @@ int s_client_main(int argc, char **argv)
     if (!noservername && (servername != NULL || dane_tlsa_domain == NULL)) {
         if (servername == NULL)
             servername = (host == NULL) ? "localhost" : host;
-        if (!SSL_set_tlsext_host_name(con, servername)) {
+        if (!VR_SSL_set_tlsext_host_name(con, servername)) {
             VR_BIO_printf(bio_err, "Unable to set TLS servername extension.\n");
             VR_ERR_print_errors(bio_err);
             goto end;
@@ -2202,7 +2202,7 @@ int s_client_main(int argc, char **argv)
                 VR_BIO_printf(fbio, "LHLO %s\r\n", protohost);
             else
                 VR_BIO_printf(fbio, "EHLO %s\r\n", protohost);
-            (void)BIO_flush(fbio);
+            (void)VR_BIO_flush(fbio);
             /*
              * Wait for multi-line response to end LHLO LMTP or EHLO SMTP
              * response.
@@ -2212,7 +2212,7 @@ int s_client_main(int argc, char **argv)
                 if (strstr(mbuf, "STARTTLS"))
                     foundit = 1;
             } while (mbuf_len > 3 && mbuf[3] == '-');
-            (void)BIO_flush(fbio);
+            (void)VR_BIO_flush(fbio);
             VR_BIO_pop(fbio);
             VR_BIO_free(fbio);
             if (!foundit)
@@ -2243,7 +2243,7 @@ int s_client_main(int argc, char **argv)
             VR_BIO_gets(fbio, mbuf, BUFSIZZ);
             /* STARTTLS command requires CAPABILITY... */
             VR_BIO_printf(fbio, ". CAPABILITY\r\n");
-            (void)BIO_flush(fbio);
+            (void)VR_BIO_flush(fbio);
             /* wait for multi-line CAPABILITY response */
             do {
                 mbuf_len = VR_BIO_gets(fbio, mbuf, BUFSIZZ);
@@ -2251,7 +2251,7 @@ int s_client_main(int argc, char **argv)
                     foundit = 1;
             }
             while (mbuf_len > 3 && mbuf[0] != '.');
-            (void)BIO_flush(fbio);
+            (void)VR_BIO_flush(fbio);
             VR_BIO_pop(fbio);
             VR_BIO_free(fbio);
             if (!foundit)
@@ -2272,7 +2272,7 @@ int s_client_main(int argc, char **argv)
                 mbuf_len = VR_BIO_gets(fbio, mbuf, BUFSIZZ);
             }
             while (mbuf_len > 3 && mbuf[3] == '-');
-            (void)BIO_flush(fbio);
+            (void)VR_BIO_flush(fbio);
             VR_BIO_pop(fbio);
             VR_BIO_free(fbio);
             VR_BIO_printf(sbio, "AUTH TLS\r\n");
@@ -2342,7 +2342,7 @@ int s_client_main(int argc, char **argv)
             /* Agree to issue START_TLS and send the FOLLOWS sub-command */
             VR_BIO_write(sbio, tls_will, 3);
             VR_BIO_write(sbio, tls_follows, 6);
-            (void)BIO_flush(sbio);
+            (void)VR_BIO_flush(sbio);
             /* Telnet server also sent the FOLLOWS sub-command */
             bytes = VR_BIO_read(sbio, mbuf, BUFSIZZ);
             if (bytes != 6 || memcmp(mbuf, tls_follows, 6) != 0)
@@ -2386,7 +2386,7 @@ int s_client_main(int argc, char **argv)
 
             /* Terminate the HTTP CONNECT request */
             VR_BIO_printf(fbio, "\r\n");
-            (void)BIO_flush(fbio);
+            (void)VR_BIO_flush(fbio);
             /*
              * The first line is the HTTP response.  According to RFC 7230,
              * it's formated exactly like this:
@@ -2398,7 +2398,7 @@ int s_client_main(int argc, char **argv)
                 VR_BIO_printf(bio_err,
                            "%s: HTTP CONNECT failed, insufficient response "
                            "from proxy (got %d octets)\n", prog, mbuf_len);
-                (void)BIO_flush(fbio);
+                (void)VR_BIO_flush(fbio);
                 VR_BIO_pop(fbio);
                 VR_BIO_free(fbio);
                 goto shut;
@@ -2420,7 +2420,7 @@ int s_client_main(int argc, char **argv)
                     mbuf_len = VR_BIO_gets(fbio, mbuf, BUFSIZZ);
                 } while (mbuf_len > 2);
             }
-            (void)BIO_flush(fbio);
+            (void)VR_BIO_flush(fbio);
             VR_BIO_pop(fbio);
             VR_BIO_free(fbio);
             if (foundit != success) {
@@ -2435,7 +2435,7 @@ int s_client_main(int argc, char **argv)
 
             VR_BIO_push(fbio, sbio);
             VR_BIO_printf(fbio, "STARTTLS\r\n");
-            (void)BIO_flush(fbio);
+            (void)VR_BIO_flush(fbio);
             width = VR_SSL_get_fd(con) + 1;
 
             do {
@@ -2453,8 +2453,8 @@ int s_client_main(int argc, char **argv)
                  * STARTTLS command when it's not supported.
                  */
                 if (!BIO_get_buffer_num_lines(fbio)
-                    && !BIO_pending(fbio)
-                    && !BIO_pending(sbio)
+                    && !VR_BIO_pending(fbio)
+                    && !VR_BIO_pending(sbio)
                     && select(width, (void *)&readfds, NULL, NULL,
                               &timeout) < 1) {
                     VR_BIO_printf(bio_err,
@@ -2480,7 +2480,7 @@ int s_client_main(int argc, char **argv)
                 }
             } while (numeric != 670);
 
-            (void)BIO_flush(fbio);
+            (void)VR_BIO_flush(fbio);
             VR_BIO_pop(fbio);
             VR_BIO_free(fbio);
             if (numeric != 670) {
@@ -2567,7 +2567,7 @@ int s_client_main(int argc, char **argv)
 
             /* Sending SSL Handshake packet. */
             VR_BIO_write(sbio, ssl_req, sizeof(ssl_req));
-            (void)BIO_flush(sbio);
+            (void)VR_BIO_flush(sbio);
         }
         break;
     case PROTO_POSTGRES:
@@ -2580,7 +2580,7 @@ int s_client_main(int argc, char **argv)
 
             /* Send SSLRequest packet */
             VR_BIO_write(sbio, ssl_request, 8);
-            (void)BIO_flush(sbio);
+            (void)VR_BIO_flush(sbio);
 
             /* Reply will be a single S if SSL is enabled */
             bytes = VR_BIO_read(sbio, sbuf, BUFSIZZ);
@@ -2597,7 +2597,7 @@ int s_client_main(int argc, char **argv)
             VR_BIO_gets(fbio, mbuf, BUFSIZZ);
             /* STARTTLS command requires CAPABILITIES... */
             VR_BIO_printf(fbio, "CAPABILITIES\r\n");
-            (void)BIO_flush(fbio);
+            (void)VR_BIO_flush(fbio);
             VR_BIO_gets(fbio, mbuf, BUFSIZZ);
             /* no point in trying to parse the CAPABILITIES response if there is none */
             if (strstr(mbuf, "101") != NULL) {
@@ -2608,7 +2608,7 @@ int s_client_main(int argc, char **argv)
                         foundit = 1;
                 } while (mbuf_len > 1 && mbuf[0] != '.');
             }
-            (void)BIO_flush(fbio);
+            (void)VR_BIO_flush(fbio);
             VR_BIO_pop(fbio);
             VR_BIO_free(fbio);
             if (!foundit)
@@ -2647,7 +2647,7 @@ int s_client_main(int argc, char **argv)
                         foundit = 1;
                 }
             } while (mbuf_len > 1 && mbuf[0] == '"');
-            (void)BIO_flush(fbio);
+            (void)VR_BIO_flush(fbio);
             VR_BIO_pop(fbio);
             VR_BIO_free(fbio);
             if (!foundit)
@@ -2726,7 +2726,7 @@ int s_client_main(int argc, char **argv)
             /* Send SSLRequest packet */
             VR_BIO_write(sbio, atyp->value.sequence->data,
                       atyp->value.sequence->length);
-            (void)BIO_flush(sbio);
+            (void)VR_BIO_flush(sbio);
             VR_ASN1_TYPE_free(atyp);
 
             mbuf_len = VR_BIO_read(sbio, mbuf, BUFSIZZ);
@@ -3165,7 +3165,7 @@ int s_client_main(int argc, char **argv)
     }
     VR_SSL_SESSION_free(psksess);
 #if !defined(OPENSSL_NO_NEXTPROTONEG)
-    OPENVR_SSL_free(next_proto.data);
+    VR_OPENSSL_free(next_proto.data);
 #endif
     VR_SSL_CTX_free(ctx);
     set_keylog_file(NULL, NULL);
@@ -3173,14 +3173,14 @@ int s_client_main(int argc, char **argv)
     sk_VR_X509_CRL_pop_free(crls, VR_X509_CRL_free);
     VR_EVP_PKEY_free(key);
     sk_VR_X509_pop_free(chain, VR_X509_free);
-    OPENVR_SSL_free(pass);
+    VR_OPENSSL_free(pass);
 #ifndef OPENSSL_NO_SRP
-    OPENVR_SSL_free(srp_arg.srppassin);
+    VR_OPENSSL_free(srp_arg.srppassin);
 #endif
-    OPENVR_SSL_free(connectstr);
-    OPENVR_SSL_free(bindstr);
-    OPENVR_SSL_free(host);
-    OPENVR_SSL_free(port);
+    VR_OPENSSL_free(connectstr);
+    VR_OPENSSL_free(bindstr);
+    VR_OPENSSL_free(host);
+    VR_OPENSSL_free(port);
     VR_X509_VERIFY_PARAM_free(vpm);
     ssl_excert_free(exc);
     sk_VR_OPENSSL_STRING_free(ssl_args);
@@ -3412,12 +3412,12 @@ static void print_stuff(BIO *bio, SSL *s, int full)
                 VR_BIO_printf(bio, "%02X", exportedkeymat[i]);
             VR_BIO_printf(bio, "\n");
         }
-        OPENVR_SSL_free(exportedkeymat);
+        VR_OPENSSL_free(exportedkeymat);
     }
     VR_BIO_printf(bio, "---\n");
     VR_X509_free(peer);
     /* flush, or debugging output gets mixed with http response */
-    (void)BIO_flush(bio);
+    (void)VR_BIO_flush(bio);
 }
 
 # ifndef OPENSSL_NO_OCSP

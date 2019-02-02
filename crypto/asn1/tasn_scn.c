@@ -36,7 +36,7 @@ ASN1_SCTX *VR_ASN1_SCTX_new(int (*scan_cb) (ASN1_SCTX *ctx))
 
 void VR_ASN1_SCTX_free(ASN1_SCTX *p)
 {
-    OPENVR_SSL_free(p);
+    VR_OPENSSL_free(p);
 }
 
 const ASN1_ITEM *VR_ASN1_SCTX_get_item(ASN1_SCTX *p)

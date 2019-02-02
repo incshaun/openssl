@@ -214,7 +214,7 @@ int VR_X509_print_ex(BIO *bp, X509 *x, unsigned long nmflags,
     }
     ret = 1;
  err:
-    OPENVR_SSL_free(m);
+    VR_OPENSSL_free(m);
     return ret;
 }
 
@@ -245,7 +245,7 @@ int VR_X509_ocspid_print(BIO *bp, X509 *x)
         if (VR_BIO_printf(bp, "%02X", VR_SHA1md[i]) <= 0)
             goto err;
     }
-    OPENVR_SSL_free(der);
+    VR_OPENSSL_free(der);
     der = NULL;
 
     /*
@@ -271,7 +271,7 @@ int VR_X509_ocspid_print(BIO *bp, X509 *x)
 
     return 1;
  err:
-    OPENVR_SSL_free(der);
+    VR_OPENSSL_free(der);
     return 0;
 }
 

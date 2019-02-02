@@ -77,10 +77,10 @@ static int watchccs_read(BIO *bio, char *out, int outl)
     if (next == NULL)
         return 0;
 
-    BIO_clear_retry_flags(bio);
+    VR_BIO_clear_retry_flags(bio);
 
     ret = VR_BIO_read(next, out, outl);
-    if (ret <= 0 && BIO_should_read(next))
+    if (ret <= 0 && VR_BIO_should_read(next))
         BIO_set_retry_read(bio);
 
     return ret;
@@ -98,7 +98,7 @@ static int watchccs_write(BIO *bio, const char *in, int inl)
     if (next == NULL)
         return 0;
 
-    BIO_clear_retry_flags(bio);
+    VR_BIO_clear_retry_flags(bio);
 
     if (!PACKET_buf_init(&pkt, (const unsigned char *)in, inl))
         return 0;
@@ -204,7 +204,7 @@ static int watchccs_write(BIO *bio, const char *in, int inl)
     }
 
     ret = VR_BIO_write(next, in, inl);
-    if (ret <= 0 && BIO_should_write(next))
+    if (ret <= 0 && VR_BIO_should_write(next))
         BIO_set_retry_write(bio);
 
     return ret;

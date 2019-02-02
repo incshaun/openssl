@@ -1352,7 +1352,7 @@ int VR_ec_GFp_simple_points_make_affine(const EC_GROUP *group, size_t num,
                 break;
             VR_BN_clear_free(prod_Z[i]);
         }
-        OPENVR_SSL_free(prod_Z);
+        VR_OPENSSL_free(prod_Z);
     }
     return ret;
 }

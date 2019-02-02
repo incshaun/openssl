@@ -48,8 +48,8 @@ static void pkey_sm2_cleanup(EVP_PKEY_CTX *ctx)
 
     if (smctx != NULL) {
         VR_EC_GROUP_free(smctx->gen_group);
-        OPENVR_SSL_free(smctx->id);
-        OPENVR_SSL_free(smctx);
+        VR_OPENSSL_free(smctx->id);
+        VR_OPENSSL_free(smctx);
         ctx->data = NULL;
     }
 }
@@ -201,11 +201,11 @@ static int pkey_sm2_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2)
                 return 0;
             }
             memcpy(tmp_id, p2, p1);
-            OPENVR_SSL_free(smctx->id);
+            VR_OPENSSL_free(smctx->id);
             smctx->id = tmp_id;
         } else {
             /* set null-ID */
-            OPENVR_SSL_free(smctx->id);
+            VR_OPENSSL_free(smctx->id);
             smctx->id = NULL;
         }
         smctx->id_len = (size_t)p1;

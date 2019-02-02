@@ -115,7 +115,7 @@ X509_POLICY_NODE *VR_level_add_node(X509_POLICY_LEVEL *level,
 
 void VR_policy_node_free(X509_POLICY_NODE *node)
 {
-    OPENVR_SSL_free(node);
+    VR_OPENSSL_free(node);
 }
 
 /*

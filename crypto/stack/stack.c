@@ -95,7 +95,7 @@ OPENSSL_STACK *VR_OPENSSL_sk_deep_copy(const OPENSSL_STACK *sk,
     ret->num_alloc = sk->num > min_nodes ? sk->num : min_nodes;
     ret->data = OPENSSL_zalloc(sizeof(*ret->data) * ret->num_alloc);
     if (ret->data == NULL) {
-        OPENVR_SSL_free(ret);
+        VR_OPENSSL_free(ret);
         return NULL;
     }
 
@@ -373,8 +373,8 @@ void VR_OPENSSL_sk_free(OPENSSL_STACK *st)
 {
     if (st == NULL)
         return;
-    OPENVR_SSL_free(st->data);
-    OPENVR_SSL_free(st);
+    VR_OPENSSL_free(st->data);
+    VR_OPENSSL_free(st);
 }
 
 int VR_OPENSSL_sk_num(const OPENSSL_STACK *st)

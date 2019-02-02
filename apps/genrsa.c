@@ -159,8 +159,8 @@ opthelp:
     if (hexe && dece) {
         VR_BIO_printf(bio_err, "e is %s (0x%s)\n", dece, hexe);
     }
-    OPENVR_SSL_free(hexe);
-    OPENVR_SSL_free(dece);
+    VR_OPENSSL_free(hexe);
+    VR_OPENSSL_free(dece);
     cb_data.password = passout;
     cb_data.prompt_info = outfile;
     assert(private);
@@ -176,7 +176,7 @@ opthelp:
     VR_RSA_free(rsa);
     VR_BIO_free_all(out);
     release_engine(eng);
-    OPENVR_SSL_free(passout);
+    VR_OPENSSL_free(passout);
     if (ret != 0)
         VR_ERR_print_errors(bio_err);
     return ret;
@@ -195,7 +195,7 @@ static int genrsa_cb(int p, int n, BN_GENCB *cb)
     if (p == 3)
         c = '\n';
     VR_BIO_write(VR_BN_GENCB_get_arg(cb), &c, 1);
-    (void)BIO_flush(VR_BN_GENCB_get_arg(cb));
+    (void)VR_BIO_flush(VR_BN_GENCB_get_arg(cb));
     return 1;
 }
 #endif

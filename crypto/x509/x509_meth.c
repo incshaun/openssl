@@ -32,15 +32,15 @@ X509_LOOKUP_METHOD *VR_X509_LOOKUP_meth_new(const char *name)
     return method;
 
 err:
-    OPENVR_SSL_free(method);
+    VR_OPENSSL_free(method);
     return NULL;
 }
 
 void VR_X509_LOOKUP_meth_free(X509_LOOKUP_METHOD *method)
 {
     if (method != NULL)
-        OPENVR_SSL_free(method->name);
-    OPENVR_SSL_free(method);
+        VR_OPENSSL_free(method->name);
+    VR_OPENSSL_free(method);
 }
 
 int VR_X509_LOOKUP_meth_set_new_item(X509_LOOKUP_METHOD *method,

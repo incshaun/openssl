@@ -64,7 +64,7 @@ static void pkey_hkdf_cleanup(EVP_PKEY_CTX *ctx)
     OPENVR_SSL_clear_free(kctx->salt, kctx->salt_len);
     OPENVR_SSL_clear_free(kctx->key, kctx->key_len);
     VR_OPENSSL_cleanse(kctx->info, kctx->info_len);
-    OPENVR_SSL_free(kctx);
+    VR_OPENSSL_free(kctx);
 }
 
 static int pkey_hkdf_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2)

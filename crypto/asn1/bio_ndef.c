@@ -97,7 +97,7 @@ BIO *VR_BIO_new_NDEF(BIO *out, ASN1_VALUE *val, const ASN1_ITEM *it)
 
  err:
     VR_BIO_free(asn_bio);
-    OPENVR_SSL_free(ndef_aux);
+    VR_OPENSSL_free(ndef_aux);
     return NULL;
 }
 
@@ -140,7 +140,7 @@ static int ndef_prefix_free(BIO *b, unsigned char **pbuf, int *plen,
 
     ndef_aux = *(NDEF_SUPPORT **)parg;
 
-    OPENVR_SSL_free(ndef_aux->derbuf);
+    VR_OPENSSL_free(ndef_aux->derbuf);
 
     ndef_aux->derbuf = NULL;
     *pbuf = NULL;
@@ -154,7 +154,7 @@ static int ndef_suffix_free(BIO *b, unsigned char **pbuf, int *plen,
     NDEF_SUPPORT **pndef_aux = (NDEF_SUPPORT **)parg;
     if (!ndef_prefix_free(b, pbuf, plen, parg))
         return 0;
-    OPENVR_SSL_free(*pndef_aux);
+    VR_OPENSSL_free(*pndef_aux);
     *pndef_aux = NULL;
     return 1;
 }

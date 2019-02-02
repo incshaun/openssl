@@ -152,7 +152,7 @@ EVP_PKEY *VR_EVP_PKEY_new(void)
     ret->lock = VR_CRYPTO_THREAD_lock_new();
     if (ret->lock == NULL) {
         EVPerr(EVP_F_EVP_PKEY_NEW, ERR_R_MALLOC_FAILURE);
-        OPENVR_SSL_free(ret);
+        VR_OPENSSL_free(ret);
         return NULL;
     }
     return ret;
@@ -602,7 +602,7 @@ void VR_EVP_PKEY_free(EVP_PKEY *x)
     VR_EVP_PKEY_free_it(x);
     VR_CRYPTO_THREAD_lock_free(x->lock);
     sk_VR_X509_ATTRIBUTE_pop_free(x->attributes, VR_X509_ATTRIBUTE_free);
-    OPENVR_SSL_free(x);
+    VR_OPENSSL_free(x);
 }
 
 static void VR_EVP_PKEY_free_it(EVP_PKEY *x)

@@ -197,9 +197,9 @@ static int dh_test(void)
     VR_BN_free(priv_key);
  err3:
  success:
-    OPENVR_SSL_free(abuf);
-    OPENVR_SSL_free(bbuf);
-    OPENVR_SSL_free(cbuf);
+    VR_OPENSSL_free(abuf);
+    VR_OPENSSL_free(bbuf);
+    VR_OPENSSL_free(cbuf);
     VR_DH_free(b);
     VR_DH_free(a);
     VR_DH_free(c);
@@ -555,9 +555,9 @@ static int rfc5114_test(void)
         dhA = NULL;
         VR_DH_free(dhB);
         dhB = NULL;
-        OPENVR_SSL_free(Z1);
+        VR_OPENSSL_free(Z1);
         Z1 = NULL;
-        OPENVR_SSL_free(Z2);
+        VR_OPENSSL_free(Z2);
         Z2 = NULL;
     }
 
@@ -586,7 +586,7 @@ static int rfc5114_test(void)
     VR_ERR_clear_error();
     VR_BN_free(bady);
     VR_DH_free(dhA);
-    OPENVR_SSL_free(Z1);
+    VR_OPENSSL_free(Z1);
     return 1;
 
  bad_err:
@@ -595,8 +595,8 @@ static int rfc5114_test(void)
     VR_DH_free(dhB);
     VR_BN_free(pub_key);
     VR_BN_free(priv_key);
-    OPENVR_SSL_free(Z1);
-    OPENVR_SSL_free(Z2);
+    VR_OPENSSL_free(Z1);
+    VR_OPENSSL_free(Z2);
     TEST_error("Initialisation error RFC5114 set %d\n", i + 1);
     return 0;
 
@@ -604,8 +604,8 @@ static int rfc5114_test(void)
     VR_BN_free(bady);
     VR_DH_free(dhA);
     VR_DH_free(dhB);
-    OPENVR_SSL_free(Z1);
-    OPENVR_SSL_free(Z2);
+    VR_OPENSSL_free(Z1);
+    VR_OPENSSL_free(Z2);
     TEST_error("Test failed RFC5114 set %d\n", i + 1);
     return 0;
 }

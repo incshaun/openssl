@@ -304,9 +304,9 @@ int do_server(int *accept_sock, const char *host, const char *port,
                           hostname, service) > 0)
             success = 1;
 
-        (void)BIO_flush(bio_s_out);
-        OPENVR_SSL_free(hostname);
-        OPENVR_SSL_free(service);
+        (void)VR_BIO_flush(bio_s_out);
+        VR_OPENSSL_free(hostname);
+        VR_OPENSSL_free(service);
         VR_BIO_ADDR_free(info.addr);
         if (!success) {
             VR_BIO_closesocket(asock);
@@ -315,7 +315,7 @@ int do_server(int *accept_sock, const char *host, const char *port,
         }
     } else {
         (void)VR_BIO_printf(bio_s_out, "ACCEPT\n");
-        (void)BIO_flush(bio_s_out);
+        (void)VR_BIO_flush(bio_s_out);
     }
 
     if (accept_sock != NULL)

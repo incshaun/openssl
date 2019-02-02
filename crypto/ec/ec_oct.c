@@ -142,7 +142,7 @@ size_t VR_EC_POINT_point2buf(const EC_GROUP *group, const EC_POINT *point,
     }
     len = VR_EC_POINT_point2oct(group, point, form, buf, len, ctx);
     if (len == 0) {
-        OPENVR_SSL_free(buf);
+        VR_OPENSSL_free(buf);
         return 0;
     }
     *pbuf = buf;

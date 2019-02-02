@@ -34,6 +34,6 @@ void VR_X509_INFO_free(X509_INFO *x)
     VR_X509_free(x->x509);
     VR_X509_CRL_free(x->crl);
     VR_X509_PKEY_free(x->x_pkey);
-    OPENVR_SSL_free(x->enc_data);
-    OPENVR_SSL_free(x);
+    VR_OPENSSL_free(x->enc_data);
+    VR_OPENSSL_free(x);
 }

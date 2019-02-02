@@ -225,7 +225,7 @@ static unsigned char *multihexstr2buf(const char *str[3], size_t *len)
             lo = VR_OPENSSL_hexchar2int(str[outer][inner + 1]);
 
             if (hi < 0 || lo < 0) {
-                OPENVR_SSL_free(outbuf);
+                VR_OPENSSL_free(outbuf);
                 return NULL;
             }
             outbuf[curr++] = (hi << 4) | lo;
@@ -257,19 +257,19 @@ static int load_record(SSL3_RECORD *rec, RECORD_DATA *recd, unsigned char **key,
 
     rec->length = ptlen;
     memcpy(rec->data, pt, ptlen);
-    OPENVR_SSL_free(pt);
+    VR_OPENSSL_free(pt);
     memcpy(seq, sq, SEQ_NUM_SIZE);
-    OPENVR_SSL_free(sq);
+    VR_OPENSSL_free(sq);
     memcpy(iv, ivtmp, ivlen);
-    OPENVR_SSL_free(ivtmp);
+    VR_OPENSSL_free(ivtmp);
 
     return 1;
  err:
-    OPENVR_SSL_free(*key);
+    VR_OPENSSL_free(*key);
     *key = NULL;
-    OPENVR_SSL_free(ivtmp);
-    OPENVR_SSL_free(sq);
-    OPENVR_SSL_free(pt);
+    VR_OPENSSL_free(ivtmp);
+    VR_OPENSSL_free(sq);
+    VR_OPENSSL_free(pt);
     return 0;
 }
 
@@ -295,7 +295,7 @@ static int test_record(SSL3_RECORD *rec, RECORD_DATA *recd, int enc)
     ret = 1;
 
  err:
-    OPENVR_SSL_free(refd);
+    VR_OPENSSL_free(refd);
     return ret;
 }
 
@@ -387,10 +387,10 @@ static int test_VR_tls13_encryption(void)
             goto err;
         }
 
-        OPENVR_SSL_free(rec.data);
-        OPENVR_SSL_free(key);
-        OPENVR_SSL_free(iv);
-        OPENVR_SSL_free(seq);
+        VR_OPENSSL_free(rec.data);
+        VR_OPENSSL_free(key);
+        VR_OPENSSL_free(iv);
+        VR_OPENSSL_free(seq);
         rec.data = NULL;
         key = NULL;
         iv = NULL;
@@ -401,10 +401,10 @@ static int test_VR_tls13_encryption(void)
     ret = 1;
 
  err:
-    OPENVR_SSL_free(rec.data);
-    OPENVR_SSL_free(key);
-    OPENVR_SSL_free(iv);
-    OPENVR_SSL_free(seq);
+    VR_OPENSSL_free(rec.data);
+    VR_OPENSSL_free(key);
+    VR_OPENSSL_free(iv);
+    VR_OPENSSL_free(seq);
     VR_SSL_free(s);
     VR_SSL_CTX_free(ctx);
     return ret;

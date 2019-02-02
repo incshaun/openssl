@@ -165,7 +165,7 @@ static int ext_VR_name_cmp(const OPENSSL_STRING *a, const OPENSSL_STRING *b)
 
 static void exts_cleanup(OPENSSL_STRING *x)
 {
-    OPENVR_SSL_free((char *)x);
+    VR_OPENSSL_free((char *)x);
 }
 
 /*
@@ -194,7 +194,7 @@ static int duplicated(LHASH_OF(OPENSSL_STRING) *addexts, char *kv)
         if (!isspace(p[-1]))
             break;
     if (p == kv) {
-        OPENVR_SSL_free(kv);
+        VR_OPENSSL_free(kv);
         return 1;
     }
     *p = '\0';
@@ -202,7 +202,7 @@ static int duplicated(LHASH_OF(OPENSSL_STRING) *addexts, char *kv)
     /* Finally have a clean "key"; see if it's there [by attempt to add it]. */
     if ((p = (char *)lh_OPENSSL_STRING_insert(addexts, (OPENSSL_STRING*)kv))
         != NULL || lh_OPENSSL_STRING_error(addexts)) {
-        OPENVR_SSL_free(p != NULL ? p : kv);
+        VR_OPENSSL_free(p != NULL ? p : kv);
         return -1;
     }
 
@@ -959,15 +959,15 @@ int req_main(int argc, char **argv)
 #ifndef OPENSSL_NO_ENGINE
     VR_ENGINE_free(gen_eng);
 #endif
-    OPENVR_SSL_free(keyalgstr);
+    VR_OPENSSL_free(keyalgstr);
     VR_X509_REQ_free(req);
     VR_X509_free(x509ss);
     VR_ASN1_INTEGER_free(serial);
     release_engine(e);
     if (passin != nofree_passin)
-        OPENVR_SSL_free(passin);
+        VR_OPENSSL_free(passin);
     if (passout != nofree_passout)
-        OPENVR_SSL_free(passout);
+        VR_OPENSSL_free(passout);
     return ret;
 }
 
@@ -1342,7 +1342,7 @@ static int build_data(char *text, const char *def,
  start:
     if (!batch)
         VR_BIO_printf(bio_err, "%s [%s]:", text, def);
-    (void)BIO_flush(bio_err);
+    (void)VR_BIO_flush(bio_err);
     if (value != NULL) {
         if (!join(buf, buf_size, value, "\n", desc1))
             return 0;
@@ -1592,7 +1592,7 @@ static int genpkey_cb(EVP_PKEY_CTX *ctx)
     if (p == 3)
         c = '\n';
     VR_BIO_write(b, &c, 1);
-    (void)BIO_flush(b);
+    (void)VR_BIO_flush(b);
     return 1;
 }
 

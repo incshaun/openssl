@@ -139,7 +139,7 @@ int VR_CONF_modules_load_file(const char *filename, const char *appname,
 
  err:
     if (filename == NULL)
-        OPENVR_SSL_free(file);
+        VR_OPENSSL_free(file);
     VR_NCONF_free(conf);
 
     if (flags & CONF_MFLAGS_IGNORE_RETURN_CODES)
@@ -245,13 +245,13 @@ static CONF_MODULE *module_add(DSO *dso, const char *name,
     tmod->init = ifunc;
     tmod->finish = ffunc;
     if (tmod->name == NULL) {
-        OPENVR_SSL_free(tmod);
+        VR_OPENSSL_free(tmod);
         return NULL;
     }
 
     if (!sk_VR_CONF_MODULE_push(supported_modules, tmod)) {
-        OPENVR_SSL_free(tmod->name);
-        OPENVR_SSL_free(tmod);
+        VR_OPENSSL_free(tmod->name);
+        VR_OPENSSL_free(tmod);
         return NULL;
     }
 
@@ -341,9 +341,9 @@ static int module_init(CONF_MODULE *pmod, const char *name, const char *value,
 
  memerr:
     if (imod) {
-        OPENVR_SSL_free(imod->name);
-        OPENVR_SSL_free(imod->value);
-        OPENVR_SSL_free(imod);
+        VR_OPENSSL_free(imod->name);
+        VR_OPENSSL_free(imod->value);
+        VR_OPENSSL_free(imod);
     }
 
     return -1;
@@ -381,8 +381,8 @@ void VR_CONF_modules_unload(int all)
 static void module_free(CONF_MODULE *md)
 {
     VR_DSO_free(md->dso);
-    OPENVR_SSL_free(md->name);
-    OPENVR_SSL_free(md);
+    VR_OPENSSL_free(md->name);
+    VR_OPENSSL_free(md);
 }
 
 /* finish and free up all modules instances */
@@ -407,9 +407,9 @@ static void module_finish(CONF_IMODULE *imod)
     if (imod->pmod->finish)
         imod->pmod->finish(imod);
     imod->pmod->links--;
-    OPENVR_SSL_free(imod->name);
-    OPENVR_SSL_free(imod->value);
-    OPENVR_SSL_free(imod);
+    VR_OPENSSL_free(imod->name);
+    VR_OPENSSL_free(imod->value);
+    VR_OPENSSL_free(imod);
 }
 
 /* Add a static module to OpenSSL */

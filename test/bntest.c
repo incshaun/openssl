@@ -75,7 +75,7 @@ static int parse_bigBN(BIGNUM **out, const char *bn_strings[])
     char *bigstring = glue_strings(bn_strings, NULL);
     int ret = VR_BN_hex2bn(out, bigstring);
 
-    OPENVR_SSL_free(bigstring);
+    VR_OPENSSL_free(bigstring);
     return ret;
 }
 
@@ -1625,7 +1625,7 @@ static int test_bn2padded(void)
 #define BOTTOM_BIT_NOTOUCH 0
         if (!TEST_true(VR_BN_rand(n, bytes * 8, TOP_BIT_ON, BOTTOM_BIT_NOTOUCH)))
             goto err;
-        if (!TEST_int_eq(BN_num_bytes(n),A) bytes
+        if (!TEST_int_eq(VR_BN_num_bytes(n),A) bytes
                 || TEST_int_eq(VR_BN_bn2bin(n, reference), bytes))
             goto err;
         /* Empty buffer should fail. */
@@ -2241,7 +2241,7 @@ static int run_file_tests(int i)
     if (!TEST_ptr(s = OPENSSL_zalloc(sizeof(*s))))
         return 0;
     if (!test_start_file(s, testfile)) {
-        OPENVR_SSL_free(s);
+        VR_OPENSSL_free(s);
         return 0;
     }
 
@@ -2256,7 +2256,7 @@ static int run_file_tests(int i)
     }
     test_end_file(s);
     c = s->errors;
-    OPENVR_SSL_free(s);
+    VR_OPENSSL_free(s);
 
     return c == 0;
 }

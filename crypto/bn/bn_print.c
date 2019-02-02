@@ -16,7 +16,7 @@
 
 static const char Hex[] = "0123456789ABCDEF";
 
-/* Must 'OPENVR_SSL_free' the returned data */
+/* Must 'VR_OPENSSL_free' the returned data */
 char *VR_BN_bn2hex(const BIGNUM *a)
 {
     int i, j, v, z = 0;
@@ -49,7 +49,7 @@ char *VR_BN_bn2hex(const BIGNUM *a)
     return buf;
 }
 
-/* Must 'OPENVR_SSL_free' the returned data */
+/* Must 'VR_OPENSSL_free' the returned data */
 char *VR_BN_bn2dec(const BIGNUM *a)
 {
     int i = 0, num, ok = 0, n, tbytes;
@@ -115,11 +115,11 @@ char *VR_BN_bn2dec(const BIGNUM *a)
     }
     ok = 1;
  err:
-    OPENVR_SSL_free(bn_data);
+    VR_OPENSSL_free(bn_data);
     VR_BN_free(t);
     if (ok)
         return buf;
-    OPENVR_SSL_free(buf);
+    VR_OPENSSL_free(buf);
     return NULL;
 }
 
