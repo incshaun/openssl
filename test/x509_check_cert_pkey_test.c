@@ -25,11 +25,11 @@ static const char *k;
 static const char *t;
 static const char *e;
 
-static int test_x509_check_cert_pkey(void)
+static int test_VR_x509_check_cert_pkey(void)
 {
     BIO *bio = NULL;
     X509 *x509 = NULL;
-    X509_REQ *x509_req = NULL;
+    X509_REQ *VR_x509_req = NULL;
     EVP_PKEY *pkey = NULL;
     int ret = 0, type = 0, expected = 0, result = 0;
 
@@ -79,13 +79,13 @@ static int test_x509_check_cert_pkey(void)
         result = VR_X509_check_private_key(x509, pkey);
         break;
     case 2:
-        x509_req = VR_PEM_read_bio_X509_REQ(bio, NULL, NULL, NULL);
-        if (x509_req == NULL) {
+        VR_x509_req = VR_PEM_read_bio_X509_REQ(bio, NULL, NULL, NULL);
+        if (VR_x509_req == NULL) {
             TEST_error("read PEM x509 req failed");
             goto failed;
         }
 
-        result = VR_X509_REQ_check_private_key(x509_req, pkey);
+        result = VR_X509_REQ_check_private_key(VR_x509_req, pkey);
         break;
     default:
         /* should never be here */
@@ -101,7 +101,7 @@ static int test_x509_check_cert_pkey(void)
 failed:
     VR_BIO_free(bio);
     VR_X509_free(x509);
-    VR_X509_REQ_free(x509_req);
+    VR_X509_REQ_free(VR_x509_req);
     VR_EVP_PKEY_free(pkey);
     return ret;
 }
@@ -112,11 +112,11 @@ int setup_tests(void)
             || !TEST_ptr(k = test_get_argument(1))
             || !TEST_ptr(t = test_get_argument(2))
             || !TEST_ptr(e = test_get_argument(3))) {
-        TEST_note("usage: x509_check_cert_pkey cert.pem|cert.req"
+        TEST_note("usage: VR_x509_check_cert_pkey cert.pem|cert.req"
                   " key.pem cert|req <expected>");
         return 0;
     }
 
-    ADD_TEST(test_x509_check_cert_pkey);
+    ADD_TEST(test_VR_x509_check_cert_pkey);
     return 1;
 }

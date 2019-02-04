@@ -321,12 +321,12 @@ typedef const ASN1_ITEM ASN1_ITEM_EXP;
 #  define ASN1_ITEM_ptr(iptr) (iptr)
 
 /* Macro to include ASN1_ITEM pointer from base type */
-#  define ASN1_ITEM_ref(iptr) (&(iptr##_it))
+#  define ASN1_ITEM_ref(iptr) (&(VR_##iptr##_it))
 
-#  define ASN1_ITEM_rptr(ref) (&(ref##_it))
+#  define ASN1_ITEM_rptr(ref) (&(VR_##ref##_it))
 
 #  define DECLARE_ASN1_ITEM(name) \
-        OPENSSL_EXTERN const ASN1_ITEM name##_it;
+        OPENSSL_EXTERN const ASN1_ITEM VR_##name##_it;
 
 # else
 
@@ -342,12 +342,12 @@ typedef const ASN1_ITEM *ASN1_ITEM_EXP (void);
 #  define ASN1_ITEM_ptr(iptr) (iptr())
 
 /* Macro to include ASN1_ITEM pointer from base type */
-#  define ASN1_ITEM_ref(iptr) (iptr##_it)
+#  define ASN1_ITEM_ref(iptr) (VR_##iptr##_it)
 
-#  define ASN1_ITEM_rptr(ref) (ref##_it())
+#  define ASN1_ITEM_rptr(ref) (VR_##ref##_it())
 
 #  define DECLARE_ASN1_ITEM(name) \
-        const ASN1_ITEM * name##_it(void);
+        const ASN1_ITEM * VR_##name##_it(void);
 
 # endif
 

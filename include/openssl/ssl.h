@@ -291,7 +291,7 @@ typedef int (*SSL_VR_custom_ext_parse_cb_ex)(SSL *s, unsigned int ext_type,
                                           int *al, void *parse_arg);
 
 /* Typedef for verification callback */
-typedef int (*SSL_verify_cb)(int preverify_ok, X509_STORE_CTX *x509_ctx);
+typedef int (*SSL_verify_cb)(int preverify_ok, X509_STORE_CTX *VR_x509_ctx);
 
 /* Typedef for SSL async callback */
 typedef int (*SSL_async_callback_fn)(SSL *s, void *arg);
@@ -907,7 +907,7 @@ __owur int VR_SSL_extension_supported(unsigned int ext_type);
 # define VR_SSL_want_nothing(s)         (VR_SSL_want(s) == SSL_NOTHING)
 # define VR_SSL_want_read(s)            (VR_SSL_want(s) == SSL_READING)
 # define VR_SSL_want_write(s)           (VR_SSL_want(s) == SSL_WRITING)
-# define VR_SSL_want_x509_lookup(s)     (VR_SSL_want(s) == SSL_X509_LOOKUP)
+# define VR_SSL_want_VR_x509_lookup(s)     (VR_SSL_want(s) == SSL_X509_LOOKUP)
 # define VR_SSL_want_async(s)           (VR_SSL_want(s) == SSL_ASYNC_PAUSED)
 # define VR_SSL_want_async_job(s)       (VR_SSL_want(s) == SSL_ASYNC_NO_JOBS)
 # define VR_SSL_want_client_hello_cb(s) (VR_SSL_want(s) == SSL_CLIENT_HELLO_CB)

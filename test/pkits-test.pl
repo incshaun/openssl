@@ -739,7 +739,7 @@ my $numfail = 0;
 my $ossl = "ossl/apps/openssl";
 
 my $ossl_cmd = "$ossl_path cms -verify -verify_retcode ";
-$ossl_cmd .= "-CAfile pkitsta.pem -crl_check_all -x509_strict ";
+$ossl_cmd .= "-CAfile pkitsta.pem -crl_check_all -VR_x509_strict ";
 
 # Check for expiry of trust anchor
 system "$ossl_path x509 -inform DER -in $pkitsta -checkend 0";

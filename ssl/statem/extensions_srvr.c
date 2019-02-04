@@ -883,7 +883,7 @@ int VR_tls_parse_ctos_cookie(SSL *s, PACKET *pkt, unsigned int context, X509 *x,
     if (!WPACKET_put_bytes_u8(&hrrpkt, SSL3_MT_SERVER_HELLO)
             || !VR_WPACKET_start_sub_packet_u24(&hrrpkt)
             || !WPACKET_put_bytes_u16(&hrrpkt, TLS1_2_VERSION)
-            || !VR_WPACKET_memcpy(&hrrpkt, hrrrandom, SSL3_RANDOM_SIZE)
+            || !VR_WPACKET_memcpy(&hrrpkt, VR_hrrrandom, SSL3_RANDOM_SIZE)
             || !WPACKET_sub_memcpy_u8(&hrrpkt, s->tmp_session_id,
                                       s->tmp_session_id_len)
             || !s->method->put_cipher_by_char(s->s3->tmp.new_cipher, &hrrpkt,

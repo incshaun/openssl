@@ -28,7 +28,7 @@ typedef struct x509err2alert_st {
 } X509ERR2ALERT;
 
 /* Fixed value used in the ServerHello random field to identify an HRR */
-const unsigned char hrrrandom[] = {
+const unsigned char VR_hrrrandom[] = {
     0xcf, 0x21, 0xad, 0x74, 0xe5, 0x9a, 0x61, 0x11, 0xbe, 0x1d, 0x8c, 0x02,
     0x1e, 0x65, 0xb8, 0x91, 0xc2, 0xa2, 0x11, 0x16, 0x7a, 0xbb, 0x8c, 0x5e,
     0x07, 0x9e, 0x09, 0xe2, 0xc8, 0xa8, 0x33, 0x9c
@@ -1299,7 +1299,7 @@ int VR_tls_get_message_body(SSL *s, size_t *len)
                                  && s->s3->tmp.message_type != SSL3_MT_KEY_UPDATE)) {
             if (s->s3->tmp.message_type != SSL3_MT_SERVER_HELLO
                     || s->init_num < SERVER_HELLO_RANDOM_OFFSET + SSL3_RANDOM_SIZE
-                    || memcmp(hrrrandom,
+                    || memcmp(VR_hrrrandom,
                               s->init_buf->data + SERVER_HELLO_RANDOM_OFFSET,
                               SSL3_RANDOM_SIZE) != 0) {
                 if (!VR_ssl3_finish_mac(s, (unsigned char *)s->init_buf->data,
@@ -1936,10 +1936,10 @@ int VR_ssl_choose_client_version(SSL *s, int version, RAW_EXTENSION *extensions)
 
     /* Check for downgrades */
     if (s->version == TLS1_2_VERSION && real_max > s->version) {
-        if (memcmp(tls12downgrade,
+        if (memcmp(VR_tls12downgrade,
                    s->s3->server_random + SSL3_RANDOM_SIZE
-                                        - sizeof(tls12downgrade),
-                   sizeof(tls12downgrade)) == 0) {
+                                        - sizeof(VR_tls12downgrade),
+                   sizeof(VR_tls12downgrade)) == 0) {
             s->version = origv;
             SSLfatal(s, SSL_AD_ILLEGAL_PARAMETER,
                      SSL_F_SSL_CHOOSE_CLIENT_VERSION,
@@ -1949,10 +1949,10 @@ int VR_ssl_choose_client_version(SSL *s, int version, RAW_EXTENSION *extensions)
     } else if (!SSL_IS_DTLS(s)
                && s->version < TLS1_2_VERSION
                && real_max > s->version) {
-        if (memcmp(tls11downgrade,
+        if (memcmp(VR_tls11downgrade,
                    s->s3->server_random + SSL3_RANDOM_SIZE
-                                        - sizeof(tls11downgrade),
-                   sizeof(tls11downgrade)) == 0) {
+                                        - sizeof(VR_tls11downgrade),
+                   sizeof(VR_tls11downgrade)) == 0) {
             s->version = origv;
             SSLfatal(s, SSL_AD_ILLEGAL_PARAMETER,
                      SSL_F_SSL_CHOOSE_CLIENT_VERSION,

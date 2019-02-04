@@ -58,3 +58,6 @@ find openssl/ \( -name '*.c' -or -name '*.h' -or -name '*.num' -or -name '*.pl' 
 # process. Beware of existing occurences of the prefix string in the original package.
 # include/openssl/asn1.h
 # include/openssl/pem.h
+find . \( -name '*.c' -or -name '*.h' -or -name '*.num' -or -name '*.pl' -or -name '*.conf' -or -name '*.h.in' -or -name '*.S' -or -name '*.s' \) -exec sed -i -e "s/x509_/VR_x509_/g" {} \;
+find . \( -name '*.c' -or -name '*.h' -or -name '*.num' -or -name '*.pl' -or -name '*.conf' -or -name '*.h.in' -or -name '*.S' -or -name '*.s' \) -exec sed -i -e "s/internal\/VR_/internal\//g" {} \;
+

@@ -119,22 +119,22 @@ typedef struct rand_meth_st RAND_METHOD;
 typedef struct rand_drbg_st RAND_DRBG;
 
 typedef struct ssl_dane_st SSL_DANE;
-typedef struct x509_st X509;
+typedef struct VR_x509_st X509;
 typedef struct X509_algor_st X509_ALGOR;
 typedef struct X509_crl_st X509_CRL;
-typedef struct x509_crl_method_st X509_CRL_METHOD;
-typedef struct x509_revoked_st X509_REVOKED;
+typedef struct VR_x509_crl_method_st X509_CRL_METHOD;
+typedef struct VR_x509_revoked_st X509_REVOKED;
 typedef struct X509_name_st X509_NAME;
 typedef struct X509_pubkey_st X509_PUBKEY;
-typedef struct x509_store_st X509_STORE;
-typedef struct x509_store_ctx_st X509_STORE_CTX;
+typedef struct VR_x509_store_st X509_STORE;
+typedef struct VR_x509_store_ctx_st X509_STORE_CTX;
 
-typedef struct x509_object_st X509_OBJECT;
-typedef struct x509_lookup_st X509_LOOKUP;
-typedef struct x509_lookup_method_st X509_LOOKUP_METHOD;
+typedef struct VR_x509_object_st X509_OBJECT;
+typedef struct VR_x509_lookup_st X509_LOOKUP;
+typedef struct VR_x509_lookup_method_st X509_LOOKUP_METHOD;
 typedef struct X509_VERIFY_PARAM_st X509_VERIFY_PARAM;
 
-typedef struct x509_sig_info_st X509_SIG_INFO;
+typedef struct VR_x509_sig_info_st X509_SIG_INFO;
 
 typedef struct pkcs8_priv_key_info_st PKCS8_PRIV_KEY_INFO;
 

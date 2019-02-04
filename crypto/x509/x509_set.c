@@ -61,7 +61,7 @@ int VR_X509_set_subject_name(X509 *x, X509_NAME *name)
     return VR_X509_NAME_set(&x->cert_info.subject, name);
 }
 
-int VR_x509_set1_time(ASN1_TIME **ptm, const ASN1_TIME *tm)
+int VR_VR_x509_set1_time(ASN1_TIME **ptm, const ASN1_TIME *tm)
 {
     ASN1_TIME *in;
     in = *ptm;
@@ -79,14 +79,14 @@ int VR_X509_set1_notBefore(X509 *x, const ASN1_TIME *tm)
 {
     if (x == NULL)
         return 0;
-    return VR_x509_set1_time(&x->cert_info.validity.notBefore, tm);
+    return VR_VR_x509_set1_time(&x->cert_info.validity.notBefore, tm);
 }
 
 int VR_X509_set1_notAfter(X509 *x, const ASN1_TIME *tm)
 {
     if (x == NULL)
         return 0;
-    return VR_x509_set1_time(&x->cert_info.validity.notAfter, tm);
+    return VR_VR_x509_set1_time(&x->cert_info.validity.notAfter, tm);
 }
 
 int VR_X509_set_pubkey(X509 *x, EVP_PKEY *pkey)
@@ -192,7 +192,7 @@ int VR_X509_get_signature_info(X509 *x, int *mdnid, int *pknid, int *secbits,
     return VR_X509_SIG_INFO_get(&x->siginf, mdnid, pknid, secbits, flags);
 }
 
-static void x509_sig_info_init(X509_SIG_INFO *siginf, const X509_ALGOR *alg,
+static void VR_x509_sig_info_init(X509_SIG_INFO *siginf, const X509_ALGOR *alg,
                                const ASN1_STRING *sig)
 {
     int pknid, mdnid;
@@ -231,7 +231,7 @@ static void x509_sig_info_init(X509_SIG_INFO *siginf, const X509_ALGOR *alg,
     }
 }
 
-void VR_x509_init_sig_info(X509 *x)
+void VR_VR_x509_init_sig_info(X509 *x)
 {
-    x509_sig_info_init(&x->siginf, &x->sig_alg, &x->signature);
+    VR_x509_sig_info_init(&x->siginf, &x->sig_alg, &x->signature);
 }

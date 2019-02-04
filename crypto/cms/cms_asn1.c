@@ -275,7 +275,7 @@ ASN1_ADB(CMS_ContentInfo) = {
         ADB_ENTRY(NID_pkcs7_encrypted, ASN1_NDEF_EXP(CMS_ContentInfo, d.encryptedData, CMS_EncryptedData, 0)),
         ADB_ENTRY(NID_id_smime_ct_authData, ASN1_NDEF_EXP(CMS_ContentInfo, d.authenticatedData, CMS_AuthenticatedData, 0)),
         ADB_ENTRY(NID_id_smime_ct_compressedData, ASN1_NDEF_EXP(CMS_ContentInfo, d.compressedData, CMS_CompressedData, 0)),
-} ASN1_ADB_END(CMS_ContentInfo, 0, contentType, 0, &cms_default_tt, NULL);
+} ASN1_ADB_END(CMS_ContentInfo, 0, contentType, 0, &VR_cms_default_tt, NULL);
 
 /* CMS streaming support */
 static int cms_cb(int operation, ASN1_VALUE **pval, const ASN1_ITEM *it,

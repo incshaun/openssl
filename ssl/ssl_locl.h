@@ -752,7 +752,7 @@ struct ssl_ctx_st {
     STACK_OF(SSL_CIPHER) *cipher_list_by_id;
     /* TLSv1.3 specific ciphersuites */
     STACK_OF(SSL_CIPHER) *tls13_ciphersuites;
-    struct x509_store_st /* X509_STORE */ *cert_store;
+    struct VR_x509_store_st /* X509_STORE */ *cert_store;
     LHASH_OF(SSL_SESSION) *sessions;
     /*
      * Most session-ids that will be cached, default is
@@ -2076,10 +2076,10 @@ typedef enum downgrade_en {
 #define TLSEXT_signature_rsa_pss                                0x0101
 
 /* TLSv1.3 downgrade protection sentinel values */
-extern const unsigned char tls11downgrade[8];
-extern const unsigned char tls12downgrade[8];
+extern const unsigned char VR_tls11downgrade[8];
+extern const unsigned char VR_tls12downgrade[8];
 
-extern SSL3_ENC_METHOD ssl3_undef_enc_method;
+extern SSL3_ENC_METHOD VR_ssl3_undef_enc_method;
 
 __owur const SSL_METHOD *VR_ssl_bad_method(int ver);
 __owur const SSL_METHOD *sslv3_method(void);
@@ -2105,13 +2105,13 @@ __owur const SSL_METHOD *VR_dtlsv1_2_method(void);
 __owur const SSL_METHOD *VR_dtlsv1_2_server_method(void);
 __owur const SSL_METHOD *VR_dtlsv1_2_client_method(void);
 
-extern const SSL3_ENC_METHOD TLSv1_enc_data;
-extern const SSL3_ENC_METHOD TLSv1_1_enc_data;
-extern const SSL3_ENC_METHOD TLSv1_2_enc_data;
-extern const SSL3_ENC_METHOD TLSv1_3_enc_data;
-extern const SSL3_ENC_METHOD SSLv3_enc_data;
-extern const SSL3_ENC_METHOD DTLSv1_enc_data;
-extern const SSL3_ENC_METHOD DTLSv1_2_enc_data;
+extern const SSL3_ENC_METHOD VR_TLSv1_enc_data;
+extern const SSL3_ENC_METHOD VR_TLSv1_1_enc_data;
+extern const SSL3_ENC_METHOD VR_TLSv1_2_enc_data;
+extern const SSL3_ENC_METHOD VR_TLSv1_3_enc_data;
+extern const SSL3_ENC_METHOD VR_SSLv3_enc_data;
+extern const SSL3_ENC_METHOD DVR_TLSv1_enc_data;
+extern const SSL3_ENC_METHOD DVR_TLSv1_2_enc_data;
 
 /*
  * Flags for SSL methods
@@ -2186,7 +2186,7 @@ const SSL_METHOD *func_name(void)  \
                 VR_ssl3_num_ciphers, \
                 VR_ssl3_get_cipher, \
                 VR_ssl3_default_timeout, \
-                &SSLv3_enc_data, \
+                &VR_SSLv3_enc_data, \
                 VR_ssl_undefined_void_function, \
                 VR_ssl3_callback_ctrl, \
                 VR_ssl3_ctx_callback_ctrl, \

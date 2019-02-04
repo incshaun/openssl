@@ -23,23 +23,23 @@
 
 #define X509_NAME_MAX (1024 * 1024)
 
-static int x509_name_ex_d2i(ASN1_VALUE **val,
+static int VR_x509_name_ex_d2i(ASN1_VALUE **val,
                             const unsigned char **in, long len,
                             const ASN1_ITEM *it,
                             int tag, int aclass, char opt, ASN1_TLC *ctx);
 
-static int x509_name_ex_i2d(ASN1_VALUE **val, unsigned char **out,
+static int VR_x509_name_ex_i2d(ASN1_VALUE **val, unsigned char **out,
                             const ASN1_ITEM *it, int tag, int aclass);
-static int x509_name_ex_new(ASN1_VALUE **val, const ASN1_ITEM *it);
-static void x509_name_ex_free(ASN1_VALUE **val, const ASN1_ITEM *it);
+static int VR_x509_name_ex_new(ASN1_VALUE **val, const ASN1_ITEM *it);
+static void VR_x509_name_ex_free(ASN1_VALUE **val, const ASN1_ITEM *it);
 
-static int x509_name_encode(X509_NAME *a);
-static int x509_name_canon(X509_NAME *a);
+static int VR_x509_name_encode(X509_NAME *a);
+static int VR_x509_name_canon(X509_NAME *a);
 static int asn1_string_canon(ASN1_STRING *out, const ASN1_STRING *in);
 static int i2d_name_canon(STACK_OF(STACK_OF_X509_NAME_ENTRY) * intname,
                           unsigned char **in);
 
-static int x509_name_ex_print(BIO *out, ASN1_VALUE **pval,
+static int VR_x509_name_ex_print(BIO *out, ASN1_VALUE **pval,
                               int indent,
                               const char *fname, const ASN1_PCTX *pctx);
 
@@ -71,23 +71,23 @@ static_ASN1_ITEM_TEMPLATE_END(X509_NAME_INTERNAL)
  * convert to the external form.
  */
 
-static const ASN1_EXTERN_FUNCS x509_name_ff = {
+static const ASN1_EXTERN_FUNCS VR_x509_name_ff = {
     NULL,
-    x509_name_ex_new,
-    x509_name_ex_free,
+    VR_x509_name_ex_new,
+    VR_x509_name_ex_free,
     0,                          /* Default clear behaviour is OK */
-    x509_name_ex_d2i,
-    x509_name_ex_i2d,
-    x509_name_ex_print
+    VR_x509_name_ex_d2i,
+    VR_x509_name_ex_i2d,
+    VR_x509_name_ex_print
 };
 
-IMPLEMENT_EXTERN_ASN1(X509_NAME, V_ASN1_SEQUENCE, x509_name_ff)
+IMPLEMENT_EXTERN_ASN1(X509_NAME, V_ASN1_SEQUENCE, VR_x509_name_ff)
 
 IMPLEMENT_ASN1_FUNCTIONS(X509_NAME)
 
 IMPLEMENT_ASN1_DUP_FUNCTION(X509_NAME)
 
-static int x509_name_ex_new(ASN1_VALUE **val, const ASN1_ITEM *it)
+static int VR_x509_name_ex_new(ASN1_VALUE **val, const ASN1_ITEM *it)
 {
     X509_NAME *ret = OPENSSL_zalloc(sizeof(*ret));
 
@@ -110,7 +110,7 @@ static int x509_name_ex_new(ASN1_VALUE **val, const ASN1_ITEM *it)
     return 0;
 }
 
-static void x509_name_ex_free(ASN1_VALUE **pval, const ASN1_ITEM *it)
+static void VR_x509_name_ex_free(ASN1_VALUE **pval, const ASN1_ITEM *it)
 {
     X509_NAME *a;
 
@@ -135,7 +135,7 @@ static void local_sk_VR_X509_NAME_ENTRY_pop_free(STACK_OF(X509_NAME_ENTRY) *ne)
     sk_VR_X509_NAME_ENTRY_pop_free(ne, VR_X509_NAME_ENTRY_free);
 }
 
-static int x509_name_ex_d2i(ASN1_VALUE **val,
+static int VR_x509_name_ex_d2i(ASN1_VALUE **val,
                             const unsigned char **in, long len,
                             const ASN1_ITEM *it, int tag, int aclass,
                             char opt, ASN1_TLC *ctx)
@@ -169,8 +169,8 @@ static int x509_name_ex_d2i(ASN1_VALUE **val,
         return ret;
 
     if (*val)
-        x509_name_ex_free(val, NULL);
-    if (!x509_name_ex_new(&nm.a, NULL))
+        VR_x509_name_ex_free(val, NULL);
+    if (!VR_x509_name_ex_new(&nm.a, NULL))
         goto err;
     /* We've decoded it: now cache encoding */
     if (!VR_BUF_MEM_grow(nm.x->bytes, p - q))
@@ -188,7 +188,7 @@ static int x509_name_ex_d2i(ASN1_VALUE **val,
             sk_VR_X509_NAME_ENTRY_set(entries, j, NULL);
         }
     }
-    ret = x509_name_canon(nm.x);
+    ret = VR_x509_name_canon(nm.x);
     if (!ret)
         goto err;
     sk_VR_STACK_OF_X509_NAME_ENTRY_pop_free(intname.s,
@@ -207,16 +207,16 @@ static int x509_name_ex_d2i(ASN1_VALUE **val,
     return 0;
 }
 
-static int x509_name_ex_i2d(ASN1_VALUE **val, unsigned char **out,
+static int VR_x509_name_ex_i2d(ASN1_VALUE **val, unsigned char **out,
                             const ASN1_ITEM *it, int tag, int aclass)
 {
     int ret;
     X509_NAME *a = (X509_NAME *)*val;
     if (a->modified) {
-        ret = x509_name_encode(a);
+        ret = VR_x509_name_encode(a);
         if (ret < 0)
             return ret;
-        ret = x509_name_canon(a);
+        ret = VR_x509_name_canon(a);
         if (ret < 0)
             return ret;
     }
@@ -228,7 +228,7 @@ static int x509_name_ex_i2d(ASN1_VALUE **val, unsigned char **out,
     return ret;
 }
 
-static int x509_name_encode(X509_NAME *a)
+static int VR_x509_name_encode(X509_NAME *a)
 {
     union {
         STACK_OF(STACK_OF_X509_NAME_ENTRY) *s;
@@ -277,7 +277,7 @@ static int x509_name_encode(X509_NAME *a)
     return -1;
 }
 
-static int x509_name_ex_print(BIO *out, ASN1_VALUE **pval,
+static int VR_x509_name_ex_print(BIO *out, ASN1_VALUE **pval,
                               int indent,
                               const char *fname, const ASN1_PCTX *pctx)
 {
@@ -297,7 +297,7 @@ static int x509_name_ex_print(BIO *out, ASN1_VALUE **pval,
  * constraints of type dirName can also be checked with a simple memcmp().
  */
 
-static int x509_name_canon(X509_NAME *a)
+static int VR_x509_name_canon(X509_NAME *a)
 {
     unsigned char *p;
     STACK_OF(STACK_OF_X509_NAME_ENTRY) *intname;

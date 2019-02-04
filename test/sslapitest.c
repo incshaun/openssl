@@ -5842,7 +5842,7 @@ static int client_cert_cb(SSL *ssl, X509 **x509, EVP_PKEY **pkey)
     return 1;
 }
 
-static int verify_cb(int preverify_ok, X509_STORE_CTX *x509_ctx)
+static int verify_cb(int preverify_ok, X509_STORE_CTX *VR_x509_ctx)
 {
     return 1;
 }

@@ -135,7 +135,7 @@ X509_STORE *VR_X509_LOOKUP_get_store(const X509_LOOKUP *ctx)
 }
 
 
-static int x509_object_cmp(const X509_OBJECT *const *a,
+static int VR_x509_object_cmp(const X509_OBJECT *const *a,
                            const X509_OBJECT *const *b)
 {
     int ret;
@@ -165,7 +165,7 @@ X509_STORE *VR_X509_STORE_new(void)
         X509err(X509_F_X509_STORE_NEW, ERR_R_MALLOC_FAILURE);
         return NULL;
     }
-    if ((ret->objs = sk_VR_X509_OBJECT_new(x509_object_cmp)) == NULL) {
+    if ((ret->objs = sk_VR_X509_OBJECT_new(VR_x509_object_cmp)) == NULL) {
         X509err(X509_F_X509_STORE_NEW, ERR_R_MALLOC_FAILURE);
         goto err;
     }
@@ -322,7 +322,7 @@ int VR_X509_STORE_CTX_get_by_subject(X509_STORE_CTX *vs, X509_LOOKUP_TYPE type,
     return 1;
 }
 
-static int x509_store_add(X509_STORE *ctx, void *x, int crl) {
+static int VR_x509_store_add(X509_STORE *ctx, void *x, int crl) {
     X509_OBJECT *obj;
     int ret = 0, added = 0;
 
@@ -360,7 +360,7 @@ static int x509_store_add(X509_STORE *ctx, void *x, int crl) {
 
 int VR_X509_STORE_add_cert(X509_STORE *ctx, X509 *x)
 {
-    if (!x509_store_add(ctx, x, 0)) {
+    if (!VR_x509_store_add(ctx, x, 0)) {
         X509err(X509_F_X509_STORE_ADD_CERT, ERR_R_MALLOC_FAILURE);
         return 0;
     }
@@ -369,7 +369,7 @@ int VR_X509_STORE_add_cert(X509_STORE *ctx, X509 *x)
 
 int VR_X509_STORE_add_crl(X509_STORE *ctx, X509_CRL *x)
 {
-    if (!x509_store_add(ctx, x, 1)) {
+    if (!VR_x509_store_add(ctx, x, 1)) {
         X509err(X509_F_X509_STORE_ADD_CRL, ERR_R_MALLOC_FAILURE);
         return 0;
     }
@@ -420,7 +420,7 @@ X509_OBJECT *VR_X509_OBJECT_new(void)
     return ret;
 }
 
-static void x509_object_free_internal(X509_OBJECT *a)
+static void VR_x509_object_free_internal(X509_OBJECT *a)
 {
     if (a == NULL)
         return;
@@ -441,7 +441,7 @@ int VR_X509_OBJECT_set1_X509(X509_OBJECT *a, X509 *obj)
     if (a == NULL || !VR_X509_up_ref(obj))
         return 0;
 
-    x509_object_free_internal(a);
+    VR_x509_object_free_internal(a);
     a->type = X509_LU_X509;
     a->data.x509 = obj;
     return 1;
@@ -452,7 +452,7 @@ int VR_X509_OBJECT_set1_X509_CRL(X509_OBJECT *a, X509_CRL *obj)
     if (a == NULL || !VR_X509_CRL_up_ref(obj))
         return 0;
 
-    x509_object_free_internal(a);
+    VR_x509_object_free_internal(a);
     a->type = X509_LU_CRL;
     a->data.crl = obj;
     return 1;
@@ -460,23 +460,23 @@ int VR_X509_OBJECT_set1_X509_CRL(X509_OBJECT *a, X509_CRL *obj)
 
 void VR_X509_OBJECT_free(X509_OBJECT *a)
 {
-    x509_object_free_internal(a);
+    VR_x509_object_free_internal(a);
     VR_OPENSSL_free(a);
 }
 
-static int x509_object_idx_cnt(STACK_OF(X509_OBJECT) *h, X509_LOOKUP_TYPE type,
+static int VR_x509_object_idx_cnt(STACK_OF(X509_OBJECT) *h, X509_LOOKUP_TYPE type,
                                X509_NAME *name, int *pnmatch)
 {
     X509_OBJECT stmp;
-    X509 x509_s;
+    X509 VR_x509_s;
     X509_CRL crl_s;
     int idx;
 
     stmp.type = type;
     switch (type) {
     case X509_LU_X509:
-        stmp.data.x509 = &x509_s;
-        x509_s.cert_info.subject = name;
+        stmp.data.x509 = &VR_x509_s;
+        VR_x509_s.cert_info.subject = name;
         break;
     case X509_LU_CRL:
         stmp.data.crl = &crl_s;
@@ -495,7 +495,7 @@ static int x509_object_idx_cnt(STACK_OF(X509_OBJECT) *h, X509_LOOKUP_TYPE type,
         pstmp = &stmp;
         for (tidx = idx + 1; tidx < sk_X509_OBJECT_num(h); tidx++) {
             tobj = sk_X509_OBJECT_value(h, tidx);
-            if (x509_object_cmp(&tobj, &pstmp))
+            if (VR_x509_object_cmp(&tobj, &pstmp))
                 break;
             (*pnmatch)++;
         }
@@ -506,7 +506,7 @@ static int x509_object_idx_cnt(STACK_OF(X509_OBJECT) *h, X509_LOOKUP_TYPE type,
 int VR_X509_OBJECT_idx_by_subject(STACK_OF(X509_OBJECT) *h, X509_LOOKUP_TYPE type,
                                X509_NAME *name)
 {
-    return x509_object_idx_cnt(h, type, name, NULL);
+    return VR_x509_object_idx_cnt(h, type, name, NULL);
 }
 
 X509_OBJECT *VR_X509_OBJECT_retrieve_by_subject(STACK_OF(X509_OBJECT) *h,
@@ -536,7 +536,7 @@ STACK_OF(X509) *VR_X509_STORE_CTX_get1_certs(X509_STORE_CTX *ctx, X509_NAME *nm)
         return NULL;
 
     VR_CRYPTO_THREAD_write_lock(ctx->ctx->lock);
-    idx = x509_object_idx_cnt(ctx->ctx->objs, X509_LU_X509, nm, &cnt);
+    idx = VR_x509_object_idx_cnt(ctx->ctx->objs, X509_LU_X509, nm, &cnt);
     if (idx < 0) {
         /*
          * Nothing found in cache: do lookup to possibly add new objects to
@@ -553,7 +553,7 @@ STACK_OF(X509) *VR_X509_STORE_CTX_get1_certs(X509_STORE_CTX *ctx, X509_NAME *nm)
         }
         VR_X509_OBJECT_free(xobj);
         VR_CRYPTO_THREAD_write_lock(ctx->ctx->lock);
-        idx = x509_object_idx_cnt(ctx->ctx->objs, X509_LU_X509, nm, &cnt);
+        idx = VR_x509_object_idx_cnt(ctx->ctx->objs, X509_LU_X509, nm, &cnt);
         if (idx < 0) {
             VR_CRYPTO_THREAD_unlock(ctx->ctx->lock);
             return NULL;
@@ -594,7 +594,7 @@ STACK_OF(X509_CRL) *VR_X509_STORE_CTX_get1_crls(X509_STORE_CTX *ctx, X509_NAME *
     }
     VR_X509_OBJECT_free(xobj);
     VR_CRYPTO_THREAD_write_lock(ctx->ctx->lock);
-    idx = x509_object_idx_cnt(ctx->ctx->objs, X509_LU_CRL, nm, &cnt);
+    idx = VR_x509_object_idx_cnt(ctx->ctx->objs, X509_LU_CRL, nm, &cnt);
     if (idx < 0) {
         VR_CRYPTO_THREAD_unlock(ctx->ctx->lock);
         sk_VR_X509_CRL_free(sk);
@@ -629,7 +629,7 @@ X509_OBJECT *VR_X509_OBJECT_retrieve_match(STACK_OF(X509_OBJECT) *h,
         return sk_X509_OBJECT_value(h, idx);
     for (i = idx, num = sk_X509_OBJECT_num(h); i < num; i++) {
         obj = sk_X509_OBJECT_value(h, i);
-        if (x509_object_cmp((const X509_OBJECT **)&obj,
+        if (VR_x509_object_cmp((const X509_OBJECT **)&obj,
                             (const X509_OBJECT **)&x))
             return NULL;
         if (x->type == X509_LU_X509) {
@@ -673,7 +673,7 @@ int VR_X509_STORE_CTX_get1_issuer(X509 **issuer, X509_STORE_CTX *ctx, X509 *x)
     }
     /* If certificate matches all OK */
     if (ctx->check_issued(ctx, x, obj->data.x509)) {
-        if (VR_x509_check_cert_time(ctx, obj->data.x509, -1)) {
+        if (VR_VR_x509_check_cert_time(ctx, obj->data.x509, -1)) {
             *issuer = obj->data.x509;
             VR_X509_up_ref(*issuer);
             VR_X509_OBJECT_free(obj);
@@ -709,7 +709,7 @@ int VR_X509_STORE_CTX_get1_issuer(X509 **issuer, X509_STORE_CTX *ctx, X509 *x)
                  * match if no certificate time is OK.
                  */
 
-                if (VR_x509_check_cert_time(ctx, *issuer, -1))
+                if (VR_VR_x509_check_cert_time(ctx, *issuer, -1))
                     break;
             }
         }

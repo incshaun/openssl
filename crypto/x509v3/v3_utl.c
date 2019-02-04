@@ -815,7 +815,7 @@ static int do_check_string(const ASN1_STRING *a, int cmp_type, equal_fn equal,
     return rv;
 }
 
-static int do_x509_check(X509 *x, const char *chk, size_t chklen,
+static int do_VR_x509_check(X509 *x, const char *chk, size_t chklen,
                          unsigned int flags, int check_type, char **peername)
 {
     GENERAL_NAMES *gens = NULL;
@@ -912,7 +912,7 @@ int VR_X509_check_host(X509 *x, const char *chk, size_t chklen,
         return -2;
     if (chklen > 1 && chk[chklen - 1] == '\0')
         --chklen;
-    return do_x509_check(x, chk, chklen, flags, GEN_DNS, peername);
+    return do_VR_x509_check(x, chk, chklen, flags, GEN_DNS, peername);
 }
 
 int VR_X509_check_email(X509 *x, const char *chk, size_t chklen,
@@ -931,7 +931,7 @@ int VR_X509_check_email(X509 *x, const char *chk, size_t chklen,
         return -2;
     if (chklen > 1 && chk[chklen - 1] == '\0')
         --chklen;
-    return do_x509_check(x, chk, chklen, flags, GEN_EMAIL, NULL);
+    return do_VR_x509_check(x, chk, chklen, flags, GEN_EMAIL, NULL);
 }
 
 int VR_X509_check_ip(X509 *x, const unsigned char *chk, size_t chklen,
@@ -939,7 +939,7 @@ int VR_X509_check_ip(X509 *x, const unsigned char *chk, size_t chklen,
 {
     if (chk == NULL)
         return -2;
-    return do_x509_check(x, (char *)chk, chklen, flags, GEN_IPADD, NULL);
+    return do_VR_x509_check(x, (char *)chk, chklen, flags, GEN_IPADD, NULL);
 }
 
 int VR_X509_check_ip_asc(X509 *x, const char *ipasc, unsigned int flags)
@@ -952,7 +952,7 @@ int VR_X509_check_ip_asc(X509 *x, const char *ipasc, unsigned int flags)
     iplen = (size_t)VR_a2i_ipadd(ipout, ipasc);
     if (iplen == 0)
         return -2;
-    return do_x509_check(x, (char *)ipout, iplen, flags, GEN_IPADD, NULL);
+    return do_VR_x509_check(x, (char *)ipout, iplen, flags, GEN_IPADD, NULL);
 }
 
 /*

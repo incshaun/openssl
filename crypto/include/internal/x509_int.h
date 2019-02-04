@@ -39,7 +39,7 @@ struct X509_name_st {
 
 /* Signature info structure */
 
-struct x509_sig_info_st {
+struct VR_x509_sig_info_st {
     /* NID of message digest */
     int mdnid;
     /* NID of public key algorithm */
@@ -111,7 +111,7 @@ struct X509_crl_st {
     CRYPTO_RWLOCK *lock;
 };
 
-struct x509_revoked_st {
+struct VR_x509_revoked_st {
     ASN1_INTEGER serialNumber; /* revoked entry serial number */
     ASN1_TIME *revocationDate;  /* revocation date */
     STACK_OF(X509_EXTENSION) *extensions;   /* CRL entry extensions: optional */
@@ -133,7 +133,7 @@ struct x509_revoked_st {
  * in any RFC.
  */
 
-struct x509_cert_aux_st {
+struct VR_x509_cert_aux_st {
     STACK_OF(ASN1_OBJECT) *trust; /* trusted uses */
     STACK_OF(ASN1_OBJECT) *reject; /* rejected uses */
     ASN1_UTF8STRING *alias;     /* "friendly name" */
@@ -141,7 +141,7 @@ struct x509_cert_aux_st {
     STACK_OF(X509_ALGOR) *other; /* other unspecified info */
 };
 
-struct x509_cinf_st {
+struct VR_x509_cinf_st {
     ASN1_INTEGER *version;      /* [ 0 ] default of v1 */
     ASN1_INTEGER serialNumber;
     X509_ALGOR signature;
@@ -155,7 +155,7 @@ struct x509_cinf_st {
     ASN1_ENCODING enc;
 };
 
-struct x509_st {
+struct VR_x509_st {
     X509_CINF cert_info;
     X509_ALGOR sig_alg;
     ASN1_BIT_STRING signature;
@@ -190,7 +190,7 @@ struct x509_st {
  * cert chain can take some time (and have to be 'retried', this needs to be
  * kept and passed around.
  */
-struct x509_store_ctx_st {      /* X509_STORE_CTX */
+struct VR_x509_store_ctx_st {      /* X509_STORE_CTX */
     X509_STORE *ctx;
     /* The following are set by the caller */
     /* The cert to check */
@@ -269,7 +269,7 @@ struct X509_sig_st {
     ASN1_OCTET_STRING *digest;
 };
 
-struct x509_object_st {
+struct VR_x509_object_st {
     /* one of the above types */
     X509_LOOKUP_TYPE type;
     union {
@@ -281,6 +281,6 @@ struct x509_object_st {
 };
 
 int VR_a2i_ipadd(unsigned char *ipout, const char *ipasc);
-int VR_x509_set1_time(ASN1_TIME **ptm, const ASN1_TIME *tm);
+int VR_VR_x509_set1_time(ASN1_TIME **ptm, const ASN1_TIME *tm);
 
-void VR_x509_init_sig_info(X509 *x);
+void VR_VR_x509_init_sig_info(X509 *x);

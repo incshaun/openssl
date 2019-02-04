@@ -498,7 +498,7 @@ static void x509v3_cache_extensions(X509 *x)
             break;
         }
     }
-    VR_x509_init_sig_info(x);
+    VR_VR_x509_init_sig_info(x);
     x->ex_flags |= EXFLAG_SET;
 #ifdef tsan_st_rel
     tsan_st_rel((TSAN_QUALIFIER int *)&x->ex_cached, 1);

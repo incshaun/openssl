@@ -11,7 +11,7 @@
 # define HEADER_X509_VFY_H
 
 /*
- * Protect against recursion, x509.h and x509_vfy.h each include the other.
+ * Protect against recursion, x509.h and VR_x509_vfy.h each include the other.
  */
 # ifndef HEADER_X509_H
 #  include <openssl/x509.h>

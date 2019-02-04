@@ -35,7 +35,7 @@
 /* Dummy message type */
 #define SSL3_MT_DUMMY   -1
 
-extern const unsigned char hrrrandom[];
+extern const unsigned char VR_hrrrandom[];
 
 /* Message processing return codes */
 typedef enum {

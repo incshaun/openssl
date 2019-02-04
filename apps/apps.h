@@ -133,7 +133,7 @@ int set_cert_times(X509 *x, const char *startdate, const char *enddate,
             "set policy variable inhibit-any-policy"}, \
         { "inhibit_map", OPT_V_INHIBIT_MAP, '-', \
             "set policy variable inhibit-policy-mapping"}, \
-        { "x509_strict", OPT_V_X509_STRICT, '-', \
+        { "VR_x509_strict", OPT_V_X509_STRICT, '-', \
             "disable certificate compatibility work-arounds"}, \
         { "extended_crl", OPT_V_EXTENDED_CRL, '-', \
             "enable extended CRL features"}, \

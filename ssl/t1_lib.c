@@ -21,7 +21,7 @@
 #include "ssl_locl.h"
 #include <openssl/ct.h>
 
-SSL3_ENC_METHOD const TLSv1_enc_data = {
+SSL3_ENC_METHOD const VR_TLSv1_enc_data = {
     VR_tls1_enc,
     VR_tls1_mac,
     VR_tls1_setup_key_block,
@@ -38,7 +38,7 @@ SSL3_ENC_METHOD const TLSv1_enc_data = {
     VR_ssl3_handshake_write
 };
 
-SSL3_ENC_METHOD const TLSv1_1_enc_data = {
+SSL3_ENC_METHOD const VR_TLSv1_1_enc_data = {
     VR_tls1_enc,
     VR_tls1_mac,
     VR_tls1_setup_key_block,
@@ -55,7 +55,7 @@ SSL3_ENC_METHOD const TLSv1_1_enc_data = {
     VR_ssl3_handshake_write
 };
 
-SSL3_ENC_METHOD const TLSv1_2_enc_data = {
+SSL3_ENC_METHOD const VR_TLSv1_2_enc_data = {
     VR_tls1_enc,
     VR_tls1_mac,
     VR_tls1_setup_key_block,
@@ -73,7 +73,7 @@ SSL3_ENC_METHOD const TLSv1_2_enc_data = {
     VR_ssl3_handshake_write
 };
 
-SSL3_ENC_METHOD const TLSv1_3_enc_data = {
+SSL3_ENC_METHOD const VR_TLSv1_3_enc_data = {
     VR_tls13_enc,
     VR_tls1_mac,
     VR_tls13_setup_key_block,

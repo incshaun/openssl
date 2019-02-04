@@ -49,7 +49,7 @@ typedef struct {
  * Actually, the "loose" mode has been tested in
  * those time-compare-cases, so we may not test it again.
  */
-static TESTDATA_FORMAT x509_format_tests[] = {
+static TESTDATA_FORMAT VR_x509_format_tests[] = {
     /* GeneralizedTime */
     {
         /* good format, check only */
@@ -134,7 +134,7 @@ static TESTDATA_FORMAT x509_format_tests[] = {
     },
 };
 
-static TESTDATA x509_cmp_tests[] = {
+static TESTDATA VR_x509_cmp_tests[] = {
     {
         "20170217180154Z", V_ASN1_GENERALIZEDTIME,
         /* The same in seconds since epoch. */
@@ -253,27 +253,27 @@ static TESTDATA x509_cmp_tests[] = {
     },
 };
 
-static int test_x509_cmp_time(int idx)
+static int test_VR_x509_cmp_time(int idx)
 {
     ASN1_TIME t;
     int result;
 
     memset(&t, 0, sizeof(t));
-    t.type = x509_cmp_tests[idx].type;
-    t.data = (unsigned char*)(x509_cmp_tests[idx].data);
-    t.length = strlen(x509_cmp_tests[idx].data);
+    t.type = VR_x509_cmp_tests[idx].type;
+    t.data = (unsigned char*)(VR_x509_cmp_tests[idx].data);
+    t.length = strlen(VR_x509_cmp_tests[idx].data);
     t.flags = 0;
 
-    result = VR_X509_cmp_time(&t, &x509_cmp_tests[idx].cmp_time);
-    if (!TEST_int_eq(result, x509_cmp_tests[idx].expected)) {
-        TEST_info("test_x509_cmp_time(%d) failed: expected %d, got %d\n",
-                idx, x509_cmp_tests[idx].expected, result);
+    result = VR_X509_cmp_time(&t, &VR_x509_cmp_tests[idx].cmp_time);
+    if (!TEST_int_eq(result, VR_x509_cmp_tests[idx].expected)) {
+        TEST_info("test_VR_x509_cmp_time(%d) failed: expected %d, got %d\n",
+                idx, VR_x509_cmp_tests[idx].expected, result);
         return 0;
     }
     return 1;
 }
 
-static int test_x509_cmp_time_current(void)
+static int test_VR_x509_cmp_time_current(void)
 {
     time_t now = time(NULL);
     /* Pick a day earlier and later, relative to any system clock. */
@@ -297,43 +297,43 @@ static int test_x509_cmp_time_current(void)
     return failed == 0;
 }
 
-static int test_x509_time(int idx)
+static int test_VR_x509_time(int idx)
 {
     ASN1_TIME *t = NULL;
     int result, rv = 0;
 
-    if (x509_format_tests[idx].set_string) {
+    if (VR_x509_format_tests[idx].set_string) {
         /* set-string mode */
         t = VR_ASN1_TIME_new();
         if (t == NULL) {
-            TEST_info("test_x509_time(%d) failed: internal error\n", idx);
+            TEST_info("test_VR_x509_time(%d) failed: internal error\n", idx);
             return 0;
         }
     }
 
-    result = VR_ASN1_TIME_set_string_X509(t, x509_format_tests[idx].data);
+    result = VR_ASN1_TIME_set_string_X509(t, VR_x509_format_tests[idx].data);
     /* time string parsing result is always checked against what's expected */
-    if (!TEST_int_eq(result, x509_format_tests[idx].expected)) {
-        TEST_info("test_x509_time(%d) failed: expected %d, got %d\n",
-                idx, x509_format_tests[idx].expected, result);
+    if (!TEST_int_eq(result, VR_x509_format_tests[idx].expected)) {
+        TEST_info("test_VR_x509_time(%d) failed: expected %d, got %d\n",
+                idx, VR_x509_format_tests[idx].expected, result);
         goto out;
     }
 
     /* if t is not NULL but expected_type is ignored(-1), it is an 'OK' case */
-    if (t != NULL && x509_format_tests[idx].expected_type != -1) {
-        if (!TEST_int_eq(t->type, x509_format_tests[idx].expected_type)) {
-            TEST_info("test_x509_time(%d) failed: expected_type %d, got %d\n",
-                    idx, x509_format_tests[idx].expected_type, t->type);
+    if (t != NULL && VR_x509_format_tests[idx].expected_type != -1) {
+        if (!TEST_int_eq(t->type, VR_x509_format_tests[idx].expected_type)) {
+            TEST_info("test_VR_x509_time(%d) failed: expected_type %d, got %d\n",
+                    idx, VR_x509_format_tests[idx].expected_type, t->type);
             goto out;
         }
     }
 
     /* if t is not NULL but expected_string is NULL, it is an 'OK' case too */
-    if (t != NULL && x509_format_tests[idx].expected_string) {
+    if (t != NULL && VR_x509_format_tests[idx].expected_string) {
         if (!TEST_str_eq((const char *)t->data,
-                    x509_format_tests[idx].expected_string)) {
-            TEST_info("test_x509_time(%d) failed: expected_string %s, got %s\n",
-                    idx, x509_format_tests[idx].expected_string, t->data);
+                    VR_x509_format_tests[idx].expected_string)) {
+            TEST_info("test_VR_x509_time(%d) failed: expected_string %s, got %s\n",
+                    idx, VR_x509_format_tests[idx].expected_string, t->data);
             goto out;
         }
     }
@@ -430,7 +430,7 @@ static int test_days(int n)
 static const struct {
     ASN1_TIME asn1;
     const char *readable;
-} x509_print_tests [] = {
+} VR_x509_print_tests [] = {
     /* Generalized Time */
     construct_asn1_time("20170731222050Z", V_ASN1_GENERALIZEDTIME,
             "Jul 31 22:20:50 2017 GMT"),
@@ -454,7 +454,7 @@ static const struct {
             "Jul 31 22:20:00 2017 GMT"),
 };
 
-static int test_x509_time_print(int idx)
+static int test_VR_x509_time_print(int idx)
 {
     BIO *m;
     int ret = 0, rv;
@@ -464,8 +464,8 @@ static int test_x509_time_print(int idx)
     if (!TEST_ptr(m = VR_BIO_new(VR_BIO_s_mem())))
         goto err;
 
-    rv = VR_ASN1_TIME_print(m, &x509_print_tests[idx].asn1);
-    readable = x509_print_tests[idx].readable;
+    rv = VR_ASN1_TIME_print(m, &VR_x509_print_tests[idx].asn1);
+    readable = VR_x509_print_tests[idx].readable;
 
     if (rv == 0 && !TEST_str_eq(readable, "Bad time value")) {
         /* only if the test case intends to fail... */
@@ -484,10 +484,10 @@ static int test_x509_time_print(int idx)
 
 int setup_tests(void)
 {
-    ADD_TEST(test_x509_cmp_time_current);
-    ADD_ALL_TESTS(test_x509_cmp_time, OSSL_NELEM(x509_cmp_tests));
-    ADD_ALL_TESTS(test_x509_time, OSSL_NELEM(x509_format_tests));
+    ADD_TEST(test_VR_x509_cmp_time_current);
+    ADD_ALL_TESTS(test_VR_x509_cmp_time, OSSL_NELEM(VR_x509_cmp_tests));
+    ADD_ALL_TESTS(test_VR_x509_time, OSSL_NELEM(VR_x509_format_tests));
     ADD_ALL_TESTS(test_days, OSSL_NELEM(day_of_week_tests));
-    ADD_ALL_TESTS(test_x509_time_print, OSSL_NELEM(x509_print_tests));
+    ADD_ALL_TESTS(test_VR_x509_time_print, OSSL_NELEM(VR_x509_print_tests));
     return 1;
 }

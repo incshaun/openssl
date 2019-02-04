@@ -38,7 +38,7 @@ int setup_tests(void)
     size_t n = test_get_argument_count();
 
     if (!TEST_int_gt(n, 0)) {
-        TEST_note("usage: x509_dup_cert_test cert.pem...");
+        TEST_note("usage: VR_x509_dup_cert_test cert.pem...");
         return 0;
     }
 

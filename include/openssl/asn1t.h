@@ -33,10 +33,10 @@ extern "C" {
 /* Macros for start and end of ASN1_ITEM definition */
 
 #  define ASN1_ITEM_start(itname) \
-        const ASN1_ITEM itname##_it = {
+        const ASN1_ITEM VR_##itname##_it = {
 
 #  define static_ASN1_ITEM_start(itname) \
-        static const ASN1_ITEM itname##_it = {
+        static const ASN1_ITEM VR_##itname##_it = {
 
 #  define ASN1_ITEM_end(itname)                 \
                 };
@@ -49,7 +49,7 @@ extern "C" {
 /* Macros for start and end of ASN1_ITEM definition */
 
 #  define ASN1_ITEM_start(itname) \
-        const ASN1_ITEM * itname##_it(void) \
+        const ASN1_ITEM * VR_##itname##_it(void) \
         { \
                 static const ASN1_ITEM local_it = {
 
@@ -66,14 +66,14 @@ extern "C" {
 /* Macros to aid ASN1 template writing */
 
 # define ASN1_ITEM_TEMPLATE(tname) \
-        static const ASN1_TEMPLATE tname##_item_tt
+        static const ASN1_TEMPLATE VR_##tname##_item_tt
 
 # define ASN1_ITEM_TEMPLATE_END(tname) \
         ;\
         ASN1_ITEM_start(tname) \
                 ASN1_ITYPE_PRIMITIVE,\
                 -1,\
-                &tname##_item_tt,\
+                &VR_##tname##_item_tt,\
                 0,\
                 NULL,\
                 0,\
@@ -84,7 +84,7 @@ extern "C" {
         static_ASN1_ITEM_start(tname) \
                 ASN1_ITYPE_PRIMITIVE,\
                 -1,\
-                &tname##_item_tt,\
+                &VR_##tname##_item_tt,\
                 0,\
                 NULL,\
                 0,\
@@ -115,7 +115,7 @@ extern "C" {
  */
 
 # define ASN1_SEQUENCE(tname) \
-        static const ASN1_TEMPLATE tname##_seq_tt[]
+        static const ASN1_TEMPLATE VR_##tname##_seq_tt[]
 
 # define ASN1_SEQUENCE_END(stname) ASN1_SEQUENCE_END_name(stname, stname)
 
@@ -126,8 +126,8 @@ extern "C" {
         ASN1_ITEM_start(tname) \
                 ASN1_ITYPE_SEQUENCE,\
                 V_ASN1_SEQUENCE,\
-                tname##_seq_tt,\
-                sizeof(tname##_seq_tt) / sizeof(ASN1_TEMPLATE),\
+                VR_##tname##_seq_tt,\
+                sizeof(VR_##tname##_seq_tt) / sizeof(ASN1_TEMPLATE),\
                 NULL,\
                 sizeof(stname),\
                 #tname \
@@ -138,8 +138,8 @@ extern "C" {
         static_ASN1_ITEM_start(tname) \
                 ASN1_ITYPE_SEQUENCE,\
                 V_ASN1_SEQUENCE,\
-                tname##_seq_tt,\
-                sizeof(tname##_seq_tt) / sizeof(ASN1_TEMPLATE),\
+                VR_##tname##_seq_tt,\
+                sizeof(VR_##tname##_seq_tt) / sizeof(ASN1_TEMPLATE),\
                 NULL,\
                 sizeof(stname),\
                 #stname \
@@ -152,19 +152,19 @@ extern "C" {
         ASN1_SEQUENCE_cb(tname, cb)
 
 # define ASN1_SEQUENCE_cb(tname, cb) \
-        static const ASN1_AUX tname##_aux = {NULL, 0, 0, 0, cb, 0}; \
+        static const ASN1_AUX VR_##tname##_aux = {NULL, 0, 0, 0, cb, 0}; \
         ASN1_SEQUENCE(tname)
 
 # define ASN1_BROKEN_SEQUENCE(tname) \
-        static const ASN1_AUX tname##_aux = {NULL, ASN1_AFLG_BROKEN, 0, 0, 0, 0}; \
+        static const ASN1_AUX VR_##tname##_aux = {NULL, ASN1_AFLG_BROKEN, 0, 0, 0, 0}; \
         ASN1_SEQUENCE(tname)
 
 # define ASN1_SEQUENCE_ref(tname, cb) \
-        static const ASN1_AUX tname##_aux = {NULL, ASN1_AFLG_REFCOUNT, offsetof(tname, references), offsetof(tname, lock), cb, 0}; \
+        static const ASN1_AUX VR_##tname##_aux = {NULL, ASN1_AFLG_REFCOUNT, offsetof(tname, references), offsetof(tname, lock), cb, 0}; \
         ASN1_SEQUENCE(tname)
 
 # define ASN1_SEQUENCE_enc(tname, enc, cb) \
-        static const ASN1_AUX tname##_aux = {NULL, ASN1_AFLG_ENCODING, 0, 0, cb, offsetof(tname, enc)}; \
+        static const ASN1_AUX VR_##tname##_aux = {NULL, ASN1_AFLG_ENCODING, 0, 0, cb, offsetof(tname, enc)}; \
         ASN1_SEQUENCE(tname)
 
 # define ASN1_NDEF_SEQUENCE_END(tname) \
@@ -172,8 +172,8 @@ extern "C" {
         ASN1_ITEM_start(tname) \
                 ASN1_ITYPE_NDEF_SEQUENCE,\
                 V_ASN1_SEQUENCE,\
-                tname##_seq_tt,\
-                sizeof(tname##_seq_tt) / sizeof(ASN1_TEMPLATE),\
+                VR_##tname##_seq_tt,\
+                sizeof(VR_##tname##_seq_tt) / sizeof(ASN1_TEMPLATE),\
                 NULL,\
                 sizeof(tname),\
                 #tname \
@@ -183,8 +183,8 @@ extern "C" {
         static_ASN1_ITEM_start(tname) \
                 ASN1_ITYPE_NDEF_SEQUENCE,\
                 V_ASN1_SEQUENCE,\
-                tname##_seq_tt,\
-                sizeof(tname##_seq_tt) / sizeof(ASN1_TEMPLATE),\
+                VR_##tname##_seq_tt,\
+                sizeof(VR_##tname##_seq_tt) / sizeof(ASN1_TEMPLATE),\
                 NULL,\
                 sizeof(tname),\
                 #tname \
@@ -204,9 +204,9 @@ extern "C" {
         ASN1_ITEM_start(tname) \
                 ASN1_ITYPE_SEQUENCE,\
                 V_ASN1_SEQUENCE,\
-                tname##_seq_tt,\
-                sizeof(tname##_seq_tt) / sizeof(ASN1_TEMPLATE),\
-                &tname##_aux,\
+                VR_##tname##_seq_tt,\
+                sizeof(VR_##tname##_seq_tt) / sizeof(ASN1_TEMPLATE),\
+                &VR_##tname##_aux,\
                 sizeof(stname),\
                 #tname \
         ASN1_ITEM_end(tname)
@@ -215,9 +215,9 @@ extern "C" {
         static_ASN1_ITEM_start(tname) \
                 ASN1_ITYPE_SEQUENCE,\
                 V_ASN1_SEQUENCE,\
-                tname##_seq_tt,\
-                sizeof(tname##_seq_tt) / sizeof(ASN1_TEMPLATE),\
-                &tname##_aux,\
+                VR_##tname##_seq_tt,\
+                sizeof(VR_##tname##_seq_tt) / sizeof(ASN1_TEMPLATE),\
+                &VR_##tname##_aux,\
                 sizeof(stname),\
                 #stname \
         ASN1_ITEM_end(tname)
@@ -227,9 +227,9 @@ extern "C" {
         ASN1_ITEM_start(tname) \
                 ASN1_ITYPE_NDEF_SEQUENCE,\
                 V_ASN1_SEQUENCE,\
-                tname##_seq_tt,\
-                sizeof(tname##_seq_tt) / sizeof(ASN1_TEMPLATE),\
-                &tname##_aux,\
+                VR_##tname##_seq_tt,\
+                sizeof(VR_##tname##_seq_tt) / sizeof(ASN1_TEMPLATE),\
+                &VR_##tname##_aux,\
                 sizeof(stname),\
                 #stname \
         ASN1_ITEM_end(tname)
@@ -258,10 +258,10 @@ extern "C" {
  */
 
 # define ASN1_CHOICE(tname) \
-        static const ASN1_TEMPLATE tname##_ch_tt[]
+        static const ASN1_TEMPLATE VR_##tname##_ch_tt[]
 
 # define ASN1_CHOICE_cb(tname, cb) \
-        static const ASN1_AUX tname##_aux = {NULL, 0, 0, 0, cb, 0}; \
+        static const ASN1_AUX VR_##tname##_aux = {NULL, 0, 0, 0, cb, 0}; \
         ASN1_CHOICE(tname)
 
 # define ASN1_CHOICE_END(stname) ASN1_CHOICE_END_name(stname, stname)
@@ -277,8 +277,8 @@ extern "C" {
         ASN1_ITEM_start(tname) \
                 ASN1_ITYPE_CHOICE,\
                 offsetof(stname,selname) ,\
-                tname##_ch_tt,\
-                sizeof(tname##_ch_tt) / sizeof(ASN1_TEMPLATE),\
+                VR_##tname##_ch_tt,\
+                sizeof(VR_##tname##_ch_tt) / sizeof(ASN1_TEMPLATE),\
                 NULL,\
                 sizeof(stname),\
                 #stname \
@@ -289,8 +289,8 @@ extern "C" {
         static_ASN1_ITEM_start(tname) \
                 ASN1_ITYPE_CHOICE,\
                 offsetof(stname,selname) ,\
-                tname##_ch_tt,\
-                sizeof(tname##_ch_tt) / sizeof(ASN1_TEMPLATE),\
+                VR_##tname##_ch_tt,\
+                sizeof(VR_##tname##_ch_tt) / sizeof(ASN1_TEMPLATE),\
                 NULL,\
                 sizeof(stname),\
                 #stname \
@@ -301,9 +301,9 @@ extern "C" {
         ASN1_ITEM_start(tname) \
                 ASN1_ITYPE_CHOICE,\
                 offsetof(stname,selname) ,\
-                tname##_ch_tt,\
-                sizeof(tname##_ch_tt) / sizeof(ASN1_TEMPLATE),\
-                &tname##_aux,\
+                VR_##tname##_ch_tt,\
+                sizeof(VR_##tname##_ch_tt) / sizeof(ASN1_TEMPLATE),\
+                &VR_##tname##_aux,\
                 sizeof(stname),\
                 #stname \
         ASN1_ITEM_end(tname)
@@ -333,11 +333,11 @@ extern "C" {
 /* Any defined by macros: the field used is in the table itself */
 
 # ifndef OPENSSL_EXPORT_VAR_AS_FUNCTION
-#  define ASN1_ADB_OBJECT(tblname) { ASN1_TFLG_ADB_OID, -1, 0, #tblname, (const ASN1_ITEM *)&(tblname##_adb) }
-#  define ASN1_ADB_INTEGER(tblname) { ASN1_TFLG_ADB_INT, -1, 0, #tblname, (const ASN1_ITEM *)&(tblname##_adb) }
+#  define ASN1_ADB_OBJECT(tblname) { ASN1_TFLG_ADB_OID, -1, 0, #tblname, (const ASN1_ITEM *)&(VR_##tblname##_adb) }
+#  define ASN1_ADB_INTEGER(tblname) { ASN1_TFLG_ADB_INT, -1, 0, #tblname, (const ASN1_ITEM *)&(VR_##tblname##_adb) }
 # else
-#  define ASN1_ADB_OBJECT(tblname) { ASN1_TFLG_ADB_OID, -1, 0, #tblname, tblname##_adb }
-#  define ASN1_ADB_INTEGER(tblname) { ASN1_TFLG_ADB_INT, -1, 0, #tblname, tblname##_adb }
+#  define ASN1_ADB_OBJECT(tblname) { ASN1_TFLG_ADB_OID, -1, 0, #tblname, VR_##tblname##_adb }
+#  define ASN1_ADB_INTEGER(tblname) { ASN1_TFLG_ADB_INT, -1, 0, #tblname, VR_##tblname##_adb }
 # endif
 /* Plain simple type */
 # define ASN1_SIMPLE(stname, field, type) ASN1_EX_TYPE(0,0, stname, field, type)
@@ -416,18 +416,18 @@ extern "C" {
 /* Macros for the ASN1_ADB structure */
 
 # define ASN1_ADB(name) \
-        static const ASN1_ADB_TABLE name##_adbtbl[]
+        static const ASN1_ADB_TABLE VR_##name##_adbtbl[]
 
 # ifndef OPENSSL_EXPORT_VAR_AS_FUNCTION
 
 #  define ASN1_ADB_END(name, flags, field, adb_cb, def, none) \
         ;\
-        static const ASN1_ADB name##_adb = {\
+        static const ASN1_ADB VR_##name##_adb = {\
                 flags,\
                 offsetof(name, field),\
                 adb_cb,\
-                name##_adbtbl,\
-                sizeof(name##_adbtbl) / sizeof(ASN1_ADB_TABLE),\
+                VR_##name##_adbtbl,\
+                sizeof(VR_##name##_adbtbl) / sizeof(ASN1_ADB_TABLE),\
                 def,\
                 none\
         }
@@ -436,15 +436,15 @@ extern "C" {
 
 #  define ASN1_ADB_END(name, flags, field, adb_cb, def, none) \
         ;\
-        static const ASN1_ITEM *name##_adb(void) \
+        static const ASN1_ITEM *VR_##name##_adb(void) \
         { \
         static const ASN1_ADB internal_adb = \
                 {\
                 flags,\
                 offsetof(name, field),\
                 adb_cb,\
-                name##_adbtbl,\
-                sizeof(name##_adbtbl) / sizeof(ASN1_ADB_TABLE),\
+                VR_##name##_adbtbl,\
+                sizeof(VR_##name##_adbtbl) / sizeof(ASN1_ADB_TABLE),\
                 def,\
                 none\
                 }; \
@@ -457,7 +457,7 @@ extern "C" {
 # define ADB_ENTRY(val, template) {val, template}
 
 # define ASN1_ADB_TEMPLATE(name) \
-        static const ASN1_TEMPLATE name##_tt
+        static const ASN1_TEMPLATE VR_##name##_tt
 
 /*
  * This is the ASN1 template structure that defines a wrapper round the

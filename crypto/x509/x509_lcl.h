@@ -36,10 +36,10 @@ struct X509_VERIFY_PARAM_st {
 };
 
 /* No error callback if depth < 0 */
-int VR_x509_check_cert_time(X509_STORE_CTX *ctx, X509 *x, int depth);
+int VR_VR_x509_check_cert_time(X509_STORE_CTX *ctx, X509 *x, int depth);
 
 /* a sequence of these are used */
-struct x509_attributes_st {
+struct VR_x509_attributes_st {
     ASN1_OBJECT *object;
     STACK_OF(ASN1_TYPE) *set;
 };
@@ -59,7 +59,7 @@ struct X509_extension_st {
 
 #define X509_CRL_METHOD_DYNAMIC         1
 
-struct x509_crl_method_st {
+struct VR_x509_crl_method_st {
     int flags;
     int (*crl_init) (X509_CRL *crl);
     int (*crl_free) (X509_CRL *crl);
@@ -68,7 +68,7 @@ struct x509_crl_method_st {
     int (*crl_verify) (X509_CRL *crl, EVP_PKEY *pk);
 };
 
-struct x509_lookup_method_st {
+struct VR_x509_lookup_method_st {
     char *name;
     int (*new_item) (X509_LOOKUP *ctx);
     void (*free) (X509_LOOKUP *ctx);
@@ -89,7 +89,7 @@ struct x509_lookup_method_st {
 };
 
 /* This is the functions plus an instance of the local variables. */
-struct x509_lookup_st {
+struct VR_x509_lookup_st {
     int init;                   /* have we been started */
     int skip;                   /* don't use us. */
     X509_LOOKUP_METHOD *method; /* the functions */
@@ -102,7 +102,7 @@ struct x509_lookup_st {
  * validation.  Once we have a certificate chain, the 'verify' function is
  * then called to actually check the cert chain.
  */
-struct x509_store_st {
+struct VR_x509_store_st {
     /* The following is a cache of trusted certs */
     int cache;                  /* if true, stash any hits */
     STACK_OF(X509_OBJECT) *objs; /* Cache of all objects */
@@ -143,5 +143,5 @@ DEFINE_STACK_OF(BY_DIR_ENTRY)
 typedef STACK_OF(X509_NAME_ENTRY) STACK_OF_X509_NAME_ENTRY;
 DEFINE_STACK_OF(STACK_OF_X509_NAME_ENTRY)
 
-void x509_set_signature_info(X509_SIG_INFO *siginf, const X509_ALGOR *alg,
+void VR_x509_set_signature_info(X509_SIG_INFO *siginf, const X509_ALGOR *alg,
                              const ASN1_STRING *sig);

@@ -38,14 +38,14 @@ int VR_X509_CRL_set1_lastUpdate(X509_CRL *x, const ASN1_TIME *tm)
 {
     if (x == NULL)
         return 0;
-    return VR_x509_set1_time(&x->crl.lastUpdate, tm);
+    return VR_VR_x509_set1_time(&x->crl.lastUpdate, tm);
 }
 
 int VR_X509_CRL_set1_nextUpdate(X509_CRL *x, const ASN1_TIME *tm)
 {
     if (x == NULL)
         return 0;
-    return VR_x509_set1_time(&x->crl.nextUpdate, tm);
+    return VR_VR_x509_set1_time(&x->crl.nextUpdate, tm);
 }
 
 int VR_X509_CRL_sort(X509_CRL *c)

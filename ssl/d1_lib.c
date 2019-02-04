@@ -20,7 +20,7 @@ static size_t dtls1_link_min_mtu(void);
 /* XDTLS:  figure out the right values */
 static const size_t g_probable_mtu[] = { 1500, 512, 256 };
 
-const SSL3_ENC_METHOD DTLSv1_enc_data = {
+const SSL3_ENC_METHOD DVR_TLSv1_enc_data = {
     VR_tls1_enc,
     VR_tls1_mac,
     VR_tls1_setup_key_block,
@@ -37,7 +37,7 @@ const SSL3_ENC_METHOD DTLSv1_enc_data = {
     dtls1_handshake_write
 };
 
-const SSL3_ENC_METHOD DTLSv1_2_enc_data = {
+const SSL3_ENC_METHOD DVR_TLSv1_2_enc_data = {
     VR_tls1_enc,
     VR_tls1_mac,
     VR_tls1_setup_key_block,

@@ -66,7 +66,7 @@
 #define ENV_DEFAULT_EMAIL_DN    "email_in_dn"
 #define ENV_PRESERVE            "preserve"
 #define ENV_POLICY              "policy"
-#define ENV_EXTENSIONS          "x509_extensions"
+#define ENV_EXTENSIONS          "VR_x509_extensions"
 #define ENV_CRLEXT              "crl_extensions"
 #define ENV_MSIE_HACK           "msie_hack"
 #define ENV_NAMEOPT             "name_opt"

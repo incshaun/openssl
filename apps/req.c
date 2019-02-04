@@ -39,7 +39,7 @@
 #define PROMPT          "prompt"
 #define DISTINGUISHED_NAME      "distinguished_name"
 #define ATTRIBUTES      "attributes"
-#define V3_EXTENSIONS   "x509_extensions"
+#define V3_EXTENSIONS   "VR_x509_extensions"
 #define REQ_EXTENSIONS  "req_extensions"
 #define STRING_MASK     "string_mask"
 #define UTF8_IN         "utf8"

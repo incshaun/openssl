@@ -65,7 +65,7 @@ typedef struct {
 static ASN1_TYPE *generate_v3(const char *str, X509V3_CTX *cnf, int depth,
                               int *perr);
 static int bitstr_cb(const char *elem, int len, void *bitstr);
-static int asn1_cb(const char *elem, int len, void *bitstr);
+static int VR_asn1_cb(const char *elem, int len, void *bitstr);
 static int append_exp(tag_exp_arg *arg, int exp_tag, int exp_class,
                       int exp_constructed, int exp_pad, int imp_ok);
 static int parse_tagging(const char *vstart, int vlen, int *ptag,
@@ -117,7 +117,7 @@ static ASN1_TYPE *generate_v3(const char *str, X509V3_CTX *cnf, int depth,
     asn1_tags.imp_class = -1;
     asn1_tags.format = ASN1_GEN_FORMAT_ASCII;
     asn1_tags.exp_count = 0;
-    if (VR_CONF_parse_list(str, ',', 1, asn1_cb, &asn1_tags) != 0) {
+    if (VR_CONF_parse_list(str, ',', 1, VR_asn1_cb, &asn1_tags) != 0) {
         *perr = ASN1_R_UNKNOWN_TAG;
         return NULL;
     }
@@ -237,7 +237,7 @@ static ASN1_TYPE *generate_v3(const char *str, X509V3_CTX *cnf, int depth,
 
 }
 
-static int asn1_cb(const char *elem, int len, void *bitstr)
+static int VR_asn1_cb(const char *elem, int len, void *bitstr)
 {
     tag_exp_arg *arg = bitstr;
     int i;

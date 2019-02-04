@@ -33,7 +33,7 @@ static void str_free(char *s)
     VR_OPENSSL_free(s);
 }
 
-static int int_x509_param_set_hosts(X509_VERIFY_PARAM *vpm, int mode,
+static int int_VR_x509_param_set_hosts(X509_VERIFY_PARAM *vpm, int mode,
                                     const char *name, size_t namelen)
 {
     char *copy;
@@ -141,14 +141,14 @@ void VR_X509_VERIFY_PARAM_free(X509_VERIFY_PARAM *param)
 
 /* Macro to test if a field should be copied from src to dest */
 
-#define test_x509_verify_param_copy(field, def) \
+#define test_VR_x509_verify_param_copy(field, def) \
         (to_overwrite || \
                 ((src->field != def) && (to_default || (dest->field == def))))
 
 /* Macro to test and copy a field if necessary */
 
-#define x509_verify_param_copy(field, def) \
-        if (test_x509_verify_param_copy(field, def)) \
+#define VR_x509_verify_param_copy(field, def) \
+        if (test_VR_x509_verify_param_copy(field, def)) \
                 dest->field = src->field
 
 int VR_X509_VERIFY_PARAM_inherit(X509_VERIFY_PARAM *dest,
@@ -176,10 +176,10 @@ int VR_X509_VERIFY_PARAM_inherit(X509_VERIFY_PARAM *dest,
     else
         to_overwrite = 0;
 
-    x509_verify_param_copy(purpose, 0);
-    x509_verify_param_copy(trust, X509_TRUST_DEFAULT);
-    x509_verify_param_copy(depth, -1);
-    x509_verify_param_copy(auth_level, -1);
+    VR_x509_verify_param_copy(purpose, 0);
+    VR_x509_verify_param_copy(trust, X509_TRUST_DEFAULT);
+    VR_x509_verify_param_copy(depth, -1);
+    VR_x509_verify_param_copy(auth_level, -1);
 
     /* If overwrite or check time not set, copy across */
 
@@ -194,13 +194,13 @@ int VR_X509_VERIFY_PARAM_inherit(X509_VERIFY_PARAM *dest,
 
     dest->flags |= src->flags;
 
-    if (test_x509_verify_param_copy(policies, NULL)) {
+    if (test_VR_x509_verify_param_copy(policies, NULL)) {
         if (!VR_X509_VERIFY_PARAM_set1_policies(dest, src->policies))
             return 0;
     }
 
     /* Copy the host flags if and only if we're copying the host list */
-    if (test_x509_verify_param_copy(hosts, NULL)) {
+    if (test_VR_x509_verify_param_copy(hosts, NULL)) {
         sk_VR_OPENSSL_STRING_pop_free(dest->hosts, str_free);
         dest->hosts = NULL;
         if (src->hosts) {
@@ -212,12 +212,12 @@ int VR_X509_VERIFY_PARAM_inherit(X509_VERIFY_PARAM *dest,
         }
     }
 
-    if (test_x509_verify_param_copy(email, NULL)) {
+    if (test_VR_x509_verify_param_copy(email, NULL)) {
         if (!VR_X509_VERIFY_PARAM_set1_email(dest, src->email, src->emaillen))
             return 0;
     }
 
-    if (test_x509_verify_param_copy(ip, NULL)) {
+    if (test_VR_x509_verify_param_copy(ip, NULL)) {
         if (!VR_X509_VERIFY_PARAM_set1_ip(dest, src->ip, src->iplen))
             return 0;
     }
@@ -236,7 +236,7 @@ int VR_X509_VERIFY_PARAM_set1(X509_VERIFY_PARAM *to,
     return ret;
 }
 
-static int int_x509_param_set1(char **pdest, size_t *pdestlen,
+static int int_VR_x509_param_set1(char **pdest, size_t *pdestlen,
                                const char *src, size_t srclen)
 {
     void *tmp;
@@ -378,13 +378,13 @@ int VR_X509_VERIFY_PARAM_set1_policies(X509_VERIFY_PARAM *param,
 int VR_X509_VERIFY_PARAM_set1_host(X509_VERIFY_PARAM *param,
                                 const char *name, size_t namelen)
 {
-    return int_x509_param_set_hosts(param, SET_HOST, name, namelen);
+    return int_VR_x509_param_set_hosts(param, SET_HOST, name, namelen);
 }
 
 int VR_X509_VERIFY_PARAM_add1_host(X509_VERIFY_PARAM *param,
                                 const char *name, size_t namelen)
 {
-    return int_x509_param_set_hosts(param, ADD_HOST, name, namelen);
+    return int_VR_x509_param_set_hosts(param, ADD_HOST, name, namelen);
 }
 
 void VR_X509_VERIFY_PARAM_set_hostflags(X509_VERIFY_PARAM *param,
@@ -424,7 +424,7 @@ void VR_X509_VERIFY_PARAM_move_peername(X509_VERIFY_PARAM *to,
 int VR_X509_VERIFY_PARAM_set1_email(X509_VERIFY_PARAM *param,
                                  const char *email, size_t emaillen)
 {
-    return int_x509_param_set1(&param->email, &param->emaillen,
+    return int_VR_x509_param_set1(&param->email, &param->emaillen,
                                email, emaillen);
 }
 
@@ -433,7 +433,7 @@ int VR_X509_VERIFY_PARAM_set1_ip(X509_VERIFY_PARAM *param,
 {
     if (iplen != 0 && iplen != 4 && iplen != 16)
         return 0;
-    return int_x509_param_set1((char **)&param->ip, &param->iplen,
+    return int_VR_x509_param_set1((char **)&param->ip, &param->iplen,
                                (char *)ip, iplen);
 }
 

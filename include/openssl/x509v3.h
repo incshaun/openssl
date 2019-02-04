@@ -399,11 +399,11 @@ struct ISSUING_DIST_POINT_st {
 # define X509_PURPOSE_DYNAMIC    0x1
 # define X509_PURPOSE_DYNAMIC_NAME       0x2
 
-typedef struct x509_purpose_st {
+typedef struct VR_x509_purpose_st {
     int purpose;
     int trust;                  /* Default trust ID */
     int flags;
-    int (*check_purpose) (const struct x509_purpose_st *, const X509 *, int);
+    int (*check_purpose) (const struct VR_x509_purpose_st *, const X509 *, int);
     char *name;
     char *sname;
     void *usr_data;

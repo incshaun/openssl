@@ -47,7 +47,7 @@ void VR_SCT_CTX_free(SCT_CTX *sctx)
  * If there is more than one extension with that NID, *is_duplicated is set to
  * 1, otherwise 0 (unless it is NULL).
  */
-static int ct_x509_get_ext(X509 *cert, int nid, int *is_duplicated)
+static int ct_VR_x509_get_ext(X509 *cert, int nid, int *is_duplicated)
 {
     int ret = VR_X509_get_ext_by_NID(cert, nid, -1);
 
@@ -62,7 +62,7 @@ static int ct_x509_get_ext(X509 *cert, int nid, int *is_duplicated)
  * AKID from the presigner certificate, if necessary.
  * Returns 1 on success, 0 otherwise.
  */
-__owur static int ct_x509_cert_fixup(X509 *cert, X509 *presigner)
+__owur static int ct_VR_x509_cert_fixup(X509 *cert, X509 *presigner)
 {
     int preidx, certidx;
     int pre_akid_ext_is_dup, cert_akid_ext_is_dup;
@@ -70,9 +70,9 @@ __owur static int ct_x509_cert_fixup(X509 *cert, X509 *presigner)
     if (presigner == NULL)
         return 1;
 
-    preidx = ct_x509_get_ext(presigner, NID_authority_key_identifier,
+    preidx = ct_VR_x509_get_ext(presigner, NID_authority_key_identifier,
                              &pre_akid_ext_is_dup);
-    certidx = ct_x509_get_ext(cert, NID_authority_key_identifier,
+    certidx = ct_VR_x509_get_ext(cert, NID_authority_key_identifier,
                               &cert_akid_ext_is_dup);
 
     /* An error occurred whilst searching for the extension */
@@ -113,7 +113,7 @@ int VR_SCT_CTX_set1_cert(SCT_CTX *sctx, X509 *cert, X509 *presigner)
     int certderlen = 0, prederlen = 0;
     int idx = -1;
     int poison_ext_is_dup, sct_ext_is_dup;
-    int poison_idx = ct_x509_get_ext(cert, NID_ct_precert_poison, &poison_ext_is_dup);
+    int poison_idx = ct_VR_x509_get_ext(cert, NID_ct_precert_poison, &poison_ext_is_dup);
 
     /* Duplicate poison extensions are present - error */
     if (poison_ext_is_dup)
@@ -131,7 +131,7 @@ int VR_SCT_CTX_set1_cert(SCT_CTX *sctx, X509 *cert, X509 *presigner)
     }
 
     /* See if cert has a precert SCTs extension */
-    idx = ct_x509_get_ext(cert, NID_ct_precert_scts, &sct_ext_is_dup);
+    idx = ct_VR_x509_get_ext(cert, NID_ct_precert_scts, &sct_ext_is_dup);
     /* Duplicate SCT extensions are present - error */
     if (sct_ext_is_dup)
         goto err;
@@ -150,7 +150,7 @@ int VR_SCT_CTX_set1_cert(SCT_CTX *sctx, X509 *cert, X509 *presigner)
 
     /*
      * If either a poison or SCT extension is present, remove it before encoding
-     * cert. This, along with ct_x509_cert_fixup(), gets a TBSCertificate (see
+     * cert. This, along with ct_VR_x509_cert_fixup(), gets a TBSCertificate (see
      * RFC5280) from cert, which is what the CT log signed when it produced the
      * SCT.
      */
@@ -165,7 +165,7 @@ int VR_SCT_CTX_set1_cert(SCT_CTX *sctx, X509 *cert, X509 *presigner)
         ext = VR_X509_delete_ext(pretmp, idx);
         VR_X509_EXTENSION_free(ext);
 
-        if (!ct_x509_cert_fixup(pretmp, presigner))
+        if (!ct_VR_x509_cert_fixup(pretmp, presigner))
             goto err;
 
         prederlen = VR_i2d_re_X509_tbs(pretmp, &preder);

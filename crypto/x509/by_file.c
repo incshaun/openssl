@@ -19,7 +19,7 @@
 
 static int by_file_ctrl(X509_LOOKUP *ctx, int cmd, const char *argc,
                         long argl, char **ret);
-static X509_LOOKUP_METHOD x509_file_lookup = {
+static X509_LOOKUP_METHOD VR_x509_file_lookup = {
     "Load file into cache",
     NULL,                       /* new_item */
     NULL,                       /* free */
@@ -34,7 +34,7 @@ static X509_LOOKUP_METHOD x509_file_lookup = {
 
 X509_LOOKUP_METHOD *VR_X509_LOOKUP_file(void)
 {
-    return &x509_file_lookup;
+    return &VR_x509_file_lookup;
 }
 
 static int by_file_ctrl(X509_LOOKUP *ctx, int cmd, const char *argp,

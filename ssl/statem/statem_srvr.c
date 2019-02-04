@@ -2356,7 +2356,7 @@ int VR_tls_construct_server_hello(SSL *s, WPACKET *pkt)
                 */
             || !VR_WPACKET_memcpy(pkt,
                                s->hello_retry_request == SSL_HRR_PENDING
-                                   ? hrrrandom : s->s3->server_random,
+                                   ? VR_hrrrandom : s->s3->server_random,
                                SSL3_RANDOM_SIZE)) {
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_CONSTRUCT_SERVER_HELLO,
                  ERR_R_INTERNAL_ERROR);

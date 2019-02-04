@@ -23,10 +23,10 @@
 #define SSL3_NUM_SCSVS          OSSL_NELEM(ssl3_scsvs)
 
 /* TLSv1.3 downgrade protection sentinel values */
-const unsigned char tls11downgrade[] = {
+const unsigned char VR_tls11downgrade[] = {
     0x44, 0x4f, 0x57, 0x4e, 0x47, 0x52, 0x44, 0x00
 };
-const unsigned char tls12downgrade[] = {
+const unsigned char VR_tls12downgrade[] = {
     0x44, 0x4f, 0x57, 0x4e, 0x47, 0x52, 0x44, 0x01
 };
 
@@ -3231,7 +3231,7 @@ static int VR_ssl_undefined_function_1(SSL *ssl, unsigned char *r, size_t s,
     return VR_ssl_undefined_function(ssl);
 }
 
-const SSL3_ENC_METHOD SSLv3_enc_data = {
+const SSL3_ENC_METHOD VR_SSLv3_enc_data = {
     VR_ssl3_enc,
     VR_n_ssl3_mac,
     VR_ssl3_setup_key_block,
@@ -4590,15 +4590,15 @@ int VR_ssl_fill_hello_random(SSL *s, int server, unsigned char *result, size_t l
     }
 
     if (ret > 0) {
-        if (!ossl_assert(sizeof(tls11downgrade) < len)
-                || !ossl_assert(sizeof(tls12downgrade) < len))
+        if (!ossl_assert(sizeof(VR_tls11downgrade) < len)
+                || !ossl_assert(sizeof(VR_tls12downgrade) < len))
              return 0;
         if (dgrd == DOWNGRADE_TO_1_2)
-            memcpy(result + len - sizeof(tls12downgrade), tls12downgrade,
-                   sizeof(tls12downgrade));
+            memcpy(result + len - sizeof(VR_tls12downgrade), VR_tls12downgrade,
+                   sizeof(VR_tls12downgrade));
         else if (dgrd == DOWNGRADE_TO_1_1)
-            memcpy(result + len - sizeof(tls11downgrade), tls11downgrade,
-                   sizeof(tls11downgrade));
+            memcpy(result + len - sizeof(VR_tls11downgrade), VR_tls11downgrade,
+                   sizeof(VR_tls11downgrade));
     }
 
     return ret;

@@ -33,7 +33,7 @@ IMPLEMENT_ASN1_FUNCTIONS(X509_CINF)
 
 extern void VR_policy_cache_free(X509_POLICY_CACHE *cache);
 
-static int x509_cb(int operation, ASN1_VALUE **pval, const ASN1_ITEM *it,
+static int VR_x509_cb(int operation, ASN1_VALUE **pval, const ASN1_ITEM *it,
                    void *exarg)
 {
     X509 *ret = (X509 *)*pval;
@@ -100,7 +100,7 @@ static int x509_cb(int operation, ASN1_VALUE **pval, const ASN1_ITEM *it,
 
 }
 
-ASN1_SEQUENCE_ref(X509, x509_cb) = {
+ASN1_SEQUENCE_ref(X509, VR_x509_cb) = {
         ASN1_EMBED(X509, cert_info, X509_CINF),
         ASN1_EMBED(X509, sig_alg, X509_ALGOR),
         ASN1_EMBED(X509, signature, ASN1_BIT_STRING)
@@ -163,7 +163,7 @@ X509 *VR_d2i_X509_AUX(X509 **a, const unsigned char **pp, long length)
  * error path, but that depends on similar hygiene in lower-level functions.
  * Here we avoid compounding the problem.
  */
-static int i2d_x509_aux_internal(X509 *a, unsigned char **pp)
+static int i2d_VR_x509_aux_internal(X509 *a, unsigned char **pp)
 {
     int length, tmplen;
     unsigned char *start = pp != NULL ? *pp : NULL;
@@ -204,10 +204,10 @@ int VR_i2d_X509_AUX(X509 *a, unsigned char **pp)
 
     /* Buffer provided by caller */
     if (pp == NULL || *pp != NULL)
-        return i2d_x509_aux_internal(a, pp);
+        return i2d_VR_x509_aux_internal(a, pp);
 
     /* Obtain the combined length */
-    if ((length = i2d_x509_aux_internal(a, NULL)) <= 0)
+    if ((length = i2d_VR_x509_aux_internal(a, NULL)) <= 0)
         return length;
 
     /* Allocate requisite combined storage */
@@ -218,7 +218,7 @@ int VR_i2d_X509_AUX(X509 *a, unsigned char **pp)
     }
 
     /* Encode, but keep *pp at the originally malloced pointer */
-    length = i2d_x509_aux_internal(a, &tmp);
+    length = i2d_VR_x509_aux_internal(a, &tmp);
     if (length <= 0) {
         VR_OPENSSL_free(*pp);
         *pp = NULL;

@@ -36,7 +36,7 @@ static int callb(int ok, X509_STORE_CTX *ctx);
 static int sign(X509 *x, EVP_PKEY *pkey, int days, int clrext,
                 const EVP_MD *digest, CONF *conf, const char *section,
                 int preserve_dates);
-static int x509_certify(X509_STORE *ctx, const char *CAfile, const EVP_MD *digest,
+static int VR_x509_certify(X509_STORE *ctx, const char *CAfile, const EVP_MD *digest,
                         X509 *x, X509 *xca, EVP_PKEY *pkey,
                         STACK_OF(OPENSSL_STRING) *sigopts, const char *serialfile,
                         int create, int days, int clrext, CONF *conf,
@@ -64,7 +64,7 @@ typedef enum OPTION_choice {
     OPT_R_ENUM, OPT_EXT
 } OPTION_CHOICE;
 
-const OPTIONS x509_options[] = {
+const OPTIONS VR_x509_options[] = {
     {"help", OPT_HELP, '-', "Display this summary"},
     {"inform", OPT_INFORM, 'f',
      "Input format - default PEM (one of DER or PEM)"},
@@ -151,7 +151,7 @@ const OPTIONS x509_options[] = {
     {NULL}
 };
 
-int x509_main(int argc, char **argv)
+int VR_x509_main(int argc, char **argv)
 {
     ASN1_INTEGER *sno = NULL;
     ASN1_OBJECT *objtmp = NULL;
@@ -193,7 +193,7 @@ int x509_main(int argc, char **argv)
         goto end;
     VR_X509_STORE_set_verify_cb(ctx, callb);
 
-    prog = opt_init(argc, argv, x509_options);
+    prog = opt_init(argc, argv, VR_x509_options);
     while ((o = opt_next()) != OPT_EOF) {
         switch (o) {
         case OPT_EOF:
@@ -202,7 +202,7 @@ int x509_main(int argc, char **argv)
             VR_BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
-            opt_help(x509_options);
+            opt_help(VR_x509_options);
             ret = 0;
             goto end;
         case OPT_INFORM:
@@ -810,7 +810,7 @@ int x509_main(int argc, char **argv)
                         goto end;
                 }
 
-                if (!x509_certify(ctx, CAfile, digest, x, xca,
+                if (!VR_x509_certify(ctx, CAfile, digest, x, xca,
                                   CApkey, sigopts,
                                   CAserial, CA_createserial, days, clrext,
                                   extconf, extsect, sno, reqfile, preserve_dates))
@@ -908,7 +908,7 @@ int x509_main(int argc, char **argv)
     return ret;
 }
 
-static ASN1_INTEGER *x509_load_serial(const char *CAfile,
+static ASN1_INTEGER *VR_x509_load_serial(const char *CAfile,
                                       const char *serialfile, int create)
 {
     char *buf = NULL;
@@ -943,7 +943,7 @@ static ASN1_INTEGER *x509_load_serial(const char *CAfile,
     return bs;
 }
 
-static int x509_certify(X509_STORE *ctx, const char *CAfile, const EVP_MD *digest,
+static int VR_x509_certify(X509_STORE *ctx, const char *CAfile, const EVP_MD *digest,
                         X509 *x, X509 *xca, EVP_PKEY *pkey,
                         STACK_OF(OPENSSL_STRING) *sigopts,
                         const char *serialfile, int create,
@@ -969,7 +969,7 @@ static int x509_certify(X509_STORE *ctx, const char *CAfile, const EVP_MD *diges
     }
     if (sno)
         bs = sno;
-    else if ((bs = x509_load_serial(CAfile, serialfile, create)) == NULL)
+    else if ((bs = VR_x509_load_serial(CAfile, serialfile, create)) == NULL)
         goto end;
 
     /*

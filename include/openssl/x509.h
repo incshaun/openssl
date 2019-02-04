@@ -84,7 +84,7 @@ typedef STACK_OF(X509_EXTENSION) X509_EXTENSIONS;
 
 DEFINE_STACK_OF(X509_EXTENSION)
 
-typedef struct x509_attributes_st X509_ATTRIBUTE;
+typedef struct VR_x509_attributes_st X509_ATTRIBUTE;
 
 DEFINE_STACK_OF(X509_ATTRIBUTE)
 
@@ -92,18 +92,18 @@ typedef struct X509_req_info_st X509_REQ_INFO;
 
 typedef struct X509_req_st X509_REQ;
 
-typedef struct x509_cert_aux_st X509_CERT_AUX;
+typedef struct VR_x509_cert_aux_st X509_CERT_AUX;
 
-typedef struct x509_cinf_st X509_CINF;
+typedef struct VR_x509_cinf_st X509_CINF;
 
 DEFINE_STACK_OF(X509)
 
 /* This is used for a table of trust checking functions */
 
-typedef struct x509_trust_st {
+typedef struct VR_x509_trust_st {
     int trust;
     int flags;
-    int (*check_trust) (struct x509_trust_st *, X509 *, int);
+    int (*check_trust) (struct VR_x509_trust_st *, X509 *, int);
     char *name;
     int arg1;
     void *arg2;
