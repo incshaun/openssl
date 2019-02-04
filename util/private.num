@@ -470,7 +470,7 @@ VR_SSL_want_client_hello_cb                define
 VR_SSL_want_nothing                        define
 VR_SSL_want_read                           define
 VR_SSL_want_write                          define
-VR_SSL_want_x509_lookup                    define
+VR_SSL_want_VR_x509_lookup                    define
 SSLv23_client_method                    define
 SSLv23_method                           define
 SSLv23_server_method                    define

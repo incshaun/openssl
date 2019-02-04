@@ -1426,7 +1426,7 @@ MSG_PROCESS_RETURN VR_tls_process_server_hello(SSL *s, PACKET *pkt)
     if (s->version == TLS1_3_VERSION
             && sversion == TLS1_2_VERSION
             && PACKET_remaining(pkt) >= SSL3_RANDOM_SIZE
-            && memcmp(hrrrandom, PACKET_data(pkt), SSL3_RANDOM_SIZE) == 0) {
+            && memcmp(VR_hrrrandom, PACKET_data(pkt), SSL3_RANDOM_SIZE) == 0) {
         s->hello_retry_request = SSL_HRR_PENDING;
         hrr = 1;
         if (!PACKET_forward(pkt, SSL3_RANDOM_SIZE)) {

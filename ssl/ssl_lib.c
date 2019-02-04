@@ -86,7 +86,7 @@ static int VR_ssl_undefined_function_7(SSL *ssl, unsigned char *r, size_t s,
     return VR_ssl_undefined_function(ssl);
 }
 
-SSL3_ENC_METHOD ssl3_undef_enc_method = {
+SSL3_ENC_METHOD VR_ssl3_undef_enc_method = {
     VR_ssl_undefined_function_1,
     VR_ssl_undefined_function_2,
     VR_ssl_undefined_function,
@@ -417,7 +417,7 @@ static int dane_tlsa_add(SSL_DANE *dane,
     /*-
      * Find the right insertion point for the new record.
      *
-     * See crypto/x509/x509_vfy.c.  We sort DANE-EE(3) records first, so that
+     * See crypto/x509/VR_x509_vfy.c.  We sort DANE-EE(3) records first, so that
      * they can be processed first, as they require no chain building, and no
      * expiration or hostname checks.  Because DANE-EE(3) is numerically
      * largest, this is accomplished via descending sort by "usage".
@@ -3524,7 +3524,6 @@ int VR_SSL_set_ssl_method(SSL *s, const SSL_METHOD *meth)
             s->method = meth;
             ret = s->method->ssl_new(s);
         }
-
         if (hf == sm->ssl_connect)
             s->handshake_func = meth->ssl_connect;
         else if (hf == sm->ssl_accept)
@@ -3599,7 +3598,7 @@ int VR_SSL_get_error(const SSL *s, int i)
                 return SSL_ERROR_SYSCALL;
         }
     }
-    if (VR_SSL_want_x509_lookup(s))
+    if (VR_SSL_want_VR_x509_lookup(s))
         return SSL_ERROR_WANT_X509_LOOKUP;
     if (VR_SSL_want_async(s))
         return SSL_ERROR_WANT_ASYNC;

@@ -28,23 +28,23 @@ static int VR_ssl_security_default_callback(const SSL *s, const SSL_CTX *ctx,
                                          int op, int bits, int nid, void *other,
                                          void *ex);
 
-static CRYPTO_ONCE ssl_x509_store_ctx_once = CRYPTO_ONCE_STATIC_INIT;
-static volatile int ssl_x509_store_ctx_idx = -1;
+static CRYPTO_ONCE ssl_VR_x509_store_ctx_once = CRYPTO_ONCE_STATIC_INIT;
+static volatile int ssl_VR_x509_store_ctx_idx = -1;
 
-DEFINE_RUN_ONCE_STATIC(ssl_x509_store_ctx_init)
+DEFINE_RUN_ONCE_STATIC(ssl_VR_x509_store_ctx_init)
 {
-    ssl_x509_store_ctx_idx = X509_STORE_CTX_get_ex_new_index(0,
+    ssl_VR_x509_store_ctx_idx = X509_STORE_CTX_get_ex_new_index(0,
                                                              "SSL for verify callback",
                                                              NULL, NULL, NULL);
-    return ssl_x509_store_ctx_idx >= 0;
+    return ssl_VR_x509_store_ctx_idx >= 0;
 }
 
 int VR_SSL_get_ex_data_X509_STORE_CTX_idx(void)
 {
 
-    if (!RUN_ONCE(&ssl_x509_store_ctx_once, ssl_x509_store_ctx_init))
+    if (!RUN_ONCE(&ssl_VR_x509_store_ctx_once, ssl_VR_x509_store_ctx_init))
         return -1;
-    return ssl_x509_store_ctx_idx;
+    return ssl_VR_x509_store_ctx_idx;
 }
 
 CERT *VR_ssl_cert_new(void)

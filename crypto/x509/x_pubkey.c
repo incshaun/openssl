@@ -23,10 +23,10 @@ struct X509_pubkey_st {
     EVP_PKEY *pkey;
 };
 
-static int x509_pubkey_decode(EVP_PKEY **pk, X509_PUBKEY *key);
+static int VR_x509_pubkey_decode(EVP_PKEY **pk, X509_PUBKEY *key);
 
 /* Minor tweak to operation: free up EVP_PKEY */
-static int pubkey_cb(int operation, ASN1_VALUE **pval, const ASN1_ITEM *it,
+static int VR_pubkey_cb(int operation, ASN1_VALUE **pval, const ASN1_ITEM *it,
                      void *exarg)
 {
     if (operation == ASN1_OP_FREE_POST) {
@@ -43,14 +43,14 @@ static int pubkey_cb(int operation, ASN1_VALUE **pval, const ASN1_ITEM *it,
          * will return an appropriate error.
          */
         VR_ERR_set_mark();
-        if (x509_pubkey_decode(&pubkey->pkey, pubkey) == -1)
+        if (VR_x509_pubkey_decode(&pubkey->pkey, pubkey) == -1)
             return 0;
         VR_ERR_pop_to_mark();
     }
     return 1;
 }
 
-ASN1_SEQUENCE_cb(X509_PUBKEY, pubkey_cb) = {
+ASN1_SEQUENCE_cb(X509_PUBKEY, VR_pubkey_cb) = {
         ASN1_SIMPLE(X509_PUBKEY, algor, X509_ALGOR),
         ASN1_SIMPLE(X509_PUBKEY, public_key, ASN1_BIT_STRING)
 } ASN1_SEQUENCE_END_cb(X509_PUBKEY, X509_PUBKEY)
@@ -101,7 +101,7 @@ int VR_X509_PUBKEY_set(X509_PUBKEY **x, EVP_PKEY *pkey)
  */
 
 
-static int x509_pubkey_decode(EVP_PKEY **ppkey, X509_PUBKEY *key)
+static int VR_x509_pubkey_decode(EVP_PKEY **ppkey, X509_PUBKEY *key)
 {
     EVP_PKEY *pkey = VR_EVP_PKEY_new();
 
@@ -156,7 +156,7 @@ EVP_PKEY *VR_X509_PUBKEY_get0(X509_PUBKEY *key)
      * We repeat the decode operation so the appropriate errors are left
      * in the queue.
      */
-    x509_pubkey_decode(&ret, key);
+    VR_x509_pubkey_decode(&ret, key);
     /* If decode doesn't fail something bad happened */
     if (ret != NULL) {
         X509err(X509_F_X509_PUBKEY_GET0, ERR_R_INTERNAL_ERROR);

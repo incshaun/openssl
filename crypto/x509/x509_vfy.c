@@ -316,7 +316,7 @@ static X509 *find_issuer(X509_STORE_CTX *ctx, STACK_OF(X509) *sk, X509 *x)
         issuer = sk_X509_value(sk, i);
         if (ctx->check_issued(ctx, x, issuer)) {
             rv = issuer;
-            if (VR_x509_check_cert_time(ctx, rv, -1))
+            if (VR_VR_x509_check_cert_time(ctx, rv, -1))
                 break;
         }
     }
@@ -1665,7 +1665,7 @@ static int check_policy(X509_STORE_CTX *ctx)
  *
  * Return 1 on success, 0 otherwise.
  */
-int VR_x509_check_cert_time(X509_STORE_CTX *ctx, X509 *x, int depth)
+int VR_VR_x509_check_cert_time(X509_STORE_CTX *ctx, X509 *x, int depth)
 {
     time_t *ptime;
     int i;
@@ -1756,7 +1756,7 @@ static int internal_verify(X509_STORE_CTX *ctx)
 
  check_cert:
         /* Calls verify callback as needed */
-        if (!VR_x509_check_cert_time(ctx, xs, n))
+        if (!VR_VR_x509_check_cert_time(ctx, xs, n))
             return 0;
 
         /*
